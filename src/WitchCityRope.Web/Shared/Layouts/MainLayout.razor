@@ -1,0 +1,780 @@
+@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@inject IAuthService AuthService
+@inject IJSRuntime JS
+
+<div class="wcr-app">
+    <ToastContainer />
+    
+    <!-- Utility Bar -->
+    <div class="utility-bar">
+        <a href="/incident-report" class="incident-link">Report an Incident</a>
+        <a href="/private-lessons">Private Lessons</a>
+        <a href="/contact">Contact</a>
+    </div>
+    
+    <!-- Header -->
+    <header class="header @(_scrolled ? "scrolled" : "")" id="header">
+        <a href="/" class="logo">WITCH CITY ROPE</a>
+        <nav class="nav">
+            <a href="/events" class="nav-item">Events & Classes</a>
+            @if (_currentUser != null)
+            {
+                <a href="/member/dashboard" class="nav-item">My Dashboard</a>
+            }
+            <a href="/resources" class="nav-item">Resources</a>
+            @if (_currentUser != null)
+            {
+                <div class="user-menu">
+                    <button class="user-menu-btn" @onclick="ToggleUserMenu">
+                        <img src="/images/avatar-placeholder.png" alt="User" class="user-avatar-sm">
+                        <span>@_currentUser?.SceneName</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="user-dropdown @(_userMenuOpen ? "show" : "")">
+                        <a href="/member/profile" class="dropdown-item">
+                            <i class="fas fa-user"></i> My Profile
+                        </a>
+                        <a href="/member/tickets" class="dropdown-item">
+                            <i class="fas fa-ticket-alt"></i> My Tickets
+                        </a>
+                        <a href="/member/settings" class="dropdown-item">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                        @if (_currentUser?.IsAdmin == true)
+                        {
+                            <div class="dropdown-divider"></div>
+                            <a href="/admin" class="dropdown-item">
+                                <i class="fas fa-shield-alt"></i> Admin Panel
+                            </a>
+                        }
+                        <div class="dropdown-divider"></div>
+                        <a href="#" @onclick="Logout" @onclick:preventDefault="true" class="dropdown-item">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="auth-buttons">
+                    <a href="/login" class="btn btn-primary btn-sm">Login</a>
+                    <a href="/register" class="btn btn-outline btn-sm">Sign Up</a>
+                </div>
+            }
+        </nav>
+        <button class="mobile-menu-toggle" @onclick="ToggleMobileMenu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
+    
+    <!-- Mobile Menu -->
+    <div class="mobile-menu @(_mobileMenuOpen ? "active" : "")">
+        <div class="mobile-menu-header">
+            <a href="/" class="logo">WITCH CITY ROPE</a>
+            <button class="mobile-menu-close" @onclick="CloseMobileMenu">
+                <span>&times;</span>
+            </button>
+        </div>
+        <nav class="mobile-nav">
+            @if (_currentUser != null)
+            {
+                <div class="mobile-user-info">
+                    <img src="/images/avatar-placeholder.png" alt="User" class="user-avatar">
+                    <div>
+                        <div class="user-name">@_currentUser?.SceneName</div>
+                        <div class="user-email">@_currentUser?.Email</div>
+                    </div>
+                </div>
+            }
+            <a href="/events" class="mobile-nav-item" @onclick="CloseMobileMenu">Events & Classes</a>
+            @if (_currentUser != null)
+            {
+                <a href="/member/dashboard" class="mobile-nav-item" @onclick="CloseMobileMenu">My Dashboard</a>
+                <a href="/member/tickets" class="mobile-nav-item" @onclick="CloseMobileMenu">My Tickets</a>
+            }
+            <a href="/resources" class="mobile-nav-item" @onclick="CloseMobileMenu">Resources</a>
+            @if (_currentUser != null)
+            {
+                <a href="/member/profile" class="mobile-nav-item" @onclick="CloseMobileMenu">My Profile</a>
+                <a href="/member/settings" class="mobile-nav-item" @onclick="CloseMobileMenu">Settings</a>
+                @if (_currentUser?.IsAdmin == true)
+                {
+                    <a href="/admin" class="mobile-nav-item admin" @onclick="CloseMobileMenu">Admin Panel</a>
+                }
+            }
+            <a href="/incident-report" class="mobile-nav-item incident" @onclick="CloseMobileMenu">Report an Incident</a>
+            <a href="/private-lessons" class="mobile-nav-item" @onclick="CloseMobileMenu">Private Lessons</a>
+            <a href="/contact" class="mobile-nav-item" @onclick="CloseMobileMenu">Contact</a>
+            <div class="mobile-nav-actions">
+                @if (_currentUser != null)
+                {
+                    <button class="btn btn-secondary" @onclick="Logout">Logout</button>
+                }
+                else
+                {
+                    <a href="/login" class="btn btn-primary" @onclick="CloseMobileMenu">Login</a>
+                    <a href="/register" class="btn btn-outline" @onclick="CloseMobileMenu">Sign Up</a>
+                }
+            </div>
+        </nav>
+    </div>
+    <div class="mobile-menu-overlay @(_mobileMenuOpen ? "active" : "")" @onclick="CloseMobileMenu"></div>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        @Body
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Education</h4>
+                <ul>
+                    <li><a href="/classes">Classes</a></li>
+                    <li><a href="/workshops">Workshops</a></li>
+                    <li><a href="/private-lessons">Private Lessons</a></li>
+                    <li><a href="/resources">Resources</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Community</h4>
+                <ul>
+                    <li><a href="/about">About Us</a></li>
+                    <li><a href="/code-of-conduct">Code of Conduct</a></li>
+                    <li><a href="/membership">Membership</a></li>
+                    <li><a href="/events">Events Calendar</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="/safety">Safety Guidelines</a></li>
+                    <li><a href="/faq">FAQ</a></li>
+                    <li><a href="/consent">Consent Resources</a></li>
+                    <li><a href="/glossary">Glossary</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Connect</h4>
+                <div class="newsletter-signup">
+                    <p>Stay updated with our events and classes</p>
+                    <form @onsubmit="SubscribeNewsletter" @onsubmit:preventDefault="true">
+                        <input type="email" placeholder="Your email" @bind="_newsletterEmail" required />
+                        <button type="submit" class="btn btn-primary">Subscribe</button>
+                    </form>
+                </div>
+                <div class="social-links">
+                    <a href="https://discord.gg/witchcityrope" aria-label="Discord" target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-discord"></i>
+                    </a>
+                    <a href="https://fetlife.com/groups/witchcityrope" aria-label="FetLife" target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-fetlife"></i>
+                    </a>
+                    <a href="https://instagram.com/witchcityrope" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; @DateTime.Now.Year Witch City Rope. All rights reserved. | <a href="/privacy">Privacy Policy</a> | <a href="/terms">Terms of Service</a></p>
+        </div>
+    </footer>
+</div>
+
+<style>
+    /* Utility Bar */
+    .utility-bar {
+        background: var(--wcr-color-midnight);
+        padding: 12px 40px;
+        font-size: 13px;
+        color: var(--wcr-color-taupe);
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        font-family: var(--wcr-font-heading);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .utility-bar a {
+        color: var(--wcr-color-taupe);
+        text-decoration: none;
+        margin-left: var(--wcr-space-lg);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .utility-bar a::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0;
+        height: 1px;
+        background: var(--wcr-color-rose-gold);
+        transition: width 0.3s ease;
+    }
+    
+    .utility-bar a:hover {
+        color: var(--wcr-color-rose-gold);
+    }
+    
+    .utility-bar a:hover::after {
+        width: 100%;
+    }
+    
+    .utility-bar a.incident-link {
+        color: var(--wcr-color-brass);
+        font-weight: 600;
+    }
+    
+    /* Header */
+    .header {
+        background: rgba(255, 248, 240, 0.95);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+        padding: var(--wcr-space-sm) 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        transition: all 0.3s ease;
+    }
+    
+    .header.scrolled {
+        padding: 12px 40px;
+        box-shadow: 0 4px 30px rgba(0,0,0,0.12);
+    }
+    
+    .logo {
+        font-family: var(--wcr-font-heading);
+        font-size: 30px;
+        font-weight: 800;
+        color: var(--wcr-color-burgundy);
+        text-decoration: none;
+        letter-spacing: -0.5px;
+        transition: all 0.3s ease;
+    }
+    
+    .logo:hover {
+        color: var(--wcr-color-burgundy-light);
+        transform: scale(1.02);
+    }
+    
+    .nav {
+        display: flex;
+        gap: var(--wcr-space-xl);
+        align-items: center;
+    }
+    
+    .nav-item {
+        color: var(--wcr-color-charcoal);
+        text-decoration: none;
+        font-family: var(--wcr-font-heading);
+        font-weight: 500;
+        font-size: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .nav-item::before {
+        content: '';
+        position: absolute;
+        bottom: -4px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 2px;
+        background: var(--wcr-color-burgundy);
+        transition: width 0.3s ease;
+    }
+    
+    .nav-item:hover {
+        color: var(--wcr-color-burgundy);
+    }
+    
+    .nav-item:hover::before {
+        width: 100%;
+    }
+    
+    /* Auth Buttons */
+    .auth-buttons {
+        display: flex;
+        gap: var(--wcr-space-sm);
+        align-items: center;
+    }
+    
+    .auth-buttons .btn-sm {
+        padding: 6px 16px;
+        font-size: 14px;
+        font-family: var(--wcr-font-heading);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+    
+    /* User Menu */
+    .user-menu {
+        position: relative;
+    }
+    
+    .user-menu-btn {
+        background: none;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+        cursor: pointer;
+        padding: var(--wcr-space-sm);
+        border-radius: var(--wcr-radius-sm);
+        transition: all 0.3s ease;
+        font-family: var(--wcr-font-body);
+        color: var(--wcr-color-charcoal);
+    }
+    
+    .user-menu-btn:hover {
+        background: var(--wcr-color-cream);
+    }
+    
+    .user-avatar-sm {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .user-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: var(--wcr-space-sm);
+        background: white;
+        border-radius: var(--wcr-radius-md);
+        box-shadow: var(--wcr-shadow-lg);
+        min-width: 200px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+    }
+    
+    .user-dropdown.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+    
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+        padding: var(--wcr-space-sm) var(--wcr-space-md);
+        color: var(--wcr-color-charcoal);
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .dropdown-item:hover {
+        background: var(--wcr-color-cream);
+        color: var(--wcr-color-burgundy);
+    }
+    
+    .dropdown-divider {
+        height: 1px;
+        background: var(--wcr-color-cream);
+        margin: var(--wcr-space-xs) 0;
+    }
+    
+    /* Mobile Menu Toggle */
+    .mobile-menu-toggle {
+        display: none;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        width: 40px;
+        height: 40px;
+        position: relative;
+    }
+    
+    .mobile-menu-toggle span {
+        display: block;
+        width: 28px;
+        height: 2px;
+        background: var(--wcr-color-burgundy);
+        margin: 6px 0;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    /* Mobile Menu */
+    .mobile-menu {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 80%;
+        max-width: 300px;
+        height: 100vh;
+        background: var(--wcr-color-ivory);
+        box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+        transition: right 0.3s ease;
+        z-index: 1000;
+        overflow-y: auto;
+    }
+    
+    .mobile-menu.active {
+        right: 0;
+    }
+    
+    .mobile-menu-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 999;
+    }
+    
+    .mobile-menu-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .mobile-menu-header {
+        padding: var(--wcr-space-md);
+        border-bottom: 1px solid var(--wcr-color-taupe);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .mobile-menu-close {
+        background: none;
+        border: none;
+        font-size: 32px;
+        cursor: pointer;
+        color: var(--wcr-color-charcoal);
+    }
+    
+    .mobile-nav {
+        padding: var(--wcr-space-md);
+    }
+    
+    .mobile-user-info {
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+        padding: var(--wcr-space-md) 0;
+        border-bottom: 1px solid var(--wcr-color-cream);
+        margin-bottom: var(--wcr-space-md);
+    }
+    
+    .user-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .user-name {
+        font-weight: 600;
+        color: var(--wcr-color-charcoal);
+    }
+    
+    .user-email {
+        font-size: 14px;
+        color: var(--wcr-color-stone);
+    }
+    
+    .mobile-nav-item {
+        display: block;
+        padding: var(--wcr-space-sm) 0;
+        color: var(--wcr-color-charcoal);
+        text-decoration: none;
+        font-family: var(--wcr-font-heading);
+        font-weight: 500;
+        font-size: 16px;
+        border-bottom: 1px solid var(--wcr-color-cream);
+        transition: all 0.3s ease;
+    }
+    
+    .mobile-nav-item:hover {
+        color: var(--wcr-color-burgundy);
+        padding-left: var(--wcr-space-sm);
+    }
+    
+    .mobile-nav-item.incident {
+        color: var(--wcr-color-brass);
+        font-weight: 600;
+    }
+    
+    .mobile-nav-item.admin {
+        color: var(--wcr-color-burgundy);
+        font-weight: 600;
+    }
+    
+    .mobile-nav-actions {
+        margin-top: var(--wcr-space-lg);
+        display: flex;
+        flex-direction: column;
+        gap: var(--wcr-space-sm);
+    }
+    
+    .mobile-nav-actions a {
+        text-align: center;
+        text-decoration: none;
+    }
+    
+    /* Main Content */
+    .main-content {
+        min-height: calc(100vh - 300px);
+    }
+    
+    /* Footer */
+    .footer {
+        background: var(--wcr-color-midnight);
+        color: var(--wcr-color-taupe);
+        padding: var(--wcr-space-3xl) 40px var(--wcr-space-lg);
+        margin-top: var(--wcr-space-3xl);
+    }
+    
+    .footer-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--wcr-space-3xl);
+    }
+    
+    .footer-section h3,
+    .footer-section h4 {
+        color: var(--wcr-color-ivory);
+        margin-bottom: var(--wcr-space-md);
+        font-family: var(--wcr-font-heading);
+    }
+    
+    .footer-section ul {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .footer-section li {
+        margin-bottom: var(--wcr-space-sm);
+    }
+    
+    .footer-section a {
+        color: var(--wcr-color-taupe);
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    
+    .footer-section a:hover {
+        color: var(--wcr-color-rose-gold);
+    }
+    
+    .newsletter-signup {
+        margin-bottom: var(--wcr-space-lg);
+    }
+    
+    .newsletter-signup p {
+        color: var(--wcr-color-taupe);
+        font-size: 14px;
+        margin-bottom: var(--wcr-space-sm);
+    }
+    
+    .newsletter-signup form {
+        display: flex;
+        flex-direction: column;
+        gap: var(--wcr-space-sm);
+    }
+    
+    .newsletter-signup input[type="email"] {
+        padding: var(--wcr-space-sm) var(--wcr-space-md);
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: var(--wcr-radius-sm);
+        color: var(--wcr-color-ivory);
+        font-family: var(--wcr-font-body);
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+    
+    .newsletter-signup input[type="email"]::placeholder {
+        color: var(--wcr-color-taupe);
+        opacity: 0.7;
+    }
+    
+    .newsletter-signup input[type="email"]:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.15);
+        border-color: var(--wcr-color-rose-gold);
+    }
+    
+    .newsletter-signup .btn {
+        padding: var(--wcr-space-sm) var(--wcr-space-md);
+        font-size: 14px;
+    }
+    
+    .social-links {
+        display: flex;
+        gap: var(--wcr-space-md);
+        margin-top: var(--wcr-space-md);
+    }
+    
+    .social-links a {
+        font-size: 24px;
+        color: var(--wcr-color-taupe);
+        transition: all 0.3s ease;
+    }
+    
+    .social-links a:hover {
+        color: var(--wcr-color-rose-gold);
+        transform: translateY(-2px);
+    }
+    
+    .footer-bottom {
+        border-top: 1px solid rgba(255,255,255,0.1);
+        margin-top: var(--wcr-space-3xl);
+        padding-top: var(--wcr-space-lg);
+        text-align: center;
+        color: var(--wcr-color-stone);
+        font-size: 14px;
+    }
+    
+    .footer-bottom a {
+        color: var(--wcr-color-taupe);
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    
+    .footer-bottom a:hover {
+        color: var(--wcr-color-rose-gold);
+    }
+    
+    /* Responsive */
+    @@media (max-width: 1024px) {
+        .footer-content {
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--wcr-space-xl);
+        }
+    }
+    
+    @@media (max-width: 768px) {
+        .utility-bar {
+            padding: 8px 20px;
+            font-size: 11px;
+        }
+        
+        .header {
+            padding: 12px 20px;
+        }
+        
+        .logo {
+            font-size: 24px;
+        }
+        
+        .nav {
+            display: none;
+        }
+        
+        .mobile-menu-toggle {
+            display: block;
+        }
+        
+        .footer-content {
+            grid-template-columns: 1fr;
+            gap: var(--wcr-space-xl);
+        }
+        
+        .footer {
+            padding: var(--wcr-space-xl) 20px;
+        }
+        
+        .footer-bottom {
+            font-size: 12px;
+        }
+        
+        .footer-bottom p {
+            line-height: 1.6;
+        }
+    }
+</style>
+
+@code {
+    private bool _mobileMenuOpen = false;
+    private bool _userMenuOpen = false;
+    private bool _scrolled = false;
+    private UserDto? _currentUser;
+    private string _newsletterEmail = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _currentUser = await AuthService.GetCurrentUserAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("addScrollListener", DotNetObjectReference.Create(this));
+            await JS.InvokeVoidAsync("addClickOutsideListener", DotNetObjectReference.Create(this));
+        }
+    }
+    
+    [JSInvokable]
+    public void OnClickOutside()
+    {
+        _userMenuOpen = false;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void ToggleMobileMenu()
+    {
+        _mobileMenuOpen = !_mobileMenuOpen;
+    }
+
+    private void CloseMobileMenu()
+    {
+        _mobileMenuOpen = false;
+    }
+
+    private void ToggleUserMenu()
+    {
+        _userMenuOpen = !_userMenuOpen;
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/");
+    }
+
+    [JSInvokable]
+    public void OnScroll(bool scrolled)
+    {
+        _scrolled = scrolled;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SubscribeNewsletter()
+    {
+        // TODO: Implement newsletter subscription
+        // For now, just show a success message
+        Console.WriteLine($"Newsletter subscription for: {_newsletterEmail}");
+        _newsletterEmail = string.Empty;
+        StateHasChanged();
+    }
+}

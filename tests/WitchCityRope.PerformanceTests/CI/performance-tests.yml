@@ -1,0 +1,167 @@
+name: Performance Tests
+
+on:
+  schedule:
+    # Run nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of performance test to run'
+        required: true
+        default: 'load'
+        type: choice
+        options:
+          - load
+          - stress
+          - spike
+          - soak
+      environment:
+        description: 'Environment to test against'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  nbomber-tests:
+    name: NBomber Performance Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Restore dependencies
+      run: dotnet restore tests/WitchCityRope.PerformanceTests/WitchCityRope.PerformanceTests.csproj
+    
+    - name: Build
+      run: dotnet build tests/WitchCityRope.PerformanceTests/WitchCityRope.PerformanceTests.csproj --no-restore
+    
+    - name: Run Load Tests
+      if: github.event.inputs.test_type == 'load' || github.event_name == 'schedule'
+      run: |
+        dotnet test tests/WitchCityRope.PerformanceTests/WitchCityRope.PerformanceTests.csproj \
+          --filter "Category=LoadTest" \
+          --logger "trx;LogFileName=load-test-results.trx" \
+          --logger "html;LogFileName=load-test-results.html" \
+          --results-directory ./test-results
+      env:
+        ASPNETCORE_ENVIRONMENT: ${{ github.event.inputs.environment || 'staging' }}
+    
+    - name: Run Stress Tests
+      if: github.event.inputs.test_type == 'stress'
+      run: |
+        dotnet test tests/WitchCityRope.PerformanceTests/WitchCityRope.PerformanceTests.csproj \
+          --filter "Category=StressTest" \
+          --logger "trx;LogFileName=stress-test-results.trx" \
+          --results-directory ./test-results
+      env:
+        ASPNETCORE_ENVIRONMENT: ${{ github.event.inputs.environment }}
+    
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-test-results
+        path: |
+          ./test-results/
+          ./tests/WitchCityRope.PerformanceTests/reports/
+    
+    - name: Publish Test Report
+      if: always()
+      uses: dorny/test-reporter@v1
+      with:
+        name: Performance Test Results
+        path: './test-results/*.trx'
+        reporter: dotnet-trx
+
+  k6-tests:
+    name: K6 Performance Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install k6
+      run: |
+        sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+        echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+        sudo apt-get update
+        sudo apt-get install k6
+    
+    - name: Run k6 Load Test
+      if: github.event.inputs.test_type == 'load'
+      run: |
+        k6 run \
+          --out json=k6-results.json \
+          --summary-export=k6-summary.json \
+          tests/WitchCityRope.PerformanceTests/k6/events-load-test.js
+      env:
+        BASE_URL: ${{ secrets[format('{0}_API_URL', github.event.inputs.environment)] }}
+    
+    - name: Run k6 Stress Test
+      if: github.event.inputs.test_type == 'stress'
+      run: |
+        k6 run \
+          --out json=k6-results.json \
+          --summary-export=k6-summary.json \
+          tests/WitchCityRope.PerformanceTests/k6/stress-test.js
+      env:
+        BASE_URL: ${{ secrets[format('{0}_API_URL', github.event.inputs.environment)] }}
+    
+    - name: Upload k6 Results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: k6-test-results
+        path: |
+          k6-results.json
+          k6-summary.json
+          summary.html
+
+  performance-analysis:
+    name: Analyze Performance Results
+    runs-on: ubuntu-latest
+    needs: [nbomber-tests, k6-tests]
+    if: always()
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+    
+    - name: Analyze Results
+      run: |
+        # This would run a script to analyze results and check for regressions
+        echo "Analyzing performance test results..."
+        
+    - name: Comment PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          // Read and parse test results
+          // Create a formatted comment with performance metrics
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '## Performance Test Results\n\nSee artifacts for detailed results.'
+          });
+    
+    - name: Send Alerts
+      if: failure()
+      run: |
+        # Send alerts for performance regressions
+        echo "Performance regression detected!"

@@ -1,0 +1,174 @@
+@page "/admin/skeleton-demo"
+@using WitchCityRope.Web.Shared.Components.UI
+
+<h1>Skeleton Loader Component Demo</h1>
+<p>This page demonstrates the various skeleton loader types and configurations available in the WitchCityRope design system.</p>
+
+<div class="demo-section">
+    <h2>Text Skeleton</h2>
+    <p>Use for loading text content like paragraphs, titles, or descriptions.</p>
+    
+    <div class="demo-example">
+        <h3>Basic Text</h3>
+        <SkeletonLoader Type="SkeletonLoader.SkeletonType.Text" Count="3" Width="100%" />
+    </div>
+
+    <div class="demo-example">
+        <h3>Different Sizes</h3>
+        <h4>Small</h4>
+        <SkeletonLoader Type="SkeletonLoader.SkeletonType.Text" Size="small" Count="2" Width="80%" />
+        
+        <h4>Medium (Default)</h4>
+        <SkeletonLoader Type="SkeletonLoader.SkeletonType.Text" Size="medium" Count="2" Width="80%" />
+        
+        <h4>Large</h4>
+        <SkeletonLoader Type="SkeletonLoader.SkeletonType.Text" Size="large" Count="2" Width="80%" />
+    </div>
+
+    <div class="demo-example">
+        <h3>Custom Width</h3>
+        <SkeletonLoader Type="SkeletonLoader.SkeletonType.Text" Width="200px" />
+        <SkeletonLoader Type="SkeletonLoader.SkeletonType.Text" Width="300px" />
+        <SkeletonLoader Type="SkeletonLoader.SkeletonType.Text" Width="150px" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h2>Card Skeleton</h2>
+    <p>Use for loading card-based content like event cards, member profiles, or product cards.</p>
+    
+    <div class="demo-example">
+        <h3>Single Card</h3>
+        <SkeletonLoader Type="SkeletonLoader.SkeletonType.Card" Count="1" />
+    </div>
+
+    <div class="demo-example">
+        <h3>Multiple Cards</h3>
+        <SkeletonLoader Type="SkeletonLoader.SkeletonType.Card" Count="3" />
+    </div>
+
+    <div class="demo-example">
+        <h3>Custom Dimensions</h3>
+        <SkeletonLoader Type="SkeletonLoader.SkeletonType.Card" Width="400px" Height="250px" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h2>Table Skeleton</h2>
+    <p>Use for loading tabular data like user lists, financial reports, or event schedules.</p>
+    
+    <div class="demo-example">
+        <h3>Default Table (4 columns, 3 rows)</h3>
+        <SkeletonLoader Type="SkeletonLoader.SkeletonType.Table" Count="3" />
+    </div>
+
+    <div class="demo-example">
+        <h3>Custom Columns and Rows</h3>
+        <SkeletonLoader Type="SkeletonLoader.SkeletonType.Table" Count="5" TableColumns="6" />
+    </div>
+
+    <div class="demo-example">
+        <h3>Narrow Table</h3>
+        <SkeletonLoader Type="SkeletonLoader.SkeletonType.Table" Count="4" TableColumns="2" Width="50%" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h2>List Skeleton</h2>
+    <p>Use for loading list items like notifications, messages, or activity feeds.</p>
+    
+    <div class="demo-example">
+        <h3>Single List Item</h3>
+        <SkeletonLoader Type="SkeletonLoader.SkeletonType.List" Count="1" />
+    </div>
+
+    <div class="demo-example">
+        <h3>Multiple List Items</h3>
+        <SkeletonLoader Type="SkeletonLoader.SkeletonType.List" Count="4" />
+    </div>
+
+    <div class="demo-example">
+        <h3>Custom Width</h3>
+        <SkeletonLoader Type="SkeletonLoader.SkeletonType.List" Count="2" Width="600px" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h2>Real-World Examples</h2>
+    <p>Here are some practical examples of using skeleton loaders in actual page contexts.</p>
+
+    <div class="demo-example">
+        <h3>Loading User Profile</h3>
+        <div style="max-width: 800px;">
+            <div style="display: flex; gap: 2rem; align-items: start;">
+                <SkeletonLoader Type="SkeletonLoader.SkeletonType.Card" Count="1" Width="200px" Height="200px" />
+                <div style="flex: 1;">
+                    <SkeletonLoader Type="SkeletonLoader.SkeletonType.Text" Size="large" Width="300px" Count="1" />
+                    <div style="margin-top: 1rem;">
+                        <SkeletonLoader Type="SkeletonLoader.SkeletonType.Text" Count="3" Width="100%" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-example">
+        <h3>Loading Event List</h3>
+        <SkeletonLoader Type="SkeletonLoader.SkeletonType.Card" Count="6" />
+    </div>
+
+    <div class="demo-example">
+        <h3>Loading Dashboard Stats</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+            @for (int i = 0; i < 4; i++)
+            {
+                <div style="background: var(--wcr-ivory); padding: 1.5rem; border-radius: var(--wcr-radius-lg); border: 1px solid var(--wcr-taupe);">
+                    <SkeletonLoader Type="SkeletonLoader.SkeletonType.Text" Size="small" Width="60%" Count="1" />
+                    <div style="margin-top: 1rem;">
+                        <SkeletonLoader Type="SkeletonLoader.SkeletonType.Text" Size="large" Width="40%" Count="1" />
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .demo-section {
+        margin-bottom: 3rem;
+        padding: 2rem;
+        background-color: var(--wcr-cream);
+        border-radius: var(--wcr-radius-lg);
+    }
+
+    .demo-section h2 {
+        color: var(--wcr-burgundy);
+        margin-bottom: 1rem;
+    }
+
+    .demo-section > p {
+        color: var(--wcr-stone);
+        margin-bottom: 2rem;
+    }
+
+    .demo-example {
+        background-color: var(--wcr-ivory);
+        padding: 2rem;
+        border-radius: var(--wcr-radius-md);
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--wcr-taupe);
+    }
+
+    .demo-example h3 {
+        color: var(--wcr-charcoal);
+        margin-bottom: 1.5rem;
+        font-size: 1.25rem;
+    }
+
+    .demo-example h4 {
+        color: var(--wcr-smoke);
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+    }
+</style>

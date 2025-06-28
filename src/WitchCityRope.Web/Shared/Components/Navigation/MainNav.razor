@@ -1,0 +1,234 @@
+@using WitchCityRope.Web.Services
+@inject AuthenticationService AuthService
+@inject NavigationManager Navigation
+
+@* Main navigation component for the application *@
+
+<nav class="main-nav @(isMenuOpen ? "menu-open" : "")">
+    <div class="nav-container">
+        <div class="nav-brand">
+            <a href="/" class="brand-link">
+                <span class="brand-text">Witch City Rope</span>
+            </a>
+        </div>
+
+        <button class="nav-toggle" @onclick="ToggleMenu" aria-label="Toggle navigation">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+        </button>
+
+        <div class="nav-menu">
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">
+                        Home
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/events">
+                        Events
+                    </NavLink>
+                </li>
+                
+                @if (AuthService.IsAuthenticated)
+                {
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/dashboard">
+                            Dashboard
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/my-tickets">
+                            My Tickets
+                        </NavLink>
+                    </li>
+                    
+                    @if (AuthService.IsInRole("Admin") || AuthService.IsInRole("EventOrganizer"))
+                    {
+                        <li class="nav-item dropdown" @onmouseenter="ShowAdminMenu" @onmouseleave="HideAdminMenu">
+                            <a class="nav-link dropdown-toggle" @onclick="ToggleAdminMenu">
+                                Admin
+                            </a>
+                            <ul class="dropdown-menu @(isAdminMenuOpen ? "show" : "")">
+                                <li>
+                                    <NavLink class="dropdown-link" href="/admin/events">
+                                        Event Management
+                                    </NavLink>
+                                </li>
+                                @if (AuthService.IsInRole("Admin") || AuthService.IsInRole("VettingTeam"))
+                                {
+                                    <li>
+                                        <NavLink class="dropdown-link" href="/admin/vetting">
+                                            Vetting Queue
+                                        </NavLink>
+                                    </li>
+                                }
+                                @if (AuthService.IsInRole("Admin"))
+                                {
+                                    <li>
+                                        <NavLink class="dropdown-link" href="/admin/users">
+                                            User Management
+                                        </NavLink>
+                                    </li>
+                                    <li>
+                                        <NavLink class="dropdown-link" href="/admin/reports">
+                                            Reports
+                                        </NavLink>
+                                    </li>
+                                }
+                            </ul>
+                        </li>
+                    }
+                }
+            </ul>
+
+            <div class="nav-actions">
+                @if (AuthService.IsAuthenticated)
+                {
+                    <div class="user-menu dropdown" @onmouseenter="ShowUserMenu" @onmouseleave="HideUserMenu">
+                        <button class="user-menu-toggle" @onclick="ToggleUserMenu">
+                            <span class="user-avatar">
+                                @if (!string.IsNullOrEmpty(userAvatar))
+                                {
+                                    <img src="@userAvatar" alt="@userName" />
+                                }
+                                else
+                                {
+                                    <span class="avatar-placeholder">@GetInitials(userName)</span>
+                                }
+                            </span>
+                            <span class="user-name">@userName</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-right @(isUserMenuOpen ? "show" : "")">
+                            <li>
+                                <NavLink class="dropdown-link" href="/profile">
+                                    Profile Settings
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink class="dropdown-link" href="/profile/vetting">
+                                    Vetting Status
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink class="dropdown-link" href="/profile/emergency-contacts">
+                                    Emergency Contacts
+                                </NavLink>
+                            </li>
+                            <li class="dropdown-divider"></li>
+                            <li>
+                                <button class="dropdown-link" @onclick="Logout">
+                                    Sign Out
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                }
+                else
+                {
+                    <a href="/login" class="btn btn-secondary btn-sm">Sign In</a>
+                    <a href="/register" class="btn btn-primary btn-sm">Join</a>
+                }
+            </div>
+        </div>
+    </div>
+</nav>
+
+@code {
+    private bool isMenuOpen = false;
+    private bool isAdminMenuOpen = false;
+    private bool isUserMenuOpen = false;
+    private string userName = "Guest";
+    private string? userAvatar;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthService.IsAuthenticated)
+        {
+            var user = await AuthService.GetCurrentUserAsync();
+            userName = user?.FirstName ?? "User";
+            userAvatar = user?.AvatarUrl;
+        }
+
+        // Subscribe to authentication state changes
+        AuthService.AuthenticationStateChanged += OnAuthenticationStateChanged;
+    }
+
+    private void ToggleMenu()
+    {
+        isMenuOpen = !isMenuOpen;
+    }
+
+    private void ToggleAdminMenu()
+    {
+        isAdminMenuOpen = !isAdminMenuOpen;
+        isUserMenuOpen = false;
+    }
+
+    private void ToggleUserMenu()
+    {
+        isUserMenuOpen = !isUserMenuOpen;
+        isAdminMenuOpen = false;
+    }
+
+    private void ShowAdminMenu()
+    {
+        isAdminMenuOpen = true;
+    }
+
+    private void HideAdminMenu()
+    {
+        isAdminMenuOpen = false;
+    }
+
+    private void ShowUserMenu()
+    {
+        isUserMenuOpen = true;
+    }
+
+    private void HideUserMenu()
+    {
+        isUserMenuOpen = false;
+    }
+
+    private string GetInitials(string name)
+    {
+        if (string.IsNullOrEmpty(name))
+            return "?";
+        
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+            return $"{parts[0][0]}{parts[^1][0]}".ToUpper();
+        
+        return name[0].ToString().ToUpper();
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/");
+    }
+
+    private async void OnAuthenticationStateChanged(object? sender, bool isAuthenticated)
+    {
+        if (isAuthenticated)
+        {
+            var user = await AuthService.GetCurrentUserAsync();
+            userName = user?.FirstName ?? "User";
+            userAvatar = user?.AvatarUrl;
+        }
+        else
+        {
+            userName = "Guest";
+            userAvatar = null;
+        }
+        
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        AuthService.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+    }
+}

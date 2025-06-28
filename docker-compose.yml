@@ -1,0 +1,174 @@
+version: '3.8'
+
+services:
+  # API Service
+  api:
+    build:
+      context: .
+      dockerfile: src/WitchCityRope.Api/Dockerfile
+      target: ${BUILD_TARGET:-final}
+    container_name: witchcity-api
+    ports:
+      - "5653:8080"
+      - "5654:8081"  # HTTPS port for development
+    environment:
+      # ASP.NET Core Configuration
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      - ASPNETCORE_URLS=http://+:8080;https://+:8081
+      - ASPNETCORE_HTTPS_PORT=5654
+      
+      # Database Configuration
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/witchcityrope.db
+      
+      # JWT Configuration
+      - Jwt__Secret=${JWT_SECRET:-YourSuperSecretKeyForDevelopmentPurposesOnly!123}
+      - Jwt__Issuer=WitchCityRope
+      - Jwt__Audience=WitchCityRopeUsers
+      - Jwt__ExpiresInMinutes=60
+      
+      # Email Configuration (SendGrid)
+      - Email__SendGrid__ApiKey=${SENDGRID_API_KEY}
+      - Email__FromEmail=noreply@witchcityrope.com
+      - Email__FromName=Witch City Rope
+      
+      # PayPal Configuration
+      - PayPal__ClientId=${PAYPAL_CLIENT_ID}
+      - PayPal__ClientSecret=${PAYPAL_CLIENT_SECRET}
+      - PayPal__Mode=${PAYPAL_MODE:-sandbox}
+      
+      # Google OAuth Configuration
+      - Authentication__Google__ClientId=${GOOGLE_CLIENT_ID}
+      - Authentication__Google__ClientSecret=${GOOGLE_CLIENT_SECRET}
+      
+      # Logging
+      - Serilog__MinimumLevel__Default=Information
+      - Serilog__MinimumLevel__Override__Microsoft=Warning
+      - Serilog__MinimumLevel__Override__System=Warning
+      
+    volumes:
+      # SQLite database volume
+      - ./data:/app/data
+      # Logs volume
+      - ./logs/api:/app/logs
+      # Uploads volume (for file uploads if needed)
+      - ./uploads:/app/uploads
+      # Development certificates
+      - ~/.aspnet/https:/https:ro
+      # For hot reload in development (only when BUILD_TARGET=development)
+      - ./src:/src:cached
+    depends_on:
+      - db-init
+    networks:
+      - witchcity-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Web Service (Blazor Server)
+  web:
+    build:
+      context: .
+      dockerfile: src/WitchCityRope.Web/Dockerfile
+      target: ${BUILD_TARGET:-final}
+    container_name: witchcity-web
+    ports:
+      - "5651:8080"
+      - "5652:8081"  # HTTPS port for development
+    environment:
+      # ASP.NET Core Configuration
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      - ASPNETCORE_URLS=http://+:8080;https://+:8081
+      - ASPNETCORE_HTTPS_PORT=5652
+      
+      # API Configuration
+      - ApiBaseUrl=http://api:8080/
+      - ApiBaseUrlExternal=https://localhost:5654/
+      
+      # Syncfusion License
+      - Syncfusion__LicenseKey=${SYNCFUSION_LICENSE_KEY}
+      
+      # Session Configuration
+      - Session__IdleTimeout=20
+      - Session__Cookie__Name=.WitchCityRope.Session
+      - Session__Cookie__HttpOnly=true
+      - Session__Cookie__IsEssential=true
+      
+      # Blazor Configuration
+      - DetailedErrors=${DETAILED_ERRORS:-true}
+      - Logging__LogLevel__Default=Information
+      - Logging__LogLevel__Microsoft.AspNetCore=Warning
+      
+      # Email Configuration (for direct email from web if needed)
+      - Email__SendGrid__ApiKey=${SENDGRID_API_KEY}
+      
+    volumes:
+      # Shared data volume
+      - ./data:/app/data:ro
+      # Logs volume
+      - ./logs/web:/app/logs
+      # Static files/uploads
+      - ./uploads:/app/wwwroot/uploads:ro
+      # Development certificates
+      - ~/.aspnet/https:/https:ro
+      # For hot reload in development (only when BUILD_TARGET=development)
+      - ./src:/src:cached
+    depends_on:
+      - api
+    networks:
+      - witchcity-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Database initialization service
+  db-init:
+    image: busybox:latest
+    container_name: witchcity-db-init
+    volumes:
+      - ./data:/data
+    command: |
+      sh -c "
+        if [ ! -f /data/witchcityrope.db ]; then
+          echo 'Creating database directory and setting permissions...'
+          mkdir -p /data
+          touch /data/witchcityrope.db
+          chmod 666 /data/witchcityrope.db
+          echo 'Database file created.'
+        else
+          echo 'Database already exists.'
+        fi
+      "
+    networks:
+      - witchcity-network
+
+  # Development database viewer (optional)
+  sqlite-viewer:
+    image: keinos/sqlite3:latest
+    container_name: witchcity-sqlite-viewer
+    profiles:
+      - debug
+    volumes:
+      - ./data:/data:ro
+    command: sleep infinity
+    networks:
+      - witchcity-network
+
+networks:
+  witchcity-network:
+    driver: bridge
+
+volumes:
+  data:
+    driver: local
+  logs:
+    driver: local
+  uploads:
+    driver: local

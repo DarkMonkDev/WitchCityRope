@@ -1,0 +1,119 @@
+@page "/test-auth"
+@using System.Security.Claims
+
+<PageTitle>Authentication Test</PageTitle>
+
+<div class="container mt-5">
+    <h1>Authentication Test Page</h1>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Authentication Status</h3>
+                </div>
+                <div class="card-body">
+                    <AuthorizeView>
+                        <Authorized>
+                            <div class="alert alert-success">
+                                <strong>Authenticated!</strong>
+                                <p>User: @context.User.Identity?.Name</p>
+                                <p>Authentication Type: @context.User.Identity?.AuthenticationType</p>
+                            </div>
+                        </Authorized>
+                        <NotAuthorized>
+                            <div class="alert alert-info">
+                                <strong>Not Authenticated</strong>
+                                <p>You are currently not logged in.</p>
+                            </div>
+                        </NotAuthorized>
+                    </AuthorizeView>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Test Navigation</h3>
+                </div>
+                <div class="card-body">
+                    <p>Use these links to test the authentication flow:</p>
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <a href="/login">Login Page</a> - Should allow login
+                        </li>
+                        <li class="list-group-item">
+                            <a href="/test-protected">Protected Page</a> - Should redirect to login if not authenticated
+                        </li>
+                        <li class="list-group-item">
+                            <a href="/register">Register Page</a> - Should allow registration
+                        </li>
+                    </ul>
+                    
+                    <AuthorizeView>
+                        <Authorized>
+                            <button class="btn btn-danger mt-3" @onclick="LogoutAsync">Test Logout</button>
+                        </Authorized>
+                        <NotAuthorized>
+                            <a href="/login" class="btn btn-primary mt-3">Go to Login</a>
+                        </NotAuthorized>
+                    </AuthorizeView>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Authentication State Details</h3>
+                </div>
+                <div class="card-body">
+                    <CascadingAuthenticationState>
+                        <p><strong>IsAuthenticating:</strong> @(IsAuthenticating ? "Yes" : "No")</p>
+                        <p><strong>IsAuthenticated:</strong> @(IsAuthenticated ? "Yes" : "No")</p>
+                        @if (CurrentUser != null)
+                        {
+                            <h5>Current User Info:</h5>
+                            <pre>@System.Text.Json.JsonSerializer.Serialize(new {
+                                Name = CurrentUser.Identity?.Name,
+                                IsAuthenticated = CurrentUser.Identity?.IsAuthenticated,
+                                AuthenticationType = CurrentUser.Identity?.AuthenticationType,
+                                Claims = CurrentUser.Claims.Select(c => new { c.Type, c.Value })
+                            }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })</pre>
+                        }
+                    </CascadingAuthenticationState>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthenticationState { get; set; }
+    [Inject] private IAuthService AuthService { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+    
+    private bool IsAuthenticating = true;
+    private bool IsAuthenticated = false;
+    private ClaimsPrincipal? CurrentUser;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthenticationState != null)
+        {
+            var authState = await AuthenticationState;
+            CurrentUser = authState.User;
+            IsAuthenticated = authState.User?.Identity?.IsAuthenticated ?? false;
+            IsAuthenticating = false;
+        }
+    }
+    
+    private async Task LogoutAsync()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/test-auth", true);
+    }
+}

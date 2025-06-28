@@ -1,0 +1,317 @@
+@page "/my-tickets"
+@page "/my-tickets/{TicketId:int}"
+@using WitchCityRope.Web.Services
+@inject ApiClient ApiClient
+@inject NavigationManager Navigation
+@attribute [Authorize]
+
+@* My Tickets page for viewing and managing event registrations *@
+
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">My Tickets</h1>
+        <p class="page-subtitle">View and manage your event registrations</p>
+    </div>
+
+    @if (TicketId.HasValue)
+    {
+        @* Single ticket detail view *@
+        <div class="ticket-detail">
+            <button class="btn-back" @onclick="@(() => Navigation.NavigateTo("/my-tickets"))">
+                &larr; Back to Tickets
+            </button>
+
+            @if (isLoadingDetail)
+            {
+                <LoadingSpinner />
+            }
+            else if (ticketDetail != null)
+            {
+                <div class="ticket-detail-card">
+                    <div class="ticket-detail-header">
+                        <h2>@ticketDetail.EventTitle</h2>
+                        <span class="ticket-status badge badge-@ticketDetail.Status.ToLower()">@ticketDetail.Status</span>
+                    </div>
+
+                    <div class="ticket-info-grid">
+                        <div class="info-section">
+                            <h4>Event Details</h4>
+                            <div class="info-item">
+                                <span class="info-label">Date</span>
+                                <span class="info-value">@ticketDetail.EventDate.ToString("dddd, MMMM d, yyyy")</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Time</span>
+                                <span class="info-value">@ticketDetail.EventDate.ToString("h:mm tt") - @ticketDetail.EventEndDate.ToString("h:mm tt")</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Location</span>
+                                <span class="info-value">@ticketDetail.Location</span>
+                            </div>
+                        </div>
+
+                        <div class="info-section">
+                            <h4>Ticket Information</h4>
+                            <div class="info-item">
+                                <span class="info-label">Ticket Number</span>
+                                <span class="info-value">#@ticketDetail.TicketNumber</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Purchase Date</span>
+                                <span class="info-value">@ticketDetail.PurchaseDate.ToString("MMM d, yyyy")</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Amount Paid</span>
+                                <span class="info-value">$@ticketDetail.AmountPaid</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ticket-qr-section">
+                        <h4>Your Ticket QR Code</h4>
+                        <p>Show this QR code at check-in</p>
+                        <div class="qr-code-placeholder">
+                            [QR Code for @ticketDetail.TicketNumber]
+                        </div>
+                    </div>
+
+                    <div class="ticket-detail-actions">
+                        <button class="btn btn-primary" @onclick="() => DownloadTicket(ticketDetail)">
+                            Download PDF
+                        </button>
+                        <button class="btn btn-secondary" @onclick="() => AddToCalendar(ticketDetail)">
+                            Add to Calendar
+                        </button>
+                        @if (ticketDetail.EventDate > DateTime.Now.AddHours(24))
+                        {
+                            <button class="btn btn-danger" @onclick="() => CancelTicket(ticketDetail)">
+                                Cancel Ticket
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        @* Ticket list view *@
+        <div class="tickets-tabs">
+            <button class="tab @(activeTab == "upcoming" ? "tab-active" : "")" @onclick="@(() => SetActiveTab("upcoming"))">
+                Upcoming (@upcomingTickets?.Count ?? 0)
+            </button>
+            <button class="tab @(activeTab == "past" ? "tab-active" : "")" @onclick="@(() => SetActiveTab("past"))">
+                Past (@pastTickets?.Count ?? 0)
+            </button>
+        </div>
+
+        @if (isLoading)
+        {
+            <LoadingSpinner />
+        }
+        else
+        {
+            <div class="tickets-list">
+                @if (activeTab == "upcoming")
+                {
+                    @if (upcomingTickets?.Any() == true)
+                    {
+                        @foreach (var ticket in upcomingTickets)
+                        {
+                            <div class="ticket-card" @onclick="@(() => ViewTicketDetails(ticket.Id))">
+                                <div class="ticket-header">
+                                    <h3 class="ticket-title">@ticket.EventTitle</h3>
+                                    <span class="ticket-status badge badge-@ticket.Status.ToLower()">@ticket.Status</span>
+                                </div>
+                                
+                                <div class="ticket-details">
+                                    <div class="detail-item">
+                                        <span class="detail-icon">📅</span>
+                                        <span>@ticket.EventDate.ToString("dddd, MMMM d, yyyy")</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-icon">🕐</span>
+                                        <span>@ticket.EventDate.ToString("h:mm tt")</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-icon">📍</span>
+                                        <span>@ticket.Location</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-icon">🎫</span>
+                                        <span>Ticket #@ticket.TicketNumber</span>
+                                    </div>
+                                </div>
+
+                                @if (ticket.Status == "Confirmed")
+                                {
+                                    <div class="ticket-actions">
+                                        <button class="btn btn-sm btn-secondary" @onclick:stopPropagation="true" @onclick="() => AddToCalendar(ticket)">
+                                            Add to Calendar
+                                        </button>
+                                        @if (ticket.EventDate > DateTime.Now.AddHours(24))
+                                        {
+                                            <button class="btn btn-sm btn-danger" @onclick:stopPropagation="true" @onclick="() => CancelTicket(ticket)">
+                                                Cancel
+                                            </button>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <h3>No upcoming events</h3>
+                            <p>You don't have any tickets for upcoming events.</p>
+                            <a href="/events" class="btn btn-primary">Browse Events</a>
+                        </div>
+                    }
+                }
+                else
+                {
+                    @if (pastTickets?.Any() == true)
+                    {
+                        @foreach (var ticket in pastTickets)
+                        {
+                            <div class="ticket-card ticket-past" @onclick="@(() => ViewTicketDetails(ticket.Id))">
+                                <div class="ticket-header">
+                                    <h3 class="ticket-title">@ticket.EventTitle</h3>
+                                    <span class="ticket-status badge badge-@ticket.Status.ToLower()">@ticket.Status</span>
+                                </div>
+                                
+                                <div class="ticket-details">
+                                    <div class="detail-item">
+                                        <span class="detail-icon">📅</span>
+                                        <span>@ticket.EventDate.ToString("dddd, MMMM d, yyyy")</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-icon">🕐</span>
+                                        <span>@ticket.EventDate.ToString("h:mm tt")</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-icon">📍</span>
+                                        <span>@ticket.Location</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-icon">🎫</span>
+                                        <span>Ticket #@ticket.TicketNumber</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <h3>No past events</h3>
+                            <p>You haven't attended any events yet.</p>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    }
+</div>
+
+
+@code {
+    [Parameter] public int? TicketId { get; set; }
+
+    private string activeTab = "upcoming";
+    private bool isLoading = true;
+    private bool isLoadingDetail = true;
+    
+    private List<TicketViewModel>? upcomingTickets;
+    private List<TicketViewModel>? pastTickets;
+    private TicketDetailViewModel? ticketDetail;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (TicketId.HasValue)
+        {
+            await LoadTicketDetail(TicketId.Value);
+        }
+        else
+        {
+            await LoadTickets();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (TicketId.HasValue)
+        {
+            await LoadTicketDetail(TicketId.Value);
+        }
+    }
+
+    private async Task LoadTickets()
+    {
+        try
+        {
+            isLoading = true;
+            var allTickets = await ApiClient.GetMyTicketsAsync();
+            
+            var now = DateTime.Now;
+            upcomingTickets = allTickets.Where(t => t.EventDate >= now).OrderBy(t => t.EventDate).ToList();
+            pastTickets = allTickets.Where(t => t.EventDate < now).OrderByDescending(t => t.EventDate).ToList();
+        }
+        catch (Exception ex)
+        {
+            // TODO: Handle error
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadTicketDetail(int ticketId)
+    {
+        try
+        {
+            isLoadingDetail = true;
+            ticketDetail = await ApiClient.GetTicketDetailAsync(ticketId);
+        }
+        catch (Exception ex)
+        {
+            // TODO: Handle error
+        }
+        finally
+        {
+            isLoadingDetail = false;
+        }
+    }
+
+    private void SetActiveTab(string tab)
+    {
+        activeTab = tab;
+    }
+
+    private void ViewTicketDetails(int ticketId)
+    {
+        Navigation.NavigateTo($"/my-tickets/{ticketId}");
+    }
+
+    private async Task AddToCalendar(dynamic ticket)
+    {
+        // TODO: Implement calendar integration
+        Console.WriteLine($"Add to calendar: {ticket.EventTitle}");
+    }
+
+    private async Task CancelTicket(dynamic ticket)
+    {
+        // TODO: Implement ticket cancellation with confirmation dialog
+        Console.WriteLine($"Cancel ticket: {ticket.TicketNumber}");
+    }
+
+    private async Task DownloadTicket(TicketDetailViewModel ticket)
+    {
+        // TODO: Implement PDF download
+        Console.WriteLine($"Download ticket: {ticket.TicketNumber}");
+    }
+
+    // View models are imported from Services namespace
+}

@@ -1,0 +1,91 @@
+name: Security Vulnerability Scan
+
+on:
+  # Run on push to main branch
+  push:
+    branches: [ main, master ]
+  # Run on pull requests
+  pull_request:
+    branches: [ main, master ]
+  # Run weekly on Monday at 9 AM UTC
+  schedule:
+    - cron: '0 9 * * 1'
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    name: Scan Dependencies for Vulnerabilities
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Check for vulnerable packages
+      run: |
+        echo "## Vulnerability Scan Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Function to check project
+        check_project() {
+          local project=$1
+          local name=$2
+          echo "### $name" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          dotnet list "$project" package --vulnerable --include-transitive >> $GITHUB_STEP_SUMMARY 2>&1 || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+        }
+        
+        # Check each project
+        check_project "src/WitchCityRope.Api/WitchCityRope.Api.csproj" "API Project"
+        check_project "src/WitchCityRope.Core/WitchCityRope.Core.csproj" "Core Project"
+        check_project "src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj" "Infrastructure Project"
+        check_project "src/WitchCityRope.Web/WitchCityRope.Web.csproj" "Web Project"
+        
+    - name: Check for outdated packages
+      run: |
+        echo "## Outdated Package Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        dotnet list package --outdated >> $GITHUB_STEP_SUMMARY 2>&1 || true
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        
+    - name: Run OWASP Dependency Check
+      if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+      uses: dependency-check/Dependency-Check_Action@main
+      with:
+        project: 'WitchCityRope'
+        path: '.'
+        format: 'HTML'
+        args: >
+          --enableRetired
+          --enableExperimental
+          
+    - name: Upload OWASP results
+      if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+      uses: actions/upload-artifact@v4
+      with:
+        name: OWASP-dependency-check-report
+        path: reports/
+        
+    # Fail the build if vulnerabilities are found
+    - name: Check for critical vulnerabilities
+      run: |
+        # This will fail if any vulnerable packages are found
+        for proj in src/**/*.csproj; do
+          if dotnet list "$proj" package --vulnerable --include-transitive | grep -E "(High|Critical)" > /dev/null 2>&1; then
+            echo "Critical vulnerabilities found in $proj"
+            exit 1
+          fi
+        done
+        echo "No critical vulnerabilities found"

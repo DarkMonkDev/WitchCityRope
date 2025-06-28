@@ -1,0 +1,1083 @@
+@page "/auth/two-factor-setup"
+@layout PublicLayout
+@using WitchCityRope.Web.Features.Auth.Components
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>Set Up Two-Factor Authentication - Witch City Rope</PageTitle>
+
+<div class="auth-page">
+    <div class="bg-shape-1"></div>
+    <div class="bg-shape-2"></div>
+    
+    <div class="auth-card setup-card">
+        <div class="auth-header">
+            <h1 class="auth-title">Two-Factor Authentication Setup</h1>
+            <p class="auth-subtitle">Secure your account with an extra layer of protection</p>
+        </div>
+        
+        <div class="setup-content">
+            <ProgressIndicator CurrentStep="@_currentStep" Steps="@_progressSteps" />
+            
+            @if (_currentStep == 1)
+            {
+                <!-- Step 1: Introduction -->
+                <div class="step-content">
+                    <div class="step-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"></path>
+                            <path d="M12 22V12"></path>
+                            <path d="M12 12L20 7"></path>
+                            <path d="M12 12L4 7"></path>
+                        </svg>
+                    </div>
+                    
+                    <h2 class="step-title">Why Enable Two-Factor Authentication?</h2>
+                    
+                    <div class="benefits-list">
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <div class="benefit-text">
+                                <h3>Enhanced Security</h3>
+                                <p>Protect your account even if your password is compromised</p>
+                            </div>
+                        </div>
+                        
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <div class="benefit-text">
+                                <h3>Privacy Protection</h3>
+                                <p>Keep your personal information and content secure</p>
+                            </div>
+                        </div>
+                        
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <div class="benefit-text">
+                                <h3>Peace of Mind</h3>
+                                <p>Get alerts when someone tries to access your account</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="step-actions">
+                        <SfButton CssClass="btn-secondary" @onclick="Cancel">
+                            Maybe Later
+                        </SfButton>
+                        <SfButton CssClass="btn-primary" @onclick="NextStep" IsPrimary="true">
+                            Get Started
+                        </SfButton>
+                    </div>
+                </div>
+            }
+            else if (_currentStep == 2)
+            {
+                <!-- Step 2: QR Code Display -->
+                <div class="step-content">
+                    <h2 class="step-title">Scan QR Code with Your Authenticator App</h2>
+                    <p class="step-description">
+                        Use an authenticator app like Google Authenticator, Microsoft Authenticator, or Authy to scan this code.
+                    </p>
+                    
+                    <div class="qr-section">
+                        @if (!string.IsNullOrEmpty(_qrCodeImage))
+                        {
+                            <div class="qr-code-container">
+                                <img src="@_qrCodeImage" alt="QR Code for 2FA setup" />
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="loading-spinner"></div>
+                        }
+                    </div>
+                    
+                    <div class="manual-entry">
+                        <button class="manual-toggle" @onclick="ToggleManualEntry">
+                            Can't scan? Enter manually
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" 
+                                 class="@(_showManualEntry ? "rotated" : "")">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                        
+                        @if (_showManualEntry)
+                        {
+                            <div class="manual-entry-content">
+                                <div class="manual-field">
+                                    <label>Account Name</label>
+                                    <div class="manual-value">@_accountName</div>
+                                </div>
+                                <div class="manual-field">
+                                    <label>Secret Key</label>
+                                    <div class="secret-key-container">
+                                        <code class="secret-key">@_secretKey</code>
+                                        <button class="copy-button" @onclick="CopySecretKey">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    
+                    <div class="step-actions">
+                        <SfButton CssClass="btn-secondary" @onclick="PreviousStep">
+                            Back
+                        </SfButton>
+                        <SfButton CssClass="btn-primary" @onclick="NextStep" IsPrimary="true">
+                            I've Added It
+                        </SfButton>
+                    </div>
+                </div>
+            }
+            else if (_currentStep == 3)
+            {
+                <!-- Step 3: Verify Code -->
+                <div class="step-content">
+                    <h2 class="step-title">Verify Your Authenticator</h2>
+                    <p class="step-description">
+                        Enter the 6-digit code from your authenticator app to confirm it's working correctly.
+                    </p>
+                    
+                    <div class="verify-section">
+                        <div class="code-inputs">
+                            @for (int i = 0; i < 6; i++)
+                            {
+                                var index = i;
+                                <input type="text" 
+                                       class="code-input @(_codeValues[index].Length == 1 ? "filled" : "")" 
+                                       maxlength="1" 
+                                       pattern="[0-9]" 
+                                       inputmode="numeric"
+                                       @bind="_codeValues[index]"
+                                       @bind:event="oninput"
+                                       @onkeydown="@(e => HandleKeyDown(e, index))"
+                                       @ref="_codeInputRefs[index]" />
+                            }
+                        </div>
+                        
+                        @if (_showError)
+                        {
+                            <div class="error-message show">
+                                @_errorMessage
+                            </div>
+                        }
+                        
+                        @if (_showSuccess)
+                        {
+                            <div class="success-message show">
+                                Great! Your authenticator is working correctly.
+                            </div>
+                        }
+                    </div>
+                    
+                    <div class="step-actions">
+                        <SfButton CssClass="btn-secondary" @onclick="PreviousStep">
+                            Back
+                        </SfButton>
+                        <SfButton CssClass="btn-primary" 
+                                  @onclick="VerifyCode" 
+                                  Disabled="@(!IsCodeComplete || _isVerifying)"
+                                  IsPrimary="true">
+                            @if (_isVerifying)
+                            {
+                                <span class="loading-spinner small"></span>
+                                <span>Verifying...</span>
+                            }
+                            else
+                            {
+                                <span>Verify & Continue</span>
+                            }
+                        </SfButton>
+                    </div>
+                </div>
+            }
+            else if (_currentStep == 4)
+            {
+                <!-- Step 4: Backup Codes -->
+                <div class="step-content">
+                    <h2 class="step-title">Save Your Backup Codes</h2>
+                    <p class="step-description">
+                        Keep these codes safe. You can use them to access your account if you lose your authenticator.
+                    </p>
+                    
+                    <div class="backup-codes-section">
+                        <div class="backup-codes-grid">
+                            @foreach (var code in _backupCodes)
+                            {
+                                <div class="backup-code">@code</div>
+                            }
+                        </div>
+                        
+                        <div class="backup-actions">
+                            <button class="action-button" @onclick="DownloadCodes">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                Download Codes
+                            </button>
+                            <button class="action-button" @onclick="CopyCodes">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+                                </svg>
+                                Copy All Codes
+                            </button>
+                        </div>
+                        
+                        <div class="warning-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            <div>
+                                <strong>Important:</strong> Each backup code can only be used once. Store them securely and never share them with anyone.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="step-actions">
+                        <SfButton CssClass="btn-primary-full" 
+                                  @onclick="Complete" 
+                                  Disabled="@_isCompleting"
+                                  IsPrimary="true">
+                            @if (_isCompleting)
+                            {
+                                <span class="loading-spinner small"></span>
+                                <span>Completing Setup...</span>
+                            }
+                            else
+                            {
+                                <span>I've Saved My Codes</span>
+                            }
+                        </SfButton>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Base styles matching Login.razor */
+    .auth-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--wcr-space-xl) var(--wcr-space-md);
+        position: relative;
+    }
+    
+    .bg-shape-1 {
+        position: fixed;
+        top: -200px;
+        right: -200px;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, var(--wcr-color-plum) 0%, transparent 70%);
+        opacity: 0.1;
+        border-radius: 50%;
+        filter: blur(60px);
+        z-index: -1;
+    }
+    
+    .bg-shape-2 {
+        position: fixed;
+        bottom: -150px;
+        left: -150px;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, var(--wcr-color-burgundy) 0%, transparent 70%);
+        opacity: 0.08;
+        border-radius: 50%;
+        filter: blur(50px);
+        z-index: -1;
+    }
+    
+    .auth-card.setup-card {
+        max-width: 640px;
+    }
+    
+    .auth-card {
+        background: var(--wcr-color-ivory);
+        border-radius: 24px;
+        box-shadow: var(--wcr-shadow-xl);
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .auth-header {
+        background: linear-gradient(135deg, var(--wcr-color-burgundy) 0%, var(--wcr-color-plum) 100%);
+        padding: var(--wcr-space-2xl) var(--wcr-space-xl) var(--wcr-space-xl);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .auth-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        transform: rotate(45deg);
+    }
+    
+    .auth-title {
+        font-family: var(--wcr-font-heading);
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--wcr-color-ivory);
+        margin-bottom: var(--wcr-space-xs);
+        position: relative;
+    }
+    
+    .auth-subtitle {
+        color: var(--wcr-color-dusty-rose);
+        font-size: 16px;
+        position: relative;
+    }
+    
+    /* Setup content */
+    .setup-content {
+        padding: var(--wcr-space-2xl);
+    }
+    
+    .step-content {
+        animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .step-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto var(--wcr-space-lg);
+        background: linear-gradient(135deg, var(--wcr-color-burgundy) 0%, var(--wcr-color-plum) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .step-icon svg {
+        width: 40px;
+        height: 40px;
+        color: var(--wcr-color-ivory);
+    }
+    
+    .step-title {
+        font-family: var(--wcr-font-heading);
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--wcr-color-charcoal);
+        text-align: center;
+        margin-bottom: var(--wcr-space-sm);
+    }
+    
+    .step-description {
+        text-align: center;
+        color: var(--wcr-color-stone);
+        margin-bottom: var(--wcr-space-xl);
+        max-width: 480px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    /* Benefits list */
+    .benefits-list {
+        margin-bottom: var(--wcr-space-2xl);
+    }
+    
+    .benefit-item {
+        display: flex;
+        gap: var(--wcr-space-md);
+        margin-bottom: var(--wcr-space-lg);
+        padding: var(--wcr-space-md);
+        background: var(--wcr-color-cream);
+        border-radius: 12px;
+        transition: transform 0.3s ease;
+    }
+    
+    .benefit-item:hover {
+        transform: translateX(5px);
+    }
+    
+    .benefit-icon {
+        flex-shrink: 0;
+        width: 40px;
+        height: 40px;
+        background: var(--wcr-color-success);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .benefit-icon svg {
+        width: 20px;
+        height: 20px;
+        color: white;
+    }
+    
+    .benefit-text h3 {
+        font-family: var(--wcr-font-heading);
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--wcr-color-charcoal);
+        margin-bottom: var(--wcr-space-xs);
+    }
+    
+    .benefit-text p {
+        color: var(--wcr-color-stone);
+        font-size: 14px;
+    }
+    
+    /* QR Code section */
+    .qr-section {
+        display: flex;
+        justify-content: center;
+        margin-bottom: var(--wcr-space-xl);
+    }
+    
+    .qr-code-container {
+        background: white;
+        padding: var(--wcr-space-lg);
+        border-radius: 16px;
+        box-shadow: var(--wcr-shadow-md);
+    }
+    
+    .qr-code-container img {
+        display: block;
+        width: 200px;
+        height: 200px;
+    }
+    
+    /* Manual entry */
+    .manual-entry {
+        background: var(--wcr-color-cream);
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: var(--wcr-space-xl);
+    }
+    
+    .manual-toggle {
+        width: 100%;
+        padding: var(--wcr-space-md);
+        background: none;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-family: var(--wcr-font-body);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--wcr-color-burgundy);
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+    
+    .manual-toggle:hover {
+        background: rgba(136, 1, 36, 0.05);
+    }
+    
+    .manual-toggle svg {
+        width: 20px;
+        height: 20px;
+        transition: transform 0.3s ease;
+    }
+    
+    .manual-toggle svg.rotated {
+        transform: rotate(180deg);
+    }
+    
+    .manual-entry-content {
+        padding: var(--wcr-space-md);
+        border-top: 1px solid var(--wcr-color-taupe);
+    }
+    
+    .manual-field {
+        margin-bottom: var(--wcr-space-md);
+    }
+    
+    .manual-field:last-child {
+        margin-bottom: 0;
+    }
+    
+    .manual-field label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--wcr-color-stone);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: var(--wcr-space-xs);
+    }
+    
+    .manual-value {
+        font-family: var(--wcr-font-mono, monospace);
+        font-size: 14px;
+        color: var(--wcr-color-charcoal);
+    }
+    
+    .secret-key-container {
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+    }
+    
+    .secret-key {
+        flex: 1;
+        padding: var(--wcr-space-sm);
+        background: var(--wcr-color-ivory);
+        border: 1px solid var(--wcr-color-taupe);
+        border-radius: 6px;
+        font-family: var(--wcr-font-mono, monospace);
+        font-size: 14px;
+        color: var(--wcr-color-charcoal);
+        word-break: break-all;
+    }
+    
+    .copy-button {
+        padding: var(--wcr-space-sm);
+        background: var(--wcr-color-ivory);
+        border: 1px solid var(--wcr-color-taupe);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .copy-button:hover {
+        background: var(--wcr-color-cream);
+        border-color: var(--wcr-color-burgundy);
+    }
+    
+    .copy-button svg {
+        width: 16px;
+        height: 16px;
+        color: var(--wcr-color-stone);
+    }
+    
+    /* Verify section */
+    .verify-section {
+        max-width: 360px;
+        margin: 0 auto var(--wcr-space-xl);
+    }
+    
+    .code-inputs {
+        display: flex;
+        gap: var(--wcr-space-sm);
+        justify-content: center;
+        margin-bottom: var(--wcr-space-md);
+    }
+    
+    .code-input {
+        width: 50px;
+        height: 50px;
+        text-align: center;
+        font-size: 24px;
+        font-family: var(--wcr-font-heading);
+        font-weight: 700;
+        border: 2px solid var(--wcr-color-taupe);
+        border-radius: 12px;
+        background: var(--wcr-color-cream);
+        color: var(--wcr-color-charcoal);
+        transition: all 0.3s ease;
+    }
+    
+    .code-input:focus {
+        outline: none;
+        border-color: var(--wcr-color-burgundy);
+        background: var(--wcr-color-ivory);
+        box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.1);
+        transform: scale(1.05);
+    }
+    
+    .code-input.filled {
+        border-color: var(--wcr-color-burgundy);
+        background: var(--wcr-color-ivory);
+    }
+    
+    /* Error and success messages */
+    .error-message,
+    .success-message {
+        padding: var(--wcr-space-sm);
+        border-radius: 8px;
+        font-size: 14px;
+        text-align: center;
+        margin-top: var(--wcr-space-md);
+        display: none;
+    }
+    
+    .error-message {
+        background: rgba(220, 20, 60, 0.1);
+        border: 1px solid var(--wcr-color-error);
+        color: var(--wcr-color-error);
+    }
+    
+    .success-message {
+        background: rgba(34, 139, 34, 0.1);
+        border: 1px solid var(--wcr-color-success);
+        color: var(--wcr-color-success);
+    }
+    
+    .error-message.show,
+    .success-message.show {
+        display: block;
+    }
+    
+    /* Backup codes section */
+    .backup-codes-section {
+        max-width: 480px;
+        margin: 0 auto;
+    }
+    
+    .backup-codes-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--wcr-space-sm);
+        margin-bottom: var(--wcr-space-lg);
+        padding: var(--wcr-space-lg);
+        background: var(--wcr-color-cream);
+        border-radius: 12px;
+        border: 2px dashed var(--wcr-color-taupe);
+    }
+    
+    .backup-code {
+        padding: var(--wcr-space-sm);
+        background: var(--wcr-color-ivory);
+        border: 1px solid var(--wcr-color-taupe);
+        border-radius: 6px;
+        font-family: var(--wcr-font-mono, monospace);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--wcr-color-charcoal);
+        text-align: center;
+        letter-spacing: 0.5px;
+    }
+    
+    .backup-actions {
+        display: flex;
+        gap: var(--wcr-space-sm);
+        margin-bottom: var(--wcr-space-lg);
+    }
+    
+    .action-button {
+        flex: 1;
+        padding: var(--wcr-space-sm) var(--wcr-space-md);
+        background: var(--wcr-color-ivory);
+        border: 2px solid var(--wcr-color-taupe);
+        border-radius: 8px;
+        font-family: var(--wcr-font-body);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--wcr-color-charcoal);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--wcr-space-xs);
+    }
+    
+    .action-button:hover {
+        background: var(--wcr-color-cream);
+        border-color: var(--wcr-color-burgundy);
+        color: var(--wcr-color-burgundy);
+    }
+    
+    .action-button svg {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .warning-box {
+        display: flex;
+        gap: var(--wcr-space-sm);
+        padding: var(--wcr-space-md);
+        background: rgba(255, 193, 7, 0.1);
+        border: 1px solid var(--wcr-color-warning);
+        border-radius: 8px;
+        margin-bottom: var(--wcr-space-xl);
+    }
+    
+    .warning-box svg {
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
+        color: var(--wcr-color-warning);
+    }
+    
+    .warning-box div {
+        font-size: 14px;
+        color: var(--wcr-color-smoke);
+        line-height: 1.4;
+    }
+    
+    .warning-box strong {
+        color: var(--wcr-color-charcoal);
+    }
+    
+    /* Step actions */
+    .step-actions {
+        display: flex;
+        gap: var(--wcr-space-md);
+        justify-content: center;
+    }
+    
+    .btn-secondary {
+        background: var(--wcr-color-ivory);
+        border: 2px solid var(--wcr-color-taupe);
+        color: var(--wcr-color-charcoal);
+        padding: var(--wcr-space-sm) var(--wcr-space-lg) !important;
+    }
+    
+    .btn-secondary:hover {
+        background: var(--wcr-color-cream);
+        border-color: var(--wcr-color-stone);
+    }
+    
+    .btn-primary {
+        padding: var(--wcr-space-sm) var(--wcr-space-lg) !important;
+    }
+    
+    .btn-primary-full {
+        width: 100%;
+        padding: var(--wcr-space-md) !important;
+    }
+    
+    /* Loading spinner */
+    .loading-spinner {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        border: 3px solid var(--wcr-color-taupe);
+        border-top-color: var(--wcr-color-burgundy);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    
+    .loading-spinner.small {
+        width: 20px;
+        height: 20px;
+        border-width: 2px;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .auth-title {
+            font-size: 24px;
+        }
+        
+        .setup-content {
+            padding: var(--wcr-space-lg);
+        }
+        
+        .step-title {
+            font-size: 20px;
+        }
+        
+        .backup-codes-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .backup-actions {
+            flex-direction: column;
+        }
+        
+        .step-actions {
+            flex-direction: column-reverse;
+        }
+        
+        .step-actions .btn-secondary,
+        .step-actions .btn-primary {
+            width: 100%;
+        }
+    }
+</style>
+
+@code {
+    private int _currentStep = 1;
+    private List<ProgressIndicator.ProgressStep> _progressSteps = new()
+    {
+        new("Introduction"),
+        new("Setup App"),
+        new("Verify"),
+        new("Backup Codes")
+    };
+    
+    // Step 2 data
+    private string _qrCodeImage = "";
+    private string _secretKey = "";
+    private string _accountName = "";
+    private bool _showManualEntry = false;
+    
+    // Step 3 data
+    private string[] _codeValues = new string[6] { "", "", "", "", "", "" };
+    private ElementReference[] _codeInputRefs = new ElementReference[6];
+    private bool _showError = false;
+    private bool _showSuccess = false;
+    private string _errorMessage = "Invalid code. Please try again.";
+    private bool _isVerifying = false;
+    
+    // Step 4 data
+    private List<string> _backupCodes = new();
+    private bool _isCompleting = false;
+    
+    private bool IsCodeComplete => _codeValues.All(v => !string.IsNullOrEmpty(v) && v.Length == 1);
+    
+    protected override async Task OnInitializedAsync()
+    {
+        // Initialize 2FA setup
+        await LoadTwoFactorSetup();
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_currentStep == 3 && _codeInputRefs.Length > 0)
+        {
+            try
+            {
+                await _codeInputRefs[0].FocusAsync();
+            }
+            catch
+            {
+                // Ignore focus errors
+            }
+        }
+    }
+    
+    private async Task LoadTwoFactorSetup()
+    {
+        try
+        {
+            var response = await AuthService.InitiateTwoFactorSetupAsync();
+            
+            if (response.Success)
+            {
+                _secretKey = response.SecretKey ?? "";
+                _accountName = response.AccountName ?? "";
+                
+                // Generate QR code
+                GenerateQRCode();
+            }
+            else
+            {
+                _errorMessage = response.Error ?? "Failed to initialize 2FA setup";
+                _showError = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = "An error occurred while setting up 2FA";
+            _showError = true;
+            Console.WriteLine($"Error loading 2FA setup: {ex.Message}");
+        }
+    }
+    
+    private void GenerateQRCode()
+    {
+        try
+        {
+            var issuer = "WitchCityRope";
+            var label = Uri.EscapeDataString(_accountName);
+            var secret = _secretKey;
+            
+            var qrCodeData = $"otpauth://totp/{issuer}:{label}?secret={secret}&issuer={issuer}";
+            
+            // Use Google Charts API to generate QR code
+            // In production, consider using a server-side QR code generator
+            var qrApiUrl = "https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl=";
+            _qrCodeImage = qrApiUrl + Uri.EscapeDataString(qrCodeData);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error generating QR code: {ex.Message}");
+        }
+    }
+    
+    private void NextStep()
+    {
+        if (_currentStep < 4)
+        {
+            _currentStep++;
+            StateHasChanged();
+        }
+    }
+    
+    private void PreviousStep()
+    {
+        if (_currentStep > 1)
+        {
+            _currentStep--;
+            _showError = false;
+            _showSuccess = false;
+            StateHasChanged();
+        }
+    }
+    
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/member/dashboard");
+    }
+    
+    private void ToggleManualEntry()
+    {
+        _showManualEntry = !_showManualEntry;
+    }
+    
+    private async Task CopySecretKey()
+    {
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", _secretKey);
+        // TODO: Show toast notification
+    }
+    
+    private async Task HandleKeyDown(KeyboardEventArgs e, int index)
+    {
+        if (e.Key == "Backspace" && string.IsNullOrEmpty(_codeValues[index]) && index > 0)
+        {
+            await _codeInputRefs[index - 1].FocusAsync();
+        }
+        else if (e.Key.Length == 1 && char.IsDigit(e.Key[0]))
+        {
+            _codeValues[index] = e.Key;
+            _showError = false;
+            
+            if (index < 5)
+            {
+                await _codeInputRefs[index + 1].FocusAsync();
+            }
+        }
+    }
+    
+    private async Task VerifyCode()
+    {
+        if (!IsCodeComplete) return;
+        
+        _isVerifying = true;
+        _showError = false;
+        _showSuccess = false;
+        StateHasChanged();
+        
+        try
+        {
+            var code = string.Join("", _codeValues);
+            
+            var result = await AuthService.VerifyTwoFactorSetupAsync(code);
+            
+            if (result.Success)
+            {
+                _showSuccess = true;
+                await Task.Delay(1500); // Show success message
+                
+                // Load backup codes before moving to the next step
+                var completeResult = await AuthService.CompleteTwoFactorSetupAsync();
+                if (completeResult.Success && completeResult.BackupCodes.Any())
+                {
+                    _backupCodes = completeResult.BackupCodes;
+                }
+                
+                NextStep();
+            }
+            else
+            {
+                _showError = true;
+                _errorMessage = result.Error ?? "Invalid code. Please try again.";
+                
+                // Clear the code inputs
+                for (int i = 0; i < 6; i++)
+                {
+                    _codeValues[i] = "";
+                }
+                await _codeInputRefs[0].FocusAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _showError = true;
+            _errorMessage = "An error occurred. Please try again.";
+        }
+        finally
+        {
+            _isVerifying = false;
+            StateHasChanged();
+        }
+    }
+    
+    private async Task DownloadCodes()
+    {
+        var content = "Witch City Rope - Backup Codes\n" +
+                     "================================\n\n" +
+                     "Keep these codes safe. Each code can only be used once.\n\n" +
+                     string.Join("\n", _backupCodes) +
+                     "\n\nGenerated: " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        
+        var bytes = System.Text.Encoding.UTF8.GetBytes(content);
+        var base64 = Convert.ToBase64String(bytes);
+        
+        await JS.InvokeVoidAsync("downloadFile", "witchcityrope-backup-codes.txt", base64);
+    }
+    
+    private async Task CopyCodes()
+    {
+        var codesText = string.Join("\n", _backupCodes);
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", codesText);
+        // TODO: Show toast notification
+    }
+    
+    private async Task Complete()
+    {
+        _isCompleting = true;
+        StateHasChanged();
+        
+        try
+        {
+            // Since we already have the backup codes, just navigate to the dashboard
+            await Task.Delay(1500); // Simulate final save
+            Navigation.NavigateTo("/member/dashboard?2fa=enabled");
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+            Console.WriteLine($"Error completing 2FA setup: {ex.Message}");
+            _errorMessage = "An error occurred while completing setup";
+            _showError = true;
+        }
+        finally
+        {
+            _isCompleting = false;
+            StateHasChanged();
+        }
+    }
+}

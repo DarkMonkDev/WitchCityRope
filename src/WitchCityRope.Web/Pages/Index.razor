@@ -1,0 +1,713 @@
+@page "/"
+@using WitchCityRope.Web.Services
+@using WitchCityRope.Web.Features.Events.Components
+@inject IEventService EventService
+@inject NavigationManager Navigation
+
+<PageTitle>Witch City Rope - Salem's Rope Bondage Community</PageTitle>
+
+<div class="hero-section">
+    <div class="hero-background-pattern"></div>
+    <div class="hero-content">
+        <p class="hero-tagline">Where curiosity meets connection</p>
+        <h1 class="hero-title">
+            <span class="hero-title-line1">Salem's Premier Rope Bondage</span>
+            <span class="hero-title-line2">Education & Practice</span>
+            <span class="hero-title-line3">Community</span>
+        </h1>
+        <div class="hero-actions">
+            <a href="/events" class="btn btn-primary btn-gradient btn-lg">Explore Events</a>
+            <a href="/register" class="btn btn-secondary btn-gradient btn-lg">Join Our Community</a>
+        </div>
+    </div>
+</div>
+
+<!-- Decorative Rope Divider -->
+<div class="rope-divider-container">
+    <svg id="ropeDividerSvg" class="rope-divider" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120" preserveAspectRatio="none">
+        <defs>
+            <pattern id="ropePattern" x="0" y="0" width="200" height="120" patternUnits="userSpaceOnUse">
+                <!-- Twisted rope pattern -->
+                <path d="M0,30 Q25,10 50,30 T100,30 Q125,50 150,30 T200,30" 
+                      stroke="#880124" 
+                      stroke-width="8" 
+                      fill="none" 
+                      opacity="1"/>
+                <path d="M0,50 Q25,70 50,50 T100,50 Q125,30 150,50 T200,50" 
+                      stroke="#880124" 
+                      stroke-width="8" 
+                      fill="none" 
+                      opacity="0.8"/>
+                <path d="M0,70 Q25,90 50,70 T100,70 Q125,50 150,70 T200,70" 
+                      stroke="#880124" 
+                      stroke-width="8" 
+                      fill="none" 
+                      opacity="0.6"/>
+                
+                <!-- Rope texture details -->
+                <circle cx="25" cy="30" r="2" fill="#660119" opacity="0.4"/>
+                <circle cx="75" cy="30" r="2" fill="#660119" opacity="0.4"/>
+                <circle cx="125" cy="30" r="2" fill="#660119" opacity="0.4"/>
+                <circle cx="175" cy="30" r="2" fill="#660119" opacity="0.4"/>
+                
+                <circle cx="25" cy="50" r="2" fill="#660119" opacity="0.3"/>
+                <circle cx="75" cy="50" r="2" fill="#660119" opacity="0.3"/>
+                <circle cx="125" cy="50" r="2" fill="#660119" opacity="0.3"/>
+                <circle cx="175" cy="50" r="2" fill="#660119" opacity="0.3"/>
+                
+                <circle cx="25" cy="70" r="2" fill="#660119" opacity="0.2"/>
+                <circle cx="75" cy="70" r="2" fill="#660119" opacity="0.2"/>
+                <circle cx="125" cy="70" r="2" fill="#660119" opacity="0.2"/>
+                <circle cx="175" cy="70" r="2" fill="#660119" opacity="0.2"/>
+            </pattern>
+            
+            <!-- Gradient for fade effect at edges -->
+            <linearGradient id="ropeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#880124;stop-opacity:0" />
+                <stop offset="10%" style="stop-color:#880124;stop-opacity:1" />
+                <stop offset="90%" style="stop-color:#880124;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#880124;stop-opacity:0" />
+            </linearGradient>
+        </defs>
+        
+        <!-- Main rope using the pattern -->
+        <rect x="0" y="0" width="100%" height="120" fill="url(#ropePattern)"/>
+        
+        <!-- Add a visible rope path as backup -->
+        <path d="M0,60 Q100,30 200,60 T400,60 Q500,90 600,60 T800,60 Q900,30 1000,60 T1200,60 Q1300,90 1400,60" 
+              stroke="#880124" 
+              stroke-width="6" 
+              fill="none" 
+              opacity="0.8"
+              mask="url(#ropeGradient)"/>
+        
+        <!-- Additional decorative knots -->
+        <g class="rope-knot" transform="translate(360, 60)">
+            <circle cx="0" cy="0" r="25" fill="none" stroke="#880124" stroke-width="6" opacity="0.6"/>
+            <circle cx="0" cy="0" r="15" fill="none" stroke="#880124" stroke-width="4" opacity="0.4"/>
+        </g>
+        
+        <g class="rope-knot" transform="translate(720, 60)">
+            <circle cx="0" cy="0" r="25" fill="none" stroke="#880124" stroke-width="6" opacity="0.6"/>
+            <circle cx="0" cy="0" r="15" fill="none" stroke="#880124" stroke-width="4" opacity="0.4"/>
+        </g>
+        
+        <g class="rope-knot" transform="translate(1080, 60)">
+            <circle cx="0" cy="0" r="25" fill="none" stroke="#880124" stroke-width="6" opacity="0.6"/>
+            <circle cx="0" cy="0" r="15" fill="none" stroke="#880124" stroke-width="4" opacity="0.4"/>
+        </g>
+    </svg>
+</div>
+
+<div class="page-container">
+    <section class="intro-section">
+        <h2>Discover the Art of Rope</h2>
+        <p class="lead">
+            Witch City Rope is Salem's premier rope bondage community, offering workshops, 
+            performances, and social events for practitioners of all experience levels. 
+            Whether you're new to rope or an experienced rigger, you'll find a welcoming 
+            and inclusive space to explore, learn, and connect.
+        </p>
+    </section>
+
+    <section class="features-section">
+        <h2>What Makes Our Community Special</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🎓</div>
+                <h3>Expert Teaching</h3>
+                <p>Learn from experienced instructors who are passionate about sharing their knowledge in a supportive, educational environment.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎭</div>
+                <h3>Welcoming Community</h3>
+                <p>Join an inclusive environment where everyone is welcomed with open arms, regardless of experience level or background.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>Safety First, Always</h3>
+                <p>We prioritize consent, clear communication, and established safety protocols in all our activities and interactions.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <h3>Everyone Belongs</h3>
+                <p>Celebrating diversity and fostering acceptance, our community embraces people of all identities, orientations, and backgrounds.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="upcoming-section">
+        <div class="section-header">
+            <h2>Upcoming Events</h2>
+            <a href="/events" class="section-link">View All Events →</a>
+        </div>
+        
+        <div class="events-preview">
+            @if (isLoading)
+            {
+                <p class="loading-text">Loading upcoming events...</p>
+            }
+            else if (upcomingEvents == null || !upcomingEvents.Any())
+            {
+                <p class="no-events-text">No upcoming events at this time.</p>
+            }
+            else
+            {
+                <div class="events-grid">
+                    @foreach (var eventItem in upcomingEvents.Take(3))
+                    {
+                        <div class="event-preview-card" @onclick="() => NavigateToEvent(eventItem.Id)">
+                            <div class="event-preview-date">
+                                <span class="event-month">@eventItem.StartDate.ToString("MMM")</span>
+                                <span class="event-day">@eventItem.StartDate.Day</span>
+                            </div>
+                            <div class="event-preview-info">
+                                <h4>@eventItem.Title</h4>
+                                <p class="event-preview-meta">
+                                    <span>@eventItem.StartDate.ToString("h:mm tt")</span>
+                                    <span class="separator">•</span>
+                                    <span>@eventItem.Location</span>
+                                </p>
+                                <div class="event-preview-footer">
+                                    @if (eventItem.Price > 0)
+                                    {
+                                        <span class="event-price">$@eventItem.Price</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="event-price free">Free</span>
+                                    }
+                                    @if (eventItem.AvailableSpots > 0)
+                                    {
+                                        <span class="event-spots">@eventItem.AvailableSpots spots</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="event-spots sold-out">Sold Out</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="cta-card">
+            <h2>Ready to Join Us?</h2>
+            <p>Create an account to register for events, connect with the community, and access member resources.</p>
+            <a href="/register" class="btn btn-primary btn-lg">Get Started</a>
+        </div>
+    </section>
+</div>
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
+        color: var(--color-text-inverse);
+        padding: var(--spacing-3xl) var(--spacing-md);
+        margin-top: calc(-1 * var(--nav-height));
+        padding-top: calc(var(--spacing-3xl) + var(--nav-height));
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Animated background pattern */
+    .hero-background-pattern {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        opacity: 0.1;
+        background-image: 
+            repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.1) 35px, rgba(255,255,255,.1) 70px),
+            repeating-linear-gradient(-45deg, transparent, transparent 35px, rgba(255,255,255,.05) 35px, rgba(255,255,255,.05) 70px);
+        animation: backgroundMove 20s linear infinite;
+    }
+
+    @@keyframes backgroundMove {
+        0% {
+            transform: translate(0, 0);
+        }
+        100% {
+            transform: translate(70px, 70px);
+        }
+    }
+
+    .hero-content {
+        max-width: 900px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-tagline {
+        font-family: 'Satisfy', cursive;
+        font-size: var(--font-size-2xl);
+        margin-bottom: var(--spacing-md);
+        opacity: 0.95;
+        color: var(--color-amber);
+        font-weight: normal;
+    }
+
+    .hero-title {
+        margin-bottom: var(--spacing-2xl);
+        line-height: 1.1;
+    }
+
+    .hero-title span {
+        display: block;
+        color: var(--color-text-inverse);
+    }
+
+    .hero-title-line1 {
+        font-size: var(--font-size-3xl);
+        font-weight: var(--font-weight-medium);
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .hero-title-line2 {
+        font-size: var(--font-size-4xl);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-amber) !important;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .hero-title-line3 {
+        font-size: var(--font-size-3xl);
+        font-weight: var(--font-weight-medium);
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: var(--spacing-md);
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    /* Gradient button styling */
+    .btn-gradient {
+        position: relative;
+        overflow: hidden;
+        transition: all var(--transition-base);
+        border: none;
+    }
+
+    .btn-primary.btn-gradient {
+        background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-burgundy-dark) 100%);
+        color: var(--color-text-inverse);
+    }
+
+    .btn-primary.btn-gradient:hover {
+        background: linear-gradient(135deg, var(--color-burgundy-light) 0%, var(--color-burgundy) 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(114, 47, 55, 0.3);
+    }
+
+    .btn-secondary.btn-gradient {
+        background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+        color: var(--color-charcoal);
+    }
+
+    .btn-secondary.btn-gradient:hover {
+        background: linear-gradient(135deg, var(--color-amber-light) 0%, var(--color-amber) 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(212, 165, 116, 0.3);
+    }
+
+    .btn-lg {
+        padding: var(--spacing-md) var(--spacing-xl);
+        font-size: var(--font-size-lg);
+    }
+
+    .intro-section {
+        text-align: center;
+        padding: var(--spacing-3xl) 0;
+    }
+
+    .lead {
+        font-size: var(--font-size-lg);
+        color: var(--color-text-secondary);
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .features-section {
+        padding: var(--spacing-3xl) 0;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--spacing-xl);
+        margin-top: var(--spacing-2xl);
+    }
+
+    .feature-card {
+        background-color: var(--color-surface);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-xl);
+        text-align: center;
+        box-shadow: var(--shadow-md);
+        transition: transform var(--transition-base);
+    }
+
+    .feature-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .feature-icon {
+        font-size: 3rem;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .feature-card h3 {
+        font-size: var(--font-size-xl);
+        margin-bottom: var(--spacing-sm);
+        color: var(--color-primary);
+    }
+
+    .upcoming-section {
+        padding: var(--spacing-3xl) 0;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .section-link {
+        color: var(--color-primary);
+        font-weight: var(--font-weight-medium);
+    }
+
+    .events-preview {
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .loading-text {
+        color: var(--color-text-secondary);
+    }
+
+    .no-events-text {
+        color: var(--color-text-secondary);
+        text-align: center;
+        padding: var(--spacing-2xl);
+    }
+
+    /* Events Grid */
+    .events-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--spacing-lg);
+    }
+
+    /* Event Preview Card */
+    .event-preview-card {
+        background-color: var(--color-surface);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-lg);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        gap: var(--spacing-lg);
+        cursor: pointer;
+        transition: all var(--transition-base);
+        border: 1px solid transparent;
+    }
+
+    .event-preview-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--color-primary);
+    }
+
+    /* Event Date Display */
+    .event-preview-date {
+        flex-shrink: 0;
+        width: 60px;
+        text-align: center;
+        border-radius: var(--radius-md);
+        background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-burgundy-dark) 100%);
+        color: var(--color-text-inverse);
+        padding: var(--spacing-sm) 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .event-month {
+        font-size: var(--font-size-sm);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        opacity: 0.9;
+    }
+
+    .event-day {
+        font-size: var(--font-size-2xl);
+        font-weight: var(--font-weight-bold);
+        line-height: 1;
+        margin-top: var(--spacing-xs);
+    }
+
+    /* Event Info */
+    .event-preview-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .event-preview-info h4 {
+        color: var(--color-text);
+        font-size: var(--font-size-lg);
+        font-weight: var(--font-weight-medium);
+        margin-bottom: var(--spacing-xs);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .event-preview-meta {
+        color: var(--color-text-secondary);
+        font-size: var(--font-size-sm);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .event-preview-meta .separator {
+        margin: 0 var(--spacing-xs);
+    }
+
+    /* Event Footer */
+    .event-preview-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: var(--spacing-sm);
+    }
+
+    .event-price {
+        font-weight: var(--font-weight-medium);
+        color: var(--color-primary);
+    }
+
+    .event-price.free {
+        color: var(--color-success);
+    }
+
+    .event-spots {
+        font-size: var(--font-size-sm);
+        color: var(--color-text-secondary);
+    }
+
+    .event-spots.sold-out {
+        color: var(--color-error);
+        font-weight: var(--font-weight-medium);
+    }
+
+    .cta-section {
+        padding: var(--spacing-3xl) 0;
+    }
+
+    .cta-card {
+        background-color: var(--color-surface);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-2xl);
+        text-align: center;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .cta-card h2 {
+        color: var(--color-primary);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .cta-card p {
+        font-size: var(--font-size-lg);
+        color: var(--color-text-secondary);
+        margin-bottom: var(--spacing-xl);
+    }
+
+    /* Rope Divider Styles */
+    .rope-divider-container {
+        position: relative;
+        width: 100%;
+        height: 120px;
+        margin-top: 0;
+        margin-bottom: var(--spacing-2xl);
+        overflow: visible;
+        z-index: 10;
+        background: transparent;
+    }
+
+    .rope-divider {
+        width: 100%;
+        height: 100%;
+        animation: gentleSway 8s ease-in-out infinite;
+        display: block;
+    }
+
+    @@keyframes gentleSway {
+        0%, 100% {
+            transform: translateY(0) translateX(0);
+        }
+        25% {
+            transform: translateY(-5px) translateX(10px);
+        }
+        50% {
+            transform: translateY(3px) translateX(-5px);
+        }
+        75% {
+            transform: translateY(-3px) translateX(5px);
+        }
+    }
+
+    .rope-knot {
+        animation: knotRotate 12s linear infinite;
+        transform-origin: center;
+    }
+
+    @@keyframes knotRotate {
+        0% {
+            transform: translate(var(--knot-x, 360px), var(--knot-y, 60px)) rotate(0deg);
+        }
+        100% {
+            transform: translate(var(--knot-x, 360px), var(--knot-y, 60px)) rotate(360deg);
+        }
+    }
+
+    /* Set custom properties for each knot position */
+    .rope-knot:nth-child(1) {
+        --knot-x: 360px;
+        --knot-y: 60px;
+    }
+
+    .rope-knot:nth-child(2) {
+        --knot-x: 720px;
+        --knot-y: 60px;
+        animation-delay: -4s;
+    }
+
+    .rope-knot:nth-child(3) {
+        --knot-x: 1080px;
+        --knot-y: 60px;
+        animation-delay: -8s;
+    }
+
+    @@media (max-width: 768px) {
+        .hero-tagline {
+            font-size: var(--font-size-xl);
+        }
+
+        .hero-title-line1 {
+            font-size: var(--font-size-2xl);
+        }
+
+        .hero-title-line2 {
+            font-size: var(--font-size-3xl);
+        }
+
+        .hero-title-line3 {
+            font-size: var(--font-size-2xl);
+        }
+
+        .hero-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .hero-actions .btn {
+            width: 100%;
+        }
+
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: var(--spacing-sm);
+        }
+
+        /* Responsive rope divider */
+        .rope-divider-container {
+            height: 80px;
+            margin-top: 0;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .rope-knot {
+            display: none; /* Hide knots on mobile for cleaner look */
+        }
+
+        /* Responsive event preview */
+        .events-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .event-preview-card {
+            padding: var(--spacing-md);
+        }
+
+        .event-preview-date {
+            width: 50px;
+        }
+
+        .event-month {
+            font-size: var(--font-size-xs);
+        }
+
+        .event-day {
+            font-size: var(--font-size-xl);
+        }
+
+        .event-preview-info h4 {
+            font-size: var(--font-size-md);
+        }
+    }
+</style>
+
+@code {
+    private List<EventListItem>? upcomingEvents;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Load all events from the service
+            var allEvents = await EventService.GetUpcomingEventsAsync();
+            
+            // Filter to only show future events and sort by date
+            upcomingEvents = allEvents
+                .Where(e => e.StartDate > DateTime.Now)
+                .OrderBy(e => e.StartDate)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            // In a real app, you'd log this error
+            Console.WriteLine($"Error loading events: {ex.Message}");
+            upcomingEvents = new List<EventListItem>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void NavigateToEvent(Guid eventId)
+    {
+        Navigation.NavigateTo($"/events/{eventId}");
+    }
+}

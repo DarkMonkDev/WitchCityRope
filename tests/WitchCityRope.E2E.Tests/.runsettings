@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <RunConfiguration>
+    <MaxCpuCount>1</MaxCpuCount>
+    <ResultsDirectory>./TestResults</ResultsDirectory>
+    <TargetFrameworkVersion>net9.0</TargetFrameworkVersion>
+    <TestSessionTimeout>300000</TestSessionTimeout>
+  </RunConfiguration>
+
+  <MSTest>
+    <Parallelize>
+      <Workers>4</Workers>
+      <Scope>TestClass</Scope>
+    </Parallelize>
+  </MSTest>
+
+  <TestRunParameters>
+    <Parameter name="Environment" value="Development" />
+    <Parameter name="BrowserType" value="chromium" />
+    <Parameter name="Headless" value="true" />
+  </TestRunParameters>
+
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="Code Coverage" uri="datacollector://Microsoft/CodeCoverage/2.0">
+        <Configuration>
+          <CodeCoverage>
+            <ModulePaths>
+              <Exclude>
+                <ModulePath>.*\.Tests\.dll$</ModulePath>
+              </Exclude>
+            </ModulePaths>
+          </CodeCoverage>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

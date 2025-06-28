@@ -1,0 +1,865 @@
+@page "/admin/financial-reports"
+@page "/admin/reports"
+@using WitchCityRope.Web.Services
+@using Syncfusion.Blazor.Charts
+@using Syncfusion.Blazor.Cards
+@using Syncfusion.Blazor.Calendars
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.DropDowns
+@inject ApiClient ApiClient
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@attribute [Authorize(Roles = "Admin")]
+
+@* Financial Reports page with comprehensive analytics and export functionality *@
+
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">Financial Reports</h1>
+        <div class="header-actions">
+            <div class="date-range-container">
+                <SfDateRangePicker @bind-StartDate="@startDate" @bind-EndDate="@endDate" 
+                                 Placeholder="Select date range"
+                                 Format="MMM dd, yyyy"
+                                 ShowClearButton="true">
+                    <DateRangePickerEvents ValueChange="OnDateRangeChange"></DateRangePickerEvents>
+                    <DateRangePickerPresets>
+                        <DateRangePickerPreset Label="Today" Start="@DateTime.Today" End="@DateTime.Today"></DateRangePickerPreset>
+                        <DateRangePickerPreset Label="Last 7 Days" Start="@DateTime.Today.AddDays(-7)" End="@DateTime.Today"></DateRangePickerPreset>
+                        <DateRangePickerPreset Label="Last 30 Days" Start="@DateTime.Today.AddDays(-30)" End="@DateTime.Today"></DateRangePickerPreset>
+                        <DateRangePickerPreset Label="This Month" Start="@(new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1))" End="@DateTime.Today"></DateRangePickerPreset>
+                        <DateRangePickerPreset Label="Last Month" Start="@(new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(-1))" End="@(new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddDays(-1))"></DateRangePickerPreset>
+                        <DateRangePickerPreset Label="This Quarter" Start="@GetQuarterStart()" End="@DateTime.Today"></DateRangePickerPreset>
+                        <DateRangePickerPreset Label="This Year" Start="@(new DateTime(DateTime.Today.Year, 1, 1))" End="@DateTime.Today"></DateRangePickerPreset>
+                    </DateRangePickerPresets>
+                </SfDateRangePicker>
+            </div>
+            <button class="btn btn-secondary" @onclick="RefreshData">
+                <span class="refresh-icon">⟳</span> Refresh
+            </button>
+            <div class="export-dropdown">
+                <SfDropDownButton Content="Export" CssClass="e-caret-hide">
+                    <DropDownMenuItems>
+                        <DropDownMenuItem Text="Export as CSV" IconCss="e-icons e-export-csv" @onclick="() => ExportData('csv')"></DropDownMenuItem>
+                        <DropDownMenuItem Text="Export as PDF" IconCss="e-icons e-export-pdf" @onclick="() => ExportData('pdf')"></DropDownMenuItem>
+                        <DropDownMenuItem Text="Export as Excel" IconCss="e-icons e-export-excel" @onclick="() => ExportData('excel')"></DropDownMenuItem>
+                    </DropDownMenuItems>
+                </SfDropDownButton>
+            </div>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <LoadingSpinner />
+    }
+    else
+    {
+        @* Key Financial Metrics Summary Cards *@
+        <div class="metrics-grid">
+            <div class="metric-card metric-revenue">
+                <div class="metric-content">
+                    <div class="metric-header">
+                        <span class="metric-label">Total Revenue</span>
+                        <span class="metric-trend @(revenueGrowth >= 0 ? "trend-up" : "trend-down")">
+                            @(revenueGrowth >= 0 ? "+" : "")@revenueGrowth.ToString("F1")%
+                        </span>
+                    </div>
+                    <div class="metric-value">$@totalRevenue.ToString("N2")</div>
+                    <div class="metric-footer">
+                        <span class="metric-period">vs previous period</span>
+                    </div>
+                </div>
+                <div class="metric-icon">
+                    <span class="icon-dollar">$</span>
+                </div>
+            </div>
+
+            <div class="metric-card metric-transactions">
+                <div class="metric-content">
+                    <div class="metric-header">
+                        <span class="metric-label">Total Transactions</span>
+                    </div>
+                    <div class="metric-value">@totalTransactions</div>
+                    <div class="metric-footer">
+                        <span class="metric-period">Avg: $@averageTransactionValue.ToString("N2")</span>
+                    </div>
+                </div>
+                <div class="metric-icon">
+                    <span class="icon-receipt">📊</span>
+                </div>
+            </div>
+
+            <div class="metric-card metric-refunds">
+                <div class="metric-content">
+                    <div class="metric-header">
+                        <span class="metric-label">Refunds Issued</span>
+                    </div>
+                    <div class="metric-value">$@totalRefunds.ToString("N2")</div>
+                    <div class="metric-footer">
+                        <span class="metric-period">@refundCount refunds</span>
+                    </div>
+                </div>
+                <div class="metric-icon">
+                    <span class="icon-refund">↩️</span>
+                </div>
+            </div>
+
+            <div class="metric-card metric-sliding-scale">
+                <div class="metric-content">
+                    <div class="metric-header">
+                        <span class="metric-label">Sliding Scale Usage</span>
+                    </div>
+                    <div class="metric-value">@slidingScalePercentage%</div>
+                    <div class="metric-footer">
+                        <span class="metric-period">@slidingScaleCount payments</span>
+                    </div>
+                </div>
+                <div class="metric-icon">
+                    <span class="icon-scale">⚖️</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="reports-grid">
+            @* Revenue Overview Chart *@
+            <div class="report-card revenue-chart-card">
+                <div class="card-header">
+                    <h2 class="card-title">Revenue Overview</h2>
+                    <div class="chart-controls">
+                        <SfButtonGroup>
+                            <ButtonGroupButton @onclick="() => SetChartView('daily')" CssClass="@(chartView == "daily" ? "e-active" : "")">Daily</ButtonGroupButton>
+                            <ButtonGroupButton @onclick="() => SetChartView('monthly')" CssClass="@(chartView == "monthly" ? "e-active" : "")">Monthly</ButtonGroupButton>
+                            <ButtonGroupButton @onclick="() => SetChartView('yearly')" CssClass="@(chartView == "yearly" ? "e-active" : "")">Yearly</ButtonGroupButton>
+                        </SfButtonGroup>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <SfChart Height="350px">
+                        <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.DateTime" 
+                                         LabelFormat="@GetChartLabelFormat()"
+                                         IntervalType="@GetChartIntervalType()"
+                                         EdgeLabelPlacement="EdgeLabelPlacement.Shift">
+                            <ChartAxisMajorGridLines Width="0"></ChartAxisMajorGridLines>
+                        </ChartPrimaryXAxis>
+                        <ChartPrimaryYAxis LabelFormat="${value}"
+                                         RangePadding="ChartRangePadding.Normal">
+                            <ChartAxisLineStyle Width="0"></ChartAxisLineStyle>
+                            <ChartAxisMajorTickLines Width="0"></ChartAxisMajorTickLines>
+                            <ChartAxisMajorGridLines Width="1" Color="#e0e0e0"></ChartAxisMajorGridLines>
+                        </ChartPrimaryYAxis>
+                        <ChartTooltipSettings Enable="true" Format="${point.y} on ${point.x}"></ChartTooltipSettings>
+                        <ChartLegendSettings Visible="true" Position="LegendPosition.Top"></ChartLegendSettings>
+                        <ChartSeriesCollection>
+                            <ChartSeries DataSource="@revenueChartData" XName="Date" YName="Revenue" 
+                                       Type="ChartSeriesType.SplineArea" Name="Revenue"
+                                       Fill="rgba(99, 102, 241, 0.3)">
+                                <ChartSeriesBorder Width="2" Color="#6366F1"></ChartSeriesBorder>
+                                <ChartMarker Visible="true" Height="8" Width="8">
+                                    <ChartMarkerBorder Width="2" Color="#FFFFFF"></ChartMarkerBorder>
+                                </ChartMarker>
+                            </ChartSeries>
+                            <ChartSeries DataSource="@revenueChartData" XName="Date" YName="Refunds" 
+                                       Type="ChartSeriesType.Line" Name="Refunds"
+                                       DashArray="5,5">
+                                <ChartSeriesBorder Width="2" Color="#EF4444"></ChartSeriesBorder>
+                                <ChartMarker Visible="true" Height="6" Width="6">
+                                    <ChartMarkerBorder Width="2" Color="#FFFFFF"></ChartMarkerBorder>
+                                </ChartMarker>
+                            </ChartSeries>
+                        </ChartSeriesCollection>
+                    </SfChart>
+                </div>
+            </div>
+
+            @* Event Revenue Breakdown *@
+            <div class="report-card event-revenue-card">
+                <div class="card-header">
+                    <h2 class="card-title">Event Revenue Breakdown</h2>
+                    <button class="btn-link" @onclick="ToggleEventRevenueView">
+                        @(showEventRevenueChart ? "Show Table" : "Show Chart")
+                    </button>
+                </div>
+                <div class="card-content">
+                    @if (showEventRevenueChart)
+                    {
+                        <div class="chart-container">
+                            <SfChart Height="350px">
+                                <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category">
+                                    <ChartAxisMajorGridLines Width="0"></ChartAxisMajorGridLines>
+                                </ChartPrimaryXAxis>
+                                <ChartPrimaryYAxis LabelFormat="${value}">
+                                    <ChartAxisLineStyle Width="0"></ChartAxisLineStyle>
+                                    <ChartAxisMajorTickLines Width="0"></ChartAxisMajorTickLines>
+                                </ChartPrimaryYAxis>
+                                <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+                                <ChartSeriesCollection>
+                                    <ChartSeries DataSource="@eventRevenueData" XName="EventName" YName="Revenue" 
+                                               Type="ChartSeriesType.Column" Name="Revenue">
+                                        <ChartSeriesBorder Width="0"></ChartSeriesBorder>
+                                        <ChartDataLabel Visible="true" Position="LabelPosition.Top" Name="Revenue">
+                                            <ChartDataLabelFont Color="#333333" Size="11px"></ChartDataLabelFont>
+                                        </ChartDataLabel>
+                                    </ChartSeries>
+                                </ChartSeriesCollection>
+                            </SfChart>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="event-revenue-table">
+                            <table class="simple-table">
+                                <thead>
+                                    <tr>
+                                        <th>Event</th>
+                                        <th>Date</th>
+                                        <th>Attendees</th>
+                                        <th>Revenue</th>
+                                        <th>Avg Ticket</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var eventData in eventRevenueData)
+                                    {
+                                        <tr>
+                                            <td>@eventData.EventName</td>
+                                            <td>@eventData.EventDate.ToString("MMM d, yyyy")</td>
+                                            <td>@eventData.AttendeeCount</td>
+                                            <td>$@eventData.Revenue.ToString("N2")</td>
+                                            <td>$@eventData.AverageTicketPrice.ToString("N2")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @* Sliding Scale Payment Analysis *@
+            <div class="report-card sliding-scale-card">
+                <div class="card-header">
+                    <h2 class="card-title">Sliding Scale Payment Analysis</h2>
+                </div>
+                <div class="sliding-scale-content">
+                    <div class="scale-distribution">
+                        <SfChart Height="250px">
+                            <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+                            <ChartLegendSettings Visible="true" Position="LegendPosition.Right"></ChartLegendSettings>
+                            <ChartSeriesCollection>
+                                <ChartSeries DataSource="@slidingScaleData" XName="Category" YName="Count" 
+                                           Type="ChartSeriesType.Pie" Name="Distribution"
+                                           Radius="80%" InnerRadius="40%">
+                                    <ChartDataLabel Visible="true" Name="Percentage" Position="AccumulationLabelPosition.Outside">
+                                        <ChartDataLabelFont Size="12px"></ChartDataLabelFont>
+                                    </ChartDataLabel>
+                                </ChartSeries>
+                            </ChartSeriesCollection>
+                        </SfChart>
+                    </div>
+                    <div class="scale-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Full Price Payments</span>
+                            <span class="stat-value">@fullPriceCount (@fullPricePercentage%)</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Reduced Price Payments</span>
+                            <span class="stat-value">@reducedPriceCount (@reducedPricePercentage%)</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Average Discount</span>
+                            <span class="stat-value">@averageDiscount%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Discount Given</span>
+                            <span class="stat-value">$@totalDiscountAmount.ToString("N2")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Payment History Table *@
+            <div class="report-card payment-history-card">
+                <div class="card-header">
+                    <h2 class="card-title">Payment History</h2>
+                    <div class="table-controls">
+                        <input type="text" @bind="paymentSearchTerm" @bind:event="oninput" 
+                               class="filter-input" placeholder="Search payments..." />
+                        
+                        <select @bind="paymentStatusFilter" @bind:event="onchange" class="filter-select">
+                            <option value="">All Status</option>
+                            <option value="completed">Completed</option>
+                            <option value="pending">Pending</option>
+                            <option value="refunded">Refunded</option>
+                            <option value="failed">Failed</option>
+                        </select>
+
+                        <select @bind="paymentTypeFilter" @bind:event="onchange" class="filter-select">
+                            <option value="">All Types</option>
+                            <option value="event">Event Registration</option>
+                            <option value="membership">Membership</option>
+                            <option value="donation">Donation</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <SfGrid DataSource="@filteredPayments" AllowPaging="true" AllowSorting="true" 
+                            AllowFiltering="false" PageSettings="@(new GridPageSettings { PageSize = 10 })">
+                        <GridColumns>
+                            <GridColumn Field="@nameof(PaymentRecord.TransactionId)" HeaderText="Transaction ID" Width="120"></GridColumn>
+                            <GridColumn Field="@nameof(PaymentRecord.Date)" HeaderText="Date" Width="100" Format="d" Type="ColumnType.Date"></GridColumn>
+                            <GridColumn Field="@nameof(PaymentRecord.MemberName)" HeaderText="Member" Width="150"></GridColumn>
+                            <GridColumn Field="@nameof(PaymentRecord.Description)" HeaderText="Description" Width="200"></GridColumn>
+                            <GridColumn Field="@nameof(PaymentRecord.Type)" HeaderText="Type" Width="100">
+                                <Template>
+                                    @{
+                                        var payment = (context as PaymentRecord);
+                                        <span class="badge badge-@payment.Type">@payment.Type</span>
+                                    }
+                                </Template>
+                            </GridColumn>
+                            <GridColumn Field="@nameof(PaymentRecord.Amount)" HeaderText="Amount" Width="100" Format="C2" TextAlign="TextAlign.Right"></GridColumn>
+                            <GridColumn Field="@nameof(PaymentRecord.Status)" HeaderText="Status" Width="100">
+                                <Template>
+                                    @{
+                                        var payment = (context as PaymentRecord);
+                                        <span class="status-badge status-@payment.Status.ToLower()">@payment.Status</span>
+                                    }
+                                </Template>
+                            </GridColumn>
+                            <GridColumn HeaderText="Actions" Width="100" TextAlign="TextAlign.Center">
+                                <Template>
+                                    @{
+                                        var payment = (context as PaymentRecord);
+                                        <div class="action-buttons">
+                                            <button class="btn-icon" title="View Details" @onclick="() => ViewPaymentDetails(payment.TransactionId)">
+                                                👁️
+                                            </button>
+                                            @if (payment.Status == "Completed" && payment.Date > DateTime.Now.AddDays(-30))
+                                            {
+                                                <button class="btn-icon" title="Issue Refund" @onclick="() => IssueRefund(payment.TransactionId)">
+                                                    ↩️
+                                                </button>
+                                            }
+                                        </div>
+                                    }
+                                </Template>
+                            </GridColumn>
+                        </GridColumns>
+                    </SfGrid>
+                </div>
+            </div>
+
+            @* Refund Tracking *@
+            <div class="report-card refund-tracking-card">
+                <div class="card-header">
+                    <h2 class="card-title">Refund Tracking</h2>
+                    <span class="refund-summary">@refundCount refunds totaling $@totalRefunds.ToString("N2")</span>
+                </div>
+                <div class="refund-content">
+                    <div class="refund-chart">
+                        <SfChart Height="200px">
+                            <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category">
+                                <ChartAxisMajorGridLines Width="0"></ChartAxisMajorGridLines>
+                            </ChartPrimaryXAxis>
+                            <ChartPrimaryYAxis>
+                                <ChartAxisLineStyle Width="0"></ChartAxisLineStyle>
+                                <ChartAxisMajorTickLines Width="0"></ChartAxisMajorTickLines>
+                            </ChartPrimaryYAxis>
+                            <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+                            <ChartSeriesCollection>
+                                <ChartSeries DataSource="@refundReasonData" XName="Reason" YName="Count" 
+                                           Type="ChartSeriesType.Bar" Name="Refunds">
+                                    <ChartSeriesBorder Width="0"></ChartSeriesBorder>
+                                </ChartSeries>
+                            </ChartSeriesCollection>
+                        </SfChart>
+                    </div>
+                    <div class="refund-table">
+                        <table class="simple-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Member</th>
+                                    <th>Amount</th>
+                                    <th>Reason</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var refund in recentRefunds)
+                                {
+                                    <tr>
+                                        <td>@refund.Date.ToString("MMM d")</td>
+                                        <td>@refund.MemberName</td>
+                                        <td>$@refund.Amount.ToString("N2")</td>
+                                        <td>@refund.Reason</td>
+                                        <td>
+                                            <span class="status-badge status-@refund.Status.ToLower()">
+                                                @refund.Status
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            @* Financial Summary *@
+            <div class="report-card summary-card">
+                <div class="card-header">
+                    <h2 class="card-title">Financial Summary</h2>
+                </div>
+                <div class="summary-content">
+                    <div class="summary-section">
+                        <h3>Revenue Breakdown</h3>
+                        <div class="summary-items">
+                            <div class="summary-item">
+                                <span class="summary-label">Event Registrations</span>
+                                <span class="summary-value">$@eventRevenue.ToString("N2")</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Membership Fees</span>
+                                <span class="summary-value">$@membershipRevenue.ToString("N2")</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Donations</span>
+                                <span class="summary-value">$@donationRevenue.ToString("N2")</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Other Income</span>
+                                <span class="summary-value">$@otherRevenue.ToString("N2")</span>
+                            </div>
+                            <div class="summary-item summary-total">
+                                <span class="summary-label">Total Revenue</span>
+                                <span class="summary-value">$@totalRevenue.ToString("N2")</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="summary-section">
+                        <h3>Payment Methods</h3>
+                        <div class="payment-methods-chart">
+                            <SfChart Height="200px">
+                                <ChartSeriesCollection>
+                                    <ChartSeries DataSource="@paymentMethodData" XName="Method" YName="Amount" 
+                                               Type="ChartSeriesType.Doughnut" Name="Payment Methods"
+                                               Radius="80%" InnerRadius="50%">
+                                        <ChartDataLabel Visible="true" Name="Percentage" Position="AccumulationLabelPosition.Inside">
+                                            <ChartDataLabelFont Color="#FFFFFF" Size="12px" FontWeight="600"></ChartDataLabelFont>
+                                        </ChartDataLabel>
+                                    </ChartSeries>
+                                </ChartSeriesCollection>
+                                <ChartLegendSettings Visible="true" Position="LegendPosition.Bottom"></ChartLegendSettings>
+                            </SfChart>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private DateTime? startDate = DateTime.Today.AddDays(-30);
+    private DateTime? endDate = DateTime.Today;
+    private string chartView = "daily";
+    private bool showEventRevenueChart = true;
+
+    // Financial Metrics
+    private decimal totalRevenue = 0;
+    private decimal revenueGrowth = 0;
+    private int totalTransactions = 0;
+    private decimal averageTransactionValue = 0;
+    private decimal totalRefunds = 0;
+    private int refundCount = 0;
+    private int slidingScaleCount = 0;
+    private decimal slidingScalePercentage = 0;
+
+    // Revenue breakdown
+    private decimal eventRevenue = 0;
+    private decimal membershipRevenue = 0;
+    private decimal donationRevenue = 0;
+    private decimal otherRevenue = 0;
+
+    // Sliding scale analysis
+    private int fullPriceCount = 0;
+    private int reducedPriceCount = 0;
+    private decimal fullPricePercentage = 0;
+    private decimal reducedPricePercentage = 0;
+    private decimal averageDiscount = 0;
+    private decimal totalDiscountAmount = 0;
+
+    // Chart data
+    private List<RevenueChartData> revenueChartData = new();
+    private List<EventRevenueData> eventRevenueData = new();
+    private List<SlidingScaleData> slidingScaleData = new();
+    private List<RefundReasonData> refundReasonData = new();
+    private List<PaymentMethodData> paymentMethodData = new();
+
+    // Table data
+    private List<PaymentRecord> allPayments = new();
+    private List<PaymentRecord> filteredPayments = new();
+    private List<RefundRecord> recentRefunds = new();
+
+    // Filters
+    private string paymentSearchTerm = "";
+    private string paymentStatusFilter = "";
+    private string paymentTypeFilter = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFinancialData();
+    }
+
+    private async Task LoadFinancialData()
+    {
+        try
+        {
+            isLoading = true;
+            
+            // In a real implementation, these would be API calls
+            // For now, we'll use mock data
+            GenerateMockData();
+            FilterPayments();
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+            Console.WriteLine($"Error loading financial data: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadFinancialData();
+    }
+
+    private async Task OnDateRangeChange(RangePickerEventArgs<DateTime?> args)
+    {
+        await LoadFinancialData();
+    }
+
+    private void SetChartView(string view)
+    {
+        chartView = view;
+        UpdateRevenueChartData();
+    }
+
+    private void ToggleEventRevenueView()
+    {
+        showEventRevenueChart = !showEventRevenueChart;
+    }
+
+    private DateTime GetQuarterStart()
+    {
+        var today = DateTime.Today;
+        var quarter = (today.Month - 1) / 3;
+        return new DateTime(today.Year, quarter * 3 + 1, 1);
+    }
+
+    private string GetChartLabelFormat()
+    {
+        return chartView switch
+        {
+            "daily" => "MMM dd",
+            "monthly" => "MMM yyyy",
+            "yearly" => "yyyy",
+            _ => "MMM dd"
+        };
+    }
+
+    private IntervalType GetChartIntervalType()
+    {
+        return chartView switch
+        {
+            "daily" => IntervalType.Days,
+            "monthly" => IntervalType.Months,
+            "yearly" => IntervalType.Years,
+            _ => IntervalType.Days
+        };
+    }
+
+    private void FilterPayments()
+    {
+        filteredPayments = allPayments;
+
+        if (!string.IsNullOrWhiteSpace(paymentSearchTerm))
+        {
+            var searchLower = paymentSearchTerm.ToLower();
+            filteredPayments = filteredPayments.Where(p => 
+                p.MemberName.ToLower().Contains(searchLower) ||
+                p.Description.ToLower().Contains(searchLower) ||
+                p.TransactionId.ToLower().Contains(searchLower)
+            ).ToList();
+        }
+
+        if (!string.IsNullOrWhiteSpace(paymentStatusFilter))
+        {
+            filteredPayments = filteredPayments.Where(p => 
+                p.Status.Equals(paymentStatusFilter, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+        }
+
+        if (!string.IsNullOrWhiteSpace(paymentTypeFilter))
+        {
+            filteredPayments = filteredPayments.Where(p => 
+                p.Type.Equals(paymentTypeFilter, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+        }
+    }
+
+    private async Task ExportData(string format)
+    {
+        // Implement export functionality
+        // This would typically involve generating the report and downloading it
+        await JSRuntime.InvokeVoidAsync("alert", $"Export to {format.ToUpper()} functionality will be implemented");
+    }
+
+    private void ViewPaymentDetails(string transactionId)
+    {
+        Navigation.NavigateTo($"/admin/payment/{transactionId}");
+    }
+
+    private async Task IssueRefund(string transactionId)
+    {
+        // Implement refund functionality
+        await JSRuntime.InvokeVoidAsync("alert", $"Refund functionality for transaction {transactionId} will be implemented");
+    }
+
+    private void UpdateRevenueChartData()
+    {
+        // Update chart data based on selected view
+        GenerateRevenueChartData();
+    }
+
+    private void GenerateMockData()
+    {
+        // Generate metrics
+        totalRevenue = 45847.50m;
+        revenueGrowth = 15.7m;
+        totalTransactions = 342;
+        averageTransactionValue = totalRevenue / totalTransactions;
+        totalRefunds = 1250.00m;
+        refundCount = 8;
+        slidingScaleCount = 47;
+        slidingScalePercentage = (slidingScaleCount * 100m) / totalTransactions;
+
+        // Revenue breakdown
+        eventRevenue = 32500.00m;
+        membershipRevenue = 8900.00m;
+        donationRevenue = 3200.00m;
+        otherRevenue = 1247.50m;
+
+        // Sliding scale analysis
+        fullPriceCount = 295;
+        reducedPriceCount = 47;
+        fullPricePercentage = (fullPriceCount * 100m) / totalTransactions;
+        reducedPricePercentage = (reducedPriceCount * 100m) / totalTransactions;
+        averageDiscount = 25.5m;
+        totalDiscountAmount = 2875.00m;
+
+        // Generate chart data
+        GenerateRevenueChartData();
+        GenerateEventRevenueData();
+        GenerateSlidingScaleData();
+        GenerateRefundReasonData();
+        GeneratePaymentMethodData();
+        GeneratePaymentHistory();
+        GenerateRecentRefunds();
+    }
+
+    private void GenerateRevenueChartData()
+    {
+        revenueChartData = new List<RevenueChartData>();
+        var random = new Random();
+        
+        int dataPoints = chartView switch
+        {
+            "daily" => 30,
+            "monthly" => 12,
+            "yearly" => 5,
+            _ => 30
+        };
+
+        for (int i = dataPoints; i >= 0; i--)
+        {
+            var date = chartView switch
+            {
+                "daily" => DateTime.Today.AddDays(-i),
+                "monthly" => DateTime.Today.AddMonths(-i),
+                "yearly" => DateTime.Today.AddYears(-i),
+                _ => DateTime.Today.AddDays(-i)
+            };
+
+            var baseRevenue = chartView switch
+            {
+                "daily" => random.Next(800, 2000),
+                "monthly" => random.Next(20000, 50000),
+                "yearly" => random.Next(300000, 600000),
+                _ => random.Next(800, 2000)
+            };
+
+            revenueChartData.Add(new RevenueChartData
+            {
+                Date = date,
+                Revenue = baseRevenue + random.NextDouble() * 500,
+                Refunds = random.Next(0, 5) > 3 ? random.Next(50, 300) : 0
+            });
+        }
+    }
+
+    private void GenerateEventRevenueData()
+    {
+        eventRevenueData = new List<EventRevenueData>
+        {
+            new() { EventName = "Advanced Rope Techniques", EventDate = DateTime.Today.AddDays(-5), Revenue = 3250.00m, AttendeeCount = 25, AverageTicketPrice = 130.00m },
+            new() { EventName = "Introduction to Rope", EventDate = DateTime.Today.AddDays(-10), Revenue = 2800.00m, AttendeeCount = 35, AverageTicketPrice = 80.00m },
+            new() { EventName = "Rope Performance Workshop", EventDate = DateTime.Today.AddDays(-15), Revenue = 4500.00m, AttendeeCount = 30, AverageTicketPrice = 150.00m },
+            new() { EventName = "Safety and Risk Awareness", EventDate = DateTime.Today.AddDays(-20), Revenue = 2100.00m, AttendeeCount = 28, AverageTicketPrice = 75.00m },
+            new() { EventName = "Partner Communication", EventDate = DateTime.Today.AddDays(-25), Revenue = 1950.00m, AttendeeCount = 26, AverageTicketPrice = 75.00m }
+        };
+    }
+
+    private void GenerateSlidingScaleData()
+    {
+        slidingScaleData = new List<SlidingScaleData>
+        {
+            new() { Category = "Full Price", Count = fullPriceCount, Percentage = fullPricePercentage },
+            new() { Category = "75% Price", Count = 28, Percentage = 8.2m },
+            new() { Category = "50% Price", Count = 15, Percentage = 4.4m },
+            new() { Category = "25% Price", Count = 4, Percentage = 1.2m }
+        };
+    }
+
+    private void GenerateRefundReasonData()
+    {
+        refundReasonData = new List<RefundReasonData>
+        {
+            new() { Reason = "Event Cancelled", Count = 3 },
+            new() { Reason = "Unable to Attend", Count = 2 },
+            new() { Reason = "Medical Emergency", Count = 2 },
+            new() { Reason = "Other", Count = 1 }
+        };
+    }
+
+    private void GeneratePaymentMethodData()
+    {
+        paymentMethodData = new List<PaymentMethodData>
+        {
+            new() { Method = "Credit Card", Amount = 35000.00m, Percentage = 76.3m },
+            new() { Method = "PayPal", Amount = 8500.00m, Percentage = 18.5m },
+            new() { Method = "Bank Transfer", Amount = 2347.50m, Percentage = 5.2m }
+        };
+    }
+
+    private void GeneratePaymentHistory()
+    {
+        allPayments = new List<PaymentRecord>();
+        var random = new Random();
+        var statuses = new[] { "Completed", "Completed", "Completed", "Pending", "Refunded" };
+        var types = new[] { "Event", "Event", "Membership", "Donation", "Other" };
+        var names = new[] { "Sarah Kim", "John Davis", "Emma Rodriguez", "Michael Chen", "Alex Morgan", "Lisa Wang", "David Park", "Jennifer Lee" };
+        var events = new[] { "Advanced Rope Techniques", "Introduction to Rope", "Rope Performance Workshop", "Safety and Risk Awareness" };
+
+        for (int i = 0; i < 50; i++)
+        {
+            var type = types[random.Next(types.Length)];
+            var description = type == "Event" ? events[random.Next(events.Length)] : 
+                            type == "Membership" ? "Annual Membership" : 
+                            type == "Donation" ? "General Donation" : "Workshop Materials";
+
+            allPayments.Add(new PaymentRecord
+            {
+                TransactionId = $"TXN{DateTime.Now.Ticks + i:X}".Substring(0, 10),
+                Date = DateTime.Today.AddDays(-random.Next(0, 30)),
+                MemberName = names[random.Next(names.Length)],
+                Description = description,
+                Type = type,
+                Amount = type == "Event" ? random.Next(75, 151) : 
+                        type == "Membership" ? 120 : 
+                        random.Next(25, 201),
+                Status = statuses[random.Next(statuses.Length)]
+            });
+        }
+
+        allPayments = allPayments.OrderByDescending(p => p.Date).ToList();
+    }
+
+    private void GenerateRecentRefunds()
+    {
+        recentRefunds = new List<RefundRecord>
+        {
+            new() { Date = DateTime.Today.AddDays(-2), MemberName = "Alex Morgan", Amount = 150.00m, Reason = "Event Cancelled", Status = "Processed" },
+            new() { Date = DateTime.Today.AddDays(-5), MemberName = "Sarah Kim", Amount = 75.00m, Reason = "Unable to Attend", Status = "Processed" },
+            new() { Date = DateTime.Today.AddDays(-8), MemberName = "John Davis", Amount = 120.00m, Reason = "Medical Emergency", Status = "Pending" },
+            new() { Date = DateTime.Today.AddDays(-12), MemberName = "Emma Rodriguez", Amount = 80.00m, Reason = "Event Cancelled", Status = "Processed" },
+            new() { Date = DateTime.Today.AddDays(-15), MemberName = "Michael Chen", Amount = 150.00m, Reason = "Other", Status = "Processed" }
+        };
+    }
+
+    // View Models
+    public class RevenueChartData
+    {
+        public DateTime Date { get; set; }
+        public double Revenue { get; set; }
+        public double Refunds { get; set; }
+    }
+
+    public class EventRevenueData
+    {
+        public string EventName { get; set; } = string.Empty;
+        public DateTime EventDate { get; set; }
+        public decimal Revenue { get; set; }
+        public int AttendeeCount { get; set; }
+        public decimal AverageTicketPrice { get; set; }
+    }
+
+    public class SlidingScaleData
+    {
+        public string Category { get; set; } = string.Empty;
+        public int Count { get; set; }
+        public decimal Percentage { get; set; }
+    }
+
+    public class RefundReasonData
+    {
+        public string Reason { get; set; } = string.Empty;
+        public int Count { get; set; }
+    }
+
+    public class PaymentMethodData
+    {
+        public string Method { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+        public decimal Percentage { get; set; }
+    }
+
+    public class PaymentRecord
+    {
+        public string TransactionId { get; set; } = string.Empty;
+        public DateTime Date { get; set; }
+        public string MemberName { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+        public string Status { get; set; } = string.Empty;
+    }
+
+    public class RefundRecord
+    {
+        public DateTime Date { get; set; }
+        public string MemberName { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+        public string Reason { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+    }
+}

@@ -1,0 +1,1380 @@
+@page "/admin/incidents"
+@using WitchCityRope.Web.Services
+@using System.Linq
+@inject ApiClient ApiClient
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@attribute [Authorize(Roles = "Admin")]
+
+@* Incident management system for handling reports and safety issues *@
+
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">Incident Management</h1>
+        <p class="page-subtitle">Monitor and manage safety incidents, reports, and complaints</p>
+    </div>
+
+    @* Statistics Cards *@
+    <div class="incident-stats">
+        <div class="stat-card">
+            <div class="stat-value">@stats.OpenIncidents</div>
+            <div class="stat-label">Open Incidents</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@stats.InProgressIncidents</div>
+            <div class="stat-label">In Progress</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@stats.ClosedToday</div>
+            <div class="stat-label">Closed Today</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@stats.AverageResolutionTime</div>
+            <div class="stat-label">Avg Resolution Time</div>
+        </div>
+    </div>
+
+    @* Filters and Controls *@
+    <div class="admin-controls">
+        <div class="admin-filters">
+            <input type="text" @bind="searchTerm" @bind:event="oninput" 
+                   class="filter-input" placeholder="Search incidents..." />
+
+            <select @bind="filterStatus" @bind:event="oninput" class="filter-select">
+                <option value="">All Status</option>
+                <option value="open">Open</option>
+                <option value="in-progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+                <option value="closed">Closed</option>
+            </select>
+
+            <select @bind="filterSeverity" @bind:event="oninput" class="filter-select">
+                <option value="">All Severity</option>
+                <option value="critical">Critical</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+            </select>
+
+            <select @bind="filterType" @bind:event="oninput" class="filter-select">
+                <option value="">All Types</option>
+                <option value="safety">Safety Concern</option>
+                <option value="consent">Consent Violation</option>
+                <option value="harassment">Harassment</option>
+                <option value="equipment">Equipment Issue</option>
+                <option value="medical">Medical Incident</option>
+                <option value="other">Other</option>
+            </select>
+
+            <select @bind="sortBy" @bind:event="oninput" class="filter-select">
+                <option value="date-desc">Newest First</option>
+                <option value="date-asc">Oldest First</option>
+                <option value="severity-desc">Severity (High to Low)</option>
+                <option value="status">Status</option>
+            </select>
+        </div>
+
+        <div class="admin-actions">
+            <button class="btn btn-primary" @onclick="ShowCreateIncidentModal">
+                <i class="fas fa-plus"></i> Report Incident
+            </button>
+            <button class="btn btn-secondary" @onclick="ExportIncidents" disabled="@(!filteredIncidents?.Any() == true)">
+                <i class="fas fa-download"></i> Export
+            </button>
+        </div>
+    </div>
+
+    @* View Toggle *@
+    <div class="view-toggle">
+        <button class="toggle-btn @(viewMode == "cards" ? "active" : "")" @onclick="() => viewMode = \"cards\"">
+            <i class="fas fa-th"></i> Cards
+        </button>
+        <button class="toggle-btn @(viewMode == "timeline" ? "active" : "")" @onclick="() => viewMode = \"timeline\"">
+            <i class="fas fa-stream"></i> Timeline
+        </button>
+        <button class="toggle-btn @(viewMode == "table" ? "active" : "")" @onclick="() => viewMode = \"table\"">
+            <i class="fas fa-list"></i> Table
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <LoadingSpinner />
+    }
+    else if (filteredIncidents?.Any() == true)
+    {
+        @if (viewMode == "cards")
+        {
+            <div class="incident-grid">
+                @foreach (var incident in filteredIncidents)
+                {
+                    <div class="incident-card severity-@incident.Severity.ToLower()" @onclick="() => ShowIncidentDetails(incident)">
+                        <div class="incident-header">
+                            <span class="incident-type-badge type-@incident.Type.ToLower().Replace(" ", "-")">
+                                @GetIncidentTypeIcon(incident.Type) @incident.Type
+                            </span>
+                            <span class="incident-date">@incident.ReportedAt.ToString("MMM d, h:mm tt")</span>
+                        </div>
+                        
+                        <div class="incident-body">
+                            <h3 class="incident-title">@incident.Title</h3>
+                            <p class="incident-description">@TruncateText(incident.Description, 150)</p>
+                            
+                            <div class="incident-meta">
+                                <span class="severity-badge severity-@incident.Severity.ToLower()">
+                                    @incident.Severity
+                                </span>
+                                <span class="status-badge status-@incident.Status.ToLower().Replace(" ", "-")">
+                                    @incident.Status
+                                </span>
+                                @if (!string.IsNullOrEmpty(incident.AssignedTo))
+                                {
+                                    <span class="assigned-badge">
+                                        <i class="fas fa-user"></i> @incident.AssignedTo
+                                    </span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="incident-footer">
+                            <div class="reporter-info">
+                                @if (incident.IsAnonymous)
+                                {
+                                    <span class="anonymous-reporter">
+                                        <i class="fas fa-user-secret"></i> Anonymous
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="reporter">
+                                        <i class="fas fa-user"></i> @incident.ReporterName
+                                    </span>
+                                }
+                            </div>
+                            <div class="incident-actions">
+                                <button class="btn-icon" title="View Details" @onclick:stopPropagation="true" @onclick="() => ShowIncidentDetails(incident)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn-icon" title="Assign" @onclick:stopPropagation="true" @onclick="() => ShowAssignModal(incident)">
+                                    <i class="fas fa-user-plus"></i>
+                                </button>
+                                <button class="btn-icon" title="Update Status" @onclick:stopPropagation="true" @onclick="() => ShowStatusModal(incident)">
+                                    <i class="fas fa-tasks"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else if (viewMode == "timeline")
+        {
+            <div class="timeline-container">
+                @foreach (var dateGroup in filteredIncidents.GroupBy(i => i.ReportedAt.Date).OrderByDescending(g => g.Key))
+                {
+                    <div class="timeline-date">
+                        <h3>@dateGroup.Key.ToString("MMMM d, yyyy")</h3>
+                    </div>
+                    @foreach (var incident in dateGroup.OrderByDescending(i => i.ReportedAt))
+                    {
+                        <div class="timeline-item severity-@incident.Severity.ToLower()">
+                            <div class="timeline-marker">
+                                <span>@GetIncidentTypeIcon(incident.Type)</span>
+                            </div>
+                            <div class="timeline-content" @onclick="() => ShowIncidentDetails(incident)">
+                                <div class="timeline-header">
+                                    <h4>@incident.Title</h4>
+                                    <span class="timeline-time">@incident.ReportedAt.ToString("h:mm tt")</span>
+                                </div>
+                                <p class="timeline-description">@incident.Description</p>
+                                <div class="timeline-meta">
+                                    <span class="incident-type-badge type-@incident.Type.ToLower().Replace(" ", "-")">
+                                        @incident.Type
+                                    </span>
+                                    <span class="severity-badge severity-@incident.Severity.ToLower()">
+                                        @incident.Severity
+                                    </span>
+                                    <span class="status-badge status-@incident.Status.ToLower().Replace(" ", "-")">
+                                        @incident.Status
+                                    </span>
+                                    @if (!incident.IsAnonymous)
+                                    {
+                                        <span class="reporter">Reported by @incident.ReporterName</span>
+                                    }
+                                </div>
+                                @if (incident.Updates?.Any() == true)
+                                {
+                                    <div class="timeline-updates">
+                                        <small>Last updated: @GetRelativeTime(incident.Updates.Last().Timestamp)</small>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        }
+        else
+        {
+            <div class="incident-table-container">
+                <table class="incident-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Date/Time</th>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>Severity</th>
+                            <th>Status</th>
+                            <th>Reporter</th>
+                            <th>Assigned To</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var incident in filteredIncidents)
+                        {
+                            <tr class="severity-@incident.Severity.ToLower()">
+                                <td>#@incident.Id</td>
+                                <td>@incident.ReportedAt.ToString("MMM d, h:mm tt")</td>
+                                <td>
+                                    <a href="#" @onclick:preventDefault="true" @onclick="() => ShowIncidentDetails(incident)">
+                                        @incident.Title
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="incident-type-badge type-@incident.Type.ToLower().Replace(" ", "-")">
+                                        @incident.Type
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="severity-badge severity-@incident.Severity.ToLower()">
+                                        @incident.Severity
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-@incident.Status.ToLower().Replace(" ", "-")">
+                                        @incident.Status
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (incident.IsAnonymous)
+                                    {
+                                        <span class="anonymous-reporter">Anonymous</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@incident.ReporterName</span>
+                                    }
+                                </td>
+                                <td>@(incident.AssignedTo ?? "-")</td>
+                                <td>
+                                    <div class="table-actions">
+                                        <button class="btn-icon-sm" title="View Details" @onclick="() => ShowIncidentDetails(incident)">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn-icon-sm" title="Update" @onclick="() => ShowStatusModal(incident)">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <div class="dropdown">
+                                            <button class="btn-icon-sm" @onclick="() => ToggleDropdown(incident.Id)">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            @if (openDropdownId == incident.Id)
+                                            {
+                                                <div class="dropdown-menu show">
+                                                    <a class="dropdown-item" @onclick="() => ShowAssignModal(incident)">
+                                                        <i class="fas fa-user-plus"></i> Assign
+                                                    </a>
+                                                    <a class="dropdown-item" @onclick="() => ShowAddNoteModal(incident)">
+                                                        <i class="fas fa-comment"></i> Add Note
+                                                    </a>
+                                                    @if (!incident.IsAnonymous && incident.ReporterId != null)
+                                                    {
+                                                        <a class="dropdown-item" @onclick="() => ContactReporter(incident)">
+                                                            <i class="fas fa-envelope"></i> Contact Reporter
+                                                        </a>
+                                                    }
+                                                    @if (incident.InvolvedUserId != null)
+                                                    {
+                                                        <a class="dropdown-item text-danger" @onclick="() => ShowBanUserModal(incident)">
+                                                            <i class="fas fa-ban"></i> Ban User
+                                                        </a>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (hasMore)
+        {
+            <div class="load-more-container">
+                <button class="btn btn-secondary" @onclick="LoadMore" disabled="@isLoadingMore">
+                    @if (isLoadingMore)
+                    {
+                        <span>Loading...</span>
+                    }
+                    else
+                    {
+                        <span>Load More</span>
+                    }
+                </button>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="empty-state">
+            <h3>No incidents found</h3>
+            <p>There are no incidents matching your filters.</p>
+        </div>
+    }
+</div>
+
+@* Incident Details Modal *@
+@if (showDetailsModal && selectedIncident != null)
+{
+    <div class="modal modal-visible" @onclick="CloseDetailsModal">
+        <div class="modal-content modal-large" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2 class="modal-title">Incident Details</h2>
+                <button type="button" class="modal-close" @onclick="CloseDetailsModal">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="incident-detail-header">
+                    <div class="detail-meta">
+                        <span class="detail-id">#@selectedIncident.Id</span>
+                        <span class="incident-type-badge type-@selectedIncident.Type.ToLower().Replace(" ", "-")">
+                            @GetIncidentTypeIcon(selectedIncident.Type) @selectedIncident.Type
+                        </span>
+                        <span class="severity-badge severity-@selectedIncident.Severity.ToLower()">
+                            @selectedIncident.Severity
+                        </span>
+                        <span class="status-badge status-@selectedIncident.Status.ToLower().Replace(" ", "-")">
+                            @selectedIncident.Status
+                        </span>
+                    </div>
+                </div>
+
+                <h3 class="detail-title">@selectedIncident.Title</h3>
+                
+                <div class="detail-grid">
+                    <div class="detail-section">
+                        <h4>Incident Information</h4>
+                        <dl class="detail-list">
+                            <dt>Reported At:</dt>
+                            <dd>@selectedIncident.ReportedAt.ToString("MMMM d, yyyy h:mm tt")</dd>
+                            
+                            <dt>Reporter:</dt>
+                            <dd>
+                                @if (selectedIncident.IsAnonymous)
+                                {
+                                    <span class="anonymous-reporter">
+                                        <i class="fas fa-user-secret"></i> Anonymous Report
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span>@selectedIncident.ReporterName (@selectedIncident.ReporterEmail)</span>
+                                }
+                            </dd>
+                            
+                            <dt>Location:</dt>
+                            <dd>@(selectedIncident.Location ?? "Not specified")</dd>
+                            
+                            <dt>Involved Parties:</dt>
+                            <dd>@(selectedIncident.InvolvedParties ?? "Not specified")</dd>
+                            
+                            @if (!string.IsNullOrEmpty(selectedIncident.AssignedTo))
+                            {
+                                <dt>Assigned To:</dt>
+                                <dd>@selectedIncident.AssignedTo</dd>
+                            }
+                        </dl>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Description</h4>
+                        <p class="incident-full-description">@selectedIncident.Description</p>
+                        
+                        @if (!string.IsNullOrEmpty(selectedIncident.Evidence))
+                        {
+                            <h4>Evidence/Attachments</h4>
+                            <p>@selectedIncident.Evidence</p>
+                        }
+                    </div>
+                </div>
+
+                @if (selectedIncident.Updates?.Any() == true)
+                {
+                    <div class="incident-timeline">
+                        <h4>Incident Timeline</h4>
+                        <div class="update-list">
+                            @foreach (var update in selectedIncident.Updates.OrderByDescending(u => u.Timestamp))
+                            {
+                                <div class="update-item">
+                                    <div class="update-header">
+                                        <span class="update-user">@update.UpdatedBy</span>
+                                        <span class="update-time">@GetRelativeTime(update.Timestamp)</span>
+                                    </div>
+                                    <div class="update-content">
+                                        @if (!string.IsNullOrEmpty(update.StatusChange))
+                                        {
+                                            <div class="status-change">
+                                                <i class="fas fa-exchange-alt"></i>
+                                                Status changed to <strong>@update.StatusChange</strong>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(update.Note))
+                                        {
+                                            <p class="update-note">@update.Note</p>
+                                        }
+                                        @if (!string.IsNullOrEmpty(update.Action))
+                                        {
+                                            <div class="update-action">
+                                                <i class="fas fa-bolt"></i> @update.Action
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-primary" @onclick="() => ShowStatusModal(selectedIncident)">
+                    Update Status
+                </button>
+                <button class="btn btn-secondary" @onclick="() => ShowAddNoteModal(selectedIncident)">
+                    Add Note
+                </button>
+                @if (!string.IsNullOrEmpty(selectedIncident.AssignedTo))
+                {
+                    <button class="btn btn-secondary" @onclick="() => ShowAssignModal(selectedIncident)">
+                        Reassign
+                    </button>
+                }
+                else
+                {
+                    <button class="btn btn-secondary" @onclick="() => ShowAssignModal(selectedIncident)">
+                        Assign
+                    </button>
+                }
+                <button class="btn btn-secondary" @onclick="CloseDetailsModal">Close</button>
+            </div>
+        </div>
+    </div>
+}
+
+@* Update Status Modal *@
+@if (showStatusModal && statusUpdateIncident != null)
+{
+    <div class="modal modal-visible" @onclick="CloseStatusModal">
+        <div class="modal-content modal-small" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2 class="modal-title">Update Incident Status</h2>
+                <button type="button" class="modal-close" @onclick="CloseStatusModal">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Current Status: <strong>@statusUpdateIncident.Status</strong></label>
+                </div>
+
+                <div class="form-group">
+                    <label for="newStatus">New Status</label>
+                    <select id="newStatus" @bind="newStatus" class="form-input">
+                        <option value="Open">Open</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Resolved">Resolved</option>
+                        <option value="Closed">Closed</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="statusNote">Note (optional)</label>
+                    <textarea id="statusNote" @bind="statusNote" class="form-input" rows="4" 
+                              placeholder="Add any relevant notes about this status change..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-primary" @onclick="UpdateIncidentStatus" disabled="@isProcessing">
+                    Update Status
+                </button>
+                <button class="btn btn-secondary" @onclick="CloseStatusModal">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+@* Assign Modal *@
+@if (showAssignModal && assignIncident != null)
+{
+    <div class="modal modal-visible" @onclick="CloseAssignModal">
+        <div class="modal-content modal-small" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2 class="modal-title">Assign Incident</h2>
+                <button type="button" class="modal-close" @onclick="CloseAssignModal">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Incident: <strong>@assignIncident.Title</strong></label>
+                </div>
+
+                <div class="form-group">
+                    <label for="assignTo">Assign To</label>
+                    <select id="assignTo" @bind="assignToUser" class="form-input">
+                        <option value="">-- Select Staff Member --</option>
+                        @foreach (var staff in staffMembers)
+                        {
+                            <option value="@staff.Name">@staff.Name (@staff.Role)</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="assignNote">Note (optional)</label>
+                    <textarea id="assignNote" @bind="assignNote" class="form-input" rows="3" 
+                              placeholder="Add any notes for the assignee..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-primary" @onclick="AssignIncident" disabled="@(isProcessing || string.IsNullOrEmpty(assignToUser))">
+                    Assign
+                </button>
+                <button class="btn btn-secondary" @onclick="CloseAssignModal">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+@* Add Note Modal *@
+@if (showNoteModal && noteIncident != null)
+{
+    <div class="modal modal-visible" @onclick="CloseNoteModal">
+        <div class="modal-content modal-small" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2 class="modal-title">Add Note</h2>
+                <button type="button" class="modal-close" @onclick="CloseNoteModal">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Incident: <strong>@noteIncident.Title</strong></label>
+                </div>
+
+                <div class="form-group">
+                    <label for="incidentNote">Note</label>
+                    <textarea id="incidentNote" @bind="incidentNote" class="form-input" rows="5" 
+                              placeholder="Enter your note..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" @bind="isInternalNote" />
+                        Internal note (not visible to reporter)
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-primary" @onclick="AddIncidentNote" disabled="@(isProcessing || string.IsNullOrWhiteSpace(incidentNote))">
+                    Add Note
+                </button>
+                <button class="btn btn-secondary" @onclick="CloseNoteModal">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+@* Ban User Modal *@
+@if (showBanModal && banIncident != null)
+{
+    <div class="modal modal-visible" @onclick="CloseBanModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2 class="modal-title">Ban User</h2>
+                <button type="button" class="modal-close" @onclick="CloseBanModal">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Warning:</strong> This action will ban the user from the platform.
+                </div>
+
+                <div class="form-group">
+                    <label>User to Ban: <strong>@banIncident.InvolvedUserName</strong></label>
+                </div>
+
+                <div class="form-group">
+                    <label for="banDuration">Ban Duration</label>
+                    <select id="banDuration" @bind="banDuration" class="form-input">
+                        <option value="7">7 Days</option>
+                        <option value="30">30 Days</option>
+                        <option value="90">90 Days</option>
+                        <option value="365">1 Year</option>
+                        <option value="0">Permanent</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="banReason">Reason for Ban</label>
+                    <textarea id="banReason" @bind="banReason" class="form-input" rows="4" 
+                              placeholder="Provide a detailed reason for the ban..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" @bind="notifyUser" />
+                        Send notification email to user
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-danger" @onclick="BanUser" disabled="@(isProcessing || string.IsNullOrWhiteSpace(banReason))">
+                    Ban User
+                </button>
+                <button class="btn btn-secondary" @onclick="CloseBanModal">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+@* Create Incident Modal *@
+@if (showCreateModal)
+{
+    <div class="modal modal-visible" @onclick="CloseCreateModal">
+        <div class="modal-content modal-large" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2 class="modal-title">Report New Incident</h2>
+                <button type="button" class="modal-close" @onclick="CloseCreateModal">×</button>
+            </div>
+            
+            <EditForm Model="incidentForm" OnValidSubmit="CreateIncident">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="incidentTitle">Title</label>
+                            <InputText id="incidentTitle" @bind-Value="incidentForm.Title" class="form-input" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="incidentType">Type</label>
+                            <InputSelect id="incidentType" @bind-Value="incidentForm.Type" class="form-input">
+                                <option value="">Select Type</option>
+                                <option value="Safety Concern">Safety Concern</option>
+                                <option value="Consent Violation">Consent Violation</option>
+                                <option value="Harassment">Harassment</option>
+                                <option value="Equipment Issue">Equipment Issue</option>
+                                <option value="Medical Incident">Medical Incident</option>
+                                <option value="Other">Other</option>
+                            </InputSelect>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="incidentSeverity">Severity</label>
+                            <InputSelect id="incidentSeverity" @bind-Value="incidentForm.Severity" class="form-input">
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                                <option value="Critical">Critical</option>
+                            </InputSelect>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="incidentDate">Date/Time of Incident</label>
+                            <InputDate id="incidentDate" @bind-Value="incidentForm.IncidentDate" class="form-input" Type="InputDateType.DateTimeLocal" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="incidentDescription">Description</label>
+                        <InputTextArea id="incidentDescription" @bind-Value="incidentForm.Description" class="form-input" rows="5" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="incidentLocation">Location</label>
+                        <InputText id="incidentLocation" @bind-Value="incidentForm.Location" class="form-input" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="involvedParties">Involved Parties</label>
+                        <InputText id="involvedParties" @bind-Value="incidentForm.InvolvedParties" class="form-input" 
+                                   placeholder="Names or descriptions of people involved" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="incidentEvidence">Evidence/Attachments</label>
+                        <InputTextArea id="incidentEvidence" @bind-Value="incidentForm.Evidence" class="form-input" rows="3" 
+                                       placeholder="Describe any evidence or list attachment filenames" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <InputCheckbox @bind-Value="incidentForm.IsAnonymous" />
+                            Submit as anonymous report
+                        </label>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary" disabled="@isProcessing">
+                        @if (isProcessing)
+                        {
+                            <span>Creating...</span>
+                        }
+                        else
+                        {
+                            <span>Create Incident</span>
+                        }
+                    </button>
+                    <button type="button" class="btn btn-secondary" @onclick="CloseCreateModal">Cancel</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    private IncidentStatsViewModel stats = new();
+    private List<IncidentViewModel> incidents = new();
+    private List<IncidentViewModel> filteredIncidents = new();
+    private List<StaffMemberViewModel> staffMembers = new();
+    
+    private bool isLoading = true;
+    private bool isLoadingMore = false;
+    private bool hasMore = false;
+    private bool isProcessing = false;
+    
+    private string filterStatus = "";
+    private string filterSeverity = "";
+    private string filterType = "";
+    private string sortBy = "date-desc";
+    private string searchTerm = "";
+    private string viewMode = "cards";
+    
+    private int currentPage = 1;
+    private const int PageSize = 20;
+    private int? openDropdownId = null;
+
+    // Modal states
+    private bool showDetailsModal = false;
+    private bool showStatusModal = false;
+    private bool showAssignModal = false;
+    private bool showNoteModal = false;
+    private bool showBanModal = false;
+    private bool showCreateModal = false;
+    
+    private IncidentViewModel? selectedIncident = null;
+    private IncidentViewModel? statusUpdateIncident = null;
+    private IncidentViewModel? assignIncident = null;
+    private IncidentViewModel? noteIncident = null;
+    private IncidentViewModel? banIncident = null;
+    
+    private IncidentFormModel incidentForm = new();
+    private string newStatus = "";
+    private string statusNote = "";
+    private string assignToUser = "";
+    private string assignNote = "";
+    private string incidentNote = "";
+    private bool isInternalNote = true;
+    private int banDuration = 30;
+    private string banReason = "";
+    private bool notifyUser = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStats();
+        await LoadIncidents();
+        await LoadStaffMembers();
+    }
+
+    private async Task LoadStats()
+    {
+        // Mock stats for testing
+        stats = new IncidentStatsViewModel
+        {
+            OpenIncidents = 7,
+            InProgressIncidents = 3,
+            ClosedToday = 2,
+            AverageResolutionTime = "2.5 days"
+        };
+    }
+
+    private async Task LoadIncidents()
+    {
+        try
+        {
+            isLoading = true;
+            
+            // Mock incidents for testing
+            incidents = GenerateMockIncidents(50);
+            
+            ApplyFilters();
+            hasMore = incidents.Count == PageSize;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadStaffMembers()
+    {
+        // Mock staff members
+        staffMembers = new List<StaffMemberViewModel>
+        {
+            new() { Id = 1, Name = "Alice Johnson", Role = "Safety Officer" },
+            new() { Id = 2, Name = "Bob Smith", Role = "Community Manager" },
+            new() { Id = 3, Name = "Carol Davis", Role = "Admin" },
+            new() { Id = 4, Name = "David Brown", Role = "Moderator" }
+        };
+    }
+
+    private List<IncidentViewModel> GenerateMockIncidents(int count)
+    {
+        var random = new Random();
+        var types = new[] { "Safety Concern", "Consent Violation", "Harassment", "Equipment Issue", "Medical Incident", "Other" };
+        var severities = new[] { "Low", "Medium", "High", "Critical" };
+        var statuses = new[] { "Open", "In Progress", "Resolved", "Closed" };
+        var locations = new[] { "Main Play Space", "Social Area", "Equipment Room", "Changing Room", "Entrance", "Online" };
+        
+        return Enumerable.Range(1, count).Select(i =>
+        {
+            var reportedAt = DateTime.Now.AddDays(-random.Next(0, 30)).AddHours(-random.Next(0, 24));
+            var type = types[random.Next(types.Length)];
+            var severity = severities[random.Next(severities.Length)];
+            var status = statuses[random.Next(statuses.Length)];
+            var isAnonymous = random.Next(3) == 0; // 33% chance of anonymous
+            
+            var incident = new IncidentViewModel
+            {
+                Id = i,
+                Title = GenerateIncidentTitle(type, random),
+                Type = type,
+                Severity = severity,
+                Status = status,
+                ReportedAt = reportedAt,
+                Location = locations[random.Next(locations.Length)],
+                IsAnonymous = isAnonymous,
+                Description = GenerateIncidentDescription(type, severity),
+                InvolvedParties = random.Next(2) == 0 ? $"{random.Next(1, 4)} people" : null,
+                Updates = new List<IncidentUpdateViewModel>()
+            };
+
+            if (!isAnonymous)
+            {
+                incident.ReporterName = GetRandomName(random);
+                incident.ReporterEmail = $"{incident.ReporterName.ToLower().Replace(" ", ".")}@example.com";
+                incident.ReporterId = random.Next(100, 1000);
+            }
+
+            if (status != "Open" && random.Next(2) == 0)
+            {
+                incident.AssignedTo = staffMembers[random.Next(staffMembers.Count)].Name;
+            }
+
+            if (type == "Harassment" || type == "Consent Violation")
+            {
+                incident.InvolvedUserId = random.Next(100, 1000);
+                incident.InvolvedUserName = GetRandomName(random);
+            }
+
+            // Add some updates
+            if (status != "Open")
+            {
+                incident.Updates.Add(new IncidentUpdateViewModel
+                {
+                    Id = random.Next(1000, 9999),
+                    Timestamp = reportedAt.AddHours(random.Next(1, 24)),
+                    UpdatedBy = incident.AssignedTo ?? "System",
+                    StatusChange = "In Progress",
+                    Note = "Incident acknowledged and under investigation."
+                });
+            }
+
+            if (status == "Resolved" || status == "Closed")
+            {
+                incident.Updates.Add(new IncidentUpdateViewModel
+                {
+                    Id = random.Next(1000, 9999),
+                    Timestamp = reportedAt.AddDays(random.Next(1, 3)),
+                    UpdatedBy = incident.AssignedTo ?? "System",
+                    StatusChange = status,
+                    Note = "Issue has been addressed. Appropriate actions taken.",
+                    Action = type == "Harassment" ? "User warned" : null
+                });
+            }
+
+            return incident;
+        }).ToList();
+    }
+
+    private string GenerateIncidentTitle(string type, Random random)
+    {
+        return type switch
+        {
+            "Safety Concern" => new[] { "Unsafe rope condition observed", "Missing safety equipment", "Improper technique witnessed" }[random.Next(3)],
+            "Consent Violation" => new[] { "Boundary violation reported", "Unwanted contact incident", "Consent issue during scene" }[random.Next(3)],
+            "Harassment" => new[] { "Inappropriate behavior reported", "Verbal harassment incident", "Unwelcome advances" }[random.Next(3)],
+            "Equipment Issue" => new[] { "Damaged suspension point", "Broken carabiner found", "Missing first aid supplies" }[random.Next(3)],
+            "Medical Incident" => new[] { "Minor injury during scene", "Circulation concern", "Allergic reaction" }[random.Next(3)],
+            _ => new[] { "Community guideline violation", "Disruptive behavior", "Policy concern" }[random.Next(3)]
+        };
+    }
+
+    private string GenerateIncidentDescription(string type, string severity)
+    {
+        var baseDescription = type switch
+        {
+            "Safety Concern" => "A safety issue was observed that requires immediate attention to prevent potential injuries.",
+            "Consent Violation" => "An incident involving consent boundaries was reported. This requires sensitive handling and investigation.",
+            "Harassment" => "Inappropriate behavior was reported that violates our community standards and safe space policies.",
+            "Equipment Issue" => "Equipment malfunction or damage was discovered that could impact safety during activities.",
+            "Medical Incident" => "A medical situation occurred that required attention. First aid was administered as needed.",
+            _ => "An incident was reported that requires administrative review and appropriate action."
+        };
+
+        if (severity == "Critical" || severity == "High")
+        {
+            baseDescription += " This is a high-priority issue that needs immediate resolution.";
+        }
+
+        return baseDescription;
+    }
+
+    private string GetRandomName(Random random)
+    {
+        var firstNames = new[] { "Alex", "Jordan", "Casey", "Morgan", "Taylor", "Jamie", "Riley", "Avery", "Quinn", "Sage" };
+        var lastNames = new[] { "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez" };
+        return $"{firstNames[random.Next(firstNames.Length)]} {lastNames[random.Next(lastNames.Length)]}";
+    }
+
+    private void ApplyFilters()
+    {
+        var filtered = incidents.AsEnumerable();
+
+        if (!string.IsNullOrEmpty(filterStatus))
+        {
+            filtered = filtered.Where(i => i.Status.Replace(" ", "-").ToLower() == filterStatus);
+        }
+
+        if (!string.IsNullOrEmpty(filterSeverity))
+        {
+            filtered = filtered.Where(i => i.Severity.ToLower() == filterSeverity);
+        }
+
+        if (!string.IsNullOrEmpty(filterType))
+        {
+            filtered = filtered.Where(i => i.Type.Replace(" ", "-").ToLower() == filterType);
+        }
+
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            filtered = filtered.Where(i => 
+                i.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                i.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                (!i.IsAnonymous && i.ReporterName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        filtered = sortBy switch
+        {
+            "date-asc" => filtered.OrderBy(i => i.ReportedAt),
+            "severity-desc" => filtered.OrderBy(i => GetSeverityOrder(i.Severity)).ThenByDescending(i => i.ReportedAt),
+            "status" => filtered.OrderBy(i => i.Status).ThenByDescending(i => i.ReportedAt),
+            _ => filtered.OrderByDescending(i => i.ReportedAt)
+        };
+
+        filteredIncidents = filtered.Take(currentPage * PageSize).ToList();
+    }
+
+    private int GetSeverityOrder(string severity)
+    {
+        return severity switch
+        {
+            "Critical" => 0,
+            "High" => 1,
+            "Medium" => 2,
+            "Low" => 3,
+            _ => 4
+        };
+    }
+
+    private async Task LoadMore()
+    {
+        try
+        {
+            isLoadingMore = true;
+            currentPage++;
+            ApplyFilters();
+        }
+        finally
+        {
+            isLoadingMore = false;
+        }
+    }
+
+    private void ToggleDropdown(int incidentId)
+    {
+        openDropdownId = openDropdownId == incidentId ? null : incidentId;
+    }
+
+    private void ShowIncidentDetails(IncidentViewModel incident)
+    {
+        selectedIncident = incident;
+        showDetailsModal = true;
+        openDropdownId = null;
+    }
+
+    private void CloseDetailsModal()
+    {
+        showDetailsModal = false;
+        selectedIncident = null;
+    }
+
+    private void ShowStatusModal(IncidentViewModel incident)
+    {
+        statusUpdateIncident = incident;
+        newStatus = incident.Status;
+        statusNote = "";
+        showStatusModal = true;
+        openDropdownId = null;
+    }
+
+    private void CloseStatusModal()
+    {
+        showStatusModal = false;
+        statusUpdateIncident = null;
+        newStatus = "";
+        statusNote = "";
+    }
+
+    private async Task UpdateIncidentStatus()
+    {
+        try
+        {
+            isProcessing = true;
+            
+            // TODO: Call API to update status
+            await Task.Delay(1000); // Simulate API call
+            
+            if (statusUpdateIncident != null)
+            {
+                statusUpdateIncident.Status = newStatus;
+                statusUpdateIncident.Updates.Add(new IncidentUpdateViewModel
+                {
+                    Id = new Random().Next(1000, 9999),
+                    Timestamp = DateTime.Now,
+                    UpdatedBy = "Current Admin", // Would come from auth service
+                    StatusChange = newStatus,
+                    Note = statusNote
+                });
+            }
+            
+            CloseStatusModal();
+            ApplyFilters(); // Refresh the view
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private void ShowAssignModal(IncidentViewModel incident)
+    {
+        assignIncident = incident;
+        assignToUser = incident.AssignedTo ?? "";
+        assignNote = "";
+        showAssignModal = true;
+        openDropdownId = null;
+    }
+
+    private void CloseAssignModal()
+    {
+        showAssignModal = false;
+        assignIncident = null;
+        assignToUser = "";
+        assignNote = "";
+    }
+
+    private async Task AssignIncident()
+    {
+        try
+        {
+            isProcessing = true;
+            
+            // TODO: Call API to assign incident
+            await Task.Delay(1000); // Simulate API call
+            
+            if (assignIncident != null)
+            {
+                assignIncident.AssignedTo = assignToUser;
+                assignIncident.Updates.Add(new IncidentUpdateViewModel
+                {
+                    Id = new Random().Next(1000, 9999),
+                    Timestamp = DateTime.Now,
+                    UpdatedBy = "Current Admin",
+                    Action = $"Assigned to {assignToUser}",
+                    Note = assignNote
+                });
+            }
+            
+            CloseAssignModal();
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private void ShowAddNoteModal(IncidentViewModel incident)
+    {
+        noteIncident = incident;
+        incidentNote = "";
+        isInternalNote = true;
+        showNoteModal = true;
+        openDropdownId = null;
+    }
+
+    private void CloseNoteModal()
+    {
+        showNoteModal = false;
+        noteIncident = null;
+        incidentNote = "";
+    }
+
+    private async Task AddIncidentNote()
+    {
+        try
+        {
+            isProcessing = true;
+            
+            // TODO: Call API to add note
+            await Task.Delay(1000); // Simulate API call
+            
+            if (noteIncident != null)
+            {
+                noteIncident.Updates.Add(new IncidentUpdateViewModel
+                {
+                    Id = new Random().Next(1000, 9999),
+                    Timestamp = DateTime.Now,
+                    UpdatedBy = "Current Admin",
+                    Note = incidentNote + (isInternalNote ? " [Internal Note]" : "")
+                });
+            }
+            
+            CloseNoteModal();
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private void ShowBanUserModal(IncidentViewModel incident)
+    {
+        banIncident = incident;
+        banDuration = 30;
+        banReason = "";
+        notifyUser = true;
+        showBanModal = true;
+        openDropdownId = null;
+    }
+
+    private void CloseBanModal()
+    {
+        showBanModal = false;
+        banIncident = null;
+        banReason = "";
+    }
+
+    private async Task BanUser()
+    {
+        try
+        {
+            isProcessing = true;
+            
+            // TODO: Call API to ban user
+            await Task.Delay(1000); // Simulate API call
+            
+            if (banIncident != null)
+            {
+                var duration = banDuration == 0 ? "Permanent" : $"{banDuration} days";
+                banIncident.Updates.Add(new IncidentUpdateViewModel
+                {
+                    Id = new Random().Next(1000, 9999),
+                    Timestamp = DateTime.Now,
+                    UpdatedBy = "Current Admin",
+                    Action = $"User banned for {duration}",
+                    Note = banReason
+                });
+            }
+            
+            CloseBanModal();
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private void ShowCreateIncidentModal()
+    {
+        incidentForm = new IncidentFormModel
+        {
+            IncidentDate = DateTime.Now
+        };
+        showCreateModal = true;
+    }
+
+    private void CloseCreateModal()
+    {
+        showCreateModal = false;
+        incidentForm = new IncidentFormModel();
+    }
+
+    private async Task CreateIncident()
+    {
+        try
+        {
+            isProcessing = true;
+            
+            // TODO: Call API to create incident
+            await Task.Delay(1000); // Simulate API call
+            
+            CloseCreateModal();
+            await LoadIncidents(); // Reload incidents
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task ContactReporter(IncidentViewModel incident)
+    {
+        // TODO: Implement contact reporter functionality
+        openDropdownId = null;
+    }
+
+    private async Task ExportIncidents()
+    {
+        // TODO: Implement export functionality
+    }
+
+    private string TruncateText(string text, int maxLength)
+    {
+        if (string.IsNullOrEmpty(text) || text.Length <= maxLength)
+            return text;
+        
+        return text.Substring(0, maxLength) + "...";
+    }
+
+    private string GetRelativeTime(DateTime date)
+    {
+        var timeSpan = DateTime.Now - date;
+        
+        if (timeSpan.TotalMinutes < 1) return "just now";
+        if (timeSpan.TotalMinutes < 60) return $"{(int)timeSpan.TotalMinutes} minutes ago";
+        if (timeSpan.TotalHours < 24) return $"{(int)timeSpan.TotalHours} hours ago";
+        if (timeSpan.TotalDays < 7) return $"{(int)timeSpan.TotalDays} days ago";
+        if (timeSpan.TotalDays < 30) return $"{(int)(timeSpan.TotalDays / 7)} weeks ago";
+        if (timeSpan.TotalDays < 365) return $"{(int)(timeSpan.TotalDays / 30)} months ago";
+        
+        return date.ToString("MMM d, yyyy");
+    }
+
+    private string GetIncidentTypeIcon(string type)
+    {
+        return type switch
+        {
+            "Safety Concern" => "⚠️",
+            "Consent Violation" => "🚫",
+            "Harassment" => "❗",
+            "Equipment Issue" => "🔧",
+            "Medical Incident" => "🏥",
+            _ => "📋"
+        };
+    }
+
+    // View Models
+    public class IncidentStatsViewModel
+    {
+        public int OpenIncidents { get; set; }
+        public int InProgressIncidents { get; set; }
+        public int ClosedToday { get; set; }
+        public string AverageResolutionTime { get; set; } = "";
+    }
+
+    public class IncidentViewModel
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Type { get; set; } = "";
+        public string Severity { get; set; } = "";
+        public string Status { get; set; } = "Open";
+        public DateTime ReportedAt { get; set; }
+        public string Description { get; set; } = "";
+        public string? Location { get; set; }
+        public string? InvolvedParties { get; set; }
+        public string? Evidence { get; set; }
+        public bool IsAnonymous { get; set; }
+        public int? ReporterId { get; set; }
+        public string ReporterName { get; set; } = "";
+        public string ReporterEmail { get; set; } = "";
+        public string? AssignedTo { get; set; }
+        public int? InvolvedUserId { get; set; }
+        public string? InvolvedUserName { get; set; }
+        public List<IncidentUpdateViewModel> Updates { get; set; } = new();
+    }
+
+    public class IncidentUpdateViewModel
+    {
+        public int Id { get; set; }
+        public DateTime Timestamp { get; set; }
+        public string UpdatedBy { get; set; } = "";
+        public string? StatusChange { get; set; }
+        public string? Note { get; set; }
+        public string? Action { get; set; }
+    }
+
+    public class StaffMemberViewModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public string Role { get; set; } = "";
+    }
+
+    public class IncidentFormModel
+    {
+        public string Title { get; set; } = "";
+        public string Type { get; set; } = "";
+        public string Severity { get; set; } = "Medium";
+        public DateTime IncidentDate { get; set; } = DateTime.Now;
+        public string Description { get; set; } = "";
+        public string? Location { get; set; }
+        public string? InvolvedParties { get; set; }
+        public string? Evidence { get; set; }
+        public bool IsAnonymous { get; set; }
+    }
+}

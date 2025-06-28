@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-in - Rope Basics Workshop - Witch City Rope</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,700;6..96,900&family=Montserrat:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;600&family=Satisfy&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Primary Colors */
+            --color-burgundy: #880124;
+            --color-burgundy-dark: #660119;
+            --color-burgundy-light: #AA0130;
+            
+            --color-plum: #614B79;
+            --color-plum-dark: #4A3A5C;
+            --color-plum-light: #7B6296;
+            
+            /* Warm Metallics */
+            --color-rose-gold: #B76D75;
+            --color-copper: #B87333;
+            --color-brass: #C9A961;
+            
+            /* CTA Accent Colors */
+            --color-electric: #9D4EDD;
+            --color-electric-dark: #7B2CBF;
+            --color-amber: #FFBF00;
+            --color-amber-dark: #E6AC00;
+            --color-amber-light: #FFD633;
+            
+            /* Neutral Colors */
+            --color-midnight: #1A1A2E;
+            --color-charcoal: #2B2B2B;
+            --color-gray-dark: #2D2D2D;
+            --color-gray: #666666;
+            --color-gray-light: #CCCCCC;
+            --color-stone: #8B8680;
+            --color-taupe: #B8B0A8;
+            --color-ivory: #FFF8F0;
+            --color-cream: #FAF6F2;
+            --color-off-white: #F5F5F5;
+            
+            /* Supporting Tones */
+            --color-dusty-rose: #D4A5A5;
+            
+            /* Status Colors */
+            --color-success: #228B22;
+            --color-warning: #DAA520;
+            --color-error: #DC143C;
+            --color-info: #614B79;
+            
+            --color-success-light: #E6F7F1;
+            --color-warning-light: #FFF4CC;
+            --color-error-light: #FFE5EC;
+            --color-info-light: #F0EDFF;
+            
+            /* Typography */
+            --font-display: 'Bodoni Moda', serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            --font-accent: 'Satisfy', cursive;
+            
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 16px;
+            --space-md: 24px;
+            --space-lg: 32px;
+            --space-xl: 40px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            font-size: 18px;
+            line-height: 1.6;
+            color: var(--color-charcoal);
+            background-color: var(--color-cream);
+            overflow-x: hidden;
+        }
+        
+        /* Header Bar */
+        .header-bar {
+            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
+            color: var(--color-ivory);
+            padding: var(--space-lg) var(--space-xl);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        
+        .event-info h1 {
+            font-family: var(--font-heading);
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: var(--space-xs);
+            letter-spacing: -0.5px;
+        }
+        
+        .event-time {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .countdown {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            padding: var(--space-sm) var(--space-md);
+            border-radius: 8px;
+            font-weight: 600;
+            font-family: var(--font-heading);
+            letter-spacing: 0.5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .countdown-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            opacity: 0.8;
+            letter-spacing: 1px;
+        }
+        
+        .countdown-time {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .exit-btn {
+            background: transparent;
+            border: 2px solid var(--color-ivory);
+            color: var(--color-ivory);
+            padding: var(--space-sm) var(--space-lg);
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .exit-btn:hover {
+            background: var(--color-ivory);
+            color: var(--color-burgundy);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        /* Stats Bar */
+        .stats-bar {
+            background: var(--color-ivory);
+            padding: var(--space-2xl) var(--space-xl);
+            display: flex;
+            justify-content: space-around;
+            border-bottom: 2px solid var(--color-taupe);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-family: var(--font-display);
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-xs);
+            line-height: 1;
+        }
+        
+        .stat-label {
+            font-family: var(--font-heading);
+            font-size: 14px;
+            color: var(--color-stone);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        
+        /* Main Content */
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--space-xl);
+        }
+        
+        /* Search and Filters */
+        .controls-bar {
+            background: var(--color-ivory);
+            padding: var(--space-lg);
+            border-radius: 12px;
+            margin-bottom: var(--space-lg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 1px solid var(--color-taupe);
+        }
+        
+        .search-box {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: var(--space-sm) var(--space-xl) var(--space-sm) var(--space-md);
+            border: 2px solid var(--color-taupe);
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: var(--font-body);
+            background: var(--color-cream);
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--color-burgundy);
+            background: var(--color-ivory);
+            box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: var(--space-md);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-stone);
+        }
+        
+        .filter-tabs {
+            display: flex;
+            gap: var(--space-sm);
+        }
+        
+        .filter-tab {
+            padding: var(--space-sm) var(--space-md);
+            border: 2px solid transparent;
+            background: var(--color-cream);
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-stone);
+            transition: all 0.3s ease;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .filter-tab:hover {
+            background: var(--color-off-white);
+            border-color: var(--color-taupe);
+        }
+        
+        .filter-tab.active {
+            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
+            color: var(--color-ivory);
+            border-color: transparent;
+            box-shadow: 0 2px 8px rgba(136, 1, 36, 0.2);
+        }
+        
+        /* Attendee Table */
+        .attendee-table {
+            background: var(--color-ivory);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 1px solid var(--color-taupe);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: var(--color-off-white);
+            padding: var(--space-md) var(--space-md);
+            text-align: left;
+            font-family: var(--font-heading);
+            font-weight: 700;
+            color: var(--color-burgundy);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid var(--color-taupe);
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+        
+        th:first-child {
+            padding-left: var(--space-lg);
+        }
+        
+        th:hover {
+            background: var(--color-cream);
+        }
+        
+        .sort-indicator {
+            display: inline-block;
+            margin-left: var(--space-xs);
+            color: var(--color-stone);
+            font-size: 12px;
+        }
+        
+        th.sort-active .sort-indicator {
+            color: var(--color-burgundy);
+        }
+        
+        td {
+            padding: var(--space-md);
+            border-bottom: 1px solid var(--color-off-white);
+        }
+        
+        tr:hover {
+            background: var(--color-cream);
+        }
+        
+        /* Name Column */
+        .attendee-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding-left: var(--space-sm);
+        }
+        
+        .attendee-name {
+            font-weight: 600;
+            color: var(--color-charcoal);
+            font-size: 16px;
+        }
+        
+        .attendee-pronouns {
+            font-size: 14px;
+            color: var(--color-stone);
+            font-style: italic;
+        }
+        
+        /* Status Badges */
+        .payment-badge,
+        .waiver-badge {
+            display: inline-block;
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: var(--font-heading);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .payment-paid {
+            background: var(--color-success-light);
+            color: var(--color-success);
+            border: 1px solid var(--color-success);
+        }
+        
+        .payment-unpaid {
+            background: var(--color-error-light);
+            color: var(--color-error);
+            border: 1px solid var(--color-error);
+        }
+        
+        .payment-comp {
+            background: var(--color-info-light);
+            color: var(--color-info);
+            border: 1px solid var(--color-info);
+        }
+        
+        .waiver-signed {
+            background: var(--color-success-light);
+            color: var(--color-success);
+            border: 1px solid var(--color-success);
+        }
+        
+        .waiver-not-signed {
+            background: var(--color-warning-light);
+            color: var(--color-warning);
+            border: 1px solid var(--color-warning);
+        }
+        
+        /* Check-in Button */
+        .check-in-btn {
+            background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+            color: var(--color-midnight);
+            border: none;
+            padding: var(--space-sm) var(--space-md);
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: var(--font-heading);
+            font-weight: 700;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 8px rgba(255, 191, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .check-in-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .check-in-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 191, 0, 0.4);
+        }
+        
+        .check-in-btn:hover::before {
+            left: 100%;
+        }
+        
+        .check-in-btn:active {
+            transform: translateY(0);
+        }
+        
+        .checked-in-text {
+            color: var(--color-success);
+            font-weight: 600;
+            font-family: var(--font-heading);
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        
+        .check-icon {
+            font-size: 20px;
+        }
+        
+        /* Add Member Badge */
+        .member-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--color-rose-gold) 0%, var(--color-copper) 100%);
+            color: var(--color-ivory);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: var(--space-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header-bar {
+                flex-direction: column;
+                text-align: center;
+                gap: var(--space-md);
+            }
+            
+            .event-info h1 {
+                font-size: 24px;
+            }
+            
+            .stats-bar {
+                padding: var(--space-lg) var(--space-md);
+                flex-wrap: wrap;
+                gap: var(--space-md);
+            }
+            
+            .stat-item {
+                flex: 1 1 40%;
+            }
+            
+            .stat-number {
+                font-size: 36px;
+            }
+            
+            .controls-bar {
+                flex-direction: column;
+                gap: var(--space-md);
+            }
+            
+            .search-box {
+                max-width: 100%;
+            }
+            
+            .filter-tabs {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .attendee-table {
+                overflow-x: auto;
+            }
+            
+            table {
+                min-width: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Bar -->
+    <div class="header-bar">
+        <div class="event-info">
+            <h1>Rope Basics Workshop - Check-in</h1>
+            <div class="event-time">Saturday, March 15, 2024 • 2:00 PM - 5:00 PM</div>
+        </div>
+        <div class="header-actions">
+            <div class="countdown">
+                <span class="countdown-label">Time Until Start</span>
+                <span class="countdown-time" id="time-left">1:42:15</span>
+            </div>
+            <button class="exit-btn">Exit Check-in</button>
+        </div>
+    </div>
+    
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stat-item">
+            <div class="stat-number">8</div>
+            <div class="stat-label">Not Arrived</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">12</div>
+            <div class="stat-label">Total Registered</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">2</div>
+            <div class="stat-label">Need Waiver</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">4</div>
+            <div class="stat-label">Checked In</div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Search and Filters -->
+        <div class="controls-bar">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Search by name...">
+                <span class="search-icon">🔍</span>
+            </div>
+            <div class="filter-tabs">
+                <button class="filter-tab active">All (12)</button>
+                <button class="filter-tab">Not Arrived (8)</button>
+                <button class="filter-tab">Need Waiver (2)</button>
+            </div>
+        </div>
+        
+        <!-- Attendee Table -->
+        <div class="attendee-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>
+                            Name <span class="sort-indicator">↕</span>
+                        </th>
+                        <th>
+                            Payment <span class="sort-indicator">↕</span>
+                        </th>
+                        <th>
+                            Waiver <span class="sort-indicator">↕</span>
+                        </th>
+                        <th>
+                            Status <span class="sort-indicator">↕</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">
+                                    Alex Chen
+                                    <span class="member-badge">VIP</span>
+                                </span>
+                                <span class="attendee-pronouns">they/them</span>
+                            </div>
+                        </td>
+                        <td><span class="payment-badge payment-paid">Paid</span></td>
+                        <td><span class="waiver-badge waiver-signed">Signed</span></td>
+                        <td><span class="checked-in-text"><span class="check-icon">✓</span> Checked In</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Ashley Martinez</span>
+                                <span class="attendee-pronouns">she/her</span>
+                            </div>
+                        </td>
+                        <td><span class="payment-badge payment-paid">Paid</span></td>
+                        <td><span class="waiver-badge waiver-signed">Signed</span></td>
+                        <td><button class="check-in-btn">Check In</button></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">
+                                    Chris Smith
+                                    <span class="member-badge">Member</span>
+                                </span>
+                                <span class="attendee-pronouns">he/him</span>
+                            </div>
+                        </td>
+                        <td><span class="payment-badge payment-paid">Paid</span></td>
+                        <td><span class="waiver-badge waiver-signed">Signed</span></td>
+                        <td><span class="checked-in-text"><span class="check-icon">✓</span> Checked In</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Jamie Davis</span>
+                                <span class="attendee-pronouns">they/them</span>
+                            </div>
+                        </td>
+                        <td><span class="payment-badge payment-paid">Paid</span></td>
+                        <td><span class="waiver-badge waiver-signed">Signed</span></td>
+                        <td><button class="check-in-btn">Check In</button></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Kelly Wilson</span>
+                                <span class="attendee-pronouns">she/they</span>
+                            </div>
+                        </td>
+                        <td><span class="payment-badge payment-paid">Paid</span></td>
+                        <td><span class="waiver-badge waiver-not-signed">Not Signed</span></td>
+                        <td><button class="check-in-btn">Check In</button></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Morgan Davis</span>
+                                <span class="attendee-pronouns">she/her</span>
+                            </div>
+                        </td>
+                        <td><span class="payment-badge payment-unpaid">Unpaid</span></td>
+                        <td><span class="waiver-badge waiver-not-signed">Not Signed</span></td>
+                        <td><button class="check-in-btn">Check In</button></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">
+                                    River Moon
+                                    <span class="member-badge">Staff</span>
+                                </span>
+                                <span class="attendee-pronouns">they/them</span>
+                            </div>
+                        </td>
+                        <td><span class="payment-badge payment-comp">Comp</span></td>
+                        <td><span class="waiver-badge waiver-signed">Signed</span></td>
+                        <td><span class="checked-in-text"><span class="check-icon">✓</span> Checked In</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Sam Taylor</span>
+                                <span class="attendee-pronouns">xe/xir</span>
+                            </div>
+                        </td>
+                        <td><span class="payment-badge payment-paid">Paid</span></td>
+                        <td><span class="waiver-badge waiver-signed">Signed</span></td>
+                        <td><button class="check-in-btn">Check In</button></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">
+                                    Sky Chen
+                                    <span class="member-badge">Teacher</span>
+                                </span>
+                                <span class="attendee-pronouns">they/them</span>
+                            </div>
+                        </td>
+                        <td><span class="payment-badge payment-comp">Comp</span></td>
+                        <td><span class="waiver-badge waiver-signed">Signed</span></td>
+                        <td><span class="checked-in-text"><span class="check-icon">✓</span> Checked In</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Taylor Green</span>
+                                <span class="attendee-pronouns">she/her</span>
+                            </div>
+                        </td>
+                        <td><span class="payment-badge payment-paid">Paid</span></td>
+                        <td><span class="waiver-badge waiver-signed">Signed</span></td>
+                        <td><button class="check-in-btn">Check In</button></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Quinn Lee</span>
+                                <span class="attendee-pronouns">he/they</span>
+                            </div>
+                        </td>
+                        <td><span class="payment-badge payment-paid">Paid</span></td>
+                        <td><span class="waiver-badge waiver-signed">Signed</span></td>
+                        <td><button class="check-in-btn">Check In</button></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Jordan Martinez</span>
+                                <span class="attendee-pronouns">they/them</span>
+                            </div>
+                        </td>
+                        <td><span class="payment-badge payment-paid">Paid</span></td>
+                        <td><span class="waiver-badge waiver-signed">Signed</span></td>
+                        <td><button class="check-in-btn">Check In</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        // Countdown Timer
+        function updateCountdown() {
+            const eventTime = new Date('2024-03-15T14:00:00');
+            const now = new Date();
+            const diff = eventTime - now;
+            
+            if (diff > 0) {
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                const timeString = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                document.getElementById('time-left').textContent = timeString;
+            } else {
+                document.getElementById('time-left').textContent = '0:00:00';
+            }
+        }
+        
+        // Update countdown every second
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+        
+        // Check-in functionality
+        document.querySelectorAll('.check-in-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const row = this.closest('tr');
+                const actionCell = row.querySelector('td:last-child');
+                
+                // Update action button to checked in status
+                actionCell.innerHTML = '<span class="checked-in-text"><span class="check-icon">✓</span> Checked In</span>';
+                
+                // Update stats (in real app, this would be dynamic)
+                // For demo purposes, just showing the interaction
+            });
+        });
+        
+        // Filter tabs
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                // In real app, would filter the table rows
+            });
+        });
+        
+        // Table sorting functionality
+        const table = document.querySelector('table');
+        const headers = table.querySelectorAll('th');
+        const tbody = table.querySelector('tbody');
+        
+        headers.forEach((header, index) => {
+            header.addEventListener('click', () => {
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                const sortIndicator = header.querySelector('.sort-indicator');
+                const isAscending = sortIndicator.textContent === '↑';
+                
+                // Reset all indicators and remove active class
+                headers.forEach(h => {
+                    h.classList.remove('sort-active');
+                    h.querySelector('.sort-indicator').textContent = '↕';
+                });
+                
+                // Set active class and update indicator
+                header.classList.add('sort-active');
+                sortIndicator.textContent = isAscending ? '↓' : '↑';
+                
+                // Sort rows
+                rows.sort((a, b) => {
+                    let aValue, bValue;
+                    
+                    if (index === 0) { // Name column
+                        aValue = a.querySelector('.attendee-name').textContent;
+                        bValue = b.querySelector('.attendee-name').textContent;
+                    } else if (index === 1) { // Payment column
+                        aValue = a.querySelectorAll('td')[1].textContent;
+                        bValue = b.querySelectorAll('td')[1].textContent;
+                    } else if (index === 2) { // Waiver column
+                        aValue = a.querySelectorAll('td')[2].textContent;
+                        bValue = b.querySelectorAll('td')[2].textContent;
+                    } else { // Status column
+                        aValue = a.querySelectorAll('td')[3].textContent;
+                        bValue = b.querySelectorAll('td')[3].textContent;
+                    }
+                    
+                    if (sortIndicator.textContent === '↑') {
+                        return aValue.localeCompare(bValue);
+                    } else {
+                        return bValue.localeCompare(aValue);
+                    }
+                });
+                
+                // Re-append sorted rows
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        });
+    </script>
+</body>
+</html>

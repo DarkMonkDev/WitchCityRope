@@ -1,0 +1,447 @@
+@page "/admin/dashboard"
+@page "/admin"
+@using WitchCityRope.Web.Services
+@using Syncfusion.Blazor.Charts
+@using Syncfusion.Blazor.Cards
+@inject ApiClient ApiClient
+@inject NavigationManager Navigation
+@inject IAuthService AuthService
+@attribute [Authorize(Roles = "Admin")]
+
+@* Admin dashboard with key metrics, charts, and quick actions *@
+
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">Admin Dashboard</h1>
+        <div class="header-actions">
+            <span class="last-refresh">Last updated: @lastRefreshTime.ToString("h:mm tt")</span>
+            <button class="btn btn-secondary" @onclick="RefreshData">
+                <span class="refresh-icon">⟳</span> Refresh
+            </button>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <LoadingSpinner />
+    }
+    else
+    {
+        @* Key Metrics Cards *@
+        <div class="metrics-grid">
+            <div class="metric-card metric-revenue">
+                <div class="metric-content">
+                    <div class="metric-header">
+                        <span class="metric-label">Total Revenue</span>
+                        <span class="metric-trend trend-up">+@revenueGrowth%</span>
+                    </div>
+                    <div class="metric-value">$@totalRevenue.ToString("N2")</div>
+                    <div class="metric-footer">
+                        <span class="metric-period">Last 30 days</span>
+                    </div>
+                </div>
+                <div class="metric-icon">
+                    <span class="icon-dollar">$</span>
+                </div>
+            </div>
+
+            <div class="metric-card metric-members">
+                <div class="metric-content">
+                    <div class="metric-header">
+                        <span class="metric-label">Active Members</span>
+                        <span class="metric-trend trend-up">+@newMembersCount</span>
+                    </div>
+                    <div class="metric-value">@activeMembersCount</div>
+                    <div class="metric-footer">
+                        <span class="metric-period">@newMembersCount new this month</span>
+                    </div>
+                </div>
+                <div class="metric-icon">
+                    <span class="icon-users">👥</span>
+                </div>
+            </div>
+
+            <div class="metric-card metric-events">
+                <div class="metric-content">
+                    <div class="metric-header">
+                        <span class="metric-label">Upcoming Events</span>
+                    </div>
+                    <div class="metric-value">@upcomingEventsCount</div>
+                    <div class="metric-footer">
+                        <span class="metric-period">Next 30 days</span>
+                    </div>
+                </div>
+                <div class="metric-icon">
+                    <span class="icon-calendar">📅</span>
+                </div>
+            </div>
+
+            <div class="metric-card metric-vetting">
+                <div class="metric-content">
+                    <div class="metric-header">
+                        <span class="metric-label">Pending Vetting</span>
+                        @if (pendingVettingCount > 0)
+                        {
+                            <span class="metric-badge">Action Required</span>
+                        }
+                    </div>
+                    <div class="metric-value">@pendingVettingCount</div>
+                    <div class="metric-footer">
+                        <a href="/admin/vetting-queue" class="metric-link">Review Queue →</a>
+                    </div>
+                </div>
+                <div class="metric-icon">
+                    <span class="icon-shield">🛡️</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            @* Revenue Chart *@
+            <div class="dashboard-card chart-card">
+                <div class="card-header">
+                    <h2 class="card-title">Revenue Overview</h2>
+                    <div class="chart-controls">
+                        <select @bind="chartPeriod" @bind:event="onchange" class="period-select">
+                            <option value="7">Last 7 days</option>
+                            <option value="30">Last 30 days</option>
+                            <option value="90">Last 90 days</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <SfChart>
+                        <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.DateTime" 
+                                         LabelFormat="MMM dd">
+                            <ChartAxisMajorGridLines Width="0"></ChartAxisMajorGridLines>
+                        </ChartPrimaryXAxis>
+                        <ChartPrimaryYAxis LabelFormat="${value}">
+                            <ChartAxisLineStyle Width="0"></ChartAxisLineStyle>
+                            <ChartAxisMajorTickLines Width="0"></ChartAxisMajorTickLines>
+                        </ChartPrimaryYAxis>
+                        <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+                        <ChartSeriesCollection>
+                            <ChartSeries DataSource="@revenueData" XName="Date" YName="Revenue" 
+                                       Type="ChartSeriesType.SplineArea" Fill="rgba(99, 102, 241, 0.3)">
+                                <ChartSeriesBorder Width="2" Color="#6366F1"></ChartSeriesBorder>
+                                <ChartMarker Visible="true" Height="8" Width="8">
+                                    <ChartMarkerBorder Width="2" Color="#FFFFFF"></ChartMarkerBorder>
+                                </ChartMarker>
+                            </ChartSeries>
+                        </ChartSeriesCollection>
+                    </SfChart>
+                </div>
+            </div>
+
+            @* Quick Actions *@
+            <div class="dashboard-card quick-actions-card">
+                <h2 class="card-title">Quick Actions</h2>
+                <div class="quick-actions-grid">
+                    <button class="action-button" @onclick="() => Navigation.NavigateTo('/admin/events/new')">
+                        <span class="action-icon">➕</span>
+                        <span class="action-text">Create Event</span>
+                    </button>
+                    <button class="action-button" @onclick="() => Navigation.NavigateTo('/admin/members')">
+                        <span class="action-icon">👤</span>
+                        <span class="action-text">Manage Members</span>
+                    </button>
+                    <button class="action-button" @onclick="() => Navigation.NavigateTo('/admin/reports')">
+                        <span class="action-icon">📊</span>
+                        <span class="action-text">View Reports</span>
+                    </button>
+                    <button class="action-button" @onclick="() => Navigation.NavigateTo('/admin/settings')">
+                        <span class="action-icon">⚙️</span>
+                        <span class="action-text">Settings</span>
+                    </button>
+                    <button class="action-button" @onclick="ExportData">
+                        <span class="action-icon">📥</span>
+                        <span class="action-text">Export Data</span>
+                    </button>
+                    <button class="action-button" @onclick="() => Navigation.NavigateTo('/admin/announcements/new')">
+                        <span class="action-icon">📢</span>
+                        <span class="action-text">New Announcement</span>
+                    </button>
+                </div>
+            </div>
+
+            @* Recent Activity Feed *@
+            <div class="dashboard-card activity-card">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Activity</h2>
+                    <a href="/admin/activity-log" class="view-all-link">View All →</a>
+                </div>
+                <div class="activity-feed">
+                    @foreach (var activity in recentActivities)
+                    {
+                        <div class="activity-item">
+                            <div class="activity-icon @GetActivityIconClass(activity.Type)">
+                                <span>@GetActivityIcon(activity.Type)</span>
+                            </div>
+                            <div class="activity-content">
+                                <p class="activity-text">@activity.Description</p>
+                                <span class="activity-time">@GetRelativeTime(activity.Timestamp)</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @* System Health *@
+            <div class="dashboard-card health-card">
+                <h2 class="card-title">System Health</h2>
+                <div class="health-indicators">
+                    <div class="health-item @(systemHealth.ApiStatus ? "status-good" : "status-error")">
+                        <span class="health-indicator"></span>
+                        <span class="health-label">API Services</span>
+                        <span class="health-value">@(systemHealth.ApiStatus ? "Operational" : "Issues")</span>
+                    </div>
+                    <div class="health-item @(systemHealth.DatabaseStatus ? "status-good" : "status-error")">
+                        <span class="health-indicator"></span>
+                        <span class="health-label">Database</span>
+                        <span class="health-value">@(systemHealth.DatabaseStatus ? "Healthy" : "Issues")</span>
+                    </div>
+                    <div class="health-item @(systemHealth.PaymentStatus ? "status-good" : "status-warning")">
+                        <span class="health-indicator"></span>
+                        <span class="health-label">Payment Gateway</span>
+                        <span class="health-value">@(systemHealth.PaymentStatus ? "Connected" : "Check Required")</span>
+                    </div>
+                    <div class="health-item status-good">
+                        <span class="health-indicator"></span>
+                        <span class="health-label">Email Service</span>
+                        <span class="health-value">@emailQueueCount emails in queue</span>
+                    </div>
+                </div>
+                <div class="health-footer">
+                    <small>Last checked: @systemHealth.LastChecked.ToString("h:mm tt")</small>
+                </div>
+            </div>
+
+            @* Recent Registrations *@
+            <div class="dashboard-card registrations-card">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Registrations</h2>
+                    <a href="/admin/registrations" class="view-all-link">View All →</a>
+                </div>
+                <div class="registrations-list">
+                    <table class="simple-table">
+                        <thead>
+                            <tr>
+                                <th>Member</th>
+                                <th>Event</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var registration in recentRegistrations)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="member-info">
+                                            <strong>@registration.MemberName</strong>
+                                            <span class="member-email">@registration.MemberEmail</span>
+                                        </div>
+                                    </td>
+                                    <td>@registration.EventTitle</td>
+                                    <td>@registration.RegisteredAt.ToString("MMM d, h:mm tt")</td>
+                                    <td>
+                                        <span class="status-badge status-@registration.Status.ToLower()">
+                                            @registration.Status
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private DateTime lastRefreshTime = DateTime.Now;
+    
+    // Metrics
+    private decimal totalRevenue = 0;
+    private decimal revenueGrowth = 0;
+    private int activeMembersCount = 0;
+    private int newMembersCount = 0;
+    private int upcomingEventsCount = 0;
+    private int pendingVettingCount = 0;
+    private int emailQueueCount = 0;
+
+    // Chart data
+    private int chartPeriod = 30;
+    private List<RevenueDataPoint> revenueData = new();
+
+    // Lists
+    private List<ActivityItem> recentActivities = new();
+    private List<RegistrationItem> recentRegistrations = new();
+    private SystemHealthStatus systemHealth = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardData();
+    }
+
+    private async Task LoadDashboardData()
+    {
+        try
+        {
+            isLoading = true;
+            
+            // In a real implementation, these would be API calls
+            // For now, we'll use mock data
+            GenerateMockData();
+            
+            lastRefreshTime = DateTime.Now;
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadDashboardData();
+    }
+
+    private void GenerateMockData()
+    {
+        // Mock metrics
+        totalRevenue = 15847.50m;
+        revenueGrowth = 12.5m;
+        activeMembersCount = 287;
+        newMembersCount = 23;
+        upcomingEventsCount = 8;
+        pendingVettingCount = 3;
+        emailQueueCount = 0;
+
+        // Mock revenue data for chart
+        revenueData = new List<RevenueDataPoint>();
+        var random = new Random();
+        for (int i = chartPeriod; i >= 0; i--)
+        {
+            revenueData.Add(new RevenueDataPoint
+            {
+                Date = DateTime.Now.AddDays(-i),
+                Revenue = random.Next(200, 800) + random.NextDouble() * 100
+            });
+        }
+
+        // Mock recent activities
+        recentActivities = new List<ActivityItem>
+        {
+            new() { Type = "registration", Description = "Sarah K. registered for Advanced Rope Techniques", Timestamp = DateTime.Now.AddMinutes(-15) },
+            new() { Type = "payment", Description = "Payment received: $45.00 from John D.", Timestamp = DateTime.Now.AddHours(-1) },
+            new() { Type = "event", Description = "New event created: Introduction to Suspension", Timestamp = DateTime.Now.AddHours(-2) },
+            new() { Type = "vetting", Description = "Vetting application submitted by Alex M.", Timestamp = DateTime.Now.AddHours(-3) },
+            new() { Type = "member", Description = "Profile updated: Emma R. updated emergency contacts", Timestamp = DateTime.Now.AddHours(-5) },
+            new() { Type = "event", Description = "Event cancelled: Rope Jam (Weather)", Timestamp = DateTime.Now.AddDays(-1) }
+        };
+
+        // Mock recent registrations
+        recentRegistrations = new List<RegistrationItem>
+        {
+            new() { MemberName = "Sarah Kim", MemberEmail = "sarah.k@email.com", EventTitle = "Advanced Rope Techniques", RegisteredAt = DateTime.Now.AddMinutes(-15), Status = "Confirmed" },
+            new() { MemberName = "John Davis", MemberEmail = "john.d@email.com", EventTitle = "Introduction to Rope", RegisteredAt = DateTime.Now.AddHours(-1), Status = "Confirmed" },
+            new() { MemberName = "Emma Rodriguez", MemberEmail = "emma.r@email.com", EventTitle = "Rope Performance Workshop", RegisteredAt = DateTime.Now.AddHours(-3), Status = "Pending" },
+            new() { MemberName = "Michael Chen", MemberEmail = "m.chen@email.com", EventTitle = "Safety and Risk Awareness", RegisteredAt = DateTime.Now.AddHours(-5), Status = "Confirmed" },
+            new() { MemberName = "Alex Morgan", MemberEmail = "alex.m@email.com", EventTitle = "Partner Communication", RegisteredAt = DateTime.Now.AddDays(-1), Status = "Waitlist" }
+        };
+
+        // Mock system health
+        systemHealth = new SystemHealthStatus
+        {
+            ApiStatus = true,
+            DatabaseStatus = true,
+            PaymentStatus = true,
+            EmailStatus = true,
+            LastChecked = DateTime.Now
+        };
+    }
+
+    private void ExportData()
+    {
+        // Implement data export functionality
+    }
+
+    private string GetActivityIcon(string type)
+    {
+        return type switch
+        {
+            "registration" => "📝",
+            "payment" => "💰",
+            "event" => "📅",
+            "vetting" => "🛡️",
+            "member" => "👤",
+            _ => "📌"
+        };
+    }
+
+    private string GetActivityIconClass(string type)
+    {
+        return type switch
+        {
+            "registration" => "icon-success",
+            "payment" => "icon-primary",
+            "event" => "icon-info",
+            "vetting" => "icon-warning",
+            "member" => "icon-secondary",
+            _ => "icon-default"
+        };
+    }
+
+    private string GetRelativeTime(DateTime timestamp)
+    {
+        var timeSpan = DateTime.Now - timestamp;
+        
+        if (timeSpan.TotalMinutes < 60)
+            return $"{(int)timeSpan.TotalMinutes} minutes ago";
+        if (timeSpan.TotalHours < 24)
+            return $"{(int)timeSpan.TotalHours} hours ago";
+        if (timeSpan.TotalDays < 7)
+            return $"{(int)timeSpan.TotalDays} days ago";
+        
+        return timestamp.ToString("MMM d, yyyy");
+    }
+
+    // View models
+    public class RevenueDataPoint
+    {
+        public DateTime Date { get; set; }
+        public double Revenue { get; set; }
+    }
+
+    public class ActivityItem
+    {
+        public string Type { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public DateTime Timestamp { get; set; }
+    }
+
+    public class RegistrationItem
+    {
+        public string MemberName { get; set; } = string.Empty;
+        public string MemberEmail { get; set; } = string.Empty;
+        public string EventTitle { get; set; } = string.Empty;
+        public DateTime RegisteredAt { get; set; }
+        public string Status { get; set; } = string.Empty;
+    }
+
+    public class SystemHealthStatus
+    {
+        public bool ApiStatus { get; set; }
+        public bool DatabaseStatus { get; set; }
+        public bool PaymentStatus { get; set; }
+        public bool EmailStatus { get; set; }
+        public DateTime LastChecked { get; set; }
+    }
+}

@@ -1,0 +1,360 @@
+@page "/events"
+@using WitchCityRope.Web.Services
+@using WitchCityRope.Web.Shared.Layouts
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Navigations
+@using Microsoft.AspNetCore.Authorization
+@inject IEventService EventService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@inject IToastService ToastService
+@layout MainLayout
+
+@* Event listing page showing all upcoming Witch City Rope events *@
+
+<div class="event-list-container">
+    @* Hero Section *@
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">Explore Classes & Meetups</h1>
+            <p class="hero-subtitle">Learn rope bondage in a safe, inclusive environment with experienced instructors</p>
+        </div>
+    </section>
+
+    @* Filter Bar *@
+    <div class="filter-bar">
+        <div class="filter-content">
+            <div class="filter-tabs">
+                <SfButton CssClass="@GetFilterTabClass(showPastEvents)" 
+                          OnClick="@(() => TogglePastEvents())">
+                    @(showPastEvents ? "Show Upcoming Classes" : "Show Past Classes")
+                </SfButton>
+            </div>
+            
+            <div class="filter-controls">
+                <div class="search-box">
+                    <span class="search-icon e-icons e-search"></span>
+                    <SfTextBox Placeholder="Search events..." 
+                               @bind-Value="searchTerm" 
+                               CssClass="search-input"
+                               Input="@OnSearchInput"
+                               ValueChange="@OnSearchChange">
+                    </SfTextBox>
+                </div>
+                
+                <SfDropDownList TValue="string" TItem="SortOption" 
+                                @bind-Value="selectedSort"
+                                DataSource="@sortOptions"
+                                Placeholder="Sort by Date"
+                                CssClass="filter-dropdown">
+                    <DropDownListFieldSettings Text="Text" Value="Value"></DropDownListFieldSettings>
+                    <DropDownListEvents TValue="string" TItem="SortOption" ValueChange="@OnSortChange"></DropDownListEvents>
+                </SfDropDownList>
+            </div>
+        </div>
+    </div>
+
+    @* Main Content *@
+    <main class="main-container">
+        @if (isLoading)
+        {
+            <div class="loading-container">
+                <div class="e-spinner-pane">
+                    <div class="e-spinner-inner">
+                        <div class="e-spin-material"></div>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (filteredEvents?.Any() == true)
+        {
+            <div class="event-grid">
+                @foreach (var eventItem in filteredEvents)
+                {
+                    <div class="event-card @(eventItem.IsMemberOnly && !isAuthenticated ? "member-only-locked" : "")" 
+                         @onclick="@(() => NavigateToEvent(eventItem.Id))">
+                        <div class="event-image" style="background: linear-gradient(135deg, var(--wcr-color-burgundy) 0%, var(--wcr-color-plum) 100%);">
+                            @if (eventItem.EventType != null)
+                            {
+                                <span class="event-type-badge @GetEventTypeBadgeClass(eventItem.EventType)">
+                                    @eventItem.EventType
+                                </span>
+                            }
+                            <h3 class="event-image-title">@eventItem.Title</h3>
+                        </div>
+                        <div class="event-content">
+                            @if (eventItem.IsMemberOnly && !isAuthenticated)
+                            {
+                                <div class="member-only-badge">
+                                    <span class="e-icons e-lock"></span> Members Only
+                                </div>
+                            }
+                            <div class="event-date">@eventItem.StartDate.ToString("dddd, MMMM d • h:mm tt")</div>
+                            <p class="event-description">@eventItem.Description</p>
+                            <div class="event-details">
+                                <span class="event-detail">
+                                    <span class="e-icons e-clock"></span> @GetDuration(eventItem)
+                                </span>
+                                <span class="event-detail">
+                                    <span class="e-icons e-location"></span> @eventItem.Location
+                                </span>
+                            </div>
+                            <div class="event-footer">
+                                <span class="event-price">@GetPriceDisplay(eventItem)</span>
+                                <span class="event-status @GetStatusClass(eventItem)">@GetStatusText(eventItem)</span>
+                            </div>
+                            <div class="event-actions">
+                                @if (eventItem.IsMemberOnly && !isAuthenticated)
+                                {
+                                    <SfButton CssClass="e-outline" OnClick="@(() => Navigation.NavigateTo("/login"))">Login</SfButton>
+                                    <SfButton CssClass="e-primary" OnClick="@(() => Navigation.NavigateTo("/join"))">Become a Member</SfButton>
+                                }
+                                else
+                                {
+                                    <SfButton CssClass="e-primary" OnClick="@(() => NavigateToEvent(eventItem.Id))">Learn More</SfButton>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <span class="e-icons e-calendar"></span>
+                </div>
+                <h3 class="empty-title">No events found</h3>
+                <p class="empty-text">Try adjusting your filters or check back soon for new events.</p>
+                <SfButton CssClass="e-primary" OnClick="@ResetFilters">Reset Filters</SfButton>
+            </div>
+        }
+    </main>
+</div>
+
+@code {
+    private List<EventViewModel>? events;
+    private List<EventViewModel>? filteredEvents;
+    private bool isLoading = true;
+    private bool showPastEvents = false;
+    private string searchTerm = "";
+    private string selectedSort = "date";
+    private bool isAuthenticated = false;
+
+    private List<SortOption> sortOptions = new()
+    {
+        new() { Value = "date", Text = "Sort by Date" },
+        new() { Value = "price", Text = "Sort by Price" },
+        new() { Value = "availability", Text = "Sort by Availability" }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        isAuthenticated = authState?.User?.Identity?.IsAuthenticated ?? false;
+        await LoadEvents();
+    }
+
+    private async Task LoadEvents()
+    {
+        try
+        {
+            isLoading = true;
+            var eventList = await EventService.GetUpcomingEventsAsync();
+            
+            // Convert to view models with additional display properties
+            events = eventList?.Select(e => new EventViewModel
+            {
+                Id = e.Id,
+                Title = e.Title,
+                Description = GetEventDescription(e),
+                StartDate = e.StartDate,
+                EndDate = e.StartDate.AddHours(2), // Default to 2 hours duration
+                Location = e.Location,
+                Price = e.Price,
+                AvailableSpots = e.AvailableSpots,
+                EventType = DetermineEventType(e),
+                IsMemberOnly = e.Title.Contains("Member", StringComparison.OrdinalIgnoreCase) || 
+                               e.Title.Contains("Jam", StringComparison.OrdinalIgnoreCase),
+                IsPast = e.StartDate < DateTime.Now
+            }).ToList();
+
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Failed to load events: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ApplyFilters()
+    {
+        if (events == null)
+        {
+            filteredEvents = null;
+            return;
+        }
+
+        var filtered = events.AsEnumerable();
+
+        // Filter by past/upcoming
+        filtered = showPastEvents 
+            ? filtered.Where(e => e.IsPast)
+            : filtered.Where(e => !e.IsPast);
+
+        // Search filter
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filtered = filtered.Where(e =>
+                e.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                e.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Apply sorting
+        filtered = selectedSort switch
+        {
+            "price" => filtered.OrderBy(e => e.Price),
+            "availability" => filtered.OrderByDescending(e => e.AvailableSpots),
+            _ => filtered.OrderBy(e => e.StartDate)
+        };
+
+        filteredEvents = filtered.ToList();
+    }
+
+    private void TogglePastEvents()
+    {
+        showPastEvents = !showPastEvents;
+        ApplyFilters();
+    }
+
+    private void OnSearchInput(InputEventArgs args)
+    {
+        // Real-time search as user types
+        ApplyFilters();
+    }
+
+    private void OnSearchChange(Syncfusion.Blazor.Inputs.ChangedEventArgs args)
+    {
+        searchTerm = args.Value;
+        ApplyFilters();
+    }
+
+    private void OnSortChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, SortOption> args)
+    {
+        ApplyFilters();
+    }
+
+    private void ResetFilters()
+    {
+        searchTerm = "";
+        selectedSort = "date";
+        showPastEvents = false;
+        ApplyFilters();
+    }
+
+    private void NavigateToEvent(Guid eventId)
+    {
+        Navigation.NavigateTo($"/events/{eventId}");
+    }
+
+    private string GetFilterTabClass(bool isActive)
+    {
+        return isActive ? "filter-tab active" : "filter-tab";
+    }
+
+    private string GetEventTypeBadgeClass(string? eventType)
+    {
+        return eventType?.ToLower() switch
+        {
+            "intermediate" => "intermediate",
+            "advanced" => "advanced",
+            "member only" => "member-only",
+            _ => ""
+        };
+    }
+
+    private string GetDuration(EventViewModel e)
+    {
+        // Default to 2 hours if EndDate is not set
+        var endDate = e.EndDate != DateTime.MinValue ? e.EndDate : e.StartDate.AddHours(2);
+        var duration = endDate - e.StartDate;
+        if (duration.TotalHours >= 1)
+            return $"{duration.TotalHours:0.#} hours";
+        return $"{duration.TotalMinutes} minutes";
+    }
+
+    private string GetPriceDisplay(EventViewModel e)
+    {
+        if (e.Price == 0)
+            return "Free";
+        if (e.Title.Contains("sliding scale", StringComparison.OrdinalIgnoreCase))
+            return $"${e.Price:0}-{e.Price * 2:0} sliding scale";
+        return $"${e.Price:0}";
+    }
+
+    private string GetStatusClass(EventViewModel e)
+    {
+        if (e.AvailableSpots == 0)
+            return "full";
+        if (e.AvailableSpots <= 3)
+            return "limited";
+        return "available";
+    }
+
+    private string GetStatusText(EventViewModel e)
+    {
+        if (e.IsPast)
+            return "Event Passed";
+        if (e.AvailableSpots == 0)
+            return "Sold Out";
+        if (e.AvailableSpots <= 3)
+            return $"Only {e.AvailableSpots} spots left!";
+        return $"{e.AvailableSpots} spots left";
+    }
+
+    private string GetEventDescription(EventListItem e)
+    {
+        // Generate appropriate descriptions based on event type
+        if (e.Title.Contains("Introduction", StringComparison.OrdinalIgnoreCase))
+            return "Perfect for beginners! Learn basic ties, safety protocols, and communication skills in a supportive environment.";
+        if (e.Title.Contains("Suspension", StringComparison.OrdinalIgnoreCase))
+            return "Take your skills to new heights! Learn suspension basics with focus on safety and proper technique.";
+        if (e.Title.Contains("Jam", StringComparison.OrdinalIgnoreCase))
+            return "Monthly practice space for vetted members. Bring your rope and practice partners for a social evening.";
+        return "Join us for this exciting rope bondage event in a safe and inclusive environment.";
+    }
+
+    private string? DetermineEventType(EventListItem e)
+    {
+        if (e.Title.Contains("Intermediate", StringComparison.OrdinalIgnoreCase))
+            return "Intermediate";
+        if (e.Title.Contains("Advanced", StringComparison.OrdinalIgnoreCase))
+            return "Advanced";
+        if (e.Title.Contains("Member", StringComparison.OrdinalIgnoreCase))
+            return "Member Only";
+        return null;
+    }
+
+    // View models
+    public class EventViewModel : EventListItem
+    {
+        public DateTime EndDate { get; set; }
+        public string? EventType { get; set; }
+        public bool IsMemberOnly { get; set; }
+        public bool IsPast { get; set; }
+        public string Description { get; set; } = string.Empty;
+    }
+
+    public class SortOption
+    {
+        public string Value { get; set; } = string.Empty;
+        public string Text { get; set; } = string.Empty;
+    }
+}

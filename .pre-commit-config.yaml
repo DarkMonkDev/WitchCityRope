@@ -1,0 +1,96 @@
+repos:
+  - repo: local
+    hooks:
+      - id: dotnet-format
+        name: dotnet format
+        entry: dotnet format --include
+        language: system
+        pass_filenames: true
+        types: [csharp]
+        description: "Format C# files with dotnet format"
+
+      - id: build-validation
+        name: Build validation
+        entry: dotnet build --no-incremental
+        language: system
+        pass_filenames: false
+        always_run: true
+        description: "Validate that the solution builds"
+
+      - id: run-unit-tests
+        name: Run unit tests
+        entry: bash -c 'dotnet test --filter "FullyQualifiedName!~IntegrationTests" --no-build'
+        language: system
+        pass_filenames: false
+        stages: [commit]
+        description: "Run unit tests before commit"
+
+      - id: check-test-coverage
+        name: Check test coverage
+        entry: bash -c 'dotnet test --collect:"XPlat Code Coverage" --no-build | grep -E "Average|Line coverage" || true'
+        language: system
+        pass_filenames: false
+        stages: [push]
+        description: "Check test coverage before push"
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.md$'
+      - id: end-of-file-fixer
+        exclude: '\.md$'
+      - id: check-yaml
+        args: ['--unsafe']
+      - id: check-json
+      - id: check-xml
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: detect-private-key
+
+  - repo: https://github.com/dotnet/format
+    rev: v5.1.250801
+    hooks:
+      - id: dotnet-format
+        args: ['--folder', '--include']
+
+  - repo: local
+    hooks:
+      - id: check-nuget-vulnerabilities
+        name: Check NuGet vulnerabilities
+        entry: dotnet list package --vulnerable --include-transitive
+        language: system
+        pass_filenames: false
+        stages: [push]
+        description: "Check for vulnerable NuGet packages"
+
+      - id: verify-no-secrets
+        name: Verify no secrets
+        entry: bash -c 'grep -rE "(api[_-]?key|secret|password|token|credential)" --include="*.cs" --include="*.json" --exclude="*Test*" --exclude="*.Development.json" src/ | grep -vE "(appsettings|configuration|options|settings|fake|dummy|test|example)" || true'
+        language: system
+        pass_filenames: false
+        description: "Check for hardcoded secrets"
+
+      - id: validate-migrations
+        name: Validate EF migrations
+        entry: bash -c 'cd src/WitchCityRope.Infrastructure && dotnet ef migrations has-pending-model-changes --startup-project ../WitchCityRope.Api || true'
+        language: system
+        pass_filenames: false
+        files: '^src/.*\.(cs)$'
+        description: "Check for pending EF Core migrations"
+
+default_language_version:
+  python: python3
+
+minimum_pre_commit_version: '2.20.0'
+
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: [build-validation, run-unit-tests]

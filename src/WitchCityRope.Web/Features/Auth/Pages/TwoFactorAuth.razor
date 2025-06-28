@@ -1,0 +1,490 @@
+@page "/auth/two-factor"
+@layout PublicLayout
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>Two-Factor Authentication - Witch City Rope</PageTitle>
+
+<div class="auth-page">
+    <div class="bg-shape-1"></div>
+    <div class="bg-shape-2"></div>
+    
+    <div class="auth-card">
+        <div class="loading-overlay @(_isLoading ? "show" : "")" id="loadingOverlay">
+            <div class="loading-spinner"></div>
+        </div>
+        
+        <div class="auth-header">
+            <div class="lock-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                </svg>
+            </div>
+            <h1 class="auth-title">Two-Factor Authentication</h1>
+            <p class="auth-subtitle">Enter your verification code to continue</p>
+        </div>
+        
+        <div class="auth-content">
+            <div class="user-info">
+                <div class="user-email">@_userEmail</div>
+                <div class="user-message">Check your authenticator app for the code</div>
+            </div>
+            
+            <form @onsubmit="HandleSubmit" @onsubmit:preventDefault="true">
+                <div class="code-section">
+                    <label class="code-label">6-Digit Code</label>
+                    <div class="code-inputs">
+                        @for (int i = 0; i < 6; i++)
+                        {
+                            var index = i;
+                            <input type="text" 
+                                   class="code-input @(_codeValues[index].Length == 1 ? "filled" : "")" 
+                                   maxlength="1" 
+                                   pattern="[0-9]" 
+                                   inputmode="numeric"
+                                   @bind="_codeValues[index]"
+                                   @bind:event="oninput"
+                                   @onkeydown="@(e => HandleKeyDown(e, index))"
+                                   @onpaste="HandlePaste"
+                                   @ref="_codeInputRefs[index]" />
+                        }
+                    </div>
+                    @if (_showError)
+                    {
+                        <div class="error-message show">
+                            @_errorMessage
+                        </div>
+                    }
+                </div>
+                
+                <div class="checkbox-group">
+                    <SfCheckBox @bind-Checked="@_rememberDevice" 
+                                ID="remember-device"
+                                Label="Remember this device for 30 days"
+                                CssClass="wcr-checkbox" />
+                </div>
+                
+                <SfButton Type="submit" 
+                          CssClass="btn-primary-full" 
+                          Disabled="@(!IsCodeComplete || _isLoading)"
+                          IsPrimary="true">
+                    Verify Code
+                </SfButton>
+            </form>
+            
+            <div class="help-links">
+                <p class="help-text">Having trouble?</p>
+                <a href="#" class="help-link" @onclick="UseBackupCode" @onclick:preventDefault="true">Use a backup code instead</a>
+                <a href="#" class="help-link" @onclick="ResendCode" @onclick:preventDefault="true">I can't access my authenticator</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .auth-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--wcr-space-xl) var(--wcr-space-md);
+        position: relative;
+    }
+    
+    /* Background decorative shapes */
+    .bg-shape-1 {
+        position: fixed;
+        top: -150px;
+        right: -150px;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, var(--wcr-color-plum) 0%, transparent 70%);
+        opacity: 0.1;
+        border-radius: 50%;
+        filter: blur(40px);
+        z-index: -1;
+    }
+    
+    .bg-shape-2 {
+        position: fixed;
+        bottom: -100px;
+        left: -100px;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, var(--wcr-color-burgundy) 0%, transparent 70%);
+        opacity: 0.08;
+        border-radius: 50%;
+        filter: blur(30px);
+        z-index: -1;
+    }
+    
+    /* Auth card */
+    .auth-card {
+        background: var(--wcr-color-ivory);
+        border-radius: 24px;
+        box-shadow: var(--wcr-shadow-xl);
+        width: 100%;
+        max-width: 480px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    /* Loading overlay */
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.9);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+    }
+    
+    .loading-overlay.show {
+        display: flex;
+    }
+    
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid var(--wcr-color-taupe);
+        border-top-color: var(--wcr-color-burgundy);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Auth header */
+    .auth-header {
+        background: linear-gradient(135deg, var(--wcr-color-burgundy) 0%, var(--wcr-color-plum) 100%);
+        padding: var(--wcr-space-2xl);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .auth-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        transform: rotate(45deg);
+    }
+    
+    .lock-icon {
+        width: 64px;
+        height: 64px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto var(--wcr-space-md);
+        position: relative;
+    }
+    
+    .lock-icon svg {
+        width: 32px;
+        height: 32px;
+        color: var(--wcr-color-ivory);
+    }
+    
+    .auth-title {
+        font-family: var(--wcr-font-heading);
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--wcr-color-ivory);
+        margin-bottom: var(--wcr-space-xs);
+        position: relative;
+    }
+    
+    .auth-subtitle {
+        color: var(--wcr-color-dusty-rose);
+        font-size: 16px;
+        position: relative;
+    }
+    
+    /* Content */
+    .auth-content {
+        padding: var(--wcr-space-2xl);
+    }
+    
+    .user-info {
+        text-align: center;
+        margin-bottom: var(--wcr-space-xl);
+        padding-bottom: var(--wcr-space-lg);
+        border-bottom: 1px solid var(--wcr-color-taupe);
+    }
+    
+    .user-email {
+        font-family: var(--wcr-font-heading);
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--wcr-color-charcoal);
+        margin-bottom: var(--wcr-space-xs);
+    }
+    
+    .user-message {
+        color: var(--wcr-color-stone);
+        font-size: 14px;
+    }
+    
+    /* Code Input Section */
+    .code-section {
+        margin-bottom: var(--wcr-space-xl);
+    }
+    
+    .code-label {
+        text-align: center;
+        font-family: var(--wcr-font-heading);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--wcr-color-smoke);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: var(--wcr-space-md);
+        display: block;
+    }
+    
+    .code-inputs {
+        display: flex;
+        gap: var(--wcr-space-sm);
+        justify-content: center;
+        margin-bottom: var(--wcr-space-sm);
+    }
+    
+    .code-input {
+        width: 55px;
+        height: 55px;
+        text-align: center;
+        font-size: 24px;
+        font-family: var(--wcr-font-heading);
+        font-weight: 700;
+        border: 2px solid var(--wcr-color-taupe);
+        border-radius: 12px;
+        background: var(--wcr-color-cream);
+        color: var(--wcr-color-charcoal);
+        transition: all 0.3s ease;
+    }
+    
+    .code-input:focus {
+        outline: none;
+        border-color: var(--wcr-color-burgundy);
+        background: var(--wcr-color-ivory);
+        box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.1);
+        transform: scale(1.05);
+    }
+    
+    .code-input.filled {
+        border-color: var(--wcr-color-burgundy);
+        background: var(--wcr-color-ivory);
+    }
+    
+    /* Error Message */
+    .error-message {
+        background: rgba(220, 20, 60, 0.1);
+        border: 1px solid var(--wcr-color-error);
+        color: var(--wcr-color-error);
+        padding: var(--wcr-space-sm);
+        border-radius: 8px;
+        font-size: 14px;
+        text-align: center;
+        margin-top: var(--wcr-space-md);
+        display: none;
+    }
+    
+    .error-message.show {
+        display: block;
+    }
+    
+    /* Checkbox styling */
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: var(--wcr-space-lg) 0;
+    }
+    
+    .wcr-checkbox label {
+        font-size: 14px;
+        color: var(--wcr-color-smoke);
+    }
+    
+    /* Button styling */
+    .btn-primary-full {
+        width: 100%;
+        padding: var(--wcr-space-md) !important;
+    }
+    
+    /* Help Links */
+    .help-links {
+        text-align: center;
+        padding-top: var(--wcr-space-lg);
+        border-top: 1px solid var(--wcr-color-taupe);
+        margin-top: var(--wcr-space-xl);
+    }
+    
+    .help-link {
+        display: block;
+        color: var(--wcr-color-burgundy);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: var(--wcr-space-sm);
+        transition: color 0.3s ease;
+    }
+    
+    .help-link:hover {
+        color: var(--wcr-color-burgundy-dark);
+        text-decoration: underline;
+    }
+    
+    .help-text {
+        font-size: 13px;
+        color: var(--wcr-color-stone);
+        margin-bottom: var(--wcr-space-xs);
+    }
+    
+    /* Responsive */
+    @@media (max-width: 480px) {
+        .auth-card {
+            margin: var(--wcr-space-md);
+        }
+        
+        .code-inputs {
+            gap: var(--wcr-space-xs);
+        }
+        
+        .code-input {
+            width: 45px;
+            height: 45px;
+            font-size: 20px;
+        }
+    }
+</style>
+
+@code {
+    private string _userEmail = "";
+    private string[] _codeValues = new string[6] { "", "", "", "", "", "" };
+    private ElementReference[] _codeInputRefs = new ElementReference[6];
+    private bool _rememberDevice = false;
+    private bool _isLoading = false;
+    private bool _showError = false;
+    private string _errorMessage = "Invalid code. Please try again.";
+    
+    private bool IsCodeComplete => _codeValues.All(v => !string.IsNullOrEmpty(v) && v.Length == 1);
+
+    protected override void OnInitialized()
+    {
+        // Get email from query string
+        var uri = new Uri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        _userEmail = query["email"] ?? "user@email.com";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Focus first input
+            await _codeInputRefs[0].FocusAsync();
+        }
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e, int index)
+    {
+        if (e.Key == "Backspace" && string.IsNullOrEmpty(_codeValues[index]) && index > 0)
+        {
+            await _codeInputRefs[index - 1].FocusAsync();
+        }
+        else if (e.Key.Length == 1 && char.IsDigit(e.Key[0]))
+        {
+            _codeValues[index] = e.Key;
+            _showError = false;
+            
+            if (index < 5)
+            {
+                await _codeInputRefs[index + 1].FocusAsync();
+            }
+            else if (IsCodeComplete)
+            {
+                await HandleSubmit();
+            }
+        }
+    }
+
+    private async Task HandlePaste(ClipboardEventArgs e)
+    {
+        // This would need JS interop to properly handle paste events
+        // For now, we'll rely on the browser's default paste behavior
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (!IsCodeComplete) return;
+
+        _isLoading = true;
+        _showError = false;
+        StateHasChanged();
+
+        try
+        {
+            var code = string.Join("", _codeValues);
+            var result = await AuthService.VerifyTwoFactorAsync(code, _rememberDevice);
+            
+            if (result.Success)
+            {
+                // Get return URL from query string or default to dashboard
+                var uri = new Uri(Navigation.Uri);
+                var returnUrl = System.Web.HttpUtility.ParseQueryString(uri.Query).Get("returnUrl");
+                Navigation.NavigateTo(!string.IsNullOrEmpty(returnUrl) ? returnUrl : "/member/dashboard");
+            }
+            else
+            {
+                _showError = true;
+                _errorMessage = result.Error ?? "Invalid code. Please try again.";
+                // Clear the code inputs
+                for (int i = 0; i < 6; i++)
+                {
+                    _codeValues[i] = "";
+                }
+                await _codeInputRefs[0].FocusAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _showError = true;
+            _errorMessage = "An error occurred. Please try again.";
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task UseBackupCode()
+    {
+        // Navigate to backup code entry page
+        Navigation.NavigateTo("/auth/backup-code");
+    }
+
+    private async Task ResendCode()
+    {
+        // TODO: Implement resend code functionality
+        _showError = false;
+        _errorMessage = "A new code has been sent to your authenticator app.";
+        StateHasChanged();
+    }
+}

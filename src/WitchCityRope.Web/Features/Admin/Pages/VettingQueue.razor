@@ -1,0 +1,446 @@
+@page "/admin/vetting"
+@using WitchCityRope.Web.Services
+@inject ApiClient ApiClient
+@inject NavigationManager Navigation
+@attribute [Authorize(Roles = "Admin,VettingTeam")]
+
+@* Vetting queue management page for reviewing member applications *@
+
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">Vetting Queue</h1>
+        <p class="page-subtitle">Review and process member vetting applications</p>
+    </div>
+
+    <div class="vetting-stats">
+        <div class="stat-card">
+            <div class="stat-value">@stats.PendingCount</div>
+            <div class="stat-label">Pending Review</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@stats.InProgressCount</div>
+            <div class="stat-label">In Progress</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@stats.CompletedToday</div>
+            <div class="stat-label">Completed Today</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@stats.AverageTime days</div>
+            <div class="stat-label">Avg. Processing Time</div>
+        </div>
+    </div>
+
+    <div class="admin-filters">
+        <select @bind="filterStatus" @bind:event="oninput" class="filter-select">
+            <option value="pending">Pending</option>
+            <option value="in-progress">In Progress</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+            <option value="all">All</option>
+        </select>
+
+        <select @bind="sortBy" @bind:event="oninput" class="filter-select">
+            <option value="date-asc">Oldest First</option>
+            <option value="date-desc">Newest First</option>
+            <option value="priority">Priority</option>
+        </select>
+
+        <input type="text" @bind="searchTerm" @bind:event="oninput" 
+               class="filter-input" placeholder="Search by name or email..." />
+    </div>
+
+    @if (isLoading)
+    {
+        <LoadingSpinner />
+    }
+    else if (filteredApplications?.Any() == true)
+    {
+        <div class="vetting-list">
+            @foreach (var application in filteredApplications)
+            {
+                <div class="vetting-card @(application.Priority ? "priority" : "")">
+                    <div class="vetting-header">
+                        <div class="applicant-info">
+                            <h3>@application.FullName</h3>
+                            <span class="applicant-email">@application.Email</span>
+                        </div>
+                        <div class="vetting-meta">
+                            <span class="badge badge-@application.Status">@application.Status</span>
+                            @if (application.Priority)
+                            {
+                                <span class="badge badge-priority">Priority</span>
+                            }
+                            <span class="submission-date">Submitted @application.SubmittedDate.ToString("MMM d, yyyy")</span>
+                        </div>
+                    </div>
+
+                    <div class="vetting-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Experience Level:</span>
+                            <span class="detail-value">@application.ExperienceLevel</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Previous Events:</span>
+                            <span class="detail-value">@application.PreviousEvents</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">References Provided:</span>
+                            <span class="detail-value">@application.ReferenceCount</span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(application.AssignedTo))
+                        {
+                            <div class="detail-row">
+                                <span class="detail-label">Assigned To:</span>
+                                <span class="detail-value">@application.AssignedTo</span>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="vetting-actions">
+                        @if (application.Status == "pending")
+                        {
+                            <button class="btn btn-primary btn-sm" @onclick="() => StartReview(application.Id)">
+                                Start Review
+                            </button>
+                        }
+                        else if (application.Status == "in-progress")
+                        {
+                            <button class="btn btn-secondary btn-sm" @onclick="() => ContinueReview(application.Id)">
+                                Continue Review
+                            </button>
+                        }
+                        
+                        <button class="btn btn-secondary btn-sm" @onclick="() => ViewApplication(application.Id)">
+                            View Details
+                        </button>
+                        
+                        @if (application.Status == "pending" || application.Status == "in-progress")
+                        {
+                            <button class="btn btn-secondary btn-sm" @onclick="() => TogglePriority(application.Id)">
+                                @(application.Priority ? "Remove Priority" : "Mark Priority")
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (hasMore)
+        {
+            <div class="load-more-container">
+                <button class="btn btn-secondary" @onclick="LoadMore" disabled="@isLoadingMore">
+                    @if (isLoadingMore)
+                    {
+                        <span>Loading...</span>
+                    }
+                    else
+                    {
+                        <span>Load More</span>
+                    }
+                </button>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="empty-state">
+            <h3>No applications found</h3>
+            <p>There are no vetting applications matching your filters.</p>
+        </div>
+    }
+</div>
+
+@* Review Modal *@
+@if (showReviewModal)
+{
+    <div class="modal modal-visible" @onclick="CloseReviewModal">
+        <div class="modal-content modal-large" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2 class="modal-title">Vetting Review: @currentApplication?.FullName</h2>
+                <button type="button" class="modal-close" @onclick="CloseReviewModal">×</button>
+            </div>
+            
+            @if (currentApplication != null)
+            {
+                <div class="review-content">
+                    <div class="review-section">
+                        <h3>Application Details</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Email:</span>
+                                <span class="info-value">@currentApplication.Email</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Phone:</span>
+                                <span class="info-value">@currentApplication.Phone</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Emergency Contact:</span>
+                                <span class="info-value">@currentApplication.EmergencyContact</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="review-section">
+                        <h3>Experience & Background</h3>
+                        <p>@currentApplication.ExperienceDescription</p>
+                    </div>
+
+                    <div class="review-section">
+                        <h3>References</h3>
+                        @if (currentApplication.References?.Any() == true)
+                        {
+                            <ul class="reference-list">
+                                @foreach (var reference in currentApplication.References)
+                                {
+                                    <li>
+                                        <strong>@reference.Name</strong> - @reference.Relationship
+                                        <span class="reference-status badge badge-@reference.Status">@reference.Status</span>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </div>
+
+                    <div class="review-section">
+                        <h3>Review Notes</h3>
+                        <textarea @bind="reviewNotes" class="form-input" rows="4" 
+                                  placeholder="Add your review notes here..."></textarea>
+                    </div>
+
+                    <div class="review-actions">
+                        <button class="btn btn-success" @onclick="() => ApproveApplication()" disabled="@isProcessing">
+                            Approve
+                        </button>
+                        <button class="btn btn-danger" @onclick="() => RejectApplication()" disabled="@isProcessing">
+                            Reject
+                        </button>
+                        <button class="btn btn-secondary" @onclick="() => RequestMoreInfo()" disabled="@isProcessing">
+                            Request More Info
+                        </button>
+                        <button class="btn btn-secondary" @onclick="CloseReviewModal">
+                            Save & Close
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private VettingStatsViewModel stats = new();
+    private List<VettingApplicationViewModel> applications = new();
+    private List<VettingApplicationViewModel> filteredApplications = new();
+    private VettingApplicationDetailViewModel? currentApplication;
+    
+    private bool isLoading = true;
+    private bool isLoadingMore = false;
+    private bool hasMore = false;
+    private bool showReviewModal = false;
+    private bool isProcessing = false;
+    
+    private string filterStatus = "pending";
+    private string sortBy = "date-asc";
+    private string searchTerm = "";
+    private string reviewNotes = "";
+    
+    private int currentPage = 1;
+    private const int PageSize = 20;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStats();
+        await LoadApplications();
+    }
+
+    private async Task LoadStats()
+    {
+        try
+        {
+            stats = await ApiClient.GetVettingStatsAsync();
+        }
+        catch (Exception ex)
+        {
+            // TODO: Handle error
+        }
+    }
+
+    private async Task LoadApplications()
+    {
+        try
+        {
+            isLoading = true;
+            applications = await ApiClient.GetVettingApplicationsAsync(currentPage, PageSize);
+            ApplyFilters();
+            hasMore = applications.Count == PageSize;
+        }
+        catch (Exception ex)
+        {
+            // TODO: Handle error
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadMore()
+    {
+        try
+        {
+            isLoadingMore = true;
+            currentPage++;
+            var moreApplications = await ApiClient.GetVettingApplicationsAsync(currentPage, PageSize);
+            applications.AddRange(moreApplications);
+            ApplyFilters();
+            hasMore = moreApplications.Count == PageSize;
+        }
+        catch (Exception ex)
+        {
+            currentPage--;
+            // TODO: Handle error
+        }
+        finally
+        {
+            isLoadingMore = false;
+        }
+    }
+
+    private void ApplyFilters()
+    {
+        var filtered = applications.AsEnumerable();
+
+        if (filterStatus != "all")
+        {
+            filtered = filtered.Where(a => a.Status == filterStatus);
+        }
+
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            filtered = filtered.Where(a => 
+                a.FullName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                a.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+        }
+
+        filtered = sortBy switch
+        {
+            "date-desc" => filtered.OrderByDescending(a => a.SubmittedDate),
+            "priority" => filtered.OrderByDescending(a => a.Priority).ThenBy(a => a.SubmittedDate),
+            _ => filtered.OrderBy(a => a.SubmittedDate)
+        };
+
+        filteredApplications = filtered.ToList();
+    }
+
+    private async Task StartReview(int applicationId)
+    {
+        await LoadApplicationDetail(applicationId);
+        showReviewModal = true;
+        
+        // Mark as in progress
+        await ApiClient.UpdateVettingStatusAsync(applicationId, "in-progress");
+        await LoadApplications();
+    }
+
+    private async Task ContinueReview(int applicationId)
+    {
+        await LoadApplicationDetail(applicationId);
+        showReviewModal = true;
+    }
+
+    private async Task ViewApplication(int applicationId)
+    {
+        await LoadApplicationDetail(applicationId);
+        showReviewModal = true;
+    }
+
+    private async Task LoadApplicationDetail(int applicationId)
+    {
+        try
+        {
+            currentApplication = await ApiClient.GetVettingApplicationDetailAsync(applicationId);
+            reviewNotes = currentApplication?.ReviewNotes ?? "";
+        }
+        catch (Exception ex)
+        {
+            // TODO: Handle error
+        }
+    }
+
+    private async Task TogglePriority(int applicationId)
+    {
+        try
+        {
+            var app = applications.FirstOrDefault(a => a.Id == applicationId);
+            if (app != null)
+            {
+                await ApiClient.UpdateVettingPriorityAsync(applicationId, !app.Priority);
+                await LoadApplications();
+            }
+        }
+        catch (Exception ex)
+        {
+            // TODO: Handle error
+        }
+    }
+
+    private async Task ApproveApplication()
+    {
+        if (currentApplication == null) return;
+        
+        try
+        {
+            isProcessing = true;
+            await ApiClient.ApproveVettingApplicationAsync(currentApplication.Id, reviewNotes);
+            CloseReviewModal();
+            await LoadStats();
+            await LoadApplications();
+        }
+        catch (Exception ex)
+        {
+            // TODO: Handle error
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task RejectApplication()
+    {
+        if (currentApplication == null) return;
+        
+        try
+        {
+            isProcessing = true;
+            await ApiClient.RejectVettingApplicationAsync(currentApplication.Id, reviewNotes);
+            CloseReviewModal();
+            await LoadStats();
+            await LoadApplications();
+        }
+        catch (Exception ex)
+        {
+            // TODO: Handle error
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task RequestMoreInfo()
+    {
+        // TODO: Implement request more info functionality
+    }
+
+    private void CloseReviewModal()
+    {
+        showReviewModal = false;
+        currentApplication = null;
+        reviewNotes = "";
+    }
+
+    // View models
+}
