@@ -192,3 +192,24 @@ window.downloadFile = (filename, base64Content) => {
         window.URL.revokeObjectURL(link.href);
     }, 100);
 };
+
+// Blazor reconnection handling
+window.setupBlazorReconnection = () => {
+    if (typeof Blazor !== 'undefined' && Blazor.defaultReconnectionHandler) {
+        // Custom reconnection UI - reload page on reconnect
+        Blazor.defaultReconnectionHandler._reconnectCallback = function(d) {
+            document.location.reload();
+        };
+        
+        // Suppress default reconnection display on page unload
+        window.addEventListener('beforeunload', function () {
+            if (Blazor.defaultReconnectionHandler._reconnectionDisplay) {
+                Blazor.defaultReconnectionHandler._reconnectionDisplay = {
+                    show: () => {},
+                    update: () => {},
+                    rejected: () => {}
+                };
+            }
+        });
+    }
+};

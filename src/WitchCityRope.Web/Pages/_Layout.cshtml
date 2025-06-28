@@ -41,19 +41,15 @@
     <script src="js/app.min.js?v=@version"></script>
     
     <script>
-        // Reconnection handling for Blazor Server
-        window.addEventListener('beforeunload', function () {
-            Blazor.defaultReconnectionHandler._reconnectionDisplay = {
-                show: () => {},
-                update: () => {},
-                rejected: () => {}
-            };
+        // Configure Blazor reconnection after it's ready
+        document.addEventListener('DOMContentLoaded', function () {
+            // Give Blazor time to initialize
+            setTimeout(function() {
+                if (window.setupBlazorReconnection) {
+                    window.setupBlazorReconnection();
+                }
+            }, 1000);
         });
-
-        // Custom reconnection UI
-        Blazor.defaultReconnectionHandler._reconnectCallback = function(d) {
-            document.location.reload();
-        };
     </script>
 </body>
 </html>
