@@ -137,19 +137,19 @@
             <div class="dashboard-card quick-actions-card">
                 <h2 class="card-title">Quick Actions</h2>
                 <div class="quick-actions-grid">
-                    <button class="action-button" @onclick="() => Navigation.NavigateTo('/admin/events/new')">
+                    <button class="action-button" @onclick="@(() => Navigation.NavigateTo("/admin/events/new"))">
                         <span class="action-icon">➕</span>
                         <span class="action-text">Create Event</span>
                     </button>
-                    <button class="action-button" @onclick="() => Navigation.NavigateTo('/admin/members')">
+                    <button class="action-button" @onclick="@(() => Navigation.NavigateTo("/admin/members"))">
                         <span class="action-icon">👤</span>
                         <span class="action-text">Manage Members</span>
                     </button>
-                    <button class="action-button" @onclick="() => Navigation.NavigateTo('/admin/reports')">
+                    <button class="action-button" @onclick="@(() => Navigation.NavigateTo("/admin/reports"))">
                         <span class="action-icon">📊</span>
                         <span class="action-text">View Reports</span>
                     </button>
-                    <button class="action-button" @onclick="() => Navigation.NavigateTo('/admin/settings')">
+                    <button class="action-button" @onclick="@(() => Navigation.NavigateTo("/admin/settings"))">
                         <span class="action-icon">⚙️</span>
                         <span class="action-text">Settings</span>
                     </button>
@@ -157,7 +157,7 @@
                         <span class="action-icon">📥</span>
                         <span class="action-text">Export Data</span>
                     </button>
-                    <button class="action-button" @onclick="() => Navigation.NavigateTo('/admin/announcements/new')">
+                    <button class="action-button" @onclick="@(() => Navigation.NavigateTo("/admin/announcements/new"))">
                         <span class="action-icon">📢</span>
                         <span class="action-text">New Announcement</span>
                     </button>
@@ -298,7 +298,7 @@
             
             lastRefreshTime = DateTime.Now;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // Handle error
         }

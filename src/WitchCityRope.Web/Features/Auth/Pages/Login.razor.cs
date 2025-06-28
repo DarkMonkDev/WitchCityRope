@@ -55,7 +55,7 @@ public partial class Login : ComponentBase
                 _errorMessage = result.Error ?? "Invalid email or password.";
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             _errorMessage = "An error occurred. Please try again.";
         }
@@ -88,7 +88,7 @@ public partial class Login : ComponentBase
                 _errorMessage = result.Error ?? "Registration failed. Please try again.";
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             _errorMessage = "An error occurred during registration. Please try again.";
         }
@@ -134,7 +134,7 @@ public partial class Login : ComponentBase
         }
     }
 
-    private async Task GoogleLogin()
+    private void GoogleLogin()
     {
         try
         {
@@ -149,7 +149,7 @@ public partial class Login : ComponentBase
             // This assumes you have a backend endpoint that handles the OAuth flow
             Navigation.NavigateTo($"/api/auth/google-login?returnUrl={encodedReturnUrl}", true);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             _errorMessage = "Failed to initiate Google login. Please try again.";
         }

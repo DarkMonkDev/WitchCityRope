@@ -244,7 +244,7 @@
             events = await ApiClient.GetManagedEventsAsync();
             ApplyFilters();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // TODO: Handle error
         }
@@ -343,7 +343,7 @@
             await LoadEvents();
             CloseEventEditor();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // TODO: Handle error
         }

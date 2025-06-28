@@ -160,7 +160,7 @@ else if (Type == SkeletonType.List)
         animation: skeleton-shimmer 1.5s ease-in-out infinite;
     }
 
-    @keyframes skeleton-shimmer {
+    @@keyframes skeleton-shimmer {
         0% {
             transform: translateX(-100%);
         }
@@ -311,7 +311,7 @@ else if (Type == SkeletonType.List)
     }
 
     /* Responsive adjustments */
-    @media (max-width: 768px) {
+    @@media (max-width: 768px) {
         .skeleton-card-wrapper {
             flex-direction: column;
         }
@@ -331,7 +331,7 @@ else if (Type == SkeletonType.List)
     }
 
     /* Reduced motion support */
-    @media (prefers-reduced-motion: reduce) {
+    @@media (prefers-reduced-motion: reduce) {
         .skeleton-shimmer {
             animation: none;
             background: rgba(255, 255, 255, 0.2);

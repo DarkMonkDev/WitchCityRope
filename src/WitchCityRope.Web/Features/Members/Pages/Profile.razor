@@ -326,7 +326,7 @@
         return profile.SceneName.Substring(0, Math.Min(2, profile.SceneName.Length)).ToUpper();
     }
 
-    private async Task OnAvatarUploadStart(UploadingEventArgs args)
+    private void OnAvatarUploadStart(UploadingEventArgs args)
     {
         // Validate file before upload
         var file = args.FileData;
@@ -337,7 +337,7 @@
         }
     }
 
-    private async Task OnAvatarUploadSuccess(SuccessEventArgs args)
+    private void OnAvatarUploadSuccess(SuccessEventArgs args)
     {
         try
         {

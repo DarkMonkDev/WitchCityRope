@@ -424,7 +424,7 @@
         }
     }
 
-    private async Task HandlePaste(ClipboardEventArgs e)
+    private void HandlePaste(ClipboardEventArgs e)
     {
         // This would need JS interop to properly handle paste events
         // For now, we'll rely on the browser's default paste behavior
@@ -462,7 +462,7 @@
                 await _codeInputRefs[0].FocusAsync();
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             _showError = true;
             _errorMessage = "An error occurred. Please try again.";
@@ -474,13 +474,13 @@
         }
     }
 
-    private async Task UseBackupCode()
+    private void UseBackupCode()
     {
         // Navigate to backup code entry page
         Navigation.NavigateTo("/auth/backup-code");
     }
 
-    private async Task ResendCode()
+    private void ResendCode()
     {
         // TODO: Implement resend code functionality
         _showError = false;

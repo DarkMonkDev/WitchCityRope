@@ -95,10 +95,10 @@ else
 <p>Alternative view using list skeleton loader.</p>
 
 <div class="view-toggle">
-    <button class="btn @(viewMode == "table" ? "btn-primary" : "btn-secondary")" @onclick="() => SetViewMode(\"table\")">
+    <button class="btn @(viewMode == "table" ? "btn-primary" : "btn-secondary")" @onclick="@(() => SetViewMode("table"))">
         Table View
     </button>
-    <button class="btn @(viewMode == "list" ? "btn-primary" : "btn-secondary")" @onclick="() => SetViewMode(\"list\")">
+    <button class="btn @(viewMode == "list" ? "btn-primary" : "btn-secondary")" @onclick="@(() => SetViewMode("list"))">
         List View
     </button>
 </div>
@@ -545,7 +545,7 @@ else
         animation: fadeIn var(--wcr-transition-base);
     }
 
-    @keyframes fadeIn {
+    @@keyframes fadeIn {
         from {
             opacity: 0;
             transform: translateY(10px);
@@ -556,7 +556,7 @@ else
         }
     }
 
-    @media (max-width: 768px) {
+    @@media (max-width: 768px) {
         .table-controls {
             flex-direction: column;
             align-items: stretch;

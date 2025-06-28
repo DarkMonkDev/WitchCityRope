@@ -23,7 +23,7 @@
                                  Placeholder="Select date range"
                                  Format="MMM dd, yyyy"
                                  ShowClearButton="true">
-                    <DateRangePickerEvents ValueChange="OnDateRangeChange"></DateRangePickerEvents>
+                    <DateRangePickerEvents TValue="DateTime" RangeChange="@OnDateRangeChange"></DateRangePickerEvents>
                     <DateRangePickerPresets>
                         <DateRangePickerPreset Label="Today" Start="@DateTime.Today" End="@DateTime.Today"></DateRangePickerPreset>
                         <DateRangePickerPreset Label="Last 7 Days" Start="@DateTime.Today.AddDays(-7)" End="@DateTime.Today"></DateRangePickerPreset>
@@ -41,9 +41,9 @@
             <div class="export-dropdown">
                 <SfDropDownButton Content="Export" CssClass="e-caret-hide">
                     <DropDownMenuItems>
-                        <DropDownMenuItem Text="Export as CSV" IconCss="e-icons e-export-csv" @onclick="() => ExportData('csv')"></DropDownMenuItem>
-                        <DropDownMenuItem Text="Export as PDF" IconCss="e-icons e-export-pdf" @onclick="() => ExportData('pdf')"></DropDownMenuItem>
-                        <DropDownMenuItem Text="Export as Excel" IconCss="e-icons e-export-excel" @onclick="() => ExportData('excel')"></DropDownMenuItem>
+                        <DropDownMenuItem Text="Export as CSV" IconCss="e-icons e-export-csv" @onclick="@(() => ExportData("csv"))"></DropDownMenuItem>
+                        <DropDownMenuItem Text="Export as PDF" IconCss="e-icons e-export-pdf" @onclick="@(() => ExportData("pdf"))"></DropDownMenuItem>
+                        <DropDownMenuItem Text="Export as Excel" IconCss="e-icons e-export-excel" @onclick="@(() => ExportData("excel"))"></DropDownMenuItem>
                     </DropDownMenuItems>
                 </SfDropDownButton>
             </div>
@@ -129,9 +129,9 @@
                     <h2 class="card-title">Revenue Overview</h2>
                     <div class="chart-controls">
                         <SfButtonGroup>
-                            <ButtonGroupButton @onclick="() => SetChartView('daily')" CssClass="@(chartView == "daily" ? "e-active" : "")">Daily</ButtonGroupButton>
-                            <ButtonGroupButton @onclick="() => SetChartView('monthly')" CssClass="@(chartView == "monthly" ? "e-active" : "")">Monthly</ButtonGroupButton>
-                            <ButtonGroupButton @onclick="() => SetChartView('yearly')" CssClass="@(chartView == "yearly" ? "e-active" : "")">Yearly</ButtonGroupButton>
+                            <ButtonGroupButton @onclick="@(() => SetChartView("daily"))" CssClass="@(chartView == "daily" ? "e-active" : "")">Daily</ButtonGroupButton>
+                            <ButtonGroupButton @onclick="@(() => SetChartView("monthly"))" CssClass="@(chartView == "monthly" ? "e-active" : "")">Monthly</ButtonGroupButton>
+                            <ButtonGroupButton @onclick="@(() => SetChartView("yearly"))" CssClass="@(chartView == "yearly" ? "e-active" : "")">Yearly</ButtonGroupButton>
                         </SfButtonGroup>
                     </div>
                 </div>
@@ -198,7 +198,7 @@
                                     <ChartSeries DataSource="@eventRevenueData" XName="EventName" YName="Revenue" 
                                                Type="ChartSeriesType.Column" Name="Revenue">
                                         <ChartSeriesBorder Width="0"></ChartSeriesBorder>
-                                        <ChartDataLabel Visible="true" Position="LabelPosition.Top" Name="Revenue">
+                                        <ChartDataLabel Visible="true" Position="Syncfusion.Blazor.Charts.LabelPosition.Top" Name="Revenue">
                                             <ChartDataLabelFont Color="#333333" Size="11px"></ChartDataLabelFont>
                                         </ChartDataLabel>
                                     </ChartSeries>
@@ -244,19 +244,19 @@
                 </div>
                 <div class="sliding-scale-content">
                     <div class="scale-distribution">
-                        <SfChart Height="250px">
-                            <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
-                            <ChartLegendSettings Visible="true" Position="LegendPosition.Right"></ChartLegendSettings>
-                            <ChartSeriesCollection>
-                                <ChartSeries DataSource="@slidingScaleData" XName="Category" YName="Count" 
-                                           Type="ChartSeriesType.Pie" Name="Distribution"
+                        <SfAccumulationChart Height="250px">
+                            <AccumulationChartTooltipSettings Enable="true"></AccumulationChartTooltipSettings>
+                            <AccumulationChartLegendSettings Visible="true" Position="Syncfusion.Blazor.Charts.LegendPosition.Right"></AccumulationChartLegendSettings>
+                            <AccumulationChartSeriesCollection>
+                                <AccumulationChartSeries DataSource="@slidingScaleData" XName="Category" YName="Count" 
+                                           Type="Syncfusion.Blazor.Charts.AccumulationType.Pie" Name="Distribution"
                                            Radius="80%" InnerRadius="40%">
-                                    <ChartDataLabel Visible="true" Name="Percentage" Position="AccumulationLabelPosition.Outside">
-                                        <ChartDataLabelFont Size="12px"></ChartDataLabelFont>
-                                    </ChartDataLabel>
-                                </ChartSeries>
-                            </ChartSeriesCollection>
-                        </SfChart>
+                                    <AccumulationDataLabelSettings Visible="true" Name="Percentage" Position="Syncfusion.Blazor.Charts.AccumulationLabelPosition.Outside">
+                                        <AccumulationChartDataLabelFont Size="12px"></AccumulationChartDataLabelFont>
+                                    </AccumulationDataLabelSettings>
+                                </AccumulationChartSeries>
+                            </AccumulationChartSeriesCollection>
+                        </SfAccumulationChart>
                     </div>
                     <div class="scale-stats">
                         <div class="stat-item">
@@ -334,12 +334,12 @@
                                     @{
                                         var payment = (context as PaymentRecord);
                                         <div class="action-buttons">
-                                            <button class="btn-icon" title="View Details" @onclick="() => ViewPaymentDetails(payment.TransactionId)">
+                                            <button class="btn-icon" title="View Details" @onclick="@(() => ViewPaymentDetails(payment.TransactionId))">
                                                 👁️
                                             </button>
                                             @if (payment.Status == "Completed" && payment.Date > DateTime.Now.AddDays(-30))
                                             {
-                                                <button class="btn-icon" title="Issue Refund" @onclick="() => IssueRefund(payment.TransactionId)">
+                                                <button class="btn-icon" title="Issue Refund" @onclick="@(() => IssueRefund(payment.TransactionId))">
                                                     ↩️
                                                 </button>
                                             }
@@ -443,18 +443,18 @@
                     <div class="summary-section">
                         <h3>Payment Methods</h3>
                         <div class="payment-methods-chart">
-                            <SfChart Height="200px">
-                                <ChartSeriesCollection>
-                                    <ChartSeries DataSource="@paymentMethodData" XName="Method" YName="Amount" 
-                                               Type="ChartSeriesType.Doughnut" Name="Payment Methods"
+                            <SfAccumulationChart Height="200px">
+                                <AccumulationChartSeriesCollection>
+                                    <AccumulationChartSeries DataSource="@paymentMethodData" XName="Method" YName="Amount" 
+                                               Type="Syncfusion.Blazor.Charts.AccumulationType.Pie" Name="Payment Methods"
                                                Radius="80%" InnerRadius="50%">
-                                        <ChartDataLabel Visible="true" Name="Percentage" Position="AccumulationLabelPosition.Inside">
-                                            <ChartDataLabelFont Color="#FFFFFF" Size="12px" FontWeight="600"></ChartDataLabelFont>
-                                        </ChartDataLabel>
-                                    </ChartSeries>
-                                </ChartSeriesCollection>
-                                <ChartLegendSettings Visible="true" Position="LegendPosition.Bottom"></ChartLegendSettings>
-                            </SfChart>
+                                        <AccumulationDataLabelSettings Visible="true" Name="Percentage" Position="Syncfusion.Blazor.Charts.AccumulationLabelPosition.Inside">
+                                            <AccumulationChartDataLabelFont Color="#FFFFFF" Size="12px" FontWeight="600"></AccumulationChartDataLabelFont>
+                                        </AccumulationDataLabelSettings>
+                                    </AccumulationChartSeries>
+                                </AccumulationChartSeriesCollection>
+                                <AccumulationChartLegendSettings Visible="true" Position="Syncfusion.Blazor.Charts.LegendPosition.Bottom"></AccumulationChartLegendSettings>
+                            </SfAccumulationChart>
                         </div>
                     </div>
                 </div>
@@ -465,8 +465,8 @@
 
 @code {
     private bool isLoading = true;
-    private DateTime? startDate = DateTime.Today.AddDays(-30);
-    private DateTime? endDate = DateTime.Today;
+    private DateTime startDate = DateTime.Today.AddDays(-30);
+    private DateTime endDate = DateTime.Today;
     private string chartView = "daily";
     private bool showEventRevenueChart = true;
 
@@ -543,8 +543,10 @@
         await LoadFinancialData();
     }
 
-    private async Task OnDateRangeChange(RangePickerEventArgs<DateTime?> args)
+    private async Task OnDateRangeChange(Syncfusion.Blazor.Calendars.RangeEventArgs args)
     {
+        startDate = args.StartDate;
+        endDate = args.EndDate;
         await LoadFinancialData();
     }
 

@@ -86,10 +86,10 @@
     else if (filteredUsers?.Any() == true)
     {
         <div class="view-toggle">
-            <button class="toggle-btn @(viewMode == "cards" ? "active" : "")" @onclick="() => viewMode = \"cards\"">
+            <button class="toggle-btn @(viewMode == "cards" ? "active" : "")" @onclick="@(() => viewMode = "cards")">
                 <i class="fas fa-th"></i> Cards
             </button>
-            <button class="toggle-btn @(viewMode == "table" ? "active" : "")" @onclick="() => viewMode = \"table\"">
+            <button class="toggle-btn @(viewMode == "table" ? "active" : "")" @onclick="@(() => viewMode = "table")">
                 <i class="fas fa-list"></i> Table
             </button>
         </div>

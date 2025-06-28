@@ -261,7 +261,7 @@
         {
             stats = await ApiClient.GetVettingStatsAsync();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // TODO: Handle error
         }
@@ -276,7 +276,7 @@
             ApplyFilters();
             hasMore = applications.Count == PageSize;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // TODO: Handle error
         }
@@ -297,7 +297,7 @@
             ApplyFilters();
             hasMore = moreApplications.Count == PageSize;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             currentPage--;
             // TODO: Handle error
@@ -363,7 +363,7 @@
             currentApplication = await ApiClient.GetVettingApplicationDetailAsync(applicationId);
             reviewNotes = currentApplication?.ReviewNotes ?? "";
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // TODO: Handle error
         }
@@ -380,7 +380,7 @@
                 await LoadApplications();
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // TODO: Handle error
         }
@@ -398,7 +398,7 @@
             await LoadStats();
             await LoadApplications();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // TODO: Handle error
         }
@@ -420,7 +420,7 @@
             await LoadStats();
             await LoadApplications();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // TODO: Handle error
         }

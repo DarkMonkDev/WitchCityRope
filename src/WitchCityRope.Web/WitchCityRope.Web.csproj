@@ -21,6 +21,8 @@
     <PackageReference Include="Syncfusion.Blazor.Grid" Version="27.2.5" />
     <PackageReference Include="Syncfusion.Blazor.Notifications" Version="27.2.5" />
     <PackageReference Include="Syncfusion.Blazor.Themes" Version="27.2.5" />
+    <PackageReference Include="Syncfusion.Blazor.Charts" Version="27.2.5" />
+    <PackageReference Include="Syncfusion.Blazor.Cards" Version="27.2.5" />
     
     <!-- Authentication -->
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.12.1" />

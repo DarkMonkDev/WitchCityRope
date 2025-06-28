@@ -258,7 +258,7 @@
             upcomingTickets = allTickets.Where(t => t.EventDate >= now).OrderBy(t => t.EventDate).ToList();
             pastTickets = allTickets.Where(t => t.EventDate < now).OrderByDescending(t => t.EventDate).ToList();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // TODO: Handle error
         }
@@ -275,7 +275,7 @@
             isLoadingDetail = true;
             ticketDetail = await ApiClient.GetTicketDetailAsync(ticketId);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // TODO: Handle error
         }
@@ -295,19 +295,19 @@
         Navigation.NavigateTo($"/my-tickets/{ticketId}");
     }
 
-    private async Task AddToCalendar(dynamic ticket)
+    private void AddToCalendar(dynamic ticket)
     {
         // TODO: Implement calendar integration
         Console.WriteLine($"Add to calendar: {ticket.EventTitle}");
     }
 
-    private async Task CancelTicket(dynamic ticket)
+    private void CancelTicket(dynamic ticket)
     {
         // TODO: Implement ticket cancellation with confirmation dialog
         Console.WriteLine($"Cancel ticket: {ticket.TicketNumber}");
     }
 
-    private async Task DownloadTicket(TicketDetailViewModel ticket)
+    private void DownloadTicket(TicketDetailViewModel ticket)
     {
         // TODO: Implement PDF download
         Console.WriteLine($"Download ticket: {ticket.TicketNumber}");

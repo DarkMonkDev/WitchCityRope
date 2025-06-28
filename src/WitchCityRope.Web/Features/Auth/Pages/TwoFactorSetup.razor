@@ -222,7 +222,7 @@
                         <div class="backup-codes-grid">
                             @foreach (var code in _backupCodes)
                             {
-                                <div class="backup-code">@code</div>
+                                <div class="backup-code">@(code)</div>
                             }
                         </div>
                         
@@ -371,7 +371,7 @@
         animation: fadeIn 0.3s ease;
     }
     
-    @keyframes fadeIn {
+    @@keyframes fadeIn {
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
     }
@@ -790,12 +790,12 @@
         border-width: 2px;
     }
     
-    @keyframes spin {
+    @@keyframes spin {
         to { transform: rotate(360deg); }
     }
     
     /* Responsive */
-    @media (max-width: 768px) {
+    @@media (max-width: 768px) {
         .auth-title {
             font-size: 24px;
         }
@@ -1023,7 +1023,7 @@
                 await _codeInputRefs[0].FocusAsync();
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             _showError = true;
             _errorMessage = "An error occurred. Please try again.";
