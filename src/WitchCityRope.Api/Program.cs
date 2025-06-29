@@ -75,6 +75,22 @@ builder.Services.AddDataProtection();
 
 var app = builder.Build();
 
+// Initialize database with seed data
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var context = scope.ServiceProvider.GetRequiredService<WitchCityRope.Infrastructure.Data.WitchCityRopeDbContext>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        await WitchCityRope.Infrastructure.Data.DbInitializer.InitializeAsync(context, logger);
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
+}
+
 // Configure the HTTP request pipeline using extension method
 app.ConfigureApiPipeline();
 

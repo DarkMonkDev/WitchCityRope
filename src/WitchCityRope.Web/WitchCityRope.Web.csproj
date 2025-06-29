@@ -60,4 +60,9 @@
     <Folder Include="wwwroot\js\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\WitchCityRope.Core\WitchCityRope.Core.csproj" />
+    <ProjectReference Include="..\WitchCityRope.Infrastructure\WitchCityRope.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>

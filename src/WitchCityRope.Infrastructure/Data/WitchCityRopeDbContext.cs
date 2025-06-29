@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Core.Entities;
 using WitchCityRope.Infrastructure.Data.Configurations;
+using WitchCityRope.Infrastructure.Data.Entities;
 
 namespace WitchCityRope.Infrastructure.Data
 {
@@ -20,6 +21,8 @@ namespace WitchCityRope.Infrastructure.Data
         public DbSet<Payment> Payments { get; set; }
         public DbSet<VettingApplication> VettingApplications { get; set; }
         public DbSet<IncidentReport> IncidentReports { get; set; }
+        public DbSet<UserAuthentication> UserAuthentications { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -32,6 +35,8 @@ namespace WitchCityRope.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new PaymentConfiguration());
             modelBuilder.ApplyConfiguration(new VettingApplicationConfiguration());
             modelBuilder.ApplyConfiguration(new IncidentReportConfiguration());
+            modelBuilder.ApplyConfiguration(new UserAuthenticationConfiguration());
+            modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
         }
 
         public override int SaveChanges()
@@ -50,7 +55,8 @@ namespace WitchCityRope.Infrastructure.Data
         {
             var entries = ChangeTracker.Entries()
                 .Where(e => e.Entity is User || e.Entity is Event || e.Entity is Registration || 
-                           e.Entity is Payment || e.Entity is VettingApplication || e.Entity is IncidentReport);
+                           e.Entity is Payment || e.Entity is VettingApplication || e.Entity is IncidentReport ||
+                           e.Entity is UserAuthentication || e.Entity is RefreshToken);
 
             foreach (var entry in entries)
             {

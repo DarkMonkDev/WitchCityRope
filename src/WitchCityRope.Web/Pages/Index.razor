@@ -10,14 +10,11 @@
     <div class="hero-background-pattern"></div>
     <div class="hero-content">
         <p class="hero-tagline">Where curiosity meets connection</p>
-        <h1 class="hero-title">
-            <span class="hero-title-line1">Salem's Premier Rope Bondage</span>
-            <span class="hero-title-line2">Education & Practice</span>
-            <span class="hero-title-line3">Community</span>
-        </h1>
+        <h1 class="hero-title">Salem's Rope Bondage<br><span>Education & Practice</span><br>Community</h1>
+        <p class="hero-description">Join 600+ members learning and growing together in a supportive, consent-focused space that celebrates every journey</p>
         <div class="hero-actions">
-            <a href="/events" class="btn btn-primary btn-gradient btn-lg">Explore Events</a>
-            <a href="/register" class="btn btn-secondary btn-gradient btn-lg">Join Our Community</a>
+            <a href="/events" class="btn btn-primary btn-large">Browse Upcoming Classes</a>
+            <a href="/apply" class="btn btn-secondary btn-large">Start Your Journey</a>
         </div>
     </div>
 </div>
@@ -100,47 +97,35 @@
 </div>
 
 <div class="page-container">
-    <section class="intro-section">
-        <h2>Discover the Art of Rope</h2>
-        <p class="lead">
-            Witch City Rope is Salem's premier rope bondage community, offering workshops, 
-            performances, and social events for practitioners of all experience levels. 
-            Whether you're new to rope or an experienced rigger, you'll find a welcoming 
-            and inclusive space to explore, learn, and connect.
-        </p>
-    </section>
 
     <section class="features-section">
         <h2>What Makes Our Community Special</h2>
         <div class="features-grid">
             <div class="feature-card">
-                <div class="feature-icon">🎓</div>
-                <h3>Expert Teaching</h3>
-                <p>Learn from experienced instructors who are passionate about sharing their knowledge in a supportive, educational environment.</p>
-            </div>
-            <div class="feature-card">
                 <div class="feature-icon">🎭</div>
+                <h3>Expert Teaching</h3>
+                <p>Learn from experienced instructors who make rope accessible to everyone. We blend technical skills with creativity and always prioritize safety.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🌹</div>
                 <h3>Welcoming Community</h3>
-                <p>Join an inclusive environment where everyone is welcomed with open arms, regardless of experience level or background.</p>
+                <p>Find your people in our warm, respectful space. We celebrate diversity, honor boundaries, and support each other's growth.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">👥</div>
+                <div class="feature-icon">🔮</div>
                 <h3>Safety First, Always</h3>
-                <p>We prioritize consent, clear communication, and established safety protocols in all our activities and interactions.</p>
+                <p>We're committed to risk-aware practice, ongoing consent, and creating an environment where everyone feels secure to learn and explore.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">🛡️</div>
+                <div class="feature-icon">✨</div>
                 <h3>Everyone Belongs</h3>
-                <p>Celebrating diversity and fostering acceptance, our community embraces people of all identities, orientations, and backgrounds.</p>
+                <p>All bodies, orientations, and experience levels are welcome here. Come as you are—we're excited to support your unique journey.</p>
             </div>
         </div>
     </section>
 
     <section class="upcoming-section">
-        <div class="section-header">
-            <h2>Upcoming Events</h2>
-            <a href="/events" class="section-link">View All Events →</a>
-        </div>
+        <h2 class="section-title">Learn With Us This Month</h2>
         
         <div class="events-preview">
             @if (isLoading)
@@ -156,63 +141,79 @@
                 <div class="events-grid">
                     @foreach (var eventItem in upcomingEvents.Take(3))
                     {
-                        <div class="event-preview-card" @onclick="() => NavigateToEvent(eventItem.Id)">
-                            <div class="event-preview-date">
-                                <span class="event-month">@eventItem.StartDate.ToString("MMM")</span>
-                                <span class="event-day">@eventItem.StartDate.Day</span>
+                        <a href="/events/@eventItem.Id" class="event-card">
+                            <div class="event-image">
+                                <h3 class="event-image-title">@eventItem.Title</h3>
                             </div>
-                            <div class="event-preview-info">
-                                <h4>@eventItem.Title</h4>
-                                <p class="event-preview-meta">
-                                    <span>@eventItem.StartDate.ToString("h:mm tt")</span>
-                                    <span class="separator">•</span>
-                                    <span>@eventItem.Location</span>
-                                </p>
-                                <div class="event-preview-footer">
+                            <div class="event-content">
+                                <div class="event-date">@eventItem.StartDate.ToString("dddd, MMMM d") • @eventItem.StartDate.ToString("h:mm tt")</div>
+                                <p class="event-description">@(eventItem.Description?.Length > 120 ? eventItem.Description.Substring(0, 120) + "..." : eventItem.Description)</p>
+                                <div class="event-details">
+                                    <span class="event-detail">📍 @eventItem.Location</span>
+                                    <span class="event-detail">⏱️ @eventItem.Duration</span>
+                                    <span class="event-detail">📚 @eventItem.Level</span>
+                                </div>
+                                <div class="event-footer">
                                     @if (eventItem.Price > 0)
                                     {
                                         <span class="event-price">$@eventItem.Price</span>
                                     }
                                     else
                                     {
-                                        <span class="event-price free">Free</span>
+                                        <span class="event-price">$0-35</span>
                                     }
                                     @if (eventItem.AvailableSpots > 0)
                                     {
-                                        <span class="event-spots">@eventItem.AvailableSpots spots</span>
+                                        @if (eventItem.AvailableSpots <= 5)
+                                        {
+                                            <span class="event-status limited">@eventItem.AvailableSpots spots left</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="event-status available">@eventItem.AvailableSpots spots left</span>
+                                        }
                                     }
                                     else
                                     {
-                                        <span class="event-spots sold-out">Sold Out</span>
+                                        <span class="event-status full">Sold Out</span>
                                     }
                                 </div>
                             </div>
-                        </div>
+                        </a>
                     }
                 </div>
             }
         </div>
+        
+        <div style="text-align: center; margin-top: var(--spacing-xl);">
+            <a href="/events" class="btn btn-secondary">View Full Calendar</a>
+        </div>
     </section>
 
     <section class="cta-section">
-        <div class="cta-card">
-            <h2>Ready to Join Us?</h2>
-            <p>Create an account to register for events, connect with the community, and access member resources.</p>
-            <a href="/register" class="btn btn-primary btn-lg">Get Started</a>
+        <div class="cta">
+            <div class="cta-content">
+                <p class="cta-subtitle">Ready to start?</p>
+                <h2>Your Rope Journey Begins Here</h2>
+                <p>Whether you're curious about rope or ready to deepen your practice, we're here to support you every step of the way.</p>
+                <a href="/apply" class="btn btn-primary btn-large">Join Our Community</a>
+            </div>
         </div>
     </section>
 </div>
 
 <style>
     .hero-section {
-        background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
-        color: var(--color-text-inverse);
-        padding: var(--spacing-3xl) var(--spacing-md);
-        margin-top: calc(-1 * var(--nav-height));
-        padding-top: calc(var(--spacing-3xl) + var(--nav-height));
+        background: linear-gradient(180deg, var(--color-midnight) 0%, var(--color-burgundy-dark) 100%);
+        color: var(--color-ivory);
+        padding: var(--spacing-3xl) 40px var(--spacing-2xl);
         text-align: center;
         position: relative;
         overflow: hidden;
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     /* Animated background pattern */
@@ -247,41 +248,39 @@
 
     .hero-tagline {
         font-family: 'Satisfy', cursive;
-        font-size: var(--font-size-2xl);
-        margin-bottom: var(--spacing-md);
-        opacity: 0.95;
-        color: var(--color-amber);
-        font-weight: normal;
+        font-size: 28px;
+        color: var(--color-rose-gold);
+        margin-bottom: var(--spacing-sm);
+        opacity: 0.9;
     }
 
     .hero-title {
-        margin-bottom: var(--spacing-2xl);
+        font-family: var(--font-heading);
+        font-size: 64px;
+        margin-bottom: var(--spacing-md);
+        font-weight: 800;
         line-height: 1.1;
-    }
-
-    .hero-title span {
-        display: block;
-        color: var(--color-text-inverse);
-    }
-
-    .hero-title-line1 {
-        font-size: var(--font-size-3xl);
-        font-weight: var(--font-weight-medium);
-        margin-bottom: var(--spacing-xs);
-    }
-
-    .hero-title-line2 {
-        font-size: var(--font-size-4xl);
-        font-weight: var(--font-weight-bold);
-        color: var(--color-amber) !important;
+        letter-spacing: -1px;
         text-transform: uppercase;
-        letter-spacing: 0.02em;
-        margin-bottom: var(--spacing-xs);
     }
-
-    .hero-title-line3 {
-        font-size: var(--font-size-3xl);
-        font-weight: var(--font-weight-medium);
+    
+    .hero-title span {
+        background: linear-gradient(135deg, var(--color-rose-gold) 0%, var(--color-brass) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .hero-description {
+        font-family: var(--font-body);
+        font-size: 22px;
+        margin-bottom: var(--spacing-xl);
+        opacity: 0.9;
+        line-height: 1.6;
+        font-weight: 300;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     .hero-actions {
@@ -291,51 +290,104 @@
         flex-wrap: wrap;
     }
 
-    /* Gradient button styling */
-    .btn-gradient {
+    /* Button Styles */
+    .btn {
+        padding: 14px 32px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-family: var(--font-heading);
+        font-weight: 600;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        transition: all 0.4s ease;
+        display: inline-block;
+        cursor: pointer;
+        border: none;
         position: relative;
         overflow: hidden;
-        transition: all var(--transition-base);
-        border: none;
     }
-
-    .btn-primary.btn-gradient {
-        background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-burgundy-dark) 100%);
-        color: var(--color-text-inverse);
-    }
-
-    .btn-primary.btn-gradient:hover {
-        background: linear-gradient(135deg, var(--color-burgundy-light) 0%, var(--color-burgundy) 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(114, 47, 55, 0.3);
-    }
-
-    .btn-secondary.btn-gradient {
+    
+    .btn-primary {
         background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
-        color: var(--color-charcoal);
+        color: var(--color-midnight);
+        box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+        font-weight: 700;
     }
-
-    .btn-secondary.btn-gradient:hover {
-        background: linear-gradient(135deg, var(--color-amber-light) 0%, var(--color-amber) 100%);
+    
+    .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(212, 165, 116, 0.3);
+        box-shadow: 0 6px 25px rgba(255, 191, 0, 0.5);
+        background: linear-gradient(135deg, var(--color-amber-dark) 0%, var(--color-amber) 100%);
+    }
+    
+    .btn-secondary {
+        background: transparent;
+        color: var(--color-burgundy);
+        border: 2px solid var(--color-burgundy);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .hero .btn-secondary {
+        background: transparent;
+        color: var(--color-ivory);
+        border-color: var(--color-rose-gold);
+    }
+    
+    .btn-secondary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 100%;
+        background: var(--color-burgundy);
+        transition: width 0.4s ease;
+        z-index: -1;
+    }
+    
+    .hero .btn-secondary::before {
+        background: var(--color-rose-gold);
+    }
+    
+    .btn-secondary:hover {
+        color: var(--color-ivory);
+    }
+    
+    .hero .btn-secondary:hover {
+        color: var(--color-midnight);
+    }
+    
+    .btn-secondary:hover::before {
+        width: 100%;
+    }
+    
+    .btn-large {
+        padding: 18px 40px;
+        font-size: 16px;
     }
 
-    .btn-lg {
-        padding: var(--spacing-md) var(--spacing-xl);
-        font-size: var(--font-size-lg);
-    }
-
-    .intro-section {
+    /* Section Title */
+    .section-title {
+        font-family: var(--font-heading);
+        font-size: 48px;
+        font-weight: 800;
+        margin-bottom: var(--spacing-xl);
         text-align: center;
-        padding: var(--spacing-3xl) 0;
+        color: var(--color-burgundy);
+        position: relative;
+        text-transform: uppercase;
+        letter-spacing: 3px;
     }
-
-    .lead {
-        font-size: var(--font-size-lg);
-        color: var(--color-text-secondary);
-        max-width: 800px;
-        margin: 0 auto;
+    
+    .section-title::after {
+        content: '';
+        display: block;
+        width: 100px;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--color-rose-gold), transparent);
+        margin: var(--spacing-sm) auto 0;
     }
 
     .features-section {
@@ -364,31 +416,50 @@
     }
 
     .feature-icon {
-        font-size: 3rem;
-        margin-bottom: var(--spacing-md);
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-rose-gold) 100%);
+        border-radius: 50%;
+        margin: 0 auto var(--spacing-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-ivory);
+        font-size: 48px;
+        box-shadow: 0 10px 30px rgba(136, 1, 36, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .feature-icon::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .feature:hover .feature-icon::before {
+        opacity: 1;
     }
 
     .feature-card h3 {
-        font-size: var(--font-size-xl);
+        font-family: var(--font-heading);
+        font-size: 24px;
         margin-bottom: var(--spacing-sm);
-        color: var(--color-primary);
+        color: var(--color-burgundy);
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
 
     .upcoming-section {
         padding: var(--spacing-3xl) 0;
     }
 
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: var(--spacing-xl);
-    }
-
-    .section-link {
-        color: var(--color-primary);
-        font-weight: var(--font-weight-medium);
-    }
 
     .events-preview {
         min-height: 200px;
@@ -410,131 +481,202 @@
     /* Events Grid */
     .events-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
         gap: var(--spacing-lg);
+        margin-bottom: var(--spacing-xl);
     }
 
-    /* Event Preview Card */
-    .event-preview-card {
-        background-color: var(--color-surface);
-        border-radius: var(--radius-lg);
-        padding: var(--spacing-lg);
-        box-shadow: var(--shadow-sm);
-        display: flex;
-        gap: var(--spacing-lg);
-        cursor: pointer;
-        transition: all var(--transition-base);
-        border: 1px solid transparent;
-    }
-
-    .event-preview-card:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-        border-color: var(--color-primary);
-    }
-
-    /* Event Date Display */
-    .event-preview-date {
-        flex-shrink: 0;
-        width: 60px;
-        text-align: center;
-        border-radius: var(--radius-md);
-        background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-burgundy-dark) 100%);
-        color: var(--color-text-inverse);
-        padding: var(--spacing-sm) 0;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-
-    .event-month {
-        font-size: var(--font-size-sm);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        opacity: 0.9;
-    }
-
-    .event-day {
-        font-size: var(--font-size-2xl);
-        font-weight: var(--font-weight-bold);
-        line-height: 1;
-        margin-top: var(--spacing-xs);
-    }
-
-    /* Event Info */
-    .event-preview-info {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .event-preview-info h4 {
-        color: var(--color-text);
-        font-size: var(--font-size-lg);
-        font-weight: var(--font-weight-medium);
-        margin-bottom: var(--spacing-xs);
+    /* Event Card */
+    .event-card {
+        background: var(--color-ivory);
+        border-radius: 16px;
         overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: block;
     }
-
-    .event-preview-meta {
-        color: var(--color-text-secondary);
-        font-size: var(--font-size-sm);
-        margin-bottom: var(--spacing-sm);
+    
+    .event-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
     }
-
-    .event-preview-meta .separator {
-        margin: 0 var(--spacing-xs);
+    
+    .event-image {
+        height: 100px;
+        background: linear-gradient(135deg, var(--color-plum) 0%, var(--color-burgundy) 100%);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--spacing-md);
     }
-
-    /* Event Footer */
-    .event-preview-footer {
+    
+    .event-image::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10,50 Q30,20 50,50 T90,50' stroke='%23FFFFFF' stroke-width='0.5' fill='none' opacity='0.2'/%3E%3C/svg%3E");
+        background-size: 200px 200px;
+    }
+    
+    .event-image-title {
+        font-family: var(--font-heading);
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--color-ivory);
+        line-height: 1.3;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    .event-content {
+        padding: var(--spacing-lg);
+    }
+    
+    .event-date {
+        font-family: var(--font-heading);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--color-burgundy);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    .event-description {
+        color: var(--color-stone);
+        font-size: 15px;
+        line-height: 1.6;
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .event-details {
+        display: flex;
+        gap: var(--spacing-md);
+        font-size: 14px;
+        color: var(--color-smoke);
+        margin-bottom: var(--spacing-md);
+        flex-wrap: wrap;
+    }
+    
+    .event-detail {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+    }
+    
+    .event-footer {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-top: var(--spacing-sm);
+        padding-top: var(--spacing-md);
+        border-top: 1px solid var(--color-taupe);
     }
-
+    
     .event-price {
-        font-weight: var(--font-weight-medium);
-        color: var(--color-primary);
+        font-family: var(--font-heading);
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--color-burgundy);
     }
-
-    .event-price.free {
+    
+    .event-status {
+        font-size: 14px;
+        font-weight: 600;
+    }
+    
+    .event-status.available {
         color: var(--color-success);
     }
-
-    .event-spots {
-        font-size: var(--font-size-sm);
-        color: var(--color-text-secondary);
+    
+    .event-status.limited {
+        color: var(--color-warning);
     }
-
-    .event-spots.sold-out {
+    
+    .event-status.full {
         color: var(--color-error);
-        font-weight: var(--font-weight-medium);
     }
 
     .cta-section {
         padding: var(--spacing-3xl) 0;
     }
 
-    .cta-card {
-        background-color: var(--color-surface);
-        border-radius: var(--radius-lg);
-        padding: var(--spacing-2xl);
+    /* CTA Section */
+    .cta {
+        background: linear-gradient(135deg, var(--color-burgundy-dark) 0%, var(--color-midnight) 100%);
+        color: var(--color-ivory);
+        padding: var(--spacing-2xl) var(--spacing-xl);
         text-align: center;
-        box-shadow: var(--shadow-lg);
+        max-width: 1000px;
+        margin: 0 auto;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        border-radius: 16px;
     }
-
-    .cta-card h2 {
-        color: var(--color-primary);
+    
+    .cta::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='30' fill='none' stroke='%23B76D75' stroke-width='0.5' opacity='0.2'/%3E%3C/svg%3E");
+        background-size: 100px 100px;
+        animation: rotate 30s linear infinite;
+    }
+    
+    @keyframes rotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .cta-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .cta h2 {
+        font-family: var(--font-heading);
+        font-size: 42px;
+        font-weight: 800;
+        margin-bottom: var(--spacing-md);
+        text-transform: uppercase;
+        letter-spacing: 3px;
+    }
+    
+    .cta-subtitle {
+        font-family: 'Satisfy', cursive;
+        font-size: 28px;
+        color: var(--color-rose-gold);
         margin-bottom: var(--spacing-md);
     }
-
-    .cta-card p {
-        font-size: var(--font-size-lg);
-        color: var(--color-text-secondary);
+    
+    .cta p {
+        font-size: 20px;
         margin-bottom: var(--spacing-xl);
+        opacity: 0.9;
+        font-weight: 300;
+    }
+    
+    .cta .btn {
+        background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+        color: var(--color-midnight);
+        box-shadow: 0 6px 20px rgba(255, 191, 0, 0.4);
+    }
+    
+    .cta .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(255, 191, 0, 0.5);
+        background: linear-gradient(135deg, var(--color-amber-dark) 0%, var(--color-amber) 100%);
     }
 
     /* Rope Divider Styles */
@@ -604,20 +746,21 @@
     }
 
     @@media (max-width: 768px) {
+        .hero-section {
+            padding: var(--spacing-2xl) 20px var(--spacing-xl);
+            min-height: 70vh;
+        }
+        
         .hero-tagline {
-            font-size: var(--font-size-xl);
+            font-size: 22px;
         }
 
-        .hero-title-line1 {
-            font-size: var(--font-size-2xl);
+        .hero-title {
+            font-size: 40px;
         }
-
-        .hero-title-line2 {
-            font-size: var(--font-size-3xl);
-        }
-
-        .hero-title-line3 {
-            font-size: var(--font-size-2xl);
+        
+        .hero-description {
+            font-size: 18px;
         }
 
         .hero-actions {
@@ -628,15 +771,13 @@
         .hero-actions .btn {
             width: 100%;
         }
+        
+        .section-title {
+            font-size: 36px;
+        }
 
         .features-grid {
             grid-template-columns: 1fr;
-        }
-
-        .section-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: var(--spacing-sm);
         }
 
         /* Responsive rope divider */
@@ -654,25 +795,21 @@
         .events-grid {
             grid-template-columns: 1fr;
         }
-
-        .event-preview-card {
-            padding: var(--spacing-md);
+        
+        .event-card {
+            margin-bottom: var(--spacing-md);
         }
-
-        .event-preview-date {
-            width: 50px;
+        
+        .cta h2 {
+            font-size: 32px;
         }
-
-        .event-month {
-            font-size: var(--font-size-xs);
+        
+        .cta-subtitle {
+            font-size: 22px;
         }
-
-        .event-day {
-            font-size: var(--font-size-xl);
-        }
-
-        .event-preview-info h4 {
-            font-size: var(--font-size-md);
+        
+        .cta p {
+            font-size: 18px;
         }
     }
 </style>

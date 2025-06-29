@@ -58,8 +58,7 @@
             else
             {
                 <div class="auth-buttons">
-                    <a href="/login" class="btn btn-primary btn-sm">Login</a>
-                    <a href="/register" class="btn btn-outline btn-sm">Sign Up</a>
+                    <a href="/login" class="btn btn-primary">Login</a>
                 </div>
             }
         </nav>
@@ -116,7 +115,6 @@
                 else
                 {
                     <a href="/login" class="btn btn-primary" @onclick="CloseMobileMenu">Login</a>
-                    <a href="/register" class="btn btn-outline" @onclick="CloseMobileMenu">Sign Up</a>
                 }
             </div>
         </nav>
@@ -313,13 +311,27 @@
         align-items: center;
     }
     
-    .auth-buttons .btn-sm {
-        padding: 6px 16px;
+    .auth-buttons .btn {
+        padding: 12px 28px;
         font-size: 14px;
         font-family: var(--wcr-font-heading);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 1.5px;
         font-weight: 600;
+        background: linear-gradient(135deg, var(--wcr-color-amber) 0%, var(--wcr-color-amber-dark) 100%);
+        color: var(--wcr-color-midnight);
+        border: none;
+        border-radius: 4px;
+        box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+        transition: all 0.4s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .auth-buttons .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(255, 191, 0, 0.5);
+        background: linear-gradient(135deg, var(--wcr-color-amber-dark) 0%, var(--wcr-color-amber) 100%);
     }
     
     /* User Menu */
