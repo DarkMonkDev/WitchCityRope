@@ -11,7 +11,6 @@ using WitchCityRope.Core.Interfaces;
 using WitchCityRope.Core.ValueObjects;
 using WitchCityRope.Infrastructure.Data;
 using WitchCityRope.Infrastructure.Services;
-using WitchCityRope.Tests.Common.Interfaces;
 
 namespace WitchCityRope.Api.Tests.Helpers;
 
@@ -31,19 +30,19 @@ public static class MockHelpers
         return new Mock<ILogger<T>>();
     }
 
-    public static Mock<IUserContext> CreateUserContextMock(User? currentUser = null)
+    public static Mock<WitchCityRope.Infrastructure.Services.IUserContext> CreateUserContextMock(User? currentUser = null)
     {
-        var mock = new Mock<IUserContext>();
+        var mock = new Mock<WitchCityRope.Infrastructure.Services.IUserContext>();
         mock.Setup(x => x.GetCurrentUserAsync()).ReturnsAsync(currentUser);
         mock.Setup(x => x.GetCurrentUserId()).Returns(currentUser?.Id);
         return mock;
     }
 
-    public static Mock<IPasswordHasher> CreatePasswordHasherMock(
+    public static Mock<Core.Interfaces.IPasswordHasher> CreatePasswordHasherMock(
         bool verifyPasswordResult = true,
         string hashedPassword = "hashed-password")
     {
-        var mock = new Mock<IPasswordHasher>();
+        var mock = new Mock<Core.Interfaces.IPasswordHasher>();
         mock.Setup(x => x.VerifyPassword(It.IsAny<string>(), It.IsAny<string>()))
             .Returns(verifyPasswordResult);
         mock.Setup(x => x.HashPassword(It.IsAny<string>()))
@@ -51,20 +50,20 @@ public static class MockHelpers
         return mock;
     }
 
-    public static Mock<IEmailService> CreateEmailServiceMock(bool sendResult = true)
+    public static Mock<Core.Interfaces.IEmailService> CreateEmailServiceMock(bool sendResult = true)
     {
-        var mock = new Mock<IEmailService>();
+        var mock = new Mock<Core.Interfaces.IEmailService>();
         mock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>()))
             .ReturnsAsync(sendResult);
         return mock;
     }
 
-    public static Mock<IPaymentService> CreatePaymentServiceMock(
+    public static Mock<Core.Interfaces.IPaymentService> CreatePaymentServiceMock(
         bool paymentSuccess = true,
         decimal amountCharged = 0,
         string? errorMessage = null)
     {
-        var mock = new Mock<IPaymentService>();
+        var mock = new Mock<Core.Interfaces.IPaymentService>();
         mock.Setup(x => x.ProcessPaymentAsync(It.IsAny<PaymentRequest>()))
             .ReturnsAsync(new PaymentResult
             {
@@ -98,9 +97,9 @@ public static class MockHelpers
         return mock;
     }
 
-    public static Mock<ISlugGenerator> CreateSlugGeneratorMock()
+    public static Mock<WitchCityRope.Infrastructure.Services.ISlugGenerator> CreateSlugGeneratorMock()
     {
-        var mock = new Mock<ISlugGenerator>();
+        var mock = new Mock<WitchCityRope.Infrastructure.Services.ISlugGenerator>();
         mock.Setup(x => x.GenerateSlug(It.IsAny<string>()))
             .Returns<string>(title => title.ToLower().Replace(" ", "-"));
         return mock;

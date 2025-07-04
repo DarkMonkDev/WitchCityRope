@@ -15,11 +15,10 @@
         <a href="/" class="logo">WITCH CITY ROPE</a>
         <nav class="nav">
             <a href="/events" class="nav-item">Events & Classes</a>
-            <a href="/vetting" class="nav-item">How to Join</a>
+            <a href="/how-to-join" class="nav-item">How To Join</a>
             <a href="/resources" class="nav-item">Resources</a>
             <div class="auth-buttons">
-                <a href="/auth/login" class="btn btn-primary btn-sm">Login</a>
-                <a href="/auth/register" class="btn btn-outline btn-sm">Sign Up</a>
+                <a href="/login" class="btn btn-primary btn-sm">Login</a>
             </div>
         </nav>
         <button class="mobile-menu-toggle" @onclick="ToggleMobileMenu">
@@ -39,14 +38,13 @@
         </div>
         <nav class="mobile-nav">
             <a href="/events" class="mobile-nav-item" @onclick="CloseMobileMenu">Events & Classes</a>
-            <a href="/vetting" class="mobile-nav-item" @onclick="CloseMobileMenu">How to Join</a>
+            <a href="/how-to-join" class="mobile-nav-item" @onclick="CloseMobileMenu">How To Join</a>
             <a href="/resources" class="mobile-nav-item" @onclick="CloseMobileMenu">Resources</a>
             <a href="/incident-report" class="mobile-nav-item incident" @onclick="CloseMobileMenu">Report an Incident</a>
             <a href="/private-lessons" class="mobile-nav-item" @onclick="CloseMobileMenu">Private Lessons</a>
             <a href="/contact" class="mobile-nav-item" @onclick="CloseMobileMenu">Contact</a>
             <div class="mobile-nav-actions">
-                <a href="/auth/login" class="btn btn-primary" @onclick="CloseMobileMenu">Login</a>
-                <a href="/auth/register" class="btn btn-outline" @onclick="CloseMobileMenu">Sign Up</a>
+                <a href="/login" class="btn btn-primary" @onclick="CloseMobileMenu">Login</a>
             </div>
         </nav>
     </div>
@@ -73,7 +71,7 @@
                 <h4>Quick Links</h4>
                 <ul>
                     <li><a href="/events">Upcoming Events</a></li>
-                    <li><a href="/vetting">Join Our Community</a></li>
+                    <li><a href="/how-to-join">Join Our Community</a></li>
                     <li><a href="/resources">Resources</a></li>
                     <li><a href="/safety">Safety Guidelines</a></li>
                 </ul>

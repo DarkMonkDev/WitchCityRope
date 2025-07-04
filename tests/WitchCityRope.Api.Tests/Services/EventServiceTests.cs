@@ -25,7 +25,7 @@ public class EventServiceTests : IDisposable
 {
     private readonly WitchCityRopeDbContext _dbContext;
     private readonly Mock<IEventService> _eventServiceMock;
-    private readonly Mock<IPaymentService> _paymentServiceMock;
+    private readonly Mock<WitchCityRope.Api.Interfaces.IPaymentService> _paymentServiceMock;
 
     public EventServiceTests()
     {
@@ -35,7 +35,7 @@ public class EventServiceTests : IDisposable
 
         _dbContext = new WitchCityRopeDbContext(options);
         _eventServiceMock = new Mock<IEventService>();
-        _paymentServiceMock = new Mock<IPaymentService>();
+        _paymentServiceMock = new Mock<WitchCityRope.Api.Interfaces.IPaymentService>();
     }
 
     #region CreateEventAsync Tests

@@ -25,7 +25,7 @@ public class DatabaseFixture : IAsyncDisposable
     {
         // Create DbContext
         var optionsBuilder = new DbContextOptionsBuilder<WitchCityRopeDbContext>()
-            .UseSqlServer(_connectionString);
+            .UseNpgsql(_connectionString);
         
         _dbContext = new WitchCityRopeDbContext(optionsBuilder.Options);
 

@@ -6,28 +6,84 @@ public class AuthService : IAuthService
 {
     private readonly ApiClient _apiClient;
     private readonly AuthenticationService _authenticationService;
+    
+    public event EventHandler<bool>? AuthenticationStateChanged;
 
     public AuthService(ApiClient apiClient, AuthenticationService authenticationService)
     {
         _apiClient = apiClient;
         _authenticationService = authenticationService;
+        
+        // Subscribe to the AuthenticationService's event and forward it
+        _authenticationService.AuthenticationStateChanged += OnAuthenticationStateChanged;
+    }
+    
+    private void OnAuthenticationStateChanged(object? sender, bool isAuthenticated)
+    {
+        AuthenticationStateChanged?.Invoke(this, isAuthenticated);
     }
 
     public async Task<UserDto?> GetCurrentUserAsync()
     {
-        // TODO: Implement getting current user from auth state
-        return await Task.FromResult<UserDto?>(null);
+        try
+        {
+            // Get the authentication state
+            var authState = await _authenticationService.GetAuthenticationStateAsync();
+            if (!authState.User.Identity?.IsAuthenticated ?? true)
+            {
+                return null;
+            }
+            
+            // Get user info from the authentication service
+            var userInfo = await _authenticationService.GetCurrentUserAsync();
+            if (userInfo == null)
+            {
+                return null;
+            }
+            
+            // Map UserInfo to UserDto
+            var userDto = new UserDto
+            {
+                Id = Guid.TryParse(userInfo.Id, out var userId) ? userId : Guid.Empty,
+                Email = userInfo.Email,
+                DisplayName = $"{userInfo.FirstName} {userInfo.LastName}".Trim(),
+                SceneName = userInfo.FirstName, // Using FirstName as SceneName for now
+                Roles = userInfo.Roles,
+                IsAdmin = userInfo.Roles.Contains("Admin"),
+                IsVetted = userInfo.Roles.Contains("VettedMember") || userInfo.Roles.Contains("Admin") || userInfo.Roles.Contains("Teacher"),
+                EmailVerified = true, // Assuming verified if they can log in
+                IsEmailConfirmed = true, // Same as above
+                TwoFactorEnabled = false, // Will need to get this from API later
+                CreatedAt = DateTime.UtcNow, // Will need to get this from API later
+                LastLoginAt = DateTime.UtcNow // Will need to get this from API later
+            };
+            
+            return userDto;
+        }
+        catch (Exception ex)
+        {
+            // Log the error but don't throw - just return null
+            Console.WriteLine($"Error getting current user: {ex.Message}");
+            return null;
+        }
     }
 
     public async Task LogoutAsync()
     {
         await _authenticationService.LogoutAsync();
+        AuthenticationStateChanged?.Invoke(this, false);
     }
 
     public async Task<LoginResult> LoginAsync(string email, string password, bool rememberMe = false)
     {
         // Use the AuthenticationService's login method directly
         var result = await _authenticationService.LoginAsync(email, password);
+        
+        // If login was successful, raise the AuthenticationStateChanged event
+        if (result.Success && !result.RequiresTwoFactor)
+        {
+            AuthenticationStateChanged?.Invoke(this, true);
+        }
         
         return new LoginResult
         {

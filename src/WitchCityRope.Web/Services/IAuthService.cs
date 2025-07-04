@@ -17,4 +17,7 @@ public interface IAuthService
     Task<TwoFactorSetupResponse> InitiateTwoFactorSetupAsync();
     Task<TwoFactorVerifyResponse> VerifyTwoFactorSetupAsync(string code);
     Task<TwoFactorCompleteResponse> CompleteTwoFactorSetupAsync();
+    
+    // Authentication state change event
+    event EventHandler<bool>? AuthenticationStateChanged;
 }

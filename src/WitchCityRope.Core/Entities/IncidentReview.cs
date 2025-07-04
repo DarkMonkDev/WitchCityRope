@@ -9,7 +9,11 @@ namespace WitchCityRope.Core.Entities
     public class IncidentReview
     {
         // Private constructor for EF Core
-        private IncidentReview() { }
+        private IncidentReview() 
+        { 
+            Reviewer = null!;
+            Findings = null!;
+        }
 
         public IncidentReview(User reviewer, string findings, IncidentSeverity recommendedSeverity)
         {

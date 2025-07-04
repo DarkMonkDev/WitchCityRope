@@ -50,9 +50,22 @@ public class ApiClient
     {
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<List<EventViewModel>>(
+            var response = await _httpClient.GetFromJsonAsync<ListEventsResponse>(
                 $"api/events?page={page}&pageSize={pageSize}");
-            return response ?? new List<EventViewModel>();
+            
+            // Map EventSummaryDto to EventViewModel
+            return response?.Events.Select(e => new EventViewModel
+            {
+                Id = e.Id,
+                Title = e.Title,
+                Description = e.Description,
+                StartDateTime = e.StartDateTime,
+                EndDateTime = e.EndDateTime,
+                Type = (int)e.Type,
+                Location = e.Location,
+                Price = e.Price,
+                AvailableSpots = e.AvailableSpots
+            }).ToList() ?? new List<EventViewModel>();
         }
         catch (Exception ex)
         {
@@ -353,18 +366,72 @@ public class ApiClient
 }
 
 // View Models
+public class EventsResponse
+{
+    public List<EventViewModel> Events { get; set; } = new();
+    public int TotalCount { get; set; }
+    public int Page { get; set; }
+    public int PageSize { get; set; }
+    public int TotalPages { get; set; }
+}
+
+public class ListEventsResponse
+{
+    public List<EventSummaryDto> Events { get; set; } = new();
+    public int TotalCount { get; set; }
+    public int Page { get; set; }
+    public int PageSize { get; set; }
+    public int TotalPages { get; set; }
+}
+
+public class EventSummaryDto
+{
+    public Guid Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Slug { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public EventType Type { get; set; }
+    public DateTime StartDateTime { get; set; }
+    public DateTime EndDateTime { get; set; }
+    public string Location { get; set; } = string.Empty;
+    public int MaxAttendees { get; set; }
+    public int CurrentAttendees { get; set; }
+    public int AvailableSpots { get; set; }
+    public decimal Price { get; set; }
+    public List<string> Tags { get; set; } = new();
+    public List<string> RequiredSkillLevels { get; set; } = new();
+    public bool RequiresVetting { get; set; }
+    public string OrganizerName { get; set; } = string.Empty;
+    public string? ThumbnailUrl { get; set; }
+}
+
+public enum EventType
+{
+    Workshop = 0,
+    Social = 1,
+    Performance = 2,
+    Virtual = 3,
+    Conference = 4,
+    Private = 5,
+    PlayParty = 6
+}
+
 public class EventViewModel
 {
     public Guid Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
-    public string Type { get; set; } = string.Empty;
+    public DateTime StartDateTime { get; set; } // Changed to match API response
+    public DateTime EndDateTime { get; set; } // Changed to match API response
+    public int Type { get; set; } // Changed from string to int to match API response
     public string Location { get; set; } = string.Empty;
     public decimal Price { get; set; }
     public int AvailableSpots { get; set; }
     public string? ImageUrl { get; set; }
+    
+    // Add computed properties for compatibility
+    public DateTime StartDate => StartDateTime;
+    public DateTime EndDate => EndDateTime;
 }
 
 public class EventDetailViewModel : EventViewModel

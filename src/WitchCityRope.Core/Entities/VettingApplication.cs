@@ -122,7 +122,7 @@ namespace WitchCityRope.Core.Entities
         
         public DateTime? ReviewedAt { get; private set; }
         
-        public string DecisionNotes { get; private set; }
+        public string? DecisionNotes { get; private set; }
         
         public IReadOnlyCollection<string> References => _references.AsReadOnly();
         
@@ -246,7 +246,11 @@ namespace WitchCityRope.Core.Entities
     public class VettingReview
     {
         // Private constructor for EF Core
-        private VettingReview() { }
+        private VettingReview() 
+        { 
+            Reviewer = null!;
+            Notes = null!;
+        }
 
         public VettingReview(User reviewer, bool recommendation, string notes)
         {

@@ -1,7 +1,8 @@
+using WitchCityRope.Core.Interfaces;
+
 namespace WitchCityRope.Api.Services;
 
-public interface IPasswordHasher
+// This interface extends the Core interface for backward compatibility
+public interface IPasswordHasher : WitchCityRope.Core.Interfaces.IPasswordHasher
 {
-    string HashPassword(string password);
-    bool VerifyPassword(string hashedPassword, string providedPassword);
 }

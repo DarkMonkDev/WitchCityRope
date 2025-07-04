@@ -114,9 +114,17 @@ namespace WitchCityRope.PerformanceTests.LoadTests
 
             var stats = RunScenarios(scenario);
 
+            // Check if we have valid stats before assertions
+            Assert.NotNull(stats);
+            Assert.NotNull(stats.ScenarioStats);
+            Assert.NotEmpty(stats.ScenarioStats);
+            
+            var scenarioStat = stats.ScenarioStats.FirstOrDefault();
+            Assert.NotNull(scenarioStat);
+
             // Homepage requests should be very fast
-            Assert.True(stats.ScenarioStats[0].Ok.Latency.Percent95 < 200); // 95% under 200ms
-            Assert.True(stats.ScenarioStats[0].Ok.Latency.Percent99 < 500); // 99% under 500ms
+            Assert.True(scenarioStat.Ok.Latency.Percent95 < 200); // 95% under 200ms
+            Assert.True(scenarioStat.Ok.Latency.Percent99 < 500); // 99% under 500ms
         }
 
         [Fact]

@@ -1,5 +1,6 @@
 using FluentAssertions;
 using WitchCityRope.E2E.Tests.Infrastructure;
+using WitchCityRope.E2E.Tests.Fixtures;
 using WitchCityRope.E2E.Tests.PageObjects.Auth;
 using WitchCityRope.E2E.Tests.PageObjects.Events;
 using WitchCityRope.E2E.Tests.PageObjects.Members;
@@ -61,7 +62,7 @@ public class EventRegistrationFlowTests : BaseE2ETest
         eventDetails.Price.Should().Contain(_testEvent.Price.ToString());
 
         // Check if user can register
-        await eventDetailPage.IsUserRegisteredAsync().Should().BeFalseAsync();
+        (await eventDetailPage.IsUserRegisteredAsync()).Should().BeFalse();
 
         // Register for event
         await eventDetailPage.ClickRegisterAsync();
@@ -217,7 +218,7 @@ public class EventRegistrationFlowTests : BaseE2ETest
 
         // Verify registration is cancelled
         await Page.ReloadAsync();
-        await eventDetailPage.IsUserRegisteredAsync().Should().BeFalseAsync();
+        (await eventDetailPage.IsUserRegisteredAsync()).Should().BeFalse();
 
         // Verify event is removed from dashboard
         await dashboardPage.NavigateAsync();

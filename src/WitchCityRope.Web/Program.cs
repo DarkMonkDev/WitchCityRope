@@ -8,18 +8,30 @@ using Syncfusion.Blazor;
 using SendGrid.Extensions.DependencyInjection;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Net.Http.Headers;
+using Microsoft.EntityFrameworkCore;
+using WitchCityRope.Infrastructure.Data;
+
+// Register Syncfusion license early
+var syncfusionLicense = Environment.GetEnvironmentVariable("SYNCFUSION_LICENSE_KEY") 
+    ?? new ConfigurationBuilder()
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("appsettings.json", optional: false)
+        .Build()["Syncfusion:LicenseKey"];
+
+if (!string.IsNullOrEmpty(syncfusionLicense))
+{
+    syncfusionLicense = syncfusionLicense.Trim();
+    Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(syncfusionLicense);
+    Console.WriteLine($"Syncfusion license registered: {syncfusionLicense.Substring(0, 10)}...");
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register Syncfusion license
-var syncfusionLicense = builder.Configuration["Syncfusion:LicenseKey"];
-if (!string.IsNullOrEmpty(syncfusionLicense))
-{
-    Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(syncfusionLicense);
-}
+// Configure services
 
 // Add services to the container
 builder.Services.AddRazorPages();
+builder.Services.AddControllers(); // Add controllers support for API endpoints
 builder.Services.AddServerSideBlazor(options =>
 {
     // Configure Blazor Server circuit options for optimal performance
@@ -33,6 +45,16 @@ builder.Services.AddServerSideBlazor(options =>
 // Add Syncfusion Blazor service
 builder.Services.AddSyncfusionBlazor();
 
+// Add Entity Framework Core with PostgreSQL
+builder.Services.AddDbContext<WitchCityRopeDbContext>(options =>
+{
+    // Check for Aspire-provided connection string first, then fall back to DefaultConnection
+    var connectionString = builder.Configuration.GetConnectionString("witchcityrope-db") 
+        ?? builder.Configuration.GetConnectionString("DefaultConnection") 
+        ?? "Host=localhost;Database=witchcityrope_db;Username=postgres;Password=your_password_here";
+    options.UseNpgsql(connectionString);
+});
+
 // Add authentication services for Blazor Server
 builder.Services.AddAuthentication(options =>
 {
@@ -41,7 +63,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddCookie("Cookies", options =>
 {
-    options.LoginPath = "/login";
+    options.LoginPath = "/auth/login";
     options.LogoutPath = "/logout";
     options.AccessDeniedPath = "/access-denied";
     options.ExpireTimeSpan = TimeSpan.FromDays(7);
@@ -49,6 +71,31 @@ builder.Services.AddAuthentication(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
+    
+    // Handle authentication challenges appropriately based on request type
+    options.Events.OnRedirectToLogin = context =>
+    {
+        // For API-style requests or when AllowAutoRedirect is false, return 401
+        if (context.Request.Path.StartsWithSegments("/api") ||
+            context.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+            context.Request.Headers.ContainsKey("Authorization"))
+        {
+            context.Response.StatusCode = 401;
+            return Task.CompletedTask;
+        }
+        
+        // For Blazor navigation requests to protected pages, ensure proper redirect
+        if (context.Request.Path.StartsWithSegments("/_blazor"))
+        {
+            context.Response.StatusCode = 401;
+            return Task.CompletedTask;
+        }
+        
+        // For regular browser requests, redirect to login
+        context.Response.StatusCode = 302;
+        context.Response.Headers["Location"] = context.RedirectUri;
+        return Task.CompletedTask;
+    };
 });
 
 // Add HttpContextAccessor for authentication service
@@ -61,14 +108,34 @@ builder.Services.AddDistributedMemoryCache(); // For session state
 // Configure HttpClient for API calls
 builder.Services.AddHttpClient<ApiClient>(client =>
 {
-    var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? "https://localhost:5654/";
-    client.BaseAddress = new Uri(apiBaseUrl);
+    // Use configuration to get the API URL
+    var apiUrl = builder.Configuration["ApiUrl"] ?? "https://localhost:8181";
+    client.BaseAddress = new Uri(apiUrl);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
+// Configure HttpClient for AuthenticationService
+builder.Services.AddHttpClient<AuthenticationService>(client =>
+{
+    // Use configuration to get the API URL
+    var apiUrl = builder.Configuration["ApiUrl"] ?? "https://localhost:8181";
+    client.BaseAddress = new Uri(apiUrl);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 
 // Add HttpClient for external services
 builder.Services.AddHttpClient();
+
+// Configure HttpClient for DashboardService
+builder.Services.AddHttpClient<IDashboardService, DashboardService>(client =>
+{
+    var apiUrl = builder.Configuration["ApiUrl"] ?? "https://localhost:8181";
+    client.BaseAddress = new Uri(apiUrl);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 
 // Configure SendGrid for email
 var sendGridApiKey = builder.Configuration["Email:SendGrid:ApiKey"];
@@ -81,9 +148,9 @@ if (!string.IsNullOrEmpty(sendGridApiKey))
 }
 
 // Add Authentication services
-builder.Services.AddScoped<AuthenticationService>();
-builder.Services.AddScoped<AuthenticationStateProvider>(provider => 
-    provider.GetRequiredService<AuthenticationService>());
+// AuthenticationService is already registered by AddHttpClient<AuthenticationService> above
+builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
+builder.Services.AddScoped<ServerAuthenticationStateProvider>();
 builder.Services.AddScoped<ILocalStorageService, LocalStorageService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
@@ -95,6 +162,7 @@ builder.Services.AddScoped<WitchCityRope.Web.Services.IVettingService, WitchCity
 builder.Services.AddScoped<WitchCityRope.Web.Services.IPaymentService, WitchCityRope.Web.Services.PaymentService>();
 builder.Services.AddScoped<WitchCityRope.Web.Services.ISafetyService, WitchCityRope.Web.Services.SafetyService>();
 builder.Services.AddScoped<WitchCityRope.Web.Services.INotificationService, WitchCityRope.Web.Services.NotificationService>();
+// DashboardService is registered with HttpClient below
 
 // Add utility services
 builder.Services.AddSingleton<WitchCityRope.Web.Services.IToastService, WitchCityRope.Web.Services.ToastService>(); // Singleton for state management
@@ -132,7 +200,7 @@ builder.Services.AddSession(options =>
 builder.Services.AddDataProtection();
 
 // Configure circuit handler for monitoring and logging
-builder.Services.AddScoped<CircuitHandler, CircuitHandlerService>();
+builder.Services.AddScoped<CircuitHandler, WitchCityRope.Web.Services.CircuitHandlerService>();
 
 // Configure server-side Blazor performance monitoring
 builder.Services.Configure<Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerOptions>(options =>
@@ -189,6 +257,13 @@ builder.Services.AddResponseCaching();
 
 var app = builder.Build();
 
+// Map health check endpoints manually
+app.MapHealthChecks("/health");
+app.MapHealthChecks("/alive", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = _ => false
+});
+
 // Initialize database with seed data
 using (var scope = app.Services.CreateScope())
 {
@@ -239,9 +314,13 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Add custom Blazor authorization middleware
+app.UseMiddleware<WitchCityRope.Web.Middleware.BlazorAuthorizationMiddleware>();
+
 app.UseSession();
 
 // Map endpoints
+app.MapControllers(); // Map API controllers
 app.MapBlazorHub(options =>
 {
     // Configure hub-specific options for performance
@@ -266,425 +345,9 @@ app.MapHealthChecks("/health");
 
 app.Run();
 
-// Service Interfaces (Program.cs versions for API compatibility)
-public interface IEventService
+// Make the Program class partial for integration testing
+namespace WitchCityRope.Web
 {
-    Task<PagedResult<EventDto>> GetEventsAsync(int page, int pageSize, string? search = null);
-    Task<EventDetailsDto?> GetEventByIdAsync(Guid id);
-    Task<EventDto> CreateEventAsync(CreateEventRequest request);
-    Task UpdateEventAsync(Guid id, UpdateEventRequest request);
-    Task DeleteEventAsync(Guid id);
+    public partial class Program { }
 }
 
-public interface IUserService
-{
-    Task<UserProfileDto?> GetCurrentUserAsync();
-    Task<UserProfileDto?> GetUserByIdAsync(Guid id);
-    Task UpdateProfileAsync(UpdateProfileRequest request);
-    Task ChangePasswordAsync(ChangePasswordRequest request);
-    Task<PagedResult<UserDto>> GetUsersAsync(int page, int pageSize, string? search = null);
-}
-
-public interface IRegistrationService
-{
-    Task<RegistrationDto> RegisterForEventAsync(Guid eventId, RegistrationRequest request);
-    Task<PagedResult<RegistrationDto>> GetMyRegistrationsAsync(int page, int pageSize);
-    Task<PagedResult<RegistrationDto>> GetEventRegistrationsAsync(Guid eventId, int page, int pageSize);
-    Task CancelRegistrationAsync(Guid registrationId);
-}
-
-public interface IVettingService
-{
-    Task<VettingApplicationDto> SubmitApplicationAsync(VettingApplicationRequest request);
-    Task<PagedResult<VettingApplicationDto>> GetApplicationsAsync(int page, int pageSize, string? status = null);
-    Task<VettingApplicationDto?> GetApplicationByIdAsync(Guid id);
-    Task ReviewApplicationAsync(Guid id, ReviewApplicationRequest request);
-}
-
-public interface IPaymentService
-{
-    Task<PaymentIntentDto> CreatePaymentIntentAsync(CreatePaymentIntentRequest request);
-    Task<PaymentDto> ProcessPaymentAsync(ProcessPaymentRequest request);
-    Task<PagedResult<PaymentDto>> GetPaymentHistoryAsync(int page, int pageSize);
-    Task<PaymentDto?> GetPaymentByIdAsync(Guid id);
-}
-
-public interface ISafetyService
-{
-    Task<IncidentReportDto> SubmitReportAsync(IncidentReportRequest request);
-    Task<PagedResult<IncidentReportDto>> GetReportsAsync(int page, int pageSize, string? status = null);
-    Task<IncidentReportDto?> GetReportByIdAsync(Guid id);
-    Task UpdateReportStatusAsync(Guid id, UpdateReportStatusRequest request);
-}
-
-public interface INotificationService
-{
-    Task<PagedResult<NotificationDto>> GetNotificationsAsync(int page, int pageSize);
-    Task<int> GetUnreadCountAsync();
-    Task MarkAsReadAsync(Guid id);
-    Task MarkAllAsReadAsync();
-}
-
-// Utility Service Interfaces
-public interface IToastService
-{
-    void ShowSuccess(string message);
-    void ShowError(string message);
-    void ShowWarning(string message);
-    void ShowInfo(string message);
-}
-
-public interface INavigationService
-{
-    void NavigateTo(string uri, bool forceLoad = false);
-    void NavigateToLogin(string? returnUrl = null);
-    string GetReturnUrl();
-}
-
-public interface IFileUploadService
-{
-    Task<UploadResult> UploadFileAsync(Stream fileStream, string fileName, string contentType);
-    Task<bool> DeleteFileAsync(string fileUrl);
-    bool ValidateFile(string fileName, long fileSize);
-}
-
-// DTOs and Request/Response Models
-public class PagedResult<T>
-{
-    public List<T> Items { get; set; } = new();
-    public int TotalCount { get; set; }
-    public int PageNumber { get; set; }
-    public int PageSize { get; set; }
-    public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
-}
-
-public class EventDto
-{
-    public Guid Id { get; set; }
-    public string Title { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
-    public string Location { get; set; } = string.Empty;
-    public decimal Price { get; set; }
-    public int Capacity { get; set; }
-    public int RegisteredCount { get; set; }
-}
-
-public class EventDetailsDto : EventDto
-{
-    public string OrganizerName { get; set; } = string.Empty;
-    public bool IsRegistered { get; set; }
-    public List<string> Tags { get; set; } = new();
-}
-
-public class CreateEventRequest
-{
-    public string Title { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
-    public string Location { get; set; } = string.Empty;
-    public decimal Price { get; set; }
-    public int Capacity { get; set; }
-    public List<string> Tags { get; set; } = new();
-}
-
-public class UpdateEventRequest : CreateEventRequest { }
-
-
-public class UpdateProfileRequest
-{
-    public string DisplayName { get; set; } = string.Empty;
-    public string? Bio { get; set; }
-}
-
-public class ChangePasswordRequest
-{
-    public string CurrentPassword { get; set; } = string.Empty;
-    public string NewPassword { get; set; } = string.Empty;
-}
-
-public class RegistrationDto
-{
-    public Guid Id { get; set; }
-    public Guid EventId { get; set; }
-    public string EventTitle { get; set; } = string.Empty;
-    public DateTime EventDate { get; set; }
-    public DateTime RegisteredAt { get; set; }
-    public string Status { get; set; } = string.Empty;
-}
-
-public class RegistrationRequest
-{
-    public string? SpecialRequirements { get; set; }
-}
-
-public class VettingApplicationDto
-{
-    public Guid Id { get; set; }
-    public string ApplicantName { get; set; } = string.Empty;
-    public DateTime SubmittedAt { get; set; }
-    public string Status { get; set; } = string.Empty;
-    public string? ReviewerNotes { get; set; }
-}
-
-public class VettingApplicationRequest
-{
-    public string Reference1Name { get; set; } = string.Empty;
-    public string Reference1Contact { get; set; } = string.Empty;
-    public string Reference2Name { get; set; } = string.Empty;
-    public string Reference2Contact { get; set; } = string.Empty;
-    public string Experience { get; set; } = string.Empty;
-}
-
-public class ReviewApplicationRequest
-{
-    public string Status { get; set; } = string.Empty;
-    public string Notes { get; set; } = string.Empty;
-}
-
-public class PaymentIntentDto
-{
-    public string ClientSecret { get; set; } = string.Empty;
-    public string PaymentIntentId { get; set; } = string.Empty;
-}
-
-public class CreatePaymentIntentRequest
-{
-    public decimal Amount { get; set; }
-    public string Currency { get; set; } = "usd";
-    public string Description { get; set; } = string.Empty;
-}
-
-public class ProcessPaymentRequest
-{
-    public string PaymentIntentId { get; set; } = string.Empty;
-}
-
-public class PaymentDto
-{
-    public Guid Id { get; set; }
-    public decimal Amount { get; set; }
-    public string Status { get; set; } = string.Empty;
-    public DateTime ProcessedAt { get; set; }
-    public string Description { get; set; } = string.Empty;
-}
-
-public class IncidentReportDto
-{
-    public Guid Id { get; set; }
-    public DateTime ReportedAt { get; set; }
-    public string Status { get; set; } = string.Empty;
-    public string Type { get; set; } = string.Empty;
-    public bool IsAnonymous { get; set; }
-}
-
-public class IncidentReportRequest
-{
-    public string Type { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public bool IsAnonymous { get; set; }
-    public DateTime? IncidentDate { get; set; }
-}
-
-public class UpdateReportStatusRequest
-{
-    public string Status { get; set; } = string.Empty;
-    public string Notes { get; set; } = string.Empty;
-}
-
-public class NotificationDto
-{
-    public Guid Id { get; set; }
-    public string Title { get; set; } = string.Empty;
-    public string Message { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
-    public bool IsRead { get; set; }
-    public string Type { get; set; } = string.Empty;
-}
-
-public class UploadResult
-{
-    public bool Success { get; set; }
-    public string? FileUrl { get; set; }
-    public string? Error { get; set; }
-}
-
-// Implementation of LocalStorageService for server-side Blazor
-public class LocalStorageService : ILocalStorageService
-{
-    private readonly ProtectedLocalStorage _protectedLocalStorage;
-    private readonly ILogger<LocalStorageService> _logger;
-
-    public LocalStorageService(ProtectedLocalStorage protectedLocalStorage, ILogger<LocalStorageService> logger)
-    {
-        _protectedLocalStorage = protectedLocalStorage;
-        _logger = logger;
-    }
-
-    public async Task<T?> GetItemAsync<T>(string key)
-    {
-        try
-        {
-            var result = await _protectedLocalStorage.GetAsync<T>(key);
-            return result.Success ? result.Value : default;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving item from local storage with key: {Key}", key);
-            return default;
-        }
-    }
-
-    public async Task SetItemAsync<T>(string key, T value)
-    {
-        try
-        {
-            if (value != null)
-            {
-                await _protectedLocalStorage.SetAsync(key, value);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error setting item in local storage with key: {Key}", key);
-        }
-    }
-
-    public async Task RemoveItemAsync(string key)
-    {
-        try
-        {
-            await _protectedLocalStorage.DeleteAsync(key);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error removing item from local storage with key: {Key}", key);
-        }
-    }
-
-    public async Task ClearAsync()
-    {
-        try
-        {
-            // Server-side Blazor doesn't have a direct way to clear all items
-            // This would need to be implemented based on your specific needs
-            _logger.LogWarning("ClearAsync called on server-side LocalStorageService - not implemented");
-            await Task.CompletedTask;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error clearing local storage");
-        }
-    }
-}
-
-// Placeholder service implementations
-public class EventService : IEventService
-{
-    public Task<PagedResult<EventDto>> GetEventsAsync(int page, int pageSize, string? search = null) => throw new NotImplementedException();
-    public Task<EventDetailsDto?> GetEventByIdAsync(Guid id) => throw new NotImplementedException();
-    public Task<EventDto> CreateEventAsync(CreateEventRequest request) => throw new NotImplementedException();
-    public Task UpdateEventAsync(Guid id, UpdateEventRequest request) => throw new NotImplementedException();
-    public Task DeleteEventAsync(Guid id) => throw new NotImplementedException();
-}
-
-public class UserService : IUserService
-{
-    public Task<UserProfileDto?> GetCurrentUserAsync() => throw new NotImplementedException();
-    public Task<UserProfileDto?> GetUserByIdAsync(Guid id) => throw new NotImplementedException();
-    public Task UpdateProfileAsync(UpdateProfileRequest request) => throw new NotImplementedException();
-    public Task ChangePasswordAsync(ChangePasswordRequest request) => throw new NotImplementedException();
-    public Task<PagedResult<UserDto>> GetUsersAsync(int page, int pageSize, string? search = null) => throw new NotImplementedException();
-}
-
-public class RegistrationService : IRegistrationService
-{
-    public Task<RegistrationDto> RegisterForEventAsync(Guid eventId, RegistrationRequest request) => throw new NotImplementedException();
-    public Task<PagedResult<RegistrationDto>> GetMyRegistrationsAsync(int page, int pageSize) => throw new NotImplementedException();
-    public Task<PagedResult<RegistrationDto>> GetEventRegistrationsAsync(Guid eventId, int page, int pageSize) => throw new NotImplementedException();
-    public Task CancelRegistrationAsync(Guid registrationId) => throw new NotImplementedException();
-}
-
-public class VettingService : IVettingService
-{
-    public Task<VettingApplicationDto> SubmitApplicationAsync(VettingApplicationRequest request) => throw new NotImplementedException();
-    public Task<PagedResult<VettingApplicationDto>> GetApplicationsAsync(int page, int pageSize, string? status = null) => throw new NotImplementedException();
-    public Task<VettingApplicationDto?> GetApplicationByIdAsync(Guid id) => throw new NotImplementedException();
-    public Task ReviewApplicationAsync(Guid id, ReviewApplicationRequest request) => throw new NotImplementedException();
-}
-
-public class PaymentService : IPaymentService
-{
-    public Task<PaymentIntentDto> CreatePaymentIntentAsync(CreatePaymentIntentRequest request) => throw new NotImplementedException();
-    public Task<PaymentDto> ProcessPaymentAsync(ProcessPaymentRequest request) => throw new NotImplementedException();
-    public Task<PagedResult<PaymentDto>> GetPaymentHistoryAsync(int page, int pageSize) => throw new NotImplementedException();
-    public Task<PaymentDto?> GetPaymentByIdAsync(Guid id) => throw new NotImplementedException();
-}
-
-public class SafetyService : ISafetyService
-{
-    public Task<IncidentReportDto> SubmitReportAsync(IncidentReportRequest request) => throw new NotImplementedException();
-    public Task<PagedResult<IncidentReportDto>> GetReportsAsync(int page, int pageSize, string? status = null) => throw new NotImplementedException();
-    public Task<IncidentReportDto?> GetReportByIdAsync(Guid id) => throw new NotImplementedException();
-    public Task UpdateReportStatusAsync(Guid id, UpdateReportStatusRequest request) => throw new NotImplementedException();
-}
-
-public class NotificationService : INotificationService
-{
-    public Task<PagedResult<NotificationDto>> GetNotificationsAsync(int page, int pageSize) => throw new NotImplementedException();
-    public Task<int> GetUnreadCountAsync() => throw new NotImplementedException();
-    public Task MarkAsReadAsync(Guid id) => throw new NotImplementedException();
-    public Task MarkAllAsReadAsync() => throw new NotImplementedException();
-}
-
-
-public class NavigationService : INavigationService
-{
-    public void NavigateTo(string uri, bool forceLoad = false) { }
-    public void NavigateToLogin(string? returnUrl = null) { }
-    public string GetReturnUrl() => string.Empty;
-}
-
-public class FileUploadService : IFileUploadService
-{
-    public Task<UploadResult> UploadFileAsync(Stream fileStream, string fileName, string contentType) => throw new NotImplementedException();
-    public Task<bool> DeleteFileAsync(string fileUrl) => throw new NotImplementedException();
-    public bool ValidateFile(string fileName, long fileSize) => true;
-}
-
-// Circuit handler for monitoring Blazor Server connections
-public class CircuitHandlerService : CircuitHandler
-{
-    private readonly ILogger<CircuitHandlerService> _logger;
-
-    public CircuitHandlerService(ILogger<CircuitHandlerService> logger)
-    {
-        _logger = logger;
-    }
-
-    public override Task OnCircuitOpenedAsync(Circuit circuit, CancellationToken cancellationToken)
-    {
-        _logger.LogInformation("Circuit opened: {CircuitId}", circuit.Id);
-        return Task.CompletedTask;
-    }
-
-    public override Task OnCircuitClosedAsync(Circuit circuit, CancellationToken cancellationToken)
-    {
-        _logger.LogInformation("Circuit closed: {CircuitId}", circuit.Id);
-        return Task.CompletedTask;
-    }
-
-    public override Task OnConnectionDownAsync(Circuit circuit, CancellationToken cancellationToken)
-    {
-        _logger.LogWarning("Circuit connection down: {CircuitId}", circuit.Id);
-        return Task.CompletedTask;
-    }
-
-    public override Task OnConnectionUpAsync(Circuit circuit, CancellationToken cancellationToken)
-    {
-        _logger.LogInformation("Circuit connection restored: {CircuitId}", circuit.Id);
-        return Task.CompletedTask;
-    }
-}

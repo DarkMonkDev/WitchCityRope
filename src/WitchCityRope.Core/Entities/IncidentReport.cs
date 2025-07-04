@@ -19,7 +19,17 @@ namespace WitchCityRope.Core.Entities
         private readonly List<IncidentAction> _actions = new();
 
         // Private constructor for EF Core
-        private IncidentReport() { }
+        private IncidentReport() 
+        { 
+            Description = null!;
+            ResolutionNotes = null!;
+            ReferenceNumber = null!;
+            Location = null!;
+            PreferredContactMethod = null!;
+            Reporter = null!;
+            Event = null!;
+            AssignedTo = null!;
+        }
 
         public IncidentReport(
             User reporter,
@@ -31,7 +41,7 @@ namespace WitchCityRope.Core.Entities
             DateTime incidentDate,
             bool isAnonymous = false,
             bool requestFollowUp = false,
-            string preferredContactMethod = null)
+            string? preferredContactMethod = null)
         {
             if (string.IsNullOrWhiteSpace(description))
                 throw new ArgumentException("Incident description is required", nameof(description));

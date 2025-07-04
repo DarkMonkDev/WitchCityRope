@@ -92,6 +92,8 @@ namespace WitchCityRope.Core
         public PaymentException(string message)
             : base(message)
         {
+            TransactionId = string.Empty;
+            PaymentMethod = string.Empty;
         }
 
         public PaymentException(string message, string transactionId, string paymentMethod)
@@ -104,6 +106,8 @@ namespace WitchCityRope.Core
         public PaymentException(string message, Exception innerException)
             : base(message, innerException)
         {
+            TransactionId = string.Empty;
+            PaymentMethod = string.Empty;
         }
     }
 

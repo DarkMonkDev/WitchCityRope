@@ -11,6 +11,7 @@ using WitchCityRope.Api.Tests.Helpers;
 using WitchCityRope.Core.Entities;
 using WitchCityRope.Core.Enums;
 using WitchCityRope.Core.Exceptions;
+using WitchCityRope.Infrastructure.Data;
 
 namespace WitchCityRope.Api.Tests.Services;
 
@@ -449,7 +450,7 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
     // Response record for failed registrations
     public record RegisterForEventResponse(
         Guid RegistrationId,
-        RegistrationStatus Status,
+        WitchCityRope.Core.Enums.RegistrationStatus Status,
         int? WaitlistPosition,
         decimal AmountCharged,
         string ConfirmationCode,

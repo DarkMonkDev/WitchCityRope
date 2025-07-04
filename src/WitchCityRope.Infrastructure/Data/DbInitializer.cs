@@ -4,12 +4,13 @@ using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using WitchCityRope.Core.Entities;
 using WitchCityRope.Core.Enums;
+using WitchCityRope.Core.ValueObjects;
 
 namespace WitchCityRope.Infrastructure.Data;
 
 public static class DbInitializer
 {
-    public static async Task InitializeAsync(WcrDbContext context, ILogger logger)
+    public static async Task InitializeAsync(WitchCityRopeDbContext context, ILogger logger)
     {
         try
         {
@@ -17,21 +18,61 @@ public static class DbInitializer
             await context.Database.MigrateAsync();
             logger.LogInformation("Database migrations applied successfully");
 
-            // Check if database has been seeded
-            if (await context.Users.AnyAsync())
+            bool dataSeeded = false;
+
+            // Check and seed users if needed
+            if (!await context.Users.AnyAsync())
             {
-                logger.LogInformation("Database already seeded");
-                return;
+                logger.LogInformation("No users found. Seeding users...");
+                await SeedUsersAsync(context, logger);
+                await context.SaveChangesAsync();
+                dataSeeded = true;
+            }
+            else
+            {
+                logger.LogInformation($"Found {await context.Users.CountAsync()} existing users");
             }
 
-            // Seed users
-            await SeedUsersAsync(context, logger);
-            
-            // Seed events
-            await SeedEventsAsync(context, logger);
-            
-            await context.SaveChangesAsync();
-            logger.LogInformation("Database seeded successfully");
+            // Check and seed events if needed
+            if (!await context.Events.AnyAsync())
+            {
+                logger.LogInformation("No events found. Seeding events...");
+                
+                // Ensure we have the required users for events
+                if (!await context.Users.AnyAsync(u => u.Email.Value == "admin@witchcityrope.com") ||
+                    !await context.Users.AnyAsync(u => u.Email.Value == "organizer@witchcityrope.com"))
+                {
+                    logger.LogWarning("Required users for events not found. Seeding users first...");
+                    await SeedUsersAsync(context, logger);
+                    await context.SaveChangesAsync();
+                }
+                
+                await SeedEventsAsync(context, logger);
+                await context.SaveChangesAsync();
+                dataSeeded = true;
+            }
+            else
+            {
+                logger.LogInformation($"Found {await context.Events.CountAsync()} existing events");
+            }
+
+            // Check and seed vetting applications if needed
+            if (!await context.VettingApplications.AnyAsync())
+            {
+                logger.LogInformation("No vetting applications found. Seeding sample applications...");
+                await SeedVettingApplicationsAsync(context, logger);
+                await context.SaveChangesAsync();
+                dataSeeded = true;
+            }
+
+            if (dataSeeded)
+            {
+                logger.LogInformation("Database seeding completed successfully");
+            }
+            else
+            {
+                logger.LogInformation("Database already contains data. No seeding required.");
+            }
         }
         catch (Exception ex)
         {
@@ -40,415 +81,279 @@ public static class DbInitializer
         }
     }
 
-    private static async Task SeedUsersAsync(WcrDbContext context, ILogger logger)
+    private static async Task SeedUsersAsync(WitchCityRopeDbContext context, ILogger logger)
     {
-        var users = new[]
+        var usersToSeed = new[]
         {
-            new User
-            {
-                Id = Guid.NewGuid(),
+            new { 
                 Email = "admin@witchcityrope.com",
-                SceneName = "Admin",
-                LegalName = EncryptLegalName("Admin User"),
-                Role = UserRole.Administrator,
-                IsEmailVerified = true,
-                EmailVerifiedAt = DateTime.UtcNow,
-                Status = UserStatus.Active,
-                DateOfBirth = new DateTime(1990, 1, 1),
-                AgreedToTermsAt = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow
+                User = new User(
+                    encryptedLegalName: EncryptLegalName("Admin User"),
+                    sceneName: SceneName.Create("Admin"),
+                    email: EmailAddress.Create("admin@witchcityrope.com"),
+                    dateOfBirth: new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    role: UserRole.Administrator
+                )
             },
-            new User
-            {
-                Id = Guid.NewGuid(),
+            new {
                 Email = "staff@witchcityrope.com",
-                SceneName = "StaffMember",
-                LegalName = EncryptLegalName("Staff Member"),
-                Role = UserRole.Moderator,
-                IsEmailVerified = true,
-                EmailVerifiedAt = DateTime.UtcNow,
-                Status = UserStatus.Active,
-                DateOfBirth = new DateTime(1992, 5, 15),
-                AgreedToTermsAt = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow
+                User = new User(
+                    encryptedLegalName: EncryptLegalName("Staff Member"),
+                    sceneName: SceneName.Create("StaffMember"),
+                    email: EmailAddress.Create("staff@witchcityrope.com"),
+                    dateOfBirth: new DateTime(1992, 5, 15, 0, 0, 0, DateTimeKind.Utc),
+                    role: UserRole.Moderator
+                )
             },
-            new User
-            {
-                Id = Guid.NewGuid(),
+            new {
                 Email = "member@witchcityrope.com",
-                SceneName = "RopeLover",
-                LegalName = EncryptLegalName("Regular Member"),
-                Role = UserRole.Member,
-                IsEmailVerified = true,
-                EmailVerifiedAt = DateTime.UtcNow,
-                Status = UserStatus.Active,
-                DateOfBirth = new DateTime(1995, 8, 20),
-                AgreedToTermsAt = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow,
-                VettedAt = DateTime.UtcNow.AddDays(-30),
-                VettedBy = "Admin"
+                User = new User(
+                    encryptedLegalName: EncryptLegalName("Regular Member"),
+                    sceneName: SceneName.Create("RopeLover"),
+                    email: EmailAddress.Create("member@witchcityrope.com"),
+                    dateOfBirth: new DateTime(1995, 8, 20, 0, 0, 0, DateTimeKind.Utc),
+                    role: UserRole.Member
+                )
             },
-            new User
-            {
-                Id = Guid.NewGuid(),
+            new {
                 Email = "guest@witchcityrope.com",
-                SceneName = "CuriousGuest",
-                LegalName = EncryptLegalName("Guest User"),
-                Role = UserRole.Guest,
-                IsEmailVerified = true,
-                EmailVerifiedAt = DateTime.UtcNow,
-                Status = UserStatus.Active,
-                DateOfBirth = new DateTime(2000, 3, 10),
-                AgreedToTermsAt = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow
+                User = new User(
+                    encryptedLegalName: EncryptLegalName("Guest User"),
+                    sceneName: SceneName.Create("CuriousGuest"),
+                    email: EmailAddress.Create("guest@witchcityrope.com"),
+                    dateOfBirth: new DateTime(2000, 3, 10, 0, 0, 0, DateTimeKind.Utc),
+                    role: UserRole.Attendee
+                )
             },
-            new User
-            {
-                Id = Guid.NewGuid(),
+            new {
                 Email = "organizer@witchcityrope.com",
-                SceneName = "EventOrganizer",
-                LegalName = EncryptLegalName("Event Organizer"),
-                Role = UserRole.Moderator,
-                IsEmailVerified = true,
-                EmailVerifiedAt = DateTime.UtcNow,
-                Status = UserStatus.Active,
-                DateOfBirth = new DateTime(1988, 11, 5),
-                AgreedToTermsAt = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow
+                User = new User(
+                    encryptedLegalName: EncryptLegalName("Event Organizer"),
+                    sceneName: SceneName.Create("EventOrganizer"),
+                    email: EmailAddress.Create("organizer@witchcityrope.com"),
+                    dateOfBirth: new DateTime(1988, 11, 5, 0, 0, 0, DateTimeKind.Utc),
+                    role: UserRole.Moderator
+                )
             }
         };
 
         // Hash password for all users
         var passwordHash = BCrypt.Net.BCrypt.HashPassword("Test123!");
         
-        foreach (var user in users)
+        int seededCount = 0;
+        foreach (var userToSeed in usersToSeed)
         {
-            await context.Users.AddAsync(user);
+            // Check if user already exists
+            var existingUser = await context.Users.FirstOrDefaultAsync(u => u.Email.Value == userToSeed.Email);
+            if (existingUser != null)
+            {
+                logger.LogInformation($"User {userToSeed.Email} already exists. Skipping.");
+                
+                // Check if authentication record exists
+                var existingAuth = await context.UserAuthentications.FirstOrDefaultAsync(a => a.UserId == existingUser.Id);
+                if (existingAuth == null)
+                {
+                    logger.LogInformation($"Adding missing authentication record for {userToSeed.Email}");
+                    var userAuth = new UserAuthentication
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = existingUser.Id,
+                        PasswordHash = passwordHash,
+                        IsTwoFactorEnabled = false,
+                        FailedLoginAttempts = 0
+                    };
+                    await context.UserAuthentications.AddAsync(userAuth);
+                }
+                continue;
+            }
+            
+            await context.Users.AddAsync(userToSeed.User);
             
             // Add authentication record
-            var userAuth = new UserAuthentication
+            var auth = new UserAuthentication
             {
                 Id = Guid.NewGuid(),
-                UserId = user.Id,
+                UserId = userToSeed.User.Id,
                 PasswordHash = passwordHash,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                IsTwoFactorEnabled = false,
+                FailedLoginAttempts = 0
             };
-            await context.UserAuthentications.AddAsync(userAuth);
+            await context.UserAuthentications.AddAsync(auth);
+            seededCount++;
         }
 
-        logger.LogInformation($"Seeded {users.Length} users");
+        logger.LogInformation($"Seeded {seededCount} new users");
     }
 
-    private static async Task SeedEventsAsync(WcrDbContext context, ILogger logger)
+    private static async Task SeedEventsAsync(WitchCityRopeDbContext context, ILogger logger)
     {
-        var adminUser = await context.Users.FirstAsync(u => u.Email == "admin@witchcityrope.com");
-        var organizerUser = await context.Users.FirstAsync(u => u.Email == "organizer@witchcityrope.com");
+        var adminUser = await context.Users.FirstAsync(u => u.Email.Value == "admin@witchcityrope.com");
+        var organizerUser = await context.Users.FirstAsync(u => u.Email.Value == "organizer@witchcityrope.com");
 
         var events = new[]
         {
             // Upcoming events
-            new Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "Introduction to Rope Safety",
-                Description = "Perfect for beginners! Learn the fundamentals of rope safety, basic knots, and communication techniques in a supportive environment.",
-                StartDate = DateTime.UtcNow.AddDays(5).AddHours(14),
-                EndDate = DateTime.UtcNow.AddDays(5).AddHours(16),
-                Location = "The Rope Space - Main Room",
-                Address = "123 Essex St, Salem, MA 01970",
-                MaxAttendees = 30,
-                CurrentAttendees = 12,
-                Price = 45.00m,
-                PriceTiers = new List<PriceTier>
+            new Event(
+                title: "Introduction to Rope Safety",
+                description: "Perfect for beginners! Learn the fundamentals of rope safety, basic knots, and communication techniques in a supportive environment.",
+                startDate: DateTime.UtcNow.AddDays(5).AddHours(14),
+                endDate: DateTime.UtcNow.AddDays(5).AddHours(16),
+                capacity: 30,
+                eventType: EventType.Workshop,
+                location: "The Rope Space - Main Room",
+                primaryOrganizer: adminUser,
+                pricingTiers: new[]
                 {
-                    new() { Name = "Full Price", Amount = 45.00m, Description = "Standard ticket price" },
-                    new() { Name = "Sliding Scale Mid", Amount = 35.00m, Description = "For those who need financial assistance" },
-                    new() { Name = "Sliding Scale Low", Amount = 25.00m, Description = "Pay what you can - no questions asked" }
-                },
-                Status = EventStatus.Published,
-                Type = EventType.Class,
-                Category = "Safety",
-                Tags = new List<string> { "beginner", "safety", "fundamentals" },
-                SkillLevel = SkillLevel.Beginner,
-                CreatedBy = adminUser.Id,
-                CreatedAt = DateTime.UtcNow.AddDays(-10)
-            },
-            new Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "March Rope Jam",
-                Description = "Monthly practice space for vetted members. Bring your rope and practice partners for a social evening of rope bondage in a safe, monitored environment.",
-                StartDate = DateTime.UtcNow.AddDays(8).AddHours(19),
-                EndDate = DateTime.UtcNow.AddDays(8).AddHours(22),
-                Location = "The Rope Space - All Rooms",
-                Address = "123 Essex St, Salem, MA 01970",
-                MaxAttendees = 60,
-                CurrentAttendees = 28,
-                Price = 15.00m,
-                PriceTiers = new List<PriceTier>
+                    Money.Create(45.00m, "USD"),
+                    Money.Create(35.00m, "USD"),
+                    Money.Create(25.00m, "USD")
+                }
+            ),
+            new Event(
+                title: "March Rope Jam",
+                description: "Monthly practice space for vetted members. Bring your rope and practice partners for a social evening of rope bondage in a safe, monitored environment.",
+                startDate: DateTime.UtcNow.AddDays(8).AddHours(19),
+                endDate: DateTime.UtcNow.AddDays(8).AddHours(22),
+                capacity: 60,
+                eventType: EventType.Social,
+                location: "The Rope Space - All Rooms",
+                primaryOrganizer: organizerUser,
+                pricingTiers: new[]
                 {
-                    new() { Name = "Member Price", Amount = 15.00m, Description = "Standard member rate" },
-                    new() { Name = "Sliding Scale", Amount = 10.00m, Description = "Pay what you can" },
-                    new() { Name = "Community Support", Amount = 5.00m, Description = "For those experiencing financial hardship" }
-                },
-                RequiresVetting = true,
-                Status = EventStatus.Published,
-                Type = EventType.Social,
-                Category = "Practice",
-                Tags = new List<string> { "jam", "practice", "social", "members-only" },
-                SkillLevel = SkillLevel.AllLevels,
-                CreatedBy = organizerUser.Id,
-                CreatedAt = DateTime.UtcNow.AddDays(-15)
-            },
-            new Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "Suspension Intensive Workshop",
-                Description = "Take your skills to new heights! This intensive workshop covers suspension basics, safety protocols, and hands-on practice with experienced instructors.",
-                StartDate = DateTime.UtcNow.AddDays(12).AddHours(13),
-                EndDate = DateTime.UtcNow.AddDays(12).AddHours(18),
-                Location = "The Rope Space - Main Room",
-                Address = "123 Essex St, Salem, MA 01970",
-                MaxAttendees = 20,
-                CurrentAttendees = 18,
-                Price = 95.00m,
-                PriceTiers = new List<PriceTier>
+                    Money.Create(15.00m, "USD"),
+                    Money.Create(10.00m, "USD"),
+                    Money.Create(5.00m, "USD")
+                }
+            ),
+            new Event(
+                title: "Suspension Intensive Workshop",
+                description: "Take your skills to new heights! This intensive workshop covers suspension basics, safety protocols, and hands-on practice with experienced instructors.",
+                startDate: DateTime.UtcNow.AddDays(12).AddHours(13),
+                endDate: DateTime.UtcNow.AddDays(12).AddHours(18),
+                capacity: 20,
+                eventType: EventType.Workshop,
+                location: "The Rope Space - Main Room",
+                primaryOrganizer: adminUser,
+                pricingTiers: new[]
                 {
-                    new() { Name = "Full Price", Amount = 95.00m, Description = "Standard workshop rate" },
-                    new() { Name = "Early Bird", Amount = 85.00m, Description = "Register 2 weeks in advance" },
-                    new() { Name = "Sliding Scale", Amount = 75.00m, Description = "Financial assistance available" }
-                },
-                Prerequisites = "Must have attended at least 3 previous classes or have equivalent experience",
-                Status = EventStatus.Published,
-                Type = EventType.Workshop,
-                Category = "Advanced",
-                Tags = new List<string> { "suspension", "advanced", "intensive" },
-                SkillLevel = SkillLevel.Advanced,
-                CreatedBy = adminUser.Id,
-                CreatedAt = DateTime.UtcNow.AddDays(-20)
-            },
-            new Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "Rope and Sensation Play",
-                Description = "Explore the intersection of rope bondage and sensation play. Learn how to incorporate different sensations safely into your rope practice.",
-                StartDate = DateTime.UtcNow.AddDays(15).AddHours(14),
-                EndDate = DateTime.UtcNow.AddDays(15).AddHours(17),
-                Location = "The Rope Space - Lounge",
-                Address = "123 Essex St, Salem, MA 01970",
-                MaxAttendees = 24,
-                CurrentAttendees = 10,
-                Price = 55.00m,
-                PriceTiers = new List<PriceTier>
+                    Money.Create(95.00m, "USD"),
+                    Money.Create(85.00m, "USD"),
+                    Money.Create(75.00m, "USD")
+                }
+            ),
+            new Event(
+                title: "Rope and Sensation Play",
+                description: "Explore the intersection of rope bondage and sensation play. Learn how to incorporate different sensations safely into your rope practice.",
+                startDate: DateTime.UtcNow.AddDays(15).AddHours(14),
+                endDate: DateTime.UtcNow.AddDays(15).AddHours(17),
+                capacity: 24,
+                eventType: EventType.Workshop,
+                location: "The Rope Space - Lounge",
+                primaryOrganizer: organizerUser,
+                pricingTiers: new[]
                 {
-                    new() { Name = "Full Price", Amount = 55.00m, Description = "Standard class rate" },
-                    new() { Name = "Sliding Scale", Amount = 40.00m, Description = "Pay what you can" }
-                },
-                Status = EventStatus.Published,
-                Type = EventType.Class,
-                Category = "Specialty",
-                Tags = new List<string> { "sensation", "intermediate", "specialty" },
-                SkillLevel = SkillLevel.Intermediate,
-                CreatedBy = organizerUser.Id,
-                CreatedAt = DateTime.UtcNow.AddDays(-7)
-            },
-            new Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "Rope Fundamentals: Floor Work",
-                Description = "Master the basics of floor-based rope bondage. Perfect for beginners or those wanting to refine their fundamental skills.",
-                StartDate = DateTime.UtcNow.AddDays(18).AddHours(14),
-                EndDate = DateTime.UtcNow.AddDays(18).AddHours(16),
-                Location = "The Rope Space - Main Room",
-                Address = "123 Essex St, Salem, MA 01970",
-                MaxAttendees = 30,
-                CurrentAttendees = 8,
-                Price = 45.00m,
-                PriceTiers = new List<PriceTier>
+                    Money.Create(55.00m, "USD"),
+                    Money.Create(40.00m, "USD")
+                }
+            ),
+            new Event(
+                title: "Rope Fundamentals: Floor Work",
+                description: "Master the basics of floor-based rope bondage. Perfect for beginners or those wanting to refine their fundamental skills.",
+                startDate: DateTime.UtcNow.AddDays(18).AddHours(14),
+                endDate: DateTime.UtcNow.AddDays(18).AddHours(16),
+                capacity: 30,
+                eventType: EventType.Workshop,
+                location: "The Rope Space - Main Room",
+                primaryOrganizer: adminUser,
+                pricingTiers: new[]
                 {
-                    new() { Name = "Full Price", Amount = 45.00m, Description = "Standard ticket price" },
-                    new() { Name = "Sliding Scale Mid", Amount = 35.00m, Description = "For those who need financial assistance" },
-                    new() { Name = "Sliding Scale Low", Amount = 25.00m, Description = "Pay what you can - no questions asked" }
-                },
-                Status = EventStatus.Published,
-                Type = EventType.Class,
-                Category = "Fundamentals",
-                Tags = new List<string> { "beginner", "floor work", "fundamentals" },
-                SkillLevel = SkillLevel.Beginner,
-                CreatedBy = adminUser.Id,
-                CreatedAt = DateTime.UtcNow.AddDays(-5)
-            },
-            new Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "Dynamic Suspension: Movement and Flow",
-                Description = "Advanced workshop focusing on dynamic suspension techniques. Learn to create beautiful, flowing transitions in your suspension work.",
-                StartDate = DateTime.UtcNow.AddDays(22).AddHours(13),
-                EndDate = DateTime.UtcNow.AddDays(22).AddHours(18),
-                Location = "The Rope Space - Main Room",
-                Address = "123 Essex St, Salem, MA 01970",
-                MaxAttendees = 16,
-                CurrentAttendees = 14,
-                Price = 125.00m,
-                PriceTiers = new List<PriceTier>
+                    Money.Create(45.00m, "USD"),
+                    Money.Create(35.00m, "USD"),
+                    Money.Create(25.00m, "USD")
+                }
+            ),
+            new Event(
+                title: "Dynamic Suspension: Movement and Flow",
+                description: "Advanced workshop focusing on dynamic suspension techniques. Learn to create beautiful, flowing transitions in your suspension work.",
+                startDate: DateTime.UtcNow.AddDays(22).AddHours(13),
+                endDate: DateTime.UtcNow.AddDays(22).AddHours(18),
+                capacity: 16,
+                eventType: EventType.Workshop,
+                location: "The Rope Space - Main Room",
+                primaryOrganizer: organizerUser,
+                pricingTiers: new[]
                 {
-                    new() { Name = "Full Price", Amount = 125.00m, Description = "Standard workshop rate" },
-                    new() { Name = "Early Bird", Amount = 110.00m, Description = "Register 2 weeks in advance" }
-                },
-                Prerequisites = "Must be comfortable with basic suspension. Vetting required.",
-                RequiresVetting = true,
-                Status = EventStatus.Published,
-                Type = EventType.Workshop,
-                Category = "Advanced",
-                Tags = new List<string> { "suspension", "dynamic", "advanced", "movement" },
-                SkillLevel = SkillLevel.Advanced,
-                CreatedBy = organizerUser.Id,
-                CreatedAt = DateTime.UtcNow.AddDays(-25)
-            },
-            new Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "Monthly Rope Social",
-                Description = "Casual social gathering for all skill levels. Practice, learn from others, or just hang out with the rope community. Light refreshments provided.",
-                StartDate = DateTime.UtcNow.AddDays(25).AddHours(18),
-                EndDate = DateTime.UtcNow.AddDays(25).AddHours(21),
-                Location = "The Rope Space - All Rooms",
-                Address = "123 Essex St, Salem, MA 01970",
-                MaxAttendees = 80,
-                CurrentAttendees = 35,
-                Price = 0.00m,
-                IsFree = true,
-                Status = EventStatus.Published,
-                Type = EventType.Social,
-                Category = "Community",
-                Tags = new List<string> { "social", "community", "free", "all-levels" },
-                SkillLevel = SkillLevel.AllLevels,
-                CreatedBy = adminUser.Id,
-                CreatedAt = DateTime.UtcNow.AddDays(-10)
-            },
-            new Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "Rope Play Party",
-                Description = "Monthly play party for vetted members. Dungeon monitors on duty. BYOB and snacks to share. Must be 21+.",
-                StartDate = DateTime.UtcNow.AddDays(28).AddHours(20),
-                EndDate = DateTime.UtcNow.AddDays(29).AddHours(2),
-                Location = "Private Venue (address provided after RSVP)",
-                Address = "Salem, MA",
-                MaxAttendees = 50,
-                CurrentAttendees = 32,
-                Price = 25.00m,
-                PriceTiers = new List<PriceTier>
+                    Money.Create(125.00m, "USD"),
+                    Money.Create(110.00m, "USD")
+                }
+            ),
+            new Event(
+                title: "Monthly Rope Social",
+                description: "Casual social gathering for all skill levels. Practice, learn from others, or just hang out with the rope community. Light refreshments provided.",
+                startDate: DateTime.UtcNow.AddDays(25).AddHours(18),
+                endDate: DateTime.UtcNow.AddDays(25).AddHours(21),
+                capacity: 80,
+                eventType: EventType.Social,
+                location: "The Rope Space - All Rooms",
+                primaryOrganizer: adminUser,
+                pricingTiers: new[]
                 {
-                    new() { Name = "Member Price", Amount = 25.00m, Description = "Standard member rate" },
-                    new() { Name = "Sliding Scale", Amount = 15.00m, Description = "Pay what you can" }
-                },
-                RequiresVetting = true,
-                Status = EventStatus.Published,
-                Type = EventType.PlayParty,
-                Category = "Social",
-                Tags = new List<string> { "play party", "vetted", "21+", "byob" },
-                SkillLevel = SkillLevel.AllLevels,
-                CreatedBy = organizerUser.Id,
-                CreatedAt = DateTime.UtcNow.AddDays(-20)
-            },
-            new Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "Virtual Rope Workshop: Self-Tying",
-                Description = "Learn the art of self-tying from the comfort of your home. This online workshop covers basic self-bondage techniques and safety.",
-                StartDate = DateTime.UtcNow.AddDays(30).AddHours(19),
-                EndDate = DateTime.UtcNow.AddDays(30).AddHours(21),
-                Location = "Online - Zoom",
-                Address = "Virtual Event",
-                MaxAttendees = 100,
-                CurrentAttendees = 45,
-                Price = 25.00m,
-                PriceTiers = new List<PriceTier>
+                    Money.Create(0.00m, "USD")
+                }
+            ),
+            new Event(
+                title: "Rope Play Party",
+                description: "Monthly play party for vetted members. Dungeon monitors on duty. BYOB and snacks to share. Must be 21+.",
+                startDate: DateTime.UtcNow.AddDays(28).AddHours(20),
+                endDate: DateTime.UtcNow.AddDays(29).AddHours(2),
+                capacity: 50,
+                eventType: EventType.PlayParty,
+                location: "Private Venue (address provided after RSVP)",
+                primaryOrganizer: organizerUser,
+                pricingTiers: new[]
                 {
-                    new() { Name = "Standard Price", Amount = 25.00m, Description = "Access to live workshop and recording" },
-                    new() { Name = "Sliding Scale", Amount = 15.00m, Description = "Pay what you can" }
-                },
-                IsVirtual = true,
-                Status = EventStatus.Published,
-                Type = EventType.Virtual,
-                Category = "Workshop",
-                Tags = new List<string> { "virtual", "self-tying", "online", "beginner-friendly" },
-                SkillLevel = SkillLevel.Beginner,
-                CreatedBy = adminUser.Id,
-                CreatedAt = DateTime.UtcNow.AddDays(-8)
-            },
-            new Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "New England Rope Intensive",
-                Description = "3-day intensive rope bondage conference featuring workshops, performances, and vendor market. Guest instructors from around the world.",
-                StartDate = DateTime.UtcNow.AddDays(45).AddHours(17),
-                EndDate = DateTime.UtcNow.AddDays(48).AddHours(14),
-                Location = "Salem Convention Center",
-                Address = "1 Salem Green, Salem, MA 01970",
-                MaxAttendees = 200,
-                CurrentAttendees = 156,
-                Price = 250.00m,
-                PriceTiers = new List<PriceTier>
+                    Money.Create(25.00m, "USD"),
+                    Money.Create(15.00m, "USD")
+                }
+            ),
+            new Event(
+                title: "Virtual Rope Workshop: Self-Tying",
+                description: "Learn the art of self-tying from the comfort of your home. This online workshop covers basic self-bondage techniques and safety.",
+                startDate: DateTime.UtcNow.AddDays(30).AddHours(19),
+                endDate: DateTime.UtcNow.AddDays(30).AddHours(21),
+                capacity: 100,
+                eventType: EventType.Virtual,
+                location: "Online - Zoom",
+                primaryOrganizer: adminUser,
+                pricingTiers: new[]
                 {
-                    new() { Name = "Full Weekend Pass", Amount = 250.00m, Description = "Access to all workshops and events" },
-                    new() { Name = "Early Bird Special", Amount = 200.00m, Description = "Limited time offer" },
-                    new() { Name = "Single Day Pass", Amount = 100.00m, Description = "Access for one day only" }
-                },
-                Status = EventStatus.Published,
-                Type = EventType.Conference,
-                Category = "Conference",
-                Tags = new List<string> { "conference", "intensive", "multi-day", "vendors" },
-                SkillLevel = SkillLevel.AllLevels,
-                CreatedBy = adminUser.Id,
-                CreatedAt = DateTime.UtcNow.AddDays(-60)
-            },
-            
-            // Past events for testing
-            new Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "February Rope Jam",
-                Description = "Monthly practice space for vetted members.",
-                StartDate = DateTime.UtcNow.AddDays(-10).AddHours(19),
-                EndDate = DateTime.UtcNow.AddDays(-10).AddHours(22),
-                Location = "The Rope Space - All Rooms",
-                Address = "123 Essex St, Salem, MA 01970",
-                MaxAttendees = 60,
-                CurrentAttendees = 52,
-                Price = 15.00m,
-                RequiresVetting = true,
-                Status = EventStatus.Completed,
-                Type = EventType.Social,
-                Category = "Practice",
-                Tags = new List<string> { "jam", "practice", "social", "members-only" },
-                SkillLevel = SkillLevel.AllLevels,
-                CreatedBy = organizerUser.Id,
-                CreatedAt = DateTime.UtcNow.AddDays(-40)
-            },
-            new Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "Valentine's Rope Workshop",
-                Description = "Special couples workshop for Valentine's Day. Learn intimate rope techniques in a romantic setting.",
-                StartDate = DateTime.UtcNow.AddDays(-15).AddHours(18),
-                EndDate = DateTime.UtcNow.AddDays(-15).AddHours(21),
-                Location = "The Rope Space - Lounge",
-                Address = "123 Essex St, Salem, MA 01970",
-                MaxAttendees = 20,
-                CurrentAttendees = 20,
-                Price = 75.00m,
-                Status = EventStatus.Completed,
-                Type = EventType.Workshop,
-                Category = "Specialty",
-                Tags = new List<string> { "couples", "valentine", "intimate", "special-event" },
-                SkillLevel = SkillLevel.Intermediate,
-                CreatedBy = adminUser.Id,
-                CreatedAt = DateTime.UtcNow.AddDays(-45)
-            }
+                    Money.Create(25.00m, "USD"),
+                    Money.Create(15.00m, "USD")
+                }
+            ),
+            new Event(
+                title: "New England Rope Intensive",
+                description: "3-day intensive rope bondage conference featuring workshops, performances, and vendor market. Guest instructors from around the world.",
+                startDate: DateTime.UtcNow.AddDays(45).AddHours(17),
+                endDate: DateTime.UtcNow.AddDays(48).AddHours(14),
+                capacity: 200,
+                eventType: EventType.Conference,
+                location: "Salem Convention Center",
+                primaryOrganizer: adminUser,
+                pricingTiers: new[]
+                {
+                    Money.Create(250.00m, "USD"),
+                    Money.Create(200.00m, "USD"),
+                    Money.Create(100.00m, "USD")
+                }
+            )
         };
+        
+        // Publish all events
+        foreach (var @event in events)
+        {
+            @event.Publish();
+        }
 
         await context.Events.AddRangeAsync(events);
         logger.LogInformation($"Seeded {events.Length} events");
@@ -459,5 +364,45 @@ public static class DbInitializer
         // Simple encryption for demo - in production use proper AES encryption
         var bytes = System.Text.Encoding.UTF8.GetBytes(legalName);
         return Convert.ToBase64String(bytes);
+    }
+
+    private static async Task SeedVettingApplicationsAsync(WitchCityRopeDbContext context, ILogger logger)
+    {
+        // Get some users to create applications for
+        var memberUser = await context.Users.FirstOrDefaultAsync(u => u.Email.Value == "member@witchcityrope.com");
+        var guestUser = await context.Users.FirstOrDefaultAsync(u => u.Email.Value == "guest@witchcityrope.com");
+
+        if (memberUser == null || guestUser == null)
+        {
+            logger.LogWarning("Required users for vetting applications not found. Skipping vetting application seeding.");
+            return;
+        }
+
+        var applications = new[]
+        {
+            new VettingApplication(
+                applicant: memberUser,
+                experienceLevel: "Intermediate",
+                experienceDescription: "2 years experience in rope bondage, attended workshops in Boston",
+                interests: "Suspension, decorative rope, rope performance",
+                safetyKnowledge: "RACK/SSC understanding, nerve safety, circulation monitoring",
+                consentUnderstanding: "Enthusiastic, informed, ongoing consent with regular check-ins",
+                whyJoin: "Looking to expand my skills and connect with the local rope community",
+                references: new[] { "RiggerJohn@example.com", "BunnyAlice@example.com" }
+            ),
+            new VettingApplication(
+                applicant: guestUser,
+                experienceLevel: "Beginner",
+                experienceDescription: "New to rope but experienced in other kink activities",
+                interests: "Learning fundamentals, floor work, self-tying",
+                safetyKnowledge: "Basic understanding from online resources and books",
+                consentUnderstanding: "Clear negotiation, respecting limits, ongoing communication",
+                whyJoin: "Want to learn rope safely from experienced practitioners",
+                references: new[] { "LocalDungeonOwner@example.com" }
+            )
+        };
+
+        await context.VettingApplications.AddRangeAsync(applications);
+        logger.LogInformation($"Seeded {applications.Length} vetting applications");
     }
 }

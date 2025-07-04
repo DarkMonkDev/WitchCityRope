@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Core.Entities;
 using WitchCityRope.Infrastructure.Data.Configurations;
-using WitchCityRope.Infrastructure.Data.Entities;
 
 namespace WitchCityRope.Infrastructure.Data
 {

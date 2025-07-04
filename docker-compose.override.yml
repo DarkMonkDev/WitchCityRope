@@ -4,6 +4,17 @@
 version: '3.8'
 
 services:
+  # PostgreSQL Development Overrides
+  postgres:
+    environment:
+      # Use a separate database for development
+      - POSTGRES_DB=witchcityrope_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      # Persist data between restarts
+      - postgres_dev_data:/var/lib/postgresql/data
+
   # API Service Development Overrides
   api:
     build:
@@ -16,8 +27,8 @@ services:
       - DOTNET_USE_POLLING_FILE_WATCHER=true
       - DOTNET_WATCH_RESTART_ON_RUDE_EDIT=true
       
-      # Development database
-      - ConnectionStrings__DefaultConnection=Data Source=/app/data/witchcityrope-dev.db
+      # Development database - PostgreSQL
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=witchcityrope_dev;Username=postgres;Password=WitchCity2024!;Include Error Detail=true
       
       # Development logging
       - Serilog__MinimumLevel__Default=Debug
@@ -104,3 +115,7 @@ services:
       - witchcity-network
     profiles:
       - dev-tools
+
+volumes:
+  postgres_dev_data:
+    driver: local

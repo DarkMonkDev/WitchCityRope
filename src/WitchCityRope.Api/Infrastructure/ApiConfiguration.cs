@@ -78,9 +78,7 @@ public static class ApiConfiguration
             });
         });
 
-        // Add health checks
-        services.AddHealthChecks()
-            .AddDbContextCheck<WitchCityRopeDbContext>("database");
+        // Health checks are already added in Infrastructure layer
 
         // Add response compression
         services.AddResponseCompression(options =>
@@ -183,11 +181,11 @@ public static class ApiConfiguration
     public static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection") 
-            ?? "Data Source=witchcityrope.db";
+            ?? "Host=localhost;Database=witchcityrope_db;Username=postgres;Password=your_password_here";
         
         services.AddDbContext<WitchCityRopeDbContext>(options =>
         {
-            options.UseSqlite(connectionString);
+            options.UseNpgsql(connectionString);
             
             // Enable sensitive data logging in development
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
@@ -214,21 +212,38 @@ public static class ApiConfiguration
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
         // Add core services
+        services.AddScoped<Services.IPasswordHasher, Services.PasswordHasher>();
+        // Add the IPasswordHasher for AuthService (different interface)
+        services.AddScoped<Features.Auth.Services.IPasswordHasher, Features.Auth.Services.PasswordHasherAdapter>();
+        // Note: JwtTokenService doesn't implement an interface - registered directly in Infrastructure
+        // Note: EmailService is registered in Infrastructure DependencyInjection
         // TODO: Implement these services
-        // services.AddScoped<IPasswordHasher, PasswordHasher>();
-        // services.AddScoped<IJwtService, JwtService>();
-        // services.AddScoped<IEmailService, EmailService>();
         // services.AddScoped<INotificationService, NotificationService>();
-        // services.AddScoped<IEncryptionService, EncryptionService>();
+        // Note: EncryptionService is registered in Infrastructure DependencyInjection
+        
+        // Add repository implementations
+        services.AddScoped<WitchCityRope.Api.Services.IUserRepository, Services.UserRepository>();
+        // Add the IUserRepository for AuthService (different interface)
+        services.AddScoped<WitchCityRope.Api.Features.Auth.Services.IUserRepository, Features.Auth.Services.AuthUserRepository>();
+        
+        // Add JWT service adapter
+        services.AddScoped<WitchCityRope.Api.Interfaces.IJwtService, Services.JwtServiceAdapter>();
+        // Add the IJwtService for AuthService (different interface)
+        services.AddScoped<Features.Auth.Services.IJwtService, Features.Auth.Services.JwtServiceAdapter>();
+        
+        // Add the IEmailService for AuthService (different interface)
+        services.AddScoped<Features.Auth.Services.IEmailService, Features.Auth.Services.EmailServiceAdapter>();
+        
+        // Add the IEncryptionService for AuthService (different interface)
+        services.AddScoped<Features.Auth.Services.IEncryptionService, Features.Auth.Services.EncryptionServiceAdapter>();
         
         // Add direct service implementations
-        // TODO: Fix service implementations
-        // services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAuthService, Features.Auth.Services.AuthService>();
         services.AddScoped<Services.IUserService, Services.UserService>();
-        // services.AddScoped<IEventService, EventService>();
-        // services.AddScoped<IRegistrationService, RegistrationService>();
-        // services.AddScoped<IPaymentService, PaymentService>();
-        // services.AddScoped<ISafetyService, SafetyService>();
+        services.AddScoped<IEventService, Features.Events.Services.EventService>();
+        services.AddScoped<IRegistrationService, Services.RegistrationService>();
+        services.AddScoped<IPaymentService, Services.PaymentService>();
+        services.AddScoped<ISafetyService, Services.SafetyService>();
         
         // Add feature services
         // TODO: Implement these services
@@ -339,7 +354,11 @@ public static class ApiConfiguration
         app.UseHttpLogging();
 
         // Health checks
-        app.MapHealthChecks("/health");
+        // Note: Disabled in test environments to avoid duplicate registration
+        if (!app.Environment.EnvironmentName.Equals("Testing", StringComparison.OrdinalIgnoreCase))
+        {
+            app.MapHealthChecks("/health");
+        }
 
         // Controllers
         app.MapControllers();

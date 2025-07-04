@@ -1,373 +1,190 @@
-@page "/dashboard"
+@page "/member/dashboard"
 @using WitchCityRope.Web.Services
+@using WitchCityRope.Web.Features.Members.Components
 @using WitchCityRope.Web.Shared.Layouts
-@using Syncfusion.Blazor.Buttons
-@using Syncfusion.Blazor.Navigations
 @using Microsoft.AspNetCore.Authorization
-@inject IUserService UserService
-@inject IEventService EventService
-@inject IRegistrationService RegistrationService
-@inject IVettingService VettingService
+@inject IDashboardService DashboardService
 @inject IAuthService AuthService
 @inject NavigationManager Navigation
 @inject IToastService ToastService
+@inject ILogger<Dashboard> Logger
 @attribute [Authorize]
 @layout MainLayout
+@implements IDisposable
 
-@* Member dashboard showing personalized content and quick actions *@
+<PageTitle>Dashboard - WitchCity Rope</PageTitle>
 
-<div class="dashboard-container">
-    @* Welcome Section *@
-    <section class="welcome-section">
-        <div class="welcome-content">
-            <h1 class="welcome-title">Welcome back, @userProfile?.SceneName!</h1>
-            <p class="welcome-subtitle">Here's what's happening in your rope journey</p>
-            <div class="quick-actions">
-                <SfButton CssClass="e-primary" OnClick="@(() => Navigation.NavigateTo("/events"))">
-                    Browse Events
-                </SfButton>
-                <SfButton CssClass="e-outline" OnClick="@(() => Navigation.NavigateTo("/profile"))">
-                    Update Profile
-                </SfButton>
-            </div>
-        </div>
-    </section>
-
-    <div class="dashboard-grid">
-        @* Quick Stats *@
-        <div class="dashboard-section stats-section">
-            <h2 class="section-title">Your Activity</h2>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value">@upcomingEventsCount</div>
-                    <div class="stat-label">Upcoming Events</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">@pastEventsCount</div>
-                    <div class="stat-label">Events Attended</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">@memberSinceDays</div>
-                    <div class="stat-label">Days as Member</div>
-                </div>
-                <div class="stat-card @GetVettingStatusClass()">
-                    <div class="stat-value">@vettingStatus?.Status</div>
-                    <div class="stat-label">Vetting Status</div>
-                </div>
-            </div>
-        </div>
-
-        @* Upcoming Events *@
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">Your Upcoming Events</h2>
-                <a href="/my-tickets" class="card-link">View All</a>
-            </div>
+@if (IsLoading)
+{
+    <DashboardSkeleton />
+}
+else if (HasError)
+{
+    <DashboardError ErrorMessage="@ErrorMessage" OnRetry="@LoadDashboardData" />
+}
+else if (DashboardData != null)
+{
+    <div class="dashboard-container">
+        <CascadingValue Value="DashboardData">
+            <DashboardHeader />
             
-            @if (isLoadingEvents)
-            {
-                <div class="loading-spinner">
-                    <div class="e-spinner-pane">
-                        <div class="e-spinner-inner">
-                            <div class="e-spin-material"></div>
-                        </div>
-                    </div>
-                </div>
-            }
-            else if (upcomingRegistrations?.Any() == true)
-            {
-                <div class="event-list">
-                    @foreach (var registration in upcomingRegistrations.Take(3))
+            <div class="dashboard-grid">
+                <div class="dashboard-main">
+                    <UpcomingEvents Events="@DashboardData.UpcomingEvents" />
+                    
+                    @if (DashboardData.Role == WitchCityRope.Core.Enums.UserRole.Administrator)
                     {
-                        <div class="event-item" @onclick="@(() => ViewEvent(registration.EventId))">
-                            <div class="event-date-col">
-                                <div class="event-date-badge">
-                                    <div class="date-month">@registration.EventDate.ToString("MMM")</div>
-                                    <div class="date-day">@registration.EventDate.Day</div>
-                                </div>
-                            </div>
-                            <div class="event-info">
-                                <h4 class="event-name">@registration.EventTitle</h4>
-                                <div class="event-meta">
-                                    <span class="e-icons e-clock"></span>
-                                    <span>@registration.EventDate.ToString("h:mm tt")</span>
-                                </div>
-                            </div>
-                            <div class="event-actions">
-                                <SfButton CssClass="e-small e-outline" OnClick:stopPropagation="true" 
-                                         OnClick="@(() => ViewTicket(registration.Id))">
-                                    View Ticket
-                                </SfButton>
-                            </div>
-                        </div>
+                        <AdminQuickAccess />
                     }
                 </div>
-            }
-            else
-            {
-                <div class="empty-state-small">
-                    <p>No upcoming events</p>
-                    <SfButton CssClass="e-primary e-small" OnClick="@(() => Navigation.NavigateTo("/events"))">
-                        Browse Events
-                    </SfButton>
-                </div>
-            }
-        </div>
-
-        @* Quick Actions *@
-        <div class="card">
-            <h2 class="card-title">Quick Actions</h2>
-            <div class="quick-actions-grid">
-                <a href="/events" class="action-card">
-                    <span class="action-icon">
-                        <span class="e-icons e-calendar"></span>
-                    </span>
-                    <span class="action-label">Browse Events</span>
-                </a>
-                <a href="/profile" class="action-card">
-                    <span class="action-icon">
-                        <span class="e-icons e-user"></span>
-                    </span>
-                    <span class="action-label">Edit Profile</span>
-                </a>
-                <a href="/profile/vetting" class="action-card">
-                    <span class="action-icon">
-                        <span class="e-icons e-check-circle"></span>
-                    </span>
-                    <span class="action-label">Vetting Info</span>
-                </a>
-                <a href="/profile/emergency-contacts" class="action-card">
-                    <span class="action-icon">
-                        <span class="e-icons e-warning"></span>
-                    </span>
-                    <span class="action-label">Emergency Contacts</span>
-                </a>
-                <a href="/my-tickets" class="action-card">
-                    <span class="action-icon">
-                        <span class="e-icons e-ticket"></span>
-                    </span>
-                    <span class="action-label">My Tickets</span>
-                </a>
-                <a href="/safety" class="action-card">
-                    <span class="action-icon">
-                        <span class="e-icons e-shield"></span>
-                    </span>
-                    <span class="action-label">Safety Resources</span>
-                </a>
-            </div>
-        </div>
-
-        @* Recent Activity *@
-        <div class="card activity-section">
-            <div class="card-header">
-                <h2 class="card-title">Recent Activity</h2>
-            </div>
-            <div class="activity-list">
-                @if (recentActivities?.Any() == true)
-                {
-                    @foreach (var activity in recentActivities)
-                    {
-                        <div class="activity-item">
-                            <div class="activity-icon @GetActivityIconClass(activity.Type)">
-                                <span class="e-icons @GetActivityIcon(activity.Type)"></span>
-                            </div>
-                            <div class="activity-content">
-                                <p class="activity-text">@activity.Description</p>
-                                <span class="activity-time">@GetRelativeTime(activity.Timestamp)</span>
-                            </div>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <p class="text-muted">No recent activity</p>
-                }
-            </div>
-        </div>
-
-        @* Community Announcements *@
-        @if (announcements?.Any() == true)
-        {
-            <div class="card announcements-section">
-                <h2 class="card-title">Community Announcements</h2>
-                <div class="announcements-list">
-                    @foreach (var announcement in announcements)
-                    {
-                        <div class="announcement-item @GetAnnouncementClass(announcement.Type)">
-                            <div class="announcement-header">
-                                <h4>@announcement.Title</h4>
-                                <span class="announcement-date">@announcement.Date.ToString("MMM d")</span>
-                            </div>
-                            <p>@announcement.Message</p>
-                        </div>
-                    }
+                
+                <div class="dashboard-sidebar">
+                    <MembershipStatus Stats="@DashboardData.Stats" />
+                    <QuickLinks Role="@DashboardData.Role" />
                 </div>
             </div>
-        }
+        </CascadingValue>
     </div>
-</div>
+}
+
+<style>
+    .dashboard-container {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: var(--wcr-space-lg);
+    }
+    
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--wcr-space-lg);
+        margin-top: var(--wcr-space-xl);
+    }
+    
+    .dashboard-main {
+        display: flex;
+        flex-direction: column;
+        gap: var(--wcr-space-lg);
+    }
+    
+    .dashboard-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: var(--wcr-space-lg);
+    }
+    
+    /* Tablet - 768px */
+    @@media (min-width: 768px) {
+        .dashboard-grid {
+            gap: var(--wcr-space-xl);
+        }
+    }
+    
+    /* Desktop - 1024px */
+    @@media (min-width: 1024px) {
+        .dashboard-grid {
+            grid-template-columns: 2fr 1fr;
+        }
+    }
+    
+    /* Large desktop - 1440px */
+    @@media (min-width: 1440px) {
+        .dashboard-container {
+            max-width: 1320px;
+        }
+    }
+</style>
 
 @code {
-    private UserProfile? userProfile;
-    private VettingStatus? vettingStatus;
-    private List<UserRegistration>? upcomingRegistrations;
-    private List<ActivityItem>? recentActivities;
-    private List<AnnouncementViewModel>? announcements;
+    private DashboardViewModel? DashboardData { get; set; }
+    private bool IsLoading { get; set; } = true;
+    private bool HasError { get; set; }
+    private string? ErrorMessage { get; set; }
     
-    private int upcomingEventsCount = 0;
-    private int pastEventsCount = 0;
-    private int memberSinceDays = 0;
-    private bool isLoadingEvents = true;
-
+    private CancellationTokenSource? _cancellationTokenSource;
+    private Timer? _refreshTimer;
+    private bool _hasRendered = false;
+    
     protected override async Task OnInitializedAsync()
     {
-        await LoadDashboardData();
+        // Set up timer but don't load data yet
+        _refreshTimer = new Timer(async _ => await RefreshData(), null, 
+            Timeout.Infinite, Timeout.Infinite);
     }
-
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_hasRendered)
+        {
+            _hasRendered = true;
+            // Load dashboard data after the component has been rendered
+            // This ensures JavaScript interop is available for localStorage access
+            await LoadDashboardData();
+            
+            // Start the refresh timer
+            _refreshTimer?.Change(TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
+            
+            StateHasChanged();
+        }
+    }
+    
     private async Task LoadDashboardData()
     {
         try
         {
-            // Load user profile
-            userProfile = await UserService.GetCurrentUserProfileAsync();
-            if (userProfile != null)
+            IsLoading = true;
+            HasError = false;
+            ErrorMessage = null;
+            
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource = new CancellationTokenSource();
+            
+            var currentUser = await AuthService.GetCurrentUserAsync();
+            if (currentUser == null)
             {
-                memberSinceDays = (DateTime.Now - userProfile.MemberSince).Days;
+                // Don't redirect during loading or if we haven't rendered yet
+                // The [Authorize] attribute will handle the redirect
+                Logger.LogWarning("Current user is null in Dashboard");
+                HasError = true;
+                ErrorMessage = "Unable to load user information. Please try logging in again.";
+                return;
             }
-
-            // Load vetting status
-            vettingStatus = await VettingService.GetMyVettingStatusAsync() ?? new VettingStatus { Status = "Not Started" };
-
-            // Load registrations
-            isLoadingEvents = true;
-            var allRegistrations = await RegistrationService.GetMyRegistrationsAsync();
-            if (allRegistrations != null)
-            {
-                upcomingRegistrations = allRegistrations
-                    .Where(r => r.EventDate >= DateTime.Now)
-                    .OrderBy(r => r.EventDate)
-                    .ToList();
+            
+            DashboardData = await DashboardService.GetDashboardDataAsync(
+                currentUser.Id, _cancellationTokenSource.Token);
                 
-                upcomingEventsCount = upcomingRegistrations.Count;
-                pastEventsCount = allRegistrations.Count(r => r.EventDate < DateTime.Now);
-            }
-            isLoadingEvents = false;
-
-            // Generate sample data for demo
-            GenerateSampleData();
+            Logger.LogInformation("Dashboard loaded for user {UserId}", currentUser.Id);
+        }
+        catch (OperationCanceledException)
+        {
+            // Request was cancelled, ignore
         }
         catch (Exception ex)
         {
-            ToastService.ShowError($"Failed to load dashboard: {ex.Message}");
-            isLoadingEvents = false;
+            Logger.LogError(ex, "Error loading dashboard");
+            HasError = true;
+            ErrorMessage = "Unable to load dashboard. Please try again.";
+            ToastService.ShowError(ErrorMessage);
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
         }
     }
-
-    private void GenerateSampleData()
+    
+    private async Task RefreshData()
     {
-        // Sample recent activities
-        recentActivities = new List<ActivityItem>
+        await InvokeAsync(async () =>
         {
-            new() { Type = "registration", Description = "Registered for Introduction to Rope Bondage", Timestamp = DateTime.Now.AddHours(-2) },
-            new() { Type = "profile", Description = "Updated your profile information", Timestamp = DateTime.Now.AddDays(-1) },
-            new() { Type = "vetting", Description = "Submitted vetting application", Timestamp = DateTime.Now.AddDays(-3) }
-        };
-
-        // Sample announcements
-        announcements = new List<AnnouncementViewModel>
-        {
-            new() { 
-                Title = "New Safety Guidelines", 
-                Message = "We've updated our safety protocols. Please review them before your next event.", 
-                Date = DateTime.Now.AddDays(-2),
-                Type = "info"
-            },
-            new() { 
-                Title = "Special Workshop Announcement", 
-                Message = "Guest instructor coming in March! Early bird registration opens next week.", 
-                Date = DateTime.Now.AddDays(-5),
-                Type = "success"
-            }
-        };
+            await LoadDashboardData();
+        });
     }
-
-    private void ViewEvent(Guid eventId)
+    
+    public void Dispose()
     {
-        Navigation.NavigateTo($"/events/{eventId}");
-    }
-
-    private void ViewTicket(Guid registrationId)
-    {
-        Navigation.NavigateTo($"/my-tickets/{registrationId}");
-    }
-
-    private string GetVettingStatusClass()
-    {
-        return vettingStatus?.Status?.ToLower() switch
-        {
-            "approved" => "status-approved",
-            "pending" => "status-pending",
-            "rejected" => "status-rejected",
-            _ => "status-default"
-        };
-    }
-
-    private string GetActivityIcon(string type)
-    {
-        return type switch
-        {
-            "registration" => "e-calendar",
-            "profile" => "e-user",
-            "vetting" => "e-check-circle",
-            "payment" => "e-credit-card",
-            _ => "e-circle"
-        };
-    }
-
-    private string GetActivityIconClass(string type)
-    {
-        return type switch
-        {
-            "registration" => "icon-success",
-            "profile" => "icon-info",
-            "vetting" => "icon-warning",
-            "payment" => "icon-primary",
-            _ => "icon-default"
-        };
-    }
-
-    private string GetAnnouncementClass(string type)
-    {
-        return $"announcement-{type}";
-    }
-
-    private string GetRelativeTime(DateTime timestamp)
-    {
-        var timeSpan = DateTime.Now - timestamp;
-        
-        if (timeSpan.TotalMinutes < 60)
-            return $"{(int)timeSpan.TotalMinutes} minutes ago";
-        if (timeSpan.TotalHours < 24)
-            return $"{(int)timeSpan.TotalHours} hours ago";
-        if (timeSpan.TotalDays < 7)
-            return $"{(int)timeSpan.TotalDays} days ago";
-        
-        return timestamp.ToString("MMM d, yyyy");
-    }
-
-    // View models
-    public class ActivityItem
-    {
-        public string Type { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public DateTime Timestamp { get; set; }
-    }
-
-    public class AnnouncementViewModel
-    {
-        public string Title { get; set; } = string.Empty;
-        public string Message { get; set; } = string.Empty;
-        public DateTime Date { get; set; }
-        public string Type { get; set; } = "info"; // info, warning, success
+        _cancellationTokenSource?.Cancel();
+        _cancellationTokenSource?.Dispose();
+        _refreshTimer?.Dispose();
     }
 }

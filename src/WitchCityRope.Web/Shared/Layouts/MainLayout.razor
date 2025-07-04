@@ -1,4 +1,5 @@
 @inherits LayoutComponentBase
+@implements IDisposable
 @inject NavigationManager Navigation
 @inject IAuthService AuthService
 @inject IJSRuntime JS
@@ -18,6 +19,7 @@
         <a href="/" class="logo">WITCH CITY ROPE</a>
         <nav class="nav">
             <a href="/events" class="nav-item">Events & Classes</a>
+            <a href="/how-to-join" class="nav-item">How To Join</a>
             @if (_currentUser != null)
             {
                 <a href="/member/dashboard" class="nav-item">My Dashboard</a>
@@ -84,11 +86,12 @@
                     <img src="/images/avatar-placeholder.png" alt="User" class="user-avatar">
                     <div>
                         <div class="user-name">@_currentUser?.SceneName</div>
-                        <div class="user-email">@_currentUser?.Email</div>
+                        <span class="user-email">@(_currentUser?.Email?.Replace("mailto:", ""))</span>
                     </div>
                 </div>
             }
             <a href="/events" class="mobile-nav-item" @onclick="CloseMobileMenu">Events & Classes</a>
+            <a href="/how-to-join" class="mobile-nav-item" @onclick="CloseMobileMenu">How To Join</a>
             @if (_currentUser != null)
             {
                 <a href="/member/dashboard" class="mobile-nav-item" @onclick="CloseMobileMenu">My Dashboard</a>
@@ -735,6 +738,23 @@
     protected override async Task OnInitializedAsync()
     {
         _currentUser = await AuthService.GetCurrentUserAsync();
+        
+        // Subscribe to authentication state changes
+        AuthService.AuthenticationStateChanged += OnAuthenticationStateChanged;
+    }
+    
+    private async void OnAuthenticationStateChanged(object? sender, bool isAuthenticated)
+    {
+        if (isAuthenticated)
+        {
+            _currentUser = await AuthService.GetCurrentUserAsync();
+        }
+        else
+        {
+            _currentUser = null;
+        }
+        
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -788,5 +808,11 @@
         Console.WriteLine($"Newsletter subscription for: {_newsletterEmail}");
         _newsletterEmail = string.Empty;
         StateHasChanged();
+    }
+    
+    public void Dispose()
+    {
+        // Unsubscribe from authentication state changes
+        AuthService.AuthenticationStateChanged -= OnAuthenticationStateChanged;
     }
 }

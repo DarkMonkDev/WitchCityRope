@@ -60,6 +60,21 @@ namespace WitchCityRope.Core.DTOs
         public string Message { get; set; } = string.Empty;
     }
 
+    public class RegistrationDto
+    {
+        public Guid Id { get; set; }
+        public Guid UserId { get; set; }
+        public Guid EventId { get; set; }
+        public string EventTitle { get; set; } = string.Empty;
+        public DateTime EventDate { get; set; }
+        public string EventLocation { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public DateTime RegisteredAt { get; set; }
+        public string? ConfirmationCode { get; set; }
+        public decimal? AmountPaid { get; set; }
+        public DateTime? CheckedInAt { get; set; }
+    }
+
     // Vetting-related DTOs
     public class VettingApplicationRequest
     {

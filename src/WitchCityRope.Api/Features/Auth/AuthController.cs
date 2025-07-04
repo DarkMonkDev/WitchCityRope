@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using WitchCityRope.Api.Features.Auth.Models;
 using WitchCityRope.Api.Features.Auth.Services;
+using WitchCityRope.Api.Interfaces;
 using WitchCityRope.Api.Exceptions;
 using ConflictException = WitchCityRope.Api.Exceptions.ConflictException;
 
@@ -12,9 +13,9 @@ namespace WitchCityRope.Api.Features.Auth
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly AuthService _authService;
+        private readonly IAuthService _authService;
 
-        public AuthController(AuthService authService)
+        public AuthController(IAuthService authService)
         {
             _authService = authService;
         }

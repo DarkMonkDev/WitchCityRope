@@ -114,7 +114,7 @@ namespace WitchCityRope.Infrastructure.Tests.Data
             var finalRegistrations = await ExecuteWithNewContextAsync(async ctx =>
                 await ctx.Registrations.CountAsync(r => r.EventId == @event.Id));
             
-            finalRegistrations.Should().BeLessOrEqualTo(@event.Capacity);
+            finalRegistrations.Should().BeLessThanOrEqualTo(@event.Capacity);
         }
 
         [Fact]

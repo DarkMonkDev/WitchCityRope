@@ -56,7 +56,6 @@ namespace WitchCityRope.PerformanceTests.Infrastructure
     {
         Html,
         Csv,
-        Json,
         Txt,
         Md
     }

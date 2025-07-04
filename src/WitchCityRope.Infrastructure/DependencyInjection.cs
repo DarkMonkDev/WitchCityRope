@@ -21,12 +21,14 @@ namespace WitchCityRope.Infrastructure
         /// </summary>
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
-            // Add Entity Framework Core with SQLite
+            // Add Entity Framework Core with PostgreSQL
             services.AddDbContext<WitchCityRopeDbContext>(options =>
             {
-                var connectionString = configuration.GetConnectionString("DefaultConnection") 
-                    ?? "Data Source=witchcityrope.db";
-                options.UseSqlite(connectionString);
+                // Check for Aspire-provided connection string first, then fall back to DefaultConnection
+                var connectionString = configuration.GetConnectionString("witchcityrope-db") 
+                    ?? configuration.GetConnectionString("DefaultConnection") 
+                    ?? "Host=localhost;Database=witchcityrope_db;Username=postgres;Password=WitchCity2024!";
+                options.UseNpgsql(connectionString);
                 
                 // Enable sensitive data logging in development
                 if (configuration.GetValue<bool>("Logging:EnableSensitiveDataLogging", false))
@@ -36,10 +38,14 @@ namespace WitchCityRope.Infrastructure
             });
 
             // Add SendGrid for email
-            services.AddSendGrid(options =>
+            var sendGridApiKey = configuration["Email:SendGrid:ApiKey"];
+            if (!string.IsNullOrEmpty(sendGridApiKey))
             {
-                options.ApiKey = configuration["SendGrid:ApiKey"];
-            });
+                services.AddSendGrid(options =>
+                {
+                    options.ApiKey = sendGridApiKey;
+                });
+            }
 
             // Register services
             services.AddScoped<IEmailService, EmailService>();

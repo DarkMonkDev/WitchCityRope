@@ -17,28 +17,35 @@ namespace WitchCityRope.Infrastructure.Email
     /// </summary>
     public class EmailService : IEmailService
     {
-        private readonly ISendGridClient _sendGridClient;
+        private readonly ISendGridClient? _sendGridClient;
         private readonly string _fromEmail;
         private readonly string _fromName;
         private readonly Dictionary<string, string> _emailTemplates;
 
-        public EmailService(ISendGridClient sendGridClient, IConfiguration configuration)
+        public EmailService(ISendGridClient? sendGridClient, IConfiguration configuration)
         {
-            _sendGridClient = sendGridClient ?? throw new ArgumentNullException(nameof(sendGridClient));
-            _fromEmail = configuration["SendGrid:FromEmail"] ?? "noreply@witchcityrope.com";
-            _fromName = configuration["SendGrid:FromName"] ?? "Witch City Rope";
+            _sendGridClient = sendGridClient;
+            _fromEmail = configuration["Email:From"] ?? "noreply@witchcityrope.com";
+            _fromName = configuration["Email:FromName"] ?? "Witch City Rope";
             
             // Initialize email templates
             _emailTemplates = new Dictionary<string, string>
             {
-                ["registration-confirmation"] = configuration["SendGrid:Templates:RegistrationConfirmation"],
-                ["cancellation-confirmation"] = configuration["SendGrid:Templates:CancellationConfirmation"],
-                ["vetting-status-update"] = configuration["SendGrid:Templates:VettingStatusUpdate"]
+                ["registration-confirmation"] = configuration["Email:SendGrid:Templates:RegistrationConfirmation"],
+                ["cancellation-confirmation"] = configuration["Email:SendGrid:Templates:CancellationConfirmation"],
+                ["vetting-status-update"] = configuration["Email:SendGrid:Templates:VettingStatusUpdate"]
             };
         }
 
         public async Task<bool> SendEmailAsync(CoreEmailAddress to, string subject, string body, bool isHtml = true)
         {
+            if (_sendGridClient == null)
+            {
+                // SendGrid not configured - log email in development
+                Console.WriteLine($"[EMAIL] To: {to.Value}, Subject: {subject}");
+                return true; // Simulate success in development
+            }
+
             try
             {
                 var from = new SendGridEmailAddress(_fromEmail, _fromName);
@@ -57,6 +64,13 @@ namespace WitchCityRope.Infrastructure.Email
 
         public async Task<bool> SendBulkEmailAsync(IEnumerable<CoreEmailAddress> to, string subject, string body, bool isHtml = true)
         {
+            if (_sendGridClient == null)
+            {
+                // SendGrid not configured - log email in development
+                Console.WriteLine($"[BULK EMAIL] To: {string.Join(", ", to.Select(e => e.Value))}, Subject: {subject}");
+                return true; // Simulate success in development
+            }
+
             try
             {
                 var from = new SendGridEmailAddress(_fromEmail, _fromName);
@@ -96,6 +110,13 @@ namespace WitchCityRope.Infrastructure.Email
 
         public async Task<bool> SendTemplateEmailAsync(CoreEmailAddress to, string templateName, object templateData)
         {
+            if (_sendGridClient == null)
+            {
+                // SendGrid not configured - log email in development
+                Console.WriteLine($"[TEMPLATE EMAIL] To: {to.Value}, Template: {templateName}");
+                return true; // Simulate success in development
+            }
+
             try
             {
                 if (!_emailTemplates.TryGetValue(templateName, out var templateId))

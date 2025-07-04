@@ -1,3 +1,6 @@
+using WitchCityRope.Core.Enums;
+using WitchCityRope.Core.Entities;
+
 namespace WitchCityRope.Web.Models;
 
 // Moving models to separate file to avoid circular references
@@ -13,6 +16,8 @@ public class UserDto
     public bool TwoFactorEnabled { get; set; }
     public bool IsEmailConfirmed { get; set; }
     public List<string> Roles { get; set; } = new();
+    public UserRole Role { get; set; }
+    public VettingStatus VettingStatus { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? LastLoginAt { get; set; }
 }

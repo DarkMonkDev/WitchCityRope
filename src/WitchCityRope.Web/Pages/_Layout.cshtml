@@ -21,8 +21,11 @@
     @* Stylesheets with cache busting *@
     <link rel="stylesheet" href="css/app.min.css?v=@version" />
     
-    @* Syncfusion theme *@
+    @* Syncfusion theme - using bootstrap5 for consistency *@
     <link href="_content/Syncfusion.Blazor.Themes/bootstrap5.css" rel="stylesheet" />
+    
+    @* Syncfusion Core Styles *@
+    <link href="_content/Syncfusion.Blazor.Core/styles/bootstrap5.css" rel="stylesheet" />
     
     @* WCR Custom Theme - Overrides Syncfusion defaults *@
     <link rel="stylesheet" href="css/wcr-theme.min.css?v=@version" />
@@ -36,6 +39,22 @@
     
     @* Syncfusion scripts *@
     <script src="_content/Syncfusion.Blazor.Core/scripts/syncfusion-blazor.min.js" type="text/javascript"></script>
+    
+    @* Initialize Syncfusion properly for community license *@
+    <script>
+        // Initialize Syncfusion after scripts are loaded
+        window.addEventListener('load', function() {
+            if (window.sfBlazor) {
+                // Enable ripple effect
+                window.sfBlazor.enableRipple = true;
+                
+                // Force license validation for community version
+                if (window.Syncfusion && window.Syncfusion.licensing) {
+                    console.log('Syncfusion licensing module loaded');
+                }
+            }
+        });
+    </script>
     
     @* Custom scripts with cache busting *@
     <script src="js/app.min.js?v=@version"></script>

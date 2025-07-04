@@ -1,0 +1,18 @@
+#!/bin/bash
+# browser - Simple wrapper for browser-bridge.ps1
+# Makes it easy to control Chrome from WSL
+
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Path to PowerShell bridge script
+PS_BRIDGE="$SCRIPT_DIR/browser-bridge.ps1"
+
+# Check if PowerShell bridge exists
+if [ ! -f "$PS_BRIDGE" ]; then
+    echo "Error: browser-bridge.ps1 not found at: $PS_BRIDGE"
+    exit 1
+fi
+
+# Execute PowerShell bridge with all arguments
+powershell.exe -ExecutionPolicy Bypass -File "$PS_BRIDGE" "$@"

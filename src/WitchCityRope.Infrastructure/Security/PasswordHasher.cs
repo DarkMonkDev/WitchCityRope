@@ -1,4 +1,4 @@
-using WitchCityRope.Api.Features.Auth.Services;
+using WitchCityRope.Core.Interfaces;
 
 namespace WitchCityRope.Infrastructure.Security
 {
@@ -12,9 +12,9 @@ namespace WitchCityRope.Infrastructure.Security
             return BCrypt.Net.BCrypt.HashPassword(password);
         }
 
-        public bool VerifyPassword(string password, string passwordHash)
+        public bool VerifyPassword(string hashedPassword, string providedPassword)
         {
-            return BCrypt.Net.BCrypt.Verify(password, passwordHash);
+            return BCrypt.Net.BCrypt.Verify(providedPassword, hashedPassword);
         }
     }
 }

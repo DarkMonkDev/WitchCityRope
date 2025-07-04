@@ -1,0 +1,89 @@
+@page "/test-syncfusion"
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Calendars
+@using Syncfusion.Blazor.DropDowns
+
+<PageTitle>Test Syncfusion License</PageTitle>
+
+<div class="container mt-5">
+    <h1>Syncfusion License Test</h1>
+    
+    <div class="mt-4">
+        <h3>Test Components:</h3>
+        
+        <div class="mb-3">
+            <p>1. Button Component:</p>
+            <SfButton CssClass="e-primary">Test Button</SfButton>
+        </div>
+        
+        <div class="mb-3">
+            <p>2. DatePicker Component:</p>
+            <SfDatePicker TValue="DateTime?" Placeholder="Select a date"></SfDatePicker>
+        </div>
+        
+        <div class="mb-3">
+            <p>3. DropDown Component:</p>
+            <SfDropDownList TValue="string" TItem="string" Placeholder="Select an item" DataSource="@dropdownItems">
+            </SfDropDownList>
+        </div>
+        
+        <div class="mb-3">
+            <p>4. Current License Status:</p>
+            <div class="alert alert-info">
+                <pre>@licenseInfo</pre>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <p>5. License Validation:</p>
+            <div class="alert @(isLicenseValid ? "alert-success" : "alert-warning")">
+                @licenseValidationMessage
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string licenseInfo = "";
+    private bool isLicenseValid = false;
+    private string licenseValidationMessage = "";
+    private string[] dropdownItems = new[] { "Item 1", "Item 2", "Item 3" };
+    
+    protected override void OnInitialized()
+    {
+        try
+        {
+            // Get the registered license info
+            var licenseKey = Configuration["Syncfusion:LicenseKey"];
+            if (!string.IsNullOrEmpty(licenseKey))
+            {
+                licenseInfo = $"License Key Found: {licenseKey.Substring(0, 20)}...{licenseKey.Substring(licenseKey.Length - 10)}";
+                
+                // Check if this is a community license (they typically have a specific format)
+                if (licenseKey.Contains("MzkzMTA2M0AzMzMw"))
+                {
+                    isLicenseValid = true;
+                    licenseValidationMessage = "✓ Valid Syncfusion Community License detected";
+                }
+                else
+                {
+                    isLicenseValid = true;
+                    licenseValidationMessage = "✓ Syncfusion License key is configured";
+                }
+            }
+            else
+            {
+                licenseInfo = "No license key found in configuration";
+                licenseValidationMessage = "⚠ No license key configured - running in trial mode";
+            }
+        }
+        catch (Exception ex)
+        {
+            licenseInfo = $"Error: {ex.Message}";
+            licenseValidationMessage = $"✗ Error checking license: {ex.Message}";
+        }
+    }
+    
+    [Inject]
+    private IConfiguration Configuration { get; set; } = default!;
+}

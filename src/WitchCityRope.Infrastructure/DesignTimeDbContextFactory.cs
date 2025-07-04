@@ -25,9 +25,9 @@ namespace WitchCityRope.Infrastructure
             var optionsBuilder = new DbContextOptionsBuilder<WitchCityRopeDbContext>();
             
             var connectionString = configuration.GetConnectionString("DefaultConnection") 
-                ?? "Data Source=witchcityrope.db";
+                ?? "Host=localhost;Database=witchcityrope_db;Username=postgres;Password=your_password_here";
             
-            optionsBuilder.UseSqlite(connectionString);
+            optionsBuilder.UseNpgsql(connectionString);
 
             return new WitchCityRopeDbContext(optionsBuilder.Options);
         }

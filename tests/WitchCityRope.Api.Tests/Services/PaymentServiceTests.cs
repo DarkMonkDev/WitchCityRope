@@ -98,7 +98,7 @@ public class PaymentServiceTests
     }
 
     [Theory]
-    [InlineData(PaymentMethod.Stripe)]
+    [InlineData(PaymentMethod.CreditCard)]
     [InlineData(PaymentMethod.PayPal)]
     public async Task ProcessPaymentAsync_WithDifferentPaymentMethods_ShouldSucceed(PaymentMethod method)
     {

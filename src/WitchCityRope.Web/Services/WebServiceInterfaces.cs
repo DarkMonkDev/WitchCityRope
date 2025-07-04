@@ -1,6 +1,15 @@
+using WitchCityRope.Web.Models;
+
 namespace WitchCityRope.Web.Services;
 
 // Service interfaces for Web project
+public interface IDashboardService
+{
+    Task<DashboardViewModel> GetDashboardDataAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<List<Models.EventViewModel>> GetUpcomingEventsAsync(Guid userId, int count = 3, CancellationToken cancellationToken = default);
+    Task<MembershipStatsViewModel> GetMembershipStatsAsync(Guid userId, CancellationToken cancellationToken = default);
+}
+
 public interface IEventService
 {
     Task<List<EventListItem>> GetUpcomingEventsAsync();
@@ -74,18 +83,24 @@ public class EventListItem
 {
     public Guid Id { get; set; }
     public string Title { get; set; } = string.Empty;
-    public DateTime StartDate { get; set; }
+    public DateTime StartDateTime { get; set; }
     public string Location { get; set; } = string.Empty;
     public int AvailableSpots { get; set; }
     public decimal Price { get; set; }
+    
+    // Computed property for compatibility
+    public DateTime StartDate => StartDateTime;
 }
 
 public class EventDetail : EventListItem
 {
     public string Description { get; set; } = string.Empty;
-    public DateTime EndDate { get; set; }
+    public DateTime EndDateTime { get; set; }
     public List<string> Organizers { get; set; } = new();
     public bool IsRegistered { get; set; }
+    
+    // Computed property for compatibility
+    public DateTime EndDate => EndDateTime;
 }
 
 public class UserProfile

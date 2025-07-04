@@ -453,7 +453,7 @@ public static class ModelValidationAttributes
         public string Description { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Event type is required")]
-        public EventType Type { get; set; }
+        public WitchCityRope.Core.Enums.EventType Type { get; set; }
 
         [Required(ErrorMessage = "Start date/time is required")]
         public DateTime StartDateTime { get; set; }

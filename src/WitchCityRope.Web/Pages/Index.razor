@@ -99,7 +99,7 @@
 <div class="page-container">
 
     <section class="features-section">
-        <h2>What Makes Our Community Special</h2>
+        <h2 class="section-title">What Makes Our Community Special</h2>
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon">🎭</div>
@@ -147,11 +147,11 @@
                             </div>
                             <div class="event-content">
                                 <div class="event-date">@eventItem.StartDate.ToString("dddd, MMMM d") • @eventItem.StartDate.ToString("h:mm tt")</div>
-                                <p class="event-description">@(eventItem.Description?.Length > 120 ? eventItem.Description.Substring(0, 120) + "..." : eventItem.Description)</p>
+                                <p class="event-description">@GetEventDescription(eventItem.Title)</p>
                                 <div class="event-details">
                                     <span class="event-detail">📍 @eventItem.Location</span>
-                                    <span class="event-detail">⏱️ @eventItem.Duration</span>
-                                    <span class="event-detail">📚 @eventItem.Level</span>
+                                    <span class="event-detail">⏱️ @GetEventDuration(eventItem.Title)</span>
+                                    <span class="event-detail">📚 @GetEventLevel(eventItem.Title)</span>
                                 </div>
                                 <div class="event-footer">
                                     @if (eventItem.Price > 0)
@@ -547,13 +547,13 @@
         color: var(--color-burgundy);
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        margin-bottom: var(--spacing-xs);
+        margin-bottom: var(--spacing-sm);
     }
     
     .event-description {
-        color: var(--color-stone);
         font-size: 15px;
-        line-height: 1.6;
+        color: var(--color-smoke);
+        line-height: 1.5;
         margin-bottom: var(--spacing-md);
     }
     
@@ -634,7 +634,7 @@
         animation: rotate 30s linear infinite;
     }
     
-    @keyframes rotate {
+    @@keyframes rotate {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
@@ -827,7 +827,7 @@
             
             // Filter to only show future events and sort by date
             upcomingEvents = allEvents
-                .Where(e => e.StartDate > DateTime.Now)
+                .Where(e => e.StartDate > DateTime.UtcNow)
                 .OrderBy(e => e.StartDate)
                 .ToList();
         }
@@ -846,5 +846,41 @@
     private void NavigateToEvent(Guid eventId)
     {
         Navigation.NavigateTo($"/events/{eventId}");
+    }
+
+    private string GetEventDescription(string title)
+    {
+        return title.ToLower() switch
+        {
+            var t when t.Contains("fundamentals") => "Learn fundamental ties and safety practices in a supportive environment. Perfect for your first class or building strong foundations.",
+            var t when t.Contains("jam") => "Practice your skills and connect with fellow rope enthusiasts in our welcoming community space. For vetted members.",
+            var t when t.Contains("suspension") => "Take your skills to new heights! This workshop explores suspension basics with a strong focus on safety. Prerequisites apply.",
+            var t when t.Contains("beginner") => "Start your rope journey with foundational skills in a safe, supportive environment.",
+            var t when t.Contains("intermediate") => "Build on your foundation with more complex ties and advanced techniques.",
+            _ => "Join us for an engaging workshop focused on rope bondage education and practice."
+        };
+    }
+
+    private string GetEventDuration(string title)
+    {
+        return title.ToLower() switch
+        {
+            var t when t.Contains("intensive") => "4 hours",
+            var t when t.Contains("jam") => "3 hours",
+            var t when t.Contains("fundamentals") => "2.5 hours",
+            _ => "2 hours"
+        };
+    }
+
+    private string GetEventLevel(string title)
+    {
+        return title.ToLower() switch
+        {
+            var t when t.Contains("advanced") || t.Contains("suspension") => "Advanced",
+            var t when t.Contains("intermediate") => "Intermediate",
+            var t when t.Contains("beginner") || t.Contains("fundamentals") => "Beginner",
+            var t when t.Contains("jam") => "Members Only",
+            _ => "All Levels"
+        };
     }
 }

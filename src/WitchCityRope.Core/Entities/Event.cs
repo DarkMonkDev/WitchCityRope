@@ -20,7 +20,12 @@ namespace WitchCityRope.Core.Entities
         private readonly List<Money> _pricingTiers = new();
 
         // Private constructor for EF Core
-        private Event() { }
+        private Event() 
+        { 
+            Title = null!;
+            Description = null!;
+            Location = null!;
+        }
 
         public Event(
             string title,

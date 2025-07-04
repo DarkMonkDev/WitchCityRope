@@ -110,7 +110,7 @@
                 {
                     <div class="incident-card severity-@incident.Severity.ToLower()" @onclick="() => ShowIncidentDetails(incident)">
                         <div class="incident-header">
-                            <span class="incident-type-badge type-@incident.Type.ToLower().Replace(" ", "-")">
+                            <span class="incident-type-badge type-@incident.Type.ToLower().Replace(' ', '-')">
                                 @GetIncidentTypeIcon(incident.Type) @incident.Type
                             </span>
                             <span class="incident-date">@incident.ReportedAt.ToString("MMM d, h:mm tt")</span>
@@ -124,7 +124,7 @@
                                 <span class="severity-badge severity-@incident.Severity.ToLower()">
                                     @incident.Severity
                                 </span>
-                                <span class="status-badge status-@incident.Status.ToLower().Replace(" ", "-")">
+                                <span class="status-badge status-@incident.Status.ToLower().Replace(' ', '-')">
                                     @incident.Status
                                 </span>
                                 @if (!string.IsNullOrEmpty(incident.AssignedTo))
@@ -188,13 +188,13 @@
                                 </div>
                                 <p class="timeline-description">@incident.Description</p>
                                 <div class="timeline-meta">
-                                    <span class="incident-type-badge type-@incident.Type.ToLower().Replace(" ", "-")">
+                                    <span class="incident-type-badge type-@incident.Type.ToLower().Replace(' ', '-')">
                                         @incident.Type
                                     </span>
                                     <span class="severity-badge severity-@incident.Severity.ToLower()">
                                         @incident.Severity
                                     </span>
-                                    <span class="status-badge status-@incident.Status.ToLower().Replace(" ", "-")">
+                                    <span class="status-badge status-@incident.Status.ToLower().Replace(' ', '-')">
                                         @incident.Status
                                     </span>
                                     @if (!incident.IsAnonymous)
@@ -243,7 +243,7 @@
                                     </a>
                                 </td>
                                 <td>
-                                    <span class="incident-type-badge type-@incident.Type.ToLower().Replace(" ", "-")">
+                                    <span class="incident-type-badge type-@incident.Type.ToLower().Replace(' ', '-')">
                                         @incident.Type
                                     </span>
                                 </td>
@@ -253,7 +253,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="status-badge status-@incident.Status.ToLower().Replace(" ", "-")">
+                                    <span class="status-badge status-@incident.Status.ToLower().Replace(' ', '-')">
                                         @incident.Status
                                     </span>
                                 </td>
@@ -352,13 +352,13 @@
                 <div class="incident-detail-header">
                     <div class="detail-meta">
                         <span class="detail-id">#@selectedIncident.Id</span>
-                        <span class="incident-type-badge type-@selectedIncident.Type.ToLower().Replace(" ", "-")">
+                        <span class="incident-type-badge type-@selectedIncident.Type.ToLower().Replace(' ', '-')">
                             @GetIncidentTypeIcon(selectedIncident.Type) @selectedIncident.Type
                         </span>
                         <span class="severity-badge severity-@selectedIncident.Severity.ToLower()">
                             @selectedIncident.Severity
                         </span>
-                        <span class="status-badge status-@selectedIncident.Status.ToLower().Replace(" ", "-")">
+                        <span class="status-badge status-@selectedIncident.Status.ToLower().Replace(' ', '-')">
                             @selectedIncident.Status
                         </span>
                     </div>
@@ -885,7 +885,7 @@
             if (!isAnonymous)
             {
                 incident.ReporterName = GetRandomName(random);
-                incident.ReporterEmail = $"{incident.ReporterName.ToLower().Replace(" ", ".")}@example.com";
+                incident.ReporterEmail = $"{incident.ReporterName.ToLower().Replace(' ', '.')}@example.com";
                 incident.ReporterId = random.Next(100, 1000);
             }
 
@@ -976,7 +976,7 @@
 
         if (!string.IsNullOrEmpty(filterStatus))
         {
-            filtered = filtered.Where(i => i.Status.Replace(" ", "-").ToLower() == filterStatus);
+            filtered = filtered.Where(i => i.Status.Replace(' ', '-').ToLower() == filterStatus);
         }
 
         if (!string.IsNullOrEmpty(filterSeverity))
@@ -986,7 +986,7 @@
 
         if (!string.IsNullOrEmpty(filterType))
         {
-            filtered = filtered.Where(i => i.Type.Replace(" ", "-").ToLower() == filterType);
+            filtered = filtered.Where(i => i.Type.Replace(' ', '-').ToLower() == filterType);
         }
 
         if (!string.IsNullOrEmpty(searchTerm))

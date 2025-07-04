@@ -22,5 +22,10 @@ namespace WitchCityRope.Api.Interfaces
         /// Refreshes an expired JWT token
         /// </summary>
         Task<LoginResponse> RefreshTokenAsync(string refreshToken);
+
+        /// <summary>
+        /// Verifies a user's email address with the provided token
+        /// </summary>
+        Task VerifyEmailAsync(string token);
     }
 }

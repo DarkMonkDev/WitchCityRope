@@ -186,7 +186,7 @@ namespace WitchCityRope.Infrastructure.Tests.Data
                 .ToListAsync();
 
             // Assert
-            pagedResults.Should().HaveCountLessOrEqualTo(pageSize);
+            pagedResults.Should().HaveCount(c => c <= pageSize);
             if (totalCount > pageSize)
             {
                 pagedResults.Should().NotBeEmpty();

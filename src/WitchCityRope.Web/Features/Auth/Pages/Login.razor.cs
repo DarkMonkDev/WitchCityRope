@@ -48,7 +48,10 @@ public partial class Login : ComponentBase
                 // Get return URL from query string or default to dashboard
                 var uri = new Uri(Navigation.Uri);
                 var returnUrl = System.Web.HttpUtility.ParseQueryString(uri.Query).Get("returnUrl");
-                Navigation.NavigateTo(!string.IsNullOrEmpty(returnUrl) ? returnUrl : "/member/dashboard");
+                var navigateTo = !string.IsNullOrEmpty(returnUrl) ? returnUrl : "/member/dashboard";
+                
+                // Force a full page reload to ensure authentication state is properly set
+                Navigation.NavigateTo(navigateTo, forceLoad: true);
             }
             else
             {
@@ -80,7 +83,8 @@ public partial class Login : ComponentBase
                 var loginResult = await AuthService.LoginAsync(_registerModel.Email, _registerModel.Password);
                 if (loginResult.Success)
                 {
-                    Navigation.NavigateTo("/member/dashboard");
+                    // Force a full page reload to ensure authentication state is properly set
+                    Navigation.NavigateTo("/member/dashboard", forceLoad: true);
                 }
             }
             else

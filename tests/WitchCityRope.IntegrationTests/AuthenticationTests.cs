@@ -16,12 +16,12 @@ using WitchCityRope.Infrastructure.Data;
 
 namespace WitchCityRope.IntegrationTests
 {
-    public class AuthenticationTests : IClassFixture<WebApplicationFactory<Program>>
+    public class AuthenticationTests : IClassFixture<WebApplicationFactory<WitchCityRope.Web.Program>>
     {
-        private readonly WebApplicationFactory<Program> _factory;
+        private readonly WebApplicationFactory<WitchCityRope.Web.Program> _factory;
         private readonly HttpClient _client;
 
-        public AuthenticationTests(WebApplicationFactory<Program> factory)
+        public AuthenticationTests(WebApplicationFactory<WitchCityRope.Web.Program> factory)
         {
             _factory = factory.WithWebHostBuilder(builder =>
             {

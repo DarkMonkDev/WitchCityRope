@@ -118,7 +118,7 @@
                     {
                         @foreach (var ticket in upcomingTickets)
                         {
-                            <div class="ticket-card" @onclick="@(() => ViewTicketDetails(ticket.Id))">
+                            <div class="ticket-card" @onclick="() => ViewTicketDetails(ticket.Id)">
                                 <div class="ticket-header">
                                     <h3 class="ticket-title">@ticket.EventTitle</h3>
                                     <span class="ticket-status badge badge-@ticket.Status.ToLower()">@ticket.Status</span>
@@ -175,7 +175,7 @@
                     {
                         @foreach (var ticket in pastTickets)
                         {
-                            <div class="ticket-card ticket-past" @onclick="@(() => ViewTicketDetails(ticket.Id))">
+                            <div class="ticket-card ticket-past" @onclick="() => ViewTicketDetails(ticket.Id)">
                                 <div class="ticket-header">
                                     <h3 class="ticket-title">@ticket.EventTitle</h3>
                                     <span class="ticket-status badge badge-@ticket.Status.ToLower()">@ticket.Status</span>

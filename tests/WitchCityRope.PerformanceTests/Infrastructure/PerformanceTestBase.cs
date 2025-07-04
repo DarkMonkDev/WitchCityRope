@@ -46,9 +46,29 @@ namespace WitchCityRope.PerformanceTests.Infrastructure
 
         protected NodeStats RunScenarios(params ScenarioProps[] scenarios)
         {
+            var reportFormats = Settings.ReportFormats
+                .Select(f => 
+                {
+                    // Map our custom enum to NBomber's ReportFormat enum
+                    var formatName = f.ToString();
+                    
+                    // Try to parse the enum value, ignoring case
+                    if (Enum.TryParse<NBomber.Contracts.Stats.ReportFormat>(formatName, ignoreCase: true, out var nbomberFormat))
+                    {
+                        return nbomberFormat;
+                    }
+                    
+                    // Log warning and skip unknown format
+                    Console.WriteLine($"Warning: Unknown report format '{formatName}'. Skipping.");
+                    return (NBomber.Contracts.Stats.ReportFormat?)null;
+                })
+                .Where(f => f.HasValue)
+                .Select(f => f!.Value)
+                .ToArray();
+
             return NBomberRunner
                 .RegisterScenarios(scenarios)
-                .WithReportFormats(Settings.ReportFormats.Select(f => (NBomber.Contracts.Stats.ReportFormat)Enum.Parse(typeof(NBomber.Contracts.Stats.ReportFormat), f.ToString())).ToArray())
+                .WithReportFormats(reportFormats)
                 .WithReportFolder($"reports/{DateTime.Now:yyyy-MM-dd_HH-mm-ss}")
                 .Run();
         }

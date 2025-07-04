@@ -10,7 +10,7 @@ Witch City Rope uses a pragmatic, simplified technical stack optimized for a sin
 - **Framework**: ASP.NET Core 9.0 (latest LTS)
 - **Language**: C# 12
 - **Architecture**: Vertical Slice Architecture with Direct Services
-- **Database**: SQLite
+- **Database**: PostgreSQL 16 (migrating from SQLite)
 - **ORM**: Entity Framework Core 9.0
 
 ### Frontend
@@ -20,10 +20,14 @@ Witch City Rope uses a pragmatic, simplified technical stack optimized for a sin
 - **JavaScript**: Minimal (mobile menu, interactions only)
 
 ### Infrastructure
-- **Container**: Docker (single container)
-- **Web Server**: Kestrel with reverse proxy
-- **Hosting**: Low-cost VPS ($5-10/month)
-- **CI/CD**: GitHub Actions (free tier)
+- **Containerization**: Docker with multi-container architecture
+  - Web application container (ASP.NET Core)
+  - PostgreSQL database container
+  - Nginx reverse proxy container (production)
+- **Orchestration**: Docker Compose
+- **Web Server**: Kestrel with Nginx reverse proxy
+- **Hosting**: VPS with Docker support
+- **CI/CD**: GitHub Actions with Docker build pipeline
 
 ## NuGet Packages
 
@@ -36,7 +40,7 @@ Witch City Rope uses a pragmatic, simplified technical stack optimized for a sin
   <ItemGroup>
     <!-- Core Framework -->
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.*" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.*" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.*" />
 
     <!-- UI Components -->
@@ -327,7 +331,7 @@ builder.Services.AddServerSideBlazor();
 
 // Add database
 builder.Services.AddDbContext<WitchCityRopeDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add feature services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -471,48 +475,92 @@ public class EventService : IEventService
 
 ## Deployment Strategy
 
-### Docker Configuration
+### Docker Configuration (Multi-stage Build)
 ```dockerfile
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
-WORKDIR /app
-EXPOSE 80
-EXPOSE 443
-
+# Build stage
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
-COPY ["src/WitchCityRope.Web/WitchCityRope.Web.csproj", "src/WitchCityRope.Web/"]
-RUN dotnet restore "src/WitchCityRope.Web/WitchCityRope.Web.csproj"
-COPY . .
-WORKDIR "/src/src/WitchCityRope.Web"
+COPY ["src/WitchCityRope.Web/WitchCityRope.Web.csproj", "WitchCityRope.Web/"]
+COPY ["src/WitchCityRope.Core/WitchCityRope.Core.csproj", "WitchCityRope.Core/"]
+COPY ["src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj", "WitchCityRope.Infrastructure/"]
+RUN dotnet restore "WitchCityRope.Web/WitchCityRope.Web.csproj"
+COPY src/ .
+WORKDIR "/src/WitchCityRope.Web"
 RUN dotnet build "WitchCityRope.Web.csproj" -c Release -o /app/build
 
+# Publish stage
 FROM build AS publish
 RUN dotnet publish "WitchCityRope.Web.csproj" -c Release -o /app/publish
 
-FROM base AS final
+# Development stage
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS development
 WORKDIR /app
+EXPOSE 8080 8443
+ENV ASPNETCORE_ENVIRONMENT=Development
+ENV DOTNET_USE_POLLING_FILE_WATCHER=true
+ENTRYPOINT ["dotnet", "watch", "run", "--project", "/src/WitchCityRope.Web/WitchCityRope.Web.csproj"]
+
+# Final production stage
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+WORKDIR /app
+EXPOSE 8080 8443
 COPY --from=publish /app/publish .
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/health || exit 1
 ENTRYPOINT ["dotnet", "WitchCityRope.Web.dll"]
 ```
 
-### docker-compose.yml
+### docker-compose.yml (Development)
 ```yaml
 version: '3.8'
 
 services:
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: witchcityrope-web
     ports:
-      - "80:80"
-      - "443:443"
+      - "5000:8080"
+      - "5001:8443"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=/data/witchcityrope.db
-      - SendGrid__ApiKey=${SENDGRID_API_KEY}
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=witchcityrope;Username=postgres;Password=${POSTGRES_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
     volumes:
-      - ./data:/data
-      - ./certs:/https
-    restart: unless-stopped
+      - ./src:/src:cached
+      - app_logs:/app/logs
+    networks:
+      - witchcityrope-network
+
+  db:
+    image: postgres:16-alpine
+    container_name: witchcityrope-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=witchcityrope
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - witchcityrope-network
+
+volumes:
+  postgres_data:
+  app_logs:
+
+networks:
+  witchcityrope-network:
+    driver: bridge
 ```
 
 ### GitHub Actions CI/CD
@@ -545,7 +593,19 @@ jobs:
       run: dotnet test --no-build --verbosity normal
       
     - name: Build Docker image
-      run: docker build -t witchcityrope:latest .
+      run: docker build -t witchcityrope:latest -f Dockerfile --target final .
+      
+    - name: Login to Docker Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ secrets.DOCKER_REGISTRY }}
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        
+    - name: Push Docker image
+      run: |
+        docker tag witchcityrope:latest ${{ secrets.DOCKER_REGISTRY }}/witchcityrope:latest
+        docker push ${{ secrets.DOCKER_REGISTRY }}/witchcityrope:latest
       
     - name: Deploy to VPS
       uses: appleboy/ssh-action@v0.1.5
@@ -555,19 +615,24 @@ jobs:
         key: ${{ secrets.VPS_KEY }}
         script: |
           cd /opt/witchcityrope
-          docker-compose pull
-          docker-compose up -d
+          docker-compose -f docker-compose.prod.yml pull
+          docker-compose -f docker-compose.prod.yml up -d
+          docker-compose -f docker-compose.prod.yml exec -T web dotnet ef database update
 ```
 
 ## Performance Optimization
 
-### SQLite Configuration
+### PostgreSQL Configuration
 ```csharp
 protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 {
-    optionsBuilder.UseSqlite(connectionString, options =>
+    optionsBuilder.UseNpgsql(connectionString, options =>
     {
         options.CommandTimeout(30);
+        options.EnableRetryOnFailure(
+            maxRetryCount: 3,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorCodesToAdd: null);
     });
     
     // Enable connection pooling
@@ -579,6 +644,10 @@ protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     optionsBuilder.LogTo(Console.WriteLine, LogLevel.Information);
     #endif
 }
+
+// Connection string configuration for Docker
+// Development: Host=db;Port=5432;Database=witchcityrope;Username=postgres;Password=dev_password
+// Production: Uses environment variables or Docker secrets
 ```
 
 ### Blazor Server Optimization

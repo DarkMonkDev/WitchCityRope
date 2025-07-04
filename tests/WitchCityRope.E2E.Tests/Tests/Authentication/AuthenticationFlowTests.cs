@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.Playwright;
 using WitchCityRope.E2E.Tests.Infrastructure;
 using WitchCityRope.E2E.Tests.PageObjects.Auth;
 using WitchCityRope.E2E.Tests.PageObjects.Common;
@@ -24,8 +25,8 @@ public class AuthenticationFlowTests : BaseE2ETest
 
         // Assert
         await loginPage.WaitForLoginSuccessAsync();
-        await dashboardPage.IsCurrentPageAsync().Should().BeTrueAsync();
-        await navigation.IsLoggedInAsync().Should().BeTrueAsync();
+        (await dashboardPage.IsCurrentPageAsync()).Should().BeTrue();
+        (await navigation.IsLoggedInAsync()).Should().BeTrue();
 
         // Verify user info is displayed
         var sceneName = await dashboardPage.GetUserSceneNameAsync();
@@ -42,20 +43,18 @@ public class AuthenticationFlowTests : BaseE2ETest
         await loginPage.NavigateAsync();
         await loginPage.LoginAsync("nonexistent@example.com", "Password123!");
         
-        await loginPage.HasErrorMessageAsync().Should().BeTrueAsync();
+        (await loginPage.HasErrorMessageAsync()).Should().BeTrue();
         var errorMessage = await loginPage.GetErrorMessageAsync();
-        errorMessage.Should().Contain(new[] { "invalid", "incorrect", "not found" }, 
-            StringComparison.OrdinalIgnoreCase);
+        errorMessage.Should().ContainAny("invalid", "incorrect", "not found");
 
         // Test 2: Wrong password
         var testUser = await TestDataManager.CreateTestUserAsync(isVerified: true);
         await Page.ReloadAsync();
         await loginPage.LoginAsync(testUser.Email, "WrongPassword123!");
         
-        await loginPage.HasErrorMessageAsync().Should().BeTrueAsync();
+        (await loginPage.HasErrorMessageAsync()).Should().BeTrue();
         errorMessage = await loginPage.GetErrorMessageAsync();
-        errorMessage.Should().Contain(new[] { "invalid", "incorrect", "password" }, 
-            StringComparison.OrdinalIgnoreCase);
+        errorMessage.Should().ContainAny("invalid", "incorrect", "password");
     }
 
     [TestMethod]
@@ -236,8 +235,8 @@ public class AuthenticationFlowTests : BaseE2ETest
 
         // Assert - Both sessions should be active
         var firstNavigation = new NavigationComponent(Page, TestSettings.BaseUrl);
-        await firstNavigation.IsLoggedInAsync().Should().BeTrueAsync();
-        await secondNavigation.IsLoggedInAsync().Should().BeTrueAsync();
+        (await firstNavigation.IsLoggedInAsync()).Should().BeTrue();
+        (await secondNavigation.IsLoggedInAsync()).Should().BeTrue();
 
         // Cleanup
         await secondContext.CloseAsync();

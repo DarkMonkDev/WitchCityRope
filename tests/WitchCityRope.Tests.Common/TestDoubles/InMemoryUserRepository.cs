@@ -12,7 +12,7 @@ namespace WitchCityRope.Tests.Common.TestDoubles
         private readonly ConcurrentDictionary<Guid, User> _users = new();
         private readonly ConcurrentDictionary<string, User> _usersByEmail = new();
         private readonly ConcurrentDictionary<string, User> _usersBySceneName = new();
-        private readonly ConcurrentDictionary<string, RefreshToken> _refreshTokens = new();
+        private readonly ConcurrentDictionary<string, Interfaces.RefreshToken> _refreshTokens = new();
 
         public bool SimulateFailure { get; set; }
         public int DelayMs { get; set; }
@@ -136,7 +136,7 @@ namespace WitchCityRope.Tests.Common.TestDoubles
             return _users.Values.ToList();
         }
 
-        public async Task<RefreshToken?> GetRefreshTokenAsync(string token)
+        public async Task<Interfaces.RefreshToken?> GetRefreshTokenAsync(string token)
         {
             if (DelayMs > 0) await Task.Delay(DelayMs);
             if (SimulateFailure) throw new InvalidOperationException("Repository failure");
@@ -144,7 +144,7 @@ namespace WitchCityRope.Tests.Common.TestDoubles
             return _refreshTokens.TryGetValue(token, out var refreshToken) ? refreshToken : null;
         }
 
-        public async Task SaveRefreshTokenAsync(RefreshToken refreshToken)
+        public async Task SaveRefreshTokenAsync(Interfaces.RefreshToken refreshToken)
         {
             if (DelayMs > 0) await Task.Delay(DelayMs);
             if (SimulateFailure) throw new InvalidOperationException("Repository failure");

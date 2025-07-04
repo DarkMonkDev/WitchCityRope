@@ -74,7 +74,7 @@
                 @foreach (var eventItem in filteredEvents)
                 {
                     <div class="event-card @(eventItem.IsMemberOnly && !isAuthenticated ? "member-only-locked" : "")" 
-                         @onclick="@(() => NavigateToEvent(eventItem.Id))">
+                         @onclick="() => NavigateToEvent(eventItem.Id)">
                         <div class="event-image" style="background: linear-gradient(135deg, var(--wcr-color-burgundy) 0%, var(--wcr-color-plum) 100%);">
                             @if (eventItem.EventType != null)
                             {
@@ -171,15 +171,15 @@
                 Id = e.Id,
                 Title = e.Title,
                 Description = GetEventDescription(e),
-                StartDate = e.StartDate,
-                EndDate = e.StartDate.AddHours(2), // Default to 2 hours duration
+                StartDateTime = e.StartDateTime,
+                EndDate = e.StartDateTime.AddHours(2), // Default to 2 hours duration
                 Location = e.Location,
                 Price = e.Price,
                 AvailableSpots = e.AvailableSpots,
                 EventType = DetermineEventType(e),
                 IsMemberOnly = e.Title.Contains("Member", StringComparison.OrdinalIgnoreCase) || 
                                e.Title.Contains("Jam", StringComparison.OrdinalIgnoreCase),
-                IsPast = e.StartDate < DateTime.Now
+                IsPast = e.StartDateTime < DateTime.UtcNow
             }).ToList();
 
             ApplyFilters();

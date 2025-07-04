@@ -23,10 +23,10 @@ namespace WitchCityRope.Infrastructure.Security
         public JwtTokenService(IConfiguration configuration)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _issuer = configuration["Jwt:Issuer"] ?? "WitchCityRope";
-            _audience = configuration["Jwt:Audience"] ?? "WitchCityRope";
-            _secretKey = configuration["Jwt:SecretKey"];
-            _expirationMinutes = configuration.GetValue<int>("Jwt:ExpirationMinutes", 60);
+            _issuer = configuration["JwtSettings:Issuer"] ?? "WitchCityRope";
+            _audience = configuration["JwtSettings:Audience"] ?? "WitchCityRope";
+            _secretKey = configuration["JwtSettings:SecretKey"];
+            _expirationMinutes = configuration.GetValue<int>("JwtSettings:ExpirationMinutes", 60);
 
             if (string.IsNullOrEmpty(_secretKey))
             {

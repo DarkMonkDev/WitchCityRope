@@ -16,14 +16,23 @@ using WitchCityRope.Api.Interfaces;
 using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Extensions;
 
-var builder = WebApplication.CreateBuilder(args);
+// Register Syncfusion license early
+var syncfusionLicense = Environment.GetEnvironmentVariable("SYNCFUSION_LICENSE_KEY") 
+    ?? new ConfigurationBuilder()
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("appsettings.json", optional: false)
+        .Build()["Syncfusion:LicenseKey"];
 
-// Register Syncfusion license
-var syncfusionLicense = builder.Configuration["Syncfusion:LicenseKey"];
 if (!string.IsNullOrEmpty(syncfusionLicense))
 {
+    syncfusionLicense = syncfusionLicense.Trim();
     SyncfusionLicenseProvider.RegisterLicense(syncfusionLicense);
+    Console.WriteLine($"[API] Syncfusion license registered: {syncfusionLicense.Substring(0, 10)}...");
 }
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Configure services
 
 // Configure logging
 builder.Logging.ClearProviders();
@@ -75,6 +84,8 @@ builder.Services.AddDataProtection();
 
 var app = builder.Build();
 
+// Health checks are mapped in ConfigureApiPipeline
+
 // Initialize database with seed data
 using (var scope = app.Services.CreateScope())
 {
@@ -104,6 +115,43 @@ app.MapHub<NotificationHub>("/hubs/notifications");
 app.MapGroup("/api/v1")
     .WithTags("API v1")
     .MapApiEndpoints();
+
+// Map the /api/auth/me endpoint directly (without v1 prefix) for backward compatibility
+app.MapGet("/api/auth/me", async (
+    HttpContext context,
+    WitchCityRope.Api.Features.Auth.Services.IUserRepository userRepository) =>
+{
+    if (!context.User.Identity?.IsAuthenticated ?? true)
+    {
+        return Results.Unauthorized();
+    }
+    
+    var userId = context.User.GetUserIdOrNull();
+    if (!userId.HasValue)
+    {
+        return Results.Unauthorized();
+    }
+    
+    var user = await userRepository.GetByIdAsync(userId.Value);
+    if (user == null)
+    {
+        return Results.NotFound();
+    }
+    
+    // Return UserInfo structure expected by the Web app
+    return Results.Ok(new
+    {
+        id = user.Id.ToString(),
+        email = user.Email.Value,
+        firstName = user.SceneName.Value,  // Using scene name as first name
+        lastName = "",  // No last name in this system
+        avatarUrl = (string?)null,
+        roles = new List<string> { user.Role.ToString() }
+    });
+})
+.RequireAuthorization()
+.WithName("GetCurrentUserCompat")
+.WithOpenApi();
 
 // Run the application
 app.Run();
@@ -507,19 +555,36 @@ public static class EndpointExtensions
         .WithOpenApi();
         
         // Authentication test endpoint
-        group.MapGet("/auth/me", async (HttpContext context) =>
+        group.MapGet("/auth/me", async (
+            HttpContext context,
+            WitchCityRope.Api.Features.Auth.Services.IUserRepository userRepository) =>
         {
             if (!context.User.Identity?.IsAuthenticated ?? true)
             {
                 return Results.Unauthorized();
             }
             
+            var userId = context.User.GetUserIdOrNull();
+            if (!userId.HasValue)
+            {
+                return Results.Unauthorized();
+            }
+            
+            var user = await userRepository.GetByIdAsync(userId.Value);
+            if (user == null)
+            {
+                return Results.NotFound();
+            }
+            
+            // Return UserInfo structure expected by the Web app
             return Results.Ok(new
             {
-                isAuthenticated = true,
-                userName = context.User.Identity?.Name,
-                claims = context.User.Claims.Select(c => new { c.Type, c.Value }),
-                userId = context.User.GetUserIdOrNull()
+                id = user.Id.ToString(),
+                email = user.Email.Value,
+                firstName = user.FirstName ?? "",
+                lastName = user.LastName ?? "",
+                avatarUrl = (string?)null,
+                roles = new List<string> { user.Role.ToString() }
             });
         })
         .RequireAuthorization()
@@ -550,10 +615,7 @@ public static class EndpointExtensions
         .WithName("UpdateUserProfile")
         .WithOpenApi();
 
-        // Health check endpoint
-        group.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
-            .WithName("HealthCheck")
-            .WithOpenApi();
+        // Note: Health check endpoints are now provided by MapDefaultEndpoints() at /health and /alive
 
         return group;
     }

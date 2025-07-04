@@ -132,7 +132,7 @@ namespace WitchCityRope.Api.Features.Auth.Services
             var verificationToken = GenerateVerificationToken();
 
             // Create user authentication record
-            var userAuth = new UserAuthentication
+            var userAuth = new UserAuthenticationDto
             {
                 UserId = user.Id,
                 PasswordHash = passwordHash,
@@ -165,7 +165,7 @@ namespace WitchCityRope.Api.Features.Auth.Services
         /// <summary>
         /// Verifies a user's email address using the verification token
         /// </summary>
-        public async Task<bool> VerifyEmailAsync(string token)
+        public async Task VerifyEmailAsync(string token)
         {
             var userAuth = await _userRepository.GetByVerificationTokenAsync(token);
             if (userAuth == null)
@@ -181,8 +181,6 @@ namespace WitchCityRope.Api.Features.Auth.Services
 
             // Mark email as verified
             await _userRepository.VerifyEmailAsync(userAuth.UserId);
-            
-            return true;
         }
 
         /// <summary>
@@ -234,64 +232,8 @@ namespace WitchCityRope.Api.Features.Auth.Services
         }
     }
 
-    // Repository interfaces
-    public interface IUserRepository
-    {
-        Task<UserWithAuth?> GetByEmailAsync(string email);
-        Task<User?> GetByIdAsync(Guid userId);
-        Task<bool> IsSceneNameTakenAsync(string sceneName);
-        Task CreateAsync(User user, UserAuthentication userAuth);
-        Task UpdateLastLoginAsync(Guid userId);
-        Task StoreRefreshTokenAsync(Guid userId, string refreshToken, DateTime expiresAt);
-        Task<RefreshTokenInfo?> GetRefreshTokenInfoAsync(string refreshToken);
-        Task InvalidateRefreshTokenAsync(string refreshToken);
-        Task<UserAuthentication?> GetByVerificationTokenAsync(string token);
-        Task VerifyEmailAsync(Guid userId);
-    }
-
-    // Service interfaces
-    public interface IPasswordHasher
-    {
-        bool VerifyPassword(string password, string passwordHash);
-        string HashPassword(string password);
-    }
-
-    public interface IJwtService
-    {
-        JwtToken GenerateToken(UserWithAuth user);
-        string GenerateRefreshToken();
-    }
-
-    public interface IEmailService
-    {
-        Task<bool> SendVerificationEmailAsync(string email, string displayName, string token);
-    }
-
-    public interface IEncryptionService
-    {
-        string Encrypt(string plainText);
-        string Decrypt(string cipherText);
-    }
-
-    // Supporting classes
-    public class UserWithAuth
-    {
-        public User User { get; set; } = null!;
-        public string PasswordHash { get; set; } = string.Empty;
-        public bool EmailVerified { get; set; }
-        public string? PronouncedName { get; set; }
-        public string? Pronouns { get; set; }
-        public DateTime? LastLoginAt { get; set; }
-        
-        // Convenience properties
-        public Guid Id => User.Id;
-        public EmailAddress Email => User.Email;
-        public SceneName SceneName => User.SceneName;
-        public UserRole Role => User.Role;
-        public bool IsActive => User.IsActive;
-    }
-
-    public class UserAuthentication
+    // Local UserAuthentication model for Auth feature that extends Core entity
+    public class UserAuthenticationDto
     {
         public Guid UserId { get; set; }
         public string PasswordHash { get; set; } = string.Empty;
@@ -301,18 +243,6 @@ namespace WitchCityRope.Api.Features.Auth.Services
         public string? PronouncedName { get; set; }
         public string? Pronouns { get; set; }
         public DateTime? LastLoginAt { get; set; }
-    }
-
-    public class RefreshTokenInfo
-    {
-        public Guid UserId { get; set; }
-        public DateTime ExpiresAt { get; set; }
-    }
-
-    public class JwtToken
-    {
-        public string Token { get; set; } = string.Empty;
-        public DateTime ExpiresAt { get; set; }
     }
 
     // Custom exceptions

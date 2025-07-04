@@ -1,0 +1,342 @@
+@using WitchCityRope.Web.Shared.Components.UI
+
+<div class="dashboard-skeleton">
+    @* Header skeleton - welcome message area *@
+    <div class="dashboard-skeleton-header">
+        <SkeletonLoader Type="SkeletonLoader.SkeletonType.Text" Size="large" Width="40%" />
+        <SkeletonLoader Type="SkeletonLoader.SkeletonType.Text" Width="60%" />
+    </div>
+    
+    <div class="dashboard-skeleton-grid">
+        <div class="dashboard-skeleton-main">
+            @* Upcoming events skeleton - 3 cards *@
+            <div class="dashboard-skeleton-events">
+                <SkeletonLoader Type="SkeletonLoader.SkeletonType.Text" Size="large" Width="200px" />
+                <div class="dashboard-skeleton-events-grid">
+                    @for (int i = 0; i < 3; i++)
+                    {
+                        <div class="skeleton skeleton-event-card">
+                            <div class="skeleton-shimmer"></div>
+                            <div class="skeleton-event-header"></div>
+                            <div class="skeleton-event-content">
+                                <div class="skeleton skeleton-event-title">
+                                    <div class="skeleton-shimmer"></div>
+                                </div>
+                                <div class="skeleton skeleton-event-date">
+                                    <div class="skeleton-shimmer"></div>
+                                </div>
+                                <div class="skeleton skeleton-event-location">
+                                    <div class="skeleton-shimmer"></div>
+                                </div>
+                                <div class="skeleton skeleton-event-description">
+                                    <div class="skeleton-shimmer"></div>
+                                </div>
+                                <div class="skeleton skeleton-event-button">
+                                    <div class="skeleton-shimmer"></div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        
+        <div class="dashboard-skeleton-sidebar">
+            @* Membership status card skeleton *@
+            <div class="skeleton skeleton-membership-card">
+                <div class="skeleton-shimmer"></div>
+                <div class="skeleton-card-content">
+                    <div class="skeleton skeleton-membership-title">
+                        <div class="skeleton-shimmer"></div>
+                    </div>
+                    <div class="skeleton-membership-stats">
+                        @for (int i = 0; i < 3; i++)
+                        {
+                            <div class="skeleton-stat-row">
+                                <div class="skeleton skeleton-stat-label">
+                                    <div class="skeleton-shimmer"></div>
+                                </div>
+                                <div class="skeleton skeleton-stat-value">
+                                    <div class="skeleton-shimmer"></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            
+            @* Quick links grid skeleton *@
+            <div class="skeleton skeleton-quicklinks-card">
+                <div class="skeleton-shimmer"></div>
+                <div class="skeleton-card-content">
+                    <div class="skeleton skeleton-quicklinks-title">
+                        <div class="skeleton-shimmer"></div>
+                    </div>
+                    <div class="skeleton-quicklinks-grid">
+                        @for (int i = 0; i < 6; i++)
+                        {
+                            <div class="skeleton skeleton-quicklink-item">
+                                <div class="skeleton-shimmer"></div>
+                                <div class="skeleton skeleton-quicklink-icon">
+                                    <div class="skeleton-shimmer"></div>
+                                </div>
+                                <div class="skeleton skeleton-quicklink-text">
+                                    <div class="skeleton-shimmer"></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-skeleton {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: var(--wcr-space-lg);
+    }
+    
+    /* Header skeleton */
+    .dashboard-skeleton-header {
+        margin-bottom: var(--wcr-space-xl);
+    }
+    
+    /* Main grid layout */
+    .dashboard-skeleton-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--wcr-space-lg);
+    }
+    
+    .dashboard-skeleton-main {
+        display: flex;
+        flex-direction: column;
+        gap: var(--wcr-space-lg);
+    }
+    
+    .dashboard-skeleton-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: var(--wcr-space-lg);
+    }
+    
+    /* Events section */
+    .dashboard-skeleton-events {
+        display: flex;
+        flex-direction: column;
+        gap: var(--wcr-space-md);
+    }
+    
+    .dashboard-skeleton-events-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--wcr-space-md);
+    }
+    
+    /* Event card skeleton */
+    .skeleton-event-card {
+        background-color: var(--wcr-ivory);
+        border-radius: var(--wcr-radius-lg);
+        overflow: hidden;
+        box-shadow: var(--wcr-shadow-sm);
+        border: 1px solid var(--wcr-taupe);
+    }
+    
+    .skeleton-event-header {
+        height: 140px;
+        background-color: var(--wcr-taupe);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .skeleton-event-content {
+        padding: var(--wcr-space-md);
+        display: flex;
+        flex-direction: column;
+        gap: var(--wcr-space-sm);
+    }
+    
+    .skeleton-event-title {
+        height: 1.5em;
+        width: 80%;
+    }
+    
+    .skeleton-event-date,
+    .skeleton-event-location {
+        height: 1em;
+        width: 60%;
+    }
+    
+    .skeleton-event-description {
+        height: 2.5em;
+        margin-top: var(--wcr-space-xs);
+    }
+    
+    .skeleton-event-button {
+        height: 2.5em;
+        width: 120px;
+        margin-top: var(--wcr-space-sm);
+        border-radius: var(--wcr-radius-pill);
+    }
+    
+    /* Membership status card */
+    .skeleton-membership-card {
+        background-color: var(--wcr-ivory);
+        border-radius: var(--wcr-radius-lg);
+        overflow: hidden;
+        box-shadow: var(--wcr-shadow-sm);
+        border: 1px solid var(--wcr-taupe);
+    }
+    
+    .skeleton-card-content {
+        padding: var(--wcr-space-lg);
+    }
+    
+    .skeleton-membership-title {
+        height: 1.5em;
+        width: 60%;
+        margin-bottom: var(--wcr-space-md);
+    }
+    
+    .skeleton-membership-stats {
+        display: flex;
+        flex-direction: column;
+        gap: var(--wcr-space-sm);
+    }
+    
+    .skeleton-stat-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .skeleton-stat-label {
+        height: 1em;
+        width: 40%;
+    }
+    
+    .skeleton-stat-value {
+        height: 1.2em;
+        width: 30%;
+    }
+    
+    /* Quick links card */
+    .skeleton-quicklinks-card {
+        background-color: var(--wcr-ivory);
+        border-radius: var(--wcr-radius-lg);
+        overflow: hidden;
+        box-shadow: var(--wcr-shadow-sm);
+        border: 1px solid var(--wcr-taupe);
+    }
+    
+    .skeleton-quicklinks-title {
+        height: 1.5em;
+        width: 50%;
+        margin-bottom: var(--wcr-space-md);
+    }
+    
+    .skeleton-quicklinks-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--wcr-space-sm);
+    }
+    
+    .skeleton-quicklink-item {
+        background-color: var(--wcr-cream);
+        border-radius: var(--wcr-radius-md);
+        padding: var(--wcr-space-md);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--wcr-space-xs);
+        min-height: 80px;
+    }
+    
+    .skeleton-quicklink-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: var(--wcr-radius-sm);
+    }
+    
+    .skeleton-quicklink-text {
+        height: 0.9em;
+        width: 80%;
+    }
+    
+    /* Base skeleton styles */
+    .skeleton {
+        position: relative;
+        overflow: hidden;
+        background-color: var(--wcr-taupe);
+        border-radius: var(--wcr-radius-sm);
+    }
+    
+    /* Shimmer animation */
+    .skeleton-shimmer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.4),
+            transparent
+        );
+        animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    }
+    
+    @@keyframes skeleton-shimmer {
+        0% {
+            transform: translateX(-100%);
+        }
+        100% {
+            transform: translateX(100%);
+        }
+    }
+    
+    /* Responsive styles - Tablet 768px */
+    @@media (min-width: 768px) {
+        .dashboard-skeleton-grid {
+            gap: var(--wcr-space-xl);
+        }
+        
+        .dashboard-skeleton-events-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .skeleton-quicklinks-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    
+    /* Desktop - 1024px */
+    @@media (min-width: 1024px) {
+        .dashboard-skeleton-grid {
+            grid-template-columns: 2fr 1fr;
+        }
+        
+        .dashboard-skeleton-events-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    
+    /* Large desktop - 1440px */
+    @@media (min-width: 1440px) {
+        .dashboard-skeleton {
+            max-width: 1320px;
+        }
+    }
+    
+    /* Reduced motion support */
+    @@media (prefers-reduced-motion: reduce) {
+        .skeleton-shimmer {
+            animation: none;
+            background: rgba(255, 255, 255, 0.2);
+        }
+    }
+</style>

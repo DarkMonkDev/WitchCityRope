@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components;
 using Moq;
 using WitchCityRope.Web.Services;
 using Microsoft.JSInterop;
+using AngleSharp.Dom;
 
 namespace WitchCityRope.Web.Tests.Helpers
 {

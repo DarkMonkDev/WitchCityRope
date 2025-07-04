@@ -2,6 +2,7 @@ using System;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Components.Authorization;
 using Bunit;
+using Bunit.TestDoubles;
 using Moq;
 using WitchCityRope.Web.Services;
 

@@ -186,47 +186,73 @@ public class EventService : IEventService
         var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
         var skip = (request.Page - 1) * request.PageSize;
 
-        // Apply sorting
-        query = request.SortBy switch
+        // For sorting by price or available spots, we need to materialize the query first
+        // since these involve computed values that EF Core can't translate
+        List<Event> sortedEvents;
+        
+        if (request.SortBy == EventSortBy.Price || request.SortBy == EventSortBy.AvailableSpots)
         {
-            EventSortBy.Title => request.SortDirection == SortDirection.Ascending
-                ? query.OrderBy(e => e.Title)
-                : query.OrderByDescending(e => e.Title),
-            EventSortBy.Price => request.SortDirection == SortDirection.Ascending
-                ? query.OrderBy(e => e.PricingTiers.Min(p => p.Amount))
-                : query.OrderByDescending(e => e.PricingTiers.Min(p => p.Amount)),
-            EventSortBy.AvailableSpots => request.SortDirection == SortDirection.Ascending
-                ? query.OrderBy(e => e.GetAvailableSpots())
-                : query.OrderByDescending(e => e.GetAvailableSpots()),
-            _ => request.SortDirection == SortDirection.Ascending
-                ? query.OrderBy(e => e.StartDate)
-                : query.OrderByDescending(e => e.StartDate)
-        };
+            // Get all filtered events first (without pagination)
+            var allEvents = await query.ToListAsync();
+            
+            // Apply sorting in memory
+            sortedEvents = request.SortBy switch
+            {
+                EventSortBy.Price => request.SortDirection == SortDirection.Ascending
+                    ? allEvents.OrderBy(e => e.PricingTiers.Any() ? e.PricingTiers.Min(p => p.Amount) : 0).ToList()
+                    : allEvents.OrderByDescending(e => e.PricingTiers.Any() ? e.PricingTiers.Min(p => p.Amount) : 0).ToList(),
+                EventSortBy.AvailableSpots => request.SortDirection == SortDirection.Ascending
+                    ? allEvents.OrderBy(e => e.GetAvailableSpots()).ToList()
+                    : allEvents.OrderByDescending(e => e.GetAvailableSpots()).ToList(),
+                _ => allEvents // This case won't be reached, but needed for completeness
+            };
+            
+            // Apply pagination
+            sortedEvents = sortedEvents
+                .Skip(skip)
+                .Take(request.PageSize)
+                .ToList();
+        }
+        else
+        {
+            // For other sorting options, we can use database sorting
+            query = request.SortBy switch
+            {
+                EventSortBy.Title => request.SortDirection == SortDirection.Ascending
+                    ? query.OrderBy(e => e.Title)
+                    : query.OrderByDescending(e => e.Title),
+                _ => request.SortDirection == SortDirection.Ascending
+                    ? query.OrderBy(e => e.StartDate)
+                    : query.OrderByDescending(e => e.StartDate)
+            };
+            
+            // Get paginated results
+            sortedEvents = await query
+                .Skip(skip)
+                .Take(request.PageSize)
+                .ToListAsync();
+        }
 
-        // Get paginated results
-        var events = await query
-            .Skip(skip)
-            .Take(request.PageSize)
-            .Select(e => new EventSummaryDto(
-                e.Id,
-                e.Title,
-                _slugGenerator.GenerateSlug(e.Title), // Generate slug from title
-                e.Description.Length > 200 ? e.Description.Substring(0, 200) + "..." : e.Description,
-                (EventType)e.EventType,
-                e.StartDate, // StartDateTime
-                e.EndDate, // EndDateTime
-                e.Location,
-                e.Capacity, // MaxAttendees
-                e.GetConfirmedRegistrationCount(), // CurrentAttendees
-                e.GetAvailableSpots(),
-                e.PricingTiers.Min(p => p.Amount), // Price
-                new List<string>(), // TODO: Add tags to event entity
-                new List<string>(), // TODO: Add skill levels to event entity
-                false, // TODO: Add RequiresVetting to event entity
-                e.Organizers.FirstOrDefault() != null ? e.Organizers.First().SceneName.Value : "Unknown",
-                "" // TODO: Add thumbnail URL
-            ))
-            .ToListAsync();
+        // Project to DTOs
+        var events = sortedEvents.Select(e => new EventSummaryDto(
+            e.Id,
+            e.Title,
+            _slugGenerator.GenerateSlug(e.Title), // Generate slug from title
+            e.Description.Length > 200 ? e.Description.Substring(0, 200) + "..." : e.Description,
+            (EventType)e.EventType,
+            e.StartDate, // StartDateTime
+            e.EndDate, // EndDateTime
+            e.Location,
+            e.Capacity, // MaxAttendees
+            e.GetConfirmedRegistrationCount(), // CurrentAttendees
+            e.GetAvailableSpots(),
+            e.PricingTiers.Any() ? e.PricingTiers.Min(p => p.Amount) : 0, // Price with null check
+            new List<string>(), // TODO: Add tags to event entity
+            new List<string>(), // TODO: Add skill levels to event entity
+            false, // TODO: Add RequiresVetting to event entity
+            e.Organizers.FirstOrDefault() != null ? e.Organizers.First().SceneName.Value : "Unknown",
+            "" // TODO: Add thumbnail URL
+        )).ToList();
 
         return new ListEventsResponse(
             Events: events,
@@ -240,36 +266,43 @@ public class EventService : IEventService
     public async Task<GetFeaturedEventsResponse> GetFeaturedEventsAsync(GetFeaturedEventsRequest request)
     {
         // Get upcoming events with available spots, prioritizing those starting soon
-        var events = await _dbContext.Events
+        // First get the events from the database
+        var eventsQuery = await _dbContext.Events
             .Include(e => e.Organizers)
             .Where(e => e.IsPublished)
             .Where(e => e.StartDate >= DateTime.UtcNow)
             .Where(e => e.StartDate <= DateTime.UtcNow.AddDays(30))
-            .Where(e => e.GetAvailableSpots() > 0)
             // TODO: Add RequiresVetting filter
             // .Where(e => !e.RequiresVetting) // Featured events should be public
             .OrderBy(e => e.StartDate)
-            .Take(request.Count)
-            .Select(e => new EventSummaryDto(
-                e.Id,
-                e.Title,
-                _slugGenerator.GenerateSlug(e.Title), // Generate slug from title
-                e.Description.Length > 150 ? e.Description.Substring(0, 150) + "..." : e.Description,
-                (EventType)e.EventType,
-                e.StartDate, // StartDateTime
-                e.EndDate, // EndDateTime
-                e.Location,
-                e.Capacity, // MaxAttendees
-                e.GetConfirmedRegistrationCount(), // CurrentAttendees
-                e.GetAvailableSpots(),
-                e.PricingTiers.Min(p => p.Amount), // Price
-                new List<string>(), // TODO: Add tags to event entity
-                new List<string>(), // TODO: Add skill levels to event entity
-                false, // TODO: Add RequiresVetting to event entity
-                e.Organizers.FirstOrDefault() != null ? e.Organizers.First().SceneName.Value : "Unknown",
-                "" // TODO: Add thumbnail URL
-            ))
             .ToListAsync();
+        
+        // Filter by available spots in memory (since GetAvailableSpots() can't be translated)
+        var filteredEvents = eventsQuery
+            .Where(e => e.GetAvailableSpots() > 0)
+            .Take(request.Count)
+            .ToList();
+        
+        // Project to DTOs
+        var events = filteredEvents.Select(e => new EventSummaryDto(
+            e.Id,
+            e.Title,
+            _slugGenerator.GenerateSlug(e.Title), // Generate slug from title
+            e.Description.Length > 150 ? e.Description.Substring(0, 150) + "..." : e.Description,
+            (EventType)e.EventType,
+            e.StartDate, // StartDateTime
+            e.EndDate, // EndDateTime
+            e.Location,
+            e.Capacity, // MaxAttendees
+            e.GetConfirmedRegistrationCount(), // CurrentAttendees
+            e.GetAvailableSpots(),
+            e.PricingTiers.Any() ? e.PricingTiers.Min(p => p.Amount) : 0, // Price with null check
+            new List<string>(), // TODO: Add tags to event entity
+            new List<string>(), // TODO: Add skill levels to event entity
+            false, // TODO: Add RequiresVetting to event entity
+            e.Organizers.FirstOrDefault() != null ? e.Organizers.First().SceneName.Value : "Unknown",
+            "" // TODO: Add thumbnail URL
+        )).ToList();
 
         return new GetFeaturedEventsResponse(Events: events);
     }

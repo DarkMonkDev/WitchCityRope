@@ -66,10 +66,10 @@ public class VettingApplicationFlowTests : BaseE2ETest
 
         // Verify application status
         var applicationStatus = await dashboardPage.GetVettingApplicationStatusAsync();
-        applicationStatus.Should().Contain("Submitted", StringComparison.OrdinalIgnoreCase);
+        applicationStatus.Should().ContainEquivalentOf("Submitted");
 
         // Should no longer show apply button
-        await dashboardPage.CanApplyForVettingAsync().Should().BeFalseAsync();
+        (await dashboardPage.CanApplyForVettingAsync()).Should().BeFalse();
 
         // Take screenshot
         await TakeScreenshotAsync("vetting_application_submitted");
@@ -137,7 +137,7 @@ public class VettingApplicationFlowTests : BaseE2ETest
         vettingStatus.Should().Contain("Approved", StringComparison.OrdinalIgnoreCase);
         
         // Should not show apply for vetting button
-        await dashboardPage.CanApplyForVettingAsync().Should().BeFalseAsync();
+        (await dashboardPage.CanApplyForVettingAsync()).Should().BeFalse();
 
         // Navigate to profile
         await profilePage.NavigateAsync();
@@ -166,10 +166,10 @@ public class VettingApplicationFlowTests : BaseE2ETest
         // Assert - Should show pending status
         var applicationStatus = await dashboardPage.GetVettingApplicationStatusAsync();
         applicationStatus.Should().NotBeNull();
-        applicationStatus.Should().Contain("Submitted", StringComparison.OrdinalIgnoreCase);
+        applicationStatus.Should().ContainEquivalentOf("Submitted");
 
         // Should not show apply button
-        await dashboardPage.CanApplyForVettingAsync().Should().BeFalseAsync();
+        (await dashboardPage.CanApplyForVettingAsync()).Should().BeFalse();
 
         // Try to navigate to application page directly
         await Page.GotoAsync($"{TestSettings.BaseUrl}/vetting/apply");
@@ -208,8 +208,7 @@ public class VettingApplicationFlowTests : BaseE2ETest
             if (await Page.IsVisibleAsync(messageSelector))
             {
                 var message = await Page.TextContentAsync(messageSelector);
-                message.Should().Contain(new[] { "account age", "days", "requirement" }, 
-                    "Should mention account age requirement");
+                message.Should().ContainAny("account age", "days", "requirement");
             }
         }
         else

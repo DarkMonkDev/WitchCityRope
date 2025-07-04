@@ -8,7 +8,12 @@ namespace WitchCityRope.Core.Entities
     public class IncidentAction
     {
         // Private constructor for EF Core
-        private IncidentAction() { }
+        private IncidentAction() 
+        { 
+            ActionType = null!;
+            Description = null!;
+            PerformedBy = null!;
+        }
 
         public IncidentAction(string actionType, string description, User performedBy)
         {
