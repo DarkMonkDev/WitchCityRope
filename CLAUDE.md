@@ -3,6 +3,82 @@
 ## Project Overview
 WitchCityRope is a Blazor Server application for a rope bondage community in Salem, offering workshops, performances, and social events.
 
+## IMPORTANT: Working Login Test Pattern for UI Testing
+
+When writing Puppeteer tests that require login, use this proven working pattern:
+
+```javascript
+// Step 1: Navigate to login page
+await page.goto('http://localhost:5651/auth/login', {
+  waitUntil: 'networkidle2',
+  timeout: 30000
+});
+
+// Step 2: Fill in login credentials using multiple selector fallbacks
+// Email field - use multiple selectors for reliability
+await page.waitForSelector('input[type="email"], input[name="email"], input[id="email"], input[placeholder*="email"]', { timeout: 10000 });
+await page.type('input[type="email"], input[name="email"], input[id="email"], input[placeholder*="email"]', 'admin@witchcityrope.com');
+
+// Password field
+await page.waitForSelector('input[type="password"]', { timeout: 10000 });
+await page.type('input[type="password"]', 'Test123!');
+
+// Step 3: Submit login form using evaluate to find button by text content
+const submitClicked = await page.evaluate(() => {
+  // Look for submit button by type or text content
+  const buttons = document.querySelectorAll('button');
+  for (const button of buttons) {
+    const text = button.textContent?.toLowerCase() || '';
+    if (button.type === 'submit' || text.includes('sign in') || text.includes('login')) {
+      button.click();
+      return true;
+    }
+  }
+  
+  // If no button found, try to submit the form directly
+  const form = document.querySelector('form');
+  if (form) {
+    form.submit();
+    return true;
+  }
+  
+  return false;
+});
+
+// Step 4: Wait for navigation with error handling
+if (submitClicked) {
+  try {
+    await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 });
+  } catch (navError) {
+    console.log('Navigation timeout - checking current state...');
+  }
+}
+
+// Step 5: Verify login success
+const currentUrl = page.url();
+console.log(`Current URL after login: ${currentUrl}`);
+```
+
+### Key Points:
+1. **DO NOT** use simple selectors like `#Input_Email` - they often fail
+2. **DO** use multiple selector fallbacks with type, name, id, and placeholder attributes
+3. **DO NOT** rely on exact button text - use `includes()` for partial matches
+4. **DO** use `page.evaluate()` to find and click buttons by their text content
+5. **DO** handle navigation timeouts gracefully - sometimes the page updates without a full navigation
+
+### Test Accounts Available:
+- **Admin**: admin@witchcityrope.com / Test123!
+- **Teacher**: teacher@witchcityrope.com / Test123!
+- **Vetted Member**: vetted@witchcityrope.com / Test123!
+- **General Member**: member@witchcityrope.com / Test123!
+
+This pattern is proven to work in the test file: `/src/WitchCityRope.Web/screenshot-script/test-member-dashboard.js`
+
+## Environment
+- **Operating System**: Ubuntu 24.04 (Native Linux - NOT WSL)
+- **Development Path**: `/home/chad/repos/witchcityrope/WitchCityRope`
+- **MCP Servers Path**: `/home/chad/mcp-servers/`
+
 ## GitHub Repository
 - **Repository**: https://github.com/DarkMonkDev/WitchCityRope.git
 - **Authentication**: Personal Access Token (PAT) is configured in ~/.git-credentials
@@ -29,51 +105,65 @@ When using Docker Compose:
 - **Docker Compose (External)**: `Host=localhost;Port=5433;Database=witchcityrope_db;Username=postgres;Password=WitchCity2024!`
 - **Local PostgreSQL**: `Host=localhost;Port=5432;Database=witchcityrope_db;Username=postgres;Password=WitchCity2024!`
 
+## IMPORTANT: Docker-Only Development
+
+**CRITICAL**: This project MUST be run using Docker containers only. Do not run the application directly on the host machine. All database connections, API services, and the web application should run through Docker Compose.
+
+### Why Docker Only?
+1. **Consistent Environment**: Ensures all developers have the same environment
+2. **Database Isolation**: PostgreSQL runs in its own container with proper networking
+3. **Service Communication**: Services communicate through Docker networks
+4. **No Port Conflicts**: Avoids conflicts with local services
+5. **Easy Cleanup**: Simple to stop and remove all services
+
 ## Development Guidelines
 
-### Build Commands
+### Docker Development Commands (REQUIRED)
 
-#### Local Development (without Docker)
+**Note**: Direct local development is NOT supported. Use Docker Compose for all development work.
+
 ```bash
-# Build the project
-dotnet build
+# Start all services (database, API, and web)
+docker-compose up -d
 
-# Run tests
-dotnet test
+# View logs for all services
+docker-compose logs -f
 
-# Run the web application
-dotnet run --project src/WitchCityRope.Web
+# View logs for specific service
+docker-compose logs -f web
+docker-compose logs -f api
+docker-compose logs -f postgres
 
-# Check for linting/formatting issues
-dotnet format --verify-no-changes
-```
+# Stop all services
+docker-compose down
 
-#### Docker Development
-```bash
-# Build and start all containers
-docker-compose up -d --build
+# Rebuild and restart services
+docker-compose down && docker-compose up -d --build
 
-# Run tests in container
-docker-compose exec web dotnet test
+# Access the application
+# Web: http://localhost:5651
+# API: http://localhost:5653
+# Database: localhost:5433 (PostgreSQL)
 
 # Run database migrations
 docker-compose exec web dotnet ef database update
 
-# View application logs
-docker-compose logs -f web
-
-# Stop all containers
-docker-compose down
+# Execute commands in containers
+docker-compose exec web bash
+docker-compose exec api bash
+docker-compose exec postgres psql -U postgres -d witchcityrope_db
 ```
 
-#### Production Build
-```bash
-# Build production Docker image
-docker build -t witchcityrope:latest -f Dockerfile --target final .
+### Current Docker Configuration
 
-# Run production containers
-docker-compose -f docker-compose.prod.yml up -d
-```
+**Services Running:**
+- **PostgreSQL Database**: Port 5433 (internal: 5432)
+- **API Service**: Port 5653 (HTTP only)
+- **Web Application**: Port 5651 (HTTP only)
+
+**Note**: HTTPS is disabled in Docker development. Use HTTP URLs:
+- Web: http://localhost:5651
+- API: http://localhost:5653
 
 ### Important: Clean Up After Testing
 
@@ -557,6 +647,14 @@ This project has been actively developed with the following completed:
 - Compilation error fixes (resolved all 9 errors)
 - Login functionality implementation with JWT authentication
 - Comprehensive User Dashboard planning and documentation (see /docs/enhancements/UserDashboard/)
+- Navigation architecture analysis and documentation (see /docs/design/user-flows/navigation-flows.md)
+
+### Navigation Architecture
+- **Current Implementation**: Navigation is integrated in MainLayout.razor (not separate component)
+- **Desktop**: Horizontal nav with user dropdown menu
+- **Mobile**: Slide-out menu with overlay
+- **Documentation**: See /docs/design/user-flows/ for navigation patterns and site map
+- **Note**: MainNav.razor component has been removed (was unused legacy code)
 
 For any GitHub operations, the credentials are already configured and will work automatically.
 
@@ -583,69 +681,349 @@ For any GitHub operations, the credentials are already configured and will work 
 - Still using SQLite - PostgreSQL migration pending
 - When ready, update password in connection string
 
-### Browser Testing & Automation
+## Browser Testing & Automation
 
-**CRITICAL**: Chrome must ALWAYS be launched in **INCOGNITO MODE** for testing to ensure clean sessions without cached data or cookies!
+### 🚀 IMPORTANT: Testing Tool Priority Order
 
-#### PRIMARY METHOD: PowerShell Bridge with Universal Launcher (RECOMMENDED)
+For browser automation and UI testing, use the following tools in order of preference:
 
-The PowerShell bridge method launches Chrome directly from WSL and is the **ONLY RELIABLE METHOD** that provides full access to both Browser Tools and Stagehand MCPs.
+1. **Direct Puppeteer (FIRST CHOICE)** - Write and run Puppeteer scripts directly
+2. **Puppeteer MCP Server (SECOND CHOICE)** - Use the MCP server if available in Claude
+3. **Stagehand MCP Server (OPTIONAL)** - For natural language automation only when needed
 
-**Use the Universal Launcher Script:**
+### UI Testing with Direct Puppeteer (Recommended)
+
+**Why Direct Puppeteer First?**
+- Full control over test scripts
+- Better debugging capabilities
+- No MCP server dependencies
+- Faster execution
+- Can be integrated into CI/CD pipelines
+
+**Location**: Install Puppeteer directly in your project.
+
+**What it's good for:**
+- Direct browser automation with CSS/XPath selectors
+- Performance testing and page load metrics
+- Network request monitoring and interception
+- Console log and error capture
+- Accessibility audits (WCAG compliance)
+- Generating PDFs from pages
+- Testing responsive designs at different viewports
+
+**How to use Direct Puppeteer:**
 ```bash
-# ALWAYS use this script - it ensures incognito mode and proper settings
-/mnt/c/users/chad/source/repos/WitchCityRope/src/mcp-servers/launch-chrome-universal.sh launch
+# Install Puppeteer in your project:
+npm install puppeteer
 
-# Check status
-/mnt/c/users/chad/source/repos/WitchCityRope/src/mcp-servers/launch-chrome-universal.sh status
+# Create a test file (e.g., test-login.js):
+const puppeteer = require('puppeteer');
+// ... your test code ...
 
-# Test connection
-/mnt/c/users/chad/source/repos/WitchCityRope/src/mcp-servers/launch-chrome-universal.sh test
+# Run the test directly:
+node test-login.js
+
+# Or integrate with testing frameworks:
+npm test
 ```
 
-**PowerShell Bridge Benefits:**
-- ✅ Launch Chrome directly from WSL - no pre-launch needed
-- ✅ Full access to Browser Tools MCP
-- ✅ Full access to Stagehand MCP  
-- ✅ No SSH tunnels required
-- ✅ Works immediately with both MCP servers
-- ✅ Always launches in incognito mode for clean testing
-- ✅ Simplest setup with most reliable results
+### Puppeteer MCP Server (Second Choice)
 
-**Direct PowerShell Command (if script unavailable):**
-```bash
-# IMPORTANT: Always include --incognito flag
-powershell.exe -Command "& 'C:\Program Files\Google\Chrome\Application\chrome.exe' --remote-debugging-port=9222 --incognito"
+If Direct Puppeteer is not suitable for your use case, you can use the Puppeteer MCP server in Claude:
+
+**When to use:**
+- Quick visual verification during development
+- When you need Claude to capture screenshots
+- For exploratory testing with Claude's assistance
+
+**Available commands:**
+```javascript
+// In Claude, use these commands:
+mcp_puppeteer.screenshot({
+  url: "https://localhost:5652",
+  fullPage: true
+})
+
+mcp_puppeteer.screenshot({
+  url: "https://localhost:5652/events",
+  selector: ".event-list"
+})
 ```
 
-#### Browser MCP Tools
+**Common Puppeteer Tasks:**
+- Navigate to URLs
+- Take full page or element screenshots
+- Click elements by selector
+- Fill form fields
+- Select dropdown options
+- Execute JavaScript in page context
+- Get page HTML content
+- Wait for elements to appear
 
-**Use Stagehand MCP for:**
-- Natural language UI testing ("Click the login button", "Fill in the form")
-- Taking screenshots of specific elements
-- Complex user flow testing
-- AI-powered element selection and interaction
+### Stagehand MCP Server (AI-powered) - Optional
+**Location**: `/home/chad/mcp-servers/mcp-server-browserbase/stagehand/`
 
-**Use Browser Tools MCP for:**
-- Direct browser automation with specific selectors
-- Performance testing and metrics
-- Network request monitoring
-- Console log capture
-- Accessibility audits
+**What it's good for:**
+- Natural language browser commands ("Click the login button")
+- AI-powered element selection when selectors are complex
+- Testing complex user flows with conversational instructions
+- Taking screenshots of specific UI elements by description
+- Handling dynamic content and AJAX-heavy applications
+- Testing when exact selectors are unknown or change frequently
 
-#### Alternative Methods (NOT RECOMMENDED)
+**How to use:**
+```bash
+# Set OpenAI API key (required):
+export OPENAI_API_KEY='your-api-key-here'
 
-These methods have proven unreliable and should only be used if the PowerShell bridge method fails:
+# Run quickstart (includes Chrome launch):
+/home/chad/mcp-servers/mcp-server-browserbase/stagehand/quickstart.sh
 
-1. **Manual Windows Launch**: Requires SSH tunnel setup, prone to connection issues
-2. **Persistent Server**: Complex setup, often fails to maintain stable connections
-3. **Windows Batch File**: Limited functionality, doesn't work well with WSL environment
+# Or start Chrome debug manually first:
+google-chrome --remote-debugging-port=9222 --no-first-run --no-default-browser-check
+```
 
-**Setup Documentation:**
-- Universal launcher guide: `/src/mcp-servers/UNIVERSAL_LAUNCHER_GUIDE.md`
-- Complete solution: `/src/mcp-servers/BROWSER_MCP_WORKING_SOLUTION.md`
-- Chrome debug setup: `/src/mcp-servers/CHROME_DEBUG_SETUP.md`
-- Browser automation guide: `/src/mcp-servers/BROWSER_AUTOMATION_GUIDE.md`
+**MCP Tools provided:**
+- `stagehand_navigate` - Navigate using natural language
+- `stagehand_action` - Perform actions using natural language
+- `stagehand_extract` - Extract data using natural language
+- `stagehand_screenshot` - Take screenshots by description
+- `stagehand_observe` - Describe what's on the page
+
+### When to Use Each Tool
+
+#### Use Puppeteer when:
+- You know exact CSS selectors or XPath
+- You need performance metrics
+- You want to monitor network requests
+- You need to test specific viewport sizes
+- You're automating repetitive tasks
+- You need accessibility compliance testing
+
+#### Use Stagehand MCP when:
+- You want to describe actions in plain English
+- UI elements are hard to select programmatically
+- You're testing complex user journeys
+- Selectors change frequently
+- You need AI to understand page context
+- You're exploring an unfamiliar UI
+
+### Common Browser Testing Tasks
+
+#### 1. Testing Login Flow
+```javascript
+// With Puppeteer:
+const browser = await puppeteer.launch();
+const page = await browser.newPage();
+await page.goto('http://localhost:5000/login');
+await page.type('#username', 'admin@witchcityrope.com');
+await page.type('#password', 'Test123!');
+await page.click('button[type="submit"]');
+await page.waitForNavigation();
+// Verify dashboard loads
+const dashboardElement = await page.$('.dashboard-content');
+expect(dashboardElement).toBeTruthy();
+await browser.close();
+
+// With Stagehand:
+- "Go to the login page"
+- "Enter admin@witchcityrope.com as username"
+- "Enter the password Test123!"
+- "Click the login button"
+- "Verify I'm on the dashboard"
+```
+
+#### 2. Taking Screenshots
+```javascript
+// Full page screenshot with Puppeteer:
+const browser = await puppeteer.launch();
+const page = await browser.newPage();
+await page.goto('http://localhost:5000');
+await page.screenshot({ path: 'full-page.png', fullPage: true });
+await browser.close();
+
+// Element screenshot with Stagehand:
+"Take a screenshot of the navigation menu"
+```
+
+#### 3. Form Testing
+```javascript
+// Puppeteer approach:
+const browser = await puppeteer.launch();
+const page = await browser.newPage();
+await page.goto('http://localhost:5000/register');
+// Fill form fields
+await page.type('#email', 'test@example.com');
+await page.type('#password', 'Test123!');
+// Submit and check for errors
+await page.click('button[type="submit"]');
+const errorMessages = await page.$$('.validation-error');
+expect(errorMessages.length).toBe(0);
+await browser.close();
+
+// Stagehand approach:
+- "Fill out the registration form with test data"
+- "Submit the form"
+- "Check if there are any validation errors"
+```
+
+#### 4. Responsive Design Testing
+```javascript
+// Puppeteer (precise viewport control):
+const browser = await puppeteer.launch();
+const page = await browser.newPage();
+await page.goto('http://localhost:5000');
+
+// Test different viewports
+await page.setViewport({ width: 375, height: 667 });  // iPhone SE
+await page.screenshot({ path: 'mobile.png' });
+
+await page.setViewport({ width: 768, height: 1024 }); // iPad
+await page.screenshot({ path: 'tablet.png' });
+
+await page.setViewport({ width: 1920, height: 1080 }); // Desktop
+await page.screenshot({ path: 'desktop.png' });
+
+await browser.close();
+
+// Stagehand (descriptive):
+"Show me how the page looks on mobile"
+"Check if the menu is accessible on tablet"
+```
+
+### Starting the Test Environment
+
+#### Quick Start Commands
+```bash
+# For Puppeteer tests:
+npm test
+
+# For Stagehand server (with API key):
+export OPENAI_API_KEY='your-key-here'
+/home/chad/mcp-servers/mcp-server-browserbase/stagehand/quickstart.sh
+
+# Verify Chrome connection (for Stagehand):
+curl http://localhost:9222/json/version
+```
+
+#### Testing Configuration
+- Puppeteer manages its own Chrome/Chromium instance
+- Stagehand uses local Chrome installation at `/usr/bin/google-chrome`
+- Chrome DevTools port: 9222 (for Stagehand)
+- No WSL workarounds needed on Ubuntu native
+
+### Troubleshooting Browser Testing
+
+#### Common Issues and Solutions
+
+1. **"Cannot connect to Chrome DevTools"**
+   ```bash
+   # Check if Chrome is running:
+   ps aux | grep chrome
+   
+   # Check if port 9222 is in use:
+   lsof -i :9222
+   
+   # Kill existing Chrome processes:
+   pkill -f "chrome.*remote-debugging"
+   
+   # Restart Chrome with debug port:
+   google-chrome --remote-debugging-port=9222 --no-first-run
+   ```
+
+2. **"Sandbox errors" or "Permission denied"**
+   - For Puppeteer, use: `puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] })`
+   - Check available system resources: `free -h`
+   - Ensure Chrome is executable: `chmod +x /usr/bin/google-chrome`
+
+3. **"Element not found" errors**
+   - Add explicit waits: `await page.waitForSelector('.element')`
+   - Use Stagehand for dynamic content
+   - Check if element is in iframe
+   - Verify selector in browser DevTools first
+
+4. **"Timeout" errors**
+   - Increase timeout values in tool calls
+   - Check if page is actually loading
+   - Monitor network tab for hanging requests
+   - Use headed mode to see what's happening
+
+#### Testing the Setup
+```bash
+# Test Puppeteer directly:
+node test-puppeteer.js
+
+# Test Chrome connection (for Stagehand):
+curl http://localhost:9222/json/version
+
+# Check Chrome process:
+ps aux | grep chrome | grep 9222
+
+# Test with actual WitchCityRope site:
+# 1. Start the application
+cd /home/chad/repos/witchcityrope/WitchCityRope
+~/.dotnet/dotnet run --project src/WitchCityRope.Web
+
+# 2. Run your Puppeteer tests
+npm test
+```
+
+### Best Practices for Browser Testing
+
+1. **Always use automated testing** - Don't rely on manual testing alone
+2. **Start with headed mode** when debugging new tests
+3. **Use headless mode** for CI/CD and repeated runs
+4. **Take screenshots** at key points for debugging
+5. **Clean up resources** - Close browser sessions when done
+6. **Use appropriate timeouts** - Don't make tests flaky with short timeouts
+7. **Test at different viewports** for responsive design
+8. **Capture console logs** to debug JavaScript errors
+9. **Use AI (Stagehand) for complex interactions** that are hard to script
+10. **Verify before automating** - Manually check the flow works first
+
+### Example Test Scenarios
+
+#### Complete Login Test with Puppeteer:
+```javascript
+const puppeteer = require('puppeteer');
+
+async function testLogin() {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  
+  // Navigate to login
+  await page.goto('http://localhost:5000/login');
+  
+  // Fill credentials
+  await page.type('#username', 'admin@witchcityrope.com');
+  await page.type('#password', 'Test123!');
+  
+  // Submit form
+  await page.click('button[type="submit"]');
+  
+  // Wait for dashboard
+  await page.waitForSelector('.dashboard-content', { timeout: 5000 });
+  
+  // Take screenshot for verification
+  await page.screenshot({ path: 'login-success.png' });
+  
+  await browser.close();
+}
+
+testLogin();
+```
+
+#### Natural Language Test with Stagehand:
+```
+"Go to the WitchCityRope login page"
+"Log in as the admin user with email admin@witchcityrope.com"
+"Verify that I can see the admin dashboard"
+"Take a screenshot of the dashboard"
+"Navigate to the user management section"
+"Check if I can see the list of users"
+```
+
+Remember: Automated browser testing with Puppeteer provides reliable, repeatable testing that manual testing cannot match.
 
 ### Version Control
 **Use GitHub MCP for:**
@@ -729,57 +1107,30 @@ docker-compose -f docker-compose.prod.yml exec web dotnet ef database update
 
 ## MCP Server Prerequisites
 
-Before starting Claude Desktop, ensure:
+### 1. Browser Testing Setup (Ubuntu Native)
 
-### 1. Browser MCP Setup (ALWAYS Use Incognito Mode!)
+**Puppeteer (Recommended)**:
+- Install with: `npm install puppeteer`
+- Manages its own Chromium instance
+- No additional configuration needed
+- Full documentation at: https://pptr.dev/
 
-**CRITICAL**: Chrome must ALWAYS be launched in **INCOGNITO MODE** for testing!
-
-#### PRIMARY METHOD: Universal Launcher Script (REQUIRED)
-This is the ONLY reliable method that works consistently. Always use the universal launcher script:
-
-```bash
-# Launch Chrome with optimal settings (ALWAYS use this)
-/mnt/c/users/chad/source/repos/WitchCityRope/src/mcp-servers/launch-chrome-universal.sh launch
-
-# Check if Chrome is running
-/mnt/c/users/chad/source/repos/WitchCityRope/src/mcp-servers/launch-chrome-universal.sh status
-
-# Test the connection
-/mnt/c/users/chad/source/repos/WitchCityRope/src/mcp-servers/launch-chrome-universal.sh test
-```
-
-**Why this is the ONLY recommended method**:
-- ✅ Guarantees Chrome launches in incognito mode
-- ✅ Launches directly from WSL environment
-- ✅ Full access to both Browser Tools and Stagehand MCPs
-- ✅ No SSH tunnels or complex networking required
-- ✅ Works immediately every time
-- ✅ Handles all edge cases and ensures proper cleanup
-
-#### Direct PowerShell Command (Backup Only)
-If the launcher script is unavailable, use this command:
-```bash
-# IMPORTANT: Always include --incognito flag
-powershell.exe -Command "& 'C:\Program Files\Google\Chrome\Application\chrome.exe' --remote-debugging-port=9222 --incognito"
-```
-
-#### Alternative Methods (DEPRECATED - DO NOT USE)
-The following methods have been tested and found unreliable:
-- ❌ Manual Windows Launch - Requires SSH tunnels, connection issues
-- ❌ Persistent Server - Complex setup, unstable connections
-- ❌ Windows Batch Files - Don't work properly with WSL
-- ❌ Pre-launching Chrome from Windows - Causes permission and access issues
-
-**Browser MCP Tools Available**:
-- **Stagehand**: Natural language browser control ("Click the login button")
-- **Browser Tools**: Direct automation with selectors and performance testing
+**Stagehand MCP Server (Optional)**:
+- Already installed at: `/home/chad/mcp-servers/mcp-server-browserbase/stagehand/`
+- Requires: `export OPENAI_API_KEY='your-key'`
+- Uses local Chrome (not Browserbase cloud)
+- AI-powered natural language browser control
 
 ### 2. Docker Setup
-Ensure Docker Desktop is running
+- Docker installed and running
+- User added to docker group (requires logout/login to take effect)
+- Use `docker` commands (docker-compose is integrated)
 
 ### 3. PostgreSQL Setup
-PostgreSQL will be needed after migration (currently using SQLite)
+- PostgreSQL 16 installed and running
+- Service: `sudo systemctl status postgresql`
+- Create database: `sudo -u postgres createdb witchcityrope_db`
+- Default password from CLAUDE.md: WitchCity2024!
 
 ## Common MCP Usage Examples
 
@@ -798,90 +1149,72 @@ PostgreSQL will be needed after migration (currently using SQLite)
 ### Example 5: Memory Storage
 "Use Memory MCP to remember that we decided to migrate from SQLite to PostgreSQL and the current status of that migration"
 
-## Browser Automation Troubleshooting
-
-### Chrome Incognito Mode Requirements
-
-**CRITICAL**: All browser testing MUST be done in incognito mode to ensure:
-- Clean sessions without cached data
-- No interference from extensions
-- Consistent test results
-- No authentication persistence between tests
+## Browser Automation Troubleshooting (Ubuntu)
 
 ### Common Issues and Solutions
 
 1. **"Cannot connect to Chrome DevTools"**
-   - **PRIMARY SOLUTION**: Use the universal launcher script:
+   - Check if Chrome is running: `ps aux | grep chrome`
+   - Ensure port 9222 is free: `lsof -i :9222`
+   - Launch Chrome with debug port:
      ```bash
-     /mnt/c/users/chad/source/repos/WitchCityRope/src/mcp-servers/launch-chrome-universal.sh launch
+     google-chrome --remote-debugging-port=9222 --no-first-run --no-default-browser-check
      ```
-   - If script unavailable, use direct PowerShell with incognito:
-     ```bash
-     powershell.exe -Command "& 'C:\Program Files\Google\Chrome\Application\chrome.exe' --remote-debugging-port=9222 --incognito"
-     ```
-   - Check if port 9222 is in use: `netstat -an | findstr 9222` (in Windows)
-   - Kill ALL Chrome instances and restart
+   - Test connection: `curl http://localhost:9222/json/version`
 
-2. **"Chrome not launching in incognito mode"**
-   - ALWAYS use the universal launcher script - it enforces incognito mode
-   - Never launch Chrome manually from Windows
-   - If Chrome is already running, close ALL instances first
-   - Verify incognito mode by checking for the incognito icon in Chrome
+2. **"Permission denied" errors**
+   - Try safe mode config first: `mcp-config-safe.json`
+   - If needed, use no-sandbox config: `mcp-config.json`
+   - Ensure Chrome binary is executable: `ls -la /usr/bin/google-chrome`
 
-3. **"Tests failing due to cached data"**
-   - This indicates Chrome is NOT in incognito mode
-   - Close all Chrome instances
-   - Re-launch using the universal launcher script
-   - Never reuse existing Chrome sessions for testing
+3. **"Sandbox errors"**
+   - Start with headed+safe mode (option 2 in start-server.sh)
+   - Only use no-sandbox if absolutely necessary
+   - Check system resources: `free -h` and `df -h`
 
-4. **"Connection refused from WSL"**
-   - This usually means Chrome was launched incorrectly
-   - Use ONLY the PowerShell bridge method (via launcher script)
-   - Do NOT use SSH tunnels or manual Windows launch
-   - The launcher script handles all connection setup automatically
-
-5. **Testing if Chrome DevTools is accessible:**
+4. **Testing Browser Automation:**
    ```bash
-   # Quick test (from WSL after launching with script)
+   # Test browser-tools directly:
+   cd /home/chad/mcp-servers/browser-tools-server
+   node test-puppeteer-direct.js
+   
+   # Test Chrome connection:
    curl http://localhost:9222/json/version
    
-   # Full connection test
-   /mnt/c/users/chad/source/repos/WitchCityRope/src/mcp-servers/launch-chrome-universal.sh test
+   # Check Chrome process:
+   ps aux | grep chrome | grep 9222
    ```
 
 ### Quick Reference Commands
 
 ```bash
-# PRIMARY METHOD: Universal Launcher Script (ALWAYS USE THIS)
-# This is the ONLY reliable method that guarantees incognito mode and proper setup
+# Browser-tools MCP Server
+cd /home/chad/mcp-servers/browser-tools-server
+./start-server.sh  # Interactive menu with 4 modes
 
-# Launch Chrome for testing (REQUIRED for all browser automation)
-/mnt/c/users/chad/source/repos/WitchCityRope/src/mcp-servers/launch-chrome-universal.sh launch
+# Stagehand MCP Server  
+export OPENAI_API_KEY='your-key'
+/home/chad/mcp-servers/mcp-server-browserbase/stagehand/quickstart.sh
 
-# Check if Chrome is running with debug port
-/mnt/c/users/chad/source/repos/WitchCityRope/src/mcp-servers/launch-chrome-universal.sh status
+# Launch Chrome for debugging
+google-chrome --remote-debugging-port=9222 --no-first-run --no-default-browser-check
 
-# Test the Chrome DevTools connection
-/mnt/c/users/chad/source/repos/WitchCityRope/src/mcp-servers/launch-chrome-universal.sh test
-
-# Direct PowerShell command (ONLY if launcher script is unavailable):
-powershell.exe -Command "& 'C:\Program Files\Google\Chrome\Application\chrome.exe' --remote-debugging-port=9222 --incognito"
-
-# Quick connection test (after launching):
+# Test Chrome DevTools connection
 curl http://localhost:9222/json/version
 
-# DEPRECATED METHODS (DO NOT USE):
-# The following methods have been tested and found unreliable:
-# - Manual browser server start/stop scripts
-# - Windows batch files
-# - SSH tunnel methods
-# - Pre-launching Chrome from Windows
+# Run browser automation test
+cd /home/chad/repos/witchcityrope
+node test-browser-automation.js
+
+# Start WitchCityRope application
+cd /home/chad/repos/witchcityrope/WitchCityRope
+~/.dotnet/dotnet run --project src/WitchCityRope.Web
 ```
 
-### Browser Testing Best Practices
+### Browser Testing Best Practices (Ubuntu)
 
-1. **ALWAYS use incognito mode** - The universal launcher enforces this
-2. **Close all Chrome instances** before launching for tests
-3. **Never reuse existing Chrome sessions** - Always start fresh
-4. **Use the launcher script** - It handles all edge cases and setup
-5. **Test the connection** before running automation scripts
+1. **Clean browser state** - Each test gets a fresh browser instance
+2. **Choose appropriate mode** - Headed for debugging, headless for CI
+3. **Use Puppeteer's built-in features** - Screenshots, PDF generation, performance metrics
+4. **Direct connection** - No proxies or tunnels needed on native Linux
+5. **Test before automating** - Always verify the application is running first
