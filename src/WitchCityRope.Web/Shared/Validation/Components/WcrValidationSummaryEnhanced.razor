@@ -1,0 +1,194 @@
+@using WitchCityRope.Web.Services
+@if (ValidationResult != null && (ValidationResult.Errors.Any() || ShowWarnings && ValidationResult.HasWarnings || ShowInfo && ValidationResult.HasInfo))
+{
+    <div class="wcr-validation-summary">
+        @if (ValidationResult.Errors.Any())
+        {
+            <div class="validation-section validation-errors">
+                <div class="validation-header">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Please correct the following errors:</span>
+                </div>
+                <ul class="validation-list">
+                    @foreach (var error in ValidationResult.GetAllErrors())
+                    {
+                        <li class="validation-item">@error</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        @if (ShowWarnings && ValidationResult.HasWarnings)
+        {
+            <div class="validation-section validation-warnings">
+                <div class="validation-header">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Please review the following warnings:</span>
+                </div>
+                <ul class="validation-list">
+                    @foreach (var warning in ValidationResult.GetAllWarnings())
+                    {
+                        <li class="validation-item">@warning</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        @if (ShowInfo && ValidationResult.HasInfo)
+        {
+            <div class="validation-section validation-info">
+                <div class="validation-header">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Additional information:</span>
+                </div>
+                <ul class="validation-list">
+                    @foreach (var info in ValidationResult.Info.Values.SelectMany(i => i))
+                    {
+                        <li class="validation-item">@info</li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// The validation result to display
+    /// </summary>
+    [Parameter] public WitchCityRope.Web.Services.ValidationResult? ValidationResult { get; set; }
+
+    /// <summary>
+    /// Whether to show warning messages
+    /// </summary>
+    [Parameter] public bool ShowWarnings { get; set; } = true;
+
+    /// <summary>
+    /// Whether to show info messages
+    /// </summary>
+    [Parameter] public bool ShowInfo { get; set; } = false;
+
+    /// <summary>
+    /// Additional CSS classes
+    /// </summary>
+    [Parameter] public string? CssClass { get; set; }
+}
+
+<style>
+    .wcr-validation-summary {
+        margin-bottom: 1.5rem;
+    }
+
+    .validation-section {
+        margin-bottom: 1rem;
+        border-radius: 6px;
+        border: 1px solid;
+        overflow: hidden;
+    }
+
+    .validation-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .validation-errors {
+        border-color: #dc3545;
+        background-color: #f8d7da;
+    }
+
+    .validation-warnings {
+        border-color: #ffc107;
+        background-color: #fff3cd;
+    }
+
+    .validation-info {
+        border-color: #17a2b8;
+        background-color: #d1ecf1;
+    }
+
+    .validation-header {
+        padding: 0.75rem 1rem;
+        font-weight: 600;
+        border-bottom: 1px solid;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .validation-errors .validation-header {
+        background-color: #f5c6cb;
+        border-color: #dc3545;
+        color: #721c24;
+    }
+
+    .validation-warnings .validation-header {
+        background-color: #ffeaa7;
+        border-color: #ffc107;
+        color: #856404;
+    }
+
+    .validation-info .validation-header {
+        background-color: #bee5eb;
+        border-color: #17a2b8;
+        color: #0c5460;
+    }
+
+    .validation-list {
+        margin: 0;
+        padding: 1rem;
+        list-style: none;
+    }
+
+    .validation-item {
+        margin-bottom: 0.5rem;
+        line-height: 1.4;
+        position: relative;
+        padding-left: 1.25rem;
+    }
+
+    .validation-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .validation-item::before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        font-weight: bold;
+    }
+
+    .validation-errors .validation-item {
+        color: #721c24;
+    }
+
+    .validation-warnings .validation-item {
+        color: #856404;
+    }
+
+    .validation-info .validation-item {
+        color: #0c5460;
+    }
+
+    .validation-errors .validation-item::before {
+        color: #dc3545;
+    }
+
+    .validation-warnings .validation-item::before {
+        color: #ffc107;
+    }
+
+    .validation-info .validation-item::before {
+        color: #17a2b8;
+    }
+
+    /* Responsive design */
+    @@media (max-width: 768px) {
+        .validation-header,
+        .validation-list {
+            padding: 0.75rem;
+        }
+
+        .validation-item {
+            font-size: 0.9rem;
+        }
+    }
+</style>
