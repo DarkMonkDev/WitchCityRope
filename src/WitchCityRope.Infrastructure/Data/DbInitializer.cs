@@ -1,16 +1,17 @@
-using BCrypt.Net;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using WitchCityRope.Core.Entities;
 using WitchCityRope.Core.Enums;
 using WitchCityRope.Core.ValueObjects;
+using WitchCityRope.Infrastructure.Identity;
 
 namespace WitchCityRope.Infrastructure.Data;
 
 public static class DbInitializer
 {
-    public static async Task InitializeAsync(WitchCityRopeDbContext context, ILogger logger)
+    public static async Task InitializeAsync(WitchCityRopeIdentityDbContext context, ILogger logger)
     {
         try
         {
@@ -28,10 +29,6 @@ public static class DbInitializer
                 await context.SaveChangesAsync();
                 dataSeeded = true;
             }
-            else
-            {
-                logger.LogInformation($"Found {await context.Users.CountAsync()} existing users");
-            }
 
             // Check and seed events if needed
             if (!await context.Events.AnyAsync())
@@ -39,8 +36,8 @@ public static class DbInitializer
                 logger.LogInformation("No events found. Seeding events...");
                 
                 // Ensure we have the required users for events
-                if (!await context.Users.AnyAsync(u => u.Email.Value == "admin@witchcityrope.com") ||
-                    !await context.Users.AnyAsync(u => u.Email.Value == "organizer@witchcityrope.com"))
+                if (!await context.Users.AnyAsync(u => u.Email == "admin@witchcityrope.com") ||
+                    !await context.Users.AnyAsync(u => u.Email == "teacher@witchcityrope.com"))
                 {
                     logger.LogWarning("Required users for events not found. Seeding users first...");
                     await SeedUsersAsync(context, logger);
@@ -48,147 +45,148 @@ public static class DbInitializer
                 }
                 
                 await SeedEventsAsync(context, logger);
+                dataSeeded = true;
+            }
+
+            // Check and seed registrations/tickets if needed
+            // TODO: Registration seeding is disabled because it depends on Event seeding
+            /*
+            if (!await context.Registrations.AnyAsync())
+            {
+                logger.LogInformation("No registrations found. Seeding registrations...");
+                await SeedRegistrationsAsync(context, logger);
                 await context.SaveChangesAsync();
                 dataSeeded = true;
             }
-            else
-            {
-                logger.LogInformation($"Found {await context.Events.CountAsync()} existing events");
-            }
+            */
 
             // Check and seed vetting applications if needed
+            // TODO: Vetting application seeding is disabled because VettingApplication constructor is incompatible
+            /*
             if (!await context.VettingApplications.AnyAsync())
             {
-                logger.LogInformation("No vetting applications found. Seeding sample applications...");
+                logger.LogInformation("No vetting applications found. Seeding vetting applications...");
                 await SeedVettingApplicationsAsync(context, logger);
                 await context.SaveChangesAsync();
                 dataSeeded = true;
             }
+            */
 
-            if (dataSeeded)
+            if (!dataSeeded)
             {
-                logger.LogInformation("Database seeding completed successfully");
+                logger.LogInformation("Database already contains data. Skipping seeding.");
             }
             else
             {
-                logger.LogInformation("Database already contains data. No seeding required.");
+                logger.LogInformation("Database seeding completed successfully");
             }
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An error occurred while seeding the database");
+            logger.LogError(ex, "Error occurred while initializing database");
             throw;
         }
     }
 
-    private static async Task SeedUsersAsync(WitchCityRopeDbContext context, ILogger logger)
+    private static async Task SeedUsersAsync(WitchCityRopeIdentityDbContext context, ILogger logger)
     {
         var usersToSeed = new[]
         {
             new { 
                 Email = "admin@witchcityrope.com",
-                User = new User(
-                    encryptedLegalName: EncryptLegalName("Admin User"),
-                    sceneName: SceneName.Create("Admin"),
-                    email: EmailAddress.Create("admin@witchcityrope.com"),
-                    dateOfBirth: new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    role: UserRole.Administrator
-                )
+                LegalName = "Admin User",
+                SceneName = "Admin",
+                DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                Role = UserRole.Administrator
             },
             new {
                 Email = "staff@witchcityrope.com",
-                User = new User(
-                    encryptedLegalName: EncryptLegalName("Staff Member"),
-                    sceneName: SceneName.Create("StaffMember"),
-                    email: EmailAddress.Create("staff@witchcityrope.com"),
-                    dateOfBirth: new DateTime(1992, 5, 15, 0, 0, 0, DateTimeKind.Utc),
-                    role: UserRole.Moderator
-                )
+                LegalName = "Staff Member",
+                SceneName = "StaffMember",
+                DateOfBirth = new DateTime(1992, 5, 15, 0, 0, 0, DateTimeKind.Utc),
+                Role = UserRole.Moderator
             },
             new {
                 Email = "member@witchcityrope.com",
-                User = new User(
-                    encryptedLegalName: EncryptLegalName("Regular Member"),
-                    sceneName: SceneName.Create("RopeLover"),
-                    email: EmailAddress.Create("member@witchcityrope.com"),
-                    dateOfBirth: new DateTime(1995, 8, 20, 0, 0, 0, DateTimeKind.Utc),
-                    role: UserRole.Member
-                )
+                LegalName = "Regular Member",
+                SceneName = "RopeLover",
+                DateOfBirth = new DateTime(1995, 8, 20, 0, 0, 0, DateTimeKind.Utc),
+                Role = UserRole.Member
             },
             new {
                 Email = "guest@witchcityrope.com",
-                User = new User(
-                    encryptedLegalName: EncryptLegalName("Guest User"),
-                    sceneName: SceneName.Create("CuriousGuest"),
-                    email: EmailAddress.Create("guest@witchcityrope.com"),
-                    dateOfBirth: new DateTime(2000, 3, 10, 0, 0, 0, DateTimeKind.Utc),
-                    role: UserRole.Attendee
-                )
+                LegalName = "Guest User",
+                SceneName = "CuriousGuest",
+                DateOfBirth = new DateTime(2000, 3, 10, 0, 0, 0, DateTimeKind.Utc),
+                Role = UserRole.Attendee
             },
             new {
                 Email = "organizer@witchcityrope.com",
-                User = new User(
-                    encryptedLegalName: EncryptLegalName("Event Organizer"),
-                    sceneName: SceneName.Create("EventOrganizer"),
-                    email: EmailAddress.Create("organizer@witchcityrope.com"),
-                    dateOfBirth: new DateTime(1988, 11, 5, 0, 0, 0, DateTimeKind.Utc),
-                    role: UserRole.Moderator
-                )
+                LegalName = "Event Organizer",
+                SceneName = "EventOrganizer",
+                DateOfBirth = new DateTime(1988, 11, 5, 0, 0, 0, DateTimeKind.Utc),
+                Role = UserRole.Member  // Event organizers are typically members
             }
         };
 
-        // Hash password for all users
-        var passwordHash = BCrypt.Net.BCrypt.HashPassword("Test123!");
+        // Create password hasher
+        var passwordHasher = new PasswordHasher<WitchCityRopeUser>();
         
         int seededCount = 0;
         foreach (var userToSeed in usersToSeed)
         {
             // Check if user already exists
-            var existingUser = await context.Users.FirstOrDefaultAsync(u => u.Email.Value == userToSeed.Email);
+            var existingUser = await context.Users.FirstOrDefaultAsync(u => u.Email == userToSeed.Email);
             if (existingUser != null)
             {
                 logger.LogInformation($"User {userToSeed.Email} already exists. Skipping.");
-                
-                // Check if authentication record exists
-                var existingAuth = await context.UserAuthentications.FirstOrDefaultAsync(a => a.UserId == existingUser.Id);
-                if (existingAuth == null)
-                {
-                    logger.LogInformation($"Adding missing authentication record for {userToSeed.Email}");
-                    var userAuth = new UserAuthentication
-                    {
-                        Id = Guid.NewGuid(),
-                        UserId = existingUser.Id,
-                        PasswordHash = passwordHash,
-                        IsTwoFactorEnabled = false,
-                        FailedLoginAttempts = 0
-                    };
-                    await context.UserAuthentications.AddAsync(userAuth);
-                }
                 continue;
             }
             
-            await context.Users.AddAsync(userToSeed.User);
+            // Create WitchCityRopeUser
+            var user = new WitchCityRopeUser(
+                encryptedLegalName: EncryptLegalName(userToSeed.LegalName),
+                sceneName: SceneName.Create(userToSeed.SceneName),
+                email: EmailAddress.Create(userToSeed.Email),
+                dateOfBirth: userToSeed.DateOfBirth,
+                role: userToSeed.Role
+            );
             
-            // Add authentication record
-            var auth = new UserAuthentication
-            {
-                Id = Guid.NewGuid(),
-                UserId = userToSeed.User.Id,
-                PasswordHash = passwordHash,
-                IsTwoFactorEnabled = false,
-                FailedLoginAttempts = 0
-            };
-            await context.UserAuthentications.AddAsync(auth);
+            // Set additional Identity properties
+            user.UserName = userToSeed.Email;
+            user.NormalizedUserName = userToSeed.Email.ToUpperInvariant();
+            user.Email = userToSeed.Email;
+            user.NormalizedEmail = userToSeed.Email.ToUpperInvariant();
+            user.EmailConfirmed = true;
+            user.PasswordHash = passwordHasher.HashPassword(user, "Test123!");
+            user.SecurityStamp = Guid.NewGuid().ToString();
+            
+            await context.Users.AddAsync(user);
             seededCount++;
         }
 
         logger.LogInformation($"Seeded {seededCount} new users");
     }
 
-    private static async Task SeedEventsAsync(WitchCityRopeDbContext context, ILogger logger)
+    private static async Task SeedEventsAsync(WitchCityRopeIdentityDbContext context, ILogger logger)
     {
-        var adminUser = await context.Users.FirstAsync(u => u.Email.Value == "admin@witchcityrope.com");
-        var organizerUser = await context.Users.FirstAsync(u => u.Email.Value == "organizer@witchcityrope.com");
+        // Check if events already exist
+        if (await context.Events.AnyAsync())
+        {
+            logger.LogInformation("Events already seeded.");
+            return;
+        }
+
+        var adminUser = await context.Users.FirstOrDefaultAsync(u => u.Email == "admin@witchcityrope.com");
+        var organizerUser = await context.Users.FirstOrDefaultAsync(u => u.Email == "organizer@witchcityrope.com");
+
+        if (adminUser == null || organizerUser == null)
+        {
+            logger.LogWarning($"Required users not found for event seeding. AdminUser: {adminUser?.Email ?? "null"}, OrganizerUser: {organizerUser?.Email ?? "null"}");
+            return;
+        }
+
+        logger.LogInformation($"Found users - Admin: {adminUser.Email}, Organizer: {organizerUser.Email}");
 
         var events = new[]
         {
@@ -197,212 +195,183 @@ public static class DbInitializer
                 title: "Introduction to Rope Safety",
                 description: "Perfect for beginners! Learn the fundamentals of rope safety, basic knots, and communication techniques in a supportive environment.",
                 startDate: DateTime.UtcNow.AddDays(5).AddHours(14),
-                endDate: DateTime.UtcNow.AddDays(5).AddHours(16),
-                capacity: 30,
-                eventType: EventType.Workshop,
-                location: "The Rope Space - Main Room",
-                primaryOrganizer: adminUser,
-                pricingTiers: new[]
-                {
-                    Money.Create(45.00m, "USD"),
-                    Money.Create(35.00m, "USD"),
-                    Money.Create(25.00m, "USD")
-                }
-            ),
-            new Event(
-                title: "March Rope Jam",
-                description: "Monthly practice space for vetted members. Bring your rope and practice partners for a social evening of rope bondage in a safe, monitored environment.",
-                startDate: DateTime.UtcNow.AddDays(8).AddHours(19),
-                endDate: DateTime.UtcNow.AddDays(8).AddHours(22),
-                capacity: 60,
-                eventType: EventType.Social,
-                location: "The Rope Space - All Rooms",
-                primaryOrganizer: organizerUser,
-                pricingTiers: new[]
-                {
-                    Money.Create(15.00m, "USD"),
-                    Money.Create(10.00m, "USD"),
-                    Money.Create(5.00m, "USD")
-                }
-            ),
-            new Event(
-                title: "Suspension Intensive Workshop",
-                description: "Take your skills to new heights! This intensive workshop covers suspension basics, safety protocols, and hands-on practice with experienced instructors.",
-                startDate: DateTime.UtcNow.AddDays(12).AddHours(13),
-                endDate: DateTime.UtcNow.AddDays(12).AddHours(18),
+                endDate: DateTime.UtcNow.AddDays(5).AddHours(17),
                 capacity: 20,
                 eventType: EventType.Workshop,
-                location: "The Rope Space - Main Room",
+                location: "The Dungeon, 123 Main St, Salem, MA 01970",
                 primaryOrganizer: adminUser,
-                pricingTiers: new[]
-                {
-                    Money.Create(95.00m, "USD"),
-                    Money.Create(85.00m, "USD"),
-                    Money.Create(75.00m, "USD")
-                }
+                pricingTiers: new[] { Money.Create(35.00m, "USD"), Money.Create(45.00m, "USD"), Money.Create(55.00m, "USD") }
             ),
             new Event(
-                title: "Rope and Sensation Play",
-                description: "Explore the intersection of rope bondage and sensation play. Learn how to incorporate different sensations safely into your rope practice.",
-                startDate: DateTime.UtcNow.AddDays(15).AddHours(14),
-                endDate: DateTime.UtcNow.AddDays(15).AddHours(17),
-                capacity: 24,
+                title: "Advanced Suspension Techniques",
+                description: "For experienced practitioners only. Explore advanced suspension techniques with emphasis on safety and risk assessment.",
+                startDate: DateTime.UtcNow.AddDays(10).AddHours(16),
+                endDate: DateTime.UtcNow.AddDays(10).AddHours(20),
+                capacity: 15,
                 eventType: EventType.Workshop,
-                location: "The Rope Space - Lounge",
+                location: "The Dungeon, 123 Main St, Salem, MA 01970",
                 primaryOrganizer: organizerUser,
-                pricingTiers: new[]
-                {
-                    Money.Create(55.00m, "USD"),
-                    Money.Create(40.00m, "USD")
-                }
+                pricingTiers: new[] { Money.Create(65.00m, "USD"), Money.Create(75.00m, "USD"), Money.Create(85.00m, "USD") }
             ),
             new Event(
-                title: "Rope Fundamentals: Floor Work",
-                description: "Master the basics of floor-based rope bondage. Perfect for beginners or those wanting to refine their fundamental skills.",
-                startDate: DateTime.UtcNow.AddDays(18).AddHours(14),
-                endDate: DateTime.UtcNow.AddDays(18).AddHours(16),
-                capacity: 30,
-                eventType: EventType.Workshop,
-                location: "The Rope Space - Main Room",
-                primaryOrganizer: adminUser,
-                pricingTiers: new[]
-                {
-                    Money.Create(45.00m, "USD"),
-                    Money.Create(35.00m, "USD"),
-                    Money.Create(25.00m, "USD")
-                }
-            ),
-            new Event(
-                title: "Dynamic Suspension: Movement and Flow",
-                description: "Advanced workshop focusing on dynamic suspension techniques. Learn to create beautiful, flowing transitions in your suspension work.",
-                startDate: DateTime.UtcNow.AddDays(22).AddHours(13),
-                endDate: DateTime.UtcNow.AddDays(22).AddHours(18),
-                capacity: 16,
-                eventType: EventType.Workshop,
-                location: "The Rope Space - Main Room",
-                primaryOrganizer: organizerUser,
-                pricingTiers: new[]
-                {
-                    Money.Create(125.00m, "USD"),
-                    Money.Create(110.00m, "USD")
-                }
-            ),
-            new Event(
-                title: "Monthly Rope Social",
-                description: "Casual social gathering for all skill levels. Practice, learn from others, or just hang out with the rope community. Light refreshments provided.",
-                startDate: DateTime.UtcNow.AddDays(25).AddHours(18),
-                endDate: DateTime.UtcNow.AddDays(25).AddHours(21),
-                capacity: 80,
+                title: "Rope Jam Social",
+                description: "A casual practice space for all skill levels. Bring your rope and practice with others in a relaxed atmosphere.",
+                startDate: DateTime.UtcNow.AddDays(7).AddHours(18),
+                endDate: DateTime.UtcNow.AddDays(7).AddHours(22),
+                capacity: 40,
                 eventType: EventType.Social,
-                location: "The Rope Space - All Rooms",
-                primaryOrganizer: adminUser,
-                pricingTiers: new[]
-                {
-                    Money.Create(0.00m, "USD")
-                }
-            ),
-            new Event(
-                title: "Rope Play Party",
-                description: "Monthly play party for vetted members. Dungeon monitors on duty. BYOB and snacks to share. Must be 21+.",
-                startDate: DateTime.UtcNow.AddDays(28).AddHours(20),
-                endDate: DateTime.UtcNow.AddDays(29).AddHours(2),
-                capacity: 50,
-                eventType: EventType.PlayParty,
-                location: "Private Venue (address provided after RSVP)",
+                location: "Community Center, 456 Oak Ave, Salem, MA 01970",
                 primaryOrganizer: organizerUser,
-                pricingTiers: new[]
-                {
-                    Money.Create(25.00m, "USD"),
-                    Money.Create(15.00m, "USD")
-                }
+                pricingTiers: new[] { Money.Create(20.00m, "USD") }
+            ),
+            // Past events
+            new Event(
+                title: "Consent and Communication Workshop",
+                description: "Essential workshop covering consent, negotiation, and communication in rope practice.",
+                startDate: DateTime.UtcNow.AddDays(-10).AddHours(13),
+                endDate: DateTime.UtcNow.AddDays(-10).AddHours(16),
+                capacity: 25,
+                eventType: EventType.Workshop,
+                location: "The Dungeon, 123 Main St, Salem, MA 01970",
+                primaryOrganizer: adminUser,
+                pricingTiers: new[] { Money.Create(30.00m, "USD"), Money.Create(40.00m, "USD") }
             ),
             new Event(
-                title: "Virtual Rope Workshop: Self-Tying",
-                description: "Learn the art of self-tying from the comfort of your home. This online workshop covers basic self-bondage techniques and safety.",
-                startDate: DateTime.UtcNow.AddDays(30).AddHours(19),
-                endDate: DateTime.UtcNow.AddDays(30).AddHours(21),
-                capacity: 100,
-                eventType: EventType.Virtual,
-                location: "Online - Zoom",
-                primaryOrganizer: adminUser,
-                pricingTiers: new[]
-                {
-                    Money.Create(25.00m, "USD"),
-                    Money.Create(15.00m, "USD")
-                }
-            ),
-            new Event(
-                title: "New England Rope Intensive",
-                description: "3-day intensive rope bondage conference featuring workshops, performances, and vendor market. Guest instructors from around the world.",
-                startDate: DateTime.UtcNow.AddDays(45).AddHours(17),
-                endDate: DateTime.UtcNow.AddDays(48).AddHours(14),
-                capacity: 200,
-                eventType: EventType.Conference,
-                location: "Salem Convention Center",
-                primaryOrganizer: adminUser,
-                pricingTiers: new[]
-                {
-                    Money.Create(250.00m, "USD"),
-                    Money.Create(200.00m, "USD"),
-                    Money.Create(100.00m, "USD")
-                }
+                title: "Rope Art Photography Session",
+                description: "Collaborate with photographers to create beautiful rope art imagery. Models and riggers welcome.",
+                startDate: DateTime.UtcNow.AddDays(-5).AddHours(10),
+                endDate: DateTime.UtcNow.AddDays(-5).AddHours(14),
+                capacity: 10,
+                eventType: EventType.Performance,
+                location: "Art Studio, 789 Creative Blvd, Salem, MA 01970",
+                primaryOrganizer: organizerUser,
+                pricingTiers: new[] { Money.Create(50.00m, "USD") }
             )
         };
-        
-        // Publish all events
-        foreach (var @event in events)
-        {
-            @event.Publish();
-        }
 
-        await context.Events.AddRangeAsync(events);
-        logger.LogInformation($"Seeded {events.Length} events");
+        try
+        {
+            foreach (var evt in events)
+            {
+                // Publish all events
+                evt.Publish();
+                
+                await context.Events.AddAsync(evt);
+            }
+
+            await context.SaveChangesAsync();
+            logger.LogInformation($"Seeded {events.Length} events successfully");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error seeding events");
+            throw;
+        }
     }
 
+    // TODO: Registration seeding is disabled because it depends on Event seeding
+    /*
+    private static async Task SeedRegistrationsAsync(WitchCityRopeIdentityDbContext context, ILogger logger)
+    {
+        var memberUser = await context.Users.FirstOrDefaultAsync(u => u.Email == "member@witchcityrope.com");
+        var guestUser = await context.Users.FirstOrDefaultAsync(u => u.Email == "guest@witchcityrope.com");
+        
+        if (memberUser == null || guestUser == null)
+        {
+            logger.LogWarning("Required users not found for registration seeding. Skipping.");
+            return;
+        }
+
+        var upcomingEvent = await context.Events
+            .Where(e => e.StartDate > DateTime.UtcNow)
+            .OrderBy(e => e.StartDate)
+            .FirstOrDefaultAsync();
+
+        var pastEvent = await context.Events
+            .Where(e => e.StartDate < DateTime.UtcNow)
+            .OrderByDescending(e => e.StartDate)
+            .FirstOrDefaultAsync();
+
+        if (upcomingEvent == null || pastEvent == null)
+        {
+            logger.LogWarning("Required events not found for registration seeding. Skipping.");
+            return;
+        }
+
+        // Create registrations
+        var registrations = new[]
+        {
+            // Member registered for upcoming event
+            new Registration(upcomingEvent.Id, memberUser.Id),
+            // Guest registered for upcoming event
+            new Registration(upcomingEvent.Id, guestUser.Id),
+            // Member attended past event
+            new Registration(pastEvent.Id, memberUser.Id)
+        };
+
+        // Mark past event registration as attended
+        registrations[2].MarkAsAttended();
+
+        foreach (var registration in registrations)
+        {
+            await context.Registrations.AddAsync(registration);
+        }
+
+        logger.LogInformation($"Seeded {registrations.Length} registrations");
+    }
+    */
+
+    // Simple encryption for demo purposes
     private static string EncryptLegalName(string legalName)
     {
-        // Simple encryption for demo - in production use proper AES encryption
+        // In production, use proper encryption with key management
         var bytes = System.Text.Encoding.UTF8.GetBytes(legalName);
         return Convert.ToBase64String(bytes);
     }
 
-    private static async Task SeedVettingApplicationsAsync(WitchCityRopeDbContext context, ILogger logger)
+    // TODO: Vetting application seeding is disabled because VettingApplication constructor is incompatible
+    /*
+    private static async Task SeedVettingApplicationsAsync(WitchCityRopeIdentityDbContext context, ILogger logger)
     {
         // Get some users to create applications for
-        var memberUser = await context.Users.FirstOrDefaultAsync(u => u.Email.Value == "member@witchcityrope.com");
-        var guestUser = await context.Users.FirstOrDefaultAsync(u => u.Email.Value == "guest@witchcityrope.com");
+        var memberUser = await context.Users.FirstOrDefaultAsync(u => u.Email == "member@witchcityrope.com");
+        var guestUser = await context.Users.FirstOrDefaultAsync(u => u.Email == "guest@witchcityrope.com");
 
         if (memberUser == null || guestUser == null)
         {
-            logger.LogWarning("Required users for vetting applications not found. Skipping vetting application seeding.");
+            logger.LogWarning("Required users not found for vetting application seeding. Skipping.");
             return;
         }
 
-        var applications = new[]
+        var vettingApplications = new[]
         {
-            new VettingApplication(
-                applicant: memberUser,
-                experienceLevel: "Intermediate",
-                experienceDescription: "2 years experience in rope bondage, attended workshops in Boston",
-                interests: "Suspension, decorative rope, rope performance",
-                safetyKnowledge: "RACK/SSC understanding, nerve safety, circulation monitoring",
-                consentUnderstanding: "Enthusiastic, informed, ongoing consent with regular check-ins",
-                whyJoin: "Looking to expand my skills and connect with the local rope community",
-                references: new[] { "RiggerJohn@example.com", "BunnyAlice@example.com" }
+            // Approved application
+            VettingApplication.Create(
+                memberUser.Id,
+                "I have been practicing rope bondage for 3 years. I learned from workshops at various conferences and have been an active member of the Boston rope community.",
+                "RopeLover from Boston Rope Group, KnotMaster from Providence Rope Circle",
+                EmailAddress.Create("reference1@email.com"),
+                PhoneNumber.Create("617-555-0001")
             ),
-            new VettingApplication(
-                applicant: guestUser,
-                experienceLevel: "Beginner",
-                experienceDescription: "New to rope but experienced in other kink activities",
-                interests: "Learning fundamentals, floor work, self-tying",
-                safetyKnowledge: "Basic understanding from online resources and books",
-                consentUnderstanding: "Clear negotiation, respecting limits, ongoing communication",
-                whyJoin: "Want to learn rope safely from experienced practitioners",
-                references: new[] { "LocalDungeonOwner@example.com" }
+            // Pending application
+            VettingApplication.Create(
+                guestUser.Id,
+                "I'm new to rope but very interested in learning. I've attended a few introductory workshops and have been practicing basic knots at home.",
+                "TeacherName from Introduction Workshop",
+                EmailAddress.Create("teacher@ropeschool.com"),
+                PhoneNumber.Create("617-555-0002")
             )
         };
 
-        await context.VettingApplications.AddRangeAsync(applications);
-        logger.LogInformation($"Seeded {applications.Length} vetting applications");
+        // Approve the first application
+        vettingApplications[0].Approve("Verified references and experience. Welcome to the community!");
+
+        foreach (var app in vettingApplications)
+        {
+            await context.VettingApplications.AddAsync(app);
+        }
+
+        logger.LogInformation($"Seeded {vettingApplications.Length} vetting applications");
     }
+    */
 }

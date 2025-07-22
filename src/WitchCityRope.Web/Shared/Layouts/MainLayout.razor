@@ -3,6 +3,7 @@
 @inject NavigationManager Navigation
 @inject IAuthService AuthService
 @inject IJSRuntime JS
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <div class="wcr-app">
     <ToastContainer />
@@ -20,20 +21,23 @@
         <nav class="nav">
             <a href="/events" class="nav-item">Events & Classes</a>
             <a href="/how-to-join" class="nav-item">How To Join</a>
-            @if (_currentUser != null)
-            {
-                <a href="/member/dashboard" class="nav-item">My Dashboard</a>
-            }
+            <AuthorizeView>
+                <Authorized>
+                    <a href="/member/dashboard" class="nav-item">My Dashboard</a>
+                </Authorized>
+            </AuthorizeView>
             <a href="/resources" class="nav-item">Resources</a>
-            @if (_currentUser != null)
+            @if (_isAuthenticated)
             {
-                <div class="user-menu">
-                    <button class="user-menu-btn" @onclick="ToggleUserMenu">
-                        <img src="/images/avatar-placeholder.png" alt="User" class="user-avatar-sm">
-                        <span>@_currentUser?.SceneName</span>
+                <details class="user-menu">
+                    <summary class="user-menu-btn">
+                        <svg class="user-avatar-sm" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                        </svg>
+                        <span>@GetUserDisplayName()</span>
                         <i class="fas fa-chevron-down"></i>
-                    </button>
-                    <div class="user-dropdown @(_userMenuOpen ? "show" : "")">
+                    </summary>
+                    <div class="user-dropdown">
                         <a href="/member/profile" class="dropdown-item">
                             <i class="fas fa-user"></i> My Profile
                         </a>
@@ -43,7 +47,7 @@
                         <a href="/member/settings" class="dropdown-item">
                             <i class="fas fa-cog"></i> Settings
                         </a>
-                        @if (_currentUser?.IsAdmin == true)
+                        @if (_isAdmin)
                         {
                             <div class="dropdown-divider"></div>
                             <a href="/admin" class="dropdown-item">
@@ -51,11 +55,11 @@
                             </a>
                         }
                         <div class="dropdown-divider"></div>
-                        <a href="#" @onclick="Logout" @onclick:preventDefault="true" class="dropdown-item">
+                        <a href="/Identity/Account/Logout" class="dropdown-item">
                             <i class="fas fa-sign-out-alt"></i> Logout
                         </a>
                     </div>
-                </div>
+                </details>
             }
             else
             {
@@ -80,45 +84,50 @@
             </button>
         </div>
         <nav class="mobile-nav">
-            @if (_currentUser != null)
-            {
-                <div class="mobile-user-info">
-                    <img src="/images/avatar-placeholder.png" alt="User" class="user-avatar">
-                    <div>
-                        <div class="user-name">@_currentUser?.SceneName</div>
-                        <span class="user-email">@(_currentUser?.Email?.Replace("mailto:", ""))</span>
+            <AuthorizeView>
+                <Authorized>
+                    <div class="mobile-user-info">
+                        <svg class="user-avatar" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                    </svg>
+                        <div>
+                            <div class="user-name">@context.User.Identity?.Name</div>
+                            <span class="user-email">@context.User.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value</span>
+                        </div>
                     </div>
-                </div>
-            }
+                </Authorized>
+            </AuthorizeView>
             <a href="/events" class="mobile-nav-item" @onclick="CloseMobileMenu">Events & Classes</a>
             <a href="/how-to-join" class="mobile-nav-item" @onclick="CloseMobileMenu">How To Join</a>
-            @if (_currentUser != null)
-            {
-                <a href="/member/dashboard" class="mobile-nav-item" @onclick="CloseMobileMenu">My Dashboard</a>
-                <a href="/member/tickets" class="mobile-nav-item" @onclick="CloseMobileMenu">My Tickets</a>
-            }
+            <AuthorizeView>
+                <Authorized>
+                    <a href="/member/dashboard" class="mobile-nav-item" @onclick="CloseMobileMenu">My Dashboard</a>
+                    <a href="/member/tickets" class="mobile-nav-item" @onclick="CloseMobileMenu">My Tickets</a>
+                </Authorized>
+            </AuthorizeView>
             <a href="/resources" class="mobile-nav-item" @onclick="CloseMobileMenu">Resources</a>
-            @if (_currentUser != null)
-            {
-                <a href="/member/profile" class="mobile-nav-item" @onclick="CloseMobileMenu">My Profile</a>
-                <a href="/member/settings" class="mobile-nav-item" @onclick="CloseMobileMenu">Settings</a>
-                @if (_currentUser?.IsAdmin == true)
-                {
-                    <a href="/admin" class="mobile-nav-item admin" @onclick="CloseMobileMenu">Admin Panel</a>
-                }
-            }
+            <AuthorizeView>
+                <Authorized>
+                    <a href="/member/profile" class="mobile-nav-item" @onclick="CloseMobileMenu">My Profile</a>
+                    <a href="/member/settings" class="mobile-nav-item" @onclick="CloseMobileMenu">Settings</a>
+                    @if (context.User.IsInRole("Admin") || context.User.IsInRole("Administrator"))
+                    {
+                        <a href="/admin" class="mobile-nav-item admin" @onclick="CloseMobileMenu">Admin Panel</a>
+                    }
+                </Authorized>
+            </AuthorizeView>
             <a href="/incident-report" class="mobile-nav-item incident" @onclick="CloseMobileMenu">Report an Incident</a>
             <a href="/private-lessons" class="mobile-nav-item" @onclick="CloseMobileMenu">Private Lessons</a>
             <a href="/contact" class="mobile-nav-item" @onclick="CloseMobileMenu">Contact</a>
             <div class="mobile-nav-actions">
-                @if (_currentUser != null)
-                {
-                    <button class="btn btn-secondary" @onclick="Logout">Logout</button>
-                }
-                else
-                {
-                    <a href="/login" class="btn btn-primary" @onclick="CloseMobileMenu">Login</a>
-                }
+                <AuthorizeView>
+                    <Authorized>
+                        <button class="btn btn-secondary" @onclick="Logout">Logout</button>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="/login" class="btn btn-primary" @onclick="CloseMobileMenu">Login</a>
+                    </NotAuthorized>
+                </AuthorizeView>
             </div>
         </nav>
     </div>
@@ -354,10 +363,15 @@
         transition: all 0.3s ease;
         font-family: var(--wcr-font-body);
         color: var(--wcr-color-charcoal);
+        list-style: none;
     }
     
     .user-menu-btn:hover {
         background: var(--wcr-color-cream);
+    }
+    
+    .user-menu-btn::-webkit-details-marker {
+        display: none;
     }
     
     .user-avatar-sm {
@@ -365,6 +379,9 @@
         height: 28px;
         border-radius: 50%;
         object-fit: cover;
+        fill: var(--wcr-color-charcoal);
+        background: var(--wcr-color-taupe);
+        padding: 4px;
     }
     
     .user-dropdown {
@@ -376,16 +393,21 @@
         border-radius: var(--wcr-radius-md);
         box-shadow: var(--wcr-shadow-lg);
         min-width: 200px;
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(-10px);
-        transition: all 0.3s ease;
+        z-index: 1000;
     }
     
-    .user-dropdown.show {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
+    /* Hide dropdown by default */
+    details:not([open]) .user-dropdown {
+        display: none;
+    }
+    
+    /* Rotate chevron when open */
+    details[open] .fa-chevron-down {
+        transform: rotate(180deg);
+    }
+    
+    .user-menu-btn .fa-chevron-down {
+        transition: transform 0.3s ease;
     }
     
     .dropdown-item {
@@ -732,29 +754,18 @@
     private bool _mobileMenuOpen = false;
     private bool _userMenuOpen = false;
     private bool _scrolled = false;
-    private UserDto? _currentUser;
+    private bool _isAuthenticated = false;
+    private string _userName = "";
+    private bool _isAdmin = false;
     private string _newsletterEmail = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
-        _currentUser = await AuthService.GetCurrentUserAsync();
-        
         // Subscribe to authentication state changes
-        AuthService.AuthenticationStateChanged += OnAuthenticationStateChanged;
-    }
-    
-    private async void OnAuthenticationStateChanged(object? sender, bool isAuthenticated)
-    {
-        if (isAuthenticated)
-        {
-            _currentUser = await AuthService.GetCurrentUserAsync();
-        }
-        else
-        {
-            _currentUser = null;
-        }
-        
-        await InvokeAsync(StateHasChanged);
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
+        _userName = authState.User.Identity?.Name ?? "";
+        _isAdmin = authState.User.IsInRole("Admin") || authState.User.IsInRole("Administrator");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -762,7 +773,18 @@
         if (firstRender)
         {
             await JS.InvokeVoidAsync("addScrollListener", DotNetObjectReference.Create(this));
+            // Delay to ensure DOM is ready
+            await Task.Delay(100);
             await JS.InvokeVoidAsync("addClickOutsideListener", DotNetObjectReference.Create(this));
+        }
+        
+        // Force re-render if authentication state changes
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var isAuth = authState.User.Identity?.IsAuthenticated ?? false;
+        if (isAuth != _isAuthenticated)
+        {
+            _isAuthenticated = isAuth;
+            StateHasChanged();
         }
     }
     
@@ -786,12 +808,12 @@
     private void ToggleUserMenu()
     {
         _userMenuOpen = !_userMenuOpen;
+        StateHasChanged();
     }
 
     private async Task Logout()
     {
-        await AuthService.LogoutAsync();
-        Navigation.NavigateTo("/");
+        Navigation.NavigateTo("/Identity/Account/Logout", forceLoad: true);
     }
 
     [JSInvokable]
@@ -810,9 +832,20 @@
         StateHasChanged();
     }
     
+    private string GetUserDisplayName()
+    {
+        // Use the username we already have
+        if (!string.IsNullOrEmpty(_userName) && _userName.Contains('@'))
+        {
+            // Extract username part of email
+            return _userName.Split('@')[0];
+        }
+        
+        return _userName ?? "User";
+    }
+    
     public void Dispose()
     {
-        // Unsubscribe from authentication state changes
-        AuthService.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+        // Cleanup if needed
     }
 }

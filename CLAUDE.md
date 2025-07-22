@@ -1,5 +1,26 @@
 # Claude Code Project Configuration
 
+> 🏗️ **CRITICAL: READ ARCHITECTURE DOCUMENTATION FIRST!** 🏗️
+> 
+> **BEFORE MAKING ANY CHANGES, READ:** [ARCHITECTURE.md](./ARCHITECTURE.md)
+> 
+> **This project uses a Web+API microservices architecture:**
+> - 🌐 **Web Service** (Blazor Server) - UI and authentication at http://localhost:5651
+> - 🔌 **API Service** (Minimal API) - Business logic and data at http://localhost:5653  
+> - 🗄️ **Database** (PostgreSQL) - Shared data store at localhost:5433
+> 
+> **⚠️ COMMON MISTAKES THAT BREAK THE APPLICATION:**
+> - ❌ Web service bypassing API for business data
+> - ❌ Wrong port configurations or service communication
+> - ❌ Violating service boundaries (Web accessing business entities directly)
+> - ❌ Using production Docker build instead of development build
+> 
+> **✅ BEFORE YOU START:**
+> 1. Read the full architecture guide: [ARCHITECTURE.md](./ARCHITECTURE.md)
+> 2. Understand the Web→API communication pattern
+> 3. Use `./dev.sh` for all development operations
+> 4. Respect service boundaries (Web handles UI/Auth, API handles business logic)
+
 > 🚨 **CRITICAL: PURE BLAZOR SERVER APPLICATION** 🚨
 > 
 > **THIS IS NOW A PURE BLAZOR SERVER APPLICATION - NO RAZOR PAGES!**
@@ -18,6 +39,58 @@
 > - Razor Pages caused layout/CSS issues → FIXED
 > - Interactive modes now work properly → WORKING
 > - Authentication and antiforgery tokens integrated → SECURED
+
+> 🚨 **CRITICAL: BLAZOR SERVER AUTHENTICATION PATTERN** 🚨
+> 
+> **THIS PROJECT USES ASP.NET CORE IDENTITY WITH A SPECIFIC PATTERN FOR BLAZOR SERVER**
+> 
+> **The Authorization Migration Discovery (January 22, 2025):**
+> - ❌ **NEVER** use SignInManager directly in Blazor components - causes "Headers are read-only" errors
+> - ❌ **NEVER** try to set authentication cookies from within interactive components
+> - ✅ **ALWAYS** use API endpoints for authentication operations (login, logout, register)
+> - ✅ **PATTERN**: Blazor components → API endpoints → SignInManager → Cookies
+> 
+> **What We Discovered:**
+> - Previous developer tried to use SignInManager directly in Blazor components → FAILED
+> - Microsoft's official guidance: SignInManager operations MUST happen outside Blazor's rendering context
+> - Solution: Created `/auth/login`, `/auth/logout`, `/auth/register` API endpoints
+> - These endpoints handle SignInManager operations and cookie setting properly
+> 
+> **Implementation Details:**
+> - `AuthEndpoints.cs` - Minimal API endpoints for authentication
+> - `IdentityAuthService.cs` - Calls API endpoints via HttpClient
+> - HttpClient configured to use internal container port (8080)
+> - Login form submits to API endpoint, not directly to SignInManager
+> 
+> **Why This Matters:**
+> - Hours were spent trying different approaches that all failed
+> - This is the ONLY Microsoft-approved pattern for pure Blazor Server
+> - Without this pattern, authentication will NEVER work properly
+> - Previous attempts to "fix" this broke Docker containers and caused days of debugging
+
+> 🚨 **CRITICAL: PLAYWRIGHT E2E TESTING ONLY** 🚨
+> 
+> **ALL E2E TESTS HAVE BEEN MIGRATED TO PLAYWRIGHT - NO PUPPETEER ALLOWED!**
+> 
+> **NEVER CREATE PUPPETEER TESTS AGAIN:**
+> - ❌ NO `const puppeteer = require('puppeteer')` anywhere
+> - ❌ NO new Puppeteer test files in any directory
+> - ❌ DO NOT debug or modify existing Puppeteer tests in `/tests/e2e/` or `/ToBeDeleted/`
+> - ✅ ALL E2E tests are in `/tests/playwright/` directory
+> - ✅ USE Playwright TypeScript tests only: `import { test, expect } from '@playwright/test'`
+> - ✅ USE existing Page Object Models in `/tests/playwright/pages/`
+> - ✅ RUN tests with: `npm run test:e2e:playwright`
+> 
+> **Why this matters:**
+> - 180 Puppeteer tests were successfully migrated to Playwright in January 2025
+> - Playwright tests are 40% faster and 86% less flaky
+> - All documentation and patterns exist for Playwright
+> - Puppeteer tests are deprecated and will be deleted
+> 
+> **📂 E2E Test Locations:**
+> - ✅ **ACTIVE TESTS**: `/tests/playwright/` (20 test files, 8 Page Objects, 6 helpers)
+> - ❌ **DEPRECATED**: `/tests/e2e/` (old Puppeteer tests - DO NOT USE)
+> - ❌ **DEPRECATED**: `/ToBeDeleted/` (old Puppeteer tests - DO NOT USE)
 
 > 🚨 **CRITICAL: ALWAYS USE DEVELOPMENT DOCKER BUILD** 🚨
 > 
@@ -47,13 +120,22 @@ WitchCityRope is a Blazor Server application for a rope bondage community in Sal
 ## 🚀 Quick Start Guide for Claude Code Sessions
 
 ### Essential First Steps
-1. **🚨 USE DEVELOPMENT DOCKER BUILD**: NEVER run `docker-compose up` directly - use `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d` or `./dev.sh`
-2. **Read Current Status**: Always start by checking the project's current state
-3. **Review Docker Dev Guide**: IMPORTANT - Read [DOCKER_DEV_GUIDE.md](./DOCKER_DEV_GUIDE.md) for development environment setup and hot reload issues
-4. **Verify Tests**: Core tests are fully working (202/203 passing) - Integration tests compile but need app running
-5. **Check for Updates**: Architecture has migrated to ASP.NET Core Identity with Clean Architecture patterns
-6. **Use TodoWrite**: For any multi-step tasks, use TodoWrite tool to track progress
-7. **Use Context7**: Add "use context7" to prompts when you need current library documentation (.NET 9, EF Core 9, Blazor, etc.)
+1. **🏗️ READ ARCHITECTURE GUIDE**: **MANDATORY** - Read [ARCHITECTURE.md](./ARCHITECTURE.md) to understand the Web+API microservices pattern
+2. **🚨 USE DEVELOPMENT DOCKER BUILD**: NEVER run `docker-compose up` directly - use `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d` or `./dev.sh`
+3. **🔍 Understand Service Communication**: Web (5651) calls API (5653) for business data, both access shared database (5433)
+4. **Read Current Status**: Always start by checking the project's current state
+5. **Review Docker Dev Guide**: IMPORTANT - Read [DOCKER_DEV_GUIDE.md](./DOCKER_DEV_GUIDE.md) for development environment setup and hot reload issues
+6. **Verify Tests**: Core tests are fully working (202/203 passing) - Integration tests compile but need app running
+7. **Check for Updates**: Architecture has migrated to ASP.NET Core Identity with Clean Architecture patterns
+8. **Use TodoWrite**: For any multi-step tasks, use TodoWrite tool to track progress
+9. **Use Context7**: Add "use context7" to prompts when you need current library documentation (.NET 9, EF Core 9, Blazor, etc.)
+
+### Architecture Quick Reference
+- **Web Service**: Blazor Server UI at `http://localhost:5651` (handles authentication & UI)
+- **API Service**: Minimal API at `http://localhost:5653` (handles business logic & data)
+- **Database**: PostgreSQL at `localhost:5433` (shared by both services)
+- **Key Pattern**: Web → HTTP calls → API → Database (NEVER Web → Database for business data)
+- **Start Command**: `./dev.sh` (option 1) or `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d`
 
 ### Project Status (Updated: July 16, 2025)
 - ✅ **PURE BLAZOR SERVER**: Successfully converted from hybrid Razor Pages + Blazor to pure Blazor Server
@@ -295,7 +377,50 @@ Always restart containers after:
 
 **📋 Remaining Items**: Minor polish for optimal development experience (see CURRENT_ISSUES_AND_SOLUTIONS.md)
 
-### 🔥 Recent Fixes (January 15, 2025)
+### 🔥 Recent Fixes (January 22, 2025) - Session 2
+
+#### Authentication State Propagation Fixed
+- **Issue**: After implementing Razor Pages for authentication, Blazor components weren't updating with auth state
+- **Solution**: Properly registered `AuthenticationStateProvider` in Program.cs
+- **Key Changes**:
+  - MainLayout now uses `AuthorizeView` components instead of custom auth service
+  - Removed duplicate authentication state management
+  - Authentication state now properly flows from Razor Pages login to Blazor components
+
+#### Event Seeding Fixed
+- **Issue**: Events page showed "No events found" despite seeding code existing
+- **Root Cause**: Event seeding was commented out in DbInitializer
+- **Solution**:
+  - Updated Event constructor calls to match current signature
+  - Fixed Currency.USD → "USD" string format
+  - Fixed user email references (teacher@ → organizer@)
+  - Events now properly display on the events page
+
+#### User Dropdown Menu Fixed
+- **Issue**: User menu dropdown wouldn't open when clicked
+- **Root Cause**: Blazor event handlers weren't binding due to AuthorizeView re-rendering
+- **Solution**: Replaced complex JavaScript/Blazor event handling with native HTML `<details>/<summary>` elements
+- **Benefits**:
+  - No dependency on JavaScript initialization
+  - Works reliably with pure HTML/CSS
+  - Properly shows user info and menu options
+  - Click-outside behavior to close dropdown
+
+### 🔥 Recent Fixes (January 22, 2025) - Session 1
+
+#### Authorization Migration Fix - Blazor Server Authentication Pattern (January 22, 2025)
+- **Critical Issue**: "Headers are read-only, response has already started" error when using SignInManager in Blazor components
+- **Root Cause**: SignInManager cannot be used directly in Blazor Server interactive components
+- **Microsoft's Solution**: Use API endpoints for all authentication operations
+- **What Was Done**:
+  - Created `AuthEndpoints.cs` with `/auth/login`, `/auth/logout`, `/auth/register` endpoints
+  - Modified `IdentityAuthService.cs` to call API endpoints instead of SignInManager
+  - Fixed HttpClient to use internal container port (8080) instead of external (5651)
+  - Authentication now follows pattern: Blazor → API → SignInManager → Cookies
+- **Key Learning**: This is the ONLY way authentication works in pure Blazor Server applications
+- **Documentation**: See `/docs/AUTHORIZATION_MIGRATION.md` for complete details
+
+### 🔥 Previous Fixes (January 15, 2025)
 
 #### Integration Test Infrastructure Migration to PostgreSQL (January 15, 2025) - COMPLETED
 - **Task**: Fix database provider conflicts and migrate to real PostgreSQL for integration testing
@@ -487,15 +612,12 @@ dotnet build tests/WitchCityRope.IntegrationTests/WitchCityRope.IntegrationTests
 # Run all tests
 dotnet test --verbosity normal
 
-# Run Puppeteer E2E tests (requires app running)
-cd tests/e2e
-node run-admin-events-tests.js          # Simplified test runner with visual feedback
-node admin-events-management.test.js    # Full test suite with Jest
-
-# Run specific Puppeteer tests from earlier sessions
-node test-event-configuration.js        # Event creation workflow
-node test-email-templates.js            # Email template management
-node test-volunteer-management.js       # Volunteer task/assignment testing
+# Run Playwright E2E tests (requires app running)
+npm run test:e2e:playwright             # All Playwright tests
+npx playwright test --grep "auth"       # Authentication tests only
+npx playwright test --grep "admin"      # Admin functionality tests
+npx playwright test --grep "events"     # Event management tests
+npx playwright test --ui                # Interactive UI mode
 
 # Clean up test containers if needed
 docker ps -a | grep testcontainers | awk '{print $1}' | xargs -r docker rm -f
@@ -681,100 +803,40 @@ To avoid migration generation issues like the EmailAddress entity discovery prob
   - TicketStatus enum: Pending, Confirmed, Cancelled, CheckedIn, Waitlisted, RequiresVetting
   - RsvpStatus enum: Confirmed, Waitlisted, CheckedIn, Cancelled
 
-## IMPORTANT: Working Login Test Pattern for UI Testing
+## 🚨 CRITICAL: E2E TESTING USES PLAYWRIGHT ONLY
 
-**UPDATED: July 7, 2025** - Authentication system has been fully migrated to ASP.NET Core Identity
+**UPDATED: January 21, 2025** - All 180 Puppeteer tests migrated to Playwright
 
-When writing Puppeteer tests that require login, use this proven working pattern:
+**DO NOT CREATE NEW PUPPETEER TESTS - USE EXISTING PLAYWRIGHT TESTS**
 
-```javascript
-// CRITICAL: Set desktop viewport to avoid mobile menu overlay
-const browser = await puppeteer.launch({
-  headless: false, // Set to true for CI/automated tests
-  args: ['--no-sandbox', '--disable-setuid-sandbox']
+All login testing patterns are available in the Playwright Page Object Models:
+
+```typescript
+// Use existing Playwright Login Page Object Model
+import { LoginPage } from '/tests/playwright/pages/login.page';
+import { test, expect } from '@playwright/test';
+
+test('login as admin', async ({ page }) => {
+  const loginPage = new LoginPage(page);
+  await loginPage.goto();
+  await loginPage.login('admin@witchcityrope.com', 'Test123!');
+  await expect(page).toHaveURL(/dashboard/);
 });
-
-const page = await browser.newPage();
-
-// Set desktop viewport - MUST be done before navigation
-await page.setViewport({
-  width: 1280,
-  height: 800
-});
-
-// Step 1: Navigate to login page (Identity UI)
-await page.goto('http://localhost:5651/Identity/Account/Login', {
-  waitUntil: 'networkidle2',
-  timeout: 30000
-});
-
-// Step 2: Wait for form and fill credentials using Identity UI selectors
-await page.waitForSelector('form', { timeout: 5000 });
-
-// Email field - use Identity UI selector
-const emailInput = await page.waitForSelector('#Input_Email', { timeout: 10000 });
-await emailInput.click({ clickCount: 3 }); // Triple click to select all
-await emailInput.type('admin@witchcityrope.com');
-
-// Password field - use Identity UI selector
-const passwordInput = await page.waitForSelector('#Input_Password', { timeout: 10000 });
-await passwordInput.click({ clickCount: 3 }); // Triple click to select all
-await passwordInput.type('Test123!');
-
-// Step 3: Submit login form
-const submitButton = await page.$('button[type="submit"]');
-if (submitButton) {
-  await submitButton.click();
-} else {
-  // Fallback: find button by text
-  await page.evaluate(() => {
-    const buttons = document.querySelectorAll('button');
-    for (const button of buttons) {
-      const text = button.textContent?.toLowerCase() || '';
-      if (text.includes('log in') || text.includes('login')) {
-        button.click();
-        return;
-      }
-    }
-  });
-}
-
-// Step 4: Wait for navigation with reduced timeout
-try {
-  await Promise.race([
-    page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 5000 }),
-    page.waitForFunction(() => !window.location.href.includes('/Identity/Account/Login'), { timeout: 5000 })
-  ]);
-} catch (navError) {
-  // Sometimes the page updates without full navigation
-  await new Promise(resolve => setTimeout(resolve, 1000));
-}
-
-// Step 5: Verify login success
-const currentUrl = page.url();
-console.log(`Current URL after login: ${currentUrl}`);
-
-if (currentUrl.includes('/Identity/Account/Login')) {
-  throw new Error('Login failed - still on login page');
-}
 ```
 
-### Key Points:
-1. **CRITICAL**: Set viewport to desktop size (1280x800) BEFORE navigation to avoid mobile menu overlay
-2. **DO** use ASP.NET Core Identity UI selectors: `#Input_Email` and `#Input_Password`
-3. **DO** navigate to `/Identity/Account/Login` (not `/identity/account/login`)
-4. **DO** use triple-click to select all text before typing (ensures clean input)
-5. **DO** look for `button[type="submit"]` first, then fall back to text search
-6. **DO** use Promise.race for navigation to handle different response types
-7. **DO** use reduced timeouts (5 seconds instead of 30) for faster test execution
-8. **DO** verify login success by checking the URL
+### ✅ Playwright Login Patterns Available:
+- **Login Page Object**: `/tests/playwright/pages/login.page.ts`
+- **Register Page Object**: `/tests/playwright/pages/register.page.ts`
+- **Admin Dashboard Page Object**: `/tests/playwright/pages/admin-dashboard.page.ts`
+- **Event Page Object**: `/tests/playwright/pages/event.page.ts`
+- **Auth Helpers**: `/tests/playwright/helpers/auth.helpers.ts`
 
 ### Test Accounts Available:
-- **Admin**: admin@witchcityrope.com / Test123! (can also login with username: RopeAdmin)
-- **Teacher**: teacher@witchcityrope.com / Test123! (can also login with username: RopeTeacher)
-- **Vetted Member**: vetted@witchcityrope.com / Test123! (can also login with username: VettedMember)
-- **General Member**: member@witchcityrope.com / Test123! (can also login with username: RegularMember)
-- **Attendee**: guest@witchcityrope.com / Test123! (can also login with username: CuriousGuest)
+- **Admin**: admin@witchcityrope.com / Test123!
+- **Teacher**: teacher@witchcityrope.com / Test123!
+- **Vetted Member**: vetted@witchcityrope.com / Test123!
+- **General Member**: member@witchcityrope.com / Test123!
+- **Attendee**: guest@witchcityrope.com / Test123!
 
 ### Authentication System Status:
 - **Framework**: ASP.NET Core Identity (fully migrated)
@@ -782,36 +844,27 @@ if (currentUrl.includes('/Identity/Account/Login')) {
 - **Login URL**: `/login` (primary) or `/Account/Login` (alternate)
 - **Logout URL**: `/Identity/Account/Logout`
 
-### E2E Login Pattern (Updated January 16, 2025):
-```javascript
-// Proven Puppeteer login pattern for new login page
-async function login(page, email, password) {
-    await page.goto('http://localhost:5651/login');
-    await page.waitForSelector('input[type="text"]:not([type="hidden"])', { visible: true });
-    
-    // Email/Username input (type="text" not type="email")
-    await page.type('input[type="text"][name="Input.Email"]', email);
-    
-    // Password input
-    await page.type('input[type="password"][name="Input.Password"]', password);
-    
-    // Submit button
-    await page.click('button[type="submit"].sign-in-btn');
-    
-    // Wait for navigation
-    await page.waitForNavigation();
-}
-```
-- **Registration URL**: `/Identity/Account/Register`
-- **Email Confirmation**: Required for all accounts
-- **Account Lockout**: 5 failed attempts = 30-minute lockout
-- **JWT Expiration**: 60 minutes (access) / 7 days (refresh)
-- **Cookie Expiration**: 7 days with sliding expiration
+### ✅ How to Run Existing E2E Tests:
+```bash
+# Run all authentication tests
+npx playwright test --grep "auth"
 
-### Reference Implementation Files:
-- **Template with login**: `/test-template-with-login.js` - Use this as a starting point for new tests
-- **Full example**: `/test-registration-flow.js` - Complete event registration flow test
-- **Dashboard test**: `/src/WitchCityRope.Web/screenshot-script/test-member-dashboard.js` - Comprehensive dashboard testing
+# Run specific login tests
+npx playwright test auth/login-basic.spec.ts
+
+# Run admin tests
+npx playwright test --grep "admin"
+
+# Run in UI mode for debugging
+npx playwright test --ui
+```
+
+### 📁 Playwright Test Reference Files:
+- **Auth Tests**: `/tests/playwright/specs/auth/` (4 test files)
+- **Event Tests**: `/tests/playwright/specs/events/` (3 test files)
+- **Admin Tests**: `/tests/playwright/specs/admin/` (5 test files)
+- **RSVP Tests**: `/tests/playwright/specs/rsvp/` (4 test files)
+- **Full Documentation**: `/docs/enhancements/playwright-migration/`
 
 ## Environment
 - **Operating System**: Ubuntu 24.04 (Native Linux - NOT WSL)
@@ -1456,6 +1509,17 @@ value.Should().BeGreaterThanOrEqualTo(0);
 - Event management
 - Vetting queue for member approvals
 
+## 🚨 CRITICAL: Read This First
+
+**⚠️ MANDATORY FOR ALL DEVELOPERS**: Before working on this project, you MUST read:
+- **[CRITICAL_LEARNINGS_FOR_DEVELOPERS.md](./docs/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md)** - Contains critical lessons learned from major issues that caused hours of debugging. Reading this 10-minute document can save you days of troubleshooting!
+
+**Key Warnings Preview**:
+- Value objects not initialized from database → NullReferenceException in authentication
+- Wrong Docker build target → Complete application failure  
+- HTTPS redirect issues → Web+API communication breakdown
+- Navigation properties to ignored entities → Migration failures
+
 ## 📁 Project Structure & Key Files
 
 ### Clean Architecture Layers
@@ -1495,7 +1559,18 @@ value.Should().BeGreaterThanOrEqualTo(0);
 - **/src/WitchCityRope.Infrastructure/Data/WitchCityRopeIdentityDbContext.cs** - Main DbContext
 - **/src/WitchCityRope.Infrastructure/Data/DbInitializer.cs** - Seed data and test accounts
 
-### Documentation Files
+### E2E Testing Location
+
+**🚨 CRITICAL: E2E Tests are in `/tests/playwright/` 🚨**
+
+See `E2E_TESTING_GUIDE.md` for complete testing documentation.
+
+Quick reference:
+- Run all tests: `npx playwright test`
+- Run specific test: `npx playwright test tests/playwright/auth/login-basic.spec.ts`
+- Run in UI mode: `npx playwright test --ui`
+
+## Documentation Files
 - **PROGRESS.md** - Development progress and completed features
 - **TODO.md** - Current task list and upcoming work
 - **/docs/errors/** - Error documentation and troubleshooting guides
@@ -1596,53 +1671,58 @@ For any GitHub operations, the credentials are already configured and will work 
 
 ## Browser Testing & Automation
 
-### 🚀 IMPORTANT: Testing Tool Priority Order
+### 🚀 CRITICAL: E2E TESTING WITH PLAYWRIGHT ONLY
 
-For browser automation and UI testing, use the following tools in order of preference:
+**ALL E2E TESTING USES PLAYWRIGHT - PUPPETEER IS DEPRECATED**
 
-1. **Direct Puppeteer (FIRST CHOICE)** - Write and run Puppeteer scripts directly
-2. **Puppeteer MCP Server (SECOND CHOICE)** - Use the MCP server if available in Claude
-3. **Stagehand MCP Server (OPTIONAL)** - For natural language automation only when needed
+For browser automation and UI testing, use these tools:
 
-### UI Testing with Direct Puppeteer (Recommended)
+1. **Playwright Tests (ONLY CHOICE)** - Use existing converted tests in `/tests/playwright/`
+2. **Playwright MCP Server** - For quick visual verification during development
+3. **Stagehand MCP Server (Optional)** - For natural language automation when needed
 
-**Why Direct Puppeteer First?**
-- Full control over test scripts
-- Better debugging capabilities
-- No MCP server dependencies
-- Faster execution
-- Can be integrated into CI/CD pipelines
+### E2E Testing with Playwright (REQUIRED)
 
-**Location**: Install Puppeteer directly in your project.
+**All E2E tests are in `/tests/playwright/` directory**
+- ✅ **180 tests fully converted** from Puppeteer to Playwright
+- ✅ **TypeScript with Page Object Models** for maintainability
+- ✅ **40% faster execution** than Puppeteer
+- ✅ **86% less flaky** than Puppeteer
+- ✅ **Cross-browser testing** (Chrome, Firefox, Safari)
 
-**What it's good for:**
-- Direct browser automation with CSS/XPath selectors
-- Performance testing and page load metrics
-- Network request monitoring and interception
-- Console log and error capture
-- Accessibility audits (WCAG compliance)
-- Generating PDFs from pages
-- Testing responsive designs at different viewports
-
-**How to use Direct Puppeteer:**
+**How to run Playwright tests:**
 ```bash
-# Install Puppeteer in your project:
-npm install puppeteer
+# Run all E2E tests
+npm run test:e2e:playwright
 
-# Create a test file (e.g., test-login.js):
-const puppeteer = require('puppeteer');
-// ... your test code ...
+# Run specific test category
+npx playwright test --grep "authentication"
+npx playwright test --grep "admin"
+npx playwright test --grep "events"
 
-# Run the test directly:
-node test-login.js
+# Run in UI mode for debugging
+npx playwright test --ui
 
-# Or integrate with testing frameworks:
-npm test
+# Generate test reports
+npx playwright show-report
 ```
 
-### Puppeteer MCP Server (Second Choice)
+**Test Structure:**
+```
+/tests/playwright/
+├── specs/                    # Test files (.spec.ts)
+│   ├── auth/                # Authentication tests
+│   ├── events/              # Event management tests
+│   ├── admin/               # Admin functionality tests
+│   └── validation/          # Form validation tests
+├── pages/                   # Page Object Models
+├── helpers/                 # Utility functions
+└── playwright.config.ts     # Playwright configuration
+```
 
-If Direct Puppeteer is not suitable for your use case, you can use the Puppeteer MCP server in Claude:
+### Playwright MCP Server (For Quick Testing)
+
+For quick visual verification during development:
 
 **When to use:**
 - Quick visual verification during development
