@@ -3,6 +3,7 @@ using Microsoft.JSInterop;
 using System.ComponentModel.DataAnnotations;
 using WitchCityRope.Web.Models;
 using WitchCityRope.Web.Services;
+using Microsoft.AspNetCore.Antiforgery;
 
 namespace WitchCityRope.Web.Features.Auth.Pages;
 
@@ -11,6 +12,8 @@ public partial class Login : ComponentBase
     [Inject] private IAuthService AuthService { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
     [Inject] private IJSRuntime JS { get; set; } = default!;
+    [Inject] private IAntiforgery Antiforgery { get; set; } = default!;
+    [Inject] private IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
 
     private string _activeTab = "login";
     private LoginModel _loginModel = new();
@@ -29,75 +32,65 @@ public partial class Login : ComponentBase
         _errorMessage = null;
     }
 
-    private async Task HandleLogin()
+    private string GetReturnUrl()
     {
-        _isLoading = true;
-        _errorMessage = null;
+        var uri = new Uri(Navigation.Uri);
+        var returnUrl = System.Web.HttpUtility.ParseQueryString(uri.Query).Get("returnUrl");
+        return returnUrl ?? "/member/dashboard";
+    }
 
-        try
+    private string GetAntiForgeryToken()
+    {
+        var httpContext = HttpContextAccessor.HttpContext;
+        if (httpContext != null)
         {
-            var result = await AuthService.LoginAsync(_loginModel.Email, _loginModel.Password, _loginModel.RememberMe);
-            
-            if (result.RequiresTwoFactor)
-            {
-                // Navigate to 2FA page
-                Navigation.NavigateTo($"/auth/two-factor?email={Uri.EscapeDataString(_loginModel.Email)}");
-            }
-            else if (result.Success)
-            {
-                // Get return URL from query string or default to dashboard
-                var uri = new Uri(Navigation.Uri);
-                var returnUrl = System.Web.HttpUtility.ParseQueryString(uri.Query).Get("returnUrl");
-                var navigateTo = !string.IsNullOrEmpty(returnUrl) ? returnUrl : "/member/dashboard";
-                
-                // Force a full page reload to ensure authentication state is properly set
-                Navigation.NavigateTo(navigateTo, forceLoad: true);
-            }
-            else
-            {
-                _errorMessage = result.Error ?? "Invalid email or password.";
-            }
+            var tokens = Antiforgery.GetAndStoreTokens(httpContext);
+            return tokens.RequestToken ?? "";
         }
-        catch (Exception)
+        return "";
+    }
+
+    private string GetErrorMessage()
+    {
+        var uri = new Uri(Navigation.Uri);
+        var error = System.Web.HttpUtility.ParseQueryString(uri.Query).Get("error");
+        return error switch
         {
-            _errorMessage = "An error occurred. Please try again.";
-        }
-        finally
-        {
-            _isLoading = false;
-        }
+            "invalid" => "Invalid email/username or password.",
+            _ => string.Empty
+        };
     }
 
     private async Task HandleRegister()
     {
+        // Validate the form before redirecting
         _isLoading = true;
         _errorMessage = null;
 
         try
         {
-            var result = await AuthService.RegisterAsync(_registerModel.Email, _registerModel.Password, _registerModel.SceneName);
+            // Do basic validation through the service
+            var validationResult = await AuthService.RegisterAsync(_registerModel.Email, _registerModel.Password, _registerModel.SceneName);
             
-            if (result.Success)
+            if (!validationResult.Success)
             {
-                // Auto-login after registration
-                var loginResult = await AuthService.LoginAsync(_registerModel.Email, _registerModel.Password);
-                if (loginResult.Success)
-                {
-                    // Force a full page reload to ensure authentication state is properly set
-                    Navigation.NavigateTo("/member/dashboard", forceLoad: true);
-                }
+                _errorMessage = validationResult.Error ?? "Registration validation failed.";
+                _isLoading = false;
+                return;
             }
-            else
-            {
-                _errorMessage = result.Error ?? "Registration failed. Please try again.";
-            }
+
+            // If validation passes, redirect to the Register Razor Page
+            // Build the redirect URL with form data as query parameters
+            var encodedEmail = Uri.EscapeDataString(_registerModel.Email);
+            var encodedSceneName = Uri.EscapeDataString(_registerModel.SceneName);
+            var encodedReturnUrl = Uri.EscapeDataString(GetReturnUrl());
+            
+            // Navigate to the Razor Page with forceLoad to ensure proper form submission
+            Navigation.NavigateTo($"/Identity/Account/Register?email={encodedEmail}&sceneName={encodedSceneName}&returnUrl={encodedReturnUrl}", forceLoad: true);
         }
         catch (Exception)
         {
-            _errorMessage = "An error occurred during registration. Please try again.";
-        }
-        finally
-        {
+            _errorMessage = "An error occurred. Please try again.";
             _isLoading = false;
         }
     }
@@ -136,6 +129,19 @@ public partial class Login : ComponentBase
                 _passwordStrengthText = "Strong password";
                 break;
         }
+    }
+
+    private async Task HandleLogin()
+    {
+        // Instead of using the API endpoint workaround, redirect to the Razor Page
+        // This is Microsoft's recommended pattern for authentication in Blazor Server
+        
+        // Build the redirect URL with form data as query parameters
+        var encodedEmail = Uri.EscapeDataString(_loginModel.Email);
+        var encodedReturnUrl = Uri.EscapeDataString(GetReturnUrl());
+        
+        // Navigate to the Razor Page with forceLoad to ensure proper form submission
+        Navigation.NavigateTo($"/Identity/Account/Login?emailOrUsername={encodedEmail}&returnUrl={encodedReturnUrl}", forceLoad: true);
     }
 
     private void GoogleLogin()
