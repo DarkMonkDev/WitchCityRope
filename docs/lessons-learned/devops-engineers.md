@@ -313,3 +313,22 @@ Before deploying:
 ---
 
 *Remember: Development should mirror production as closely as possible. If it works in Docker locally, it should work in production.*
+
+## Script Management
+
+### Script Organization
+**Issue**: Shell scripts scattered throughout the project  
+**Solution**: Organized directory structure
+
+**Script Locations**:
+- **Essential dev tools** → Root directory (`dev.sh`, `restart-web.sh`, `check-dev-tools-status.sh`)
+- **Test runners** → `/scripts/`
+- **Docker utilities** → `/scripts/docker/`
+- **Database scripts** → `/scripts/database/`
+- **Diagnostics** → `/scripts/diagnostics/`
+- **Setup/installation** → `/scripts/setup/`
+- **Archived/deprecated** → `/scripts/_archive/`
+
+**Script Inventory**: See `/scripts/SCRIPT_INVENTORY.md` for complete listing of all scripts, their purposes, and usage instructions.
+
+**Before creating new scripts**: Check the inventory to avoid duplication!

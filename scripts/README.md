@@ -2,6 +2,15 @@
 
 This directory contains utility scripts for development, testing, and deployment of the WitchCityRope application.
 
+> **📍 Script Inventory**: See [SCRIPT_INVENTORY.md](./SCRIPT_INVENTORY.md) for a complete listing of all scripts in the project, their locations, purposes, and usage instructions.
+
+## Quick Access to Essential Scripts
+
+The most frequently used development scripts remain in the root directory:
+- `./dev.sh` - Main development menu system
+- `./restart-web.sh` - Quick restart when hot reload fails
+- `./check-dev-tools-status.sh` - Verify development environment
+
 ## Primary Development Launcher
 
 ### dev-start.sh / dev-start.ps1

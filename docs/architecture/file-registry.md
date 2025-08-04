@@ -45,6 +45,24 @@
 | 2025-08-04 | /session-work/2025-08-04/archived-test-scripts/*.png | MOVED | 2 screenshot files archived | Playwright script cleanup | ARCHIVED | N/A |
 | 2025-08-04 | /package.json | MODIFIED | Updated main entry point | Playwright script cleanup | PERMANENT | N/A |
 | 2025-08-04 | /docs/standards-processes/testing/TEST_CATALOG.md | MODIFIED | Added utility scripts section | Playwright script cleanup | PERMANENT | N/A |
+| 2025-08-04 | /SHELL_SCRIPTS_ORGANIZATION_PLAN.md | CREATED | Plan for organizing shell scripts | Shell script organization | TEMPORARY | 2025-08-11 |
+| 2025-08-04 | /scripts/SCRIPT_INVENTORY.md | CREATED | Central inventory of all shell scripts | Shell script organization | PERMANENT | N/A |
+| 2025-08-04 | /scripts/docker/ | CREATED | Directory for Docker utilities | Shell script organization | PERMANENT | N/A |
+| 2025-08-04 | /scripts/diagnostics/ | CREATED | Directory for diagnostic scripts | Shell script organization | PERMANENT | N/A |
+| 2025-08-04 | /scripts/setup/ | CREATED | Directory for setup scripts | Shell script organization | PERMANENT | N/A |
+| 2025-08-04 | /scripts/_archive/login-tests/ | CREATED | Archive for login test scripts | Shell script organization | ARCHIVED | N/A |
+| 2025-08-04 | /scripts/_archive/fixes/ | CREATED | Archive for fix scripts | Shell script organization | ARCHIVED | N/A |
+| 2025-08-04 | /scripts/_archive/utilities/ | CREATED | Archive for misc utilities | Shell script organization | ARCHIVED | N/A |
+| 2025-08-04 | /scripts/*.sh | MOVED | 4 test runners moved to scripts | Shell script organization | PERMANENT | N/A |
+| 2025-08-04 | /scripts/docker/*.sh | MOVED | 5 Docker scripts moved | Shell script organization | PERMANENT | N/A |
+| 2025-08-04 | /scripts/diagnostics/*.sh | MOVED | 3 diagnostic scripts moved | Shell script organization | PERMANENT | N/A |
+| 2025-08-04 | /scripts/setup/*.sh | MOVED | 3 setup scripts moved | Shell script organization | PERMANENT | N/A |
+| 2025-08-04 | /scripts/run-migration.sh | MOVED | Database script moved | Shell script organization | PERMANENT | N/A |
+| 2025-08-04 | /scripts/_archive/login-tests/*.sh | MOVED | 5 login test scripts archived | Shell script organization | ARCHIVED | N/A |
+| 2025-08-04 | /scripts/_archive/fixes/*.sh | MOVED | 2 fix scripts archived | Shell script organization | ARCHIVED | N/A |
+| 2025-08-04 | /scripts/_archive/utilities/*.sh | MOVED | 5 utility scripts archived | Shell script organization | ARCHIVED | N/A |
+| 2025-08-04 | /scripts/README.md | MODIFIED | Added script inventory reference | Shell script organization | PERMANENT | N/A |
+| 2025-08-04 | /docs/lessons-learned/devops-engineers.md | MODIFIED | Added script management section | Shell script organization | PERMANENT | N/A |
 
 ## File Status Definitions
 
