@@ -1,6 +1,6 @@
 # Authentication System - Business Requirements
 <!-- Last Updated: 2025-08-04 -->
-<!-- Version: 1.0 -->
+<!-- Version: 2.0 -->
 <!-- Owner: Authentication Team -->
 <!-- Status: Active -->
 
@@ -35,7 +35,7 @@ The WitchCityRope authentication system manages user access, roles, and permissi
 - Submit a vetting application
 - View their own tickets and RSVPs
 - Update account settings (email, password)
-- Enable two-factor authentication
+- Enable two-factor authentication (when implemented)
 
 **Cannot:**
 - RSVP for social events
@@ -109,50 +109,64 @@ The WitchCityRope authentication system manages user access, roles, and permissi
 ## Authentication Features
 
 ### Registration Process
-- Email-based registration with verification
-- Required fields: Email, password, chosen display name
-- Optional profile information can be added after registration
-- Email verification required before accessing member features
+- Email-based registration with verification infrastructure
+- Required fields: Email, password, scene name (display name), date of birth
+- Age verification: Must be 21 or older
+- Scene name must be unique across the system
+- Email must be unique (can use username or email to login)
+- Legal name captured but encrypted for privacy
+- Email verification available but not currently enforced
 
 ### Login Options
-- Email and password login
-- Optional two-factor authentication (2FA)
-- "Remember me" option for trusted devices
-- Password reset via email
+- Email or username (scene name) login
+- Password authentication
+- Optional "Remember me" for extended sessions (7 days)
+- Account lockout after 5 failed attempts
+- Last login timestamp tracking
 
 ### Session Management
+- Cookie-based sessions for web application (7-day sliding expiration)
+- JWT tokens for API access
 - Sessions remain active during user activity
 - No automatic session timeout warnings
 - Users can manually log out
-- "Remember me" extends session duration
 
 ### Password Requirements
 - Minimum 8 characters
-- Must include uppercase, lowercase, number, and special character
-- Password strength indicator during registration
-- Prevents reuse of last 5 passwords
+- Must include:
+  - At least one uppercase letter
+  - At least one lowercase letter
+  - At least one number
+  - At least one special character
+- Account lockout after 5 failed attempts
 
 ### Two-Factor Authentication (2FA)
-- Optional for all users
-- Supports authenticator apps (Google Authenticator, Authy, etc.)
-- Backup codes provided
-- Can be enforced for admin accounts
+- Infrastructure exists but not yet implemented
+- When implemented will support:
+  - Authenticator apps (Google Authenticator, Authy, etc.)
+  - Backup codes
+  - Optional for members, required for admins
 
 ## Security Features
 
 ### Account Protection
 - Account lockout after 5 failed login attempts
-- CAPTCHA after 3 failed attempts
-- Email notification of login from new device
-- Ability to view and revoke active sessions
+- Email notification of login from new device (planned)
+- Secure password storage using ASP.NET Core Identity
+- HTTPS required in production
 
 ### Privacy Controls
-- Users can control profile visibility
-- Option to use display name instead of real name
-- Vetted status can be hidden from profile
-- GDPR-compliant data export and deletion
+- Scene names for public display (real names encrypted)
+- Profile visibility controls
+- GDPR-compliant data handling
+- Ability to delete account and data
 
 ## Business Rules
+
+### Age Requirements
+- Must be 21 or older to register
+- Age calculated from date of birth
+- Cannot be modified after registration
 
 ### Vetting Requirements
 - Must be authenticated to apply for vetting
@@ -162,20 +176,47 @@ The WitchCityRope authentication system manages user access, roles, and permissi
   - Background information
 - Admin review required for approval
 - Vetting status can be revoked for violations
+- Vetting status determines access to social events
 
 ### Event Access Rules
-- Class events: Open to all authenticated users (ticket purchase)
+- Educational events: Open to all authenticated users for ticket purchase
 - Social events: RSVP/tickets restricted to vetted members only
 - Private events: May have additional access restrictions
-- Free events still require RSVP (capacity management)
+- Free events still require RSVP for capacity management
+- Event visibility: All users can see all events, but access varies
 
 ### Role Assignment
-- Users start as "Authenticated but Not Vetted"
-- Vetting approval promotes to "Vetted Member"
+- All users start as "Authenticated but Not Vetted"
+- Vetting approval promotes to "Vetted Member" status
 - Teacher role assigned by admin based on qualifications
 - Staff/Organizer role assigned per event or globally
 - Admin role restricted to trusted community leaders
+- Multiple roles can be assigned to one user
+
+### Account Status
+- Active accounts can access all granted features
+- Inactive accounts cannot login but data is preserved
+- Suspended accounts for policy violations
+- Deleted accounts remove all personal data
+
+## Integration Points
+
+### Email System
+- Registration confirmation emails (when enabled)
+- Password reset emails (when implemented)
+- Event notifications
+- System announcements
+
+### Payment System
+- Authenticated users can purchase tickets
+- Payment history tracked per user
+- Refund requests tied to user account
+
+### Event Management
+- Authentication determines event access
+- User roles affect event capabilities
+- Attendance tracking linked to user accounts
 
 ---
 
-*This document describes the business-level requirements for the authentication system. For technical implementation details, see functional-design.md*
+*This document describes the business-level requirements for the authentication system. For technical implementation details, see [functional-design.md](functional-design.md)*
