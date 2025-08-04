@@ -1,0 +1,38 @@
+# Development override for docker-compose.yml
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+version: '3.8'
+
+services:
+  api:
+    volumes:
+      # Mount source code for hot reload
+      - ./src:/src:cached
+      - ./WitchCityRope.sln:/src/WitchCityRope.sln:ro
+      # Exclude bin and obj directories
+      - /src/WitchCityRope.Api/bin
+      - /src/WitchCityRope.Api/obj
+      - /src/WitchCityRope.Core/bin
+      - /src/WitchCityRope.Core/obj
+      - /src/WitchCityRope.Infrastructure/bin
+      - /src/WitchCityRope.Infrastructure/obj
+    environment:
+      # Enable hot reload
+      - DOTNET_USE_POLLING_FILE_WATCHER=true
+      - DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER=true
+      
+  web:
+    volumes:
+      # Mount source code for hot reload
+      - ./src:/src:cached
+      - ./WitchCityRope.sln:/src/WitchCityRope.sln:ro
+      # Exclude bin and obj directories
+      - /src/WitchCityRope.Web/bin
+      - /src/WitchCityRope.Web/obj
+      - /src/WitchCityRope.Core/bin
+      - /src/WitchCityRope.Core/obj
+      - /src/WitchCityRope.Infrastructure/bin
+      - /src/WitchCityRope.Infrastructure/obj
+    environment:
+      # Enable hot reload
+      - DOTNET_USE_POLLING_FILE_WATCHER=true
+      - DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER=true

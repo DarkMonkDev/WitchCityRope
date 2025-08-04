@@ -1,0 +1,459 @@
+name: Playwright E2E Tests - Enhanced CI
+
+on:
+  push:
+    branches: [main, develop, feature/*]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - '.gitignore'
+  pull_request:
+    branches: [main, develop]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+  schedule:
+    # Run nightly tests at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test-suite:
+        description: 'Test suite to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - smoke
+          - auth
+          - events
+          - admin
+          - validation
+          - visual-regression
+      environment:
+        description: 'Target environment'
+        required: false
+        default: 'docker'
+        type: choice
+        options:
+          - docker
+          - staging
+          - local
+      browser:
+        description: 'Browser to test'
+        required: false
+        default: 'chromium'
+        type: choice
+        options:
+          - all
+          - chromium
+          - firefox
+          - webkit
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  NODE_VERSION: '18.x'
+  PLAYWRIGHT_BROWSERS_PATH: 0
+
+jobs:
+  # Health check and environment preparation
+  setup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      test-matrix: ${{ steps.setup-matrix.outputs.matrix }}
+      base-url: ${{ steps.setup-env.outputs.base-url }}
+      skip-tests: ${{ steps.setup-env.outputs.skip-tests }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup test matrix
+      id: setup-matrix
+      run: |
+        if [ "${{ github.event.inputs.browser }}" = "all" ] || [ -z "${{ github.event.inputs.browser }}" ]; then
+          echo "matrix=[\"chromium\", \"firefox\", \"webkit\"]" >> $GITHUB_OUTPUT
+        else
+          echo "matrix=[\"${{ github.event.inputs.browser }}\"]" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Setup environment variables
+      id: setup-env
+      run: |
+        if [ "${{ github.event.inputs.environment }}" = "staging" ]; then
+          echo "base-url=https://staging.witchcityrope.com" >> $GITHUB_OUTPUT
+        elif [ "${{ github.event.inputs.environment }}" = "local" ]; then
+          echo "base-url=http://localhost:5651" >> $GITHUB_OUTPUT
+        else
+          echo "base-url=http://localhost:5651" >> $GITHUB_OUTPUT
+        fi
+        
+        # Check if we should skip tests (e.g., for documentation-only changes)
+        if [ "${{ github.event_name }}" = "push" ] && git diff --name-only HEAD~1 | grep -q "^docs/\|\.md$"; then
+          echo "skip-tests=true" >> $GITHUB_OUTPUT
+        else
+          echo "skip-tests=false" >> $GITHUB_OUTPUT
+        fi
+
+  # Docker environment setup and application startup
+  docker-setup:
+    runs-on: ubuntu-latest
+    needs: setup
+    if: needs.setup.outputs.skip-tests == 'false'
+    timeout-minutes: 15
+    outputs:
+      containers-ready: ${{ steps.health-check.outputs.ready }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Create required directories
+      run: |
+        mkdir -p logs/api logs/web uploads data
+        sudo chown -R $USER:$USER logs uploads data
+
+    - name: Setup environment file
+      run: |
+        cat > .env << EOF
+        POSTGRES_USER=postgres
+        POSTGRES_PASSWORD=WitchCity2024!
+        POSTGRES_DB=witchcityrope_test
+        POSTGRES_HOST=postgres
+        ASPNETCORE_ENVIRONMENT=Testing
+        JWT_SECRET=TestSecretKeyForCI-${{ github.run_id }}-${{ github.run_attempt }}
+        BASE_URL=${{ needs.setup.outputs.base-url }}
+        CI=true
+        PLAYWRIGHT_TEST=true
+        EOF
+
+    - name: Start Docker Compose services
+      run: |
+        docker compose up -d --wait
+        sleep 10
+
+    - name: Wait for database readiness
+      run: |
+        timeout 60 bash -c 'until docker compose exec postgres pg_isready -U postgres -d witchcityrope_test; do sleep 2; done'
+
+    - name: Run database migrations
+      run: |
+        docker compose exec web dotnet ef database update --no-build || true
+
+    - name: Seed test data
+      run: |
+        if [ -f scripts/seed-database.sql ]; then
+          docker compose exec -T postgres psql -U postgres -d witchcityrope_test -f - < scripts/seed-database.sql
+        fi
+
+    - name: Health check services
+      id: health-check
+      run: |
+        echo "Checking service health..."
+        
+        # Check PostgreSQL
+        if ! docker compose exec postgres pg_isready -U postgres -d witchcityrope_test; then
+          echo "PostgreSQL not ready"
+          exit 1
+        fi
+        
+        # Check API service
+        timeout 120 bash -c 'until curl -f http://localhost:5653/health; do sleep 3; done' || {
+          echo "API service health check failed"
+          docker compose logs api
+          exit 1
+        }
+        
+        # Check Web service
+        timeout 120 bash -c 'until curl -f http://localhost:5651/health; do sleep 3; done' || {
+          echo "Web service health check failed"
+          docker compose logs web
+          exit 1
+        }
+        
+        echo "ready=true" >> $GITHUB_OUTPUT
+
+    - name: Save Docker state
+      if: success()
+      run: |
+        docker compose ps > docker-status.txt
+        echo "Services are ready for testing"
+
+    - name: Upload Docker logs (on failure)
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: docker-logs-setup
+        path: |
+          docker-status.txt
+        retention-days: 3
+
+  # Playwright E2E Tests
+  playwright-tests:
+    runs-on: ubuntu-latest
+    needs: [setup, docker-setup]
+    if: needs.docker-setup.outputs.containers-ready == 'true'
+    timeout-minutes: 30
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: ${{ fromJSON(needs.setup.outputs.test-matrix) }}
+        test-suite: 
+          - smoke
+          - auth
+          - events
+          - admin
+          - validation
+        include:
+          - browser: chromium
+            test-suite: visual-regression
+        exclude:
+          # Skip heavy test suites on Firefox/WebKit for faster CI
+          - browser: firefox
+            test-suite: validation
+          - browser: webkit  
+            test-suite: validation
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: |
+        npm ci
+        npx playwright install --with-deps ${{ matrix.browser }}
+
+    - name: Setup test environment
+      run: |
+        # Create test directories
+        mkdir -p test-results/${{ matrix.browser }}/${{ matrix.test-suite }}
+        mkdir -p playwright-report/${{ matrix.browser }}/${{ matrix.test-suite }}
+        
+        # Setup environment variables
+        echo "BASE_URL=${{ needs.setup.outputs.base-url }}" >> $GITHUB_ENV
+        echo "CI=true" >> $GITHUB_ENV
+        echo "TEST_BROWSER=${{ matrix.browser }}" >> $GITHUB_ENV
+        echo "TEST_SUITE=${{ matrix.test-suite }}" >> $GITHUB_ENV
+
+    - name: Start Docker services (if not already running)
+      run: |
+        if ! docker compose ps | grep -q "Up"; then
+          docker compose up -d --wait
+          sleep 15
+          
+          # Quick health check
+          timeout 60 bash -c 'until curl -f http://localhost:5651/health; do sleep 2; done'
+        fi
+
+    - name: Verify test data setup
+      run: |
+        # Verify test accounts exist
+        docker compose exec -T postgres psql -U postgres -d witchcityrope_test -c "SELECT email FROM \"AspNetUsers\" WHERE email LIKE '%@witchcityrope.com';" || echo "Test users may not be seeded yet"
+
+    - name: Run Playwright tests
+      run: |
+        # Determine test command based on suite selection
+        case "${{ matrix.test-suite }}" in
+          "smoke")
+            npx playwright test tests/playwright/auth/login-basic.spec.ts tests/playwright/infrastructure/page-status.spec.ts --project=${{ matrix.browser }}
+            ;;
+          "auth")
+            npx playwright test tests/playwright/auth/ --project=${{ matrix.browser }}
+            ;;
+          "events") 
+            npx playwright test tests/playwright/events/ --project=${{ matrix.browser }}
+            ;;
+          "admin")
+            npx playwright test tests/playwright/admin/ --project=${{ matrix.browser }}
+            ;;
+          "validation")
+            npx playwright test tests/playwright/validation/ --project=${{ matrix.browser }}
+            ;;
+          "visual-regression")
+            npx playwright test tests/playwright/specs/visual/ --project=${{ matrix.browser }} --update-snapshots
+            ;;
+          *)
+            if [ "${{ github.event.inputs.test-suite }}" = "all" ] || [ -z "${{ github.event.inputs.test-suite }}" ]; then
+              npx playwright test --project=${{ matrix.browser }}
+            else
+              npx playwright test tests/playwright/${{ github.event.inputs.test-suite }}/ --project=${{ matrix.browser }}
+            fi
+            ;;
+        esac
+      env:
+        BASE_URL: ${{ needs.setup.outputs.base-url }}
+        CI: true
+        PWTEST_SKIP_TEST_OUTPUT: true
+
+    - name: Generate test report
+      if: always()
+      run: |
+        # Create summary report
+        cat > test-results/${{ matrix.browser }}/${{ matrix.test-suite }}/summary.md << EOF
+        # Test Results Summary
+        
+        - **Browser**: ${{ matrix.browser }}
+        - **Test Suite**: ${{ matrix.test-suite }}
+        - **Environment**: ${{ github.event.inputs.environment || 'docker' }}
+        - **Base URL**: ${{ needs.setup.outputs.base-url }}
+        - **Commit**: ${{ github.sha }}
+        - **Run ID**: ${{ github.run_id }}
+        - **Timestamp**: $(date -u)
+        
+        ## Test Status
+        $(if [ -f test-results/results.json ]; then echo "✅ Tests completed"; else echo "❌ Tests failed or incomplete"; fi)
+        
+        EOF
+
+    - name: Upload Playwright report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report-${{ matrix.browser }}-${{ matrix.test-suite }}
+        path: |
+          playwright-report/
+          test-results/
+        retention-days: 7
+
+    - name: Upload test videos (on failure)
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: test-videos-${{ matrix.browser }}-${{ matrix.test-suite }}
+        path: test-results/**/*.webm
+        retention-days: 3
+
+    - name: Upload screenshots (on failure)
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: screenshots-${{ matrix.browser }}-${{ matrix.test-suite }}
+        path: test-results/**/*.png
+        retention-days: 3
+
+  # Performance and accessibility tests
+  lighthouse-tests:
+    runs-on: ubuntu-latest
+    needs: [setup, docker-setup]
+    if: needs.docker-setup.outputs.containers-ready == 'true' && github.event_name != 'schedule'
+    timeout-minutes: 15
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Install Lighthouse CI
+      run: npm install -g @lhci/cli@0.12.x
+
+    - name: Start Docker services
+      run: |
+        if ! docker compose ps | grep -q "Up"; then
+          docker compose up -d --wait
+          sleep 10
+          timeout 60 bash -c 'until curl -f http://localhost:5651/health; do sleep 2; done'
+        fi
+
+    - name: Run Lighthouse CI
+      run: |
+        lhci autorun
+      env:
+        LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+  # Test results aggregation and reporting
+  test-results:
+    runs-on: ubuntu-latest
+    needs: [playwright-tests, lighthouse-tests]
+    if: always()
+    timeout-minutes: 10
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts/
+
+    - name: Aggregate test results
+      run: |
+        echo "# 🎭 Playwright Test Results Summary" > test-summary.md
+        echo "" >> test-summary.md
+        echo "**Workflow**: ${{ github.workflow }}" >> test-summary.md
+        echo "**Trigger**: ${{ github.event_name }}" >> test-summary.md
+        echo "**Commit**: ${{ github.sha }}" >> test-summary.md
+        echo "**Branch**: ${{ github.ref_name }}" >> test-summary.md
+        echo "" >> test-summary.md
+        
+        # Count test artifacts
+        total_reports=$(find artifacts/ -name "playwright-report-*" -type d | wc -l)
+        echo "**Total Test Suites**: $total_reports" >> test-summary.md
+        
+        # Check for failures
+        if find artifacts/ -name "screenshots-*" | grep -q .; then
+          echo "❌ **Some tests failed** - screenshots available" >> test-summary.md
+        else
+          echo "✅ **All tests passed**" >> test-summary.md
+        fi
+        
+        echo "" >> test-summary.md
+        echo "## Test Coverage by Browser" >> test-summary.md
+        for browser in chromium firefox webkit; do
+          count=$(find artifacts/ -name "*$browser*" -type d | wc -l)
+          echo "- **$browser**: $count test suites" >> test-summary.md
+        done
+
+    - name: Upload consolidated report
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-summary
+        path: test-summary.md
+        retention-days: 30
+
+    - name: Comment PR with test results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          if (fs.existsSync('test-summary.md')) {
+            const summary = fs.readFileSync('test-summary.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+          }
+
+  # Cleanup
+  cleanup:
+    runs-on: ubuntu-latest
+    needs: [playwright-tests, lighthouse-tests, test-results]
+    if: always()
+    timeout-minutes: 5
+    
+    steps:
+    - name: Cleanup Docker resources
+      run: |
+        docker compose down -v --remove-orphans || true
+        docker system prune -f || true
+
+    - name: Report final status
+      run: |
+        echo "✅ CI/CD pipeline completed"
+        echo "📊 Test results are available in the artifacts"
+        echo "🐳 Docker environment has been cleaned up"

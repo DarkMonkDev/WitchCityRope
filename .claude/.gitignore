@@ -1,0 +1,9 @@
+# Ignore test credentials
+test-credentials.env
+*.env
+
+# Ignore any temporary or sensitive files
+*.tmp
+*.secret
+*.key
+*.pem

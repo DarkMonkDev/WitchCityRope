@@ -1,13 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Identity;
 using WitchCityRope.Core.Entities;
 using WitchCityRope.Core.Enums;
 using WitchCityRope.Core.Interfaces;
 using WitchCityRope.Core.ValueObjects;
 using WitchCityRope.Infrastructure;
 using WitchCityRope.Infrastructure.Data;
+using WitchCityRope.Infrastructure.Identity;
 using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
+using System.Linq;
 
 // Build the host
 var host = Host.CreateDefaultBuilder(args)
@@ -21,6 +25,11 @@ var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
         services.AddInfrastructure(context.Configuration);
+        
+        // Add Identity services
+        services.AddIdentity<WitchCityRopeUser, WitchCityRopeRole>()
+            .AddEntityFrameworkStores<WitchCityRopeIdentityDbContext>()
+            .AddDefaultTokenProviders();
     })
     .Build();
 
@@ -28,7 +37,9 @@ var host = Host.CreateDefaultBuilder(args)
 using (var scope = host.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<WitchCityRopeDbContext>();
+    var context = services.GetRequiredService<WitchCityRopeIdentityDbContext>();
+    var userManager = services.GetRequiredService<UserManager<WitchCityRopeUser>>();
+    var roleManager = services.GetRequiredService<RoleManager<WitchCityRopeRole>>();
     var encryptionService = services.GetRequiredService<IEncryptionService>();
     
     Console.WriteLine("Starting database seeding...");
@@ -40,194 +51,73 @@ using (var scope = host.Services.CreateScope())
         return;
     }
     
-    // Create test users
-    var users = new[]
+    // Ensure roles exist
+    var roles = new[] { "Administrator", "Moderator", "Organizer", "Member", "Attendee" };
+    foreach (var roleName in roles)
     {
-        new User(
-            await encryptionService.EncryptAsync("Admin User"),
-            new SceneName("Admin"),
-            new EmailAddress("admin@witchcityrope.com"),
-            DateTime.UtcNow.AddYears(-30),
-            UserRole.Admin
-        ),
-        new User(
-            await encryptionService.EncryptAsync("Staff Member"),
-            new SceneName("Staff"),
-            new EmailAddress("staff@witchcityrope.com"),
-            DateTime.UtcNow.AddYears(-28),
-            UserRole.Staff
-        ),
-        new User(
-            await encryptionService.EncryptAsync("Event Organizer"),
-            new SceneName("Organizer"),
-            new EmailAddress("organizer@witchcityrope.com"),
-            DateTime.UtcNow.AddYears(-35),
-            UserRole.Staff
-        ),
-        new User(
-            await encryptionService.EncryptAsync("Regular Member"),
-            new SceneName("Member"),
-            new EmailAddress("member@witchcityrope.com"),
-            DateTime.UtcNow.AddYears(-25),
-            UserRole.Member
-        ),
-        new User(
-            await encryptionService.EncryptAsync("Guest User"),
-            new SceneName("Guest"),
-            new EmailAddress("guest@witchcityrope.com"),
-            DateTime.UtcNow.AddYears(-22),
-            UserRole.Attendee
-        )
-    };
-    
-    // Mark some users as vetted
-    users[0].Vet(); // Admin
-    users[1].Vet(); // Staff
-    users[2].Vet(); // Organizer
-    
-    context.Users.AddRange(users);
-    await context.SaveChangesAsync();
-    
-    // Create user authentication records
-    foreach (var user in users)
-    {
-        var auth = new UserAuthentication(user.Id, BCrypt.Net.BCrypt.HashPassword("Test123!"));
-        context.UserAuthentications.Add(auth);
-    }
-    await context.SaveChangesAsync();
-    
-    // Create test events
-    var events = new[]
-    {
-        Event.Create(
-            "Introduction to Rope Bondage",
-            "Learn the basics of rope bondage in a safe, inclusive environment. Perfect for beginners!",
-            DateTime.UtcNow.AddDays(7).AddHours(18),
-            DateTime.UtcNow.AddDays(7).AddHours(21),
-            20,
-            EventType.Workshop,
-            "The Rope Space, 123 Main St, Salem, MA",
-            new[] { new Money(25m, "USD"), new Money(35m, "USD"), new Money(45m, "USD") }
-        ),
-        Event.Create(
-            "Advanced Suspension Techniques",
-            "For experienced practitioners only. Prerequisites required.",
-            DateTime.UtcNow.AddDays(14).AddHours(19),
-            DateTime.UtcNow.AddDays(14).AddHours(22),
-            12,
-            EventType.Workshop,
-            "The Rope Space, 123 Main St, Salem, MA",
-            new[] { new Money(65m, "USD"), new Money(75m, "USD") }
-        ),
-        Event.Create(
-            "Monthly Rope Social",
-            "Join us for our monthly rope social. All skill levels welcome!",
-            DateTime.UtcNow.AddDays(21).AddHours(19),
-            DateTime.UtcNow.AddDays(21).AddHours(23),
-            50,
-            EventType.Social,
-            "Community Center, 456 Oak Ave, Salem, MA",
-            new[] { new Money(15m, "USD") }
-        ),
-        Event.Create(
-            "Consent and Communication Workshop",
-            "Essential workshop on consent, communication, and negotiation in rope bondage.",
-            DateTime.UtcNow.AddDays(10).AddHours(14),
-            DateTime.UtcNow.AddDays(10).AddHours(17),
-            30,
-            EventType.Workshop,
-            "The Rope Space, 123 Main St, Salem, MA",
-            new[] { new Money(20m, "USD"), new Money(30m, "USD") }
-        ),
-        Event.Create(
-            "Rope Performance Night",
-            "Watch amazing rope performances from local and visiting artists.",
-            DateTime.UtcNow.AddDays(28).AddHours(20),
-            DateTime.UtcNow.AddDays(28).AddHours(23),
-            100,
-            EventType.Performance,
-            "Salem Theater, 789 Broadway, Salem, MA",
-            new[] { new Money(25m, "USD"), new Money(35m, "USD"), new Money(50m, "USD") }
-        ),
-        Event.Create(
-            "Virtual Rope Jam",
-            "Online rope practice session. Great for remote members!",
-            DateTime.UtcNow.AddDays(5).AddHours(20),
-            DateTime.UtcNow.AddDays(5).AddHours(22),
-            200,
-            EventType.Virtual,
-            "Online - Zoom link will be sent to registered participants",
-            new[] { new Money(10m, "USD") }
-        ),
-        Event.Create(
-            "Rope Safety and First Aid",
-            "Critical safety skills for all rope practitioners.",
-            DateTime.UtcNow.AddDays(15).AddHours(13),
-            DateTime.UtcNow.AddDays(15).AddHours(18),
-            25,
-            EventType.Workshop,
-            "The Rope Space, 123 Main St, Salem, MA",
-            new[] { new Money(40m, "USD"), new Money(50m, "USD") }
-        ),
-        Event.Create(
-            "Members-Only Play Party",
-            "Vetted members only. Must be pre-approved to attend.",
-            DateTime.UtcNow.AddDays(30).AddHours(21),
-            DateTime.UtcNow.AddDays(31).AddHours(2),
-            40,
-            EventType.PlayParty,
-            "Private Venue - Address provided after vetting",
-            new[] { new Money(30m, "USD") }
-        ),
-        Event.Create(
-            "Rope Photography Workshop",
-            "Learn to capture beautiful rope art through photography.",
-            DateTime.UtcNow.AddDays(17).AddHours(15),
-            DateTime.UtcNow.AddDays(17).AddHours(19),
-            15,
-            EventType.Workshop,
-            "Photo Studio, 321 Art Lane, Salem, MA",
-            new[] { new Money(55m, "USD"), new Money(65m, "USD") }
-        ),
-        Event.Create(
-            "WitchCity Rope Conference",
-            "Our annual conference featuring workshops, performances, and vendors.",
-            DateTime.UtcNow.AddDays(60).AddHours(9),
-            DateTime.UtcNow.AddDays(62).AddHours(18),
-            300,
-            EventType.Conference,
-            "Salem Convention Center, 1000 Harbor Blvd, Salem, MA",
-            new[] { new Money(150m, "USD"), new Money(200m, "USD"), new Money(250m, "USD") }
-        )
-    };
-    
-    // Publish most events
-    foreach (var evt in events.Take(8))
-    {
-        evt.Publish();
-    }
-    
-    // Add organizers to events
-    foreach (var evt in events)
-    {
-        evt.AddOrganizer(users[2]); // Event Organizer
-        if (evt.EventType == EventType.Workshop)
+        if (!await roleManager.RoleExistsAsync(roleName))
         {
-            evt.AddOrganizer(users[1]); // Staff member for workshops
+            await roleManager.CreateAsync(new WitchCityRopeRole
+            {
+                Name = roleName,
+                NormalizedName = roleName.ToUpper(),
+                Description = $"{roleName} role",
+                IsActive = true,
+                Priority = Array.IndexOf(roles, roleName),
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
         }
     }
     
-    context.Events.AddRange(events);
-    await context.SaveChangesAsync();
+    // Create test users
+    var usersData = new[]
+    {
+        new { Name = "Admin User", SceneName = "Admin", Email = "admin@witchcityrope.com", Age = -30, Role = "Administrator", IsVetted = true },
+        new { Name = "Staff Member", SceneName = "Staff", Email = "staff@witchcityrope.com", Age = -28, Role = "Moderator", IsVetted = true },
+        new { Name = "Event Organizer", SceneName = "Organizer", Email = "organizer@witchcityrope.com", Age = -35, Role = "Organizer", IsVetted = true },
+        new { Name = "Regular Member", SceneName = "Member", Email = "member@witchcityrope.com", Age = -25, Role = "Member", IsVetted = false },
+        new { Name = "Guest User", SceneName = "Guest", Email = "guest@witchcityrope.com", Age = -22, Role = "Attendee", IsVetted = false }
+    };
+    
+    var users = new List<WitchCityRopeUser>();
+    
+    foreach (var userData in usersData)
+    {
+        var user = new WitchCityRopeUser
+        {
+            UserName = userData.Email,
+            Email = userData.Email,
+            EmailConfirmed = true,
+            EncryptedLegalName = await encryptionService.EncryptAsync(userData.Name),
+            SceneNameValue = userData.SceneName,
+            DateOfBirth = DateTime.UtcNow.AddYears(userData.Age),
+            Role = Enum.Parse<UserRole>(userData.Role),
+            IsActive = true,
+            IsVetted = userData.IsVetted,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        
+        var result = await userManager.CreateAsync(user, "Test123!");
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(user, userData.Role);
+            users.Add(user);
+        }
+        else
+        {
+            Console.WriteLine($"Failed to create user {userData.Email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+        }
+    }
     
     Console.WriteLine($"Database seeded successfully!");
-    Console.WriteLine($"- {users.Length} users created");
-    Console.WriteLine($"- {events.Length} events created");
-    Console.WriteLine($"- {users.Length} authentication records created");
+    Console.WriteLine($"- {users.Count} users created");
+    Console.WriteLine($"- {roles.Length} roles verified/created");
     Console.WriteLine("\nTest accounts:");
-    Console.WriteLine("- admin@witchcityrope.com / Test123! (Admin, Vetted)");
-    Console.WriteLine("- staff@witchcityrope.com / Test123! (Staff, Vetted)");
-    Console.WriteLine("- organizer@witchcityrope.com / Test123! (Staff/Organizer, Vetted)");
+    Console.WriteLine("- admin@witchcityrope.com / Test123! (Administrator, Vetted)");
+    Console.WriteLine("- staff@witchcityrope.com / Test123! (Moderator, Vetted)");
+    Console.WriteLine("- organizer@witchcityrope.com / Test123! (Organizer, Vetted)");
     Console.WriteLine("- member@witchcityrope.com / Test123! (Member, Not Vetted)");
-    Console.WriteLine("- guest@witchcityrope.com / Test123! (Guest/Attendee, Not Vetted)");
+    Console.WriteLine("- guest@witchcityrope.com / Test123! (Attendee, Not Vetted)");
 }

@@ -1,0 +1,290 @@
+name: E2E Puppeteer Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - public
+          - authenticated
+          - admin
+          - isolated
+      debug:
+        description: 'Enable debug mode'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  NODE_VERSION: '18.x'
+  POSTGRES_VERSION: '16'
+
+jobs:
+  test:
+    name: E2E Puppeteer Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: witchcityrope_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Cache .NET packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+      
+      - name: Cache npm packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+      
+      - name: Install Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+      
+      - name: Restore .NET dependencies
+        run: dotnet restore
+      
+      - name: Build application
+        run: dotnet build --configuration Release --no-restore
+      
+      - name: Update database
+        run: |
+          cd src/WitchCityRope.Infrastructure
+          dotnet ef database update -s ../WitchCityRope.Web
+        env:
+          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5433;Database=witchcityrope_test;Username=postgres;Password=postgres"
+      
+      - name: Start Web application
+        run: |
+          cd src/WitchCityRope.Web
+          nohup dotnet run --no-build --configuration Release &
+          echo $! > ../../web.pid
+          
+          # Wait for application to start
+          echo "Waiting for application to start..."
+          for i in {1..30}; do
+            if curl -f http://localhost:5651 > /dev/null 2>&1; then
+              echo "Application is ready!"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
+          
+          # Verify application is responding
+          curl -f http://localhost:5651 || exit 1
+        env:
+          ASPNETCORE_ENVIRONMENT: Development
+          ASPNETCORE_URLS: "http://localhost:5651"
+          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5433;Database=witchcityrope_test;Username=postgres;Password=postgres"
+          Serilog__MinimumLevel__Default: "Warning"
+      
+      - name: Install Puppeteer dependencies
+        run: |
+          cd tests/e2e
+          npm ci
+          # Install additional dependencies for headless Chrome
+          sudo apt-get install -y libxss1 libxtst6
+      
+      - name: Run all E2E tests
+        if: github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == ''
+        run: |
+          cd tests/e2e
+          echo "Running all test suites..."
+          node test-suite-organizer.js
+        env:
+          BASE_URL: http://localhost:5651
+          HEADLESS: true
+          DEBUG: ${{ github.event.inputs.debug }}
+      
+      - name: Run public form tests
+        if: github.event.inputs.test_suite == 'public'
+        run: |
+          cd tests/e2e
+          echo "Running public form tests..."
+          node test-suite-organizer.js --suite public
+        env:
+          BASE_URL: http://localhost:5651
+          HEADLESS: true
+      
+      - name: Run authenticated form tests
+        if: github.event.inputs.test_suite == 'authenticated'
+        run: |
+          cd tests/e2e
+          echo "Running authenticated form tests..."
+          node test-suite-organizer.js --suite authenticated
+        env:
+          BASE_URL: http://localhost:5651
+          HEADLESS: true
+      
+      - name: Run admin form tests
+        if: github.event.inputs.test_suite == 'admin'
+        run: |
+          cd tests/e2e
+          echo "Running admin form tests..."
+          node test-suite-organizer.js --suite admin
+        env:
+          BASE_URL: http://localhost:5651
+          HEADLESS: true
+      
+      - name: Run isolated tests
+        if: github.event.inputs.test_suite == 'isolated'
+        run: |
+          cd tests/e2e
+          echo "Running isolated tests..."
+          node test-runner-isolated.js
+        env:
+          BASE_URL: http://localhost:5651
+          HEADLESS: true
+      
+      - name: Generate test summary
+        if: always()
+        run: |
+          cd tests/e2e
+          echo "## E2E Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Check for test results
+          if [ -f "test-results/organized-test-report.json" ]; then
+            echo "### Test Summary" >> $GITHUB_STEP_SUMMARY
+            # Parse JSON and create summary (requires jq)
+            if command -v jq >/dev/null 2>&1; then
+              total=$(jq '.summary.total' test-results/organized-test-report.json)
+              passed=$(jq '.summary.passed' test-results/organized-test-report.json)
+              failed=$(jq '.summary.failed' test-results/organized-test-report.json)
+              skipped=$(jq '.summary.skipped' test-results/organized-test-report.json)
+              
+              echo "- **Total Tests**: $total" >> $GITHUB_STEP_SUMMARY
+              echo "- **Passed**: ✅ $passed" >> $GITHUB_STEP_SUMMARY
+              echo "- **Failed**: ❌ $failed" >> $GITHUB_STEP_SUMMARY
+              echo "- **Skipped**: ⏭️ $skipped" >> $GITHUB_STEP_SUMMARY
+              
+              if [ "$failed" -gt 0 ]; then
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "### Failed Tests" >> $GITHUB_STEP_SUMMARY
+                jq -r '.suites | to_entries[] | .value.tests[]? | select(.status == "failed") | "- **\(.name)**: \(.error)"' test-results/organized-test-report.json >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "Test results and screenshots have been uploaded as artifacts." >> $GITHUB_STEP_SUMMARY
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: puppeteer-test-results
+          path: |
+            tests/e2e/test-results/
+            tests/e2e/screenshots/
+            tests/e2e/*.png
+            tests/e2e/*.log
+      
+      - name: Upload application logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: application-logs
+          path: |
+            src/WitchCityRope.Web/logs/
+            *.log
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          # Stop the application
+          if [ -f web.pid ]; then
+            kill $(cat web.pid) || true
+          fi
+          
+          # Kill any orphaned processes
+          pkill -f "dotnet.*WitchCityRope" || true
+          pkill -f chrome || true
+          pkill -f chromium || true
+      
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+            
+            if (fs.existsSync(summaryPath)) {
+              const summary = fs.readFileSync(summaryPath, 'utf8');
+              
+              // Find existing comment
+              const comments = await github.rest.issues.listComments({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo
+              });
+              
+              const botComment = comments.data.find(comment => 
+                comment.user.type === 'Bot' && 
+                comment.body.includes('E2E Test Results')
+              );
+              
+              if (botComment) {
+                // Update existing comment
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: botComment.id,
+                  body: summary
+                });
+              } else {
+                // Create new comment
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: summary
+                });
+              }
+            }

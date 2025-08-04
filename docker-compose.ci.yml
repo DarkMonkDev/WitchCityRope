@@ -1,0 +1,175 @@
+# Docker Compose configuration optimized for CI/CD environments
+# Extends the base docker-compose.yml with CI-specific settings
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database - CI optimized
+  postgres:
+    image: postgres:16-alpine
+    container_name: witchcity-postgres-ci
+    restart: "no"  # Don't restart in CI
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: WitchCity2024!
+      POSTGRES_DB: witchcityrope_test
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"  # Faster initialization
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+      - ./scripts/postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d witchcityrope_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - witchcity-ci-network
+    # Resource limits for CI
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+
+  # API Service - CI optimized
+  api:
+    build:
+      context: .
+      dockerfile: src/WitchCityRope.Api/Dockerfile
+      target: final
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    container_name: witchcity-api-ci
+    ports:
+      - "5653:8080"
+    environment:
+      # ASP.NET Core Configuration
+      - ASPNETCORE_ENVIRONMENT=Testing
+      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS=true
+      
+      # Database Configuration
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=witchcityrope_test;Username=postgres;Password=WitchCity2024!;Include Error Detail=true
+      
+      # JWT Configuration
+      - Jwt__Secret=CI-Test-Secret-Key-For-Playwright-Tests-Only
+      - Jwt__Issuer=WitchCityRope
+      - Jwt__Audience=WitchCityRopeUsers
+      - Jwt__ExpiresInMinutes=60
+      
+      # Logging - Reduced verbosity for CI
+      - Serilog__MinimumLevel__Default=Warning
+      - Serilog__MinimumLevel__Override__Microsoft=Error
+      - Serilog__MinimumLevel__Override__System=Error
+      
+      # Performance settings
+      - DOTNET_TieredCompilation=false
+      - DOTNET_ReadyToRun=0
+      
+    volumes:
+      # Minimal volumes for CI
+      - ./logs/api:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - witchcity-ci-network
+    restart: "no"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # Web Service - CI optimized
+  web:
+    build:
+      context: .
+      dockerfile: src/WitchCityRope.Web/Dockerfile
+      target: final
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    container_name: witchcity-web-ci
+    ports:
+      - "5651:8080"
+    environment:
+      # ASP.NET Core Configuration
+      - ASPNETCORE_ENVIRONMENT=Testing
+      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS=true
+      
+      # API Configuration
+      - ApiBaseUrl=http://api:8080/
+      - ApiUrl=http://api:8080
+      
+      # Blazor Configuration - Optimized for testing
+      - DetailedErrors=true
+      - CircuitOptions__DisconnectedCircuitRetentionPeriod=00:01:00
+      - CircuitOptions__JSInteropDefaultCallTimeout=00:01:00
+      - CircuitOptions__MaxBufferedUnacknowledgedRenderBatches=2
+      
+      # Session Configuration
+      - Session__IdleTimeout=20
+      - Session__Cookie__Name=.WitchCityRope.CI.Session
+      - Session__Cookie__HttpOnly=true
+      - Session__Cookie__IsEssential=true
+      
+      # Logging - Reduced for CI
+      - Logging__LogLevel__Default=Warning
+      - Logging__LogLevel__Microsoft.AspNetCore=Error
+      - Logging__LogLevel__Microsoft.AspNetCore.SignalR=Error
+      
+      # Performance settings
+      - DOTNET_TieredCompilation=false
+      - DOTNET_ReadyToRun=0
+      
+    volumes:
+      # Minimal volumes for CI
+      - ./logs/web:/app/logs
+    depends_on:
+      api:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    networks:
+      - witchcity-ci-network
+    restart: "no"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G
+          cpus: '0.75'
+
+networks:
+  witchcity-ci-network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: witchcity-ci
+
+volumes:
+  postgres_test_data:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=500m,uid=999,gid=999  # Temporary filesystem for faster CI
