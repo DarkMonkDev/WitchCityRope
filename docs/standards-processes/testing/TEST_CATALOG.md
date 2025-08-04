@@ -121,6 +121,12 @@ Test categories:
 - Data generation utilities
 - Common assertions
 
+#### Utility Scripts
+**Location**: `/tests/playwright/utilities/`
+- `analyze-login-logs.js` - Analyzes login test results from monitoring runs
+- `test-homepage.js` - Quick smoke test for homepage functionality
+- Scripts for debugging and analysis (not part of main test suite)
+
 ### 4. Performance Tests
 
 **Location**: `/tests/WitchCityRope.PerformanceTests/`  
@@ -186,6 +192,17 @@ npm test -- --ui
 
 # Update visual baselines
 npm test -- --update-snapshots
+```
+
+### Utility Scripts
+```bash
+# Located in tests/playwright/utilities/
+
+# Analyze login test results
+node tests/playwright/utilities/analyze-login-logs.js
+
+# Quick homepage smoke test
+node tests/playwright/utilities/test-homepage.js
 ```
 
 ### Performance Tests

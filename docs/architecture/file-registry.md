@@ -35,6 +35,16 @@
 | 2025-01-20 | /docs/functional-areas/authentication/current-state/functional-design.md | MODIFIED | Added API endpoint auth pattern | CLAUDE.md reorganization | PERMANENT | N/A |
 | 2025-01-20 | /docs/functional-areas/authentication/development-history.md | MODIFIED | Added auth migration history | CLAUDE.md reorganization | PERMANENT | N/A |
 | 2025-01-20 | /docs/functional-areas/events-management/current-state/functional-design.md | MODIFIED | Added event validation system | CLAUDE.md reorganization | PERMANENT | N/A |
+| 2025-08-04 | /PLAYWRIGHT_CLEANUP_PLAN.md | CREATED | Plan for cleaning up test scripts in root | Playwright script cleanup | TEMPORARY | 2025-08-11 |
+| 2025-08-04 | /tests/playwright/utilities/analyze-login-logs.js | MOVED | Login test analysis utility | Playwright script cleanup | PERMANENT | N/A |
+| 2025-08-04 | /tests/playwright/utilities/test-homepage.js | MOVED | Homepage smoke test utility | Playwright script cleanup | PERMANENT | N/A |
+| 2025-08-04 | /tests/playwright/utilities/README.md | CREATED | Document utility scripts | Playwright script cleanup | PERMANENT | N/A |
+| 2025-08-04 | /session-work/2025-08-04/archived-test-scripts/ | CREATED | Archive directory for old test scripts | Playwright script cleanup | ARCHIVED | N/A |
+| 2025-08-04 | /session-work/2025-08-04/archived-test-scripts/README.md | CREATED | Document archived scripts | Playwright script cleanup | ARCHIVED | N/A |
+| 2025-08-04 | /session-work/2025-08-04/archived-test-scripts/*.js | MOVED | 39 JavaScript test scripts archived | Playwright script cleanup | ARCHIVED | N/A |
+| 2025-08-04 | /session-work/2025-08-04/archived-test-scripts/*.png | MOVED | 2 screenshot files archived | Playwright script cleanup | ARCHIVED | N/A |
+| 2025-08-04 | /package.json | MODIFIED | Updated main entry point | Playwright script cleanup | PERMANENT | N/A |
+| 2025-08-04 | /docs/standards-processes/testing/TEST_CATALOG.md | MODIFIED | Added utility scripts section | Playwright script cleanup | PERMANENT | N/A |
 
 ## File Status Definitions
 
