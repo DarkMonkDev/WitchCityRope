@@ -5,7 +5,9 @@ using Moq;
 using FluentAssertions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Web;
 using Bunit;
+using AngleSharp.Dom;
 using WitchCityRope.Web.Features.Auth.Pages;
 using WitchCityRope.Web.Tests.Helpers;
 using WitchCityRope.Web.Models;
@@ -52,7 +54,7 @@ namespace WitchCityRope.Web.Tests.Features.Auth
         {
             // Arrange
             AuthServiceMock.Setup(x => x.LoginAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()))
-                .ReturnsAsync(new AuthResult { Success = true });
+                .ReturnsAsync(new LoginResult { Success = true });
 
             var component = RenderComponent<Login>();
 
@@ -71,7 +73,7 @@ namespace WitchCityRope.Web.Tests.Features.Auth
         {
             // Arrange
             AuthServiceMock.Setup(x => x.LoginAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()))
-                .ReturnsAsync(new AuthResult { Success = false, Error = "Invalid email or password" });
+                .ReturnsAsync(new LoginResult { Success = false, Error = "Invalid email or password" });
 
             var component = RenderComponent<Login>();
 
@@ -90,7 +92,7 @@ namespace WitchCityRope.Web.Tests.Features.Auth
         {
             // Arrange
             AuthServiceMock.Setup(x => x.LoginAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()))
-                .ReturnsAsync(new AuthResult { Success = false, RequiresTwoFactor = true });
+                .ReturnsAsync(new LoginResult { Success = false, RequiresTwoFactor = true });
 
             var component = RenderComponent<Login>();
 
@@ -109,7 +111,7 @@ namespace WitchCityRope.Web.Tests.Features.Auth
             // Arrange
             NavigationManagerMock.SetupProperty(x => x.Uri, "https://localhost/auth/login?returnUrl=/events/123");
             AuthServiceMock.Setup(x => x.LoginAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()))
-                .ReturnsAsync(new AuthResult { Success = true });
+                .ReturnsAsync(new LoginResult { Success = true });
 
             var component = RenderComponent<Login>();
 
@@ -127,7 +129,7 @@ namespace WitchCityRope.Web.Tests.Features.Auth
         {
             // Arrange
             AuthServiceMock.Setup(x => x.LoginAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()))
-                .ReturnsAsync(new AuthResult { Success = true });
+                .ReturnsAsync(new LoginResult { Success = true });
 
             var component = RenderComponent<Login>();
 
@@ -161,7 +163,7 @@ namespace WitchCityRope.Web.Tests.Features.Auth
         public async Task Login_LoadingState_DisablesButtonAndShowsSpinner()
         {
             // Arrange
-            var tcs = new TaskCompletionSource<AuthResult>();
+            var tcs = new TaskCompletionSource<LoginResult>();
             AuthServiceMock.Setup(x => x.LoginAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()))
                 .Returns(tcs.Task);
 
@@ -178,7 +180,7 @@ namespace WitchCityRope.Web.Tests.Features.Auth
             component.Find(".btn-primary-full").TextContent.Should().Contain("Signing In...");
 
             // Complete the task
-            tcs.SetResult(new AuthResult { Success = true });
+            tcs.SetResult(new LoginResult { Success = true });
             await submitTask;
 
             // Assert - After loading

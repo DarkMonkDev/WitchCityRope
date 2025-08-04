@@ -24,7 +24,7 @@ namespace WitchCityRope.Api.Interfaces
         /// <summary>
         /// Creates a new event
         /// </summary>
-        Task<Core.DTOs.CreateEventResponse> CreateEventAsync(CreateEventRequest request, Guid organizerId);
+        Task<Core.DTOs.CreateEventResponse> CreateEventAsync(Features.Events.Models.CreateEventRequest request, Guid organizerId);
 
         /// <summary>
         /// Updates an existing event

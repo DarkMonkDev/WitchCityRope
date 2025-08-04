@@ -1,0 +1,136 @@
+/* EventList Component Styles */
+
+/* Filter Controls */
+.filter-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.search-box {
+    position: relative;
+    flex: 1;
+    min-width: 250px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--wcr-color-stone);
+    pointer-events: none;
+}
+
+.search-box .wcr-form-group {
+    margin-bottom: 0;
+}
+
+.search-box .wcr-input {
+    padding-left: 36px;
+}
+
+/* Filter Dropdown */
+.filter-dropdown {
+    min-width: 200px;
+}
+
+.filter-controls .wcr-form-group {
+    margin-bottom: 0;
+}
+
+/* Filter Tab Button */
+.filter-tab {
+    padding: 0.5rem 1.5rem;
+    border: 1px solid var(--wcr-color-stone);
+    background-color: transparent;
+    color: var(--wcr-color-charcoal);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.filter-tab:hover {
+    background-color: var(--wcr-color-cream);
+    border-color: var(--wcr-color-burgundy);
+}
+
+.filter-tab.active,
+.filter-tab.wcr-button-active {
+    background-color: var(--wcr-color-burgundy);
+    color: white;
+    border-color: var(--wcr-color-burgundy);
+}
+
+/* WCR Button Styles */
+.wcr-button {
+    padding: 0.5rem 1.5rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.wcr-button-primary {
+    background-color: var(--wcr-color-burgundy);
+    color: white;
+}
+
+.wcr-button-primary:hover {
+    background-color: var(--wcr-color-burgundy-dark);
+}
+
+.wcr-button-outline {
+    background-color: transparent;
+    border: 1px solid var(--wcr-color-burgundy);
+    color: var(--wcr-color-burgundy);
+}
+
+.wcr-button-outline:hover {
+    background-color: var(--wcr-color-burgundy);
+    color: white;
+}
+
+/* Event Actions Buttons */
+.event-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.event-actions .wcr-button {
+    flex: 1;
+}
+
+/* WCR Input Styles */
+.wcr-input {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--wcr-color-stone);
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.wcr-input:focus {
+    outline: none;
+    border-color: var(--wcr-color-burgundy);
+}
+
+.wcr-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234A4A4A' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.25rem;
+    padding-right: 2.5rem;
+}
+
+/* Existing styles remain unchanged */

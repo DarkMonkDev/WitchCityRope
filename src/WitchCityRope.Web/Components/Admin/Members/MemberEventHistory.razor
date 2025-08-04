@@ -1,0 +1,122 @@
+@using WitchCityRope.Core.DTOs
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Event History</h5>
+        @if (Events.Any())
+        {
+            <button class="btn btn-outline-primary btn-sm" @onclick="ExportToCsv">
+                <i class="bi bi-download me-1"></i> Export CSV
+            </button>
+        }
+    </div>
+    <div class="card-body">
+        @if (!Events.Any())
+        {
+            <div class="text-center py-4">
+                <i class="bi bi-calendar-x fs-1 text-muted"></i>
+                <p class="mt-2 text-muted">No events attended yet</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Event Name</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Price Paid</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var evt in Events.OrderByDescending(e => e.EventDate))
+                        {
+                            <tr>
+                                <td>@evt.EventDate.ToString("d")</td>
+                                <td>@evt.EventName</td>
+                                <td>
+                                    <span class="badge bg-secondary">@evt.EventType</span>
+                                </td>
+                                <td>
+                                    @switch (evt.RegistrationStatus.ToLower())
+                                    {
+                                        case "checkedin":
+                                            if (evt.DidAttend)
+                                            {
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check-circle me-1"></i> Attended
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning">
+                                                    <i class="bi bi-exclamation-circle me-1"></i> No-show
+                                                </span>
+                                            }
+                                            break;
+                                        case "cancelled":
+                                            if (!string.IsNullOrEmpty(evt.RefundReason))
+                                            {
+                                                <span class="badge bg-info">
+                                                    <i class="bi bi-currency-dollar me-1"></i> Refunded
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">Cancelled</span>
+                                            }
+                                            break;
+                                        case "confirmed":
+                                            <span class="badge bg-primary">RSVP</span>
+                                            break;
+                                        default:
+                                            <span class="badge bg-secondary">@evt.RegistrationStatus</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>
+                                    @if (evt.PricePaid.HasValue)
+                                    {
+                                        <text>$@evt.PricePaid.Value.ToString("N2")</text>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a href="/admin/events/@evt.EventId" class="btn btn-sm btn-outline-primary">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-3">
+                <p class="text-muted mb-0">
+                    <strong>Legend:</strong>
+                    <span class="badge bg-success ms-2">✓ Attended</span>
+                    <span class="badge bg-warning ms-1">⚠ No-show</span>
+                    <span class="badge bg-info ms-1">💰 Refunded</span>
+                    <span class="badge bg-primary ms-1">📝 RSVP Only</span>
+                </p>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<MemberEventHistoryDto> Events { get; set; } = new();
+    
+    private void ExportToCsv()
+    {
+        // TODO: Implement CSV export functionality
+    }
+}

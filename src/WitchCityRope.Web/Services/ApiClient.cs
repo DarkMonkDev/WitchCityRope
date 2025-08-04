@@ -1,5 +1,7 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using WitchCityRope.Core.DTOs;
+using WitchCityRope.Core.Enums;
 
 namespace WitchCityRope.Web.Services;
 
@@ -34,6 +36,80 @@ public class ApiClient
             
             var result = await response.Content.ReadFromJsonAsync<TResponse>();
             return result ?? throw new InvalidOperationException("Invalid response from API");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling API endpoint: {Endpoint}", endpoint);
+            throw;
+        }
+    }
+
+    public async Task<TResponse?> GetAsync<TResponse>(string endpoint)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync($"api/v1/{endpoint}");
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogError("API call failed: {StatusCode} - {Error}", response.StatusCode, error);
+                throw new HttpRequestException($"API call failed: {response.StatusCode}");
+            }
+            
+            var result = await response.Content.ReadFromJsonAsync<TResponse>();
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling API endpoint: {Endpoint}", endpoint);
+            throw;
+        }
+    }
+    
+    public async Task<TResponse?> PutAsync<TRequest, TResponse>(string endpoint, TRequest request)
+    {
+        try
+        {
+            var response = await _httpClient.PutAsJsonAsync($"api/v1/{endpoint}", request);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogError("API call failed: {StatusCode} - {Error}", response.StatusCode, error);
+                throw new HttpRequestException($"API call failed: {response.StatusCode}");
+            }
+            
+            var result = await response.Content.ReadFromJsonAsync<TResponse>();
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling API endpoint: {Endpoint}", endpoint);
+            throw;
+        }
+    }
+    
+    public async Task<TResponse?> DeleteAsync<TResponse>(string endpoint)
+    {
+        try
+        {
+            var response = await _httpClient.DeleteAsync(endpoint);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogError("API call failed: {StatusCode} - {Error}", response.StatusCode, error);
+                throw new HttpRequestException($"API call failed: {response.StatusCode}");
+            }
+            
+            if (response.Content.Headers.ContentLength == 0)
+            {
+                return default;
+            }
+            
+            var result = await response.Content.ReadFromJsonAsync<TResponse>();
+            return result;
         }
         catch (Exception ex)
         {
@@ -94,6 +170,23 @@ public class ApiClient
         try
         {
             var response = await _httpClient.PostAsJsonAsync($"api/events/{eventId}/register", new { });
+            response.EnsureSuccessStatusCode();
+            
+            return await response.Content.ReadFromJsonAsync<RegistrationResult>() 
+                ?? new RegistrationResult { Success = false, Message = "Unknown error" };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error registering for event ID: {EventId}", eventId);
+            return new RegistrationResult { Success = false, Message = "Registration failed" };
+        }
+    }
+    
+    public async Task<RegistrationResult> RegisterForEventAsync(Guid eventId)
+    {
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync($"api/v1/events/{eventId}/register", new { });
             response.EnsureSuccessStatusCode();
             
             return await response.Content.ReadFromJsonAsync<RegistrationResult>() 
@@ -363,6 +456,128 @@ public class ApiClient
     }
 
     #endregion
+
+    #region RSVPs
+
+    public async Task<List<RsvpDto>> GetEventRsvpsAsync(Guid eventId)
+    {
+        try
+        {
+            var response = await _httpClient.GetFromJsonAsync<List<RsvpDto>>(
+                $"api/v1/events/{eventId}/rsvps");
+            return response ?? new List<RsvpDto>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting event RSVPs: {EventId}", eventId);
+            throw;
+        }
+    }
+
+    public async Task<bool> UpdateRsvpAsync(Guid rsvpId, UpdateRsvpRequest request)
+    {
+        try
+        {
+            var response = await _httpClient.PutAsJsonAsync($"api/v1/rsvps/{rsvpId}", request);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating RSVP: {RsvpId}", rsvpId);
+            throw;
+        }
+    }
+
+    public async Task<bool> CancelRsvpAsync(Guid rsvpId)
+    {
+        try
+        {
+            var response = await _httpClient.DeleteAsync($"api/v1/rsvps/{rsvpId}");
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error cancelling RSVP: {RsvpId}", rsvpId);
+            throw;
+        }
+    }
+
+    #endregion
+
+    #region Event Management
+    
+    public async Task<EventDto?> GetEventByIdAsync(Guid eventId)
+    {
+        try
+        {
+            var response = await _httpClient.GetFromJsonAsync<EventDto>(
+                $"api/v1/events/{eventId}");
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching event by ID: {EventId}", eventId);
+            return null;
+        }
+    }
+    
+    public async Task<EventAttendeesResponse> GetEventAttendeesAsync(Guid eventId)
+    {
+        try
+        {
+            var response = await _httpClient.GetFromJsonAsync<EventAttendeesResponse>(
+                $"api/v1/events/{eventId}/attendees");
+            return response ?? new EventAttendeesResponse();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching event attendees: {EventId}", eventId);
+            return new EventAttendeesResponse();
+        }
+    }
+    
+    public async Task<bool> CheckInRsvpAsync(Guid rsvpId)
+    {
+        try
+        {
+            var response = await _httpClient.PostAsync($"api/v1/rsvps/{rsvpId}/checkin", null);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking in RSVP: {RsvpId}", rsvpId);
+            return false;
+        }
+    }
+    
+    #endregion
+
+    #region Check-In
+
+    public async Task<CheckInResponse> CheckInAttendeeAsync(Guid eventId, CheckInRequest request)
+    {
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync($"api/v1/events/{eventId}/checkin", request);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Check-in failed: {StatusCode} - {Error}", response.StatusCode, error);
+                throw new HttpRequestException($"Check-in failed: {response.StatusCode}");
+            }
+            
+            var result = await response.Content.ReadFromJsonAsync<CheckInResponse>();
+            return result ?? throw new InvalidOperationException("Invalid response from API");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking in attendee for event: {EventId}", eventId);
+            throw;
+        }
+    }
+
+    #endregion
 }
 
 // View Models
@@ -459,6 +674,8 @@ public class RegistrationResult
 {
     public bool Success { get; set; }
     public string? Message { get; set; }
+    public string? ConfirmationCode { get; set; }
+    public string? Status { get; set; }
 }
 
 public class MemberStats
@@ -569,4 +786,11 @@ public class ReferenceViewModel
     public string Name { get; set; } = string.Empty;
     public string Relationship { get; set; } = string.Empty;
     public string Status { get; set; } = "pending";
+}
+
+public class EventAttendeesResponse
+{
+    public List<RsvpDto> Rsvps { get; set; } = new();
+    public List<TicketDto> Tickets { get; set; } = new();
+    public int TotalCount { get; set; }
 }

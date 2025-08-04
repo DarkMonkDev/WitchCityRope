@@ -1,0 +1,28 @@
+{
+  "startTime": "2025-07-22T22:17:37.835Z",
+  "forms": {
+    "Login Form": {
+      "name": "Login Form",
+      "startTime": "2025-07-22T22:17:38.190Z",
+      "tests": [
+        {
+          "name": "Empty form validation",
+          "passed": true
+        }
+      ],
+      "status": "failed",
+      "error": "Expected email validation error",
+      "screenshots": [
+        "test-results/validation-tests/login-empty-form-1753222659638.png",
+        "test-results/validation-tests/Login-Form-error-1753222660338.png"
+      ],
+      "endTime": "2025-07-22T22:17:40.461Z"
+    }
+  },
+  "summary": {
+    "total": 1,
+    "passed": 0,
+    "failed": 2,
+    "skipped": 0
+  }
+}

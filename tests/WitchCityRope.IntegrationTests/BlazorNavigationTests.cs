@@ -338,5 +338,11 @@ public class BlazorWebApplicationFactory : WebApplicationFactory<WitchCityRope.W
         });
 
         builder.UseEnvironment("Test");
+        
+        // Disable HTTPS redirection for tests
+        builder.UseKestrel(options =>
+        {
+            options.ListenLocalhost(8080); // HTTP only for tests
+        });
     }
 }

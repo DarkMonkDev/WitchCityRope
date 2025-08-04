@@ -7,9 +7,11 @@ using Moq;
 using FluentAssertions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.DependencyInjection;
 using Bunit;
-using WitchCityRope.Web.Features.Events;
+using WitchCityRope.Web.Features.Events.Pages;
 using WitchCityRope.Web.Services;
+using WitchCityRope.Web.Tests.Helpers;
 
 namespace WitchCityRope.Web.Tests.Features.Events
 {
@@ -55,7 +57,7 @@ namespace WitchCityRope.Web.Tests.Features.Events
                 {
                     Id = Guid.NewGuid(),
                     Title = "Rope Basics Workshop",
-                    StartDate = DateTime.UtcNow.AddDays(3),
+                    StartDateTime = DateTime.UtcNow.AddDays(3),
                     Location = "Studio A",
                     AvailableSpots = 7,
                     Price = 25m
@@ -64,7 +66,7 @@ namespace WitchCityRope.Web.Tests.Features.Events
                 {
                     Id = Guid.NewGuid(),
                     Title = "Advanced Suspension",
-                    StartDate = DateTime.UtcNow.AddDays(7),
+                    StartDateTime = DateTime.UtcNow.AddDays(7),
                     Location = "Main Hall",
                     AvailableSpots = 0,
                     Price = 40m
@@ -123,7 +125,7 @@ namespace WitchCityRope.Web.Tests.Features.Events
                 {
                     Id = eventId,
                     Title = "Test Event",
-                    StartDate = DateTime.UtcNow.AddDays(1),
+                    StartDateTime = DateTime.UtcNow.AddDays(1),
                     Location = "Test Location",
                     AvailableSpots = 20,
                     Price = 30m
@@ -159,7 +161,7 @@ namespace WitchCityRope.Web.Tests.Features.Events
                 {
                     Id = Guid.NewGuid(),
                     Title = "Today's Event",
-                    StartDate = today.AddHours(14),
+                    StartDateTime = today.AddHours(14),
                     Location = "Room A",
                     AvailableSpots = 20,
                     Price = 25m
@@ -168,7 +170,7 @@ namespace WitchCityRope.Web.Tests.Features.Events
                 {
                     Id = Guid.NewGuid(),
                     Title = "Tomorrow's Event",
-                    StartDate = today.AddDays(1).AddHours(14),
+                    StartDateTime = today.AddDays(1).AddHours(14),
                     Location = "Room B",
                     AvailableSpots = 20,
                     Price = 25m
@@ -177,7 +179,7 @@ namespace WitchCityRope.Web.Tests.Features.Events
                 {
                     Id = Guid.NewGuid(),
                     Title = "Next Week's Event",
-                    StartDate = today.AddDays(7).AddHours(14),
+                    StartDateTime = today.AddDays(7).AddHours(14),
                     Location = "Room C",
                     AvailableSpots = 20,
                     Price = 25m
@@ -216,7 +218,7 @@ namespace WitchCityRope.Web.Tests.Features.Events
                 {
                     Id = Guid.NewGuid(),
                     Title = "Rope Basics",
-                    StartDate = DateTime.UtcNow.AddDays(1),
+                    StartDateTime = DateTime.UtcNow.AddDays(1),
                     Location = "Studio",
                     AvailableSpots = 20,
                     Price = 25m
@@ -225,7 +227,7 @@ namespace WitchCityRope.Web.Tests.Features.Events
                 {
                     Id = Guid.NewGuid(),
                     Title = "Photography Workshop",
-                    StartDate = DateTime.UtcNow.AddDays(2),
+                    StartDateTime = DateTime.UtcNow.AddDays(2),
                     Location = "Gallery",
                     AvailableSpots = 15,
                     Price = 35m
@@ -263,7 +265,7 @@ namespace WitchCityRope.Web.Tests.Features.Events
                 {
                     Id = Guid.NewGuid(),
                     Title = "Initial Event",
-                    StartDate = DateTime.UtcNow.AddDays(1),
+                    StartDateTime = DateTime.UtcNow.AddDays(1),
                     Location = "Room A",
                     AvailableSpots = 20,
                     Price = 25m
@@ -276,7 +278,7 @@ namespace WitchCityRope.Web.Tests.Features.Events
                 {
                     Id = Guid.NewGuid(),
                     Title = "New Event",
-                    StartDate = DateTime.UtcNow.AddDays(2),
+                    StartDateTime = DateTime.UtcNow.AddDays(2),
                     Location = "Room B",
                     AvailableSpots = 20,
                     Price = 25m

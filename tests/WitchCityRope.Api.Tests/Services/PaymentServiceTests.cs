@@ -4,8 +4,10 @@ using FluentAssertions;
 using Moq;
 using Xunit;
 using WitchCityRope.Api.Services;
+using WitchCityRope.Api.Models;
 using WitchCityRope.Core.DTOs;
-using WitchCityRope.Core.Enums;
+using CoreEnums = WitchCityRope.Core.Enums;
+using ApiEnums = WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Core.Interfaces;
 
 namespace WitchCityRope.Api.Tests.Services;
@@ -30,16 +32,9 @@ public class PaymentServiceTests
         var userId = Guid.NewGuid();
         var request = new ProcessPaymentRequest
         {
-            Amount = 100.00m,
-            Currency = "USD",
-            PaymentMethod = PaymentMethod.Stripe,
+            PaymentId = Guid.NewGuid(),
             PaymentToken = "tok_test_123",
-            Description = "Event registration payment",
-            Metadata = new Dictionary<string, string>
-            {
-                { "eventId", Guid.NewGuid().ToString() },
-                { "userId", userId.ToString() }
-            }
+            PaymentMethod = "CreditCard"
         };
 
         // Act
@@ -59,10 +54,9 @@ public class PaymentServiceTests
         var userId = Guid.NewGuid();
         var request = new ProcessPaymentRequest
         {
-            Amount = 50.00m,
-            Currency = "USD",
-            PaymentMethod = PaymentMethod.PayPal,
-            PaymentToken = "PAYID-123"
+            PaymentId = Guid.NewGuid(),
+            PaymentToken = "PAYID-123",
+            PaymentMethod = "PayPal"
         };
 
         // Act
@@ -84,10 +78,9 @@ public class PaymentServiceTests
         var userId = Guid.NewGuid();
         var request = new ProcessPaymentRequest
         {
-            Amount = amount,
-            Currency = "USD",
-            PaymentMethod = PaymentMethod.Stripe,
-            PaymentToken = "tok_test"
+            PaymentId = Guid.NewGuid(),
+            PaymentToken = "tok_test",
+            PaymentMethod = "CreditCard"
         };
 
         // Act
@@ -98,18 +91,17 @@ public class PaymentServiceTests
     }
 
     [Theory]
-    [InlineData(PaymentMethod.CreditCard)]
-    [InlineData(PaymentMethod.PayPal)]
-    public async Task ProcessPaymentAsync_WithDifferentPaymentMethods_ShouldSucceed(PaymentMethod method)
+    [InlineData("CreditCard")]
+    [InlineData("PayPal")]
+    public async Task ProcessPaymentAsync_WithDifferentPaymentMethods_ShouldSucceed(string method)
     {
         // Arrange
         var userId = Guid.NewGuid();
         var request = new ProcessPaymentRequest
         {
-            Amount = 75.00m,
-            Currency = "USD",
-            PaymentMethod = method,
-            PaymentToken = "test_token"
+            PaymentId = Guid.NewGuid(),
+            PaymentToken = "test_token",
+            PaymentMethod = method
         };
 
         // Act
@@ -219,7 +211,7 @@ public class PaymentServiceTests
         {
             Amount = 1.00m,
             Currency = "USD",
-            PaymentMethod = PaymentMethod.Stripe,
+            PaymentMethod = "CreditCard",
             PaymentToken = "tok"
         };
 
@@ -240,7 +232,7 @@ public class PaymentServiceTests
         {
             Amount = 250.00m,
             Currency = "USD",
-            PaymentMethod = PaymentMethod.PayPal,
+            PaymentMethod = "PayPal",
             PaymentToken = "PAYID-COMPLEX",
             Description = "Multiple event registrations with discounts",
             Metadata = new Dictionary<string, string>
@@ -275,7 +267,7 @@ public class PaymentServiceTests
             {
                 Amount = 10.00m + i,
                 Currency = "USD",
-                PaymentMethod = PaymentMethod.Stripe,
+                PaymentMethod = "CreditCard",
                 PaymentToken = $"tok_concurrent_{i}"
             };
             tasks[i] = _paymentService.ProcessPaymentAsync(request, userId);

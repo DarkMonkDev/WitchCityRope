@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using WitchCityRope.Api.Interfaces;
-using WitchCityRope.Core.Entities;
+using WitchCityRope.Infrastructure.Identity;
 using WitchCityRope.Core.ValueObjects;
 using WitchCityRope.Infrastructure.Security;
 
@@ -21,7 +21,7 @@ namespace WitchCityRope.Api.Services
             _jwtTokenService = jwtTokenService;
         }
 
-        public string GenerateToken(User user)
+        public string GenerateToken(WitchCityRopeUser user)
         {
             return _jwtTokenService.GenerateToken(user);
         }

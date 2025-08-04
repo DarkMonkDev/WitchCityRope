@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authorization;
 using WitchCityRope.Infrastructure.Identity;
+using WitchCityRope.Infrastructure;
 
 // Register Syncfusion license early
 var syncfusionLicense = Environment.GetEnvironmentVariable("SYNCFUSION_LICENSE_KEY") 
@@ -55,6 +56,9 @@ builder.Services.AddDbContext<WitchCityRopeIdentityDbContext>(options =>
         ?? "Host=localhost;Database=witchcityrope_db;Username=postgres;Password=your_password_here";
     options.UseNpgsql(connectionString);
 });
+
+// Add Infrastructure services (without DbContext since we already registered it above)
+builder.Services.AddInfrastructureWithoutDbContext(builder.Configuration);
 
 // Add Identity services
 builder.Services.AddIdentity<WitchCityRope.Infrastructure.Identity.WitchCityRopeUser, WitchCityRope.Infrastructure.Identity.WitchCityRopeRole>(options =>
@@ -105,7 +109,7 @@ builder.Services.ConfigureApplicationCookie(options =>
             return Task.CompletedTask;
         }
         
-        // For Blazor navigation requests to protected pages, ensure proper redirect
+        // For Blazor navigation requests, return 401 to let Blazor handle it
         if (context.Request.Path.StartsWithSegments("/_blazor"))
         {
             context.Response.StatusCode = 401;
@@ -158,21 +162,8 @@ builder.Services.AddHttpClient("LocalApi", (serviceProvider, client) =>
 // Add HttpClient for external services
 builder.Services.AddHttpClient();
 
-// Configure HttpClient for DashboardService
-builder.Services.AddHttpClient<IDashboardService, DashboardService>(client =>
-{
-    var apiUrl = builder.Configuration["ApiUrl"] ?? "https://localhost:8181";
-    client.BaseAddress = new Uri(apiUrl);
-    client.DefaultRequestHeaders.Add("Accept", "application/json");
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
-{
-    ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => 
-    {
-        // Accept all certificates in development
-        return builder.Environment.IsDevelopment();
-    }
-});
+// Register DashboardService with DbContext instead of HttpClient
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 // Configure SendGrid for email
 var sendGridApiKey = builder.Configuration["Email:SendGrid:ApiKey"];
@@ -218,14 +209,14 @@ builder.Services.AddSingleton<WitchCityRope.Web.Services.IToastService, WitchCit
 builder.Services.AddScoped<WitchCityRope.Web.Services.INavigationService, WitchCityRope.Web.Services.NavigationService>();
 builder.Services.AddScoped<WitchCityRope.Web.Services.IFileUploadService, WitchCityRope.Web.Services.FileUploadService>();
 
+// Add validation service (required by WCR validation components)
+builder.Services.AddScoped<WitchCityRope.Web.Shared.Validation.Services.IValidationService, WitchCityRope.Web.Shared.Validation.Services.ValidationService>();
+
 // Add authorization (.NET 9 pattern with multiple schemes support)
 builder.Services.AddAuthorization(options =>
 {
-    // Configure default policy for multiple authentication schemes
-    var defaultAuthorizationPolicyBuilder = new AuthorizationPolicyBuilder(
-        IdentityConstants.ApplicationScheme);
-    options.DefaultPolicy = defaultAuthorizationPolicyBuilder
-        .RequireAuthenticatedUser().Build();
+    // Don't set a default policy that requires authentication
+    // This allows pages marked with [AllowAnonymous] to work properly
     
     // Define custom authorization policies
     options.AddPolicy("RequireAuthenticated", policy => policy.RequireAuthenticatedUser());
@@ -236,6 +227,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("RequireVettedMember", policy => 
         policy.RequireRole("Member").RequireClaim("IsVetted", "true"));
 });
+
 
 // Configure logging
 builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
@@ -323,8 +315,10 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = scope.ServiceProvider.GetRequiredService<WitchCityRope.Infrastructure.Data.WitchCityRopeIdentityDbContext>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<WitchCityRope.Infrastructure.Identity.WitchCityRopeUser>>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<WitchCityRope.Infrastructure.Identity.WitchCityRopeRole>>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        await WitchCityRope.Infrastructure.Data.DbInitializer.InitializeAsync(context, logger);
+        await WitchCityRope.Infrastructure.Data.DbInitializer.InitializeAsync(context, userManager, roleManager, logger);
     }
     catch (Exception ex)
     {
@@ -340,8 +334,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Disable HTTPS redirection in development when HTTPS is not configured
-if (!app.Environment.IsDevelopment())
+// Disable HTTPS redirection in development and testing environments
+if (!app.Environment.IsDevelopment() && app.Environment.EnvironmentName != "Testing" && app.Environment.EnvironmentName != "Test")
 {
     app.UseHttpsRedirection();
 }
@@ -373,6 +367,9 @@ app.UseAuthorization();
 
 // Add antiforgery middleware after authentication
 app.UseAntiforgery();
+
+// Add Blazor initialization middleware
+app.UseMiddleware<WitchCityRope.Web.Middleware.BlazorInitializationMiddleware>();
 
 // Add custom Blazor authorization middleware
 app.UseMiddleware<WitchCityRope.Web.Middleware.BlazorAuthorizationMiddleware>();

@@ -191,6 +191,10 @@ ENV/
 *.crt
 !dev-certs/
 
+# Keys directory (contains DataProtection keys)
+keys/
+**/keys/
+
 # Application specific
 appsettings.local.json
 appsettings.*.local.json

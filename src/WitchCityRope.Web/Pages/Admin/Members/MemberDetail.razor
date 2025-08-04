@@ -1,0 +1,107 @@
+@page "/admin/members/{MemberId:guid}"
+@using WitchCityRope.Core.DTOs
+@using WitchCityRope.Core.Entities
+@using WitchCityRope.Web.Components.Admin.Members
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Administrator,Moderator")]
+
+<PageTitle>@PageTitle - WitchCityRope Admin</PageTitle>
+
+<div class="admin-page">
+    @if (IsLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading member details...</span>
+            </div>
+            <p class="mt-2">Loading member details...</p>
+        </div>
+    }
+    else if (Member == null)
+    {
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Member not found.
+            <a href="/admin/members" class="alert-link">Return to member list</a>
+        </div>
+    }
+    else
+    {
+        <div class="page-header mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/admin/members">Members</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">@Member.SceneName</li>
+                </ol>
+            </nav>
+            <h1>Member: @Member.SceneName (@Member.RealName)</h1>
+        </div>
+        
+        <ul class="nav nav-tabs mb-4" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(ActiveTab == "overview" ? "active" : "")" 
+                        @onclick="SetOverviewTab"
+                        type="button" role="tab">
+                    <i class="bi bi-person me-1"></i> Overview
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(ActiveTab == "events" ? "active" : "")" 
+                        @onclick="SetEventsTab"
+                        type="button" role="tab">
+                    <i class="bi bi-calendar-event me-1"></i> Events (@EventHistory.Count)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(ActiveTab == "notes" ? "active" : "")" 
+                        @onclick="SetNotesTab"
+                        type="button" role="tab">
+                    <i class="bi bi-journal-text me-1"></i> Notes (@Notes.Count)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(ActiveTab == "incidents" ? "active" : "")" 
+                        @onclick="SetIncidentsTab"
+                        type="button" role="tab">
+                    <i class="bi bi-exclamation-triangle me-1"></i> Incidents (@Incidents.Count)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(ActiveTab == "settings" ? "active" : "")" 
+                        @onclick="SetSettingsTab"
+                        type="button" role="tab">
+                    <i class="bi bi-gear me-1"></i> Account Settings
+                </button>
+            </li>
+        </ul>
+        
+        <div class="tab-content">
+            @switch (ActiveTab)
+            {
+                case "overview":
+                    <MemberOverviewStandardized Member="@Member" 
+                                               OnUpdate="@HandleMemberUpdate" />
+                    break;
+                    
+                case "events":
+                    <MemberEventHistory Events="@EventHistory" />
+                    break;
+                    
+                case "notes":
+                    <MemberNotes Notes="@Notes" 
+                                MemberId="@MemberId"
+                                OnNotesChanged="@LoadNotes" />
+                    break;
+                    
+                case "incidents":
+                    <MemberIncidents Incidents="@Incidents" />
+                    break;
+                    
+                case "settings":
+                    <MemberAccountSettings Member="@Member" 
+                                         OnUpdate="@HandleMemberUpdate" />
+                    break;
+            }
+        </div>
+    }
+</div>

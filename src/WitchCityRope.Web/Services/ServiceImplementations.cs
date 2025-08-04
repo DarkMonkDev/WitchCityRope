@@ -244,7 +244,7 @@ public class NavigationService : INavigationService
 
     public void NavigateToLogin(string? returnUrl = null)
     {
-        var url = "/auth/login";
+        var url = "/Identity/Account/Login";
         if (!string.IsNullOrEmpty(returnUrl))
         {
             url += $"?returnUrl={Uri.EscapeDataString(returnUrl)}";

@@ -16,7 +16,15 @@ public class CircuitHandlerService : CircuitHandler
 
     public override Task OnCircuitOpenedAsync(Circuit circuit, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Circuit opened: {CircuitId}", circuit.Id);
+        _logger.LogInformation("Circuit opened: {CircuitId} at {Time}", circuit.Id, DateTime.UtcNow);
+        
+        // Log additional debug info in development
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("Circuit details - ID: {CircuitId}, Thread: {ThreadId}", 
+                circuit.Id, Thread.CurrentThread.ManagedThreadId);
+        }
+        
         return Task.CompletedTask;
     }
 

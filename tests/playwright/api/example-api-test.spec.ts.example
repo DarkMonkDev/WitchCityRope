@@ -1,0 +1,234 @@
+import { test, expect, APIRequestContext } from '@playwright/test';
+import { testConfig } from '../helpers/test.config';
+import { apiConfig, buildApiUrl, createEventData, formatApiError, retryApiCall } from './api.config';
+
+/**
+ * Example API test showing best practices and common patterns
+ */
+test.describe('Example API Test Patterns', () => {
+  let apiContext: APIRequestContext;
+  let authToken: string;
+
+  test.beforeAll(async ({ playwright }) => {
+    // Create API context with default headers
+    apiContext = await playwright.request.newContext({
+      baseURL: apiConfig.urls.api,
+      extraHTTPHeaders: apiConfig.requestDefaults.headers,
+    });
+
+    // Authenticate and get token
+    const loginResponse = await apiContext.post(buildApiUrl(apiConfig.endpoints.login), {
+      data: {
+        email: testConfig.accounts.admin.email,
+        password: testConfig.accounts.admin.password
+      }
+    });
+
+    expect(loginResponse.ok()).toBeTruthy();
+    const loginData = await loginResponse.json();
+    authToken = loginData.accessToken || loginData.token;
+  });
+
+  test.afterAll(async () => {
+    await apiContext.dispose();
+  });
+
+  test('example: create and verify event with retry logic', async () => {
+    // Create event data using helper
+    const eventData = createEventData({
+      name: 'Example Test Event',
+      description: '<p>Created using API test helpers</p>'
+    }, 'workshop');
+
+    // Create event with retry logic
+    const createdEvent = await retryApiCall(async () => {
+      const response = await apiContext.post(buildApiUrl(apiConfig.endpoints.events), {
+        data: eventData,
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+
+      if (!response.ok()) {
+        const error = await formatApiError(response);
+        throw new Error(error);
+      }
+
+      return response.json();
+    });
+
+    expect(createdEvent.id).toBeTruthy();
+    console.log('Event created:', createdEvent.id);
+
+    // Verify event exists
+    const verifyResponse = await apiContext.get(
+      buildApiUrl(apiConfig.endpoints.eventDetails(createdEvent.id)),
+      {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      }
+    );
+
+    expect(verifyResponse.ok()).toBeTruthy();
+    const verifiedEvent = await verifyResponse.json();
+    expect(verifiedEvent.name).toBe(eventData.name);
+  });
+
+  test('example: parallel API calls with performance check', async () => {
+    const startTime = Date.now();
+
+    // Make multiple API calls in parallel
+    const [eventsResponse, profileResponse, rsvpsResponse] = await Promise.all([
+      apiContext.get(buildApiUrl(apiConfig.endpoints.events)),
+      apiContext.get(buildApiUrl(apiConfig.endpoints.userProfile), {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      }),
+      apiContext.get(buildApiUrl(apiConfig.endpoints.userRsvps), {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      })
+    ]);
+
+    const duration = Date.now() - startTime;
+
+    // Check all responses
+    expect(eventsResponse.ok()).toBeTruthy();
+    expect(profileResponse.ok()).toBeTruthy();
+    expect(rsvpsResponse.ok()).toBeTruthy();
+
+    // Check performance
+    expect(duration).toBeLessThan(apiConfig.expectations.maxResponseTime);
+    console.log(`Parallel API calls completed in ${duration}ms`);
+  });
+
+  test('example: test error handling and validation', async () => {
+    // Test missing required fields
+    const invalidEventData = {
+      description: 'Missing required fields'
+    };
+
+    const response = await apiContext.post(buildApiUrl(apiConfig.endpoints.events), {
+      data: invalidEventData,
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    });
+
+    expect(response.status()).toBeGreaterThanOrEqual(400);
+    expect(response.status()).toBeLessThan(500);
+
+    const errorData = await response.json();
+    expect(errorData).toHaveProperty('errors');
+    console.log('Validation errors:', errorData.errors);
+  });
+
+  test('example: test with request interception', async ({ page }) => {
+    // Setup interception to log all API calls
+    const apiCalls: Array<{ method: string; url: string; status: number }> = [];
+
+    await page.route('**/api/**', async route => {
+      const request = route.request();
+      const response = await route.fetch();
+      
+      apiCalls.push({
+        method: request.method(),
+        url: request.url(),
+        status: response.status()
+      });
+
+      await route.fulfill({ response });
+    });
+
+    // Navigate to a page that makes API calls
+    await page.goto(testConfig.baseUrl + testConfig.urls.events);
+    await page.waitForLoadState('networkidle');
+
+    // Analyze API calls
+    console.log('API calls made by the page:');
+    apiCalls.forEach(call => {
+      console.log(`  ${call.method} ${call.url} -> ${call.status}`);
+    });
+
+    expect(apiCalls.length).toBeGreaterThan(0);
+  });
+
+  test('example: test with mock responses', async ({ page }) => {
+    // Mock API response
+    await page.route('**/api/events', async route => {
+      const mockEvents = {
+        events: [
+          {
+            id: 'mock-1',
+            name: 'Mock Event 1',
+            startDateTime: new Date().toISOString()
+          },
+          {
+            id: 'mock-2',
+            name: 'Mock Event 2',
+            startDateTime: new Date().toISOString()
+          }
+        ],
+        totalCount: 2
+      };
+
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(mockEvents)
+      });
+    });
+
+    // Test with mocked data
+    await page.goto(testConfig.baseUrl + testConfig.urls.events);
+    await expect(page.locator('text=Mock Event 1')).toBeVisible();
+    await expect(page.locator('text=Mock Event 2')).toBeVisible();
+  });
+
+  test('example: comprehensive RSVP flow', async () => {
+    // Step 1: Create event
+    const eventData = createEventData();
+    const createResponse = await apiContext.post(buildApiUrl(apiConfig.endpoints.events), {
+      data: eventData,
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+
+    expect(createResponse.ok()).toBeTruthy();
+    const event = await createResponse.json();
+
+    // Step 2: RSVP to event (as member)
+    const memberToken = await loginAsMember();
+    const rsvpResponse = await apiContext.post(
+      buildApiUrl(apiConfig.endpoints.eventRsvp(event.id)),
+      {
+        headers: { 'Authorization': `Bearer ${memberToken}` }
+      }
+    );
+
+    expect(rsvpResponse.ok()).toBeTruthy();
+
+    // Step 3: Verify RSVP exists
+    const myRsvpResponse = await apiContext.get(
+      buildApiUrl(apiConfig.endpoints.myEventRsvp(event.id)),
+      {
+        headers: { 'Authorization': `Bearer ${memberToken}` }
+      }
+    );
+
+    expect(myRsvpResponse.ok()).toBeTruthy();
+    const myRsvp = await myRsvpResponse.json();
+    expect(myRsvp.eventId).toBe(event.id);
+  });
+
+  // Helper function
+  async function loginAsMember(): Promise<string> {
+    const response = await apiContext.post(buildApiUrl(apiConfig.endpoints.login), {
+      data: {
+        email: testConfig.accounts.member.email,
+        password: testConfig.accounts.member.password
+      }
+    });
+
+    const data = await response.json();
+    return data.accessToken || data.token;
+  }
+});

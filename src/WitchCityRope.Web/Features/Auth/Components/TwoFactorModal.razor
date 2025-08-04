@@ -1,5 +1,5 @@
 @using WitchCityRope.Web.Services
-@inject AuthenticationService AuthService
+@inject IAuthService AuthService
 
 @* Two-factor authentication modal component for secure login *@
 
@@ -89,9 +89,9 @@
         try
         {
             // TODO: Implement actual 2FA verification
-            var result = await AuthService.VerifyTwoFactorAsync(UserId, twoFactorModel.Code, twoFactorModel.RememberDevice);
+            var result = await AuthService.VerifyTwoFactorAsync(twoFactorModel.Code, twoFactorModel.RememberDevice);
             
-            if (result.Succeeded)
+            if (result.Success)
             {
                 await OnSuccess.InvokeAsync(true);
             }

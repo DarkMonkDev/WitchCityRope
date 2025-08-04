@@ -37,20 +37,20 @@ namespace WitchCityRope.Infrastructure.Tests.Fixtures
             }
         }
 
-        public WitchCityRopeDbContext CreateContext()
+        public WitchCityRopeIdentityDbContext CreateContext()
         {
-            var options = new DbContextOptionsBuilder<WitchCityRopeDbContext>()
+            var options = new DbContextOptionsBuilder<WitchCityRopeIdentityDbContext>()
                 .UseNpgsql(ConnectionString)
                 .Options;
 
-            var context = new WitchCityRopeDbContext(options);
+            var context = new WitchCityRopeIdentityDbContext(options);
             context.Database.EnsureCreated();
             return context;
         }
 
-        public DbContextOptions<WitchCityRopeDbContext> CreateOptions()
+        public DbContextOptions<WitchCityRopeIdentityDbContext> CreateOptions()
         {
-            return new DbContextOptionsBuilder<WitchCityRopeDbContext>()
+            return new DbContextOptionsBuilder<WitchCityRopeIdentityDbContext>()
                 .UseNpgsql(ConnectionString)
                 .Options;
         }

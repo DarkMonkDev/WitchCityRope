@@ -1,4 +1,5 @@
 using System;
+using WitchCityRope.Core.DTOs;
 
 namespace WitchCityRope.Api.Features.Auth.Models
 {
@@ -26,17 +27,5 @@ namespace WitchCityRope.Api.Features.Auth.Models
         /// User information
         /// </summary>
         public UserDto User { get; set; } = new();
-    }
-
-    /// <summary>
-    /// User information DTO
-    /// </summary>
-    public class UserDto
-    {
-        public Guid Id { get; set; }
-        public string Email { get; set; } = string.Empty;
-        public string SceneName { get; set; } = string.Empty;
-        public string Role { get; set; } = string.Empty;
-        public bool IsActive { get; set; }
     }
 }

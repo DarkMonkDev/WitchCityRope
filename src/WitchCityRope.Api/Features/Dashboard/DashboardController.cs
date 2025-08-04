@@ -5,11 +5,12 @@ using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using WitchCityRope.Api.Features.Dashboard.Models;
+using WitchCityRope.Core.DTOs;
 using WitchCityRope.Core.Entities;
 using WitchCityRope.Core.Enums;
 using WitchCityRope.Infrastructure.Data;
-using VettingStatus = WitchCityRope.Core.Entities.VettingStatus;
+using WitchCityRope.Infrastructure.Identity;
+using VettingStatus = WitchCityRope.Core.Enums.VettingStatus;
 
 namespace WitchCityRope.Api.Features.Dashboard
 {
@@ -18,11 +19,11 @@ namespace WitchCityRope.Api.Features.Dashboard
     [Authorize]
     public class DashboardController : ControllerBase
     {
-        private readonly WitchCityRopeDbContext _context;
+        private readonly WitchCityRopeIdentityDbContext _context;
         private readonly ILogger<DashboardController> _logger;
         
         public DashboardController(
-            WitchCityRopeDbContext context,
+            WitchCityRopeIdentityDbContext context,
             ILogger<DashboardController> logger)
         {
             _context = context;
@@ -60,7 +61,7 @@ namespace WitchCityRope.Api.Features.Dashboard
                 
             var dashboard = new DashboardDto
             {
-                SceneName = user.SceneName.Value,
+                SceneName = user.SceneNameValue,
                 Role = user.Role,
                 VettingStatus = vettingStatus
             };
@@ -69,7 +70,7 @@ namespace WitchCityRope.Api.Features.Dashboard
         }
         
         [HttpGet("users/{userId}/upcoming-events")]
-        [ProducesResponseType(typeof(List<Models.EventDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<DashboardEventDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetUpcomingEvents(Guid userId, [FromQuery] int count = 3)
         {
             // Verify user can access this data
@@ -87,7 +88,7 @@ namespace WitchCityRope.Api.Features.Dashboard
                            r.Status != RegistrationStatus.Cancelled)
                 .OrderBy(r => r.Event.StartDate)
                 .Take(count)
-                .Select(r => new Models.EventDto
+                .Select(r => new DashboardEventDto
                 {
                     Id = r.Event.Id,
                     Title = r.Event.Title,
@@ -152,7 +153,7 @@ namespace WitchCityRope.Api.Features.Dashboard
                 MonthsAsMember = monthsAsMember,
                 ConsecutiveEvents = consecutiveEvents,
                 JoinDate = user.CreatedAt,
-                VettingStatus = vettingApp?.Status ?? VettingStatus.Submitted,
+                VettingStatus = vettingApp?.Status ?? VettingStatus.NotStarted,
                 NextInterviewDate = null // TODO: Add interview scheduling
             };
             
@@ -169,41 +170,6 @@ namespace WitchCityRope.Api.Features.Dashboard
                 // RegistrationStatus.Attended => "Attended", // Not available in current enum
                 _ => "Registered"
             };
-        }
-    }
-    
-    // DTOs
-    namespace Models
-    {
-        public class DashboardDto
-        {
-            public string SceneName { get; set; } = string.Empty;
-            public UserRole Role { get; set; }
-            public VettingStatus VettingStatus { get; set; }
-        }
-        
-        public class EventDto
-        {
-            public Guid Id { get; set; }
-            public string Title { get; set; } = string.Empty;
-            public DateTime StartDate { get; set; }
-            public DateTime EndDate { get; set; }
-            public string Location { get; set; } = string.Empty;
-            public EventType EventType { get; set; }
-            public string InstructorName { get; set; } = string.Empty;
-            public string RegistrationStatus { get; set; } = string.Empty;
-            public Guid TicketId { get; set; }
-        }
-        
-        public class MembershipStatsDto
-        {
-            public bool IsVerified { get; set; }
-            public int EventsAttended { get; set; }
-            public int MonthsAsMember { get; set; }
-            public int ConsecutiveEvents { get; set; }
-            public DateTime JoinDate { get; set; }
-            public VettingStatus VettingStatus { get; set; }
-            public DateTime? NextInterviewDate { get; set; }
         }
     }
 }

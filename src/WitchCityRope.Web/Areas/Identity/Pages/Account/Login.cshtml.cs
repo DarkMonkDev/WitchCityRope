@@ -31,6 +31,8 @@ namespace WitchCityRope.Web.Areas.Identity.Pages.Account
         [TempData]
         public string? ErrorMessage { get; set; }
 
+        public IList<AuthenticationScheme>? ExternalLogins { get; set; }
+
         public class InputModel
         {
             [Required]
@@ -57,6 +59,8 @@ namespace WitchCityRope.Web.Areas.Identity.Pages.Account
             // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
+            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+
             ReturnUrl = returnUrl;
             
             // Pre-fill the form if email was passed
@@ -69,6 +73,8 @@ namespace WitchCityRope.Web.Areas.Identity.Pages.Account
         public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
+
+            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
             if (ModelState.IsValid)
             {
@@ -102,7 +108,9 @@ namespace WitchCityRope.Web.Areas.Identity.Pages.Account
                     user.LastLoginAt = DateTime.UtcNow;
                     await _userManager.UpdateAsync(user);
                     
-                    return LocalRedirect(returnUrl);
+                    // Force a full page reload to ensure Blazor gets the updated authentication state
+                    // This is necessary because authentication happened outside of Blazor's context
+                    return Redirect(returnUrl);
                 }
                 if (result.RequiresTwoFactor)
                 {

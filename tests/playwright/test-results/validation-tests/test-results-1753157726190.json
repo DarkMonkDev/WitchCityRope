@@ -1,0 +1,39 @@
+{
+  "startTime": "2025-07-22T04:15:13.235Z",
+  "forms": {
+    "Login Form": {
+      "name": "Login Form",
+      "startTime": "2025-07-22T04:15:13.598Z",
+      "tests": [
+        {
+          "name": "Empty form validation",
+          "passed": true
+        }
+      ],
+      "status": "failed",
+      "error": "Expected email validation error",
+      "screenshots": [
+        "test-results/validation-tests/login-empty-form-1753157715218.png",
+        "test-results/validation-tests/Login-Form-error-1753157715902.png"
+      ],
+      "endTime": "2025-07-22T04:15:16.060Z"
+    },
+    "Register Form": {
+      "name": "Register Form",
+      "startTime": "2025-07-22T04:15:16.092Z",
+      "tests": [],
+      "status": "failed",
+      "error": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"/register\", waiting until \"load\"\u001b[22m\n",
+      "screenshots": [
+        "test-results/validation-tests/Register-Form-error-1753157716097.png"
+      ],
+      "endTime": "2025-07-22T04:15:16.163Z"
+    }
+  },
+  "summary": {
+    "total": 2,
+    "passed": 0,
+    "failed": 3,
+    "skipped": 0
+  }
+}

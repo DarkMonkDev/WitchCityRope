@@ -1,0 +1,707 @@
+@page "/profile-new"
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@using WitchCityRope.Web.Services
+@using WitchCityRope.Web.Shared.Layouts
+@using WitchCityRope.Web.Shared.Validation.Components
+@using System.ComponentModel.DataAnnotations
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Inputs
+@using Microsoft.AspNetCore.Authorization
+@inject IUserService UserService
+@inject IFileUploadService FileUploadService
+@inject IToastService ToastService
+@inject NavigationManager Navigation
+@attribute [Authorize]
+@layout MainLayout
+
+@* User profile page for viewing and editing profile information *@
+
+<div class="profile-container">
+    <div class="profile-grid">
+        @* Settings Sidebar *@
+        <div class="settings-sidebar">
+            <h3 class="sidebar-title">Settings</h3>
+            <nav class="sidebar-nav">
+                <a href="/profile" class="sidebar-link active">
+                    <span class="e-icons e-user"></span> Profile Information
+                </a>
+                <a href="/profile/emergency-contacts" class="sidebar-link">
+                    <span class="e-icons e-warning"></span> Emergency Contacts
+                </a>
+                <a href="/profile/vetting" class="sidebar-link">
+                    <span class="e-icons e-check-circle"></span> Vetting Status
+                </a>
+                <a href="/profile/security" class="sidebar-link">
+                    <span class="e-icons e-lock"></span> Security Settings
+                </a>
+                <a href="/profile/privacy" class="sidebar-link">
+                    <span class="e-icons e-eye"></span> Privacy Settings
+                </a>
+                <a href="/profile/membership" class="sidebar-link">
+                    <span class="e-icons e-card"></span> Membership
+                </a>
+            </nav>
+        </div>
+
+        @* Main Content *@
+        <div class="content-area">
+            <div class="content-header">
+                <h1 class="content-title">Profile Settings</h1>
+                <p class="content-subtitle">Manage your public profile and personal information</p>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="loading-spinner">
+                    <div class="e-spinner-pane">
+                        <div class="e-spinner-inner">
+                            <div class="e-spin-material"></div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (profile != null)
+            {
+                <EditForm Model="@profile" OnValidSubmit="@SaveProfile">
+                    <DataAnnotationsValidator />
+                    
+                    @* Avatar Section *@
+                    <div class="form-section">
+                        <div class="section-title">
+                            <div class="section-icon">
+                                <span class="e-icons e-image"></span>
+                            </div>
+                            <span>Profile Picture</span>
+                        </div>
+                        
+                        <div class="avatar-section">
+                            <div class="avatar-preview">
+                                @if (!string.IsNullOrEmpty(profile.AvatarUrl))
+                                {
+                                    <img src="@profile.AvatarUrl" alt="Profile picture" />
+                                }
+                                else
+                                {
+                                    <span>@GetInitials()</span>
+                                }
+                            </div>
+                            <div class="avatar-upload">
+                                <SfUploader ID="avatarUpload" 
+                                           AllowedExtensions=".jpg,.jpeg,.png,.gif"
+                                           MaxFileSize="5242880"
+                                           Multiple="false">
+                                    <UploaderEvents TValue="UploadFiles" OnUploadStart="@OnAvatarUploadStart" 
+                                                   Success="@OnAvatarUploadSuccess" 
+                                                   OnFailure="@OnAvatarUploadFailure"></UploaderEvents>
+                                    <UploaderTemplates>
+                                        <Template Context="uploaderContext">
+                                            <SfButton CssClass="e-outline">Choose Photo</SfButton>
+                                        </Template>
+                                    </UploaderTemplates>
+                                </SfUploader>
+                                <span class="form-hint">Maximum file size: 5MB. Supported formats: JPG, PNG, GIF</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Basic Information *@
+                    <div class="form-section">
+                        <div class="section-title">
+                            <div class="section-icon">
+                                <span class="e-icons e-user"></span>
+                            </div>
+                            <span>Basic Information</span>
+                        </div>
+                        
+                        <div class="form-grid">
+                            <WcrInputText @bind-Value="profile.SceneName" 
+                                          Label="Scene Name"
+                                          Placeholder="Your scene name"
+                                          IsRequired="true">
+                                <span class="form-hint">This is how you'll be known in the community</span>
+                            </WcrInputText>
+
+                            <WcrInputSelect @bind-Value="profile.Pronouns"
+                                            Label="Pronouns"
+                                            Placeholder="Select pronouns">
+                                <option value="">Select pronouns</option>
+                                <option value="she/her">she/her</option>
+                                <option value="he/him">he/him</option>
+                                <option value="they/them">they/them</option>
+                                <option value="she/they">she/they</option>
+                                <option value="he/they">he/they</option>
+                                <option value="any">any pronouns</option>
+                                <option value="custom">Custom (specify in bio)</option>
+                            </WcrInputSelect>
+
+                            <div class="form-group full-width">
+                                <WcrInputTextArea @bind-Value="profile.Bio" 
+                                                  Label="Bio"
+                                                  Placeholder="Tell us about yourself..."
+                                                  Rows="4"
+                                                  MaxLength="1000">
+                                    <span class="form-hint">Share your experience and interests in rope bondage (@(1000 - (profile.Bio?.Length ?? 0)) characters remaining)</span>
+                                </WcrInputTextArea>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="wcr-label">Email</label>
+                                <input type="email" 
+                                       value="@profile.Email" 
+                                       readonly
+                                       class="wcr-input" />
+                                <span class="form-hint">
+                                    @if (profile.EmailVerified)
+                                    {
+                                        <span class="text-success">
+                                            <span class="e-icons e-check-circle"></span> Verified
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-warning">
+                                            <span class="e-icons e-warning"></span> Not verified
+                                            <a href="/profile/verify-email" class="link">Verify now</a>
+                                        </span>
+                                    }
+                                </span>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="wcr-label">Member Since</label>
+                                <input type="text" 
+                                       value="@profile.MemberSince.ToString("MMMM d, yyyy")" 
+                                       readonly
+                                       class="wcr-input" />
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Privacy Settings *@
+                    <div class="form-section">
+                        <div class="section-title">
+                            <div class="section-icon">
+                                <span class="e-icons e-eye"></span>
+                            </div>
+                            <span>Privacy Settings</span>
+                        </div>
+                        
+                        <div class="privacy-options">
+                            <label class="toggle-option">
+                                <SfSwitch @bind-Checked="profile.IsPublicProfile"></SfSwitch>
+                                <div class="toggle-label">
+                                    <span class="toggle-title">Public Profile</span>
+                                    <span class="toggle-description">Allow other vetted members to view your profile</span>
+                                </div>
+                            </label>
+
+                            <label class="toggle-option">
+                                <SfSwitch @bind-Checked="profile.ShowAttendanceHistory"></SfSwitch>
+                                <div class="toggle-label">
+                                    <span class="toggle-title">Show Attendance History</span>
+                                    <span class="toggle-description">Display events you've attended on your profile</span>
+                                </div>
+                            </label>
+
+                            <label class="toggle-option">
+                                <SfSwitch @bind-Checked="profile.AllowMessages"></SfSwitch>
+                                <div class="toggle-label">
+                                    <span class="toggle-title">Allow Messages</span>
+                                    <span class="toggle-description">Let other members send you direct messages</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <WcrValidationSummary />
+
+                    @* Form Actions *@
+                    <div class="form-actions">
+                        <SfButton CssClass="e-primary" Type="ButtonType.Submit" Disabled="@isSaving">
+                            @if (isSaving)
+                            {
+                                <span>Saving...</span>
+                            }
+                            else
+                            {
+                                <span>Save Changes</span>
+                            }
+                        </SfButton>
+                        <SfButton CssClass="e-outline" OnClick="@CancelChanges">Cancel</SfButton>
+                    </div>
+                </EditForm>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private ProfileViewModel? profile;
+    private ProfileViewModel? originalProfile;
+    private bool isLoading = true;
+    private bool isSaving = false;
+
+    public class ProfileViewModel
+    {
+        [Required(ErrorMessage = "Scene name is required")]
+        [StringLength(50, MinimumLength = 2, ErrorMessage = "Scene name must be between 2 and 50 characters")]
+        public string SceneName { get; set; } = string.Empty;
+        
+        public string Email { get; set; } = string.Empty;
+        
+        [StringLength(1000, ErrorMessage = "Bio must not exceed 1000 characters")]
+        public string? Bio { get; set; }
+        
+        [StringLength(50, ErrorMessage = "Pronouns must not exceed 50 characters")]
+        public string? Pronouns { get; set; }
+        
+        public bool EmailVerified { get; set; }
+        public DateTime MemberSince { get; set; }
+        public string? AvatarUrl { get; set; }
+        
+        // Privacy settings
+        public bool IsPublicProfile { get; set; }
+        public bool ShowAttendanceHistory { get; set; }
+        public bool AllowMessages { get; set; }
+    }
+
+    public class PronounOption
+    {
+        public string Value { get; set; } = string.Empty;
+        public string Text { get; set; } = string.Empty;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProfile();
+    }
+
+    private async Task LoadProfile()
+    {
+        try
+        {
+            isLoading = true;
+            var userProfile = await UserService.GetCurrentUserProfileAsync();
+            
+            if (userProfile != null)
+            {
+                profile = new ProfileViewModel
+                {
+                    SceneName = userProfile.SceneName,
+                    Email = userProfile.Email,
+                    Bio = userProfile.Bio ?? "",
+                    Pronouns = userProfile.Pronouns ?? "",
+                    EmailVerified = userProfile.EmailVerified,
+                    MemberSince = userProfile.MemberSince,
+                    // Additional fields for the form
+                    IsPublicProfile = true,
+                    ShowAttendanceHistory = true,
+                    AllowMessages = true
+                };
+                
+                // Keep a copy of original values
+                originalProfile = new ProfileViewModel
+                {
+                    SceneName = profile.SceneName,
+                    Email = profile.Email,
+                    Bio = profile.Bio,
+                    Pronouns = profile.Pronouns,
+                    EmailVerified = profile.EmailVerified,
+                    MemberSince = profile.MemberSince,
+                    IsPublicProfile = profile.IsPublicProfile,
+                    ShowAttendanceHistory = profile.ShowAttendanceHistory,
+                    AllowMessages = profile.AllowMessages
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Failed to load profile: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task SaveProfile()
+    {
+        if (profile == null) return;
+
+        try
+        {
+            isSaving = true;
+            
+            var update = new UserProfileUpdate
+            {
+                SceneName = profile.SceneName,
+                Bio = profile.Bio,
+                Pronouns = profile.Pronouns
+            };
+
+            await UserService.UpdateProfileAsync(update);
+            ToastService.ShowSuccess("Profile updated successfully!");
+            
+            // Update the original profile to match saved values
+            if (originalProfile != null)
+            {
+                originalProfile.SceneName = profile.SceneName;
+                originalProfile.Bio = profile.Bio;
+                originalProfile.Pronouns = profile.Pronouns;
+                originalProfile.IsPublicProfile = profile.IsPublicProfile;
+                originalProfile.ShowAttendanceHistory = profile.ShowAttendanceHistory;
+                originalProfile.AllowMessages = profile.AllowMessages;
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Failed to save profile: {ex.Message}");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void CancelChanges()
+    {
+        if (originalProfile != null && profile != null)
+        {
+            // Restore original values
+            profile.SceneName = originalProfile.SceneName;
+            profile.Bio = originalProfile.Bio;
+            profile.Pronouns = originalProfile.Pronouns;
+            profile.IsPublicProfile = originalProfile.IsPublicProfile;
+            profile.ShowAttendanceHistory = originalProfile.ShowAttendanceHistory;
+            profile.AllowMessages = originalProfile.AllowMessages;
+        }
+        Navigation.NavigateTo("/dashboard");
+    }
+
+    private string GetInitials()
+    {
+        if (profile == null || string.IsNullOrEmpty(profile.SceneName))
+            return "?";
+
+        var parts = profile.SceneName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+        {
+            return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+        }
+        else if (parts.Length == 1)
+        {
+            return parts[0].Substring(0, Math.Min(2, parts[0].Length)).ToUpper();
+        }
+
+        return "?";
+    }
+
+    private async Task OnAvatarUploadStart(UploadingEventArgs args)
+    {
+        // Set custom headers if needed
+        args.CurrentRequest = new List<object> { new { Authorization = "Bearer token" } };
+    }
+
+    private async Task OnAvatarUploadSuccess(SuccessEventArgs args)
+    {
+        try
+        {
+            // Handle successful upload
+            if (args.File != null && profile != null)
+            {
+                // The server should return the URL of the uploaded file
+                var response = args.Response;
+                // Parse response to get the file URL
+                // profile.AvatarUrl = parsedUrl;
+                
+                ToastService.ShowSuccess("Profile picture updated successfully!");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Failed to update profile picture: {ex.Message}");
+        }
+    }
+
+    private void OnAvatarUploadFailure(Syncfusion.Blazor.Inputs.FailureEventArgs args)
+    {
+        ToastService.ShowError($"Failed to upload profile picture: {args.Response.StatusText}");
+    }
+}
+
+<style>
+    .profile-container {
+        min-height: calc(100vh - 120px);
+        background-color: #f5f5f5;
+    }
+
+    .profile-grid {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 0;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+
+    /* Sidebar Styles */
+    .settings-sidebar {
+        background-color: #f8f9fa;
+        border-right: 1px solid #e9ecef;
+        padding: 24px 0;
+    }
+
+    .sidebar-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #495057;
+        padding: 0 24px;
+        margin-bottom: 16px;
+    }
+
+    .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 24px;
+        color: #495057;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .sidebar-link:hover {
+        background-color: #e9ecef;
+        color: #212529;
+    }
+
+    .sidebar-link.active {
+        background-color: #fff;
+        color: var(--primary-color, #8B4513);
+        font-weight: 500;
+    }
+
+    .sidebar-link.active::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background-color: var(--primary-color, #8B4513);
+    }
+
+    /* Content Area */
+    .content-area {
+        padding: 32px;
+    }
+
+    .content-header {
+        margin-bottom: 32px;
+    }
+
+    .content-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #212529;
+        margin: 0 0 8px 0;
+    }
+
+    .content-subtitle {
+        color: #6c757d;
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    /* Form Sections */
+    .form-section {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 20px;
+    }
+
+    .section-icon {
+        width: 32px;
+        height: 32px;
+        background-color: #f8f9fa;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-color, #8B4513);
+    }
+
+    /* Avatar Section */
+    .avatar-section {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+    }
+
+    .avatar-preview {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        overflow: hidden;
+        background-color: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 600;
+        color: #6c757d;
+        flex-shrink: 0;
+    }
+
+    .avatar-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .avatar-upload {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    /* Form Grid */
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-hint {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 4px;
+    }
+
+    /* Privacy Options */
+    .privacy-options {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .toggle-option {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        background-color: #f8f9fa;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .toggle-option:hover {
+        background-color: #e9ecef;
+    }
+
+    .toggle-label {
+        flex: 1;
+    }
+
+    .toggle-title {
+        font-weight: 500;
+        color: #212529;
+        display: block;
+    }
+
+    .toggle-description {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 4px;
+        display: block;
+    }
+
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid #e9ecef;
+    }
+
+    /* Loading State */
+    .loading-spinner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 400px;
+    }
+
+    /* Utility Classes */
+    .text-success {
+        color: #28a745;
+    }
+
+    .text-warning {
+        color: #ffc107;
+    }
+
+    .link {
+        color: var(--primary-color, #8B4513);
+        text-decoration: none;
+        margin-left: 8px;
+    }
+
+    .link:hover {
+        text-decoration: underline;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .profile-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .settings-sidebar {
+            display: none;
+        }
+
+        .content-area {
+            padding: 20px;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .avatar-section {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+</style>

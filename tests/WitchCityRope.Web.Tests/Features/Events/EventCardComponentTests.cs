@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Xunit;
 using FluentAssertions;
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using WitchCityRope.Web.Features.Events.Components;
 using WitchCityRope.Web.Tests.Helpers;
 using static WitchCityRope.Web.Features.Events.Components.EventCard;
@@ -125,7 +126,7 @@ namespace WitchCityRope.Web.Tests.Features.Events
             // Assert
             var description = component.Find(".event-card-description").TextContent;
             description.Should().EndWith("...");
-            description.Length.Should().BeLessOrEqualTo(123); // 120 chars + "..."
+            description.Length.Should().BeLessThanOrEqualTo(123); // 120 chars + "..."
         }
 
         [Fact]

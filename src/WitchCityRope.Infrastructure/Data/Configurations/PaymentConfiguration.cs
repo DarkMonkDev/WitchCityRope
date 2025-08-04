@@ -15,8 +15,12 @@ namespace WitchCityRope.Infrastructure.Data.Configurations
             builder.Property(p => p.Id)
                 .ValueGeneratedNever();
 
+            // Support both TicketId and RegistrationId during migration
+            builder.Property(p => p.TicketId)
+                .IsRequired(false);
+                
             builder.Property(p => p.RegistrationId)
-                .IsRequired();
+                .IsRequired(false);
 
             // Configure Money value object for Amount
             builder.OwnsOne(p => p.Amount, money =>
@@ -71,6 +75,12 @@ namespace WitchCityRope.Infrastructure.Data.Configurations
                 .HasMaxLength(500);
 
             // Configure relationships
+            builder.HasOne(p => p.Ticket)
+                .WithOne(t => t.Payment)
+                .HasForeignKey<Payment>(p => p.TicketId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            // Legacy Registration relationship (will be removed after migration)
             builder.HasOne(p => p.Registration)
                 .WithOne(r => r.Payment)
                 .HasForeignKey<Payment>(p => p.RegistrationId)

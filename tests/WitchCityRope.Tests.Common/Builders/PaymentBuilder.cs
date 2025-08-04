@@ -6,7 +6,7 @@ namespace WitchCityRope.Tests.Common.Builders
 {
     public class PaymentBuilder : TestDataBuilder<Payment, PaymentBuilder>
     {
-        private Registration _registration;
+        private Ticket _ticket;
         private Money _amount;
         private string _paymentMethod;
         private string _transactionId;
@@ -15,16 +15,34 @@ namespace WitchCityRope.Tests.Common.Builders
         public PaymentBuilder()
         {
             // Set default valid values
-            _registration = new RegistrationBuilder().Build();
-            _amount = _registration.SelectedPrice;
+            _ticket = new TicketBuilder().Build();
+            _amount = _ticket.SelectedPrice;
             _paymentMethod = "Stripe";
             _transactionId = $"txn_{_faker.Random.AlphaNumeric(16)}";
         }
 
+        public PaymentBuilder WithTicket(Ticket ticket)
+        {
+            _ticket = ticket;
+            _amount = ticket.SelectedPrice; // Default to ticket's selected price
+            return This;
+        }
+
+        [Obsolete("Use WithTicket instead. Registration is being phased out.")]
         public PaymentBuilder WithRegistration(Registration registration)
         {
-            _registration = registration;
-            _amount = registration.SelectedPrice; // Default to registration's selected price
+            // Convert Registration to Ticket for internal use
+            // This is a temporary workaround during migration
+            var ticket = new TicketBuilder()
+                .WithUser(registration.UserId)
+                .WithEvent(registration.Event)
+                .WithSelectedPrice(registration.SelectedPrice)
+                .WithDietaryRestrictions(registration.DietaryRestrictions)
+                .WithAccessibilityNeeds(registration.AccessibilityNeeds)
+                .Build();
+            
+            _ticket = ticket;
+            _amount = registration.SelectedPrice;
             return This;
         }
 
@@ -79,7 +97,7 @@ namespace WitchCityRope.Tests.Common.Builders
         public override Payment Build()
         {
             var payment = new Payment(
-                _registration,
+                _ticket,
                 _amount,
                 _paymentMethod,
                 _transactionId

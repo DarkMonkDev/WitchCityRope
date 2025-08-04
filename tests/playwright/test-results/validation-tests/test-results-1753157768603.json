@@ -1,0 +1,122 @@
+{
+  "startTime": "2025-07-22T04:15:37.238Z",
+  "forms": {
+    "Change Password Form": {
+      "name": "Change Password Form",
+      "startTime": "2025-07-22T04:15:37.555Z",
+      "tests": [],
+      "status": "failed",
+      "error": "locator.isVisible: Error: strict mode violation: locator('form') resolved to 2 elements:\n    1) <form method=\"post\">…</form> aka getByText('Email Address Password Keep')\n    2) <form class=\"newsletter-form\" __internal_preventdefault_onsubmit=\"\" action=\"/auth/login?ReturnUrl=%2Fchange-password\">…</form> aka locator('form').filter({ hasText: 'Subscribe' })\n\nCall log:\n\u001b[2m    - checking visibility of locator('form')\u001b[22m\n",
+      "screenshots": [
+        "test-results/validation-tests/Change-Password-Form-error-1753157741790.png"
+      ],
+      "endTime": "2025-07-22T04:15:41.937Z"
+    },
+    "Manage Email Form": {
+      "name": "Manage Email Form",
+      "startTime": "2025-07-22T04:15:41.976Z",
+      "tests": [],
+      "status": "failed",
+      "error": "locator.isVisible: Error: strict mode violation: locator('form') resolved to 2 elements:\n    1) <form method=\"post\">…</form> aka getByText('Email Address Password Keep')\n    2) <form class=\"newsletter-form\" __internal_preventdefault_onsubmit=\"\" action=\"/auth/login?ReturnUrl=%2Fmanage-email\">…</form> aka locator('form').filter({ hasText: 'Subscribe' })\n\nCall log:\n\u001b[2m    - checking visibility of locator('form')\u001b[22m\n",
+      "screenshots": [
+        "test-results/validation-tests/Manage-Email-Form-error-1753157746133.png"
+      ],
+      "endTime": "2025-07-22T04:15:46.301Z"
+    },
+    "Manage Profile Form": {
+      "name": "Manage Profile Form",
+      "startTime": "2025-07-22T04:15:46.331Z",
+      "tests": [],
+      "status": "failed",
+      "error": "locator.isVisible: Error: strict mode violation: locator('form') resolved to 2 elements:\n    1) <form method=\"post\">…</form> aka getByText('Email Address Password Keep')\n    2) <form class=\"newsletter-form\" __internal_preventdefault_onsubmit=\"\" action=\"/auth/login?ReturnUrl=%2Fmanage-profile\">…</form> aka locator('form').filter({ hasText: 'Subscribe' })\n\nCall log:\n\u001b[2m    - checking visibility of locator('form')\u001b[22m\n",
+      "screenshots": [
+        "test-results/validation-tests/Manage-Profile-Form-error-1753157750447.png"
+      ],
+      "endTime": "2025-07-22T04:15:50.601Z"
+    },
+    "Delete Personal Data Form": {
+      "name": "Delete Personal Data Form",
+      "startTime": "2025-07-22T04:15:50.629Z",
+      "tests": [],
+      "status": "failed",
+      "error": "locator.isVisible: Error: strict mode violation: locator('form') resolved to 2 elements:\n    1) <form method=\"post\">…</form> aka getByText('Email Address Password Keep')\n    2) <form class=\"newsletter-form\" __internal_preventdefault_onsubmit=\"\" action=\"/auth/login?ReturnUrl=%2Fdelete-personal-data\">…</form> aka locator('form').filter({ hasText: 'Subscribe' })\n\nCall log:\n\u001b[2m    - checking visibility of locator('form')\u001b[22m\n",
+      "screenshots": [
+        "test-results/validation-tests/Delete-Personal-Data-Form-error-1753157754760.png"
+      ],
+      "endTime": "2025-07-22T04:15:54.913Z"
+    },
+    "Login with 2FA Form": {
+      "name": "Login with 2FA Form",
+      "startTime": "2025-07-22T04:15:54.938Z",
+      "tests": [
+        {
+          "name": "2FA form accessibility",
+          "passed": false,
+          "skipped": true
+        }
+      ],
+      "status": "passed",
+      "screenshots": [],
+      "endTime": "2025-07-22T04:15:57.715Z"
+    },
+    "Event Registration (RSVP) Form": {
+      "name": "Event Registration (RSVP) Form",
+      "startTime": "2025-07-22T04:15:57.741Z",
+      "tests": [
+        {
+          "name": "Event registration modal",
+          "passed": false,
+          "skipped": true
+        }
+      ],
+      "status": "passed",
+      "screenshots": [],
+      "endTime": "2025-07-22T04:15:58.563Z"
+    },
+    "Vetting Application Form": {
+      "name": "Vetting Application Form",
+      "startTime": "2025-07-22T04:15:58.588Z",
+      "tests": [
+        {
+          "name": "Vetting form accessibility",
+          "passed": false,
+          "skipped": true
+        }
+      ],
+      "status": "passed",
+      "screenshots": [],
+      "endTime": "2025-07-22T04:15:59.111Z"
+    },
+    "Incident Reporting Form": {
+      "name": "Incident Reporting Form",
+      "startTime": "2025-07-22T04:15:59.136Z",
+      "tests": [],
+      "status": "failed",
+      "error": "Incident modal not opened",
+      "screenshots": [
+        "test-results/validation-tests/Incident-Reporting-Form-error-1753157764293.png"
+      ],
+      "endTime": "2025-07-22T04:16:04.457Z"
+    },
+    "Event Edit Form": {
+      "name": "Event Edit Form",
+      "startTime": "2025-07-22T04:16:04.483Z",
+      "tests": [
+        {
+          "name": "Event edit form accessibility",
+          "passed": false,
+          "skipped": true
+        }
+      ],
+      "status": "passed",
+      "screenshots": [],
+      "endTime": "2025-07-22T04:16:08.599Z"
+    }
+  },
+  "summary": {
+    "total": 9,
+    "passed": 4,
+    "failed": 5,
+    "skipped": 4
+  }
+}

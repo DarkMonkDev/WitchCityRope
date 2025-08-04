@@ -8,25 +8,27 @@ using Xunit;
 using WitchCityRope.Api.Services;
 using WitchCityRope.Core;
 using WitchCityRope.Core.Entities;
-using WitchCityRope.Core.Enums;
+using CoreEnums = WitchCityRope.Core.Enums;
+using ApiEnums = WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Core.ValueObjects;
 using WitchCityRope.Infrastructure.Data;
 using WitchCityRope.Tests.Common.Builders;
+using WitchCityRope.Tests.Common.Identity;
 
 namespace WitchCityRope.Api.Tests.Services;
 
 public class UserServiceTests : IDisposable
 {
-    private readonly WitchCityRopeDbContext _dbContext;
+    private readonly WitchCityRopeIdentityDbContext _dbContext;
     private readonly Mock<IUserService> _userServiceMock;
 
     public UserServiceTests()
     {
-        var options = new DbContextOptionsBuilder<WitchCityRopeDbContext>()
+        var options = new DbContextOptionsBuilder<WitchCityRopeIdentityDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
-        _dbContext = new WitchCityRopeDbContext(options);
+        _dbContext = new WitchCityRopeIdentityDbContext(options);
         _userServiceMock = new Mock<IUserService>();
     }
 
@@ -36,7 +38,7 @@ public class UserServiceTests : IDisposable
     public async Task CreateUser_ValidData_ShouldSucceed()
     {
         // Arrange
-        var user = new UserBuilder()
+        var user = new IdentityUserBuilder()
             .WithSceneName("NewUser")
             .WithEmail("newuser@example.com")
             .Build();
@@ -50,7 +52,7 @@ public class UserServiceTests : IDisposable
         // Assert
         savedUser.Should().NotBeNull();
         savedUser!.SceneName.Value.Should().Be("NewUser");
-        savedUser.Email.Value.Should().Be("newuser@example.com");
+        savedUser.Email.Should().Be("newuser@example.com");
         savedUser.IsActive.Should().BeTrue();
     }
 
@@ -58,7 +60,7 @@ public class UserServiceTests : IDisposable
     public async Task GetUserById_ExistingUser_ShouldReturnUser()
     {
         // Arrange
-        var user = new UserBuilder().Build();
+        var user = new IdentityUserBuilder().Build();
         await _dbContext.Users.AddAsync(user);
         await _dbContext.SaveChangesAsync();
 
@@ -75,17 +77,17 @@ public class UserServiceTests : IDisposable
     {
         // Arrange
         var email = "test@example.com";
-        var user = new UserBuilder().WithEmail(email).Build();
+        var user = new IdentityUserBuilder().WithEmail(email).Build();
         await _dbContext.Users.AddAsync(user);
         await _dbContext.SaveChangesAsync();
 
         // Act
         var result = await _dbContext.Users
-            .FirstOrDefaultAsync(u => u.Email.Value == email);
+            .FirstOrDefaultAsync(u => u.Email == email);
 
         // Assert
         result.Should().NotBeNull();
-        result!.Email.Value.Should().Be(email);
+        result!.Email.Should().Be(email);
     }
 
     #endregion
@@ -96,7 +98,7 @@ public class UserServiceTests : IDisposable
     public async Task UpdateSceneName_ValidName_ShouldSucceed()
     {
         // Arrange
-        var user = new UserBuilder().WithSceneName("OldName").Build();
+        var user = new IdentityUserBuilder().WithSceneName("OldName").Build();
         await _dbContext.Users.AddAsync(user);
         await _dbContext.SaveChangesAsync();
 
@@ -116,7 +118,7 @@ public class UserServiceTests : IDisposable
     public void UpdateSceneName_NullName_ShouldThrowException()
     {
         // Arrange
-        var user = new UserBuilder().Build();
+        var user = new IdentityUserBuilder().Build();
 
         // Act
         var action = () => user.UpdateSceneName(null!);
@@ -130,7 +132,7 @@ public class UserServiceTests : IDisposable
     public async Task UpdateEmail_ValidEmail_ShouldSucceed()
     {
         // Arrange
-        var user = new UserBuilder().WithEmail("old@example.com").Build();
+        var user = new IdentityUserBuilder().WithEmail("old@example.com").Build();
         await _dbContext.Users.AddAsync(user);
         await _dbContext.SaveChangesAsync();
 
@@ -142,7 +144,7 @@ public class UserServiceTests : IDisposable
 
         // Assert
         var updatedUser = await _dbContext.Users.FindAsync(user.Id);
-        updatedUser!.Email.Value.Should().Be("new@example.com");
+        updatedUser!.Email.Should().Be("new@example.com");
     }
 
     #endregion
@@ -153,7 +155,7 @@ public class UserServiceTests : IDisposable
     public async Task DeactivateUser_ActiveUser_ShouldSucceed()
     {
         // Arrange
-        var user = new UserBuilder().Build();
+        var user = new IdentityUserBuilder().Build();
         await _dbContext.Users.AddAsync(user);
         await _dbContext.SaveChangesAsync();
 
@@ -170,7 +172,7 @@ public class UserServiceTests : IDisposable
     public async Task ReactivateUser_InactiveUser_ShouldSucceed()
     {
         // Arrange
-        var user = new UserBuilder().Build();
+        var user = new IdentityUserBuilder().Build();
         user.Deactivate();
         await _dbContext.Users.AddAsync(user);
         await _dbContext.SaveChangesAsync();
@@ -192,36 +194,36 @@ public class UserServiceTests : IDisposable
     public void PromoteUser_ValidPromotion_ShouldSucceed()
     {
         // Arrange
-        var user = new UserBuilder().WithRole(UserRole.Attendee).Build();
+        var user = new IdentityUserBuilder().WithRole(CoreEnums.UserRole.Attendee).Build();
 
         // Act
-        user.PromoteToRole(UserRole.Member);
+        user.PromoteToRole(CoreEnums.UserRole.Member);
 
         // Assert
-        user.Role.Should().Be(UserRole.Member);
+        user.Role.Should().Be(CoreEnums.UserRole.Member);
     }
 
     [Fact]
     public void PromoteUser_ToOrganizer_ShouldSucceed()
     {
         // Arrange
-        var user = new UserBuilder().WithRole(UserRole.Member).Build();
+        var user = new IdentityUserBuilder().WithRole(CoreEnums.UserRole.Member).Build();
 
         // Act
-        user.PromoteToRole(UserRole.Organizer);
+        user.PromoteToRole(CoreEnums.UserRole.Organizer);
 
         // Assert
-        user.Role.Should().Be(UserRole.Organizer);
+        user.Role.Should().Be(CoreEnums.UserRole.Organizer);
     }
 
     [Fact]
     public void PromoteUser_InvalidDemotion_ShouldThrowException()
     {
         // Arrange
-        var user = new UserBuilder().WithRole(UserRole.Organizer).Build();
+        var user = new IdentityUserBuilder().WithRole(CoreEnums.UserRole.Organizer).Build();
 
         // Act
-        var action = () => user.PromoteToRole(UserRole.Member);
+        var action = () => user.PromoteToRole(CoreEnums.UserRole.Member);
 
         // Assert
         action.Should().Throw<DomainException>()
@@ -232,10 +234,10 @@ public class UserServiceTests : IDisposable
     public void PromoteUser_SameRole_ShouldThrowException()
     {
         // Arrange
-        var user = new UserBuilder().WithRole(UserRole.Member).Build();
+        var user = new IdentityUserBuilder().WithRole(CoreEnums.UserRole.Member).Build();
 
         // Act
-        var action = () => user.PromoteToRole(UserRole.Member);
+        var action = () => user.PromoteToRole(CoreEnums.UserRole.Member);
 
         // Assert
         action.Should().Throw<DomainException>()
@@ -250,17 +252,17 @@ public class UserServiceTests : IDisposable
     public async Task QueryUsers_ByRole_ShouldReturnCorrectUsers()
     {
         // Arrange
-        var organizer = new UserBuilder().WithRole(UserRole.Organizer).Build();
-        var member1 = new UserBuilder().WithRole(UserRole.Member).Build();
-        var member2 = new UserBuilder().WithRole(UserRole.Member).Build();
-        var attendee = new UserBuilder().WithRole(UserRole.Attendee).Build();
+        var organizer = new IdentityUserBuilder().WithRole(CoreEnums.UserRole.Organizer).Build();
+        var member1 = new IdentityUserBuilder().WithRole(CoreEnums.UserRole.Member).Build();
+        var member2 = new IdentityUserBuilder().WithRole(CoreEnums.UserRole.Member).Build();
+        var attendee = new IdentityUserBuilder().WithRole(CoreEnums.UserRole.Attendee).Build();
 
         await _dbContext.Users.AddRangeAsync(organizer, member1, member2, attendee);
         await _dbContext.SaveChangesAsync();
 
         // Act
         var members = await _dbContext.Users
-            .Where(u => u.Role == UserRole.Member)
+            .Where(u => u.Role == CoreEnums.UserRole.Member)
             .ToListAsync();
 
         // Assert
@@ -273,8 +275,8 @@ public class UserServiceTests : IDisposable
     public async Task QueryUsers_ActiveOnly_ShouldReturnOnlyActiveUsers()
     {
         // Arrange
-        var activeUser = new UserBuilder().Build();
-        var inactiveUser = new UserBuilder().Build();
+        var activeUser = new IdentityUserBuilder().Build();
+        var inactiveUser = new IdentityUserBuilder().Build();
         inactiveUser.Deactivate();
 
         await _dbContext.Users.AddRangeAsync(activeUser, inactiveUser);

@@ -1,0 +1,34 @@
+@page "/logout"
+@page "/identity/account/logout"
+@using Microsoft.AspNetCore.Identity
+@using WitchCityRope.Infrastructure.Identity
+@inject SignInManager<WitchCityRopeUser> SignInManager
+@inject NavigationManager Navigation
+@inject ILogger<Logout> Logger
+@inject IAuthService AuthService
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await SignInManager.SignOutAsync();
+            Logger.LogInformation("User logged out.");
+            
+            // Notify authentication state changed for Blazor components
+            if (AuthService is SimplifiedIdentityAuthService authService)
+            {
+                authService.NotifyAuthenticationStateChanged(false);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error during logout");
+        }
+        finally
+        {
+            // Always redirect to home page after logout attempt
+            Navigation.NavigateTo("/", true);
+        }
+    }
+}

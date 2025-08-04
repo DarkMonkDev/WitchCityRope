@@ -1,0 +1,188 @@
+@using Microsoft.AspNetCore.Components
+@using WitchCityRope.Web.Shared.Validation.Components
+
+<div class="row g-3 align-items-end">
+    <div class="col-md-3">
+        <WcrInputSelect @bind-Value="VettingStatus" 
+                        Label="Vetting Status"
+                        ShowValidationIcon="false"
+                        ShowInlineError="false"
+                        OnValueChanged="@(async (string value) => await OnVettingStatusChangedInternal())">
+            <option value="all">All Members</option>
+            <option value="vetted">Vetted Members</option>
+            <option value="unvetted">Unvetted Members</option>
+        </WcrInputSelect>
+    </div>
+    
+    <div class="col-md-5">
+        <div class="position-relative">
+            <WcrInputText @bind-Value="SearchTerm" 
+                          Label="Search Members"
+                          Placeholder="Search by scene name, real name, or FetLife name..."
+                          ShowValidationIcon="false"
+                          ShowInlineError="false"
+                          OnValueChanged="@(async (string value) => await OnSearchTermChangedInternal())"
+                          CssClass="pe-5" />
+            <span class="position-absolute top-50 start-0 translate-middle-y ms-3 mt-3">
+                <i class="bi bi-search"></i>
+            </span>
+            @if (!string.IsNullOrEmpty(SearchTerm))
+            {
+                <button class="btn btn-sm btn-link position-absolute top-50 end-0 translate-middle-y me-2 mt-3" 
+                        type="button" 
+                        @onclick="ClearSearch">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            }
+        </div>
+    </div>
+    
+    <div class="col-md-2">
+        <WcrInputSelect @bind-Value="PageSizeString" 
+                        Label="Items Per Page"
+                        ShowValidationIcon="false"
+                        ShowInlineError="false"
+                        OnValueChanged="@(async (string value) => await OnPageSizeStringChanged(value))">
+            <option value="10">10</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="500">500</option>
+        </WcrInputSelect>
+    </div>
+    
+    <div class="col-md-2">
+        <button class="btn btn-outline-secondary w-100 mt-4" @onclick="ResetFilters">
+            <i class="bi bi-arrow-clockwise me-1"></i> Reset
+        </button>
+    </div>
+</div>
+
+@code {
+    private string _vettingStatus = "vetted";
+    private string _searchTerm = "";
+    private int _pageSize = 100;
+    private string _pageSizeString = "100";
+    
+    [Parameter] 
+    public string VettingStatus 
+    { 
+        get => _vettingStatus;
+        set
+        {
+            if (_vettingStatus != value)
+            {
+                _vettingStatus = value;
+                _ = OnVettingStatusChangedInternal();
+            }
+        }
+    }
+    [Parameter] public EventCallback<string> VettingStatusChanged { get; set; }
+    
+    [Parameter] 
+    public string SearchTerm 
+    { 
+        get => _searchTerm;
+        set
+        {
+            if (_searchTerm != value)
+            {
+                _searchTerm = value;
+                _ = OnSearchTermChangedInternal();
+            }
+        }
+    }
+    [Parameter] public EventCallback<string> SearchTermChanged { get; set; }
+    
+    [Parameter] 
+    public int PageSize 
+    { 
+        get => _pageSize;
+        set
+        {
+            if (_pageSize != value)
+            {
+                _pageSize = value;
+                _pageSizeString = value.ToString();
+                _ = OnPageSizeChangedInternal();
+            }
+        }
+    }
+    [Parameter] public EventCallback<int> PageSizeChanged { get; set; }
+    
+    [Parameter] public EventCallback OnFilterChanged { get; set; }
+    
+    private string PageSizeString
+    {
+        get => _pageSizeString;
+        set
+        {
+            if (_pageSizeString != value)
+            {
+                _pageSizeString = value;
+                if (int.TryParse(value, out var pageSize))
+                {
+                    _pageSize = pageSize;
+                }
+            }
+        }
+    }
+    
+    private async Task OnVettingStatusChangedInternal()
+    {
+        await VettingStatusChanged.InvokeAsync(VettingStatus);
+        await OnFilterChanged.InvokeAsync();
+    }
+    
+    private async Task OnVettingStatusChanged(ChangeEventArgs e)
+    {
+        await OnVettingStatusChangedInternal();
+    }
+    
+    private async Task OnSearchTermChangedInternal()
+    {
+        await SearchTermChanged.InvokeAsync(SearchTerm);
+        await OnFilterChanged.InvokeAsync();
+    }
+    
+    private async Task OnSearchTermChanged(ChangeEventArgs e)
+    {
+        SearchTerm = e.Value?.ToString() ?? "";
+    }
+    
+    private async Task OnPageSizeChangedInternal()
+    {
+        await PageSizeChanged.InvokeAsync(PageSize);
+        await OnFilterChanged.InvokeAsync();
+    }
+    
+    private async Task OnPageSizeChanged(ChangeEventArgs e)
+    {
+        await OnPageSizeChangedInternal();
+    }
+    
+    private async Task OnPageSizeStringChanged(string value)
+    {
+        PageSizeString = value;
+        await OnPageSizeChangedInternal();
+    }
+    
+    private async Task ClearSearch()
+    {
+        SearchTerm = "";
+        await SearchTermChanged.InvokeAsync(SearchTerm);
+        await OnFilterChanged.InvokeAsync();
+    }
+    
+    private async Task ResetFilters()
+    {
+        VettingStatus = "vetted";
+        SearchTerm = "";
+        PageSize = 100;
+        PageSizeString = "100";
+        
+        await VettingStatusChanged.InvokeAsync(VettingStatus);
+        await SearchTermChanged.InvokeAsync(SearchTerm);
+        await PageSizeChanged.InvokeAsync(PageSize);
+        await OnFilterChanged.InvokeAsync();
+    }
+}

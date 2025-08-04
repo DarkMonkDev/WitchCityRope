@@ -13,6 +13,6 @@ namespace WitchCityRope.Core.Entities
         public DateTime? LockedOutUntil { get; set; }
         
         // Navigation property
-        public User User { get; set; } = null!;
+        public IUser User { get; set; } = null!;
     }
 }

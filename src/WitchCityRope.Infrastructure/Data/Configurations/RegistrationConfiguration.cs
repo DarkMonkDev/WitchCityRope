@@ -77,20 +77,21 @@ namespace WitchCityRope.Infrastructure.Data.Configurations
                 .HasMaxLength(50);
 
             // Configure relationships
-            builder.HasOne(r => r.User)
-                .WithMany(u => u.Registrations)
-                .HasForeignKey(r => r.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+            // Ignore the User navigation property as it references Core.User, not WitchCityRopeUser
+            builder.Ignore(r => r.User);
+            
+            // The relationship to WitchCityRopeUser is configured via the UserId foreign key
 
             builder.HasOne(r => r.Event)
                 .WithMany(e => e.Registrations)
                 .HasForeignKey(r => r.EventId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(r => r.Payment)
-                .WithOne(p => p.Registration)
-                .HasForeignKey<Payment>(p => p.RegistrationId)
-                .OnDelete(DeleteBehavior.Restrict);
+            // Payment relationship has been moved to Ticket entity
+            // builder.HasOne(r => r.Payment)
+            //     .WithOne(p => p.Registration)
+            //     .HasForeignKey<Payment>(p => p.RegistrationId)
+            //     .OnDelete(DeleteBehavior.Restrict);
 
             // Indexes
             builder.HasIndex(r => r.UserId);

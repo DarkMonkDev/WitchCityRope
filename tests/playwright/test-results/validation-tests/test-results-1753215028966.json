@@ -1,0 +1,122 @@
+{
+  "startTime": "2025-07-22T20:09:57.020Z",
+  "forms": {
+    "Change Password Form": {
+      "name": "Change Password Form",
+      "startTime": "2025-07-22T20:09:57.230Z",
+      "tests": [],
+      "status": "failed",
+      "error": "Not authenticated - cannot access change password form",
+      "screenshots": [
+        "test-results/validation-tests/Change-Password-Form-error-1753215001178.png"
+      ],
+      "endTime": "2025-07-22T20:10:01.314Z"
+    },
+    "Manage Email Form": {
+      "name": "Manage Email Form",
+      "startTime": "2025-07-22T20:10:01.342Z",
+      "tests": [],
+      "status": "failed",
+      "error": "Not authenticated - cannot access manage email form",
+      "screenshots": [
+        "test-results/validation-tests/Manage-Email-Form-error-1753215005270.png"
+      ],
+      "endTime": "2025-07-22T20:10:05.386Z"
+    },
+    "Manage Profile Form": {
+      "name": "Manage Profile Form",
+      "startTime": "2025-07-22T20:10:05.415Z",
+      "tests": [],
+      "status": "failed",
+      "error": "locator.isVisible: Error: strict mode violation: locator('form') resolved to 2 elements:\n    1) <form method=\"post\">…</form> aka locator('form').filter({ hasText: 'BASIC INFORMATION SCENE NAME' })\n    2) <form action=\"/Identity/Account/Manage\" __internal_preventdefault_onsubmit=\"\">…</form> aka locator('form').filter({ hasText: 'Subscribe' })\n\nCall log:\n\u001b[2m    - checking visibility of locator('form')\u001b[22m\n",
+      "screenshots": [
+        "test-results/validation-tests/Manage-Profile-Form-error-1753215009391.png"
+      ],
+      "endTime": "2025-07-22T20:10:09.536Z"
+    },
+    "Delete Personal Data Form": {
+      "name": "Delete Personal Data Form",
+      "startTime": "2025-07-22T20:10:09.563Z",
+      "tests": [],
+      "status": "failed",
+      "error": "locator.isVisible: Error: strict mode violation: locator('form') resolved to 2 elements:\n    1) <form method=\"post\">…</form> aka getByText('I understand that deleting my account is permanent and cannot be undone* CANCEL')\n    2) <form action=\"/delete-personal-data\" __internal_preventdefault_onsubmit=\"\">…</form> aka locator('form').filter({ hasText: 'Subscribe' })\n\nCall log:\n\u001b[2m    - checking visibility of locator('form')\u001b[22m\n",
+      "screenshots": [
+        "test-results/validation-tests/Delete-Personal-Data-Form-error-1753215013500.png"
+      ],
+      "endTime": "2025-07-22T20:10:13.618Z"
+    },
+    "Login with 2FA Form": {
+      "name": "Login with 2FA Form",
+      "startTime": "2025-07-22T20:10:13.645Z",
+      "tests": [
+        {
+          "name": "2FA form accessibility",
+          "passed": false,
+          "skipped": true
+        }
+      ],
+      "status": "passed",
+      "screenshots": [],
+      "endTime": "2025-07-22T20:10:16.444Z"
+    },
+    "Event Registration (RSVP) Form": {
+      "name": "Event Registration (RSVP) Form",
+      "startTime": "2025-07-22T20:10:16.469Z",
+      "tests": [],
+      "status": "failed",
+      "error": "Registration modal not opened",
+      "screenshots": [
+        "test-results/validation-tests/Event-Registration-(RSVP)-Form-error-1753215020379.png"
+      ],
+      "endTime": "2025-07-22T20:10:20.543Z"
+    },
+    "Vetting Application Form": {
+      "name": "Vetting Application Form",
+      "startTime": "2025-07-22T20:10:20.568Z",
+      "tests": [
+        {
+          "name": "Vetting form accessibility",
+          "passed": false,
+          "skipped": true
+        }
+      ],
+      "status": "passed",
+      "screenshots": [],
+      "endTime": "2025-07-22T20:10:21.089Z"
+    },
+    "Incident Reporting Form": {
+      "name": "Incident Reporting Form",
+      "startTime": "2025-07-22T20:10:21.112Z",
+      "tests": [
+        {
+          "name": "Incident form accessibility",
+          "passed": false,
+          "skipped": true
+        }
+      ],
+      "status": "passed",
+      "screenshots": [],
+      "endTime": "2025-07-22T20:10:25.015Z"
+    },
+    "Event Edit Form": {
+      "name": "Event Edit Form",
+      "startTime": "2025-07-22T20:10:25.040Z",
+      "tests": [
+        {
+          "name": "Event edit form accessibility",
+          "passed": false,
+          "skipped": true
+        }
+      ],
+      "status": "passed",
+      "screenshots": [],
+      "endTime": "2025-07-22T20:10:28.962Z"
+    }
+  },
+  "summary": {
+    "total": 9,
+    "passed": 4,
+    "failed": 5,
+    "skipped": 4
+  }
+}

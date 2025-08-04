@@ -1,0 +1,222 @@
+@typeparam TValue
+@inherits InputBase<TValue>
+@implements IAsyncDisposable
+
+<div class="wcr-form-group @(HasError ? "has-error" : "")">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label class="wcr-label">
+            @Label
+            @if (IsRequired)
+            {
+                <span class="wcr-required">*</span>
+            }
+        </label>
+    }
+    
+    <div class="wcr-radio-group @Orientation">
+        @foreach (var option in Options)
+        {
+            var optionValue = GetOptionValue(option);
+            var isChecked = CurrentValue?.Equals(optionValue) ?? false;
+            var id = $"{FieldIdentifier.FieldName}_{optionValue}";
+            
+            <label class="wcr-radio-option" for="@id">
+                <input type="radio" 
+                       id="@id"
+                       name="@FieldIdentifier.FieldName"
+                       value="@optionValue"
+                       checked="@isChecked"
+                       @onchange="@(() => HandleChange(option))"
+                       @attributes="AdditionalAttributes"
+                       class="wcr-radio"
+                       disabled="@IsDisabled" />
+                <span class="wcr-radio-label">@GetOptionDisplay(option)</span>
+            </label>
+        }
+    </div>
+    
+    @if (HasError && !string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="wcr-field-validation">
+            <i class="bi bi-exclamation-circle"></i>
+            <span>@ErrorMessage</span>
+        </div>
+    }
+</div>
+
+<style>
+    .wcr-radio-group {
+        display: flex;
+        gap: var(--wcr-space-md);
+    }
+    
+    .wcr-radio-group.vertical {
+        flex-direction: column;
+        gap: var(--wcr-space-sm);
+    }
+    
+    .wcr-radio-group.horizontal {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .wcr-radio-option {
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+        cursor: pointer;
+        font-size: var(--wcr-font-size-base);
+        color: var(--wcr-color-charcoal);
+        transition: color 0.2s ease;
+    }
+    
+    .wcr-radio-option:hover:not(:has(input:disabled)) {
+        color: var(--wcr-color-burgundy);
+    }
+    
+    .wcr-radio {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        cursor: pointer;
+        accent-color: var(--wcr-color-burgundy);
+    }
+    
+    .wcr-radio:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    
+    .wcr-radio-label {
+        user-select: none;
+    }
+    
+    .wcr-radio-option:has(input:disabled) {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .wcr-radio-option:has(input:disabled):hover {
+        color: var(--wcr-color-charcoal);
+    }
+    
+    .wcr-form-group.has-error .wcr-radio-option {
+        color: var(--wcr-color-error);
+    }
+</style>
+
+@code {
+    [Parameter] public string Label { get; set; } = string.Empty;
+    [Parameter] public bool IsRequired { get; set; }
+    [Parameter] public bool IsDisabled { get; set; }
+    [Parameter] public IEnumerable<TValue> Options { get; set; } = Enumerable.Empty<TValue>();
+    [Parameter] public IEnumerable<KeyValuePair<TValue, string>>? OptionsWithDisplay { get; set; }
+    [Parameter] public string Orientation { get; set; } = "vertical"; // "vertical" or "horizontal"
+    
+    private bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+    private string? ErrorMessage;
+    private ValidationMessageStore? messageStore;
+
+    protected override void OnInitialized()
+    {
+        if (EditContext != null)
+        {
+            messageStore = new ValidationMessageStore(EditContext);
+            EditContext.OnValidationStateChanged += HandleValidationStateChanged;
+        }
+    }
+
+    private void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs e)
+    {
+        UpdateErrorState();
+    }
+
+    private void UpdateErrorState()
+    {
+        if (EditContext != null && FieldIdentifier.FieldName != null)
+        {
+            var messages = EditContext.GetValidationMessages(FieldIdentifier);
+            ErrorMessage = messages.FirstOrDefault();
+            StateHasChanged();
+        }
+    }
+
+    private void HandleChange(TValue value)
+    {
+        CurrentValue = value;
+        EditContext?.NotifyFieldChanged(FieldIdentifier);
+    }
+
+    private string GetOptionValue(TValue option)
+    {
+        return option?.ToString() ?? string.Empty;
+    }
+
+    private string GetOptionDisplay(TValue option)
+    {
+        if (OptionsWithDisplay != null)
+        {
+            var kvp = OptionsWithDisplay.FirstOrDefault(x => EqualityComparer<TValue>.Default.Equals(x.Key, option));
+            if (!kvp.Equals(default(KeyValuePair<TValue, string>)))
+            {
+                return kvp.Value;
+            }
+        }
+        
+        return option?.ToString() ?? string.Empty;
+    }
+
+    protected override bool TryParseValueFromString(string? value, out TValue result, out string? validationErrorMessage)
+    {
+        validationErrorMessage = null;
+        
+        if (typeof(TValue) == typeof(string))
+        {
+            result = (TValue)(object)value!;
+            return true;
+        }
+        else if (typeof(TValue) == typeof(int))
+        {
+            if (int.TryParse(value, out var intValue))
+            {
+                result = (TValue)(object)intValue;
+                return true;
+            }
+        }
+        else if (typeof(TValue) == typeof(bool))
+        {
+            if (bool.TryParse(value, out var boolValue))
+            {
+                result = (TValue)(object)boolValue;
+                return true;
+            }
+        }
+        else if (typeof(TValue).IsEnum)
+        {
+            try
+            {
+                result = (TValue)Enum.Parse(typeof(TValue), value!);
+                return true;
+            }
+            catch
+            {
+                result = default!;
+                validationErrorMessage = $"Unable to parse '{value}' as {typeof(TValue).Name}";
+                return false;
+            }
+        }
+
+        result = default!;
+        validationErrorMessage = $"Unable to parse '{value}' as {typeof(TValue).Name}";
+        return false;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (EditContext != null)
+        {
+            EditContext.OnValidationStateChanged -= HandleValidationStateChanged;
+        }
+    }
+}

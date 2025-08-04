@@ -86,13 +86,13 @@ public class EventRegistrationFlowTests : BaseE2ETest
         await eventDetailPage.WaitForRegistrationProcessingAsync();
 
         // Verify registration was successful
-        await eventDetailPage.IsRegistrationSuccessfulAsync().Should().BeTrueAsync();
+        (await eventDetailPage.IsRegistrationSuccessfulAsync()).Should().BeTrue();
         var successMessage = await eventDetailPage.GetRegistrationSuccessMessageAsync();
         successMessage.Should().Contain("successfully registered");
 
         // Verify user is now registered
         await Page.ReloadAsync();
-        await eventDetailPage.IsUserRegisteredAsync().Should().BeTrueAsync();
+        (await eventDetailPage.IsUserRegisteredAsync()).Should().BeTrue();
 
         // Navigate to dashboard
         await dashboardPage.NavigateAsync();
@@ -138,7 +138,7 @@ public class EventRegistrationFlowTests : BaseE2ETest
         {
             await eventDetailPage.ClickRegisterAsync();
             var errorMessage = await eventDetailPage.GetRegistrationErrorMessageAsync();
-            errorMessage.Should().Contain("vetted members", StringComparison.OrdinalIgnoreCase);
+            errorMessage.ToLower().Should().Contain("vetted members");
         }
     }
 
@@ -166,7 +166,7 @@ public class EventRegistrationFlowTests : BaseE2ETest
         await Page.GotoAsync($"{TestSettings.BaseUrl}/events/{fullEvent.Id}");
 
         // Assert
-        await eventDetailPage.IsEventFullAsync().Should().BeTrueAsync();
+        (await eventDetailPage.IsEventFullAsync()).Should().BeTrue();
         
         // Should show waitlist option or disabled register button
         var registerButton = await Page.QuerySelectorAsync("button:has-text('Register')");
@@ -201,7 +201,7 @@ public class EventRegistrationFlowTests : BaseE2ETest
         await Page.GotoAsync($"{TestSettings.BaseUrl}/events/{_testEvent.Id}");
 
         // Verify user is registered
-        await eventDetailPage.IsUserRegisteredAsync().Should().BeTrueAsync();
+        (await eventDetailPage.IsUserRegisteredAsync()).Should().BeTrue();
 
         // Cancel registration
         await eventDetailPage.ClickCancelRegistrationAsync();

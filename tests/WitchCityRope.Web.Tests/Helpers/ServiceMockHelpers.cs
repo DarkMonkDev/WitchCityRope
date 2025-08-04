@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Moq;
 using WitchCityRope.Web.Services;
-using WitchCityRope.Core.DTOs;
-using WitchCityRope.Core.Enums;
 
 namespace WitchCityRope.Web.Tests.Helpers
 {
@@ -16,21 +14,20 @@ namespace WitchCityRope.Web.Tests.Helpers
         /// <summary>
         /// Creates a mock event service with default data
         /// </summary>
-        public static Mock<IEventService> CreateMockEventService(List<EventDto> events = null)
+        public static Mock<IEventService> CreateMockEventService(List<EventListItem> events = null)
         {
             var mock = new Mock<IEventService>();
             
-            events ??= CreateDefaultEvents();
+            events ??= CreateDefaultEventListItems();
             
             mock.Setup(x => x.GetUpcomingEventsAsync())
                 .ReturnsAsync(events);
             
-            mock.Setup(x => x.GetEventByIdAsync(It.IsAny<Guid>()))
-                .ReturnsAsync((Guid id) => events.Find(e => e.Id == id));
+            mock.Setup(x => x.GetEventDetailAsync(It.IsAny<Guid>()))
+                .ReturnsAsync((EventDetail?)null);
             
-            mock.Setup(x => x.GetEventsByDateRangeAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>()))
-                .ReturnsAsync((DateTime start, DateTime end) => 
-                    events.FindAll(e => e.StartDateTime >= start && e.StartDateTime <= end));
+            mock.Setup(x => x.RegisterForEventAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(true);
             
             return mock;
         }
@@ -42,14 +39,11 @@ namespace WitchCityRope.Web.Tests.Helpers
         {
             var mock = new Mock<IRegistrationService>();
             
-            mock.Setup(x => x.RegisterForEventAsync(It.IsAny<Guid>()))
-                .ReturnsAsync(new RegistrationResult { Success = true });
+            mock.Setup(x => x.GetMyRegistrationsAsync())
+                .ReturnsAsync(new List<UserRegistration>());
             
             mock.Setup(x => x.CancelRegistrationAsync(It.IsAny<Guid>()))
-                .ReturnsAsync(new RegistrationResult { Success = true });
-            
-            mock.Setup(x => x.GetUserRegistrationsAsync())
-                .ReturnsAsync(new List<RegistrationDto>());
+                .ReturnsAsync(true);
             
             return mock;
         }
@@ -59,74 +53,52 @@ namespace WitchCityRope.Web.Tests.Helpers
         /// </summary>
         public static Mock<INotificationService> CreateMockNotificationService()
         {
-            var mock = new Mock<INotificationService>();
-            
-            mock.Setup(x => x.ShowSuccessAsync(It.IsAny<string>()))
-                .Returns(Task.CompletedTask);
-            
-            mock.Setup(x => x.ShowErrorAsync(It.IsAny<string>()))
-                .Returns(Task.CompletedTask);
-            
-            mock.Setup(x => x.ShowWarningAsync(It.IsAny<string>()))
-                .Returns(Task.CompletedTask);
-            
-            mock.Setup(x => x.ShowInfoAsync(It.IsAny<string>()))
-                .Returns(Task.CompletedTask);
-            
+            var mock = ServiceMockHelper.CreateNotificationServiceMock();
+            return mock;
+        }
+        
+        /// <summary>
+        /// Creates a mock toast service
+        /// </summary>
+        public static Mock<IToastService> CreateMockToastService()
+        {
+            var mock = ServiceMockHelper.CreateToastServiceMock();
             return mock;
         }
 
         /// <summary>
         /// Creates default event data for testing
         /// </summary>
-        private static List<EventDto> CreateDefaultEvents()
+        private static List<EventListItem> CreateDefaultEventListItems()
         {
-            return new List<EventDto>
+            return new List<EventListItem>
             {
-                new EventDto
+                new EventListItem
                 {
                     Id = Guid.NewGuid(),
                     Title = "Rope Basics Workshop",
-                    Description = "Learn fundamental rope techniques",
                     StartDateTime = DateTime.UtcNow.AddDays(3),
-                    EndDateTime = DateTime.UtcNow.AddDays(3).AddHours(2),
                     Location = "Studio A",
-                    MaxAttendees = 15,
-                    CurrentAttendees = 8,
-                    Price = 50,
-                    IsPublic = true,
-                    Type = EventType.Workshop,
-                    Status = EventStatus.Published
+                    AvailableSpots = 7,
+                    Price = 50
                 },
-                new EventDto
+                new EventListItem
                 {
                     Id = Guid.NewGuid(),
                     Title = "Advanced Suspension",
-                    Description = "For experienced practitioners only",
                     StartDateTime = DateTime.UtcNow.AddDays(7),
-                    EndDateTime = DateTime.UtcNow.AddDays(7).AddHours(3),
                     Location = "Main Hall",
-                    MaxAttendees = 10,
-                    CurrentAttendees = 10,
-                    Price = 75,
-                    IsPublic = true,
-                    Type = EventType.Class,
-                    Status = EventStatus.Published
+                    AvailableSpots = 0,
+                    Price = 75
                 },
-                new EventDto
+                new EventListItem
                 {
                     Id = Guid.NewGuid(),
                     Title = "Monthly Social",
-                    Description = "Community gathering and practice time",
                     StartDateTime = DateTime.UtcNow.AddDays(14),
-                    EndDateTime = DateTime.UtcNow.AddDays(14).AddHours(4),
                     Location = "Community Center",
-                    MaxAttendees = 50,
-                    CurrentAttendees = 22,
-                    Price = 0,
-                    IsPublic = true,
-                    Type = EventType.Social,
-                    Status = EventStatus.Published
+                    AvailableSpots = 28,
+                    Price = 0
                 }
             };
         }
@@ -140,14 +112,24 @@ namespace WitchCityRope.Web.Tests.Helpers
             var storage = new Dictionary<string, object>();
 
             mock.Setup(x => x.GetItemAsync<It.IsAnyType>(It.IsAny<string>()))
-                .Returns<string>((key) => 
+                .Returns(new InvocationFunc(invocation =>
                 {
+                    var key = (string)invocation.Arguments[0];
                     if (storage.TryGetValue(key, out var value))
                     {
-                        return Task.FromResult(value);
+                        var genericType = invocation.Method.GetGenericArguments()[0];
+                        var taskType = typeof(Task<>).MakeGenericType(genericType);
+                        var fromResultMethod = typeof(Task).GetMethod(nameof(Task.FromResult)).MakeGenericMethod(genericType);
+                        return fromResultMethod.Invoke(null, new[] { value });
                     }
-                    return Task.FromResult<object>(null);
-                });
+                    else
+                    {
+                        var genericType = invocation.Method.GetGenericArguments()[0];
+                        var taskType = typeof(Task<>).MakeGenericType(genericType);
+                        var fromResultMethod = typeof(Task).GetMethod(nameof(Task.FromResult)).MakeGenericMethod(genericType);
+                        return fromResultMethod.Invoke(null, new[] { genericType.IsValueType ? Activator.CreateInstance(genericType) : null });
+                    }
+                }));
 
             mock.Setup(x => x.SetItemAsync(It.IsAny<string>(), It.IsAny<object>()))
                 .Callback<string, object>((key, value) => storage[key] = value)
@@ -164,14 +146,5 @@ namespace WitchCityRope.Web.Tests.Helpers
             return mock;
         }
 
-        /// <summary>
-        /// Result class for registration operations
-        /// </summary>
-        public class RegistrationResult
-        {
-            public bool Success { get; set; }
-            public string Error { get; set; }
-            public Guid? RegistrationId { get; set; }
-        }
     }
 }

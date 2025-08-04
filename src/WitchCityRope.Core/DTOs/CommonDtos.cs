@@ -4,6 +4,34 @@ using System.Collections.Generic;
 namespace WitchCityRope.Core.DTOs
 {
     // Event-related DTOs
+    public class RegisterForEventRequest
+    {
+        public Guid EventId { get; set; }
+        public string? EmergencyContactName { get; set; }
+        public string? EmergencyContactPhone { get; set; }
+        public string? DietaryRestrictions { get; set; }
+        public string? AccessibilityNeeds { get; set; }
+        public string? PaymentMethod { get; set; }
+        public int? SelectedPriceId { get; set; }
+    }
+
+    public class CreateEventRequest
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Location { get; set; } = string.Empty;
+        public DateTime StartDateTime { get; set; }
+        public DateTime EndDateTime { get; set; }
+        public int MaxAttendees { get; set; }
+        public decimal Price { get; set; }
+        public List<string> Tags { get; set; } = new();
+        public List<string> RequiredSkillLevels { get; set; } = new();
+        public bool RequiresVetting { get; set; }
+        public decimal? IndividualPrice { get; set; }
+        public decimal? CouplesPrice { get; set; }
+        public int? RefundCutoffHours { get; set; }
+    }
+
     public class EventDto
     {
         public Guid Id { get; set; }
@@ -19,6 +47,7 @@ namespace WitchCityRope.Core.DTOs
         public List<string> Tags { get; set; } = new();
         public List<string> RequiredSkillLevels { get; set; } = new();
         public bool RequiresVetting { get; set; }
+        public string EventType { get; set; } = string.Empty;
     }
 
     public class CreateEventResponse
@@ -39,6 +68,13 @@ namespace WitchCityRope.Core.DTOs
         public List<string>? Tags { get; set; }
         public List<string>? RequiredSkillLevels { get; set; }
         public bool? RequiresVetting { get; set; }
+        public string? ImageUrl { get; set; }
+        public DateTime? RegistrationOpensAt { get; set; }
+        public DateTime? RegistrationClosesAt { get; set; }
+        public List<string>? TicketTypes { get; set; }
+        public decimal? IndividualPrice { get; set; }
+        public decimal? CouplesPrice { get; set; }
+        public int? RefundCutoffHours { get; set; }
     }
 
     // Registration-related DTOs
@@ -154,6 +190,60 @@ namespace WitchCityRope.Core.DTOs
         public string TransactionId { get; set; } = string.Empty;
         public string? ErrorMessage { get; set; }
         public DateTime ProcessedAt { get; set; }
+    }
+
+    // Ticket and RSVP DTOs
+    public class EventTicketRequest
+    {
+        public string EmergencyContactName { get; set; } = string.Empty;
+        public string EmergencyContactPhone { get; set; } = string.Empty;
+        public string? DietaryRestrictions { get; set; }
+        public string? AccessibilityNeeds { get; set; }
+        public decimal PaymentAmount { get; set; }
+        public string? PaymentToken { get; set; }
+    }
+
+    public class EventTicketResponse
+    {
+        public Guid TicketId { get; set; }
+        public string ConfirmationCode { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+    }
+
+    public class TicketDto
+    {
+        public Guid Id { get; set; }
+        public Guid UserId { get; set; }
+        public Guid EventId { get; set; }
+        public string EventTitle { get; set; } = string.Empty;
+        public DateTime EventDate { get; set; }
+        public string EventLocation { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public DateTime PurchasedAt { get; set; }
+        public string? ConfirmationCode { get; set; }
+        public decimal AmountPaid { get; set; }
+        public DateTime? CheckedInAt { get; set; }
+    }
+
+    public class RsvpDto
+    {
+        public Guid Id { get; set; }
+        public Guid UserId { get; set; }
+        public Guid EventId { get; set; }
+        public string EventTitle { get; set; } = string.Empty;
+        public DateTime EventDate { get; set; }
+        public string EventLocation { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
+        public DateTime? CheckedInAt { get; set; }
+        public string UserSceneName { get; set; } = string.Empty;
+    }
+
+    public class UpdateRsvpRequest
+    {
+        public string Status { get; set; } = string.Empty;
+        public string? Notes { get; set; }
     }
 
     // Safety DTOs

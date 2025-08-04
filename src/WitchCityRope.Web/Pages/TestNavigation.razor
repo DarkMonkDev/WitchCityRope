@@ -1,0 +1,68 @@
+@page "/test-navigation"
+@layout MainLayout
+
+<div class="container">
+    <h1>Navigation Test Page</h1>
+    <p>This page is used to test the navigation menu functionality.</p>
+    
+    <AuthorizeView>
+        <Authorized>
+            <div class="alert alert-success">
+                <h4>You are logged in!</h4>
+                <p>Check the navigation menu - you should see:</p>
+                <ul>
+                    <li>User avatar (default SVG icon)</li>
+                    <li>Your scene name</li>
+                    <li>Dropdown menu with:
+                        <ul>
+                            <li>My Dashboard</li>
+                            <li>Admin Dashboard (if you're an admin)</li>
+                            <li>My Profile</li>
+                            <li>Logout</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </Authorized>
+        <NotAuthorized>
+            <div class="alert alert-info">
+                <h4>You are not logged in</h4>
+                <p>The navigation should show a "Login" button instead of the user menu.</p>
+            </div>
+        </NotAuthorized>
+    </AuthorizeView>
+</div>
+
+<style>
+    .container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+    }
+    
+    .alert {
+        padding: 1rem;
+        margin: 1rem 0;
+        border-radius: 8px;
+    }
+    
+    .alert-success {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+    }
+    
+    .alert-info {
+        background-color: #d1ecf1;
+        border: 1px solid #bee5eb;
+        color: #0c5460;
+    }
+    
+    h4 {
+        margin-top: 0;
+    }
+    
+    ul {
+        margin: 0.5rem 0;
+    }
+</style>

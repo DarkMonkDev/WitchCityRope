@@ -6,11 +6,12 @@
 @using Syncfusion.Blazor.Calendars
 @using Syncfusion.Blazor.Grids
 @using Syncfusion.Blazor.Buttons
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
 @using Syncfusion.Blazor.DropDowns
 @inject ApiClient ApiClient
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
-@attribute [Authorize(Roles = "Admin")]
+@attribute [Authorize(Roles = "Administrator,Admin")]
 
 <div class="page-container">
     <div class="page-header">

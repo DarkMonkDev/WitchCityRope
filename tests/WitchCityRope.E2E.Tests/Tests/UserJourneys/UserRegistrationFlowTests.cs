@@ -25,7 +25,7 @@ public class UserRegistrationFlowTests : BaseE2ETest
 
         // Act & Assert - Navigate to registration
         await registerPage.NavigateAsync();
-        await registerPage.IsCurrentPageAsync().Should().BeTrueAsync();
+        (await registerPage.IsCurrentPageAsync()).Should().BeTrue();
 
         // Fill registration form
         await registerPage.FillRegistrationFormAsync(
@@ -45,23 +45,23 @@ public class UserRegistrationFlowTests : BaseE2ETest
         await registerPage.ClickRegisterAsync();
 
         // Should show success message
-        await registerPage.IsRegistrationSuccessfulAsync().Should().BeTrueAsync();
+        (await registerPage.IsRegistrationSuccessfulAsync()).Should().BeTrue();
         var successMessage = await registerPage.GetSuccessMessageAsync();
-        successMessage.Should().Contain("verification", StringComparison.OrdinalIgnoreCase);
+        successMessage.Should().Contain("verification");
 
         // For testing purposes, we'll simulate email verification by updating the database
         var user = await TestDataManager.CreateTestUserAsync(testEmail, password, isVerified: true);
 
         // Navigate to login
         await loginPage.NavigateAsync();
-        await loginPage.IsCurrentPageAsync().Should().BeTrueAsync();
+        (await loginPage.IsCurrentPageAsync()).Should().BeTrue();
 
         // Login with new account
         await loginPage.LoginAsync(testEmail, password);
         await loginPage.WaitForLoginSuccessAsync();
 
         // Verify we're on dashboard
-        await dashboardPage.IsCurrentPageAsync().Should().BeTrueAsync();
+        (await dashboardPage.IsCurrentPageAsync()).Should().BeTrue();
         
         // Verify welcome message
         var welcomeMessage = await dashboardPage.GetWelcomeMessageAsync();
@@ -72,7 +72,7 @@ public class UserRegistrationFlowTests : BaseE2ETest
         displayedSceneName.Should().Be(sceneName);
 
         // Verify navigation shows logged in state
-        await navigation.IsLoggedInAsync().Should().BeTrueAsync();
+        (await navigation.IsLoggedInAsync()).Should().BeTrue();
 
         // Take screenshot of successful registration
         await TakeScreenshotAsync("registration_flow_success");
@@ -91,7 +91,7 @@ public class UserRegistrationFlowTests : BaseE2ETest
         await registerPage.ClickRegisterAsync();
         var errors = await registerPage.GetValidationErrorsAsync();
         errors.Should().NotBeEmpty();
-        errors.Should().Contain(e => e.Contains("required", StringComparison.OrdinalIgnoreCase));
+        errors.Should().Contain(e => e.Contains("required"));
 
         // Test 2: Invalid email
         await registerPage.FillRegistrationFormAsync(
@@ -103,7 +103,7 @@ public class UserRegistrationFlowTests : BaseE2ETest
         );
         await registerPage.ClickRegisterAsync();
         errors = await registerPage.GetValidationErrorsAsync();
-        errors.Should().Contain(e => e.Contains("email", StringComparison.OrdinalIgnoreCase));
+        errors.Should().Contain(e => e.Contains("email"));
 
         // Test 3: Password mismatch
         await Page.ReloadAsync();
@@ -116,7 +116,7 @@ public class UserRegistrationFlowTests : BaseE2ETest
         );
         await registerPage.ClickRegisterAsync();
         errors = await registerPage.GetValidationErrorsAsync();
-        errors.Should().Contain(e => e.Contains("match", StringComparison.OrdinalIgnoreCase));
+        errors.Should().Contain(e => e.Contains("match"));
 
         // Test 4: Weak password
         await Page.ReloadAsync();
@@ -129,7 +129,7 @@ public class UserRegistrationFlowTests : BaseE2ETest
         );
         await registerPage.ClickRegisterAsync();
         errors = await registerPage.GetValidationErrorsAsync();
-        errors.Should().Contain(e => e.Contains("password", StringComparison.OrdinalIgnoreCase));
+        errors.Should().Contain(e => e.Contains("password"));
 
         // Take screenshot of validation errors
         await TakeScreenshotAsync("registration_validation_errors");
@@ -154,9 +154,9 @@ public class UserRegistrationFlowTests : BaseE2ETest
         );
 
         // Assert
-        await registerPage.HasValidationErrorsAsync().Should().BeTrueAsync();
+        (await registerPage.HasValidationErrorsAsync()).Should().BeTrue();
         var errors = await registerPage.GetValidationErrorsAsync();
-        errors.Should().Contain(e => e.Contains("already", StringComparison.OrdinalIgnoreCase));
+        errors.Should().Contain(e => e.Contains("already"));
     }
 
     [TestMethod]

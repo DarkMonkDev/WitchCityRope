@@ -1,0 +1,502 @@
+@page "/vetting/apply-new"
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@using WitchCityRope.Core.DTOs
+@using WitchCityRope.Web.Shared.Validation.Components
+@using WitchCityRope.Web.Models
+@using System.ComponentModel.DataAnnotations
+@inject NavigationManager Navigation
+@inject IAuthService AuthService
+@inject HttpClient Http
+@inject IToastService ToastService
+
+<PageTitle>Vetting Application - Witch City Rope</PageTitle>
+
+<div class="vetting-application-page">
+    <div class="container">
+        <div class="application-header">
+            <h1>Vetting Application</h1>
+            <p class="subtitle">Join the Witch City Rope community</p>
+        </div>
+
+        @if (_isSubmitting)
+        {
+            <div class="loading-overlay">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Submitting application...</span>
+                </div>
+            </div>
+        }
+
+        <div class="application-form">
+            <EditForm Model="_application" OnValidSubmit="HandleSubmit">
+                <DataAnnotationsValidator />
+                
+                <!-- Personal Information -->
+                <div class="form-section">
+                    <h2><i class="fas fa-user"></i> Personal Information</h2>
+                    <p class="section-description">Your legal name is kept confidential and only used for verification purposes.</p>
+                    
+                    @if (_currentUser == null)
+                    {
+                        <WcrInputEmail @bind-Value="_anonymousEmail" 
+                                      Label="Email Address"
+                                      Placeholder="your@email.com"
+                                      IsRequired="true"
+                                      CheckUniqueness="false" />
+                        <p class="form-text text-muted">We'll use this to contact you about your application</p>
+                    }
+                    
+                    <WcrInputText @bind-Value="_application.LegalName" 
+                                  Label="Legal Name"
+                                  Placeholder="Your legal name"
+                                  IsRequired="true" />
+
+                    <WcrInputText @bind-Value="_application.PreferredName" 
+                                  Label="Preferred Name"
+                                  Placeholder="Name you'd like us to use"
+                                  IsRequired="true" />
+
+                    <WcrInputText @bind-Value="_application.FetlifeName" 
+                                  Label="FetLife Username"
+                                  Placeholder="Your FetLife username (optional)" />
+                    <p class="form-text text-muted">Helps us verify your community involvement</p>
+                </div>
+
+                <!-- Experience -->
+                <div class="form-section">
+                    <h2><i class="fas fa-ribbon"></i> Experience & Interests</h2>
+                    
+                    <WcrInputTextArea @bind-Value="_application.Experience" 
+                                      Label="Rope Bondage Experience"
+                                      Placeholder="Describe your experience with rope bondage. It's okay if you're new - we all started somewhere!"
+                                      Rows="4"
+                                      IsRequired="true" />
+
+                    <WcrInputTextArea @bind-Value="_application.WhyJoin" 
+                                      Label="Why Do You Want to Join?"
+                                      Placeholder="What interests you about joining our community?"
+                                      Rows="4"
+                                      IsRequired="true" />
+                </div>
+
+                <!-- References -->
+                <div class="form-section">
+                    <h2><i class="fas fa-users"></i> Community References</h2>
+                    <p class="section-description">Please provide at least two references from the kink/rope community who can vouch for you.</p>
+                    
+                    <div class="reference-box">
+                        <h3>Reference 1 <span class="required">*</span></h3>
+                        
+                        <WcrInputText @bind-Value="_application.ReferenceOneName" 
+                                      Label="Name"
+                                      Placeholder="Reference's name"
+                                      IsRequired="true" />
+
+                        <WcrInputText @bind-Value="_application.ReferenceOneContact" 
+                                      Label="Contact Information"
+                                      Placeholder="Email, phone, or FetLife username"
+                                      IsRequired="true" />
+                    </div>
+
+                    <div class="reference-box">
+                        <h3>Reference 2 <span class="required">*</span></h3>
+                        
+                        <WcrInputText @bind-Value="_application.ReferenceTwoName" 
+                                      Label="Name"
+                                      Placeholder="Reference's name"
+                                      IsRequired="true" />
+
+                        <WcrInputText @bind-Value="_application.ReferenceTwoContact" 
+                                      Label="Contact Information"
+                                      Placeholder="Email, phone, or FetLife username"
+                                      IsRequired="true" />
+                    </div>
+                </div>
+
+                <!-- Agreements -->
+                <div class="form-section">
+                    <h2><i class="fas fa-handshake"></i> Community Agreements</h2>
+                    
+                    <div class="agreement-item">
+                        <WcrInputCheckbox @bind-Value="_application.AgreeToCommunityGuidelines" 
+                                          Label="I have read and agree to follow the Community Guidelines & Code of Conduct"
+                                          IsRequired="true" />
+                        <p class="agreement-link">
+                            <a href="/code-of-conduct" target="_blank">View Community Guidelines & Code of Conduct</a>
+                        </p>
+                    </div>
+
+                    <div class="agreement-item">
+                        <WcrInputCheckbox @bind-Value="_application.AgreeToPhotoPolicy" 
+                                          Label="I understand and agree to the Photography & Privacy Policy"
+                                          IsRequired="true" />
+                        <p class="agreement-link">
+                            <a href="/photo-policy" target="_blank">View Photography & Privacy Policy</a>
+                        </p>
+                    </div>
+
+                    <div class="agreement-item">
+                        <WcrInputCheckbox @bind-Value="_agreeToVettingProcess" 
+                                          Label="I understand that the vetting process involves reference checks and review by the vetting team"
+                                          IsRequired="true" />
+                    </div>
+                </div>
+
+                <WcrValidationSummary />
+
+                <!-- Submit Section -->
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline-secondary btn-lg" @onclick="Cancel">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary btn-lg" disabled="@_isSubmitting">
+                        @if (_isSubmitting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            <span>Submitting...</span>
+                        }
+                        else
+                        {
+                            <i class="fas fa-paper-plane"></i>
+                            <span>Submit Application</span>
+                        }
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+<style>
+    .vetting-application-page {
+        min-height: 100vh;
+        background: var(--wcr-color-cream);
+        padding: var(--wcr-space-3xl) 0;
+    }
+
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .application-header {
+        text-align: center;
+        margin-bottom: var(--wcr-space-3xl);
+    }
+
+    .application-header h1 {
+        font-family: var(--wcr-font-heading);
+        font-size: 42px;
+        color: var(--wcr-color-burgundy);
+        margin-bottom: var(--wcr-space-sm);
+    }
+
+    .subtitle {
+        font-size: 18px;
+        color: var(--wcr-color-stone);
+    }
+
+    .application-form {
+        background: white;
+        border-radius: var(--wcr-radius-lg);
+        box-shadow: var(--wcr-shadow-lg);
+        padding: var(--wcr-space-2xl);
+        position: relative;
+    }
+
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        border-radius: var(--wcr-radius-lg);
+    }
+
+    .form-section {
+        margin-bottom: var(--wcr-space-2xl);
+        padding-bottom: var(--wcr-space-2xl);
+        border-bottom: 1px solid var(--wcr-color-cream);
+    }
+
+    .form-section:last-of-type {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .form-section h2 {
+        font-family: var(--wcr-font-heading);
+        font-size: 24px;
+        color: var(--wcr-color-burgundy);
+        margin-bottom: var(--wcr-space-md);
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+    }
+
+    .form-section h2 i {
+        color: var(--wcr-color-brass);
+        font-size: 20px;
+    }
+
+    .section-description {
+        color: var(--wcr-color-stone);
+        margin-bottom: var(--wcr-space-lg);
+        line-height: 1.6;
+    }
+
+    .required {
+        color: var(--wcr-color-burgundy);
+    }
+
+    .form-text {
+        margin-top: -1rem;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .reference-box {
+        background: var(--wcr-color-cream);
+        padding: var(--wcr-space-lg);
+        border-radius: var(--wcr-radius-md);
+        margin-bottom: var(--wcr-space-lg);
+    }
+
+    .reference-box h3 {
+        font-size: 18px;
+        color: var(--wcr-color-charcoal);
+        margin-bottom: var(--wcr-space-md);
+    }
+
+    .agreement-item {
+        margin-bottom: var(--wcr-space-lg);
+    }
+
+    .agreement-link {
+        margin-top: 0.5rem;
+        margin-left: 2rem;
+        font-size: 0.875rem;
+    }
+
+    .agreement-link a {
+        color: var(--wcr-color-burgundy);
+        text-decoration: none;
+    }
+
+    .agreement-link a:hover {
+        text-decoration: underline;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: var(--wcr-space-md);
+        justify-content: flex-end;
+        margin-top: var(--wcr-space-2xl);
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+        padding: var(--wcr-space-sm) var(--wcr-space-lg);
+        border: none;
+        border-radius: var(--wcr-radius-sm);
+        font-family: var(--wcr-font-heading);
+        font-weight: 600;
+        font-size: 16px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-lg {
+        padding: var(--wcr-space-md) var(--wcr-space-xl);
+        font-size: 18px;
+    }
+
+    .btn-primary {
+        background: var(--wcr-color-burgundy);
+        color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        background: var(--wcr-color-burgundy-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(139, 0, 0, 0.3);
+    }
+
+    .btn-primary:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .btn-outline-secondary {
+        background: transparent;
+        color: var(--wcr-color-stone);
+        border: 2px solid var(--wcr-color-taupe);
+    }
+
+    .btn-outline-secondary:hover {
+        background: var(--wcr-color-taupe);
+        color: white;
+    }
+
+    .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.2rem;
+    }
+
+    @@media (max-width: 768px) {
+        .container {
+            padding: 0 20px;
+        }
+
+        .application-form {
+            padding: var(--wcr-space-lg);
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .btn-lg {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+@code {
+    private VettingApplicationModel _application = new();
+    private string _anonymousEmail = string.Empty;
+    private bool _agreeToVettingProcess = false;
+    private bool _isSubmitting = false;
+    private UserDto? _currentUser;
+
+    public class VettingApplicationModel
+    {
+        [Required(ErrorMessage = "Legal name is required")]
+        [StringLength(100, ErrorMessage = "Legal name must not exceed 100 characters")]
+        public string LegalName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Preferred name is required")]
+        [StringLength(100, ErrorMessage = "Preferred name must not exceed 100 characters")]
+        public string PreferredName { get; set; } = string.Empty;
+
+        public string? FetlifeName { get; set; }
+
+        [Required(ErrorMessage = "Please describe your experience")]
+        [StringLength(1000, ErrorMessage = "Experience description must not exceed 1000 characters")]
+        public string Experience { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Please tell us why you want to join")]
+        [StringLength(1000, ErrorMessage = "Response must not exceed 1000 characters")]
+        public string WhyJoin { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Reference 1 name is required")]
+        [StringLength(100, ErrorMessage = "Reference name must not exceed 100 characters")]
+        public string ReferenceOneName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Reference 1 contact information is required")]
+        [StringLength(200, ErrorMessage = "Contact information must not exceed 200 characters")]
+        public string ReferenceOneContact { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Reference 2 name is required")]
+        [StringLength(100, ErrorMessage = "Reference name must not exceed 100 characters")]
+        public string ReferenceTwoName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Reference 2 contact information is required")]
+        [StringLength(200, ErrorMessage = "Contact information must not exceed 200 characters")]
+        public string ReferenceTwoContact { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "You must agree to the community guidelines")]
+        [Range(typeof(bool), "true", "true", ErrorMessage = "You must agree to the community guidelines")]
+        public bool AgreeToCommunityGuidelines { get; set; }
+
+        [Required(ErrorMessage = "You must agree to the photo policy")]
+        [Range(typeof(bool), "true", "true", ErrorMessage = "You must agree to the photo policy")]
+        public bool AgreeToPhotoPolicy { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _currentUser = await AuthService.GetCurrentUserAsync();
+        }
+        catch
+        {
+            // User is not authenticated
+            _currentUser = null;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (!_agreeToVettingProcess)
+        {
+            ToastService.ShowWarning("Please confirm you understand the vetting process");
+            return;
+        }
+
+        if (_currentUser == null && string.IsNullOrWhiteSpace(_anonymousEmail))
+        {
+            ToastService.ShowWarning("Please provide an email address");
+            return;
+        }
+
+        _isSubmitting = true;
+
+        try
+        {
+            var dto = new VettingApplicationRequest
+            {
+                LegalName = _application.LegalName,
+                PreferredName = _application.PreferredName,
+                FetlifeName = _application.FetlifeName ?? string.Empty,
+                Experience = _application.Experience,
+                WhyJoin = _application.WhyJoin,
+                ReferenceOneName = _application.ReferenceOneName,
+                ReferenceOneContact = _application.ReferenceOneContact,
+                ReferenceTwoName = _application.ReferenceTwoName,
+                ReferenceTwoContact = _application.ReferenceTwoContact,
+                AgreeToCommunityGuidelines = _application.AgreeToCommunityGuidelines,
+                AgreeToPhotoPolicy = _application.AgreeToPhotoPolicy
+            };
+
+            var response = await Http.PostAsJsonAsync("/api/vetting/apply", dto);
+
+            if (response.IsSuccessStatusCode)
+            {
+                ToastService.ShowSuccess("Application submitted successfully! We'll review it and get back to you soon.");
+                Navigation.NavigateTo("/vetting/submitted", forceLoad: true);
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                ToastService.ShowError($"Failed to submit application: {error}");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"An error occurred: {ex.Message}");
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/");
+    }
+}

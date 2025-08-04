@@ -29,14 +29,14 @@ namespace WitchCityRope.IntegrationTests
                 {
                     // Remove the existing DbContext registration
                     var descriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(DbContextOptions<WitchCityRopeDbContext>));
+                        d => d.ServiceType == typeof(DbContextOptions<WitchCityRopeIdentityDbContext>));
                     if (descriptor != null)
                     {
                         services.Remove(descriptor);
                     }
 
                     // Add in-memory database for testing
-                    services.AddDbContext<WitchCityRopeDbContext>(options =>
+                    services.AddDbContext<WitchCityRopeIdentityDbContext>(options =>
                     {
                         options.UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}");
                     });
@@ -44,7 +44,7 @@ namespace WitchCityRope.IntegrationTests
                     // Ensure database is created
                     var sp = services.BuildServiceProvider();
                     using var scope = sp.CreateScope();
-                    var db = scope.ServiceProvider.GetRequiredService<WitchCityRopeDbContext>();
+                    var db = scope.ServiceProvider.GetRequiredService<WitchCityRopeIdentityDbContext>();
                     db.Database.EnsureCreated();
                 });
             });
@@ -62,8 +62,8 @@ namespace WitchCityRope.IntegrationTests
                 Password = "StrongPassword123!",
                 ConfirmPassword = "StrongPassword123!",
                 Username = "testuser",
-                FirstName = "Test",
-                LastName = "User"
+                LegalName = "Test User",
+                SceneName = "TestSceneName"
             };
 
             // Act
@@ -88,8 +88,8 @@ namespace WitchCityRope.IntegrationTests
                 Password = "StrongPassword123!",
                 ConfirmPassword = "StrongPassword123!",
                 Username = "user1",
-                FirstName = "Test",
-                LastName = "User"
+                LegalName = "Test User",
+                SceneName = "User1SceneName"
             };
 
             // Register first user
@@ -102,8 +102,8 @@ namespace WitchCityRope.IntegrationTests
                 Password = "StrongPassword123!",
                 ConfirmPassword = "StrongPassword123!",
                 Username = "user2",
-                FirstName = "Test",
-                LastName = "User2"
+                LegalName = "Test User2",
+                SceneName = "User2SceneName"
             };
 
             // Act
@@ -129,8 +129,8 @@ namespace WitchCityRope.IntegrationTests
                 Password = password,
                 ConfirmPassword = password,
                 Username = "loginuser",
-                FirstName = "Login",
-                LastName = "User"
+                LegalName = "Login User",
+                SceneName = "LoginSceneName"
             };
             await _client.PostAsJsonAsync("/api/auth/register", registerRequest);
 
@@ -171,8 +171,8 @@ namespace WitchCityRope.IntegrationTests
                 Password = correctPassword,
                 ConfirmPassword = correctPassword,
                 Username = "wrongpassuser",
-                FirstName = "Wrong",
-                LastName = "Pass"
+                LegalName = "Wrong Pass",
+                SceneName = "WrongPassSceneName"
             };
             await _client.PostAsJsonAsync("/api/auth/register", registerRequest);
 
@@ -221,8 +221,8 @@ namespace WitchCityRope.IntegrationTests
                 Password = password,
                 ConfirmPassword = password,
                 Username = "authuser",
-                FirstName = "Auth",
-                LastName = "User"
+                LegalName = "Auth User",
+                SceneName = "AuthSceneName"
             };
             await _client.PostAsJsonAsync("/api/auth/register", registerRequest);
 
@@ -286,8 +286,8 @@ namespace WitchCityRope.IntegrationTests
                 Password = weakPassword,
                 ConfirmPassword = weakPassword,
                 Username = "weakpassuser",
-                FirstName = "Weak",
-                LastName = "Pass"
+                LegalName = "Weak Pass",
+                SceneName = "WeakPassSceneName"
             };
 
             // Act
@@ -309,8 +309,8 @@ namespace WitchCityRope.IntegrationTests
                 Password = "StrongPassword123!",
                 ConfirmPassword = "DifferentPassword123!",
                 Username = "mismatchuser",
-                FirstName = "Mismatch",
-                LastName = "User"
+                LegalName = "Mismatch User",
+                SceneName = "MismatchSceneName"
             };
 
             // Act

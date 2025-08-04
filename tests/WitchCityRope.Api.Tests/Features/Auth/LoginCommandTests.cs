@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using WitchCityRope.Api.Features.Auth;
 using WitchCityRope.Api.Features.Auth.Services;
+using WitchCityRope.Api.Features.Auth.Models;
 using WitchCityRope.Infrastructure.Data;
 using WitchCityRope.Core.Entities;
 using WitchCityRope.Api.Services;
@@ -15,16 +16,16 @@ namespace WitchCityRope.Api.Tests.Features.Auth
 {
     public class LoginCommandTests : IDisposable
     {
-        private readonly WitchCityRopeDbContext _context;
+        private readonly WitchCityRopeIdentityDbContext _context;
         private readonly WitchCityRope.Api.Features.Auth.Services.IPasswordHasher _passwordHasher;
         private readonly IJwtService _jwtService;
 
         public LoginCommandTests()
         {
-            var options = new DbContextOptionsBuilder<WitchCityRopeDbContext>()
+            var options = new DbContextOptionsBuilder<WitchCityRopeIdentityDbContext>()
                 .UseInMemoryDatabase(databaseName: System.Guid.NewGuid().ToString())
                 .Options;
-            _context = new WitchCityRopeDbContext(options);
+            _context = new WitchCityRopeIdentityDbContext(options);
             _passwordHasher = new Mock<WitchCityRope.Api.Features.Auth.Services.IPasswordHasher>().Object;
             _jwtService = new Mock<IJwtService>().Object;
         }

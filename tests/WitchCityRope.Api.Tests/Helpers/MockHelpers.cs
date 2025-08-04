@@ -6,7 +6,9 @@ using WitchCityRope.Api.Features.Auth.Services;
 using WitchCityRope.Api.Interfaces;
 using WitchCityRope.Api.Services;
 using WitchCityRope.Core.Entities;
-using WitchCityRope.Core.Enums;
+using WitchCityRope.Infrastructure.Identity;
+using CoreEnums = WitchCityRope.Core.Enums;
+using ApiEnums = WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Core.Interfaces;
 using WitchCityRope.Core.ValueObjects;
 using WitchCityRope.Infrastructure.Data;
@@ -16,21 +18,23 @@ namespace WitchCityRope.Api.Tests.Helpers;
 
 public static class MockHelpers
 {
-    public static WitchCityRopeDbContext CreateInMemoryDbContext(string? databaseName = null)
+    public static WitchCityRopeIdentityDbContext CreateInMemoryDbContext(string? databaseName = null)
     {
-        var options = new DbContextOptionsBuilder<WitchCityRopeDbContext>()
+        var options = new DbContextOptionsBuilder<WitchCityRopeIdentityDbContext>()
             .UseInMemoryDatabase(databaseName: databaseName ?? Guid.NewGuid().ToString())
             .Options;
 
-        return new WitchCityRopeDbContext(options);
+        return new WitchCityRopeIdentityDbContext(options);
     }
+
+    // Removed - use CreateInMemoryDbContext instead which returns WitchCityRopeIdentityDbContext
 
     public static Mock<ILogger<T>> CreateLoggerMock<T>()
     {
         return new Mock<ILogger<T>>();
     }
 
-    public static Mock<WitchCityRope.Infrastructure.Services.IUserContext> CreateUserContextMock(User? currentUser = null)
+    public static Mock<WitchCityRope.Infrastructure.Services.IUserContext> CreateUserContextMock(WitchCityRopeUser? currentUser = null)
     {
         var mock = new Mock<WitchCityRope.Infrastructure.Services.IUserContext>();
         mock.Setup(x => x.GetCurrentUserAsync()).ReturnsAsync(currentUser);
@@ -80,18 +84,27 @@ public static class MockHelpers
         var mock = new Mock<INotificationService>();
         
         mock.Setup(x => x.SendEventRegistrationConfirmationAsync(
-            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-            It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<RegistrationStatus>(),
-            It.IsAny<int?>()))
+            It.IsAny<Guid>(), It.IsAny<Guid>()))
             .Returns(Task.CompletedTask);
 
-        mock.Setup(x => x.SendEventCancellationAsync(
-            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        mock.Setup(x => x.SendEventCancellationNotificationAsync(
+            It.IsAny<Guid>()))
             .Returns(Task.CompletedTask);
 
         mock.Setup(x => x.SendEventReminderAsync(
-            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-            It.IsAny<DateTime>(), It.IsAny<string>()))
+            It.IsAny<Guid>()))
+            .Returns(Task.CompletedTask);
+
+        mock.Setup(x => x.SendVettingStatusUpdateAsync(
+            It.IsAny<Guid>(), It.IsAny<bool>()))
+            .Returns(Task.CompletedTask);
+
+        mock.Setup(x => x.SendPasswordResetAsync(
+            It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
+        mock.Setup(x => x.SendEmailVerificationAsync(
+            It.IsAny<string>(), It.IsAny<string>()))
             .Returns(Task.CompletedTask);
 
         return mock;
@@ -105,98 +118,144 @@ public static class MockHelpers
         return mock;
     }
 
-    public static User CreateTestUser(
+    public static WitchCityRopeUser CreateTestUser(
         Guid? id = null,
         string email = "test@example.com",
         string sceneName = "TestUser",
-        UserRole role = UserRole.Member,
+        CoreEnums.UserRole role = CoreEnums.UserRole.Member,
         bool isActive = true,
         bool isVetted = false)
     {
-        return new User
-        {
-            Id = id ?? Guid.NewGuid(),
-            EncryptedLegalName = "encrypted-legal-name",
-            SceneName = new SceneName(sceneName),
-            Email = new EmailAddress(email),
-            DateOfBirth = DateTime.UtcNow.AddYears(-25),
-            PasswordHash = "password-hash",
-            Role = role,
-            Roles = new[] { role },
-            IsActive = isActive,
-            IsVetted = isVetted,
-            EmailVerified = true,
-            CreatedAt = DateTime.UtcNow.AddMonths(-1),
-            UpdatedAt = DateTime.UtcNow.AddDays(-1)
-        };
+        return WitchCityRope.Tests.Common.Factories.TestUserFactory.CreateTestUser(
+            id: id,
+            email: email,
+            sceneName: sceneName,
+            role: role,
+            isActive: isActive,
+            isVetted: isVetted,
+            emailConfirmed: true);
     }
 
     public static Event CreateTestEvent(
         Guid? id = null,
         Guid? organizerId = null,
         string title = "Test Event",
-        EventType type = EventType.Workshop,
+        CoreEnums.EventType type = CoreEnums.EventType.Workshop,
         decimal price = 0,
         int maxAttendees = 20,
         bool requiresVetting = false)
     {
-        return new Event
+        var organizer = CreateTestUser(id: organizerId, role: CoreEnums.UserRole.Organizer);
+        
+        var eventBuilder = new WitchCityRope.Tests.Common.Builders.EventBuilder()
+            .WithTitle(title)
+            .WithEventType(type)
+            .WithCapacity(maxAttendees)
+            .WithPrimaryOrganizer(organizer);
+            
+        if (price > 0)
         {
-            Id = id ?? Guid.NewGuid(),
-            Title = title,
-            Slug = title.ToLower().Replace(" ", "-"),
-            Description = "Test event description",
-            Type = type,
-            StartDateTime = DateTime.UtcNow.AddDays(7),
-            EndDateTime = DateTime.UtcNow.AddDays(7).AddHours(2),
-            Location = "Test Location",
-            MaxAttendees = maxAttendees,
-            CurrentAttendees = 0,
-            Price = price,
-            RequiredSkillLevels = new List<string> { "All Levels" },
-            Tags = new List<string> { "test", "workshop" },
-            RequiresVetting = requiresVetting,
-            OrganizerId = organizerId ?? Guid.NewGuid(),
-            Status = EventStatus.Published,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+            eventBuilder.WithSinglePrice(price);
+        }
+        else
+        {
+            eventBuilder.WithFreePricing();
+        }
+        
+        var @event = eventBuilder.Build();
+        
+        // If a specific ID was requested, we need to use reflection to set it
+        if (id.HasValue)
+        {
+            var eventType = typeof(Event);
+            var idProperty = eventType.GetProperty("Id", System.Reflection.BindingFlags.Public | 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            idProperty?.SetValue(@event, id.Value);
+        }
+        
+        return @event;
     }
 
     public static Registration CreateTestRegistration(
         Guid? id = null,
         Guid? eventId = null,
         Guid? userId = null,
-        RegistrationStatus status = RegistrationStatus.Confirmed)
+        ApiEnums.RegistrationStatus status = ApiEnums.RegistrationStatus.Confirmed)
     {
-        return new Registration
+        var user = userId.HasValue 
+            ? CreateTestUser(id: userId.Value) 
+            : CreateTestUser();
+            
+        var @event = eventId.HasValue
+            ? CreateTestEvent(id: eventId.Value)
+            : CreateTestEvent();
+            
+        var registration = new WitchCityRope.Tests.Common.Builders.RegistrationBuilder()
+            .WithUser(user)
+            .WithEvent(@event)
+            .Build();
+            
+        // If a specific ID was requested, we need to use reflection to set it
+        if (id.HasValue)
         {
-            Id = id ?? Guid.NewGuid(),
-            EventId = eventId ?? Guid.NewGuid(),
-            UserId = userId ?? Guid.NewGuid(),
-            Status = status,
-            ConfirmationCode = GenerateConfirmationCode(),
-            RegisteredAt = DateTime.UtcNow
-        };
+            var regType = typeof(Registration);
+            var idProperty = regType.GetProperty("Id", System.Reflection.BindingFlags.Public | 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            idProperty?.SetValue(registration, id.Value);
+        }
+        
+        // Note: Status is not directly settable on Registration entity in the current model
+        // The status would be managed through business logic methods
+        
+        return registration;
     }
 
     public static Payment CreateTestPayment(
         Guid? id = null,
         Guid? userId = null,
         decimal amount = 50.00m,
-        PaymentStatus status = PaymentStatus.Completed)
+        CoreEnums.PaymentStatus status = CoreEnums.PaymentStatus.Completed)
     {
-        return new Payment
+        // Create a ticket for the payment (Payment requires a Ticket)
+        var user = userId.HasValue 
+            ? CreateTestUser(id: userId.Value) 
+            : CreateTestUser();
+            
+        var ticket = new WitchCityRope.Tests.Common.Builders.TicketBuilder()
+            .WithUser(user.Id)
+            .WithSelectedPrice(amount)
+            .Build();
+            
+        var paymentBuilder = new WitchCityRope.Tests.Common.Builders.PaymentBuilder()
+            .WithTicket(ticket)
+            .WithAmount(amount);
+            
+        // Set the payment status
+        switch (status)
         {
-            Id = id ?? Guid.NewGuid(),
-            UserId = userId ?? Guid.NewGuid(),
-            Amount = new Money(amount, "USD"),
-            Status = status,
-            PaymentMethod = PaymentMethod.Stripe,
-            TransactionId = Guid.NewGuid().ToString(),
-            ProcessedAt = DateTime.UtcNow,
-            CreatedAt = DateTime.UtcNow
-        };
+            case CoreEnums.PaymentStatus.Completed:
+                paymentBuilder.AsCompleted();
+                break;
+            case CoreEnums.PaymentStatus.Failed:
+                paymentBuilder.AsFailed();
+                break;
+            case CoreEnums.PaymentStatus.Refunded:
+                paymentBuilder.AsRefunded();
+                break;
+        }
+        
+        var payment = paymentBuilder.Build();
+        
+        // If a specific ID was requested, we need to use reflection to set it
+        if (id.HasValue)
+        {
+            var paymentType = typeof(Payment);
+            var idProperty = paymentType.GetProperty("Id", System.Reflection.BindingFlags.Public | 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            idProperty?.SetValue(payment, id.Value);
+        }
+        
+        return payment;
     }
 
     public static VettingApplication CreateTestVettingApplication(
@@ -249,17 +308,17 @@ public static class MockHelpers
 // Additional test data builders
 public class TestDataBuilder
 {
-    private readonly WitchCityRopeDbContext _context;
+    private readonly WitchCityRopeIdentityDbContext _context;
 
-    public TestDataBuilder(WitchCityRopeDbContext context)
+    public TestDataBuilder(WitchCityRopeIdentityDbContext context)
     {
         _context = context;
     }
 
-    public async Task<User> CreateUserAsync(
+    public async Task<WitchCityRopeUser> CreateUserAsync(
         string email = "test@example.com",
         string sceneName = "TestUser",
-        UserRole role = UserRole.Member,
+        CoreEnums.UserRole role = CoreEnums.UserRole.Member,
         bool isVetted = false)
     {
         var user = MockHelpers.CreateTestUser(
@@ -276,7 +335,7 @@ public class TestDataBuilder
     public async Task<Event> CreateEventAsync(
         Guid organizerId,
         string title = "Test Event",
-        EventType type = EventType.Workshop,
+        CoreEnums.EventType type = CoreEnums.EventType.Workshop,
         bool requiresVetting = false)
     {
         var @event = MockHelpers.CreateTestEvent(
@@ -293,7 +352,7 @@ public class TestDataBuilder
     public async Task<Registration> CreateRegistrationAsync(
         Guid eventId,
         Guid userId,
-        RegistrationStatus status = RegistrationStatus.Confirmed)
+        ApiEnums.RegistrationStatus status = ApiEnums.RegistrationStatus.Confirmed)
     {
         var registration = MockHelpers.CreateTestRegistration(
             eventId: eventId,
@@ -305,5 +364,7 @@ public class TestDataBuilder
         return registration;
     }
 }
+
+// TestDataBuilderForDbContext removed - use TestDataBuilder with WitchCityRopeIdentityDbContext instead
 
 // Note: Interface implementations have been moved to WitchCityRope.Tests.Common.Interfaces

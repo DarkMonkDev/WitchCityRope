@@ -1,0 +1,195 @@
+@using WitchCityRope.Core.DTOs
+@using System.ComponentModel.DataAnnotations
+
+<div class="member-account-settings">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Account Settings</h5>
+        </div>
+        <div class="card-body">
+            <EditForm Model="@UpdateModel" OnValidSubmit="@HandleSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Scene Name</label>
+                            <InputText @bind-Value="UpdateModel.SceneName" class="form-control" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">FetLife Name</label>
+                            <InputText @bind-Value="UpdateModel.FetLifeName" class="form-control" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Pronouns</label>
+                            <InputText @bind-Value="UpdateModel.Pronouns" class="form-control" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Pronounced Name</label>
+                            <InputText @bind-Value="UpdateModel.PronouncedName" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Role</label>
+                            <InputSelect @bind-Value="UpdateModel.Role" class="form-select">
+                                <option value="">Select Role</option>
+                                <option value="Member">Member</option>
+                                <option value="Moderator">Moderator</option>
+                                <option value="Administrator">Administrator</option>
+                            </InputSelect>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <InputCheckbox @bind-Value="IsVettedValue" class="form-check-input" id="isVettedSwitch" />
+                                <label class="form-check-label" for="isVettedSwitch">
+                                    Is Vetted
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <InputCheckbox @bind-Value="IsActiveValue" class="form-check-input" id="isActiveSwitch" />
+                                <label class="form-check-label" for="isActiveSwitch">
+                                    Is Active
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary" disabled="@IsSaving">
+                        @if (IsSaving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        Save Changes
+                    </button>
+                    <button type="button" class="btn btn-secondary ms-2" @onclick="ResetForm">
+                        Reset
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">Danger Zone</h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6>Deactivate Account</h6>
+                    <p class="text-muted mb-0">Temporarily disable this member's access to the platform.</p>
+                </div>
+                <button class="btn btn-outline-danger" @onclick="DeactivateAccount" disabled="@(!Member?.IsActive ?? true)">
+                    Deactivate
+                </button>
+            </div>
+            
+            <hr />
+            
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6>Delete Account</h6>
+                    <p class="text-muted mb-0">Permanently remove this member and all associated data. This action cannot be undone.</p>
+                </div>
+                <button class="btn btn-danger" @onclick="ShowDeleteConfirmation">
+                    Delete Account
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public MemberDetailDto? Member { get; set; }
+    [Parameter] public EventCallback<UpdateMemberDto> OnUpdate { get; set; }
+
+    [Inject] private ILogger<MemberAccountSettings> Logger { get; set; } = null!;
+
+    private UpdateMemberDto UpdateModel = new();
+    private bool IsSaving = false;
+    
+    // Properties to handle nullable bool conversion
+    private bool IsVettedValue
+    {
+        get => UpdateModel.IsVetted ?? false;
+        set => UpdateModel.IsVetted = value;
+    }
+    
+    private bool IsActiveValue
+    {
+        get => UpdateModel.IsActive ?? false;
+        set => UpdateModel.IsActive = value;
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (Member != null)
+        {
+            UpdateModel = new UpdateMemberDto
+            {
+                SceneName = Member.SceneName,
+                FetLifeName = Member.FetLifeName,
+                Pronouns = Member.Pronouns,
+                PronouncedName = Member.PronouncedName,
+                Role = Member.Role,
+                IsVetted = Member.IsVetted,
+                IsActive = Member.IsActive
+            };
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            IsSaving = true;
+            await OnUpdate.InvokeAsync(UpdateModel);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to update member settings");
+            // TODO: Show error notification
+        }
+        finally
+        {
+            IsSaving = false;
+        }
+    }
+
+    private void ResetForm()
+    {
+        OnParametersSet();
+    }
+
+    private async Task DeactivateAccount()
+    {
+        // TODO: Add confirmation dialog
+        try
+        {
+            var update = new UpdateMemberDto { IsActive = false };
+            await OnUpdate.InvokeAsync(update);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to deactivate account");
+        }
+    }
+
+    private void ShowDeleteConfirmation()
+    {
+        // TODO: Implement delete confirmation dialog
+        Logger.LogWarning("Delete account requested for member {MemberId}", Member?.Id);
+    }
+}

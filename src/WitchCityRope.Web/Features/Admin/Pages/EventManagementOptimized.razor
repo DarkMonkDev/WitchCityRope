@@ -1,0 +1,647 @@
+@page "/admin/events-optimized"
+@using WitchCityRope.Web.Services
+@using WitchCityRope.Web.Shared.Components.UI
+@inject ApiClient ApiClient
+@inject NavigationManager Navigation
+@inject ILogger<EventManagementOptimized> Logger
+@attribute [Authorize(Roles = "Admin,EventOrganizer")]
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+
+@* Optimized Event management page with better loading states and performance *@
+
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">Event Management</h1>
+        <button class="btn btn-primary" @onclick="CreateNewEvent" disabled="@isCreating">
+            + Create New Event
+        </button>
+    </div>
+
+    <div class="admin-filters">
+        <input type="text" @bind="searchTerm" @bind:event="oninput" @bind:after="DebouncedSearch"
+               class="filter-input" placeholder="Search events..." />
+        
+        <select @bind="filterStatus" @bind:event="oninput" @bind:after="ApplyFilters" class="filter-select">
+            <option value="">All Status</option>
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="completed">Completed</option>
+        </select>
+
+        <select @bind="filterTimeframe" @bind:event="oninput" @bind:after="ApplyFilters" class="filter-select">
+            <option value="">All Time</option>
+            <option value="upcoming">Upcoming</option>
+            <option value="past">Past</option>
+            <option value="thisMonth">This Month</option>
+            <option value="nextMonth">Next Month</option>
+        </select>
+    </div>
+
+    @if (loadError != null)
+    {
+        <div class="error-banner">
+            <p>Failed to load events: @loadError</p>
+            <button class="btn btn-primary" @onclick="RetryLoad">Retry</button>
+        </div>
+    }
+
+    @if (isLoading && !events.Any())
+    {
+        <div class="admin-table-container">
+            <SkeletonLoader Type="SkeletonLoader.SkeletonType.Table" Count="5" TableColumns="7" Width="100%" />
+        </div>
+    }
+    else if (filteredEvents.Any())
+    {
+        <div class="admin-table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Registrations</th>
+                        <th>Revenue</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var eventItem in filteredEvents)
+                    {
+                        <tr>
+                            <td>
+                                <div class="event-info">
+                                    <strong>@eventItem.Title</strong>
+                                    <span class="event-location">@eventItem.Location</span>
+                                </div>
+                            </td>
+                            <td>@eventItem.StartDate.ToString("MMM d, yyyy")</td>
+                            <td><span class="badge badge-@eventItem.Type">@eventItem.Type</span></td>
+                            <td><span class="badge badge-@eventItem.Status">@eventItem.Status</span></td>
+                            <td>
+                                <div class="registration-info">
+                                    <span>@eventItem.RegisteredCount / @eventItem.Capacity</span>
+                                    <div class="capacity-bar">
+                                        <div class="capacity-fill" style="width: @GetCapacityPercentage(eventItem)%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>$@eventItem.TotalRevenue.ToString("N2")</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-icon" title="Edit" @onclick="() => EditEvent(eventItem.Id)" 
+                                            disabled="@IsActionDisabled(eventItem.Id)">
+                                        ✏️
+                                    </button>
+                                    <button class="btn-icon" title="View Details" @onclick="() => ViewEventDetails(eventItem.Id)"
+                                            disabled="@IsActionDisabled(eventItem.Id)">
+                                        👁️
+                                    </button>
+                                    <button class="btn-icon" title="Manage Attendees" @onclick="() => ManageAttendees(eventItem.Id)"
+                                            disabled="@IsActionDisabled(eventItem.Id)">
+                                        👥
+                                    </button>
+                                    <button class="btn-icon" title="Duplicate" @onclick="() => DuplicateEvent(eventItem.Id)"
+                                            disabled="@IsActionDisabled(eventItem.Id)">
+                                        📋
+                                    </button>
+                                    @if (eventItem.Status != "cancelled")
+                                    {
+                                        <button class="btn-icon btn-danger" title="Cancel" @onclick="() => CancelEvent(eventItem.Id)"
+                                                disabled="@IsActionDisabled(eventItem.Id)">
+                                            ❌
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (hasMore && !isLoadingMore)
+        {
+            <div class="load-more-container">
+                <button class="btn btn-secondary" @onclick="LoadMore">Load More</button>
+            </div>
+        }
+        else if (isLoadingMore)
+        {
+            <div class="load-more-container">
+                <LoadingSpinner Size="small" Message="Loading more events..." />
+            </div>
+        }
+    }
+    else if (!isLoading)
+    {
+        <div class="empty-state">
+            <h3>No events found</h3>
+            <p>Try adjusting your filters or create a new event.</p>
+        </div>
+    }
+</div>
+
+@* Event Editor Modal *@
+@if (showEventEditor)
+{
+    <div class="modal modal-visible" @onclick="CloseEventEditor">
+        <div class="modal-content modal-large" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2 class="modal-title">@(editingEventId > 0 ? "Edit Event" : "Create New Event")</h2>
+                <button type="button" class="modal-close" @onclick="CloseEventEditor">×</button>
+            </div>
+            
+            <EditForm Model="@eventForm" OnValidSubmit="@SaveEvent" class="event-form">
+                <DataAnnotationsValidator />
+                
+                <div class="form-row">
+                    <div class="form-group form-group-wide">
+                        <label class="form-label">Event Title</label>
+                        <InputText @bind-Value="eventForm.Title" class="form-input" />
+                        <ValidationMessage For="@(() => eventForm.Title)" />
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Event Type</label>
+                        <InputSelect @bind-Value="eventForm.Type" class="form-input">
+                            <option value="">Select Type</option>
+                            <option value="workshop">Workshop</option>
+                            <option value="performance">Performance</option>
+                            <option value="social">Social Event</option>
+                            <option value="intensive">Intensive</option>
+                        </InputSelect>
+                        <ValidationMessage For="@(() => eventForm.Type)" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <InputSelect @bind-Value="eventForm.Status" class="form-input">
+                            <option value="draft">Draft</option>
+                            <option value="published">Published</option>
+                        </InputSelect>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Start Date & Time</label>
+                        <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="eventForm.StartDate" class="form-input" />
+                        <ValidationMessage For="@(() => eventForm.StartDate)" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">End Date & Time</label>
+                        <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="eventForm.EndDate" class="form-input" />
+                        <ValidationMessage For="@(() => eventForm.EndDate)" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <InputTextArea @bind-Value="eventForm.Description" class="form-input" rows="5" />
+                    <ValidationMessage For="@(() => eventForm.Description)" />
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Location</label>
+                        <InputText @bind-Value="eventForm.Location" class="form-input" />
+                        <ValidationMessage For="@(() => eventForm.Location)" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Capacity</label>
+                        <InputNumber @bind-Value="eventForm.Capacity" class="form-input" />
+                        <ValidationMessage For="@(() => eventForm.Capacity)" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Price ($)</label>
+                        <InputNumber @bind-Value="eventForm.Price" class="form-input" />
+                        <ValidationMessage For="@(() => eventForm.Price)" />
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseEventEditor">Cancel</button>
+                    <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                        @if (isSaving)
+                        {
+                            <span>Saving...</span>
+                        }
+                        else
+                        {
+                            <span>Save Event</span>
+                        }
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<style>
+    .error-banner {
+        background-color: #fee;
+        border: 1px solid #fcc;
+        border-radius: 4px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .load-more-container {
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .action-buttons button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+</style>
+
+@code {
+    private List<EventManagementViewModel> events = new();
+    private List<EventManagementViewModel> filteredEvents = new();
+    private bool isLoading = true;
+    private bool isLoadingMore = false;
+    private bool showEventEditor = false;
+    private bool isSaving = false;
+    private bool isCreating = false;
+    private int editingEventId = 0;
+    private bool hasMore = false;
+    private string? loadError = null;
+    private HashSet<int> processingActions = new();
+
+    // Filters
+    private string searchTerm = "";
+    private string filterStatus = "";
+    private string filterTimeframe = "";
+    private System.Timers.Timer? searchDebounceTimer;
+
+    // Pagination
+    private int currentPage = 1;
+    private const int PageSize = 20;
+
+    // Event form model
+    private EventFormModel eventForm = new();
+
+    // Cancellation token
+    private CancellationTokenSource? _cancellationTokenSource;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEvents();
+    }
+
+    private async Task LoadEvents()
+    {
+        _cancellationTokenSource?.Cancel();
+        _cancellationTokenSource = new CancellationTokenSource();
+        var cancellationToken = _cancellationTokenSource.Token;
+
+        try
+        {
+            isLoading = true;
+            loadError = null;
+            
+            // Simulate API call - replace with actual API call
+            await Task.Delay(500, cancellationToken);
+            
+            if (cancellationToken.IsCancellationRequested) return;
+            
+            // Mock data for demonstration
+            events = GenerateMockEvents(50);
+            hasMore = events.Count == PageSize;
+            
+            ApplyFilters();
+        }
+        catch (OperationCanceledException)
+        {
+            // Cancelled, ignore
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading events");
+            loadError = "Unable to load events. Please try again.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadMore()
+    {
+        if (isLoadingMore || !hasMore) return;
+
+        try
+        {
+            isLoadingMore = true;
+            currentPage++;
+            
+            // Simulate API call
+            await Task.Delay(500);
+            
+            var moreEvents = GenerateMockEvents(20, events.Count);
+            events.AddRange(moreEvents);
+            hasMore = moreEvents.Count == PageSize;
+            
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading more events");
+        }
+        finally
+        {
+            isLoadingMore = false;
+        }
+    }
+
+    private void ApplyFilters()
+    {
+        filteredEvents = events.Where(e =>
+            (string.IsNullOrEmpty(searchTerm) || 
+             e.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+             e.Location.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrEmpty(filterStatus) || e.Status == filterStatus) &&
+            ApplyTimeframeFilter(e)
+        ).ToList();
+    }
+
+    private bool ApplyTimeframeFilter(EventManagementViewModel e)
+    {
+        if (string.IsNullOrEmpty(filterTimeframe)) return true;
+        
+        var now = DateTime.Now;
+        return filterTimeframe switch
+        {
+            "upcoming" => e.StartDate >= now,
+            "past" => e.StartDate < now,
+            "thisMonth" => e.StartDate.Month == now.Month && e.StartDate.Year == now.Year,
+            "nextMonth" => e.StartDate.Month == now.AddMonths(1).Month && e.StartDate.Year == now.AddMonths(1).Year,
+            _ => true
+        };
+    }
+
+    private void DebouncedSearch()
+    {
+        searchDebounceTimer?.Stop();
+        searchDebounceTimer = new System.Timers.Timer(300);
+        searchDebounceTimer.Elapsed += (sender, e) =>
+        {
+            searchDebounceTimer.Stop();
+            InvokeAsync(() =>
+            {
+                ApplyFilters();
+                StateHasChanged();
+            });
+        };
+        searchDebounceTimer.Start();
+    }
+
+    private double GetCapacityPercentage(EventManagementViewModel e)
+    {
+        if (e.Capacity == 0) return 0;
+        return Math.Min((double)e.RegisteredCount / e.Capacity * 100, 100);
+    }
+
+    private bool IsActionDisabled(int eventId)
+    {
+        return processingActions.Contains(eventId);
+    }
+
+    private async Task CreateNewEvent()
+    {
+        try
+        {
+            isCreating = true;
+            editingEventId = 0;
+            eventForm = new EventFormModel
+            {
+                StartDate = DateTime.Now.AddDays(7).Date.AddHours(19),
+                EndDate = DateTime.Now.AddDays(7).Date.AddHours(21)
+            };
+            showEventEditor = true;
+        }
+        finally
+        {
+            isCreating = false;
+        }
+    }
+
+    private async Task EditEvent(int eventId)
+    {
+        if (processingActions.Contains(eventId)) return;
+        
+        try
+        {
+            processingActions.Add(eventId);
+            
+            var eventToEdit = events.FirstOrDefault(e => e.Id == eventId);
+            if (eventToEdit != null)
+            {
+                editingEventId = eventId;
+                eventForm = new EventFormModel
+                {
+                    Title = eventToEdit.Title,
+                    Type = eventToEdit.Type,
+                    Status = eventToEdit.Status,
+                    StartDate = eventToEdit.StartDate,
+                    EndDate = eventToEdit.EndDate,
+                    Description = eventToEdit.Description ?? "",
+                    Location = eventToEdit.Location,
+                    Capacity = eventToEdit.Capacity,
+                    Price = eventToEdit.Price
+                };
+                showEventEditor = true;
+            }
+        }
+        finally
+        {
+            processingActions.Remove(eventId);
+        }
+    }
+
+    private void CloseEventEditor()
+    {
+        showEventEditor = false;
+        editingEventId = 0;
+        eventForm = new();
+    }
+
+    private async Task SaveEvent()
+    {
+        try
+        {
+            isSaving = true;
+            
+            // Simulate API call
+            await Task.Delay(1000);
+            
+            if (editingEventId > 0)
+            {
+                // Update existing event
+                var eventToUpdate = events.FirstOrDefault(e => e.Id == editingEventId);
+                if (eventToUpdate != null)
+                {
+                    eventToUpdate.Title = eventForm.Title;
+                    eventToUpdate.Type = eventForm.Type;
+                    eventToUpdate.Status = eventForm.Status;
+                    eventToUpdate.StartDate = eventForm.StartDate;
+                    eventToUpdate.EndDate = eventForm.EndDate;
+                    eventToUpdate.Description = eventForm.Description;
+                    eventToUpdate.Location = eventForm.Location;
+                    eventToUpdate.Capacity = eventForm.Capacity;
+                    eventToUpdate.Price = eventForm.Price;
+                }
+            }
+            else
+            {
+                // Create new event
+                var newEvent = new EventManagementViewModel
+                {
+                    Id = events.Count + 1,
+                    Title = eventForm.Title,
+                    Type = eventForm.Type,
+                    Status = eventForm.Status,
+                    StartDate = eventForm.StartDate,
+                    EndDate = eventForm.EndDate,
+                    Description = eventForm.Description,
+                    Location = eventForm.Location,
+                    Capacity = eventForm.Capacity,
+                    Price = eventForm.Price,
+                    RegisteredCount = 0,
+                    TotalRevenue = 0
+                };
+                events.Insert(0, newEvent);
+            }
+            
+            ApplyFilters();
+            CloseEventEditor();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error saving event");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task ViewEventDetails(int eventId)
+    {
+        if (processingActions.Contains(eventId)) return;
+        
+        try
+        {
+            processingActions.Add(eventId);
+            Navigation.NavigateTo($"/events/{eventId}");
+        }
+        finally
+        {
+            processingActions.Remove(eventId);
+        }
+    }
+
+    private async Task ManageAttendees(int eventId)
+    {
+        if (processingActions.Contains(eventId)) return;
+        
+        try
+        {
+            processingActions.Add(eventId);
+            Navigation.NavigateTo($"/admin/events/{eventId}/attendees");
+        }
+        finally
+        {
+            processingActions.Remove(eventId);
+        }
+    }
+
+    private async Task DuplicateEvent(int eventId)
+    {
+        if (processingActions.Contains(eventId)) return;
+        
+        try
+        {
+            processingActions.Add(eventId);
+            // TODO: Implement event duplication
+            await Task.Delay(500);
+        }
+        finally
+        {
+            processingActions.Remove(eventId);
+        }
+    }
+
+    private async Task CancelEvent(int eventId)
+    {
+        if (processingActions.Contains(eventId)) return;
+        
+        try
+        {
+            processingActions.Add(eventId);
+            // TODO: Implement event cancellation with confirmation
+            await Task.Delay(500);
+        }
+        finally
+        {
+            processingActions.Remove(eventId);
+        }
+    }
+
+    private async Task RetryLoad()
+    {
+        await LoadEvents();
+    }
+
+    private List<EventManagementViewModel> GenerateMockEvents(int count, int startId = 0)
+    {
+        var mockEvents = new List<EventManagementViewModel>();
+        var random = new Random();
+        var eventTypes = new[] { "workshop", "performance", "social", "intensive" };
+        var statuses = new[] { "draft", "published", "cancelled", "completed" };
+        var titles = new[] { "Introduction to Rope", "Advanced Techniques", "Safety Workshop", "Performance Skills", "Partner Communication" };
+        var locations = new[] { "Main Studio", "Gallery Space", "Outdoor Venue", "Community Center", "Private Studio" };
+
+        for (int i = 0; i < count; i++)
+        {
+            var startDate = DateTime.Now.AddDays(random.Next(-30, 60));
+            mockEvents.Add(new EventManagementViewModel
+            {
+                Id = startId + i + 1,
+                Title = $"{titles[random.Next(titles.Length)]} {startId + i + 1}",
+                StartDate = startDate,
+                EndDate = startDate.AddHours(random.Next(2, 5)),
+                Type = eventTypes[random.Next(eventTypes.Length)],
+                Status = statuses[random.Next(statuses.Length)],
+                Location = locations[random.Next(locations.Length)],
+                Capacity = random.Next(10, 50),
+                RegisteredCount = random.Next(0, 40),
+                Price = random.Next(0, 200),
+                TotalRevenue = random.Next(0, 5000),
+                Description = "Event description..."
+            });
+        }
+
+        return mockEvents;
+    }
+
+    public void Dispose()
+    {
+        searchDebounceTimer?.Dispose();
+        _cancellationTokenSource?.Cancel();
+        _cancellationTokenSource?.Dispose();
+    }
+}

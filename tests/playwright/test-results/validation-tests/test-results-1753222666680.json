@@ -1,0 +1,36 @@
+{
+  "startTime": "2025-07-22T22:17:39.177Z",
+  "forms": {
+    "Login with 2FA Form": {
+      "name": "Login with 2FA Form",
+      "startTime": "2025-07-22T22:17:39.218Z",
+      "tests": [
+        {
+          "name": "2FA form accessibility",
+          "passed": false,
+          "skipped": true
+        }
+      ],
+      "status": "passed",
+      "screenshots": [],
+      "endTime": "2025-07-22T22:17:42.072Z"
+    },
+    "Event Registration (RSVP) Form": {
+      "name": "Event Registration (RSVP) Form",
+      "startTime": "2025-07-22T22:17:42.353Z",
+      "tests": [],
+      "status": "failed",
+      "error": "Registration modal not opened",
+      "screenshots": [
+        "test-results/validation-tests/Event-Registration-(RSVP)-Form-error-1753222666364.png"
+      ],
+      "endTime": "2025-07-22T22:17:46.569Z"
+    }
+  },
+  "summary": {
+    "total": 2,
+    "passed": 1,
+    "failed": 1,
+    "skipped": 1
+  }
+}

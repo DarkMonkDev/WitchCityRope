@@ -1,8 +1,12 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using WitchCityRope.Core.Entities;
+// Removed Core.Entities - using WitchCityRopeUser directly
+using WitchCityRope.Core.ValueObjects;
 using WitchCityRope.Infrastructure.Data;
+using WitchCityRope.Infrastructure.Identity;
 
 namespace WitchCityRope.Api.Services
 {
@@ -12,61 +16,77 @@ namespace WitchCityRope.Api.Services
     /// </summary>
     public class UserRepository : IUserRepository
     {
-        private readonly WitchCityRopeDbContext _context;
+        private readonly WitchCityRopeIdentityDbContext _context;
+        private readonly UserManager<WitchCityRopeUser> _userManager;
 
-        public UserRepository(WitchCityRopeDbContext context)
+        public UserRepository(WitchCityRopeIdentityDbContext context, UserManager<WitchCityRopeUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
-        public async Task<User?> GetByIdAsync(Guid id)
+        public async Task<WitchCityRopeUser?> GetByIdAsync(Guid id)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            return await _userManager.FindByIdAsync(id.ToString());
         }
 
-        public async Task<User?> GetByEmailAsync(string email)
+        public async Task<WitchCityRopeUser?> GetByEmailAsync(string email)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Email.Value == email);
+            return await _userManager.FindByEmailAsync(email);
         }
 
-        public async Task<User> CreateAsync(User user)
+        public async Task<WitchCityRopeUser> CreateAsync(WitchCityRopeUser user)
         {
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            var result = await _userManager.CreateAsync(user);
+            
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException($"Failed to create user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            }
+            
             return user;
         }
 
-        public async Task UpdateAsync(User user)
+        public async Task UpdateAsync(WitchCityRopeUser user)
         {
-            _context.Users.Update(user);
-            await _context.SaveChangesAsync();
+            var result = await _userManager.UpdateAsync(user);
+            
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException($"Failed to update user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            }
         }
 
         public async Task<bool> EmailExistsAsync(string email)
         {
-            return await _context.Users.AnyAsync(u => u.Email.Value == email);
+            var user = await _userManager.FindByEmailAsync(email);
+            return user != null;
         }
 
         public async Task<bool> SceneNameExistsAsync(string sceneName)
         {
-            return await _context.Users.AnyAsync(u => u.SceneName.Value == sceneName);
+            return await _context.Users.AnyAsync(u => u.SceneNameValue == sceneName);
         }
 
         public async Task<bool> ExistsAsync(Guid id)
         {
-            return await _context.Users.AnyAsync(u => u.Id == id);
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            return user != null;
         }
 
-        public async Task AddAsync(User user)
+        public async Task AddAsync(WitchCityRopeUser user)
         {
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            await CreateAsync(user);
         }
 
-        public async Task DeleteAsync(User user)
+        public async Task DeleteAsync(WitchCityRopeUser user)
         {
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
+            var result = await _userManager.DeleteAsync(user);
+            
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException($"Failed to delete user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            }
         }
     }
 }

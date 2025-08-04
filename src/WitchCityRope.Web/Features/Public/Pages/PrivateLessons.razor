@@ -1,0 +1,721 @@
+@page "/private-lessons"
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@using WitchCityRope.Core.Services
+@using WitchCityRope.Core.Entities
+@using WitchCityRope.Web.Shared.Validation.Components
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+@inject IContentPageService ContentPageService
+@inject IToastService ToastService
+@inject IJSRuntime JSRuntime
+@layout MainLayout
+
+<PageTitle>Private Lessons - Witch City Rope</PageTitle>
+
+<div class="private-lessons-page">
+    <div class="container">
+        <!-- Header Section -->
+        <div class="page-header">
+            <h1 class="page-title">Private Rope Lessons</h1>
+            <p class="page-subtitle">
+                Personalized instruction tailored to your learning goals and experience level
+            </p>
+        </div>
+
+        <!-- CMS Content Section -->
+        <div class="cms-content-section">
+            @if (contentPage != null)
+            {
+                <div class="cms-content">
+                    @((MarkupString)contentPage.Content)
+                </div>
+            }
+            else
+            {
+                <!-- Default content while CMS content loads -->
+                <div class="default-content">
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <i class="fas fa-user-graduate"></i>
+                            <h3>Personalized Learning</h3>
+                            <p>One-on-one instruction adapted to your skill level, interests, and learning pace.</p>
+                        </div>
+                        <div class="info-card">
+                            <i class="fas fa-clock"></i>
+                            <h3>Flexible Scheduling</h3>
+                            <p>Sessions available evenings and weekends to fit your busy schedule.</p>
+                        </div>
+                        <div class="info-card">
+                            <i class="fas fa-shield-alt"></i>
+                            <h3>Safe Environment</h3>
+                            <p>Learn in a private, judgment-free space with emphasis on safety and consent.</p>
+                        </div>
+                        <div class="info-card">
+                            <i class="fas fa-certificate"></i>
+                            <h3>Expert Instruction</h3>
+                            <p>Learn from experienced instructors with years of teaching and practice.</p>
+                        </div>
+                    </div>
+
+                    <div class="lesson-details">
+                        <h3>What's Included</h3>
+                        <ul>
+                            <li>90-minute private sessions</li>
+                            <li>All rope and equipment provided</li>
+                            <li>Customized curriculum based on your goals</li>
+                            <li>Safety briefing and risk assessment</li>
+                            <li>Take-home practice notes</li>
+                            <li>Follow-up resources and recommendations</li>
+                        </ul>
+
+                        <h3>Popular Lesson Topics</h3>
+                        <ul>
+                            <li>Basic single column ties and safety</li>
+                            <li>Two-column ties and chest harnesses</li>
+                            <li>Floor work and positioning</li>
+                            <li>Suspension basics (for experienced practitioners)</li>
+                            <li>Rope care and maintenance</li>
+                            <li>Communication and negotiation skills</li>
+                        </ul>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Inquiry Form Section -->
+        <div class="inquiry-form-section">
+            <h2 class="form-title">Request a Private Lesson</h2>
+            <p class="form-subtitle">
+                Tell us about your experience and what you'd like to learn. We'll get back to you within 24 hours.
+            </p>
+
+            @if (isSubmitted)
+            {
+                <div class="success-message">
+                    <i class="fas fa-check-circle"></i>
+                    <strong>Request Submitted!</strong> Thank you for your interest in private lessons. 
+                    We'll review your request and contact you within 24 hours to discuss scheduling and next steps.
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Error:</strong> @errorMessage
+                </div>
+            }
+
+            <div class="form-container">
+                <EditForm Model="@inquiryModel" OnValidSubmit="@HandleSubmit">
+                    <DataAnnotationsValidator />
+                    <WcrValidationSummary />
+
+                    <div class="form-sections">
+                        <!-- Contact Information -->
+                        <div class="form-section">
+                            <h3 class="section-title">Contact Information</h3>
+                            
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <WcrInputText @bind-Value="inquiryModel.Name"
+                                                  Label="Your Name"
+                                                  IsRequired="true"
+                                                  Placeholder="Enter your full name" />
+                                </div>
+                                <div class="form-col">
+                                    <WcrInputEmail @bind-Value="inquiryModel.Email"
+                                                   Label="Email Address"
+                                                   IsRequired="true"
+                                                   Placeholder="your@email.com" />
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <WcrInputText @bind-Value="inquiryModel.Phone"
+                                                  Label="Phone Number"
+                                                  Placeholder="(555) 123-4567"
+                                                  HelpText="Optional - for scheduling coordination" />
+                                </div>
+                                <div class="form-col">
+                                    <WcrInputSelect @bind-Value="inquiryModel.PreferredContact"
+                                                    Label="Preferred Contact Method"
+                                                    IsRequired="true">
+                                        <option value="">Select method...</option>
+                                        <option value="Email">Email</option>
+                                        <option value="Phone">Phone</option>
+                                        <option value="Text">Text Message</option>
+                                        <option value="Either">Either Email or Phone</option>
+                                    </WcrInputSelect>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Experience & Goals -->
+                        <div class="form-section">
+                            <h3 class="section-title">Experience & Goals</h3>
+                            
+                            <WcrInputSelect @bind-Value="inquiryModel.ExperienceLevel"
+                                            Label="Your Experience Level"
+                                            IsRequired="true">
+                                <option value="">Select experience level...</option>
+                                <option value="Complete Beginner">Complete Beginner</option>
+                                <option value="Some Experience">Some Experience (classes or self-taught)</option>
+                                <option value="Intermediate">Intermediate (regular practice)</option>
+                                <option value="Advanced">Advanced (teaching others)</option>
+                            </WcrInputSelect>
+
+                            <WcrInputTextArea @bind-Value="inquiryModel.Goals"
+                                              Label="Learning Goals"
+                                              IsRequired="true"
+                                              Placeholder="What would you like to learn or improve? Be specific about techniques, skills, or areas of interest..."
+                                              Rows="4"
+                                              HelpText="The more detail you provide, the better we can tailor your lesson" />
+
+                            <WcrInputTextArea @bind-Value="inquiryModel.PreviousExperience"
+                                              Label="Previous Experience"
+                                              Placeholder="Tell us about any rope workshops, classes, or practice you've had..."
+                                              Rows="3"
+                                              HelpText="Include any formal training, self-study, or practice experience" />
+                        </div>
+
+                        <!-- Preferences & Scheduling -->
+                        <div class="form-section">
+                            <h3 class="section-title">Preferences & Scheduling</h3>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <WcrInputSelect @bind-Value="inquiryModel.PreferredInstructor"
+                                                    Label="Instructor Preference">
+                                        <option value="">No preference</option>
+                                        <option value="Any experienced instructor">Any experienced instructor</option>
+                                        <option value="Male instructor">Male instructor</option>
+                                        <option value="Female instructor">Female instructor</option>
+                                        <option value="Non-binary instructor">Non-binary instructor</option>
+                                        <option value="Specific instructor">Specific instructor (specify in notes)</option>
+                                    </WcrInputSelect>
+                                </div>
+                                <div class="form-col">
+                                    <WcrInputSelect @bind-Value="inquiryModel.SessionLength"
+                                                    Label="Preferred Session Length">
+                                        <option value="">Standard (90 minutes)</option>
+                                        <option value="90 minutes">90 minutes (standard)</option>
+                                        <option value="2 hours">2 hours (extended)</option>
+                                        <option value="3 hours">3 hours (intensive)</option>
+                                        <option value="Flexible">Flexible based on content</option>
+                                    </WcrInputSelect>
+                                </div>
+                            </div>
+
+                            <WcrInputTextArea @bind-Value="inquiryModel.SchedulingNotes"
+                                              Label="Scheduling Preferences"
+                                              Placeholder="Let us know your preferred days/times, any scheduling constraints, or other requirements..."
+                                              Rows="3"
+                                              HelpText="e.g., weekday evenings, weekend afternoons, specific instructor requests" />
+
+                            <WcrInputTextArea @bind-Value="inquiryModel.AdditionalNotes"
+                                              Label="Additional Information"
+                                              Placeholder="Anything else we should know? Physical limitations, specific interests, questions..."
+                                              Rows="3"
+                                              HelpText="Optional - any other information that would help us provide the best lesson experience" />
+                        </div>
+
+                        <!-- Consent & Acknowledgment -->
+                        <div class="form-section">
+                            <div class="consent-section">
+                                <WcrInputCheckbox @bind-Value="inquiryModel.AcknowledgeRisks"
+                                                  Label="I understand that rope bondage involves inherent risks and requires ongoing consent and communication." />
+                                
+                                <WcrInputCheckbox @bind-Value="inquiryModel.AgreesToTerms"
+                                                  Label="I agree to follow all safety guidelines and studio policies during private lessons." />
+                                
+                                <WcrInputCheckbox @bind-Value="inquiryModel.ConsentToContact"
+                                                  Label="I consent to being contacted about private lesson scheduling and related information." />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" disabled="@(!CanSubmit() || isSubmitting)">
+                            @if (isSubmitting)
+                            {
+                                <span class="spinner"></span>
+                                <span>Submitting...</span>
+                            }
+                            else
+                            {
+                                <i class="fas fa-paper-plane"></i>
+                                <span>Submit Request</span>
+                            }
+                        </button>
+                        <button type="button" class="btn btn-secondary" @onclick="ClearForm">
+                            <i class="fas fa-undo"></i>
+                            Clear Form
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ContentPage? contentPage;
+    private PrivateLessonInquiry inquiryModel = new();
+    private bool isSubmitting = false;
+    private bool isSubmitted = false;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load CMS content for this page
+        contentPage = await ContentPageService.GetOrCreateBySlugAsync("private-lessons", "Private Lessons");
+    }
+
+    private bool CanSubmit()
+    {
+        return !string.IsNullOrEmpty(inquiryModel.Name) &&
+               !string.IsNullOrEmpty(inquiryModel.Email) &&
+               !string.IsNullOrEmpty(inquiryModel.PreferredContact) &&
+               !string.IsNullOrEmpty(inquiryModel.ExperienceLevel) &&
+               !string.IsNullOrEmpty(inquiryModel.Goals) &&
+               inquiryModel.AcknowledgeRisks &&
+               inquiryModel.AgreesToTerms &&
+               inquiryModel.ConsentToContact;
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            isSubmitting = true;
+            errorMessage = null;
+
+            // TODO: Implement actual submission via API/email service
+            // For now, simulate submission
+            await Task.Delay(1500);
+
+            // In a real implementation, you would:
+            // await PrivateLessonService.SubmitInquiryAsync(inquiryModel);
+            // await EmailService.SendInquiryNotificationAsync(inquiryModel);
+
+            isSubmitted = true;
+            inquiryModel = new PrivateLessonInquiry();
+            
+            ToastService.ShowSuccess("Your private lesson request has been submitted successfully!");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Failed to submit your request. Please try again or contact us directly.";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void ClearForm()
+    {
+        inquiryModel = new PrivateLessonInquiry();
+        isSubmitted = false;
+        errorMessage = null;
+        ToastService.ShowInfo("Form cleared.");
+    }
+
+    public class PrivateLessonInquiry
+    {
+        [Required(ErrorMessage = "Please enter your name")]
+        [StringLength(100, MinimumLength = 2, ErrorMessage = "Name must be between 2 and 100 characters")]
+        public string Name { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Please enter your email address")]
+        [EmailAddress(ErrorMessage = "Please enter a valid email address")]
+        public string Email { get; set; } = string.Empty;
+
+        [Phone(ErrorMessage = "Please enter a valid phone number")]
+        public string Phone { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Please select your preferred contact method")]
+        public string PreferredContact { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Please select your experience level")]
+        public string ExperienceLevel { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Please describe your learning goals")]
+        [StringLength(1000, MinimumLength = 10, ErrorMessage = "Goals must be between 10 and 1000 characters")]
+        public string Goals { get; set; } = string.Empty;
+
+        [StringLength(1000, ErrorMessage = "Previous experience description cannot exceed 1000 characters")]
+        public string PreviousExperience { get; set; } = string.Empty;
+
+        public string PreferredInstructor { get; set; } = string.Empty;
+
+        public string SessionLength { get; set; } = string.Empty;
+
+        [StringLength(500, ErrorMessage = "Scheduling notes cannot exceed 500 characters")]
+        public string SchedulingNotes { get; set; } = string.Empty;
+
+        [StringLength(500, ErrorMessage = "Additional notes cannot exceed 500 characters")]
+        public string AdditionalNotes { get; set; } = string.Empty;
+
+        [Range(typeof(bool), "true", "true", ErrorMessage = "You must acknowledge the risks involved")]
+        public bool AcknowledgeRisks { get; set; }
+
+        [Range(typeof(bool), "true", "true", ErrorMessage = "You must agree to follow safety guidelines")]
+        public bool AgreesToTerms { get; set; }
+
+        [Range(typeof(bool), "true", "true", ErrorMessage = "You must consent to being contacted")]
+        public bool ConsentToContact { get; set; }
+    }
+}
+
+<style>
+    .private-lessons-page {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #fff8f0 0%, #f5f5f5 100%);
+        padding: 2rem 0;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .page-title {
+        font-size: 3rem;
+        font-weight: 700;
+        color: #8B4513;
+        margin-bottom: 1rem;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .page-subtitle {
+        font-size: 1.25rem;
+        color: #666;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    .cms-content-section {
+        background: white;
+        border-radius: 12px;
+        padding: 3rem;
+        margin-bottom: 3rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border: 1px solid rgba(139, 69, 19, 0.1);
+    }
+
+    .cms-content {
+        line-height: 1.7;
+        color: #333;
+    }
+
+    .default-content .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .info-card {
+        text-align: center;
+        padding: 2rem;
+        background: #f9f9f9;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        transition: all 0.3s ease;
+    }
+
+    .info-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .info-card i {
+        font-size: 3rem;
+        color: #8B4513;
+        margin-bottom: 1rem;
+    }
+
+    .info-card h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: #333;
+    }
+
+    .info-card p {
+        color: #666;
+        line-height: 1.5;
+    }
+
+    .lesson-details {
+        margin-top: 2rem;
+    }
+
+    .lesson-details h3 {
+        font-size: 1.5rem;
+        color: #8B4513;
+        margin: 2rem 0 1rem 0;
+        font-weight: 600;
+    }
+
+    .lesson-details ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .lesson-details li {
+        padding: 0.5rem 0;
+        padding-left: 2rem;
+        position: relative;
+        color: #555;
+        line-height: 1.5;
+    }
+
+    .lesson-details li:before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #8B4513;
+        font-weight: bold;
+    }
+
+    .inquiry-form-section {
+        background: white;
+        border-radius: 12px;
+        padding: 3rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border: 1px solid rgba(139, 69, 19, 0.1);
+    }
+
+    .form-title {
+        font-size: 2.25rem;
+        color: #8B4513;
+        margin-bottom: 1rem;
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .form-subtitle {
+        text-align: center;
+        color: #666;
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+
+    .success-message {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .success-message i {
+        font-size: 1.25rem;
+        color: #28a745;
+    }
+
+    .error-message {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .error-message i {
+        font-size: 1.25rem;
+        color: #dc3545;
+    }
+
+    .form-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .form-sections {
+        display: flex;
+        flex-direction: column;
+        gap: 2.5rem;
+    }
+
+    .form-section {
+        padding: 2rem;
+        background: #fafafa;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        color: #8B4513;
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+        border-bottom: 2px solid rgba(139, 69, 19, 0.2);
+        padding-bottom: 0.5rem;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-col {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .consent-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1.5rem;
+        background: rgba(139, 69, 19, 0.05);
+        border-radius: 6px;
+        border: 1px solid rgba(139, 69, 19, 0.1);
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid #e0e0e0;
+    }
+
+    .btn {
+        padding: 0.875rem 2rem;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: #8B4513;
+        color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        background: #6B3410;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+    }
+
+    .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-secondary {
+        background: #f8f9fa;
+        color: #333;
+        border: 1px solid #dee2e6;
+    }
+
+    .btn-secondary:hover {
+        background: #e9ecef;
+        border-color: #adb5bd;
+    }
+
+    .spinner {
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid transparent;
+        border-top: 2px solid currentColor;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    @@media (max-width: 768px) {
+        .private-lessons-page {
+            padding: 1rem 0;
+        }
+
+        .container {
+            padding: 0 1rem;
+        }
+
+        .page-title {
+            font-size: 2.25rem;
+        }
+
+        .cms-content-section,
+        .inquiry-form-section {
+            padding: 2rem;
+        }
+
+        .default-content .info-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .form-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .btn {
+            justify-content: center;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .page-title {
+            font-size: 1.875rem;
+        }
+
+        .form-title {
+            font-size: 1.75rem;
+        }
+
+        .cms-content-section,
+        .inquiry-form-section {
+            padding: 1.5rem;
+        }
+
+        .form-section {
+            padding: 1.5rem;
+        }
+    }
+</style>

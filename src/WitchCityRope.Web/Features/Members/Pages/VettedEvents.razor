@@ -1,0 +1,658 @@
+@page "/member/vetted-events"
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@using WitchCityRope.Web.Services
+@using WitchCityRope.Web.Shared.Layouts
+@using Microsoft.AspNetCore.Authorization
+@inject IApiClient ApiClient
+@inject IToastService ToastService
+@inject NavigationManager Navigation
+@attribute [Authorize]
+@layout MainLayout
+
+<PageTitle>Vetted Events - Witch City Rope</PageTitle>
+
+<style>
+    .vetted-events-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .events-header {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .events-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+    }
+
+    .events-subtitle {
+        color: #666;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .vetting-notice {
+        background: #e7f3ff;
+        border: 1px solid #bee5eb;
+        border-radius: 6px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .notice-title {
+        font-weight: 600;
+        color: #0c5460;
+        margin-bottom: 0.5rem;
+    }
+
+    .notice-text {
+        color: #0c5460;
+        font-size: 0.9rem;
+    }
+
+    .events-filters {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .filters-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .filter-label {
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .filter-select {
+        padding: 0.5rem;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        background: white;
+    }
+
+    .filter-button {
+        padding: 0.5rem 1rem;
+        background: #8B4513;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background 0.2s ease;
+    }
+
+    .filter-button:hover {
+        background: #6B3410;
+    }
+
+    .events-grid {
+        display: grid;
+        gap: 2rem;
+    }
+
+    .event-card {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease;
+    }
+
+    .event-card:hover {
+        transform: translateY(-4px);
+    }
+
+    .event-image {
+        width: 100%;
+        height: 200px;
+        background: linear-gradient(135deg, #8B4513 0%, #6B3410 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 3rem;
+        position: relative;
+    }
+
+    .event-type-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .event-content {
+        padding: 2rem;
+    }
+
+    .event-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 1rem;
+    }
+
+    .event-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .meta-icon {
+        width: 16px;
+        height: 16px;
+    }
+
+    .event-description {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+
+    .event-requirements {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 6px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .requirements-title {
+        font-weight: 600;
+        color: #856404;
+        margin-bottom: 0.5rem;
+    }
+
+    .requirements-list {
+        color: #856404;
+        font-size: 0.9rem;
+        margin: 0;
+        padding-left: 1rem;
+    }
+
+    .event-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1.5rem;
+    }
+
+    .event-price {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #8B4513;
+    }
+
+    .event-spots {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .event-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .action-button {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+        background: #8B4513;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #6B3410;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: #f8f9fa;
+        color: #333;
+        border: 1px solid #dee2e6;
+    }
+
+    .btn-secondary:hover {
+        background: #e9ecef;
+    }
+
+    .btn-disabled {
+        background: #e9ecef;
+        color: #6c757d;
+        cursor: not-allowed;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #666;
+    }
+
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #ccc;
+    }
+
+    .empty-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-description {
+        margin-bottom: 1.5rem;
+    }
+
+    .instructor-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .instructor-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #8B4513;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+
+    .instructor-name {
+        font-weight: 500;
+        color: #333;
+    }
+
+    @@media (max-width: 768px) {
+        .vetted-events-container {
+            padding: 1rem;
+        }
+
+        .filters-row {
+            grid-template-columns: 1fr;
+        }
+
+        .event-footer {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .event-actions {
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="vetted-events-container">
+    <div class="events-header">
+        <h1 class="events-title">Vetted Member Events</h1>
+        <p class="events-subtitle">Exclusive events and workshops for vetted community members</p>
+    </div>
+
+    <div class="vetting-notice">
+        <div class="notice-title">🎯 Vetted Member Access</div>
+        <div class="notice-text">
+            These events are available only to vetted members of our community. As a vetted member, you have access to 
+            advanced workshops, special events, and exclusive content that requires a deeper level of trust and experience.
+        </div>
+    </div>
+
+    <div class="events-filters">
+        <div class="filters-row">
+            <div class="filter-group">
+                <label class="filter-label">Event Type</label>
+                <select class="filter-select" @bind="selectedEventType">
+                    <option value="">All Types</option>
+                    <option value="workshop">Workshop</option>
+                    <option value="advanced">Advanced Class</option>
+                    <option value="social">Social Event</option>
+                    <option value="special">Special Event</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Skill Level</label>
+                <select class="filter-select" @bind="selectedSkillLevel">
+                    <option value="">All Levels</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                    <option value="expert">Expert</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Instructor</label>
+                <select class="filter-select" @bind="selectedInstructor">
+                    <option value="">All Instructors</option>
+                    <option value="rope-master">Rope Master</option>
+                    <option value="knot-expert">Knot Expert</option>
+                    <option value="shibari-sensei">Shibari Sensei</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <button class="filter-button" @onclick="ApplyFilters">Apply Filters</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="events-grid">
+        @if (filteredEvents.Any())
+        {
+            @foreach (var vettedEvent in filteredEvents)
+            {
+                <div class="event-card">
+                    <div class="event-image">
+                        <div class="event-type-badge">@vettedEvent.EventType</div>
+                        🎨
+                    </div>
+                    <div class="event-content">
+                        <h3 class="event-title">@vettedEvent.Title</h3>
+                        
+                        <div class="instructor-info">
+                            <div class="instructor-avatar">@GetInstructorInitials(vettedEvent.Instructor)</div>
+                            <span class="instructor-name">@vettedEvent.Instructor</span>
+                        </div>
+
+                        <div class="event-meta">
+                            <div class="meta-item">
+                                <span class="meta-icon">📅</span>
+                                <span>@vettedEvent.Date.ToString("dddd, MMMM d, yyyy")</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-icon">🕐</span>
+                                <span>@vettedEvent.Time</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-icon">📍</span>
+                                <span>@vettedEvent.Location</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-icon">📊</span>
+                                <span>@vettedEvent.SkillLevel</span>
+                            </div>
+                        </div>
+
+                        <p class="event-description">@vettedEvent.Description</p>
+
+                        @if (vettedEvent.Prerequisites.Any())
+                        {
+                            <div class="event-requirements">
+                                <div class="requirements-title">Prerequisites:</div>
+                                <ul class="requirements-list">
+                                    @foreach (var prerequisite in vettedEvent.Prerequisites)
+                                    {
+                                        <li>@prerequisite</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+
+                        <div class="event-footer">
+                            <div>
+                                <div class="event-price">@vettedEvent.Price.ToString("C")</div>
+                                <div class="event-spots">@vettedEvent.AvailableSpots spots remaining</div>
+                            </div>
+                            <div class="event-actions">
+                                @if (vettedEvent.IsRegistered)
+                                {
+                                    <button class="action-button btn-secondary" @onclick="() => ViewRegistration(vettedEvent.Id)">
+                                        View Registration
+                                    </button>
+                                }
+                                else if (vettedEvent.AvailableSpots > 0)
+                                {
+                                    <button class="action-button btn-primary" @onclick="() => RegisterForEvent(vettedEvent.Id)">
+                                        Register
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="action-button btn-disabled" disabled>
+                                        Sold Out
+                                    </button>
+                                }
+                                <button class="action-button btn-secondary" @onclick="() => ViewEventDetails(vettedEvent.Id)">
+                                    Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-icon">🎭</div>
+                <h3 class="empty-title">No vetted events found</h3>
+                <p class="empty-description">
+                    @if (HasActiveFilters())
+                    {
+                        <span>Try adjusting your filters to see more events.</span>
+                    }
+                    else
+                    {
+                        <span>There are no vetted events scheduled at the moment. Check back soon for new announcements!</span>
+                    }
+                </p>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private List<VettedEventDto> allEvents = new();
+    private List<VettedEventDto> filteredEvents = new();
+    
+    private string selectedEventType = "";
+    private string selectedSkillLevel = "";
+    private string selectedInstructor = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadVettedEvents();
+    }
+
+    private async Task LoadVettedEvents()
+    {
+        try
+        {
+            // Mock data - in real implementation, this would call the API
+            allEvents = new List<VettedEventDto>
+            {
+                new VettedEventDto
+                {
+                    Id = 1,
+                    Title = "Advanced Suspension Techniques",
+                    Description = "Master advanced suspension positions and safety protocols. This intensive workshop covers dynamic suspension, partial weight-bearing positions, and emergency procedures.",
+                    Date = DateTime.Now.AddDays(14),
+                    Time = "2:00 PM - 6:00 PM",
+                    Location = "Private Studio - Salem",
+                    EventType = "Advanced",
+                    SkillLevel = "Advanced",
+                    Instructor = "Rope Master",
+                    Price = 95.00m,
+                    AvailableSpots = 6,
+                    Prerequisites = new List<string> { "Completed Intermediate Rope Course", "2+ years experience", "Current first aid certification" }
+                },
+                new VettedEventDto
+                {
+                    Id = 2,
+                    Title = "Shibari Art & Photography Session",
+                    Description = "Explore the aesthetic beauty of shibari through guided art sessions. Work with professional photographers to create stunning rope art.",
+                    Date = DateTime.Now.AddDays(21),
+                    Time = "6:00 PM - 10:00 PM",
+                    Location = "Photography Studio - Salem",
+                    EventType = "Special",
+                    SkillLevel = "Intermediate",
+                    Instructor = "Shibari Sensei",
+                    Price = 125.00m,
+                    AvailableSpots = 4,
+                    Prerequisites = new List<string> { "Comfortable with being photographed", "Basic shibari knowledge" }
+                },
+                new VettedEventDto
+                {
+                    Id = 3,
+                    Title = "Kinbaku Intensive Weekend",
+                    Description = "A comprehensive two-day exploration of traditional Japanese kinbaku techniques, philosophy, and connection.",
+                    Date = DateTime.Now.AddDays(28),
+                    Time = "10:00 AM - 6:00 PM (Both Days)",
+                    Location = "Retreat Center - Outside Salem",
+                    EventType = "Workshop",
+                    SkillLevel = "Expert",
+                    Instructor = "Knot Expert",
+                    Price = 250.00m,
+                    AvailableSpots = 8,
+                    Prerequisites = new List<string> { "5+ years experience", "Instructor recommendation", "Completed advanced courses" }
+                },
+                new VettedEventDto
+                {
+                    Id = 4,
+                    Title = "Vetted Member Social Evening",
+                    Description = "An exclusive social gathering for vetted members to connect, share experiences, and enjoy community time.",
+                    Date = DateTime.Now.AddDays(7),
+                    Time = "7:00 PM - 10:00 PM",
+                    Location = "Private Venue - Salem",
+                    EventType = "Social",
+                    SkillLevel = "All Levels",
+                    Instructor = "Community Organizers",
+                    Price = 25.00m,
+                    AvailableSpots = 20,
+                    Prerequisites = new List<string> { "Vetted member status" }
+                }
+            };
+
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Failed to load vetted events: {ex.Message}");
+        }
+    }
+
+    private void ApplyFilters()
+    {
+        filteredEvents = allEvents.Where(e => 
+            (string.IsNullOrEmpty(selectedEventType) || e.EventType.ToLower().Contains(selectedEventType.ToLower())) &&
+            (string.IsNullOrEmpty(selectedSkillLevel) || e.SkillLevel.ToLower().Contains(selectedSkillLevel.ToLower())) &&
+            (string.IsNullOrEmpty(selectedInstructor) || e.Instructor.ToLower().Contains(selectedInstructor.ToLower()))
+        ).ToList();
+    }
+
+    private bool HasActiveFilters()
+    {
+        return !string.IsNullOrEmpty(selectedEventType) || 
+               !string.IsNullOrEmpty(selectedSkillLevel) || 
+               !string.IsNullOrEmpty(selectedInstructor);
+    }
+
+    private string GetInstructorInitials(string instructorName)
+    {
+        if (string.IsNullOrEmpty(instructorName))
+            return "?";
+        
+        var parts = instructorName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+            return $"{parts[0][0]}{parts[^1][0]}".ToUpper();
+        
+        return instructorName.Substring(0, Math.Min(2, instructorName.Length)).ToUpper();
+    }
+
+    private async Task RegisterForEvent(int eventId)
+    {
+        try
+        {
+            // Register for event via API
+            await Task.Delay(500); // Mock delay
+            
+            var eventToUpdate = allEvents.FirstOrDefault(e => e.Id == eventId);
+            if (eventToUpdate != null)
+            {
+                eventToUpdate.IsRegistered = true;
+                eventToUpdate.AvailableSpots--;
+                ApplyFilters();
+            }
+            
+            ToastService.ShowSuccess("Successfully registered for event!");
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Failed to register for event: {ex.Message}");
+        }
+    }
+
+    private void ViewRegistration(int eventId)
+    {
+        Navigation.NavigateTo($"/member/tickets");
+    }
+
+    private void ViewEventDetails(int eventId)
+    {
+        Navigation.NavigateTo($"/events/{eventId}");
+    }
+
+    public class VettedEventDto
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public DateTime Date { get; set; }
+        public string Time { get; set; } = string.Empty;
+        public string Location { get; set; } = string.Empty;
+        public string EventType { get; set; } = string.Empty;
+        public string SkillLevel { get; set; } = string.Empty;
+        public string Instructor { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public int AvailableSpots { get; set; }
+        public bool IsRegistered { get; set; }
+        public List<string> Prerequisites { get; set; } = new();
+    }
+}

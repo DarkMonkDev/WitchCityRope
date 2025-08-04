@@ -23,9 +23,17 @@
     <PackageReference Include="Syncfusion.Blazor.Themes" Version="30.1.37" />
     <PackageReference Include="Syncfusion.Blazor.Charts" Version="30.1.37" />
     <PackageReference Include="Syncfusion.Blazor.Cards" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.Blazor.RichTextEditor" Version="30.1.37" />
     
     <!-- Authentication -->
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.6" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.12.1" />
+    
+    <!-- Entity Framework Design Tools -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     
     <!-- HTTP Client -->
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.6" />

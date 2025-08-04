@@ -1,6 +1,9 @@
 @page "/login"
 @page "/auth/login"
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
 @layout PublicLayout
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
 
 <PageTitle>Login - Witch City Rope</PageTitle>
 
@@ -55,11 +58,10 @@
                     <DataAnnotationsValidator />
                     
                     <div class="form-group">
-                        <label class="form-label" for="login-email">Email Address</label>
+                        <label class="form-label" for="login-email">Email or Username</label>
                         <SfTextBox @bind-Value="@_loginModel.Email" 
                                    ID="login-email" 
-                                   Placeholder="your@email.com" 
-                                   Type="InputType.Email"
+                                   Placeholder="your@email.com or username" 
                                    CssClass="wcr-input" />
                         <ValidationMessage For="@(() => _loginModel.Email)" />
                     </div>
@@ -76,10 +78,17 @@
                     
                     <div class="checkbox-group">
                         <SfCheckBox @bind-Checked="@_loginModel.RememberMe" 
-                                    ID="remember"
+                                    ID="remember-me"
                                     Label="Keep me signed in for 30 days"
                                     CssClass="wcr-checkbox" />
                     </div>
+                    
+                    @if (!string.IsNullOrEmpty(_errorMessage))
+                    {
+                        <div class="alert alert-error">
+                            <span>@_errorMessage</span>
+                        </div>
+                    }
                     
                     <SfButton Type="submit" 
                               CssClass="btn-primary-full" 
@@ -108,7 +117,7 @@
                     </div>
                 }
                 
-                <EditForm Model="@_registerModel" OnValidSubmit="@HandleRegister">
+                <EditForm Model="@_registerModel" OnValidSubmit="@HandleRegister" FormName="register">
                     <DataAnnotationsValidator />
                     
                     <div class="form-group">

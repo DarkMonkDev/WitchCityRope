@@ -8,11 +8,11 @@ namespace WitchCityRope.E2E.Tests.Fixtures;
 public class DatabaseFixture : IAsyncDisposable
 {
     private readonly IConfiguration _configuration;
-    private WitchCityRopeDbContext _dbContext = null!;
+    private WitchCityRopeIdentityDbContext _dbContext = null!;
     private Respawner _respawner = null!;
     private readonly string _connectionString;
 
-    public WitchCityRopeDbContext DbContext => _dbContext;
+    public WitchCityRopeIdentityDbContext DbContext => _dbContext;
 
     public DatabaseFixture(IConfiguration configuration)
     {
@@ -24,10 +24,10 @@ public class DatabaseFixture : IAsyncDisposable
     public async Task InitializeAsync()
     {
         // Create DbContext
-        var optionsBuilder = new DbContextOptionsBuilder<WitchCityRopeDbContext>()
+        var optionsBuilder = new DbContextOptionsBuilder<WitchCityRopeIdentityDbContext>()
             .UseNpgsql(_connectionString);
         
-        _dbContext = new WitchCityRopeDbContext(optionsBuilder.Options);
+        _dbContext = new WitchCityRopeIdentityDbContext(optionsBuilder.Options);
 
         // Ensure database is created and migrations are applied
         await _dbContext.Database.EnsureCreatedAsync();
@@ -35,7 +35,7 @@ public class DatabaseFixture : IAsyncDisposable
         // Initialize Respawner for database cleanup
         _respawner = await Respawner.CreateAsync(_connectionString, new RespawnerOptions
         {
-            TablesToIgnore = new[]
+            TablesToIgnore = new Respawn.Graph.Table[]
             {
                 "__EFMigrationsHistory",
                 "AspNetRoles",

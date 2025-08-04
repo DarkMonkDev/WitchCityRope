@@ -18,7 +18,7 @@ namespace WitchCityRope.Api.Features.Events.Services;
 
 public class EventService : IEventService
 {
-    private readonly WitchCityRopeDbContext _dbContext;
+    private readonly WitchCityRopeIdentityDbContext _dbContext;
     // TODO: Implement these services
     // private readonly IUserContext _userContext;
     // private readonly Core.Interfaces.IPaymentService _paymentService;
@@ -26,14 +26,14 @@ public class EventService : IEventService
     private readonly ISlugGenerator _slugGenerator;
 
     public EventService(
-        WitchCityRopeDbContext dbContext,
+        WitchCityRopeIdentityDbContext dbContext,
         ISlugGenerator slugGenerator)
     {
         _dbContext = dbContext;
         _slugGenerator = slugGenerator;
     }
 
-    public async Task<Core.DTOs.CreateEventResponse> CreateEventAsync(CreateEventRequest request, Guid organizerId)
+    public async Task<Core.DTOs.CreateEventResponse> CreateEventAsync(Features.Events.Models.CreateEventRequest request, Guid organizerId)
     {
         // Verify organizer exists and has permission to create events
         var organizer = await _dbContext.Users
@@ -119,7 +119,6 @@ public class EventService : IEventService
 
         // Build base query
         var query = _dbContext.Events
-            .Include(e => e.Organizers)
             .Where(e => e.IsPublished)
             .AsQueryable();
 
@@ -307,7 +306,7 @@ public class EventService : IEventService
         return new GetFeaturedEventsResponse(Events: events);
     }
 
-    public async Task<RegisterForEventResponse> RegisterForEventAsync(RegisterForEventRequest request)
+    public async Task<Features.Events.Models.RegisterForEventResponse> RegisterForEventAsync(Features.Events.Models.RegisterForEventRequest request)
     {
         // Get event details
         var @event = await _dbContext.Events
@@ -471,7 +470,7 @@ public class EventService : IEventService
     }
 
     private async Task<Registration> CreateRegistrationAsync(
-        RegisterForEventRequest request,
+        Features.Events.Models.RegisterForEventRequest request,
         Event @event,
         RegistrationStatus status,
         int? waitlistPosition)

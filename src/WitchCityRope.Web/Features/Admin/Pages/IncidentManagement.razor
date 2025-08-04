@@ -6,6 +6,7 @@
 @inject IJSRuntime JSRuntime
 @attribute [Authorize(Roles = "Admin")]
 
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
 @* Incident management system for handling reports and safety issues *@
 
 <div class="page-container">

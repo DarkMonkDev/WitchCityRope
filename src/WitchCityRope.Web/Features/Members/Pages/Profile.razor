@@ -1,4 +1,12 @@
 @page "/profile"
+@inject NavigationManager NavigationManager
+
+@code {
+    protected override void OnInitialized()
+    {
+        NavigationManager.NavigateTo("/member/profile", true);
+    }
+}
 @using WitchCityRope.Web.Services
 @using WitchCityRope.Web.Shared.Layouts
 @using Syncfusion.Blazor.Buttons
@@ -311,7 +319,7 @@
 
     private void CancelChanges()
     {
-        Navigation.NavigateTo("/dashboard");
+        Navigation.NavigateTo("/dashboard", forceLoad: true);
     }
 
     private string GetInitials()

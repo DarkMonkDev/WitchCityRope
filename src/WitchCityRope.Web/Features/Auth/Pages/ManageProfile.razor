@@ -1,0 +1,530 @@
+@page "/manage-profile"
+@page "/identity/account/manage"
+@page "/identity/account/manage/index"
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Identity
+@using System.ComponentModel.DataAnnotations
+@using WitchCityRope.Infrastructure.Identity
+@using WitchCityRope.Web.Shared.Validation.Components
+@using Microsoft.AspNetCore.Authorization
+
+@inject UserManager<WitchCityRopeUser> UserManager
+@inject SignInManager<WitchCityRopeUser> SignInManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@inject ILogger<ManageProfile> Logger
+
+<PageTitle>Manage Profile - Witch City Rope</PageTitle>
+
+<div class="auth-container">
+    <div class="auth-card manage-profile-card">
+        <div class="auth-header">
+            <h1 class="auth-title">MANAGE PROFILE</h1>
+            <p class="auth-subtitle">Update your profile information and preferences.</p>
+        </div>
+
+        @if (showSuccess)
+        {
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle"></i>
+                <span>@successMessage</span>
+            </div>
+        }
+
+        <EditForm Model="profileModel" OnValidSubmit="HandleUpdateProfile">
+            <DataAnnotationsValidator />
+            
+            <div class="profile-section">
+                <h2 class="section-title">BASIC INFORMATION</h2>
+                
+                <div class="form-group">
+                    <label class="form-label">SCENE NAME (DISPLAY NAME)</label>
+                    <div class="read-only-field">
+                        <i class="bi bi-person-badge"></i>
+                        <span>@currentUser?.SceneNameValue</span>
+                    </div>
+                    <p class="field-note">Contact support to change your scene name.</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">EMAIL ADDRESS</label>
+                    <div class="read-only-field">
+                        <i class="bi bi-envelope"></i>
+                        <span>@currentUser?.Email</span>
+                        @if (currentUser?.EmailConfirmed == true)
+                        {
+                            <span class="verified-badge">
+                                <i class="bi bi-check-circle-fill"></i> Verified
+                            </span>
+                        }
+                    </div>
+                    <p class="field-note">
+                        <a href="/manage-email" class="field-link">Manage email settings</a>
+                    </p>
+                </div>
+
+                <div class="form-group">
+                    <WcrInputText @bind-Value="profileModel.PronouncedName" 
+                                  Placeholder="How your name is pronounced"
+                                  Label="PRONOUNCED NAME" />
+                    <p class="field-note">Help others pronounce your name correctly.</p>
+                </div>
+
+                <div class="form-group">
+                    <WcrInputText @bind-Value="profileModel.Pronouns" 
+                                  Placeholder="they/them, she/her, he/him, etc."
+                                  Label="PRONOUNS" />
+                </div>
+
+                <div class="form-group">
+                    <WcrInputText @bind-Value="profileModel.PhoneNumber" 
+                                  Placeholder="(123) 456-7890"
+                                  Label="PHONE NUMBER" />
+                    <p class="field-note">Used only for emergency contact purposes.</p>
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <h2 class="section-title">ACCOUNT STATUS</h2>
+                
+                <div class="status-grid">
+                    <div class="status-item">
+                        <span class="status-label">Member Since:</span>
+                        <span class="status-value">@currentUser?.CreatedAt.ToString("MMMM d, yyyy")</span>
+                    </div>
+                    
+                    <div class="status-item">
+                        <span class="status-label">Account Type:</span>
+                        <span class="status-value">@GetRoleDisplay()</span>
+                    </div>
+                    
+                    <div class="status-item">
+                        <span class="status-label">Vetting Status:</span>
+                        <span class="status-value">
+                            @if (currentUser?.IsVetted == true)
+                            {
+                                <span class="text-success">
+                                    <i class="bi bi-check-circle-fill"></i> Vetted Member
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-warning">
+                                    <i class="bi bi-clock"></i> Not Yet Vetted
+                                </span>
+                            }
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <WcrValidationSummary />
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger mt-3">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span>@errorMessage</span>
+                </div>
+            }
+
+            <button type="submit" class="btn-primary update-profile-btn" disabled="@isSubmitting">
+                @if (isSubmitting)
+                {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    <span>Updating...</span>
+                }
+                else
+                {
+                    <span>UPDATE PROFILE</span>
+                }
+            </button>
+        </EditForm>
+
+        <div class="auth-footer">
+            <p>
+                <a href="/change-password" class="auth-link">Change Password</a> | 
+                <a href="/manage-email" class="auth-link">Manage Email</a>
+            </p>
+            <p><a href="/member/account" class="auth-link">← Back to Account Settings</a></p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .manage-profile-card {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .auth-subtitle {
+        color: #666;
+        font-size: 0.95rem;
+        margin-bottom: 2rem;
+        line-height: 1.5;
+    }
+
+    .profile-section {
+        background-color: rgba(0, 0, 0, 0.02);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 1.5rem;
+        letter-spacing: 0.5px;
+    }
+
+    .read-only-field {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        color: #6c757d;
+    }
+
+    .read-only-field i {
+        font-size: 1.1rem;
+    }
+
+    .verified-badge {
+        margin-left: auto;
+        color: #28a745;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .field-note {
+        margin-top: 0.5rem;
+        margin-bottom: 0;
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .field-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .field-link:hover {
+        text-decoration: underline;
+    }
+
+    .status-grid {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .status-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem;
+        background-color: white;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+    }
+
+    .status-label {
+        font-weight: 500;
+        color: #495057;
+    }
+
+    .status-value {
+        color: #212529;
+    }
+
+    .update-profile-btn {
+        width: 100%;
+        padding: 14px;
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        margin-top: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .update-profile-btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+    }
+
+    .update-profile-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .alert i {
+        font-size: 1.25rem;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .alert-success {
+        background-color: rgba(40, 167, 69, 0.1);
+        border: 1px solid rgba(40, 167, 69, 0.2);
+        color: #155724;
+    }
+
+    .alert-success i {
+        color: #28a745;
+    }
+
+    .alert-danger {
+        background-color: rgba(220, 53, 69, 0.1);
+        border: 1px solid rgba(220, 53, 69, 0.2);
+        color: #721c24;
+    }
+
+    .alert-danger i {
+        color: #dc3545;
+    }
+
+    .auth-footer {
+        margin-top: 2rem;
+        text-align: center;
+    }
+
+    .auth-footer p {
+        margin: 0.5rem 0;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .auth-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .auth-link:hover {
+        color: var(--primary-hover);
+        text-decoration: underline;
+    }
+
+    .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.2rem;
+    }
+
+    /* Dark mode support */
+    @@media (prefers-color-scheme: dark) {
+        .manage-profile-card {
+            background-color: #1a1a1a;
+            border-color: #333;
+        }
+
+        .auth-subtitle {
+            color: #999;
+        }
+
+        .profile-section {
+            background-color: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .section-title {
+            color: var(--primary-color);
+        }
+
+        .read-only-field {
+            background-color: #2a2a2a;
+            border-color: #444;
+            color: #999;
+        }
+
+        .field-note {
+            color: #999;
+        }
+
+        .status-item {
+            background-color: #222;
+            border-color: #444;
+        }
+
+        .status-label {
+            color: #adb5bd;
+        }
+
+        .status-value {
+            color: #e9ecef;
+        }
+
+        .alert-success {
+            background-color: rgba(40, 167, 69, 0.05);
+            border-color: rgba(40, 167, 69, 0.3);
+            color: #5cb85c;
+        }
+
+        .alert-danger {
+            background-color: rgba(220, 53, 69, 0.05);
+            border-color: rgba(220, 53, 69, 0.3);
+            color: #e74c3c;
+        }
+
+        .auth-footer p {
+            color: #999;
+        }
+    }
+</style>
+
+@code {
+    private ProfileModel profileModel = new();
+    private WitchCityRopeUser? currentUser;
+    private bool isSubmitting = false;
+    private bool showSuccess = false;
+    private string? successMessage;
+    private string? errorMessage;
+
+    public class ProfileModel
+    {
+        [Phone(ErrorMessage = "Please enter a valid phone number")]
+        [Display(Name = "Phone number")]
+        public string? PhoneNumber { get; set; }
+
+        [StringLength(100, ErrorMessage = "Pronounced name must not exceed 100 characters")]
+        [Display(Name = "Pronounced name")]
+        public string? PronouncedName { get; set; }
+
+        [StringLength(50, ErrorMessage = "Pronouns must not exceed 50 characters")]
+        [Display(Name = "Pronouns")]
+        public string? Pronouns { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Skip auth operations during prerendering
+        if (!OperatingSystem.IsBrowser())
+        {
+            return;
+        }
+        
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState?.User?.Identity?.IsAuthenticated != true)
+        {
+            Navigation.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+
+        currentUser = await UserManager.GetUserAsync(authState.User);
+        if (currentUser == null)
+        {
+            Navigation.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+
+        // Load current values
+        profileModel.PhoneNumber = currentUser.PhoneNumber;
+        profileModel.PronouncedName = currentUser.PronouncedName;
+        profileModel.Pronouns = currentUser.Pronouns;
+    }
+
+    private string GetRoleDisplay()
+    {
+        if (currentUser == null) return "Unknown";
+        
+        return currentUser.Role switch
+        {
+            Core.Enums.UserRole.Administrator => "Administrator",
+            Core.Enums.UserRole.Moderator => "Moderator",
+            Core.Enums.UserRole.Organizer => "Organizer",
+            Core.Enums.UserRole.Member => "Member",
+            Core.Enums.UserRole.Attendee => "Attendee",
+            _ => "Unknown"
+        };
+    }
+
+    private async Task HandleUpdateProfile()
+    {
+        if (currentUser == null)
+        {
+            errorMessage = "Session expired. Please refresh the page.";
+            return;
+        }
+
+        try
+        {
+            isSubmitting = true;
+            errorMessage = null;
+            showSuccess = false;
+            StateHasChanged();
+
+            bool hasChanges = false;
+
+            // Update phone number
+            if (profileModel.PhoneNumber != currentUser.PhoneNumber)
+            {
+                var setPhoneResult = await UserManager.SetPhoneNumberAsync(currentUser, profileModel.PhoneNumber);
+                if (!setPhoneResult.Succeeded)
+                {
+                    errorMessage = "Failed to update phone number. Please try again.";
+                    return;
+                }
+                hasChanges = true;
+            }
+
+            // Update pronounced name and pronouns
+            if (profileModel.PronouncedName != currentUser.PronouncedName || 
+                profileModel.Pronouns != currentUser.Pronouns)
+            {
+                currentUser.UpdatePronouncedName(profileModel.PronouncedName ?? string.Empty);
+                currentUser.UpdatePronouns(profileModel.Pronouns ?? string.Empty);
+                
+                var updateResult = await UserManager.UpdateAsync(currentUser);
+                if (!updateResult.Succeeded)
+                {
+                    errorMessage = "Failed to update profile. Please try again.";
+                    return;
+                }
+                hasChanges = true;
+            }
+
+            if (hasChanges)
+            {
+                await SignInManager.RefreshSignInAsync(currentUser);
+                showSuccess = true;
+                successMessage = "Your profile has been updated successfully!";
+                Logger.LogInformation("User {UserId} updated their profile", currentUser.Id);
+            }
+            else
+            {
+                showSuccess = true;
+                successMessage = "No changes were made to your profile.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error updating profile for user {UserId}", currentUser?.Id);
+            errorMessage = "An error occurred while updating your profile. Please try again.";
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+}

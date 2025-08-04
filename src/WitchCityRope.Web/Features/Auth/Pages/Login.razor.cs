@@ -26,6 +26,13 @@ public partial class Login : ComponentBase
     private int _passwordStrengthPercent = 0;
     private string _passwordStrengthText = "";
 
+    protected override void OnInitialized()
+    {
+        // Immediately redirect to the new Identity login page
+        var returnUrl = GetReturnUrl();
+        Navigation.NavigateTo($"/Identity/Account/Login{(returnUrl != "/member/dashboard" ? "?returnUrl=" + Uri.EscapeDataString(returnUrl) : "")}", forceLoad: true);
+    }
+
     private void SetActiveTab(string tab)
     {
         _activeTab = tab;

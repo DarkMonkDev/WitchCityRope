@@ -1,108 +1,172 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using WitchCityRope.Api.Features.Auth.Models;
 using WitchCityRope.Core.Entities;
 using WitchCityRope.Core.ValueObjects;
 using WitchCityRope.Infrastructure.Data;
+using WitchCityRope.Infrastructure.Identity;
 
 namespace WitchCityRope.Api.Features.Auth.Services
 {
     /// <summary>
-    /// Repository implementation for authentication-related user operations
+    /// Repository implementation for authentication-related user operations using Identity
     /// </summary>
     public class AuthUserRepository : IUserRepository
     {
-        private readonly WitchCityRopeDbContext _context;
+        private readonly WitchCityRopeIdentityDbContext _context;
+        private readonly UserManager<WitchCityRopeUser> _userManager;
 
-        public AuthUserRepository(WitchCityRopeDbContext context)
+        public AuthUserRepository(WitchCityRopeIdentityDbContext context, UserManager<WitchCityRopeUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         public async Task<UserWithAuth?> GetByEmailAsync(string email)
         {
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email.Value == email);
+            var identityUser = await _userManager.FindByEmailAsync(email);
 
-            if (user == null)
+            if (identityUser == null)
                 return null;
 
-            // Get the authentication record for this user
-            var userAuth = await _context.UserAuthentications
-                .FirstOrDefaultAsync(ua => ua.UserId == user.Id);
-
-            if (userAuth == null)
-                return null;
-
+            // Map WitchCityRopeUser to UserWithAuth for compatibility
             return new UserWithAuth
             {
-                User = user,
-                PasswordHash = userAuth.PasswordHash,
-                EmailVerified = true, // TODO: Add EmailVerifiedAt to UserAuthentication entity
-                LastLoginAt = userAuth.UpdatedAt // Using UpdatedAt as a proxy for last login
+                User = identityUser,
+                PasswordHash = identityUser.PasswordHash ?? string.Empty,
+                EmailVerified = identityUser.EmailConfirmed,
+                PronouncedName = identityUser.PronouncedName,
+                Pronouns = identityUser.Pronouns,
+                LastLoginAt = identityUser.LastLoginAt
             };
         }
 
-        public async Task<User?> GetByIdAsync(Guid userId)
+        public async Task<WitchCityRopeUser?> GetByIdAsync(Guid userId)
         {
-            return await _context.Users.FindAsync(userId);
+            return await _userManager.FindByIdAsync(userId.ToString());
         }
 
         public async Task<bool> IsSceneNameTakenAsync(string sceneName)
         {
-            return await _context.Users
-                .AnyAsync(u => u.SceneName.Value == sceneName);
+            return await _userManager.Users
+                .AnyAsync(u => u.SceneNameValue == sceneName);
         }
 
-        public async Task CreateAsync(User user, UserAuthentication userAuth)
+        public async Task CreateAsync(WitchCityRopeUser identityUser, UserAuthentication userAuth)
         {
-            // Add the user to the context
-            _context.Users.Add(user);
+            // User is already a WitchCityRopeUser, no conversion needed
+
+            // Create the user without password first
+            var result = await _userManager.CreateAsync(identityUser);
             
-            // In a real implementation, we would also save userAuth to a separate table
-            // For now, we'll just save the user
-            await _context.SaveChangesAsync();
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException($"Failed to create user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            }
+
+            // Set the password hash directly if provided
+            if (!string.IsNullOrEmpty(userAuth.PasswordHash))
+            {
+                identityUser.PasswordHash = userAuth.PasswordHash;
+                await _userManager.UpdateAsync(identityUser);
+            }
         }
 
         public async Task UpdateLastLoginAsync(Guid userId)
         {
-            // In a real implementation, this would update the last login timestamp
-            // in the authentication table
-            await Task.CompletedTask;
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user != null)
+            {
+                user.LastLoginAt = DateTime.UtcNow;
+                await _userManager.UpdateAsync(user);
+            }
         }
 
         public async Task StoreRefreshTokenAsync(Guid userId, string refreshToken, DateTime expiresAt)
         {
-            // In a real implementation, this would store the refresh token
-            // in a tokens table
-            await Task.CompletedTask;
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user != null)
+            {
+                var token = new RefreshToken
+                {
+                    UserId = userId,
+                    Token = refreshToken,
+                    ExpiresAt = expiresAt,
+                    CreatedAt = DateTime.UtcNow,
+                    IsRevoked = false
+                };
+                
+                _context.RefreshTokens.Add(token);
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task<RefreshTokenInfo?> GetRefreshTokenInfoAsync(string refreshToken)
         {
-            // In a real implementation, this would look up the refresh token
-            // from a tokens table
-            return await Task.FromResult<RefreshTokenInfo?>(null);
+            var token = await _context.RefreshTokens
+                .FirstOrDefaultAsync(rt => rt.Token == refreshToken && !rt.IsRevoked);
+
+            if (token == null)
+                return null;
+
+            return new RefreshTokenInfo
+            {
+                UserId = token.UserId,
+                ExpiresAt = token.ExpiresAt,
+                IsValid = token.ExpiresAt > DateTime.UtcNow
+            };
         }
 
         public async Task InvalidateRefreshTokenAsync(string refreshToken)
         {
-            // In a real implementation, this would mark the refresh token as invalid
-            await Task.CompletedTask;
+            var token = await _context.RefreshTokens
+                .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+
+            if (token != null)
+            {
+                token.IsRevoked = true;
+                token.RevokedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task<UserAuthentication?> GetByVerificationTokenAsync(string token)
         {
-            // In a real implementation, this would look up the user by verification token
-            // from the authentication table
-            return await Task.FromResult<UserAuthentication?>(null);
+            var user = await _userManager.Users
+                .FirstOrDefaultAsync(u => u.EmailVerificationToken == token);
+
+            if (user == null)
+                return null;
+
+            // Return a UserAuthentication object for compatibility
+            // Note: This is a compatibility shim and should be refactored
+            return new UserAuthentication
+            {
+                Id = user.Id,
+                UserId = user.Id,
+                PasswordHash = user.PasswordHash ?? string.Empty,
+                IsTwoFactorEnabled = user.TwoFactorEnabled,
+                FailedLoginAttempts = user.FailedLoginAttempts,
+                LockedOutUntil = user.LockedOutUntil,
+                LastPasswordChangeAt = user.LastPasswordChangeAt,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt
+            };
         }
 
         public async Task VerifyEmailAsync(Guid userId)
         {
-            // In a real implementation, this would mark the user's email as verified
-            // in the authentication table
-            await Task.CompletedTask;
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user != null)
+            {
+                user.EmailConfirmed = true;
+                user.EmailVerificationToken = string.Empty;
+                user.EmailVerificationTokenCreatedAt = null;
+                await _userManager.UpdateAsync(user);
+            }
         }
     }
 }

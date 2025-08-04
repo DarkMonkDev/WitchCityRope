@@ -1,0 +1,101 @@
+@page "/test-auth-state"
+
+<h3>Authentication State Test</h3>
+
+<AuthorizeView>
+    <Authorized>
+        <p>✅ You are authenticated!</p>
+        <p>User: @context.User.Identity?.Name</p>
+        <p>Authentication Type: @context.User.Identity?.AuthenticationType</p>
+        <p>Is Authenticated: @context.User.Identity?.IsAuthenticated</p>
+        <h4>Claims:</h4>
+        <ul>
+            @foreach (var claim in context.User.Claims)
+            {
+                <li>@claim.Type: @claim.Value</li>
+            }
+        </ul>
+        <h4>Roles:</h4>
+        <ul>
+            @foreach (var role in context.User.Claims.Where(c => c.Type == System.Security.Claims.ClaimTypes.Role))
+            {
+                <li>@role.Value</li>
+            }
+        </ul>
+    </Authorized>
+    <NotAuthorized>
+        <p>❌ You are NOT authenticated</p>
+        <p><a href="/login">Login</a></p>
+    </NotAuthorized>
+</AuthorizeView>
+
+<hr />
+
+<h4>Component-level Auth State:</h4>
+@if (_authState != null)
+{
+    <p>Auth State User: @_authState.User.Identity?.Name</p>
+    <p>Is Authenticated: @_authState.User.Identity?.IsAuthenticated</p>
+}
+
+<hr />
+
+<h4>IAuthService User:</h4>
+@if (_currentUser != null)
+{
+    <p>Email: @_currentUser.Email</p>
+    <p>Scene Name: @_currentUser.SceneName</p>
+    <p>Is Admin: @_currentUser.IsAdmin</p>
+    <p>Roles: @string.Join(", ", _currentUser.Roles)</p>
+}
+else
+{
+    <p>No user from IAuthService</p>
+}
+
+<hr />
+
+<h4>Actions:</h4>
+<button class="btn btn-primary" @onclick="RefreshState">Refresh State</button>
+<button class="btn btn-secondary" @onclick="NavigateToLogin">Go to Login</button>
+<button class="btn btn-danger" @onclick="Logout">Logout</button>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthenticationState { get; set; }
+    
+    [Inject]
+    private IAuthService AuthService { get; set; } = default!;
+    
+    [Inject]
+    private NavigationManager Navigation { get; set; } = default!;
+    
+    private AuthenticationState? _authState;
+    private UserDto? _currentUser;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshState();
+    }
+    
+    private async Task RefreshState()
+    {
+        if (AuthenticationState != null)
+        {
+            _authState = await AuthenticationState;
+        }
+        
+        _currentUser = await AuthService.GetCurrentUserAsync();
+        StateHasChanged();
+    }
+    
+    private void NavigateToLogin()
+    {
+        Navigation.NavigateTo("/login");
+    }
+    
+    private void Logout()
+    {
+        Navigation.NavigateTo("/Identity/Account/Logout", forceLoad: true);
+    }
+}

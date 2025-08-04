@@ -1,11 +1,11 @@
 using System;
 using System.Threading.Tasks;
-using WitchCityRope.Core.Entities;
+using WitchCityRope.Infrastructure.Identity;
 
 namespace WitchCityRope.Infrastructure.Services;
 
 public interface IUserContext
 {
-    Task<User?> GetCurrentUserAsync();
+    Task<WitchCityRopeUser?> GetCurrentUserAsync();
     Guid? GetCurrentUserId();
 }

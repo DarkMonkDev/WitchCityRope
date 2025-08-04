@@ -1,3 +1,4 @@
+using WitchCityRope.Core.DTOs;
 using WitchCityRope.Web.Models;
 
 namespace WitchCityRope.Web.Services;

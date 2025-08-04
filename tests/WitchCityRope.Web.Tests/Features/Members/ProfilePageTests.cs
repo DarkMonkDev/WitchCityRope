@@ -3,7 +3,9 @@ using System.Threading.Tasks;
 using Xunit;
 using Moq;
 using FluentAssertions;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.Extensions.DependencyInjection;
 using Bunit;
 using WitchCityRope.Web.Features.Members.Pages;
 using WitchCityRope.Web.Tests.Helpers;
@@ -27,29 +29,16 @@ namespace WitchCityRope.Web.Tests.Features.Members
             AuthenticationTestContext.SetupAuthenticatedUser(this, "test-user", "test@example.com", "TestUser");
         }
 
-        private UserProfileDto CreateTestProfile()
+        private UserProfile CreateTestProfile()
         {
-            return new UserProfileDto
+            return new UserProfile
             {
                 Email = "test@example.com",
                 SceneName = "TestUser",
                 Bio = "Experienced rope practitioner",
-                PhoneNumber = "+1234567890",
-                EmergencyContactName = "Emergency Contact",
-                EmergencyContactPhone = "+0987654321",
-                NotificationPreferences = new NotificationPreferencesDto
-                {
-                    EmailNotifications = true,
-                    SmsNotifications = false,
-                    EventReminders = true,
-                    MarketingEmails = false
-                },
-                PrivacySettings = new PrivacySettingsDto
-                {
-                    ShowProfile = true,
-                    AllowMessages = true,
-                    ShowAttendance = false
-                }
+                Pronouns = "they/them",
+                EmailVerified = true,
+                MemberSince = DateTime.UtcNow.AddMonths(-6)
             };
         }
 
@@ -58,7 +47,7 @@ namespace WitchCityRope.Web.Tests.Features.Members
         {
             // Arrange
             var profile = CreateTestProfile();
-            _userServiceMock.Setup(x => x.GetProfileAsync())
+            _userServiceMock.Setup(x => x.GetCurrentUserProfileAsync())
                 .ReturnsAsync(profile);
 
             // Act
@@ -69,7 +58,7 @@ namespace WitchCityRope.Web.Tests.Features.Members
             component.Find("#scene-name").GetAttribute("value").Should().Be("TestUser");
             component.Find("#email").GetAttribute("value").Should().Be("test@example.com");
             component.Find("#bio").TextContent.Should().Be("Experienced rope practitioner");
-            component.Find("#phone").GetAttribute("value").Should().Be("+1234567890");
+            component.Find("#pronouns").GetAttribute("value").Should().Be("they/them");
         }
 
         [Fact]
@@ -77,7 +66,7 @@ namespace WitchCityRope.Web.Tests.Features.Members
         {
             // Arrange
             var profile = CreateTestProfile();
-            _userServiceMock.Setup(x => x.GetProfileAsync())
+            _userServiceMock.Setup(x => x.GetCurrentUserProfileAsync())
                 .ReturnsAsync(profile);
 
             var component = RenderComponent<Profile>();
@@ -98,10 +87,10 @@ namespace WitchCityRope.Web.Tests.Features.Members
         {
             // Arrange
             var profile = CreateTestProfile();
-            _userServiceMock.Setup(x => x.GetProfileAsync())
+            _userServiceMock.Setup(x => x.GetCurrentUserProfileAsync())
                 .ReturnsAsync(profile);
-            _userServiceMock.Setup(x => x.UpdateProfileAsync(It.IsAny<UserProfileDto>()))
-                .ReturnsAsync(true);
+            _userServiceMock.Setup(x => x.UpdateProfileAsync(It.IsAny<UserProfileUpdate>()))
+                .Returns(Task.CompletedTask);
 
             var component = RenderComponent<Profile>();
             await Task.Delay(50);
@@ -112,8 +101,8 @@ namespace WitchCityRope.Web.Tests.Features.Members
             await component.Find(".btn-save").ClickAsync();
 
             // Assert
-            _userServiceMock.Verify(x => x.UpdateProfileAsync(It.Is<UserProfileDto>(p => p.Bio == "Updated bio")), Times.Once);
-            NotificationServiceMock.Verify(x => x.ShowSuccessAsync("Profile updated successfully"), Times.Once);
+            _userServiceMock.Verify(x => x.UpdateProfileAsync(It.Is<UserProfileUpdate>(p => p.Bio == "Updated bio")), Times.Once);
+            ToastServiceMock.Verify(x => x.ShowSuccess("Profile updated successfully"), Times.Once);
         }
 
         [Fact]
@@ -121,7 +110,7 @@ namespace WitchCityRope.Web.Tests.Features.Members
         {
             // Arrange
             var profile = CreateTestProfile();
-            _userServiceMock.Setup(x => x.GetProfileAsync())
+            _userServiceMock.Setup(x => x.GetCurrentUserProfileAsync())
                 .ReturnsAsync(profile);
 
             var component = RenderComponent<Profile>();
@@ -137,60 +126,26 @@ namespace WitchCityRope.Web.Tests.Features.Members
             component.Find("#bio").GetAttribute("readonly").Should().NotBeNull();
         }
 
-        [Fact]
-        public async Task Profile_NotificationPreferences_ToggleCorrectly()
-        {
-            // Arrange
-            var profile = CreateTestProfile();
-            _userServiceMock.Setup(x => x.GetProfileAsync())
-                .ReturnsAsync(profile);
-            _userServiceMock.Setup(x => x.UpdateProfileAsync(It.IsAny<UserProfileDto>()))
-                .ReturnsAsync(true);
+        // TODO: Re-enable when UserProfileUpdate model includes notification preferences
+        // [Fact]
+        // public async Task Profile_NotificationPreferences_ToggleCorrectly()
+        // {
+        //     // Test implementation will be added when UserProfileUpdate supports notification preferences
+        // }
 
-            var component = RenderComponent<Profile>();
-            await Task.Delay(50);
-
-            // Act
-            await component.Find(".btn-edit").ClickAsync();
-            await component.Find("#email-notifications").ClickAsync(); // Toggle off
-            await component.Find("#sms-notifications").ClickAsync(); // Toggle on
-            await component.Find(".btn-save").ClickAsync();
-
-            // Assert
-            _userServiceMock.Verify(x => x.UpdateProfileAsync(It.Is<UserProfileDto>(p => 
-                !p.NotificationPreferences.EmailNotifications && 
-                p.NotificationPreferences.SmsNotifications)), Times.Once);
-        }
-
-        [Fact]
-        public async Task Profile_PrivacySettings_UpdateCorrectly()
-        {
-            // Arrange
-            var profile = CreateTestProfile();
-            _userServiceMock.Setup(x => x.GetProfileAsync())
-                .ReturnsAsync(profile);
-            _userServiceMock.Setup(x => x.UpdateProfileAsync(It.IsAny<UserProfileDto>()))
-                .ReturnsAsync(true);
-
-            var component = RenderComponent<Profile>();
-            await Task.Delay(50);
-
-            // Act
-            await component.Find(".btn-edit").ClickAsync();
-            await component.Find("#show-attendance").ClickAsync(); // Toggle on
-            await component.Find(".btn-save").ClickAsync();
-
-            // Assert
-            _userServiceMock.Verify(x => x.UpdateProfileAsync(It.Is<UserProfileDto>(p => 
-                p.PrivacySettings.ShowAttendance)), Times.Once);
-        }
+        // TODO: Re-enable when UserProfileUpdate model includes privacy settings
+        // [Fact]
+        // public async Task Profile_PrivacySettings_UpdateCorrectly()
+        // {
+        //     // Test implementation will be added when UserProfileUpdate supports privacy settings
+        // }
 
         [Fact]
         public void Profile_EmailField_AlwaysReadonly()
         {
             // Arrange
             var profile = CreateTestProfile();
-            _userServiceMock.Setup(x => x.GetProfileAsync())
+            _userServiceMock.Setup(x => x.GetCurrentUserProfileAsync())
                 .ReturnsAsync(profile);
 
             var component = RenderComponent<Profile>();
@@ -203,35 +158,19 @@ namespace WitchCityRope.Web.Tests.Features.Members
             component.Find(".email-info").TextContent.Should().Contain("Email cannot be changed");
         }
 
-        [Fact]
-        public async Task Profile_EmergencyContact_RequiredValidation()
-        {
-            // Arrange
-            var profile = CreateTestProfile();
-            _userServiceMock.Setup(x => x.GetProfileAsync())
-                .ReturnsAsync(profile);
-
-            var component = RenderComponent<Profile>();
-            await Task.Delay(50);
-
-            // Act
-            await component.Find(".btn-edit").ClickAsync();
-            await component.Find("#emergency-name").ChangeAsync(new ChangeEventArgs { Value = "" });
-            await component.Find("#emergency-phone").ChangeAsync(new ChangeEventArgs { Value = "" });
-            await component.Find(".btn-save").ClickAsync();
-
-            // Assert
-            var validationMessages = component.FindAll(".validation-message");
-            validationMessages.Should().Contain(x => x.TextContent.Contains("Emergency contact name is required"));
-            validationMessages.Should().Contain(x => x.TextContent.Contains("Emergency contact phone is required"));
-        }
+        // TODO: Re-enable when UserProfile model includes emergency contact fields
+        // [Fact]
+        // public async Task Profile_EmergencyContact_RequiredValidation()
+        // {
+        //     // Test implementation will be added when UserProfile supports emergency contacts
+        // }
 
         [Fact]
         public async Task Profile_SceneName_ValidationEnforced()
         {
             // Arrange
             var profile = CreateTestProfile();
-            _userServiceMock.Setup(x => x.GetProfileAsync())
+            _userServiceMock.Setup(x => x.GetCurrentUserProfileAsync())
                 .ReturnsAsync(profile);
 
             var component = RenderComponent<Profile>();
@@ -251,8 +190,8 @@ namespace WitchCityRope.Web.Tests.Features.Members
         public async Task Profile_LoadingState_ShowsSpinner()
         {
             // Arrange
-            var tcs = new TaskCompletionSource<UserProfileDto>();
-            _userServiceMock.Setup(x => x.GetProfileAsync())
+            var tcs = new TaskCompletionSource<UserProfile?>();
+            _userServiceMock.Setup(x => x.GetCurrentUserProfileAsync())
                 .Returns(tcs.Task);
 
             // Act
@@ -273,9 +212,9 @@ namespace WitchCityRope.Web.Tests.Features.Members
         {
             // Arrange
             var profile = CreateTestProfile();
-            _userServiceMock.Setup(x => x.GetProfileAsync())
+            _userServiceMock.Setup(x => x.GetCurrentUserProfileAsync())
                 .ReturnsAsync(profile);
-            _userServiceMock.Setup(x => x.UpdateProfileAsync(It.IsAny<UserProfileDto>()))
+            _userServiceMock.Setup(x => x.UpdateProfileAsync(It.IsAny<UserProfileUpdate>()))
                 .ThrowsAsync(new Exception("Network error"));
 
             var component = RenderComponent<Profile>();
@@ -287,7 +226,7 @@ namespace WitchCityRope.Web.Tests.Features.Members
             await component.Find(".btn-save").ClickAsync();
 
             // Assert
-            NotificationServiceMock.Verify(x => x.ShowErrorAsync(It.Is<string>(s => s.Contains("Error updating profile"))), Times.Once);
+            ToastServiceMock.Verify(x => x.ShowError(It.Is<string>(s => s.Contains("Error updating profile"))), Times.Once);
         }
 
         [Fact]
@@ -295,7 +234,7 @@ namespace WitchCityRope.Web.Tests.Features.Members
         {
             // Arrange
             var profile = CreateTestProfile();
-            _userServiceMock.Setup(x => x.GetProfileAsync())
+            _userServiceMock.Setup(x => x.GetCurrentUserProfileAsync())
                 .ReturnsAsync(profile);
 
             var component = RenderComponent<Profile>();
@@ -313,7 +252,7 @@ namespace WitchCityRope.Web.Tests.Features.Members
         {
             // Arrange
             var profile = CreateTestProfile();
-            _userServiceMock.Setup(x => x.GetProfileAsync())
+            _userServiceMock.Setup(x => x.GetCurrentUserProfileAsync())
                 .ReturnsAsync(profile);
 
             var component = RenderComponent<Profile>();
@@ -331,7 +270,7 @@ namespace WitchCityRope.Web.Tests.Features.Members
         {
             // Arrange
             var profile = CreateTestProfile();
-            _userServiceMock.Setup(x => x.GetProfileAsync())
+            _userServiceMock.Setup(x => x.GetCurrentUserProfileAsync())
                 .ReturnsAsync(profile);
 
             var component = RenderComponent<Profile>();
@@ -346,56 +285,30 @@ namespace WitchCityRope.Web.Tests.Features.Members
             component.Find(".modal-warning").TextContent.Should().Contain("This action cannot be undone");
         }
 
-        [Fact]
-        public async Task Profile_ConfirmDeleteAccount_CallsDeleteService()
-        {
-            // Arrange
-            var profile = CreateTestProfile();
-            _userServiceMock.Setup(x => x.GetProfileAsync())
-                .ReturnsAsync(profile);
-            _userServiceMock.Setup(x => x.DeleteAccountAsync())
-                .ReturnsAsync(true);
+        // TODO: Re-enable when IUserService includes DeleteAccountAsync method
+        // [Fact]
+        // public async Task Profile_ConfirmDeleteAccount_CallsDeleteService()
+        // {
+        //     // Arrange
+        //     var profile = CreateTestProfile();
+        //     _userServiceMock.Setup(x => x.GetCurrentUserProfileAsync())
+        //         .ReturnsAsync(profile);
+        //     _userServiceMock.Setup(x => x.DeleteAccountAsync())
+        //         .ReturnsAsync(true);
 
-            var component = RenderComponent<Profile>();
-            await Task.Delay(50);
+        //     var component = RenderComponent<Profile>();
+        //     await Task.Delay(50);
 
-            // Act
-            await component.Find(".btn-delete-account").ClickAsync();
-            await component.Find(".confirm-delete-input").ChangeAsync(new ChangeEventArgs { Value = "DELETE" });
-            await component.Find(".btn-confirm-delete").ClickAsync();
+        //     // Act
+        //     await component.Find(".btn-delete-account").ClickAsync();
+        //     await component.Find(".confirm-delete-input").ChangeAsync(new ChangeEventArgs { Value = "DELETE" });
+        //     await component.Find(".btn-confirm-delete").ClickAsync();
 
-            // Assert
-            _userServiceMock.Verify(x => x.DeleteAccountAsync(), Times.Once);
-            AuthServiceMock.Verify(x => x.LogoutAsync(), Times.Once);
-            VerifyNavigation("/");
-        }
-    }
-
-    // DTOs for testing
-    public class UserProfileDto
-    {
-        public string Email { get; set; }
-        public string SceneName { get; set; }
-        public string Bio { get; set; }
-        public string PhoneNumber { get; set; }
-        public string EmergencyContactName { get; set; }
-        public string EmergencyContactPhone { get; set; }
-        public NotificationPreferencesDto NotificationPreferences { get; set; }
-        public PrivacySettingsDto PrivacySettings { get; set; }
-    }
-
-    public class NotificationPreferencesDto
-    {
-        public bool EmailNotifications { get; set; }
-        public bool SmsNotifications { get; set; }
-        public bool EventReminders { get; set; }
-        public bool MarketingEmails { get; set; }
-    }
-
-    public class PrivacySettingsDto
-    {
-        public bool ShowProfile { get; set; }
-        public bool AllowMessages { get; set; }
-        public bool ShowAttendance { get; set; }
+        //     // Assert
+        //     _userServiceMock.Verify(x => x.DeleteAccountAsync(), Times.Once);
+        //     // TODO: Verify logout when IAuthService includes LogoutAsync method
+        //     // AuthServiceMock.Verify(x => x.LogoutAsync(), Times.Once);
+        //     VerifyNavigation("/");
+        // }
     }
 }

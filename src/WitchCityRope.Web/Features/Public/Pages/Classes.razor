@@ -1,0 +1,12 @@
+@page "/classes"
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
+@inject NavigationManager Navigation
+
+@code {
+    protected override void OnInitialized()
+    {
+        // Redirect /classes to the events page
+        Navigation.NavigateTo("/events", true);
+    }
+}

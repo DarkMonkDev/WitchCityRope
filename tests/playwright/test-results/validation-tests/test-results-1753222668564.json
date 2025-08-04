@@ -1,0 +1,46 @@
+{
+  "startTime": "2025-07-22T22:17:39.096Z",
+  "forms": {
+    "Manage Profile Form": {
+      "name": "Manage Profile Form",
+      "startTime": "2025-07-22T22:17:39.146Z",
+      "tests": [
+        {
+          "name": "Profile sections display",
+          "passed": true
+        },
+        {
+          "name": "Phone format validation",
+          "passed": true
+        }
+      ],
+      "status": "passed",
+      "screenshots": [
+        "test-results/validation-tests/manage-profile-form-1753222663862.png"
+      ],
+      "endTime": "2025-07-22T22:17:44.131Z"
+    },
+    "Delete Personal Data Form": {
+      "name": "Delete Personal Data Form",
+      "startTime": "2025-07-22T22:17:44.294Z",
+      "tests": [
+        {
+          "name": "Warning banner display",
+          "passed": true
+        }
+      ],
+      "status": "failed",
+      "error": "locator.click: Error: strict mode violation: locator('button[type=\"submit\"]') resolved to 2 elements:\n    1) <button type=\"submit\" class=\"btn-danger delete-btn\">…</button> aka getByRole('button', { name: 'DELETE MY ACCOUNT' })\n    2) <button type=\"submit\" class=\"btn btn-primary\">Subscribe</button> aka getByRole('button', { name: 'Subscribe' })\n\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"]')\u001b[22m\n",
+      "screenshots": [
+        "test-results/validation-tests/Delete-Personal-Data-Form-error-1753222668336.png"
+      ],
+      "endTime": "2025-07-22T22:17:48.477Z"
+    }
+  },
+  "summary": {
+    "total": 2,
+    "passed": 1,
+    "failed": 1,
+    "skipped": 0
+  }
+}

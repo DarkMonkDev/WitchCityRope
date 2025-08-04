@@ -18,7 +18,7 @@ namespace WitchCityRope.Tests.Common.TestDoubles
         public TimeSpan TokenLifetime { get; set; } = TimeSpan.FromHours(1);
         public TimeSpan RefreshTokenLifetime { get; set; } = TimeSpan.FromDays(7);
 
-        public Task<JwtToken> GenerateTokenAsync(User user)
+        public Task<JwtToken> GenerateTokenAsync(IUser user)
         {
             var token = $"test-jwt-{Guid.NewGuid()}";
             var refreshToken = $"test-refresh-{Guid.NewGuid()}";
@@ -27,7 +27,7 @@ namespace WitchCityRope.Tests.Common.TestDoubles
             _tokens[token] = new TokenInfo
             {
                 UserId = user.Id,
-                Email = user.Email.Value,
+                Email = user.EmailAddress.Value,
                 SceneName = user.SceneName.Value,
                 ExpiresAt = expiresAt,
                 IsValid = true

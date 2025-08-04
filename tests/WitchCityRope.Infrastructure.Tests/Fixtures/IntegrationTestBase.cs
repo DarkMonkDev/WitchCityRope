@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
 using WitchCityRope.Infrastructure.Data;
 using Xunit;
 
@@ -11,8 +12,8 @@ namespace WitchCityRope.Infrastructure.Tests.Fixtures
     /// </summary>
     public abstract class IntegrationTestBase : IAsyncLifetime
     {
-        protected WitchCityRopeDbContext Context { get; private set; } = null!;
-        protected DbContextOptions<WitchCityRopeDbContext> Options { get; private set; } = null!;
+        protected WitchCityRopeIdentityDbContext Context { get; private set; } = null!;
+        protected DbContextOptions<WitchCityRopeIdentityDbContext> Options { get; private set; } = null!;
 
         /// <summary>
         /// Override to use a different database provider (default is SQLite in-memory)
@@ -26,14 +27,16 @@ namespace WitchCityRope.Infrastructure.Tests.Fixtures
                 // Use TestContainers PostgreSQL for real database tests
                 var fixture = new DatabaseFixture();
                 await fixture.InitializeAsync();
-                Options = fixture.CreateOptions();
                 Context = fixture.CreateContext();
+                Options = new DbContextOptionsBuilder<WitchCityRopeIdentityDbContext>()
+                    .UseNpgsql(fixture.ConnectionString)
+                    .Options;
             }
             else
             {
                 // Use SQLite in-memory for fast tests
                 Context = TestDbContextFactory.CreateInMemoryContext();
-                Options = new DbContextOptionsBuilder<WitchCityRopeDbContext>()
+                Options = new DbContextOptionsBuilder<WitchCityRopeIdentityDbContext>()
                     .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                     .Options;
             }
@@ -58,9 +61,9 @@ namespace WitchCityRope.Infrastructure.Tests.Fixtures
         /// Creates a new context instance with the same options
         /// Useful for testing scenarios that require multiple contexts
         /// </summary>
-        protected WitchCityRopeDbContext CreateNewContext()
+        protected WitchCityRopeIdentityDbContext CreateNewContext()
         {
-            return new WitchCityRopeDbContext(Options);
+            return new WitchCityRopeIdentityDbContext(Options);
         }
 
         /// <summary>
@@ -74,7 +77,7 @@ namespace WitchCityRope.Infrastructure.Tests.Fixtures
         /// <summary>
         /// Helper method to execute a test with a separate context
         /// </summary>
-        protected async Task ExecuteWithNewContextAsync(Func<WitchCityRopeDbContext, Task> action)
+        protected async Task ExecuteWithNewContextAsync(Func<WitchCityRopeIdentityDbContext, Task> action)
         {
             using var newContext = CreateNewContext();
             await action(newContext);
@@ -83,7 +86,7 @@ namespace WitchCityRope.Infrastructure.Tests.Fixtures
         /// <summary>
         /// Helper method to execute a test and return a result with a separate context
         /// </summary>
-        protected async Task<T> ExecuteWithNewContextAsync<T>(Func<WitchCityRopeDbContext, Task<T>> action)
+        protected async Task<T> ExecuteWithNewContextAsync<T>(Func<WitchCityRopeIdentityDbContext, Task<T>> action)
         {
             using var newContext = CreateNewContext();
             return await action(newContext);

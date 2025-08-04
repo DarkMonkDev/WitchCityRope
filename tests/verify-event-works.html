@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Event Detail Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #880124;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .test-link:hover {
+            background: #660119;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #ccc;
+            margin-top: 20px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>WitchCityRope Event Detail Test</h1>
+    
+    <h2>Test Links:</h2>
+    <a href="http://localhost:5651/events/79272089-a274-45a4-ae08-a31f5edb0965" 
+       target="event-frame" 
+       class="test-link">
+        Test Event: Introduction to Rope Bondage
+    </a>
+    
+    <h2>Direct Links (open in new tab):</h2>
+    <a href="http://localhost:5651" target="_blank" class="test-link">Home Page</a>
+    <a href="http://localhost:5651/events" target="_blank" class="test-link">Events List</a>
+    <a href="http://localhost:5651/events/79272089-a274-45a4-ae08-a31f5edb0965" target="_blank" class="test-link">Event Detail</a>
+    
+    <h2>Event Preview:</h2>
+    <iframe name="event-frame" src="http://localhost:5651/events/79272089-a274-45a4-ae08-a31f5edb0965"></iframe>
+    
+    <script>
+        // Test if the event page loads correctly
+        window.addEventListener('load', function() {
+            fetch('http://localhost:5651/events/79272089-a274-45a4-ae08-a31f5edb0965')
+                .then(response => response.text())
+                .then(html => {
+                    const hasError = html.includes('Event Not Found');
+                    const hasTitle = html.includes('Introduction to Rope Bondage');
+                    
+                    const status = document.createElement('div');
+                    if (hasTitle && !hasError) {
+                        status.className = 'status success';
+                        status.textContent = '✅ Event page is working correctly! Found "Introduction to Rope Bondage"';
+                    } else if (hasError) {
+                        status.className = 'status error';
+                        status.textContent = '❌ Event page shows "Event Not Found" error';
+                    } else {
+                        status.className = 'status error';
+                        status.textContent = '❓ Could not determine page status';
+                    }
+                    
+                    document.body.insertBefore(status, document.querySelector('h2'));
+                })
+                .catch(error => {
+                    const status = document.createElement('div');
+                    status.className = 'status error';
+                    status.textContent = '❌ Error fetching page: ' + error.message;
+                    document.body.insertBefore(status, document.querySelector('h2'));
+                });
+        });
+    </script>
+</body>
+</html>

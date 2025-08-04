@@ -43,7 +43,7 @@ public class DashboardPage : BasePage
     public async Task<bool> IsVettedAsync()
     {
         var status = await GetVettingStatusAsync();
-        return status?.Contains("Approved", StringComparison.OrdinalIgnoreCase) ?? false;
+        return status?.Contains("Approved") ?? false;
     }
 
     public async Task<int> GetUpcomingEventsCountAsync()

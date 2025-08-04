@@ -4,7 +4,8 @@
 @inject ApiClient ApiClient
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
-@attribute [Authorize(Roles = "Admin")]
+@attribute [Authorize(Roles = "Administrator,Admin")]
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
 
 @* User management page for administrators to manage system users *@
 
@@ -107,19 +108,20 @@
                             <div class="user-avatar">
                                 @if (!string.IsNullOrEmpty(user.AvatarUrl))
                                 {
-                                    <img src="@user.AvatarUrl" alt="@user.FullName" />
+                                    <img src="@user.AvatarUrl" alt="@user.SceneName" />
                                 }
                                 else
                                 {
-                                    <div class="avatar-placeholder">@user.FullName.FirstOrDefault()</div>
+                                    <div class="avatar-placeholder">@user.SceneName.FirstOrDefault()</div>
                                 }
                             </div>
                             <div class="user-status-indicator @user.Status"></div>
                         </div>
                         
                         <div class="user-info">
-                            <h3>@user.FullName</h3>
+                            <h3>@user.SceneName</h3>
                             <p class="user-email">@user.Email</p>
+                            <p class="user-legal-name">@user.LegalName</p>
                             <div class="user-meta">
                                 <span class="badge badge-@user.Role.ToLower()">@user.Role</span>
                                 <span class="join-date">Joined @user.JoinDate.ToString("MMM yyyy")</span>
@@ -182,14 +184,14 @@
                                         <div class="user-avatar-small">
                                             @if (!string.IsNullOrEmpty(user.AvatarUrl))
                                             {
-                                                <img src="@user.AvatarUrl" alt="@user.FullName" />
+                                                <img src="@user.AvatarUrl" alt="@user.SceneName" />
                                             }
                                             else
                                             {
-                                                <div class="avatar-placeholder">@user.FullName.FirstOrDefault()</div>
+                                                <div class="avatar-placeholder">@user.SceneName.FirstOrDefault()</div>
                                             }
                                         </div>
-                                        <span>@user.FullName</span>
+                                        <span>@user.SceneName</span>
                                     </div>
                                 </td>
                                 <td>@user.Email</td>
@@ -277,8 +279,13 @@
                 <ValidationSummary />
 
                 <div class="form-group">
-                    <label for="fullName">Full Name</label>
-                    <InputText id="fullName" @bind-Value="userForm.FullName" class="form-input" />
+                    <label for="legalName">Legal Name</label>
+                    <InputText id="legalName" @bind-Value="userForm.LegalName" class="form-input" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="sceneName">Scene Name</label>
+                    <InputText id="sceneName" @bind-Value="userForm.SceneName" class="form-input" />
                 </div>
 
                 <div class="form-group">
@@ -350,7 +357,7 @@
     <div class="modal modal-visible" @onclick="CloseRoleModal">
         <div class="modal-content modal-small" @onclick:stopPropagation="true">
             <div class="modal-header">
-                <h2 class="modal-title">Edit Role: @roleEditUser?.FullName</h2>
+                <h2 class="modal-title">Edit Role: @roleEditUser?.SceneName</h2>
                 <button type="button" class="modal-close" @onclick="CloseRoleModal">×</button>
             </div>
             
@@ -405,7 +412,7 @@
                     <label>Recipients</label>
                     @if (emailRecipients.Count == 1)
                     {
-                        <div class="recipient-single">@emailRecipients.First().FullName (@emailRecipients.First().Email)</div>
+                        <div class="recipient-single">@emailRecipients.First().SceneName (@emailRecipients.First().Email)</div>
                     }
                     else
                     {
@@ -524,17 +531,20 @@
         var statuses = new[] { "active", "inactive", "suspended", "pending" };
         var firstNames = new[] { "Alice", "Bob", "Charlie", "Diana", "Emma", "Frank", "Grace", "Henry", "Iris", "Jack" };
         var lastNames = new[] { "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez" };
+        var sceneNames = new[] { "RopeRaven", "KnottyKitten", "BindingButterfly", "TiedTiger", "ShibariSwan", "RiggerRose", "BoundBear", "HarnessHawk", "LoopLion", "WeaveWolf" };
 
         return Enumerable.Range(1, count).Select(i =>
         {
             var firstName = firstNames[random.Next(firstNames.Length)];
             var lastName = lastNames[random.Next(lastNames.Length)];
+            var sceneName = sceneNames[random.Next(sceneNames.Length)] + i;
             var joinDate = DateTime.Now.AddDays(-random.Next(1, 730));
             
             return new UserViewModel
             {
                 Id = i,
-                FullName = $"{firstName} {lastName}",
+                LegalName = $"{firstName} {lastName}",
+                SceneName = sceneName,
                 Email = $"{firstName.ToLower()}.{lastName.ToLower()}@example.com",
                 Username = $"{firstName.ToLower()}{i}",
                 Role = roles[random.Next(roles.Length)],
@@ -563,18 +573,19 @@
         if (!string.IsNullOrEmpty(searchTerm))
         {
             filtered = filtered.Where(u => 
-                u.FullName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                u.LegalName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                u.SceneName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
                 u.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
                 u.Username.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
         }
 
         filtered = sortBy switch
         {
-            "name-desc" => filtered.OrderByDescending(u => u.FullName),
+            "name-desc" => filtered.OrderByDescending(u => u.SceneName),
             "date-desc" => filtered.OrderByDescending(u => u.JoinDate),
             "date-asc" => filtered.OrderBy(u => u.JoinDate),
             "last-active" => filtered.OrderByDescending(u => u.LastActiveDate ?? DateTime.MinValue),
-            _ => filtered.OrderBy(u => u.FullName)
+            _ => filtered.OrderBy(u => u.SceneName)
         };
 
         filteredUsers = filtered.Take(currentPage * PageSize).ToList();
@@ -631,7 +642,8 @@
         editingUser = user;
         userForm = new UserFormModel
         {
-            FullName = user.FullName,
+            LegalName = user.LegalName,
+            SceneName = user.SceneName,
             Email = user.Email,
             Username = user.Username,
             Role = user.Role,
@@ -760,7 +772,7 @@
 
     private void ViewUserProfile(int userId)
     {
-        Navigation.NavigateTo($"/admin/users/{userId}");
+        Navigation.NavigateTo($"/admin/users/{userId}", forceLoad: true);
     }
 
     private async Task ExportUsers()
@@ -830,7 +842,8 @@
     public class UserViewModel
     {
         public int Id { get; set; }
-        public string FullName { get; set; } = "";
+        public string LegalName { get; set; } = "";
+        public string SceneName { get; set; } = "";
         public string Email { get; set; } = "";
         public string Username { get; set; } = "";
         public string Role { get; set; } = "Member";
@@ -842,7 +855,8 @@
 
     public class UserFormModel
     {
-        public string FullName { get; set; } = "";
+        public string LegalName { get; set; } = "";
+        public string SceneName { get; set; } = "";
         public string Email { get; set; } = "";
         public string Username { get; set; } = "";
         public string Role { get; set; } = "Member";

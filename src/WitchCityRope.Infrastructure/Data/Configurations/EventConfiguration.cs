@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WitchCityRope.Core.Entities;
 using WitchCityRope.Core.ValueObjects;
+using WitchCityRope.Infrastructure.Identity;
 using System.Text.Json;
 
 namespace WitchCityRope.Infrastructure.Data.Configurations
@@ -69,17 +70,10 @@ namespace WitchCityRope.Infrastructure.Data.Configurations
                 .HasColumnType("TEXT");
 
             // Configure many-to-many relationship with organizers
-            builder.HasMany(e => e.Organizers)
-                .WithMany()
-                .UsingEntity<Dictionary<string, object>>(
-                    "EventOrganizers",
-                    j => j.HasOne<User>().WithMany().HasForeignKey("UserId").OnDelete(DeleteBehavior.Cascade),
-                    j => j.HasOne<Event>().WithMany().HasForeignKey("EventId").OnDelete(DeleteBehavior.Cascade),
-                    j =>
-                    {
-                        j.HasKey("EventId", "UserId");
-                        j.ToTable("EventOrganizers");
-                    });
+            // Since Event uses IUser interface, we need to configure it to use the concrete WitchCityRopeUser type
+            builder.Ignore(e => e.Organizers); // Ignore the IUser collection
+            
+            // The actual relationship will be configured from the WitchCityRopeUser side or via a separate join entity
 
             // Configure relationships
             builder.HasMany(e => e.Registrations)

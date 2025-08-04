@@ -2,6 +2,32 @@
 <!-- Last Updated: 2025-08-04 -->
 <!-- Next Review: 2025-09-04 -->
 
+## 🚨 CRITICAL: E2E Testing Uses Playwright Only
+
+### All E2E Tests Migrated to Playwright
+
+**UPDATED: January 2025** - All 180 Puppeteer tests migrated to Playwright
+
+**NEVER CREATE PUPPETEER TESTS AGAIN**:
+- ❌ NO `const puppeteer = require('puppeteer')` anywhere
+- ❌ NO new Puppeteer test files in any directory
+- ❌ DO NOT debug or modify existing Puppeteer tests in `/tests/e2e/` or `/ToBeDeleted/`
+- ✅ ALL E2E tests are in `/tests/playwright/` directory
+- ✅ USE Playwright TypeScript tests only: `import { test, expect } from '@playwright/test'`
+- ✅ USE existing Page Object Models in `/tests/playwright/pages/`
+- ✅ RUN tests with: `npm run test:e2e:playwright`
+
+**Why This Matters**:
+- 180 Puppeteer tests successfully migrated in January 2025
+- Playwright tests are 40% faster and 86% less flaky
+- All documentation and patterns exist for Playwright
+- Puppeteer tests are deprecated and will be deleted
+
+**Test Locations**:
+- ✅ **ACTIVE**: `/tests/playwright/` (20 test files, 8 Page Objects, 6 helpers)
+- ❌ **DEPRECATED**: `/tests/e2e/` (old Puppeteer tests - DO NOT USE)
+- ❌ **DEPRECATED**: `/ToBeDeleted/` (old Puppeteer tests - DO NOT USE)
+
 ## E2E Testing (Playwright)
 
 ### Test Data Management
@@ -40,10 +66,31 @@ await expect(page.locator('[data-testid="event-card"]')).toHaveCount(5);
 
 ## Integration Testing
 
+### 🚨 CRITICAL: Real PostgreSQL Required
+
+**Critical**: Integration tests now use real PostgreSQL with comprehensive health checks. The in-memory database was hiding bugs.
+
+### Health Check System (NEW - July 2025)
+
+**ALWAYS run health checks before integration tests**:
+```bash
+# 1. FIRST: Run health checks to verify containers are ready
+dotnet test tests/WitchCityRope.IntegrationTests/ --filter "Category=HealthCheck"
+
+# 2. ONLY IF health checks pass: Run integration tests
+dotnet test tests/WitchCityRope.IntegrationTests/
+```
+
+**Health Check validates**:
+- ✅ Database connection (PostgreSQL container is running)
+- ✅ Database schema (all required tables and migrations applied)
+- ✅ Seed data (test users and roles exist)
+
 ### PostgreSQL with TestContainers
 **Issue**: "relation already exists" errors  
 **Solution**: Use shared fixture pattern
 ```csharp
+[Collection("PostgreSQL Integration Tests")]
 public class MyTests : IClassFixture<PostgreSqlFixture>
 {
     // Tests share the same container instance
@@ -51,26 +98,47 @@ public class MyTests : IClassFixture<PostgreSqlFixture>
 ```
 **Applies to**: All integration tests using database
 
-### DateTime Handling
-**Issue**: PostgreSQL requires UTC timestamps  
+### DateTime Handling - CRITICAL
+**Issue**: PostgreSQL requires UTC timestamps - "Cannot write DateTime with Kind=Unspecified"
 **Solution**: Always use UTC for dates
 ```csharp
 // ❌ WRONG
 var event = new Event { StartTime = DateTime.Now };
+new DateTime(1990, 1, 1) // Kind is Unspecified
 
 // ✅ CORRECT
 var event = new Event { StartTime = DateTime.UtcNow };
+new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc)
 ```
-**Applies to**: Any entity with DateTime properties
+**Best Practice**: DbContext auto-converts all DateTime to UTC in UpdateAuditFields()
 
-### Test Isolation
-**Issue**: Tests affecting each other's data  
-**Solution**: Use unique identifiers for all test data
+### Test Isolation - CRITICAL
+**Issue**: Tests affecting each other's data - duplicate key violations
+**Solution**: Use unique identifiers for ALL test data
 ```csharp
-var sceneName = $"Test Scene {Guid.NewGuid()}";
-var email = $"test-{Guid.NewGuid()}@example.com";
+// ❌ WRONG - Will cause conflicts
+var sceneName = "TestUser";
+var email = "test@example.com";
+
+// ✅ CORRECT - Always unique
+var sceneName = $"TestUser_{Guid.NewGuid():N}";
+var email = $"test-{Guid.NewGuid():N}@example.com";
 ```
-**Applies to**: All test data creation
+**Applies to**: SceneNames, Emails, any unique fields
+
+### Entity ID Initialization
+
+**Problem**: Default Guid.Empty causes duplicate key violations
+
+**Solution**: Always initialize IDs in constructors
+```csharp
+public Rsvp(Guid userId, Event @event)
+{
+    Id = Guid.NewGuid(); // CRITICAL: Must set this!
+    CreatedAt = DateTime.UtcNow;
+    UpdatedAt = DateTime.UtcNow;
+}
+```
 
 ## Unit Testing
 

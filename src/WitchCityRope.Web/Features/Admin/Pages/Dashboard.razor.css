@@ -474,8 +474,31 @@
     color: rgb(107, 114, 128);
 }
 
+/* Buttons */
+.btn {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-secondary {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.btn-secondary:hover {
+    background: #e5e7eb;
+}
+
 /* Responsive Design */
-@media (max-width: 1200px) {
+@@media (max-width: 1200px) {
     .chart-card {
         grid-column: span 12;
     }
@@ -493,7 +516,7 @@
     }
 }
 
-@media (max-width: 768px) {
+@@media (max-width: 768px) {
     .page-container {
         padding: 1rem;
     }

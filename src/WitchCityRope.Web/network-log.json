@@ -1,0 +1,98 @@
+{
+  "timestamp": "2025-07-22T16:27:49.075Z",
+  "allRequests": [
+    {
+      "url": "http://localhost:5651/Identity/Account/Login?returnUrl=%2F",
+      "method": "POST",
+      "headers": {
+        "accept-language": "en-US,en;q=0.9",
+        "content-type": "application/x-www-form-urlencoded",
+        "origin": "http://localhost:5651",
+        "referer": "http://localhost:5651/identity/account/login",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "postData": "Input.EmailOrUsername=admin%40witchcityrope.com&Input.Password=Admin123%21&__RequestVerificationToken=CfDJ8H-9hfSAsOBHvko2iz_nxJay7wR2DJynoKiXyKDNp4Ze-s9cEOIkyRUr9BSq9Oz8z9BwfCdkKEuL4bthUE15MK5DGi3Dsmq_RyCBwgtvSi4WfLcOeZ0AMoEy56EGqHOYhehl4EOEZq5bqi70e-I6Ssk&Input.RememberMe=false",
+      "timestamp": "2025-07-22T16:27:45.870Z"
+    },
+    {
+      "url": "http://localhost:5651/css/bootstrap.min.css",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"Linux\"",
+        "referer": "http://localhost:5651/Identity/Account/Login?returnUrl=%2F",
+        "accept-language": "en-US,en;q=0.9",
+        "sec-ch-ua": "\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\"",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-07-22T16:27:45.953Z"
+    },
+    {
+      "url": "http://localhost:5651/css/site.css",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"Linux\"",
+        "referer": "http://localhost:5651/Identity/Account/Login?returnUrl=%2F",
+        "accept-language": "en-US,en;q=0.9",
+        "sec-ch-ua": "\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\"",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-07-22T16:27:45.954Z"
+    },
+    {
+      "url": "http://localhost:5651/WitchCityRope.Web.styles.css",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"Linux\"",
+        "referer": "http://localhost:5651/Identity/Account/Login?returnUrl=%2F",
+        "accept-language": "en-US,en;q=0.9",
+        "sec-ch-ua": "\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\"",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-07-22T16:27:45.954Z"
+    }
+  ],
+  "failedRequests": [
+    {
+      "url": "http://localhost:5651/css/bootstrap.min.css",
+      "method": "GET",
+      "failure": {
+        "errorText": "net::ERR_ABORTED"
+      },
+      "timestamp": "2025-07-22T16:27:45.955Z"
+    },
+    {
+      "url": "http://localhost:5651/css/site.css",
+      "method": "GET",
+      "failure": {
+        "errorText": "net::ERR_ABORTED"
+      },
+      "timestamp": "2025-07-22T16:27:45.956Z"
+    }
+  ],
+  "postRequests": [
+    {
+      "url": "http://localhost:5651/Identity/Account/Login?returnUrl=%2F",
+      "method": "POST",
+      "headers": {
+        "accept-language": "en-US,en;q=0.9",
+        "content-type": "application/x-www-form-urlencoded",
+        "origin": "http://localhost:5651",
+        "referer": "http://localhost:5651/identity/account/login",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "postData": "Input.EmailOrUsername=admin%40witchcityrope.com&Input.Password=Admin123%21&__RequestVerificationToken=CfDJ8H-9hfSAsOBHvko2iz_nxJay7wR2DJynoKiXyKDNp4Ze-s9cEOIkyRUr9BSq9Oz8z9BwfCdkKEuL4bthUE15MK5DGi3Dsmq_RyCBwgtvSi4WfLcOeZ0AMoEy56EGqHOYhehl4EOEZq5bqi70e-I6Ssk&Input.RememberMe=false",
+      "timestamp": "2025-07-22T16:27:45.870Z"
+    }
+  ]
+}

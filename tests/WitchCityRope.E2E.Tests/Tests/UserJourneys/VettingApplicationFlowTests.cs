@@ -23,12 +23,12 @@ public class VettingApplicationFlowTests : BaseE2ETest
         await loginPage.WaitForLoginSuccessAsync();
 
         // Check vetting status on dashboard
-        await dashboardPage.IsCurrentPageAsync().Should().BeTrueAsync();
+        (await dashboardPage.IsCurrentPageAsync()).Should().BeTrue();
         var vettingStatus = await dashboardPage.GetVettingStatusAsync();
         vettingStatus.Should().NotContain("Approved");
 
         // Check if can apply for vetting
-        await dashboardPage.CanApplyForVettingAsync().Should().BeTrueAsync();
+        (await dashboardPage.CanApplyForVettingAsync()).Should().BeTrue();
 
         // Click apply for vetting
         await dashboardPage.ClickApplyForVettingAsync();
@@ -58,8 +58,8 @@ public class VettingApplicationFlowTests : BaseE2ETest
 
         // Verify submission success
         var successMessage = await Page.TextContentAsync(".alert-success, .success-message");
-        successMessage.Should().Contain("application", StringComparison.OrdinalIgnoreCase);
-        successMessage.Should().Contain("submitted", StringComparison.OrdinalIgnoreCase);
+        successMessage.Should().Contain("application");
+        successMessage.Should().Contain("submitted");
 
         // Navigate back to dashboard
         await dashboardPage.NavigateAsync();
@@ -114,8 +114,8 @@ public class VettingApplicationFlowTests : BaseE2ETest
         }
 
         errorTexts.Should().Contain(e => 
-            e.Contains("references", StringComparison.OrdinalIgnoreCase) ||
-            e.Contains("agreement", StringComparison.OrdinalIgnoreCase));
+            e.Contains("references") ||
+            e.Contains("agreement"));
     }
 
     [TestMethod]
@@ -134,7 +134,7 @@ public class VettingApplicationFlowTests : BaseE2ETest
 
         // Assert - Dashboard should show vetted status
         var vettingStatus = await dashboardPage.GetVettingStatusAsync();
-        vettingStatus.Should().Contain("Approved", StringComparison.OrdinalIgnoreCase);
+        vettingStatus.ToLower().Should().Contain("approved");
         
         // Should not show apply for vetting button
         (await dashboardPage.CanApplyForVettingAsync()).Should().BeFalse();
@@ -145,7 +145,7 @@ public class VettingApplicationFlowTests : BaseE2ETest
         // Check vetting info in profile
         var vettingInfo = await profilePage.GetVettingInfoAsync();
         vettingInfo.Should().NotBeNull();
-        vettingInfo!.Status.Should().Contain("Approved", StringComparison.OrdinalIgnoreCase);
+        vettingInfo!.Status.ToLower().Should().Contain("approved");
     }
 
     [TestMethod]

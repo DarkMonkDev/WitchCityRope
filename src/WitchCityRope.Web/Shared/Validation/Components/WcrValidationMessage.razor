@@ -1,0 +1,57 @@
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+@typeparam TValue
+
+@if (_editContext != null && HasErrors)
+{
+    <div class="wcr-validation-message validation-message" role="alert" aria-live="polite">
+        @if (ShowIcon)
+        {
+            <span class="wcr-validation-message-icon e-icons e-error"></span>
+        }
+        @foreach (var message in _editContext.GetValidationMessages(_fieldIdentifier))
+        {
+            <span>@message</span>
+        }
+    </div>
+}
+
+@code {
+    [CascadingParameter] private EditContext? _editContext { get; set; }
+    
+    [Parameter, EditorRequired] public Expression<Func<TValue>>? For { get; set; }
+    
+    [Parameter] public bool ShowIcon { get; set; } = false;
+    
+    private FieldIdentifier _fieldIdentifier;
+    
+    private bool HasErrors => _editContext?.GetValidationMessages(_fieldIdentifier).Any() ?? false;
+    
+    protected override void OnInitialized()
+    {
+        if (For == null)
+        {
+            throw new ArgumentNullException(nameof(For), "The For parameter is required.");
+        }
+        
+        _fieldIdentifier = FieldIdentifier.Create(For);
+        
+        if (_editContext != null)
+        {
+            _editContext.OnValidationStateChanged += HandleValidationStateChanged;
+        }
+    }
+
+    private void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs e)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        if (_editContext != null)
+        {
+            _editContext.OnValidationStateChanged -= HandleValidationStateChanged;
+        }
+    }
+}

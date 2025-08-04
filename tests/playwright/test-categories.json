@@ -1,0 +1,240 @@
+{
+  "testCategories": {
+    "smoke": {
+      "description": "Critical path tests that must pass for basic functionality",
+      "priority": "critical",
+      "timeout": 60000,
+      "retries": 3,
+      "files": [
+        "auth/login-basic.spec.ts",
+        "infrastructure/page-status.spec.ts",
+        "events/event-display.spec.ts"
+      ],
+      "tags": ["@smoke", "@critical"]
+    },
+    
+    "auth": {
+      "description": "Authentication and authorization tests",
+      "priority": "high", 
+      "timeout": 30000,
+      "retries": 2,
+      "files": [
+        "auth/login-basic.spec.ts",
+        "auth/login-validation.spec.ts",
+        "auth/logout-functionality.spec.ts",
+        "auth/register-basic.spec.ts"
+      ],
+      "tags": ["@auth"]
+    },
+    
+    "events": {
+      "description": "Event management and display functionality",
+      "priority": "high",
+      "timeout": 45000,
+      "retries": 2,
+      "files": [
+        "events/event-creation.spec.ts",
+        "events/event-display.spec.ts",
+        "events/event-edit.spec.ts"
+      ],
+      "tags": ["@events"]
+    },
+    
+    "admin": {
+      "description": "Administrative functionality and dashboard tests",
+      "priority": "medium",
+      "timeout": 45000,
+      "retries": 2,
+      "files": [
+        "admin/admin-access.spec.ts",
+        "admin/admin-dashboard.spec.ts",
+        "admin/admin-event-creation.spec.ts",
+        "admin/admin-events-management.spec.ts",
+        "admin/admin-login-success.spec.ts"
+      ],
+      "tags": ["@admin"],
+      "requiredRoles": ["admin"]
+    },
+    
+    "validation": {
+      "description": "Form validation and input validation tests",
+      "priority": "medium",
+      "timeout": 30000,
+      "retries": 1,
+      "files": [
+        "validation/field-specific-validation.spec.ts",
+        "validation/input-validation.spec.ts", 
+        "validation/login-validation.spec.ts",
+        "validation/validation-components.spec.ts"
+      ],
+      "tags": ["@validation"]
+    },
+    
+    "rsvp": {
+      "description": "RSVP and membership functionality",
+      "priority": "medium",
+      "timeout": 45000,
+      "retries": 2,
+      "files": [
+        "rsvp/member-rsvp-flow.spec.ts",
+        "rsvp/rsvp-functionality.spec.ts",
+        "rsvp/ticket-functionality.spec.ts",
+        "rsvp/complete-rsvp-dashboard-flow.spec.ts"
+      ],
+      "tags": ["@rsvp", "@member"]
+    },
+    
+    "ui": {
+      "description": "User interface and navigation tests",
+      "priority": "low",
+      "timeout": 30000,
+      "retries": 1,
+      "files": [
+        "ui/button-interactivity.spec.ts",
+        "ui/navigation.spec.ts",
+        "ui/user-dropdown.spec.ts"
+      ],
+      "tags": ["@ui"]
+    },
+    
+    "visual-regression": {
+      "description": "Visual regression and screenshot comparison tests",
+      "priority": "low",
+      "timeout": 60000,
+      "retries": 1,
+      "files": [
+        "specs/visual/example.visual.spec.ts"
+      ],
+      "tags": ["@visual"],
+      "browsers": ["chromium"],
+      "ci-skip-conditions": {
+        "pr-from-fork": true,
+        "dependency-only-changes": true
+      }
+    },
+    
+    "infrastructure": {
+      "description": "Infrastructure, performance, and system-level tests",
+      "priority": "low", 
+      "timeout": 30000,
+      "retries": 1,
+      "files": [
+        "infrastructure/css-loading.spec.ts",
+        "infrastructure/error-timing.spec.ts",
+        "infrastructure/layout-system.spec.ts",
+        "infrastructure/page-status.spec.ts",
+        "infrastructure/styling.spec.ts"
+      ],
+      "tags": ["@infrastructure"]
+    },
+    
+    "api": {
+      "description": "API endpoint and integration tests",
+      "priority": "medium",
+      "timeout": 30000,
+      "retries": 2,
+      "files": [
+        "api/api-endpoints.spec.ts",
+        "api/events-api-vs-ui.spec.ts",
+        "api/member-rsvp-api.spec.ts"
+      ],
+      "tags": ["@api"]
+    },
+    
+    "performance": {
+      "description": "Performance and load testing",
+      "priority": "low",
+      "timeout": 120000,
+      "retries": 1,
+      "files": [
+        "validation/performance-validation.spec.ts"
+      ],
+      "tags": ["@performance"],
+      "schedule": "nightly-only"
+    }
+  },
+  
+  "executionStrategies": {
+    "ci-fast": {
+      "description": "Fast CI execution - critical tests only",
+      "categories": ["smoke"],
+      "parallel": false,
+      "browsers": ["chromium"]
+    },
+    
+    "ci-standard": {
+      "description": "Standard CI execution - main functionality",
+      "categories": ["smoke", "auth", "events"],
+      "parallel": false,
+      "browsers": ["chromium", "firefox"]
+    },
+    
+    "ci-full": {
+      "description": "Full CI test suite",
+      "categories": ["smoke", "auth", "events", "admin", "validation", "rsvp", "ui", "api"],
+      "parallel": false,
+      "browsers": ["chromium", "firefox", "webkit"]
+    },
+    
+    "nightly": {
+      "description": "Comprehensive nightly testing",
+      "categories": ["all"],
+      "parallel": true,
+      "browsers": ["chromium", "firefox", "webkit"],
+      "includeVisual": true,
+      "includePerformance": true
+    },
+    
+    "manual-debug": {
+      "description": "Manual testing with debug features enabled",
+      "categories": ["smoke"],
+      "parallel": false,
+      "browsers": ["chromium"],
+      "headed": true,
+      "slowMo": 500
+    }
+  },
+  
+  "environmentConfigs": {
+    "docker": {
+      "baseUrl": "http://localhost:5651",
+      "apiUrl": "http://localhost:5653",
+      "database": "postgresql://postgres:WitchCity2024!@localhost:5432/witchcityrope_test",
+      "requirements": ["docker-compose", "docker"],
+      "setupScript": "docker compose up -d --wait"
+    },
+    
+    "staging": {
+      "baseUrl": "https://staging.witchcityrope.com",
+      "apiUrl": "https://api-staging.witchcityrope.com",
+      "requirements": ["vpn", "staging-credentials"],
+      "healthCheck": "/health"
+    },
+    
+    "local": {
+      "baseUrl": "http://localhost:5651",
+      "apiUrl": "http://localhost:5653",
+      "requirements": ["dotnet", "postgresql"],
+      "setupScript": "./run.sh"
+    }
+  },
+  
+  "reportingConfig": {
+    "ci": {
+      "reporters": ["html", "json", "junit", "github"],
+      "artifacts": ["screenshots", "videos", "traces"],
+      "retention": {
+        "screenshots": "7 days",
+        "videos": "3 days", 
+        "traces": "7 days",
+        "reports": "30 days"
+      }
+    },
+    
+    "local": {
+      "reporters": ["html", "list"],
+      "artifacts": ["screenshots"],
+      "openReport": true
+    }
+  }
+}

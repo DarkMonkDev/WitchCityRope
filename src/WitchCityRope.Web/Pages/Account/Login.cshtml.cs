@@ -17,8 +17,8 @@ namespace WitchCityRope.Web.Pages.Account
                 return LocalRedirect(returnUrl ?? "/");
             }
 
-            // Return the page which will handle the client-side redirect
-            return Page();
+            // Immediately redirect to the new Identity login page
+            return Redirect($"/Identity/Account/Login{(returnUrl != null ? "?returnUrl=" + Uri.EscapeDataString(returnUrl) : "")}");
         }
     }
 }

@@ -1,0 +1,65 @@
+{
+  "timestamp": "2025-07-22T20:20:07.860Z",
+  "baseUrl": "http://localhost:5651",
+  "forms": [
+    {
+      "name": "Login",
+      "url": "http://localhost:5651/Identity/Account/Login",
+      "timestamp": "2025-07-22T20:20:08.072Z",
+      "status": "fully_migrated",
+      "pageLoaded": true,
+      "hasForm": true,
+      "hasValidationComponents": true,
+      "validationBehavior": [
+        {
+          "test": "Empty form submission",
+          "passed": true,
+          "validationCount": 2
+        },
+        {
+          "test": "Real-time validation",
+          "passed": false,
+          "note": "No real-time validation detected"
+        }
+      ],
+      "errors": [],
+      "screenshots": [
+        "test-results/validation-diagnostics/Login-initial-1753215610896.png",
+        "test-results/validation-diagnostics/Login-validation-1753215612561.png"
+      ],
+      "elements": {
+        "wcrInputs": 2,
+        "wcrValidationMessages": 0,
+        "wcrValidationSummary": 0,
+        "standardInputs": 2,
+        "submitButtons": 1
+      },
+      "httpStatus": 200
+    },
+    {
+      "name": "Login with 2FA",
+      "url": "http://localhost:5651/Identity/Account/LoginWith2fa",
+      "timestamp": "2025-07-22T20:20:13.198Z",
+      "status": "error",
+      "pageLoaded": true,
+      "hasForm": false,
+      "hasValidationComponents": false,
+      "validationBehavior": [],
+      "errors": [
+        "locator.isVisible: Error: strict mode violation: locator('form') resolved to 2 elements:\n    1) <form method=\"post\">…</form> aka getByText('Email or Username Password')\n    2) <form action=\"/login\" class=\"newsletter-form\" __internal_preventdefault_onsubmit=\"\">…</form> aka locator('form').filter({ hasText: 'Subscribe' })\n\nCall log:\n\u001b[2m    - checking visibility of locator('form')\u001b[22m\n"
+      ],
+      "screenshots": [
+        "test-results/validation-diagnostics/Login with 2FA-error-1753215616085.png"
+      ],
+      "elements": {
+        "wcrInputs": 0,
+        "wcrValidationMessages": 0,
+        "wcrValidationSummary": 0,
+        "standardInputs": 0,
+        "submitButtons": 0
+      },
+      "httpStatus": 200,
+      "redirectedTo": "http://localhost:5651/login"
+    }
+  ]
+}

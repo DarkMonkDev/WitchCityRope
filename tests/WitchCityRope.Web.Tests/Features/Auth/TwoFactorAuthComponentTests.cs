@@ -66,7 +66,7 @@ namespace WitchCityRope.Web.Tests.Features.Auth
         {
             // Arrange
             AuthServiceMock.Setup(x => x.VerifyTwoFactorAsync(It.IsAny<string>(), It.IsAny<bool>()))
-                .ReturnsAsync(new AuthResult { Success = true });
+                .ReturnsAsync(new TwoFactorVerifyResponse { Success = true });
 
             var component = RenderComponent<TwoFactorAuth>();
 
@@ -87,7 +87,7 @@ namespace WitchCityRope.Web.Tests.Features.Auth
         {
             // Arrange
             AuthServiceMock.Setup(x => x.VerifyTwoFactorAsync(It.IsAny<string>(), It.IsAny<bool>()))
-                .ReturnsAsync(new AuthResult { Success = false, Error = "Invalid code" });
+                .ReturnsAsync(new TwoFactorVerifyResponse { Success = false, Error = "Invalid code" });
 
             var component = RenderComponent<TwoFactorAuth>();
 
@@ -146,7 +146,7 @@ namespace WitchCityRope.Web.Tests.Features.Auth
         {
             // Arrange
             AuthServiceMock.Setup(x => x.VerifyTwoFactorAsync(It.IsAny<string>(), It.IsAny<bool>()))
-                .ReturnsAsync(new AuthResult { Success = true });
+                .ReturnsAsync(new TwoFactorVerifyResponse { Success = true });
 
             var component = RenderComponent<TwoFactorAuth>();
 
@@ -197,7 +197,7 @@ namespace WitchCityRope.Web.Tests.Features.Auth
         public async Task TwoFactorAuth_LoadingState_ShowsLoadingOverlay()
         {
             // Arrange
-            var tcs = new TaskCompletionSource<AuthResult>();
+            var tcs = new TaskCompletionSource<TwoFactorVerifyResponse>();
             AuthServiceMock.Setup(x => x.VerifyTwoFactorAsync(It.IsAny<string>(), It.IsAny<bool>()))
                 .Returns(tcs.Task);
 
@@ -214,7 +214,7 @@ namespace WitchCityRope.Web.Tests.Features.Auth
             component.Find(".loading-overlay.show").Should().NotBeNull();
 
             // Complete the task
-            tcs.SetResult(new AuthResult { Success = true });
+            tcs.SetResult(new TwoFactorVerifyResponse { Success = true });
         }
 
         [Fact]
@@ -283,7 +283,7 @@ namespace WitchCityRope.Web.Tests.Features.Auth
                 "https://localhost/auth/two-factor?email=test@example.com&returnUrl=/events/123");
             
             AuthServiceMock.Setup(x => x.VerifyTwoFactorAsync(It.IsAny<string>(), It.IsAny<bool>()))
-                .ReturnsAsync(new AuthResult { Success = true });
+                .ReturnsAsync(new TwoFactorVerifyResponse { Success = true });
 
             var component = RenderComponent<TwoFactorAuth>();
 

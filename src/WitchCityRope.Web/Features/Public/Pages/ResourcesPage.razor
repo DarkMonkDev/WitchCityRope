@@ -1,0 +1,372 @@
+@page "/resources"
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@using WitchCityRope.Core.Services
+@using WitchCityRope.Core.Entities
+@using System.Security.Claims
+@using Syncfusion.Blazor.RichTextEditor
+@using Microsoft.AspNetCore.Components.Forms
+@using WitchCityRope.Web.Shared.Validation.Components
+@inject IContentPageService ContentPageService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JSRuntime
+@layout MainLayout
+
+<PageTitle>Resources - Witch City Rope</PageTitle>
+
+<div class="resources-page">
+    <div class="container">
+        <div class="page-header">
+            <h1>@(contentPage?.Title ?? "Resources")</h1>
+            <p class="lead">Everything you need for your rope bondage journey</p>
+        </div>
+        
+        @if (IsAdmin)
+        {
+            <div class="cms-admin-controls">
+                @if (IsEditing)
+                {
+                    <div class="cms-edit-toolbar">
+                        <button class="btn btn-success" @onclick="SaveContentAsync" disabled="@IsSaving">
+                            @if (IsSaving)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            <i class="fas fa-save me-1"></i> Save
+                        </button>
+                        <button class="btn btn-secondary" @onclick="CancelEditAsync">
+                            <i class="fas fa-times me-1"></i> Cancel
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <button class="btn btn-outline-primary btn-sm" @onclick="StartEditAsync">
+                        <i class="fas fa-edit me-1"></i> Edit Page
+                    </button>
+                }
+            </div>
+        }
+        
+        <div class="cms-content-container">
+            @if (IsEditing)
+            {
+                <div class="cms-editor-container">
+                    <EditForm Model="@editModel" OnValidSubmit="SaveContentAsync">
+                        <DataAnnotationsValidator />
+                        
+                        <div class="mb-3">
+                            <WcrInputText @bind-Value="editModel.Title" 
+                                          Label="Page Title"
+                                          IsRequired="true" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Content</label>
+                            <SfRichTextEditor @bind-Value="@EditableContent" 
+                                              Height="600px"
+                                              @ref="RichTextEditorRef"
+                                              Placeholder="Enter your content here...">
+                                <RichTextEditorToolbarSettings Items="@ToolbarItems" />
+                            </SfRichTextEditor>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <WcrInputTextArea @bind-Value="editModel.MetaDescription" 
+                                                  Label="Meta Description"
+                                                  Placeholder="Page description for SEO"
+                                                  Rows="3" />
+                            </div>
+                            <div class="col-md-6">
+                                <WcrInputTextArea @bind-Value="editModel.MetaKeywords" 
+                                                  Label="Meta Keywords"
+                                                  Placeholder="Keywords separated by commas"
+                                                  Rows="3" />
+                            </div>
+                        </div>
+                    </EditForm>
+                </div>
+            }
+            else
+            {
+                <div class="cms-content">
+                    @if (contentPage != null)
+                    {
+                        @((MarkupString)contentPage.Content)
+                    }
+                    else
+                    {
+                        <div class="default-content">
+                            <p>Loading content...</p>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private ContentPage? contentPage;
+    private bool IsAdmin = false;
+    private bool IsEditing = false;
+    private bool IsSaving = false;
+    private string UserId = string.Empty;
+    
+    private SfRichTextEditor? RichTextEditorRef;
+    private string EditableContent = string.Empty;
+    private ContentEditModel editModel = new();
+    
+    // Form model for EditForm binding
+    private class ContentEditModel
+    {
+        public string Title { get; set; } = string.Empty;
+        public string MetaDescription { get; set; } = string.Empty;
+        public string MetaKeywords { get; set; } = string.Empty;
+    }
+    
+    private readonly List<ToolbarItemModel> ToolbarItems = new()
+    {
+        new() { Command = ToolbarCommand.Bold },
+        new() { Command = ToolbarCommand.Italic },
+        new() { Command = ToolbarCommand.Underline },
+        new() { Command = ToolbarCommand.StrikeThrough },
+        new() { Command = ToolbarCommand.Separator },
+        new() { Command = ToolbarCommand.Formats },
+        new() { Command = ToolbarCommand.Alignments },
+        new() { Command = ToolbarCommand.Separator },
+        new() { Command = ToolbarCommand.OrderedList },
+        new() { Command = ToolbarCommand.UnorderedList },
+        new() { Command = ToolbarCommand.Separator },
+        new() { Command = ToolbarCommand.CreateLink },
+        new() { Command = ToolbarCommand.Separator },
+        new() { Command = ToolbarCommand.SourceCode },
+        new() { Command = ToolbarCommand.Undo },
+        new() { Command = ToolbarCommand.Redo }
+    };
+    
+    protected override async Task OnInitializedAsync()
+    {
+        // Load authentication state first
+        await LoadAuthenticationStateAsync();
+        
+        // Add a small delay to ensure authentication completes
+        await Task.Delay(50);
+        
+        // Then load content in a separate scope
+        await LoadContentAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Debug logging (only works after first render)
+            try
+            {
+                var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+                var user = authState.User;
+                
+                await JSRuntime.InvokeVoidAsync("console.log", $"User authenticated: {user.Identity?.IsAuthenticated}");
+                await JSRuntime.InvokeVoidAsync("console.log", $"User name: {user.Identity?.Name}");
+                
+                if (user.Identity?.IsAuthenticated == true)
+                {
+                    var roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).ToList();
+                    await JSRuntime.InvokeVoidAsync("console.log", $"User roles: {string.Join(", ", roles)}");
+                    await JSRuntime.InvokeVoidAsync("console.log", $"Is Administrator: {IsAdmin}");
+                }
+                
+                await JSRuntime.InvokeVoidAsync("console.log", $"User ID: {UserId}");
+                await JSRuntime.InvokeVoidAsync("console.log", $"Content loaded: {contentPage?.Title}");
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeVoidAsync("console.error", $"Debug logging error: {ex.Message}");
+            }
+        }
+    }
+    
+    private async Task LoadAuthenticationStateAsync()
+    {
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                IsAdmin = user.IsInRole("Administrator");
+            }
+            
+            UserId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+        }
+        catch (Exception ex)
+        {
+            // Silent fallback during server-side rendering
+            IsAdmin = false;
+            UserId = string.Empty;
+        }
+    }
+    
+    private async Task LoadContentAsync()
+    {
+        contentPage = await ContentPageService.GetOrCreateBySlugAsync("resources", "Resources");
+    }
+    
+    private async Task StartEditAsync()
+    {
+        if (!IsAdmin || contentPage == null) return;
+        
+        EditableContent = contentPage.Content;
+        editModel = new ContentEditModel
+        {
+            Title = contentPage.Title,
+            MetaDescription = contentPage.MetaDescription ?? string.Empty,
+            MetaKeywords = contentPage.MetaKeywords ?? string.Empty
+        };
+        
+        await JSRuntime.InvokeVoidAsync("console.log", $"Starting edit with content: {EditableContent.Substring(0, Math.Min(50, EditableContent.Length))}...");
+        
+        IsEditing = true;
+        StateHasChanged();
+        
+        await Task.Delay(100);
+        // Focus the editor if needed
+    }
+    
+    private async Task SaveContentAsync()
+    {
+        if (!IsAdmin || contentPage == null || IsSaving) return;
+        
+        IsSaving = true;
+        StateHasChanged();
+        
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("console.log", $"Saving content: {EditableContent.Substring(0, Math.Min(100, EditableContent.Length))}...");
+            
+            contentPage = await ContentPageService.UpdateAsync(
+                contentPage.Id, 
+                EditableContent, 
+                editModel.Title, 
+                UserId, 
+                editModel.MetaDescription, 
+                editModel.MetaKeywords);
+            
+            IsEditing = false;
+            await JSRuntime.InvokeVoidAsync("console.log", "Save completed successfully");
+            // Show success message - would need toast service
+        }
+        catch (Exception ex)
+        {
+            // Show error message - would need toast service
+            // For now, just log to console
+            await JSRuntime.InvokeVoidAsync("console.error", $"Error saving content: {ex.Message}");
+        }
+        finally
+        {
+            IsSaving = false;
+            StateHasChanged();
+        }
+    }
+    
+    private async Task CancelEditAsync()
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            "Are you sure you want to cancel? Any unsaved changes will be lost.");
+            
+        if (confirmed)
+        {
+            IsEditing = false;
+            StateHasChanged();
+        }
+    }
+}
+
+<style>
+    .resources-page {
+        padding: 2rem 0;
+        min-height: calc(100vh - 200px);
+    }
+    
+    .page-header {
+        margin-bottom: 3rem;
+        text-align: center;
+    }
+    
+    .page-header h1 {
+        color: var(--color-burgundy, #880124);
+        margin-bottom: 0.5rem;
+    }
+    
+    .page-header .lead {
+        color: var(--color-smoke, #4A4A4A);
+        font-size: 1.125rem;
+    }
+    
+    .cms-admin-controls {
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        z-index: 1000;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 0.5rem;
+    }
+    
+    .cms-edit-toolbar {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    .cms-content-container {
+        min-height: 400px;
+    }
+    
+    .cms-editor-container {
+        background: var(--color-ivory, #FFF8F0);
+        border-radius: var(--radius-lg, 0.75rem);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .cms-content {
+        background: var(--color-ivory, #FFF8F0);
+        border-radius: var(--radius-lg, 0.75rem);
+        padding: 2.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        border: 1px solid rgba(183, 109, 117, 0.1);
+    }
+    
+    .default-content {
+        text-align: center;
+        color: var(--color-stone, #8B8680);
+        font-style: italic;
+    }
+    
+    @@media (max-width: 768px) {
+        .resources-page {
+            padding: 1rem 0;
+        }
+        
+        .cms-admin-controls {
+            position: static;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+        }
+        
+        .cms-content,
+        .cms-editor-container {
+            padding: 1.5rem;
+        }
+        
+        .page-header {
+            margin-bottom: 2rem;
+        }
+    }
+</style>

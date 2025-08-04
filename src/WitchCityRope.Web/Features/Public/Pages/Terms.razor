@@ -1,0 +1,390 @@
+@page "/terms"
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
+
+<PageTitle>Terms of Service - Witch City Rope</PageTitle>
+
+<style>
+    .terms-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+
+    .terms-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .terms-title {
+        font-size: 36px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 16px;
+    }
+
+    .terms-subtitle {
+        font-size: 18px;
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .last-updated {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 32px;
+        text-align: center;
+        font-size: 14px;
+        color: #666;
+    }
+
+    .terms-section {
+        margin-bottom: 40px;
+    }
+
+    .section-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 16px;
+    }
+
+    .subsection-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 12px;
+        margin-top: 24px;
+    }
+
+    .section-content {
+        font-size: 16px;
+        line-height: 1.8;
+        color: #444;
+        margin-bottom: 16px;
+    }
+
+    .warning-box {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+    }
+
+    .warning-title {
+        font-weight: 600;
+        color: #8B4513;
+        margin-bottom: 8px;
+    }
+
+    .important-highlight {
+        background: #e7f3ff;
+        border-left: 4px solid #007bff;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 0 8px 8px 0;
+    }
+
+    .liability-section {
+        background: #fff5f5;
+        border: 1px solid #ffcccb;
+        border-radius: 8px;
+        padding: 24px;
+        margin: 24px 0;
+    }
+
+    .liability-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #dc3545;
+        margin-bottom: 16px;
+    }
+
+    .contact-section {
+        background: #8B4513;
+        color: white;
+        border-radius: 8px;
+        padding: 32px;
+        text-align: center;
+        margin-top: 40px;
+    }
+
+    .contact-title {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+
+    .contact-text {
+        font-size: 16px;
+        line-height: 1.6;
+        margin-bottom: 24px;
+    }
+
+    .contact-button {
+        display: inline-block;
+        background: white;
+        color: #8B4513;
+        padding: 12px 24px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        margin-right: 16px;
+    }
+
+    .contact-button:hover {
+        background: #f5f5f5;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    @@media (max-width: 768px) {
+        .terms-container {
+            padding: 24px 16px;
+        }
+
+        .terms-title {
+            font-size: 28px;
+        }
+
+        .contact-button {
+            display: block;
+            margin: 8px 0;
+        }
+    }
+</style>
+
+<div class="terms-container">
+    <div class="terms-header">
+        <h1 class="terms-title">Terms of Service</h1>
+        <p class="terms-subtitle">
+            Legal terms and conditions for using our services and participating in our community
+        </p>
+    </div>
+
+    <div class="last-updated">
+        <strong>Last Updated:</strong> January 15, 2025
+    </div>
+
+    <div class="warning-box">
+        <div class="warning-title">Important Notice</div>
+        <p>By using our services and participating in our community, you acknowledge that you understand 
+           and accept the inherent risks associated with rope bondage activities. You must be 18 or older 
+           to participate.</p>
+    </div>
+
+    <div class="terms-section">
+        <h2 class="section-title">1. Acceptance of Terms</h2>
+        <p class="section-content">
+            By accessing our website, creating an account, or participating in Witch City Rope activities, 
+            you agree to be bound by these Terms of Service ("Terms"), our Privacy Policy, and our Code of Conduct. 
+            If you do not agree to these terms, you may not use our services.
+        </p>
+        <p class="section-content">
+            These Terms constitute a legally binding agreement between you and Witch City Rope ("we," "us," or "our").
+        </p>
+    </div>
+
+    <div class="terms-section">
+        <h2 class="section-title">2. Eligibility and Registration</h2>
+        
+        <h3 class="subsection-title">Age Requirement</h3>
+        <p class="section-content">
+            You must be at least 18 years old to register for our services and participate in our activities. 
+            By registering, you represent and warrant that you are at least 18 years of age.
+        </p>
+
+        <h3 class="subsection-title">Vetting Process</h3>
+        <p class="section-content">
+            All members must complete our vetting process before accessing certain community features and events. 
+            This process may include:
+        </p>
+        <ul>
+            <li>Identity verification</li>
+            <li>Background checks</li>
+            <li>Reference checks</li>
+            <li>In-person meetings with organizers</li>
+            <li>Demonstration of understanding of safety practices</li>
+        </ul>
+
+        <h3 class="subsection-title">Account Responsibility</h3>
+        <p class="section-content">
+            You are responsible for maintaining the confidentiality of your account information and for all 
+            activities that occur under your account. You must notify us immediately of any unauthorized use 
+            of your account.
+        </p>
+    </div>
+
+    <div class="terms-section">
+        <h2 class="section-title">3. Community Standards</h2>
+        <p class="section-content">
+            All members must adhere to our Code of Conduct, which is incorporated into these Terms by reference. 
+            Violations may result in suspension or termination of your membership.
+        </p>
+        <p class="section-content">
+            Key requirements include:
+        </p>
+        <ul>
+            <li>Maintaining informed consent for all activities</li>
+            <li>Following all safety protocols</li>
+            <li>Respecting the boundaries and privacy of others</li>
+            <li>Contributing positively to the community environment</li>
+        </ul>
+    </div>
+
+    <div class="liability-section">
+        <h3 class="liability-title">4. Assumption of Risk and Liability</h3>
+        <p class="section-content">
+            <strong>WARNING:</strong> Rope bondage activities involve inherent risks including but not limited to:
+        </p>
+        <ul>
+            <li>Physical injury, including nerve damage, circulation problems, and falls</li>
+            <li>Psychological or emotional distress</li>
+            <li>Property damage</li>
+            <li>Other unforeseen risks</li>
+        </ul>
+        <p class="section-content">
+            By participating in our activities, you voluntarily assume all risks associated with rope bondage 
+            and related activities. You acknowledge that no activity is completely safe and that you participate 
+            at your own risk.
+        </p>
+    </div>
+
+    <div class="terms-section">
+        <h2 class="section-title">5. Limitation of Liability</h2>
+        <p class="section-content">
+            To the fullest extent permitted by law, Witch City Rope, its organizers, instructors, and affiliates 
+            shall not be liable for any direct, indirect, incidental, special, consequential, or punitive damages 
+            arising out of or relating to your use of our services or participation in our activities.
+        </p>
+        <p class="section-content">
+            This limitation applies regardless of whether such damages arise under contract, tort, strict liability, 
+            or any other legal theory, and whether or not we have been advised of the possibility of such damages.
+        </p>
+    </div>
+
+    <div class="terms-section">
+        <h2 class="section-title">6. Indemnification</h2>
+        <p class="section-content">
+            You agree to indemnify, defend, and hold harmless Witch City Rope and its organizers, instructors, 
+            and affiliates from and against any and all claims, damages, losses, costs, and expenses (including 
+            reasonable attorneys' fees) arising out of or relating to:
+        </p>
+        <ul>
+            <li>Your use of our services</li>
+            <li>Your participation in our activities</li>
+            <li>Your violation of these Terms</li>
+            <li>Your violation of any rights of another person</li>
+        </ul>
+    </div>
+
+    <div class="terms-section">
+        <h2 class="section-title">7. Intellectual Property</h2>
+        <p class="section-content">
+            All content on our website and materials used in our classes are protected by copyright, trademark, 
+            and other intellectual property laws. You may not reproduce, distribute, or create derivative works 
+            from our materials without express written permission.
+        </p>
+        <p class="section-content">
+            By submitting content to our platform, you grant us a non-exclusive, worldwide, royalty-free license 
+            to use, reproduce, and display such content in connection with our services.
+        </p>
+    </div>
+
+    <div class="terms-section">
+        <h2 class="section-title">8. Privacy and Confidentiality</h2>
+        <p class="section-content">
+            We are committed to protecting your privacy. Our Privacy Policy, which is incorporated into these 
+            Terms, explains how we collect, use, and protect your information.
+        </p>
+        <p class="section-content">
+            You agree to maintain the confidentiality of information about other community members and activities. 
+            This includes not sharing personal information, photos, or details about events with non-members.
+        </p>
+    </div>
+
+    <div class="terms-section">
+        <h2 class="section-title">9. Payments and Refunds</h2>
+        <p class="section-content">
+            Event fees and membership dues are non-refundable except in extraordinary circumstances at our sole discretion. 
+            We reserve the right to modify pricing with reasonable notice.
+        </p>
+        <p class="section-content">
+            If you are unable to attend an event, you may transfer your spot to another vetted member with advance notice.
+        </p>
+    </div>
+
+    <div class="terms-section">
+        <h2 class="section-title">10. Termination</h2>
+        <p class="section-content">
+            We may terminate or suspend your membership at any time for any reason, including violation of these Terms 
+            or our Code of Conduct. Upon termination, you must cease all use of our services and return any materials 
+            provided to you.
+        </p>
+        <p class="section-content">
+            You may terminate your membership at any time by contacting us. Termination does not relieve you of 
+            obligations incurred prior to termination.
+        </p>
+    </div>
+
+    <div class="terms-section">
+        <h2 class="section-title">11. Dispute Resolution</h2>
+        <p class="section-content">
+            Any disputes arising out of or relating to these Terms shall be resolved through binding arbitration 
+            in accordance with the rules of the American Arbitration Association. The arbitration shall take place 
+            in Massachusetts, and Massachusetts law shall govern.
+        </p>
+        <p class="section-content">
+            You waive your right to participate in class action lawsuits or class-wide arbitrations.
+        </p>
+    </div>
+
+    <div class="important-highlight">
+        <strong>Medical Disclaimer:</strong> We are not medical professionals. Our activities are for educational 
+        and recreational purposes only. If you have any medical conditions or concerns, consult with a healthcare 
+        provider before participating.
+    </div>
+
+    <div class="terms-section">
+        <h2 class="section-title">12. Changes to Terms</h2>
+        <p class="section-content">
+            We reserve the right to modify these Terms at any time. We will notify you of material changes by 
+            posting the updated Terms on our website and sending notice to registered members.
+        </p>
+        <p class="section-content">
+            Your continued use of our services after any changes constitutes acceptance of the updated Terms.
+        </p>
+    </div>
+
+    <div class="terms-section">
+        <h2 class="section-title">13. Severability</h2>
+        <p class="section-content">
+            If any provision of these Terms is found to be invalid or unenforceable, the remaining provisions 
+            shall continue in full force and effect.
+        </p>
+    </div>
+
+    <div class="terms-section">
+        <h2 class="section-title">14. Contact Information</h2>
+        <p class="section-content">
+            Questions about these Terms should be directed to:
+        </p>
+        <p class="section-content">
+            <strong>Witch City Rope</strong><br>
+            Email: legal@witchcityrope.com<br>
+            Address: Salem, Massachusetts
+        </p>
+    </div>
+
+    <div class="contact-section">
+        <h2 class="contact-title">Questions About These Terms?</h2>
+        <p class="contact-text">
+            If you have questions about these Terms of Service, please contact us.
+        </p>
+        <a href="/contact" class="contact-button">Contact Us</a>
+        <a href="mailto:legal@witchcityrope.com" class="contact-button">Email Legal</a>
+    </div>
+</div>

@@ -1,0 +1,369 @@
+@using WitchCityRope.Core.Enums
+@using WitchCityRope.Core.DTOs
+@using WitchCityRope.Web.Services
+@using WitchCityRope.Web.Shared.Validation.Components
+@using Syncfusion.Blazor.Popups
+@using System.ComponentModel.DataAnnotations
+
+@inject ApiClient ApiClient
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<SfDialog @ref="Dialog" Width="600px" Height="auto" IsModal="true" ShowCloseIcon="true" @bind-Visible="@IsVisible">
+    <DialogTemplates>
+        <Header>
+            <div class="dialog-header">
+                <h3>@(IsSocialEvent ? "RSVP for Event" : "Register for Event")</h3>
+            </div>
+        </Header>
+        <Content>
+            @if (Event != null)
+            {
+                <div class="registration-form">
+                    <div class="event-summary">
+                        <h4>@Event.Name</h4>
+                        <p class="event-details">
+                            <strong>Date:</strong> @Event.StartDateTime.ToString("MMMM dd, yyyy")<br />
+                            <strong>Time:</strong> @Event.StartDateTime.ToString("h:mm tt") - @Event.EndDateTime.ToString("h:mm tt")<br />
+                            <strong>Location:</strong> @Event.Location
+                        </p>
+                    </div>
+
+                    <EditForm Model="@RegistrationModel" OnValidSubmit="@HandleRegistration">
+                        <DataAnnotationsValidator />
+                        
+                        @if (!IsSocialEvent && Event.Price > 0)
+                        {
+                            <div class="form-group">
+                                <label>Select Price (Sliding Scale):</label>
+                                <WcrInputRadio @bind-Value="@RegistrationModel.SelectedPrice" 
+                                              Options="@GetPriceOptions()"
+                                              OptionsWithDisplay="@GetPriceOptionsWithDisplay()"
+                                              Orientation="vertical"
+                                              IsRequired="true" />
+                            </div>
+                        }
+
+                        <WcrInputText @bind-Value="@RegistrationModel.DietaryRestrictions" 
+                                      Label="Dietary Restrictions"
+                                      Placeholder="e.g., Vegetarian, Gluten-free, Nut allergy" />
+
+                        <WcrInputText @bind-Value="@RegistrationModel.AccessibilityNeeds" 
+                                      Label="Accessibility Needs"
+                                      Placeholder="e.g., Wheelchair access, ASL interpreter" />
+
+                        <WcrInputText @bind-Value="@RegistrationModel.EmergencyContactName" 
+                                      Label="Emergency Contact Name"
+                                      Placeholder="Full name"
+                                      IsRequired="true" />
+
+                        <WcrInputText @bind-Value="@RegistrationModel.EmergencyContactPhone" 
+                                      Label="Emergency Contact Phone"
+                                      Placeholder="(555) 123-4567"
+                                      IsRequired="true" />
+
+                        @if (!IsSocialEvent && Event.Price > 0)
+                        {
+                            <div class="payment-notice">
+                                <p><strong>Payment Required:</strong> You will be charged $@RegistrationModel.SelectedPrice upon registration.</p>
+                                <p class="payment-stub-notice">*Payment processing is currently in test mode*</p>
+                            </div>
+                        }
+
+                        <WcrValidationSummary />
+
+                        <div class="form-actions">
+                            <button type="submit" class="wcr-button wcr-button-primary" disabled="@IsProcessing">
+                                @if (IsProcessing)
+                                {
+                                    <span class="spinner-border spinner-border-sm mr-2"></span>
+                                    <span>Processing...</span>
+                                }
+                                else if (IsSocialEvent)
+                                {
+                                    <span>RSVP for Event</span>
+                                }
+                                else
+                                {
+                                    <span>Register & Pay</span>
+                                }
+                            </button>
+                            <button type="button" class="wcr-button wcr-button-outline" @onclick="@CloseDialog">Cancel</button>
+                        </div>
+                    </EditForm>
+                </div>
+            }
+        </Content>
+    </DialogTemplates>
+</SfDialog>
+
+@code {
+    [Parameter] public Core.DTOs.EventDto? Event { get; set; }
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+    [Parameter] public EventCallback<RegistrationResult> OnRegistrationComplete { get; set; }
+
+    private SfDialog? Dialog;
+    private RegistrationFormModel RegistrationModel = new();
+    private bool IsProcessing = false;
+    private bool IsSocialEvent => Event?.EventType == Core.Enums.EventType.Social.ToString() || Event?.EventType == Core.Enums.EventType.PlayParty.ToString();
+
+    protected override void OnParametersSet()
+    {
+        if (Event != null && IsVisible)
+        {
+            // Initialize the form model
+            RegistrationModel = new RegistrationFormModel
+            {
+                EventId = Event.Id,
+                SelectedPrice = Event.Price
+            };
+        }
+    }
+
+    private List<decimal> GetPriceOptions()
+    {
+        if (Event == null || Event.Price == 0) return new List<decimal>();
+        
+        var options = new List<decimal> { Event.Price };
+        
+        if (Event.Price > 35)
+        {
+            options.Add(Event.Price - 10);
+        }
+        
+        options.Add(35); // Minimum price
+        
+        return options;
+    }
+
+    private List<KeyValuePair<decimal, string>> GetPriceOptionsWithDisplay()
+    {
+        if (Event == null || Event.Price == 0) return new List<KeyValuePair<decimal, string>>();
+        
+        var options = new List<KeyValuePair<decimal, string>>
+        {
+            new(Event.Price, $"${Event.Price} - Standard")
+        };
+        
+        if (Event.Price > 35)
+        {
+            options.Add(new(Event.Price - 10, $"${Event.Price - 10} - If helpful"));
+        }
+        
+        options.Add(new(35, "$35 - Minimum"));
+        
+        return options;
+    }
+
+    private async Task HandleRegistration()
+    {
+        IsProcessing = true;
+        StateHasChanged();
+
+        try
+        {
+            Console.WriteLine($"Starting registration for event: {Event!.Id}");
+            
+            var request = new RegisterForEventRequest
+            {
+                EventId = Event!.Id,
+                DietaryRestrictions = RegistrationModel.DietaryRestrictions,
+                AccessibilityNeeds = RegistrationModel.AccessibilityNeeds,
+                EmergencyContactName = RegistrationModel.EmergencyContactName,
+                EmergencyContactPhone = RegistrationModel.EmergencyContactPhone,
+                SelectedPriceId = (int)RegistrationModel.SelectedPrice, // Converting decimal price to int ID
+                PaymentMethod = "Cash" // Cash payment for stub
+            };
+            
+            Console.WriteLine($"Sending registration request for price: ${RegistrationModel.SelectedPrice}");
+            var response = await ApiClient.RegisterForEventAsync(Event.Id);
+            Console.WriteLine($"Registration response received: Success={response.Success}, Message={response.Message}");
+
+            if (response.Success)
+            {
+                await OnRegistrationComplete.InvokeAsync(new RegistrationResult
+                {
+                    Success = true,
+                    ConfirmationCode = response.ConfirmationCode,
+                    Status = response.Status,
+                    Message = response.Message ?? (IsSocialEvent ? "RSVP confirmed!" : "Registration confirmed!")
+                });
+                await CloseDialog();
+            }
+            else
+            {
+                // Error is handled by validation summary
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Registration error: {ex}");
+            StateHasChanged();
+        }
+        finally
+        {
+            IsProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CloseDialog()
+    {
+        IsVisible = false;
+        await IsVisibleChanged.InvokeAsync(false);
+    }
+
+    public class RegistrationFormModel
+    {
+        public Guid EventId { get; set; }
+        
+        [Required(ErrorMessage = "Please select a price option")]
+        public decimal SelectedPrice { get; set; }
+        
+        public string? DietaryRestrictions { get; set; }
+        public string? AccessibilityNeeds { get; set; }
+        
+        [Required(ErrorMessage = "Emergency contact name is required")]
+        public string EmergencyContactName { get; set; } = string.Empty;
+        
+        [Required(ErrorMessage = "Emergency contact phone is required")]
+        [Phone(ErrorMessage = "Please enter a valid phone number")]
+        public string EmergencyContactPhone { get; set; } = string.Empty;
+    }
+
+    public class RegistrationResult
+    {
+        public bool Success { get; set; }
+        public string? ConfirmationCode { get; set; }
+        public string? Status { get; set; }
+        public string? Message { get; set; }
+    }
+}
+
+<style>
+    .dialog-header h3 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: var(--wcr-color-burgundy);
+    }
+
+    .registration-form {
+        padding: 1rem 0;
+    }
+
+    .event-summary {
+        background-color: var(--wcr-color-cream);
+        padding: 1rem;
+        border-radius: var(--wcr-radius-md);
+        margin-bottom: 1.5rem;
+    }
+
+    .event-summary h4 {
+        margin: 0 0 0.5rem 0;
+        color: var(--wcr-color-burgundy);
+    }
+
+    .event-details {
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--wcr-color-charcoal);
+    }
+
+    .payment-notice {
+        background-color: var(--wcr-color-cream);
+        border: 1px solid var(--wcr-color-taupe);
+        padding: 1rem;
+        border-radius: var(--wcr-radius-sm);
+        margin-bottom: 1.5rem;
+    }
+
+    .payment-notice p {
+        margin: 0 0 0.5rem 0;
+    }
+
+    .payment-notice p:last-child {
+        margin-bottom: 0;
+    }
+
+    .payment-stub-notice {
+        font-style: italic;
+        color: var(--wcr-color-stone);
+        font-size: 0.9rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+    }
+
+    .wcr-button {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+        padding: var(--wcr-space-sm) var(--wcr-space-lg);
+        border: none;
+        border-radius: var(--wcr-radius-sm);
+        font-family: var(--wcr-font-heading);
+        font-weight: 600;
+        font-size: 16px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .wcr-button-primary {
+        background: var(--wcr-color-burgundy);
+        color: white;
+    }
+
+    .wcr-button-primary:hover:not(:disabled) {
+        background: var(--wcr-color-burgundy-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(139, 0, 0, 0.3);
+    }
+
+    .wcr-button-primary:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .wcr-button-outline {
+        background: transparent;
+        color: var(--wcr-color-stone);
+        border: 2px solid var(--wcr-color-taupe);
+    }
+
+    .wcr-button-outline:hover {
+        background: var(--wcr-color-taupe);
+        color: white;
+    }
+
+    .spinner-border {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        vertical-align: text-bottom;
+        border: 0.15em solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: spinner-border 0.75s linear infinite;
+    }
+
+    @@keyframes spinner-border {
+        to { transform: rotate(360deg); }
+    }
+</style>

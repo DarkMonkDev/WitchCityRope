@@ -1,0 +1,843 @@
+@page "/consent"
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@using WitchCityRope.Core.Services
+@using WitchCityRope.Core.Entities
+@using System.Security.Claims
+@using Syncfusion.Blazor.RichTextEditor
+@using Microsoft.AspNetCore.Components.Forms
+@using WitchCityRope.Web.Shared.Validation.Components
+@inject IContentPageService ContentPageService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JSRuntime
+@layout MainLayout
+
+<PageTitle>Consent & Negotiation - Witch City Rope</PageTitle>
+
+<div class="consent-page">
+    <div class="container">
+        <div class="page-header">
+            <h1>@(contentPage?.Title ?? "Consent & Negotiation")</h1>
+            <p class="lead">Understanding consent, communication, and safety in rope bondage</p>
+        </div>
+        
+        @if (IsAdmin)
+        {
+            <div class="cms-admin-controls">
+                @if (IsEditing)
+                {
+                    <div class="cms-edit-toolbar">
+                        <button class="btn btn-success" @onclick="SaveContentAsync" disabled="@IsSaving">
+                            @if (IsSaving)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            <i class="fas fa-save me-1"></i> Save
+                        </button>
+                        <button class="btn btn-secondary" @onclick="CancelEditAsync">
+                            <i class="fas fa-times me-1"></i> Cancel
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <button class="btn btn-outline-primary btn-sm" @onclick="StartEditAsync">
+                        <i class="fas fa-edit me-1"></i> Edit Page
+                    </button>
+                }
+            </div>
+        }
+        
+        <div class="cms-content-container">
+            @if (IsEditing)
+            {
+                <div class="cms-editor-container">
+                    <EditForm Model="@editModel" OnValidSubmit="SaveContentAsync">
+                        <DataAnnotationsValidator />
+                        
+                        <div class="mb-3">
+                            <WcrInputText @bind-Value="editModel.Title" 
+                                          Label="Page Title"
+                                          IsRequired="true" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Content</label>
+                            <SfRichTextEditor @bind-Value="@EditableContent" 
+                                              Height="600px"
+                                              @ref="RichTextEditorRef"
+                                              Placeholder="Enter your content here...">
+                                <RichTextEditorToolbarSettings Items="@ToolbarItems" />
+                            </SfRichTextEditor>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <WcrInputTextArea @bind-Value="editModel.MetaDescription" 
+                                                  Label="Meta Description"
+                                                  Placeholder="Page description for SEO"
+                                                  Rows="3" />
+                            </div>
+                            <div class="col-md-6">
+                                <WcrInputTextArea @bind-Value="editModel.MetaKeywords" 
+                                                  Label="Meta Keywords"
+                                                  Placeholder="Keywords separated by commas"
+                                                  Rows="3" />
+                            </div>
+                        </div>
+                    </EditForm>
+                </div>
+            }
+            else
+            {
+                <div class="cms-content">
+                    @if (contentPage != null)
+                    {
+                        @((MarkupString)contentPage.Content)
+                    }
+                    else
+                    {
+                        <div class="default-content">
+                            <div class="consent-intro">
+                                <div class="highlight-box">
+                                    <i class="fas fa-heart"></i>
+                                    <h2>Consent is the Foundation</h2>
+                                    <p>At Witch City Rope, enthusiastic and ongoing consent is the cornerstone of all our activities. This page outlines our approach to consent, negotiation, and creating safe spaces for rope bondage practice.</p>
+                                </div>
+                            </div>
+
+                            <div class="consent-section">
+                                <h2>What is Consent?</h2>
+                                <div class="concept-grid">
+                                    <div class="concept-card">
+                                        <h3>Informed</h3>
+                                        <p>Understanding what you're agreeing to, including risks and activities involved.</p>
+                                    </div>
+                                    <div class="concept-card">
+                                        <h3>Enthusiastic</h3>
+                                        <p>Genuine desire to participate, not just passive agreement or absence of "no."</p>
+                                    </div>
+                                    <div class="concept-card">
+                                        <h3>Ongoing</h3>
+                                        <p>Consent can be withdrawn at any time and must be continuously reaffirmed.</p>
+                                    </div>
+                                    <div class="concept-card">
+                                        <h3>Specific</h3>
+                                        <p>Agreement to particular activities doesn't imply consent to everything.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="consent-section">
+                                <h2>Negotiation Process</h2>
+                                <div class="process-steps">
+                                    <div class="step">
+                                        <div class="step-number">1</div>
+                                        <div class="step-content">
+                                            <h3>Initial Discussion</h3>
+                                            <p>Share experience levels, interests, and general boundaries before any rope work begins.</p>
+                                        </div>
+                                    </div>
+                                    <div class="step">
+                                        <div class="step-number">2</div>
+                                        <div class="step-content">
+                                            <h3>Specific Planning</h3>
+                                            <p>Discuss specific ties, positions, duration, and any props or tools to be used.</p>
+                                        </div>
+                                    </div>
+                                    <div class="step">
+                                        <div class="step-number">3</div>
+                                        <div class="step-content">
+                                            <h3>Safety Check</h3>
+                                            <p>Review safety signals, emergency procedures, and aftercare needs.</p>
+                                        </div>
+                                    </div>
+                                    <div class="step">
+                                        <div class="step-number">4</div>
+                                        <div class="step-content">
+                                            <h3>Ongoing Communication</h3>
+                                            <p>Maintain verbal and non-verbal communication throughout the session.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="consent-section">
+                                <h2>Communication Tools</h2>
+                                <div class="tools-grid">
+                                    <div class="tool-card">
+                                        <h3>Safe Words</h3>
+                                        <ul>
+                                            <li><strong>Yellow/Slow:</strong> Slow down, check in, adjust</li>
+                                            <li><strong>Red/Stop:</strong> Stop all activity immediately</li>
+                                            <li><strong>Green/Good:</strong> Everything is fine, continue</li>
+                                        </ul>
+                                    </div>
+                                    <div class="tool-card">
+                                        <h3>Non-Verbal Signals</h3>
+                                        <ul>
+                                            <li>Hand signals for when speech is difficult</li>
+                                            <li>Tapping out with hands or feet</li>
+                                            <li>Dropping a held object (if hands are free)</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="consent-section">
+                                <h2>Boundaries & Limits</h2>
+                                <div class="boundaries-info">
+                                    <div class="boundary-type">
+                                        <h3>Hard Limits</h3>
+                                        <p>Activities that are absolutely off-limits under any circumstances. These must always be respected without question or pressure to change.</p>
+                                    </div>
+                                    <div class="boundary-type">
+                                        <h3>Soft Limits</h3>
+                                        <p>Activities you're unsure about or need special consideration for. These might change with experience, trust, or circumstances.</p>
+                                    </div>
+                                    <div class="boundary-type">
+                                        <h3>Time Limits</h3>
+                                        <p>Boundaries around session duration, specific positions, or time of day. Physical and emotional stamina varies.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="consent-section">
+                                <h2>Creating Safe Spaces</h2>
+                                <div class="safety-principles">
+                                    <div class="principle">
+                                        <i class="fas fa-users"></i>
+                                        <h3>Inclusive Environment</h3>
+                                        <p>We welcome people of all backgrounds, identities, and experience levels while maintaining community safety.</p>
+                                    </div>
+                                    <div class="principle">
+                                        <i class="fas fa-eye"></i>
+                                        <h3>Community Accountability</h3>
+                                        <p>Everyone is responsible for maintaining consent culture and speaking up when they see violations.</p>
+                                    </div>
+                                    <div class="principle">
+                                        <i class="fas fa-shield-alt"></i>
+                                        <h3>Zero Tolerance</h3>
+                                        <p>Consent violations result in immediate intervention and potential removal from our community.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="consent-section">
+                                <h2>Resources & Support</h2>
+                                <div class="resources-grid">
+                                    <div class="resource-card">
+                                        <h3>Need Help?</h3>
+                                        <p>If you experience or witness a consent violation:</p>
+                                        <ul>
+                                            <li>Speak with event organizers immediately</li>
+                                            <li>Use our <a href="/incident-report">incident reporting system</a></li>
+                                            <li>Contact our safety team directly</li>
+                                        </ul>
+                                    </div>
+                                    <div class="resource-card">
+                                        <h3>Learning More</h3>
+                                        <p>Continue your consent education:</p>
+                                        <ul>
+                                            <li>Attend our consent workshops</li>
+                                            <li>Read recommended books and articles</li>
+                                            <li>Practice negotiation with experienced community members</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="action-section">
+                                <h2>Join Our Community</h2>
+                                <p>Ready to practice consent-focused rope bondage in a supportive environment?</p>
+                                <div class="action-buttons">
+                                    <a href="/events" class="btn btn-primary">View Events</a>
+                                    <a href="/how-to-join" class="btn btn-secondary">How to Join</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private ContentPage? contentPage;
+    private bool IsAdmin = false;
+    private bool IsEditing = false;
+    private bool IsSaving = false;
+    private string UserId = string.Empty;
+    
+    private SfRichTextEditor? RichTextEditorRef;
+    private string EditableContent = string.Empty;
+    private ContentEditModel editModel = new();
+    
+    private class ContentEditModel
+    {
+        public string Title { get; set; } = string.Empty;
+        public string MetaDescription { get; set; } = string.Empty;
+        public string MetaKeywords { get; set; } = string.Empty;
+    }
+    
+    private readonly List<ToolbarItemModel> ToolbarItems = new()
+    {
+        new() { Command = ToolbarCommand.Bold },
+        new() { Command = ToolbarCommand.Italic },
+        new() { Command = ToolbarCommand.Underline },
+        new() { Command = ToolbarCommand.StrikeThrough },
+        new() { Command = ToolbarCommand.Separator },
+        new() { Command = ToolbarCommand.Formats },
+        new() { Command = ToolbarCommand.Alignments },
+        new() { Command = ToolbarCommand.Separator },
+        new() { Command = ToolbarCommand.OrderedList },
+        new() { Command = ToolbarCommand.UnorderedList },
+        new() { Command = ToolbarCommand.Separator },
+        new() { Command = ToolbarCommand.CreateLink },
+        new() { Command = ToolbarCommand.Separator },
+        new() { Command = ToolbarCommand.SourceCode },
+        new() { Command = ToolbarCommand.Undo },
+        new() { Command = ToolbarCommand.Redo }
+    };
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAuthenticationStateAsync();
+        await Task.Delay(50);
+        await LoadContentAsync();
+    }
+    
+    private async Task LoadAuthenticationStateAsync()
+    {
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                IsAdmin = user.IsInRole("Administrator");
+            }
+            
+            UserId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+        }
+        catch (Exception ex)
+        {
+            IsAdmin = false;
+            UserId = string.Empty;
+        }
+    }
+    
+    private async Task LoadContentAsync()
+    {
+        contentPage = await ContentPageService.GetOrCreateBySlugAsync("consent", "Consent & Negotiation");
+    }
+    
+    private async Task StartEditAsync()
+    {
+        if (!IsAdmin || contentPage == null) return;
+        
+        EditableContent = contentPage.Content;
+        editModel = new ContentEditModel
+        {
+            Title = contentPage.Title,
+            MetaDescription = contentPage.MetaDescription ?? string.Empty,
+            MetaKeywords = contentPage.MetaKeywords ?? string.Empty
+        };
+        
+        IsEditing = true;
+        StateHasChanged();
+        
+        await Task.Delay(100);
+    }
+    
+    private async Task SaveContentAsync()
+    {
+        if (!IsAdmin || contentPage == null || IsSaving) return;
+        
+        IsSaving = true;
+        StateHasChanged();
+        
+        try
+        {
+            contentPage = await ContentPageService.UpdateAsync(
+                contentPage.Id, 
+                EditableContent, 
+                editModel.Title, 
+                UserId, 
+                editModel.MetaDescription, 
+                editModel.MetaKeywords);
+            
+            IsEditing = false;
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("console.error", $"Error saving content: {ex.Message}");
+        }
+        finally
+        {
+            IsSaving = false;
+            StateHasChanged();
+        }
+    }
+    
+    private async Task CancelEditAsync()
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            "Are you sure you want to cancel? Any unsaved changes will be lost.");
+            
+        if (confirmed)
+        {
+            IsEditing = false;
+            StateHasChanged();
+        }
+    }
+}
+
+<style>
+    .consent-page {
+        padding: 2rem 0;
+        min-height: calc(100vh - 200px);
+        background: linear-gradient(135deg, #fff8f0 0%, #f5f5f5 100%);
+    }
+    
+    .page-header {
+        margin-bottom: 3rem;
+        text-align: center;
+    }
+    
+    .page-header h1 {
+        color: #8B4513;
+        margin-bottom: 0.5rem;
+        font-size: 2.5rem;
+        font-weight: 700;
+    }
+    
+    .page-header .lead {
+        color: #4A4A4A;
+        font-size: 1.125rem;
+    }
+    
+    .cms-admin-controls {
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        z-index: 1000;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 0.5rem;
+    }
+    
+    .cms-edit-toolbar {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    .cms-content-container {
+        min-height: 400px;
+    }
+    
+    .cms-editor-container {
+        background: #FFF8F0;
+        border-radius: 0.75rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .cms-content {
+        background: white;
+        border-radius: 12px;
+        padding: 3rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border: 1px solid rgba(139, 69, 19, 0.1);
+    }
+    
+    .consent-intro {
+        margin-bottom: 3rem;
+    }
+    
+    .highlight-box {
+        background: linear-gradient(135deg, #8B4513, #A0522D);
+        color: white;
+        padding: 2.5rem;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 6px 20px rgba(139, 69, 19, 0.2);
+    }
+    
+    .highlight-box i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.9;
+    }
+    
+    .highlight-box h2 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .highlight-box p {
+        font-size: 1.125rem;
+        line-height: 1.6;
+        opacity: 0.95;
+    }
+    
+    .consent-section {
+        margin-bottom: 3rem;
+    }
+    
+    .consent-section h2 {
+        color: #8B4513;
+        font-size: 1.875rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid rgba(139, 69, 19, 0.2);
+    }
+    
+    .concept-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .concept-card {
+        background: #f9f9f9;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border-left: 4px solid #8B4513;
+        transition: all 0.3s ease;
+    }
+    
+    .concept-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .concept-card h3 {
+        color: #333;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+    
+    .concept-card p {
+        color: #555;
+        line-height: 1.5;
+    }
+    
+    .process-steps {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .step {
+        display: flex;
+        align-items: flex-start;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .step-number {
+        width: 3rem;
+        height: 3rem;
+        background: #8B4513;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+    
+    .step-content h3 {
+        color: #333;
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .step-content p {
+        color: #555;
+        line-height: 1.5;
+        margin: 0;
+    }
+    
+    .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    
+    .tool-card {
+        background: #f0f8f0;
+        padding: 2rem;
+        border-radius: 8px;
+        border: 1px solid #c3e6c3;
+    }
+    
+    .tool-card h3 {
+        color: #2d5a2d;
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .tool-card ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .tool-card li {
+        padding: 0.5rem 0;
+        color: #333;
+        line-height: 1.5;
+    }
+    
+    .boundaries-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .boundary-type {
+        padding: 1.5rem;
+        background: #fff8dc;
+        border-radius: 8px;
+        border-left: 4px solid #daa520;
+    }
+    
+    .boundary-type h3 {
+        color: #b8860b;
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .boundary-type p {
+        color: #333;
+        line-height: 1.5;
+        margin: 0;
+    }
+    
+    .safety-principles {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    
+    .principle {
+        text-align: center;
+        padding: 2rem;
+        background: #f5f5f5;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .principle i {
+        font-size: 2.5rem;
+        color: #8B4513;
+        margin-bottom: 1rem;
+    }
+    
+    .principle h3 {
+        color: #333;
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .principle p {
+        color: #555;
+        line-height: 1.5;
+    }
+    
+    .resources-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    
+    .resource-card {
+        background: #f0f0f0;
+        padding: 2rem;
+        border-radius: 8px;
+        border: 1px solid #d0d0d0;
+    }
+    
+    .resource-card h3 {
+        color: #333;
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .resource-card ul {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .resource-card li {
+        padding: 0.25rem 0;
+        color: #555;
+        line-height: 1.5;
+    }
+    
+    .resource-card a {
+        color: #8B4513;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .resource-card a:hover {
+        text-decoration: underline;
+    }
+    
+    .action-section {
+        text-align: center;
+        padding: 2.5rem;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 8px;
+        margin-top: 3rem;
+    }
+    
+    .action-section h2 {
+        color: #8B4513;
+        margin-bottom: 1rem;
+    }
+    
+    .action-section p {
+        color: #666;
+        font-size: 1.125rem;
+        margin-bottom: 2rem;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .btn {
+        padding: 0.875rem 2rem;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-primary {
+        background: #8B4513;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #6B3410;
+        transform: translateY(-1px);
+    }
+    
+    .btn-secondary {
+        background: #f8f9fa;
+        color: #333;
+        border: 1px solid #dee2e6;
+    }
+    
+    .btn-secondary:hover {
+        background: #e9ecef;
+    }
+    
+    .btn-outline-primary {
+        background: transparent;
+        color: #8B4513;
+        border: 1px solid #8B4513;
+    }
+    
+    .btn-outline-primary:hover {
+        background: #8B4513;
+        color: white;
+    }
+    
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+    
+    .btn-success:hover {
+        background: #218838;
+    }
+    
+    @@media (max-width: 768px) {
+        .consent-page {
+            padding: 1rem 0;
+        }
+        
+        .cms-admin-controls {
+            position: static;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+        }
+        
+        .cms-content,
+        .cms-editor-container {
+            padding: 2rem;
+        }
+        
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        
+        .page-header h1 {
+            font-size: 2rem;
+        }
+        
+        .highlight-box {
+            padding: 2rem;
+        }
+        
+        .highlight-box h2 {
+            font-size: 1.5rem;
+        }
+        
+        .concept-grid,
+        .tools-grid,
+        .safety-principles,
+        .resources-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .step {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+</style>

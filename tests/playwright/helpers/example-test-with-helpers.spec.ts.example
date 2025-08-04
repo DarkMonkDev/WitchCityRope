@@ -1,0 +1,249 @@
+/**
+ * Example test demonstrating the use of all helper utilities
+ * This shows best practices for using the test helpers together
+ */
+
+import { test, expect } from '@playwright/test';
+import { DatabaseHelpers } from './helpers/database.helpers';
+import { AuthHelpers } from './helpers/auth.helpers';
+import { TestDataGenerator, TestDataPatterns } from './helpers/data-generators';
+import { BlazorHelpers } from './helpers/blazor.helpers';
+import { testConfig } from './helpers/test.config';
+
+test.describe('Example: Event Registration Flow with Helpers', () => {
+  // Setup database connection before all tests
+  test.beforeAll(async () => {
+    await DatabaseHelpers.connect();
+  });
+
+  // Cleanup after all tests
+  test.afterAll(async () => {
+    await DatabaseHelpers.cleanupAllTestData();
+    await DatabaseHelpers.disconnect();
+    await AuthHelpers.clearAllAuthStates();
+  });
+
+  test('Complete event registration flow', async ({ browser }) => {
+    // Step 1: Create test data in database
+    const testScenario = await DatabaseHelpers.createTestScenario();
+    
+    // Step 2: Get authenticated member page
+    const { page, authState } = await AuthHelpers.getAuthenticatedPage(browser, 'member');
+    
+    // Verify authentication
+    expect(authState.isAuthenticated).toBe(true);
+    expect(AuthHelpers.hasRole(authState, 'Member')).toBe(true);
+
+    // Step 3: Navigate to events page
+    await page.goto(testConfig.urls.events);
+    await BlazorHelpers.waitForBlazorReady(page);
+
+    // Step 4: Find and click on the social event
+    const eventCard = await BlazorHelpers.waitForComponent(page, 'event-card-social');
+    await BlazorHelpers.clickAndWait(page, eventCard);
+
+    // Step 5: Register for the event
+    const rsvpButton = await BlazorHelpers.waitForComponent(page, 'rsvp-button');
+    await BlazorHelpers.clickAndWait(page, rsvpButton);
+
+    // Step 6: Fill RSVP form
+    const rsvpData = TestDataGenerator.generateRSVP({
+      status: 'Attending',
+      dietaryRestrictions: 'Vegetarian'
+    });
+
+    await BlazorHelpers.fillAndWait(page, '[data-testid="dietary-restrictions"]', rsvpData.dietaryRestrictions!);
+    await BlazorHelpers.fillAndWait(page, '[data-testid="notes"]', rsvpData.notes!);
+
+    // Step 7: Submit RSVP
+    await BlazorHelpers.clickAndWait(page, '[data-testid="submit-rsvp"]');
+
+    // Step 8: Verify registration in UI
+    await BlazorHelpers.waitForText(page, 'Successfully registered for event');
+    
+    // Step 9: Verify in database
+    const registrations = await DatabaseHelpers.executeQuery(
+      `SELECT * FROM "Registrations" WHERE "UserId" = $1 AND "EventId" = $2`,
+      [authState.userId, testScenario.eventIds.socialEvent]
+    );
+    
+    expect(registrations).toHaveLength(1);
+    expect(registrations[0].Status).toBe('Attending');
+
+    await page.close();
+  });
+
+  test('User cannot access admin areas', async ({ browser }) => {
+    // Create a regular member user
+    const userData = TestDataGenerator.generateUser();
+    const userId = await DatabaseHelpers.createTestUser(userData);
+    await DatabaseHelpers.assignUserRole(userId, 'Member');
+
+    // Login as the member
+    const page = await browser.newPage();
+    const authState = await AuthHelpers.login(page, {
+      email: userData.email,
+      password: userData.password
+    });
+
+    // Try to access admin area
+    const hasAccess = await AuthHelpers.verifyRouteAccess(
+      page, 
+      testConfig.urls.adminDashboard, 
+      false // Expected to be denied
+    );
+
+    expect(hasAccess).toBe(false);
+    
+    // Verify redirect to access denied or login
+    expect(page.url()).toMatch(/\/(login|access-denied|403)/);
+
+    await page.close();
+  });
+
+  test('Create event with generated data', async ({ browser }) => {
+    // Get authenticated admin context
+    const { context } = await AuthHelpers.getAuthenticatedContext(
+      browser,
+      testConfig.accounts.admin
+    );
+
+    const page = await context.newPage();
+
+    // Generate event data
+    const eventData = TestDataGenerator.generateEvent({
+      eventType: 'Workshop',
+      requiresVetting: true,
+      capacity: 20
+    });
+
+    // Navigate to event creation
+    await page.goto(`${testConfig.urls.adminEvents}/create`);
+    await BlazorHelpers.waitForBlazorReady(page);
+
+    // Fill form with generated data
+    await BlazorHelpers.fillAndWait(page, '[data-testid="event-name"]', eventData.name);
+    await BlazorHelpers.fillAndWait(page, '[data-testid="event-description"]', eventData.description);
+    await BlazorHelpers.fillAndWait(page, '[data-testid="event-location"]', eventData.location);
+    await BlazorHelpers.fillAndWait(page, '[data-testid="event-capacity"]', eventData.capacity.toString());
+    await BlazorHelpers.fillAndWait(page, '[data-testid="event-price"]', eventData.price.toFixed(2));
+
+    // Set dates
+    const startDateString = eventData.startDate.toISOString().slice(0, 16);
+    const endDateString = eventData.endDate.toISOString().slice(0, 16);
+    
+    await BlazorHelpers.fillAndWait(page, '[data-testid="event-start-date"]', startDateString);
+    await BlazorHelpers.fillAndWait(page, '[data-testid="event-end-date"]', endDateString);
+
+    // Select event type
+    await page.selectOption('[data-testid="event-type"]', eventData.eventType);
+
+    // Check vetting requirement
+    if (eventData.requiresVetting) {
+      await page.check('[data-testid="requires-vetting"]');
+    }
+
+    // Submit form
+    await BlazorHelpers.clickAndWait(page, '[data-testid="create-event-button"]');
+
+    // Wait for navigation to event details
+    await BlazorHelpers.waitForNavigation(page, /\/admin\/events\/\d+/);
+
+    // Verify event was created
+    const createdEvent = await DatabaseHelpers.executeQuery(
+      `SELECT * FROM "Events" WHERE "Name" = $1`,
+      [eventData.name]
+    );
+
+    expect(createdEvent).toHaveLength(1);
+    expect(createdEvent[0].EventType).toBe(eventData.eventType);
+    expect(createdEvent[0].RequiresVetting).toBe(eventData.requiresVetting);
+
+    await page.close();
+    await context.close();
+  });
+
+  test('Validate form with invalid data patterns', async ({ page }) => {
+    await page.goto(testConfig.urls.register);
+    await BlazorHelpers.waitForBlazorReady(page);
+
+    // Try invalid email
+    await BlazorHelpers.fillAndWait(page, '[data-testid="email"]', TestDataPatterns.invalidEmail());
+    await page.press('[data-testid="email"]', 'Tab');
+    await BlazorHelpers.waitForValidation(page);
+    
+    const emailError = page.locator('[data-testid="email-error"]');
+    await expect(emailError).toBeVisible();
+    await expect(emailError).toContainText('valid email');
+
+    // Try weak password
+    await BlazorHelpers.fillAndWait(page, '[data-testid="password"]', TestDataPatterns.weakPassword());
+    await page.press('[data-testid="password"]', 'Tab');
+    await BlazorHelpers.waitForValidation(page);
+
+    const passwordError = page.locator('[data-testid="password-error"]');
+    await expect(passwordError).toBeVisible();
+
+    // Use valid data
+    const validUser = TestDataGenerator.generateUser();
+    await BlazorHelpers.fillAndWait(page, '[data-testid="email"]', validUser.email);
+    await BlazorHelpers.fillAndWait(page, '[data-testid="password"]', TestDataPatterns.strongPassword());
+    
+    // Errors should be gone
+    await expect(emailError).not.toBeVisible();
+    await expect(passwordError).not.toBeVisible();
+  });
+
+  test('Test circuit reconnection', async ({ page }) => {
+    // Login first
+    await AuthHelpers.login(page, testConfig.accounts.member);
+
+    // Navigate to a page
+    await page.goto(testConfig.urls.memberDashboard);
+    await BlazorHelpers.waitForBlazorReady(page);
+
+    // Check circuit state
+    const isConnected = await BlazorHelpers.isCircuitConnected(page);
+    expect(isConnected).toBe(true);
+
+    // Log circuit state for debugging
+    await BlazorHelpers.logCircuitState(page);
+
+    // Ensure circuit stays connected
+    await BlazorHelpers.ensureCircuitConnected(page);
+  });
+});
+
+test.describe('Parallel Test Example', () => {
+  test.describe.configure({ mode: 'parallel' });
+
+  test('Parallel test 1', async ({ browser }) => {
+    // Each test gets its own unique data
+    const { page, context } = await AuthHelpers.getFreshAuthenticatedSession(browser, 'member');
+    
+    const eventData = TestDataGenerator.generateEvent();
+    const eventId = await DatabaseHelpers.createTestEvent(eventData);
+
+    await page.goto(`/events/${eventId}`);
+    await BlazorHelpers.waitForBlazorReady(page);
+
+    await expect(page.locator('h1')).toContainText(eventData.name);
+
+    await context.close();
+  });
+
+  test('Parallel test 2', async ({ browser }) => {
+    // Different unique data for this test
+    const { page, context } = await AuthHelpers.getFreshAuthenticatedSession(browser, 'member');
+    
+    const eventData = TestDataGenerator.generateEvent();
+    const eventId = await DatabaseHelpers.createTestEvent(eventData);
+
+    await page.goto(`/events/${eventId}`);
+    await BlazorHelpers.waitForBlazorReady(page);
+
+    await expect(page.locator('h1')).toContainText(eventData.name);
+
+    await context.close();
+  });
+});

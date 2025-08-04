@@ -1,0 +1,345 @@
+@page "/contact"
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@using WitchCityRope.Web.Shared.Validation.Components
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+
+<PageTitle>Contact Us - Witch City Rope</PageTitle>
+
+<style>
+    .contact-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+
+    .contact-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .contact-title {
+        font-size: 36px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 16px;
+    }
+
+    .contact-subtitle {
+        font-size: 18px;
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .contact-info {
+        background: #f9f9f9;
+        border-radius: 8px;
+        padding: 32px;
+        margin-bottom: 40px;
+    }
+
+    .info-section {
+        margin-bottom: 24px;
+    }
+
+    .info-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .info-value {
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .info-value a {
+        color: #8B4513;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .info-value a:hover {
+        color: #6B3410;
+        text-decoration: underline;
+    }
+
+    .contact-form-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        padding: 32px;
+    }
+
+    .form-header {
+        font-size: 24px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 24px;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 32px;
+    }
+
+    .btn-submit {
+        flex: 1;
+        padding: 12px 24px;
+        background: #8B4513;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+        background: #6B3410;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+    }
+
+    .btn-submit:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .btn-cancel {
+        padding: 12px 24px;
+        background: #f5f5f5;
+        color: #333;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-cancel:hover {
+        background: #e0e0e0;
+    }
+
+    .success-message {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+        padding: 16px;
+        border-radius: 6px;
+        margin-bottom: 24px;
+    }
+
+    .error-message {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+        padding: 16px;
+        border-radius: 6px;
+        margin-bottom: 24px;
+    }
+
+    @@media (max-width: 768px) {
+        .contact-container {
+            padding: 24px 16px;
+        }
+
+        .contact-title {
+            font-size: 28px;
+        }
+
+        .contact-info,
+        .contact-form-container {
+            padding: 24px;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .btn-submit,
+        .btn-cancel {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="contact-container">
+    <div class="contact-header">
+        <h1 class="contact-title">Contact Us</h1>
+        <p class="contact-subtitle">
+            Have questions about our classes, events, or community? We'd love to hear from you!
+        </p>
+    </div>
+
+    <div class="contact-info">
+        <div class="info-section">
+            <span class="info-label">General Inquiries</span>
+            <span class="info-value">
+                <a href="mailto:info@witchcityrope.com">info@witchcityrope.com</a>
+            </span>
+        </div>
+        <div class="info-section">
+            <span class="info-label">Class Registration</span>
+            <span class="info-value">
+                <a href="mailto:classes@witchcityrope.com">classes@witchcityrope.com</a>
+            </span>
+        </div>
+        <div class="info-section">
+            <span class="info-label">Private Lessons</span>
+            <span class="info-value">
+                <a href="mailto:lessons@witchcityrope.com">lessons@witchcityrope.com</a>
+            </span>
+        </div>
+        <div class="info-section">
+            <span class="info-label">Emergency/Safety Concerns</span>
+            <span class="info-value">
+                For urgent safety matters, please use our <a href="/report-incident">incident reporting form</a> or contact us immediately.
+            </span>
+        </div>
+    </div>
+
+    <div class="contact-form-container">
+        <h2 class="form-header">Send us a message</h2>
+
+        @if (isSubmitted)
+        {
+            <div class="success-message">
+                <strong>Thank you!</strong> Your message has been sent successfully. We'll get back to you within 24-48 hours.
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="error-message">
+                <strong>Error:</strong> @errorMessage
+            </div>
+        }
+
+        <EditForm Model="@contactModel" OnValidSubmit="@HandleSubmit">
+            <DataAnnotationsValidator />
+            <WcrValidationSummary />
+
+            <WcrInputText @bind-Value="contactModel.Name"
+                          Label="Your Name"
+                          IsRequired="true"
+                          Placeholder="Enter your full name" />
+
+            <WcrInputEmail @bind-Value="contactModel.Email"
+                           Label="Email Address"
+                           IsRequired="true"
+                           Placeholder="your@email.com"
+                           HelpText="We'll use this to respond to your message" />
+
+            <WcrInputSelect @bind-Value="contactModel.Subject"
+                            Label="Subject"
+                            IsRequired="true">
+                <option value="">Select a topic...</option>
+                <option value="General Question">General Question</option>
+                <option value="Class Information">Class Information</option>
+                <option value="Private Lessons">Private Lessons</option>
+                <option value="Event Inquiry">Event Inquiry</option>
+                <option value="Membership">Membership</option>
+                <option value="Safety Concern">Safety Concern</option>
+                <option value="Other">Other</option>
+            </WcrInputSelect>
+
+            <WcrInputTextArea @bind-Value="contactModel.Message"
+                              Label="Message"
+                              IsRequired="true"
+                              Placeholder="Type your message here..."
+                              Rows="6"
+                              HelpText="Please be as detailed as possible" />
+
+            <WcrInputCheckbox @bind-Value="contactModel.SubscribeNewsletter"
+                              Label="I'd like to receive occasional updates about classes and events" />
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit" disabled="@isSubmitting">
+                    @if (isSubmitting)
+                    {
+                        <span>Sending...</span>
+                    }
+                    else
+                    {
+                        <span>Send Message</span>
+                    }
+                </button>
+                <button type="button" class="btn-cancel" @onclick="ClearForm">Clear</button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private ContactFormModel contactModel = new();
+    private bool isSubmitting = false;
+    private bool isSubmitted = false;
+    private string? errorMessage;
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            isSubmitting = true;
+            errorMessage = null;
+
+            // TODO: Implement actual email sending via API
+            // For now, just simulate a delay
+            await Task.Delay(1000);
+
+            // In a real implementation, you would call:
+            // await ApiClient.SendContactEmailAsync(contactModel);
+
+            isSubmitted = true;
+            contactModel = new ContactFormModel(); // Reset form
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Failed to send message. Please try again or contact us directly via email.";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void ClearForm()
+    {
+        contactModel = new ContactFormModel();
+        isSubmitted = false;
+        errorMessage = null;
+    }
+
+    public class ContactFormModel
+    {
+        [Required(ErrorMessage = "Please enter your name")]
+        [StringLength(100, MinimumLength = 2, ErrorMessage = "Name must be between 2 and 100 characters")]
+        public string Name { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Please enter your email address")]
+        [EmailAddress(ErrorMessage = "Please enter a valid email address")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Please select a subject")]
+        public string Subject { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Please enter a message")]
+        [StringLength(2000, MinimumLength = 10, ErrorMessage = "Message must be between 10 and 2000 characters")]
+        public string Message { get; set; } = string.Empty;
+
+        public bool SubscribeNewsletter { get; set; }
+    }
+}

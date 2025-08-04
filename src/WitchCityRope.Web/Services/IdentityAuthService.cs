@@ -51,7 +51,7 @@ public class IdentityAuthService : IAuthService
         try
         {
             var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
-            if (!authState.User.Identity?.IsAuthenticated == true)
+            if (authState.User.Identity?.IsAuthenticated != true)
             {
                 return null;
             }

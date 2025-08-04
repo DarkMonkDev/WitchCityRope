@@ -1,0 +1,417 @@
+@page "/incident-report"
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@using WitchCityRope.Web.Services
+@using WitchCityRope.Web.Shared.Layouts
+@using Microsoft.AspNetCore.Authorization
+@inject IToastService ToastService
+@inject NavigationManager Navigation
+@layout MainLayout
+
+<PageTitle>Incident Report - Witch City Rope</PageTitle>
+
+<style>
+    .incident-report-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .report-header {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .report-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 1rem;
+    }
+
+    .report-subtitle {
+        color: #666;
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    .confidentiality-notice {
+        background: #e7f3ff;
+        border: 1px solid #bee5eb;
+        border-radius: 6px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .notice-title {
+        font-weight: 600;
+        color: #0c5460;
+        margin-bottom: 0.5rem;
+    }
+
+    .notice-text {
+        color: #0c5460;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .report-form {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid #eee;
+    }
+
+    .form-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .form-section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+
+    .form-textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .form-select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        background: white;
+    }
+
+    .form-help {
+        font-size: 0.8rem;
+        color: #666;
+        margin-top: 0.25rem;
+    }
+
+    .checkbox-group {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .checkbox-input {
+        margin-top: 0.25rem;
+    }
+
+    .checkbox-label {
+        font-size: 0.9rem;
+        color: #333;
+        line-height: 1.4;
+    }
+
+    .submit-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+        background: #8B4513;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #6B3410;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: #f8f9fa;
+        color: #333;
+        border: 1px solid #dee2e6;
+    }
+
+    .btn-secondary:hover {
+        background: #e9ecef;
+    }
+
+    .emergency-info {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 6px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .emergency-title {
+        font-weight: 600;
+        color: #856404;
+        margin-bottom: 0.5rem;
+    }
+
+    .emergency-text {
+        color: #856404;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    @@media (max-width: 768px) {
+        .incident-report-container {
+            padding: 1rem;
+        }
+
+        .submit-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="incident-report-container">
+    <div class="report-header">
+        <h1 class="report-title">Incident Report</h1>
+        <p class="report-subtitle">
+            Report any safety concerns, policy violations, or incidents that occurred during Witch City Rope events or activities. 
+            All reports are taken seriously and will be reviewed by our safety team.
+        </p>
+    </div>
+
+    <div class="emergency-info">
+        <div class="emergency-title">⚠️ Emergency Situations</div>
+        <div class="emergency-text">
+            If this is a medical emergency or involves immediate danger, please call 911 first, then submit this report.
+            For urgent safety concerns, contact our safety hotline at (555) 123-SAFE.
+        </div>
+    </div>
+
+    <div class="confidentiality-notice">
+        <div class="notice-title">🔒 Confidentiality & Privacy</div>
+        <div class="notice-text">
+            This report will be handled with strict confidentiality. Only authorized safety team members will have access 
+            to this information. We will only share details as necessary for investigation and resolution, 
+            and in accordance with our privacy policy.
+        </div>
+    </div>
+
+    <div class="report-form">
+        <div class="form-section">
+            <h3 class="form-section-title">Reporter Information</h3>
+            <div class="form-group">
+                <label class="form-label">Your Name (Optional)</label>
+                <input type="text" class="form-input" @bind="reportData.ReporterName" 
+                       placeholder="Leave blank for anonymous reporting" />
+                <div class="form-help">You may submit this report anonymously</div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Contact Email (Optional)</label>
+                <input type="email" class="form-input" @bind="reportData.ReporterEmail" 
+                       placeholder="your.email@example.com" />
+                <div class="form-help">Only if you want us to follow up with you</div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="form-section-title">Incident Details</h3>
+            <div class="form-group">
+                <label class="form-label">Date of Incident *</label>
+                <input type="date" class="form-input" @bind="reportData.IncidentDate" required />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Time of Incident</label>
+                <input type="time" class="form-input" @bind="reportData.IncidentTime" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Location *</label>
+                <input type="text" class="form-input" @bind="reportData.Location" 
+                       placeholder="Event name, venue, or location where incident occurred" required />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Type of Incident *</label>
+                <select class="form-select" @bind="reportData.IncidentType" required>
+                    <option value="">Select incident type...</option>
+                    <option value="Safety Violation">Safety Violation</option>
+                    <option value="Policy Violation">Policy Violation</option>
+                    <option value="Consent Violation">Consent Violation</option>
+                    <option value="Harassment">Harassment</option>
+                    <option value="Injury">Injury</option>
+                    <option value="Equipment Issue">Equipment Issue</option>
+                    <option value="Venue Issue">Venue Issue</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="form-section-title">Incident Description</h3>
+            <div class="form-group">
+                <label class="form-label">What happened? *</label>
+                <textarea class="form-textarea" @bind="reportData.Description" 
+                          placeholder="Please provide a detailed description of what occurred..." required></textarea>
+                <div class="form-help">Be as specific as possible - include who was involved, what actions were taken, etc.</div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">People Involved</label>
+                <textarea class="form-textarea" @bind="reportData.PeopleInvolved" 
+                          placeholder="Names or descriptions of people involved (if known)"></textarea>
+                <div class="form-help">Include scene names, physical descriptions, or any identifying information</div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Witnesses</label>
+                <textarea class="form-textarea" @bind="reportData.Witnesses" 
+                          placeholder="Names or descriptions of people who witnessed the incident"></textarea>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="form-section-title">Additional Information</h3>
+            <div class="form-group">
+                <label class="form-label">Was medical attention required?</label>
+                <select class="form-select" @bind="reportData.MedicalAttention">
+                    <option value="">Select...</option>
+                    <option value="No">No</option>
+                    <option value="First Aid">First Aid Given</option>
+                    <option value="Emergency Services">Emergency Services Called</option>
+                    <option value="Hospital Transport">Hospital Transport Required</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Were organizers/staff notified?</label>
+                <select class="form-select" @bind="reportData.StaffNotified">
+                    <option value="">Select...</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                    <option value="Unsure">Unsure</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Additional Comments</label>
+                <textarea class="form-textarea" @bind="reportData.AdditionalComments" 
+                          placeholder="Any other relevant information..."></textarea>
+            </div>
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" class="checkbox-input" @bind="acknowledgeTerms" />
+            <label class="checkbox-label">
+                I acknowledge that this report is submitted in good faith and that providing false information 
+                may result in removal from Witch City Rope events and activities.
+            </label>
+        </div>
+
+        <div class="submit-buttons">
+            <button class="btn btn-primary" @onclick="SubmitReport" disabled="@(!CanSubmit())">
+                Submit Report
+            </button>
+            <button class="btn btn-secondary" @onclick="ClearForm">
+                Clear Form
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private IncidentReportData reportData = new();
+    private bool acknowledgeTerms = false;
+
+    private bool CanSubmit()
+    {
+        return !string.IsNullOrEmpty(reportData.Location) &&
+               !string.IsNullOrEmpty(reportData.IncidentType) &&
+               !string.IsNullOrEmpty(reportData.Description) &&
+               reportData.IncidentDate != default(DateTime) &&
+               acknowledgeTerms;
+    }
+
+    private async Task SubmitReport()
+    {
+        try
+        {
+            if (!CanSubmit())
+            {
+                ToastService.ShowError("Please fill in all required fields and acknowledge the terms.");
+                return;
+            }
+
+            // Here you would call your API to submit the report
+            await Task.Delay(1000); // Mock API call
+
+            ToastService.ShowSuccess("Your incident report has been submitted successfully. Our safety team will review it promptly.");
+            
+            // Reset form
+            reportData = new IncidentReportData();
+            acknowledgeTerms = false;
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Failed to submit report: {ex.Message}");
+        }
+    }
+
+    private void ClearForm()
+    {
+        reportData = new IncidentReportData();
+        acknowledgeTerms = false;
+        ToastService.ShowInfo("Form cleared.");
+    }
+
+    public class IncidentReportData
+    {
+        public string ReporterName { get; set; } = string.Empty;
+        public string ReporterEmail { get; set; } = string.Empty;
+        public DateTime IncidentDate { get; set; } = DateTime.Today;
+        public TimeOnly? IncidentTime { get; set; }
+        public string Location { get; set; } = string.Empty;
+        public string IncidentType { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string PeopleInvolved { get; set; } = string.Empty;
+        public string Witnesses { get; set; } = string.Empty;
+        public string MedicalAttention { get; set; } = string.Empty;
+        public string StaffNotified { get; set; } = string.Empty;
+        public string AdditionalComments { get; set; } = string.Empty;
+    }
+}

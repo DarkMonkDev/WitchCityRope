@@ -7,9 +7,11 @@ using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Interfaces;
 using WitchCityRope.Core.Entities;
-using WitchCityRope.Core.Enums;
+using CoreEnums = WitchCityRope.Core.Enums;
+using ApiEnums = WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Infrastructure.Data;
 using WitchCityRope.Tests.Common.Builders;
+using WitchCityRope.Tests.Common.Identity;
 using WitchCityRope.Api.Exceptions;
 using Moq;
 using Xunit;
@@ -18,15 +20,15 @@ namespace WitchCityRope.Api.Tests.Features.Events
 {
     public class CreateEventCommandTests : IDisposable
     {
-        private readonly WitchCityRopeDbContext _context;
+        private readonly WitchCityRopeIdentityDbContext _context;
         private readonly Mock<IEventService> _eventServiceMock;
 
         public CreateEventCommandTests()
         {
-            var options = new DbContextOptionsBuilder<WitchCityRopeDbContext>()
+            var options = new DbContextOptionsBuilder<WitchCityRopeIdentityDbContext>()
                 .UseInMemoryDatabase(databaseName: System.Guid.NewGuid().ToString())
                 .Options;
-            _context = new WitchCityRopeDbContext(options);
+            _context = new WitchCityRopeIdentityDbContext(options);
             _eventServiceMock = new Mock<IEventService>();
         }
 
@@ -34,14 +36,14 @@ namespace WitchCityRope.Api.Tests.Features.Events
         public async Task CreateEvent_ValidRequest_CreatesEvent()
         {
             // Arrange
-            var organizer = new UserBuilder().AsOrganizer().Build();
+            var organizer = new IdentityUserBuilder().AsOrganizer().Build();
             await _context.Users.AddAsync(organizer);
             await _context.SaveChangesAsync();
 
             var request = new CreateEventRequest(
                 Title: "Beginner's Bondage Workshop",
                 Description: "Learn the basics of rope bondage in a safe, inclusive environment",
-                Type: EventType.Workshop,
+                Type: ApiEnums.EventType.Workshop,
                 StartDateTime: DateTime.UtcNow.AddDays(7),
                 EndDateTime: DateTime.UtcNow.AddDays(7).AddHours(2),
                 Location: "Salem Community Center",
@@ -84,14 +86,14 @@ namespace WitchCityRope.Api.Tests.Features.Events
         public async Task CreateEvent_InvalidDates_ThrowsException()
         {
             // Arrange
-            var organizer = new UserBuilder().AsOrganizer().Build();
+            var organizer = new IdentityUserBuilder().AsOrganizer().Build();
             await _context.Users.AddAsync(organizer);
             await _context.SaveChangesAsync();
 
             var request = new CreateEventRequest(
                 Title: "Invalid Event",
                 Description: "This event has invalid dates",
-                Type: EventType.Workshop,
+                Type: ApiEnums.EventType.Workshop,
                 StartDateTime: DateTime.UtcNow.AddDays(7),
                 EndDateTime: DateTime.UtcNow.AddDays(6), // End before start
                 Location: "Salem Community Center",
@@ -120,14 +122,14 @@ namespace WitchCityRope.Api.Tests.Features.Events
         public async Task CreateEvent_PastStartDate_ThrowsException()
         {
             // Arrange
-            var organizer = new UserBuilder().AsOrganizer().Build();
+            var organizer = new IdentityUserBuilder().AsOrganizer().Build();
             await _context.Users.AddAsync(organizer);
             await _context.SaveChangesAsync();
 
             var request = new CreateEventRequest(
                 Title: "Past Event",
                 Description: "This event is in the past",
-                Type: EventType.Workshop,
+                Type: ApiEnums.EventType.Workshop,
                 StartDateTime: DateTime.UtcNow.AddDays(-1),
                 EndDateTime: DateTime.UtcNow.AddDays(-1).AddHours(2),
                 Location: "Salem Community Center",
@@ -156,14 +158,14 @@ namespace WitchCityRope.Api.Tests.Features.Events
         public async Task CreateEvent_InvalidMaxAttendees_ThrowsException()
         {
             // Arrange
-            var organizer = new UserBuilder().AsOrganizer().Build();
+            var organizer = new IdentityUserBuilder().AsOrganizer().Build();
             await _context.Users.AddAsync(organizer);
             await _context.SaveChangesAsync();
 
             var request = new CreateEventRequest(
                 Title: "Invalid Attendees Event",
                 Description: "This event has invalid max attendees",
-                Type: EventType.Workshop,
+                Type: ApiEnums.EventType.Workshop,
                 StartDateTime: DateTime.UtcNow.AddDays(7),
                 EndDateTime: DateTime.UtcNow.AddDays(7).AddHours(2),
                 Location: "Salem Community Center",

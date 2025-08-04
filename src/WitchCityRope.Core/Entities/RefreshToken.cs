@@ -12,6 +12,6 @@ namespace WitchCityRope.Core.Entities
         public string? ReplacedByToken { get; set; }
         
         // Navigation property
-        public User User { get; set; } = null!;
+        public IUser User { get; set; } = null!;
     }
 }

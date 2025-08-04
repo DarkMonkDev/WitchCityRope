@@ -1,0 +1,179 @@
+@using WitchCityRope.Core.DTOs
+@using System.ComponentModel.DataAnnotations
+
+<div class="member-notes">
+    @if (Notes == null || !Notes.Any())
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            No notes found for this member.
+        </div>
+    }
+    else
+    {
+        <div class="notes-list">
+            @foreach (var note in Notes.OrderByDescending(n => n.CreatedAt))
+            {
+                <div class="card mb-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-secondary me-2">@note.NoteType</span>
+                            <small class="text-muted">
+                                By @note.CreatedByName on @note.CreatedAt.ToString("MMM dd, yyyy HH:mm")
+                            </small>
+                        </div>
+                        @if (note.CanEdit || note.CanDelete)
+                        {
+                            <div class="btn-group btn-group-sm">
+                                @if (note.CanEdit)
+                                {
+                                    <button class="btn btn-outline-primary" @onclick="() => EditNote(note)">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                }
+                                @if (note.CanDelete)
+                                {
+                                    <button class="btn btn-outline-danger" @onclick="() => DeleteNote(note)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                }
+                            </div>
+                        }
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0 preserve-whitespace">@note.Content</p>
+                        @if (note.UpdatedAt > note.CreatedAt)
+                        {
+                            <small class="text-muted mt-2 d-block">
+                                Last updated: @note.UpdatedAt.ToString("MMM dd, yyyy HH:mm")
+                            </small>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="mt-4">
+        <button class="btn btn-primary" @onclick="ShowAddNoteForm">
+            <i class="bi bi-plus-circle me-2"></i>Add Note
+        </button>
+    </div>
+
+    @if (ShowAddNote)
+    {
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">Add New Note</h5>
+            </div>
+            <div class="card-body">
+                <EditForm Model="@NewNote" OnValidSubmit="@AddNote">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="mb-3">
+                        <label class="form-label">Note Type</label>
+                        <InputSelect @bind-Value="NewNote.NoteType" class="form-select">
+                            <option value="General">General</option>
+                            <option value="Behavior">Behavior</option>
+                            <option value="Medical">Medical</option>
+                            <option value="Administrative">Administrative</option>
+                        </InputSelect>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Content</label>
+                        <InputTextArea @bind-Value="NewNote.Content" class="form-control" rows="4" />
+                        <ValidationMessage For="@(() => NewNote.Content)" />
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary" disabled="@IsAddingNote">
+                            @if (IsAddingNote)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            Save Note
+                        </button>
+                        <button type="button" class="btn btn-secondary" @onclick="CancelAddNote">
+                            Cancel
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .preserve-whitespace {
+        white-space: pre-wrap;
+    }
+</style>
+
+@code {
+    [Parameter] public List<UserNoteDto> Notes { get; set; } = new();
+    [Parameter] public Guid MemberId { get; set; }
+    [Parameter] public EventCallback OnNotesChanged { get; set; }
+
+    [Inject] private ApiClient ApiClient { get; set; } = null!;
+    [Inject] private ILogger<MemberNotes> Logger { get; set; } = null!;
+
+    private bool ShowAddNote = false;
+    private bool IsAddingNote = false;
+    private CreateUserNoteDto NewNote = new();
+    private UserNoteDto? EditingNote = null;
+
+    private void ShowAddNoteForm()
+    {
+        NewNote = new CreateUserNoteDto { UserId = MemberId, NoteType = "General" };
+        ShowAddNote = true;
+    }
+
+    private void CancelAddNote()
+    {
+        ShowAddNote = false;
+        NewNote = new();
+    }
+
+    private async Task AddNote()
+    {
+        try
+        {
+            IsAddingNote = true;
+            await ApiClient.PostAsync<CreateUserNoteDto, UserNoteDto>($"api/admin/members/{MemberId}/notes", NewNote);
+            await OnNotesChanged.InvokeAsync();
+            CancelAddNote();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to add note");
+            // TODO: Show error notification
+        }
+        finally
+        {
+            IsAddingNote = false;
+        }
+    }
+
+    private async Task EditNote(UserNoteDto note)
+    {
+        // TODO: Implement edit functionality
+        EditingNote = note;
+    }
+
+    private async Task DeleteNote(UserNoteDto note)
+    {
+        // TODO: Add confirmation dialog
+        try
+        {
+            await ApiClient.DeleteAsync<object>($"api/admin/notes/{note.Id}");
+            await OnNotesChanged.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to delete note");
+            // TODO: Show error notification
+        }
+    }
+}

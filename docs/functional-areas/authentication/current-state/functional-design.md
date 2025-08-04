@@ -30,18 +30,64 @@ The WitchCityRope authentication system uses a hybrid approach with cookie-based
 
 **Root Cause**: Blazor Server components run in a different context than traditional HTTP request/response. SignInManager tries to modify HTTP headers (to set cookies) after the response has started streaming to the client.
 
-**Solution**: Redirect to Razor Pages for all authentication operations:
-```csharp
-// In Blazor component
-NavigationManager.NavigateTo("/Identity/Account/Login", true);
+### ✅ The API Endpoint Solution (January 22, 2025)
+**Microsoft's Official Pattern**: Use API endpoints for all authentication operations in pure Blazor Server applications.
 
-// Razor Page handles actual authentication
-public async Task<IActionResult> OnPostAsync()
+**Implementation Pattern**: Blazor components → API endpoints → SignInManager → Cookies
+
+#### API Endpoints Created
+```csharp
+// AuthEndpoints.cs - Minimal API endpoints for authentication
+app.MapPost("/auth/login", async (LoginRequest request, SignInManager<WitchCityRopeUser> signInManager) =>
 {
-    var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
-    // This works because we're in traditional HTTP context
+    var result = await signInManager.PasswordSignInAsync(request.Email, request.Password, request.RememberMe, false);
+    if (result.Succeeded)
+        return Results.Ok(new { success = true });
+    return Results.BadRequest(new { success = false, error = "Invalid login attempt" });
+});
+
+app.MapPost("/auth/logout", async (SignInManager<WitchCityRopeUser> signInManager) =>
+{
+    await signInManager.SignOutAsync();
+    return Results.Ok();
+});
+
+app.MapPost("/auth/register", async (RegisterRequest request, UserManager<WitchCityRopeUser> userManager) =>
+{
+    var user = new WitchCityRopeUser { UserName = request.Email, Email = request.Email };
+    var result = await userManager.CreateAsync(user, request.Password);
+    if (result.Succeeded)
+        return Results.Ok(new { success = true });
+    return Results.BadRequest(new { success = false, errors = result.Errors });
+});
+```
+
+#### Service Implementation
+```csharp
+// IdentityAuthService.cs - Calls API endpoints via HttpClient
+public async Task<LoginResult> LoginAsync(string email, string password, bool rememberMe)
+{
+    var response = await _httpClient.PostAsJsonAsync("/auth/login", 
+        new { Email = email, Password = password, RememberMe = rememberMe });
+    
+    if (response.IsSuccessStatusCode)
+        return new LoginResult { Success = true };
+    
+    var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+    return new LoginResult { Success = false, ErrorMessage = error?.Error ?? "Login failed" };
 }
 ```
+
+#### Critical Configuration
+```csharp
+// HttpClient must use internal container port (8080), not external port (5651)
+builder.Services.AddHttpClient<IAuthService, IdentityAuthService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:8080");
+});
+```
+
+**Key Learning**: This is the ONLY way authentication works properly in pure Blazor Server applications. Previous attempts to use SignInManager directly or redirect to Razor Pages all failed with various issues.
 
 ## Component Architecture
 

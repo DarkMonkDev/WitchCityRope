@@ -19,7 +19,7 @@ ENV DOTNET_RUNNING_IN_CONTAINER=true
 EXPOSE 8080 8081
 
 # Keep container running and use dotnet watch
-ENTRYPOINT ["dotnet", "watch", "run", "--no-launch-profile", "--urls", "http://0.0.0.0:80;https://0.0.0.0:443"]
+ENTRYPOINT ["dotnet", "watch", "run", "--project", "/src/WitchCityRope.Web/WitchCityRope.Web.csproj", "--no-launch-profile", "--urls", "http://0.0.0.0:8080"]
 
 # Build stage
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build

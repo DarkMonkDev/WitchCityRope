@@ -1,0 +1,89 @@
+@page "/admin/settings"
+@attribute [Authorize(Roles = "Administrator,Admin")]
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">System Settings</h1>
+        <p class="page-subtitle">Configure system-wide settings and preferences</p>
+    </div>
+
+    <div class="settings-sections">
+        <div class="settings-card">
+            <h2>General Settings</h2>
+            <p>Configure basic system settings</p>
+        </div>
+
+        <div class="settings-card">
+            <h2>Email Settings</h2>
+            <p>Configure email templates and SMTP settings</p>
+        </div>
+
+        <div class="settings-card">
+            <h2>Security Settings</h2>
+            <p>Configure security policies and authentication</p>
+        </div>
+
+        <div class="settings-card">
+            <h2>Integration Settings</h2>
+            <p>Configure third-party integrations</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .page-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        margin-bottom: 40px;
+    }
+
+    .page-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--color-charcoal);
+        margin: 0 0 8px 0;
+    }
+
+    .page-subtitle {
+        font-size: 16px;
+        color: var(--color-gray);
+        margin: 0;
+    }
+
+    .settings-sections {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 24px;
+    }
+
+    .settings-card {
+        background: white;
+        border-radius: 8px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+    }
+
+    .settings-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    }
+
+    .settings-card h2 {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--color-charcoal);
+        margin: 0 0 8px 0;
+    }
+
+    .settings-card p {
+        font-size: 14px;
+        color: var(--color-gray);
+        margin: 0;
+    }
+</style>

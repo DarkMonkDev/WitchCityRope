@@ -4,6 +4,7 @@ using WitchCityRope.Core.Entities;
 using WitchCityRope.Core.Enums;
 using WitchCityRope.Core.ValueObjects;
 using WitchCityRope.Tests.Common.Builders;
+using WitchCityRope.Tests.Common.Identity;
 using WitchCityRope.Tests.Common.Extensions;
 using WitchCityRope.Tests.Common.Fixtures;
 using Xunit;
@@ -23,7 +24,7 @@ namespace WitchCityRope.Core.Tests.Entities
             var capacity = 50;
             var eventType = EventType.Workshop;
             var location = "Test Location";
-            var organizer = new UserBuilder().AsOrganizer().Build();
+            var organizer = new IdentityUserBuilder().AsOrganizer().Build();
             var pricingTiers = new[] { Money.Create(20m), Money.Create(30m) };
 
             // Act
@@ -312,7 +313,7 @@ namespace WitchCityRope.Core.Tests.Entities
         {
             // Arrange
             var @event = new EventBuilder().Build();
-            var newOrganizer = new UserBuilder().AsOrganizer().Build();
+            var newOrganizer = new IdentityUserBuilder().AsOrganizer().Build();
             var originalCount = @event.Organizers.Count;
 
             // Act
@@ -327,7 +328,7 @@ namespace WitchCityRope.Core.Tests.Entities
         public void AddOrganizer_DuplicateOrganizer_ThrowsDomainException()
         {
             // Arrange
-            var organizer = new UserBuilder().AsOrganizer().Build();
+            var organizer = new IdentityUserBuilder().AsOrganizer().Build();
             var @event = new EventBuilder().WithPrimaryOrganizer(organizer).Build();
 
             // Act
@@ -356,8 +357,8 @@ namespace WitchCityRope.Core.Tests.Entities
         public void RemoveOrganizer_MultipleOrganizers_RemovesSuccessfully()
         {
             // Arrange
-            var primaryOrganizer = new UserBuilder().AsOrganizer().Build();
-            var secondaryOrganizer = new UserBuilder().AsOrganizer().Build();
+            var primaryOrganizer = new IdentityUserBuilder().AsOrganizer().Build();
+            var secondaryOrganizer = new IdentityUserBuilder().AsOrganizer().Build();
             var @event = new EventBuilder().WithPrimaryOrganizer(primaryOrganizer).Build();
             @event.AddOrganizer(secondaryOrganizer);
 
@@ -373,7 +374,7 @@ namespace WitchCityRope.Core.Tests.Entities
         public void RemoveOrganizer_LastOrganizer_ThrowsDomainException()
         {
             // Arrange
-            var organizer = new UserBuilder().AsOrganizer().Build();
+            var organizer = new IdentityUserBuilder().AsOrganizer().Build();
             var @event = new EventBuilder().WithPrimaryOrganizer(organizer).Build();
 
             // Act

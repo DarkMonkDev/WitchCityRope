@@ -68,8 +68,54 @@ public Money? RefundAmount { get; set; } // Owned entity
 // ✅ CORRECT
 public decimal? RefundAmountValue { get; set; }
 public string? RefundCurrency { get; set; }
+public Money? RefundAmount => RefundAmountValue.HasValue && !string.IsNullOrEmpty(RefundCurrency)
+    ? Money.Create(RefundAmountValue.Value, RefundCurrency) : null;
 ```
 **Applies to**: Nullable value objects
+
+### 🚨 CRITICAL: Entity Discovery Through Navigation Properties
+
+**Issue**: EF Core migration generation failed with "The entity type 'EmailAddress' requires a primary key to be defined"
+
+**Root Cause**: Even if you explicitly ignore an entity in DbContext, EF Core will still discover it through navigation properties.
+
+**Example**: 
+```csharp
+// We had this in DbContext:
+modelBuilder.Ignore<Core.User>();
+
+// But VolunteerAssignment still had:
+public User User { get; set; } // This caused EF Core to discover User → EmailAddress
+```
+
+**Solution**: Remove ALL navigation properties to ignored entities
+```csharp
+// ❌ WRONG: Navigation property to ignored entity
+public class VolunteerAssignment
+{
+    public User User { get; set; }
+    public Guid UserId { get; set; }
+}
+
+// ✅ CORRECT: Only foreign key ID
+public class VolunteerAssignment
+{
+    public Guid UserId { get; set; }
+    // No User navigation property!
+}
+
+// Update Include() statements:
+// OLD - fails after removing navigation
+var assignment = await _context.VolunteerAssignments
+    .Include(a => a.User)
+    .FirstOrDefaultAsync(a => a.Id == id);
+
+// NEW - works without navigation
+var assignment = await _context.VolunteerAssignments
+    .FirstOrDefaultAsync(a => a.Id == id);
+var user = await _userManager.FindByIdAsync(assignment.UserId.ToString());
+```
+**Applies to**: Entity configurations and navigation properties
 
 ### PostgreSQL Specifics
 **Issue**: Case sensitivity in queries  
@@ -85,6 +131,39 @@ public string? RefundCurrency { get; set; }
 **Applies to**: String comparisons
 
 ## Authentication & Authorization
+
+### 🚨 CRITICAL: Blazor Server Authentication Pattern
+
+**Issue**: "Headers are read-only, response has already started" error when using SignInManager in Blazor components
+
+**Root Cause**: SignInManager cannot be used directly in Blazor Server interactive components. Microsoft's official guidance states that SignInManager operations MUST happen outside Blazor's rendering context.
+
+**Solution**: Use API endpoints for all authentication operations
+```csharp
+// ❌ WRONG: Direct SignInManager usage in Blazor component
+@inject SignInManager<WitchCityRopeUser> SignInManager
+// This will cause "Headers are read-only" error
+
+// ✅ CORRECT: Use API endpoints pattern
+// 1. Create auth endpoints (AuthEndpoints.cs):
+app.MapPost("/auth/login", async (LoginRequest request, SignInManager<WitchCityRopeUser> signInManager) =>
+{
+    var result = await signInManager.PasswordSignInAsync(request.Email, request.Password, request.RememberMe, false);
+    return result.Succeeded ? Results.Ok() : Results.BadRequest("Invalid login attempt");
+});
+
+// 2. Call from service (IdentityAuthService.cs):
+public async Task<bool> LoginAsync(string email, string password)
+{
+    var response = await _httpClient.PostAsJsonAsync("/auth/login", new { email, password });
+    return response.IsSuccessStatusCode;
+}
+```
+
+**Key Details**:
+- HttpClient must use internal container port (8080) not external (5651)
+- Authentication pattern: Blazor Component → API Endpoint → SignInManager → Cookies
+- This is the ONLY way authentication works in pure Blazor Server applications
 
 ### JWT in API Project
 **Issue**: Confusion about where JWT is used  
@@ -159,9 +238,41 @@ public interface IEmailService { }
 ```csharp
 // ❌ WRONG
 entity.CreatedAt = DateTime.Now;
+new DateTime(1990, 1, 1) // Kind is Unspecified - PostgreSQL will reject
 
 // ✅ CORRECT
 entity.CreatedAt = DateTime.UtcNow;
+new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+```
+**Best Practice**: DbContext now auto-converts all DateTime to UTC in UpdateAuditFields()
+
+### 🚨 CRITICAL: Entity ID Initialization
+
+**Issue**: Default Guid.Empty causes duplicate key violations in PostgreSQL
+
+**Solution**: Always initialize IDs in constructors
+```csharp
+// ❌ WRONG - Will cause duplicate key violations
+public class Rsvp
+{
+    public Guid Id { get; set; }
+    public Rsvp(Guid userId, Event @event)
+    {
+        // Missing ID initialization!
+    }
+}
+
+// ✅ CORRECT
+public class Rsvp
+{
+    public Guid Id { get; set; }
+    public Rsvp(Guid userId, Event @event)
+    {
+        Id = Guid.NewGuid(); // CRITICAL: Must set this!
+        CreatedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
+    }
+}
 ```
 
 ### Async All The Way

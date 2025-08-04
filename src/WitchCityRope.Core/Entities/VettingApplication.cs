@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WitchCityRope.Core.Enums;
 
 namespace WitchCityRope.Core.Entities
 {
@@ -20,7 +21,7 @@ namespace WitchCityRope.Core.Entities
         private VettingApplication() { }
 
         public VettingApplication(
-            User applicant,
+            IUser applicant,
             string experienceLevel,
             string interests,
             string safetyKnowledge,
@@ -57,7 +58,7 @@ namespace WitchCityRope.Core.Entities
         /// Alternative constructor for creating from command/API usage
         /// </summary>
         public VettingApplication(
-            User applicant,
+            IUser applicant,
             string experienceLevel,
             string experienceDescription,
             string interests,
@@ -100,7 +101,7 @@ namespace WitchCityRope.Core.Entities
         
         public Guid ApplicantId { get; private set; }
         
-        public User Applicant { get; private set; }
+        public IUser Applicant { get; private set; }
         
         public string ExperienceLevel { get; private set; }
         
@@ -252,7 +253,7 @@ namespace WitchCityRope.Core.Entities
             Notes = null!;
         }
 
-        public VettingReview(User reviewer, bool recommendation, string notes)
+        public VettingReview(IUser reviewer, bool recommendation, string notes)
         {
             if (reviewer == null)
                 throw new ArgumentNullException(nameof(reviewer));
@@ -272,24 +273,12 @@ namespace WitchCityRope.Core.Entities
         
         public Guid ReviewerId { get; private set; }
         
-        public User Reviewer { get; private set; }
+        public IUser Reviewer { get; private set; }
         
         public bool Recommendation { get; private set; }
         
         public string Notes { get; private set; }
         
         public DateTime ReviewedAt { get; private set; }
-    }
-
-    /// <summary>
-    /// Vetting application status
-    /// </summary>
-    public enum VettingStatus
-    {
-        Submitted,
-        UnderReview,
-        MoreInfoRequested,
-        Approved,
-        Rejected
     }
 }

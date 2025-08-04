@@ -26,9 +26,7 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
 
         builder.HasIndex(e => e.ExpiresAt);
 
-        builder.HasOne(e => e.User)
-            .WithMany()
-            .HasForeignKey(e => e.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // Ignore the User navigation property since it uses IUser interface
+        builder.Ignore(e => e.User);
     }
 }

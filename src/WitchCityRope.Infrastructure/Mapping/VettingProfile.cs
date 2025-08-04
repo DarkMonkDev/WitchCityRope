@@ -1,6 +1,7 @@
 using AutoMapper;
 using WitchCityRope.Core.DTOs;
 using WitchCityRope.Core.Entities;
+using WitchCityRope.Core.Enums;
 
 namespace WitchCityRope.Infrastructure.Mapping
 {
@@ -52,26 +53,26 @@ namespace WitchCityRope.Infrastructure.Mapping
                 .ForMember(dest => dest.Message, opt => opt.MapFrom(src => GetReviewMessage(src.Status)));
         }
 
-        private static string GetApplicationMessage(Core.Entities.VettingStatus status)
+        private static string GetApplicationMessage(VettingStatus status)
         {
             return status switch
             {
-                Core.Entities.VettingStatus.Submitted => "Application submitted successfully and is pending review",
-                Core.Entities.VettingStatus.UnderReview => "Application is currently under review",
-                Core.Entities.VettingStatus.Approved => "Application has been approved",
-                Core.Entities.VettingStatus.Rejected => "Application has been rejected",
-                Core.Entities.VettingStatus.MoreInfoRequested => "Additional information is required for your application",
+                VettingStatus.Submitted => "Application submitted successfully and is pending review",
+                VettingStatus.UnderReview => "Application is currently under review",
+                VettingStatus.Approved => "Application has been approved",
+                VettingStatus.Rejected => "Application has been rejected",
+                VettingStatus.MoreInfoRequested => "Additional information is required for your application",
                 _ => "Unknown status"
             };
         }
 
-        private static string GetReviewMessage(Core.Entities.VettingStatus status)
+        private static string GetReviewMessage(VettingStatus status)
         {
             return status switch
             {
-                Core.Entities.VettingStatus.Approved => "Application approved successfully",
-                Core.Entities.VettingStatus.Rejected => "Application rejected",
-                Core.Entities.VettingStatus.MoreInfoRequested => "Additional information requested from applicant",
+                VettingStatus.Approved => "Application approved successfully",
+                VettingStatus.Rejected => "Application rejected",
+                VettingStatus.MoreInfoRequested => "Additional information requested from applicant",
                 _ => "Review status updated"
             };
         }

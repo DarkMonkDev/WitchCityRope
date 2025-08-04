@@ -1,0 +1,464 @@
+@page "/login-2fa"
+@page "/identity/account/loginwith2fa"
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+
+@using Microsoft.AspNetCore.Identity
+@using System.ComponentModel.DataAnnotations
+@using WitchCityRope.Infrastructure.Identity
+@using WitchCityRope.Web.Shared.Validation.Components
+
+@inject SignInManager<WitchCityRopeUser> SignInManager
+@inject UserManager<WitchCityRopeUser> UserManager
+@inject NavigationManager Navigation
+@inject ILogger<LoginWith2fa> Logger
+
+<PageTitle>Two-Factor Authentication - Witch City Rope</PageTitle>
+
+<div class="auth-container">
+    <div class="auth-card twofa-card">
+        <div class="auth-header">
+            <h1 class="auth-title">TWO-FACTOR AUTHENTICATION</h1>
+            <p class="auth-subtitle">Enter the 6-digit code from your authenticator app.</p>
+        </div>
+
+        <EditForm Model="twoFaModel" OnValidSubmit="HandleTwoFactorLogin">
+            <DataAnnotationsValidator />
+            
+            <div class="form-group">
+                <WcrInputText @bind-Value="twoFaModel.TwoFactorCode" 
+                              Placeholder="000000"
+                              Label="AUTHENTICATOR CODE*"
+                              autocomplete="off"
+                              inputmode="numeric"
+                              maxlength="6" />
+                <p class="code-hint">Enter the 6-digit code from your authenticator app</p>
+            </div>
+
+            <div class="form-group">
+                <WcrInputCheckbox @bind-Value="twoFaModel.RememberMachine" 
+                                  Label="Remember this device for 30 days" />
+            </div>
+
+            <WcrValidationSummary />
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger mt-3">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span>@errorMessage</span>
+                </div>
+            }
+
+            <button type="submit" class="btn-primary twofa-btn" disabled="@isSubmitting">
+                @if (isSubmitting)
+                {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    <span>Verifying...</span>
+                }
+                else
+                {
+                    <span>VERIFY CODE</span>
+                }
+            </button>
+        </EditForm>
+
+        <div class="recovery-section">
+            <details class="recovery-details">
+                <summary class="recovery-summary">
+                    <i class="bi bi-key"></i>
+                    <span>Use a recovery code instead</span>
+                </summary>
+                <div class="recovery-content">
+                    <EditForm Model="recoveryModel" OnValidSubmit="HandleRecoveryCodeLogin">
+                        <DataAnnotationsValidator />
+                        
+                        <div class="form-group">
+                            <WcrInputText @bind-Value="recoveryModel.RecoveryCode" 
+                                          Placeholder="XXXXX-XXXXX"
+                                          Label="RECOVERY CODE*" />
+                            <p class="code-hint">Use one of your saved recovery codes</p>
+                        </div>
+
+                        <button type="submit" class="btn-secondary recovery-btn" disabled="@isSubmittingRecovery">
+                            @if (isSubmittingRecovery)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                <span>Verifying...</span>
+                            }
+                            else
+                            {
+                                <span>USE RECOVERY CODE</span>
+                            }
+                        </button>
+                    </EditForm>
+                </div>
+            </details>
+        </div>
+
+        <div class="auth-footer">
+            <p>Lost access to your authenticator app?</p>
+            <p><a href="/forgot-password" class="auth-link">Reset your password</a></p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .twofa-card {
+        max-width: 450px;
+        margin: 0 auto;
+    }
+
+    .auth-subtitle {
+        color: #666;
+        font-size: 0.95rem;
+        margin-bottom: 2rem;
+        line-height: 1.5;
+    }
+
+    .code-hint {
+        margin-top: 0.5rem;
+        margin-bottom: 0;
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .twofa-btn {
+        width: 100%;
+        padding: 14px;
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        margin-top: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .twofa-btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+    }
+
+    .twofa-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .recovery-section {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .recovery-details {
+        background-color: rgba(0, 0, 0, 0.02);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .recovery-summary {
+        cursor: pointer;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        user-select: none;
+        font-weight: 500;
+        color: var(--primary-color);
+        transition: background-color 0.2s ease;
+    }
+
+    .recovery-summary:hover {
+        background-color: rgba(0, 0, 0, 0.03);
+    }
+
+    .recovery-summary i {
+        font-size: 1.25rem;
+    }
+
+    .recovery-details[open] .recovery-summary {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .recovery-content {
+        padding: 1.5rem;
+    }
+
+    .recovery-btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        margin-top: 1rem;
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .recovery-btn:hover:not(:disabled) {
+        background-color: #5a6268;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    }
+
+    .recovery-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .alert i {
+        font-size: 1.25rem;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .alert-danger {
+        background-color: rgba(220, 53, 69, 0.1);
+        border: 1px solid rgba(220, 53, 69, 0.2);
+        color: #721c24;
+    }
+
+    .alert-danger i {
+        color: #dc3545;
+    }
+
+    .auth-footer {
+        margin-top: 2rem;
+        text-align: center;
+    }
+
+    .auth-footer p {
+        margin: 0.5rem 0;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .auth-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .auth-link:hover {
+        color: var(--primary-hover);
+        text-decoration: underline;
+    }
+
+    .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.2rem;
+    }
+
+    /* Style for numeric input */
+    input[inputmode="numeric"] {
+        text-align: center;
+        letter-spacing: 0.5em;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    /* Dark mode support */
+    @@media (prefers-color-scheme: dark) {
+        .twofa-card {
+            background-color: #1a1a1a;
+            border-color: #333;
+        }
+
+        .auth-subtitle {
+            color: #999;
+        }
+
+        .code-hint {
+            color: #999;
+        }
+
+        .recovery-section {
+            border-top-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .recovery-details {
+            background-color: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .recovery-summary {
+            color: var(--primary-color);
+        }
+
+        .recovery-summary:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .recovery-details[open] .recovery-summary {
+            border-bottom-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .alert-danger {
+            background-color: rgba(220, 53, 69, 0.05);
+            border-color: rgba(220, 53, 69, 0.3);
+            color: #e74c3c;
+        }
+
+        .auth-footer p {
+            color: #999;
+        }
+    }
+</style>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public bool RememberMe { get; set; }
+
+    private TwoFactorModel twoFaModel = new();
+    private RecoveryCodeModel recoveryModel = new();
+    private bool isSubmitting = false;
+    private bool isSubmittingRecovery = false;
+    private string? errorMessage;
+    private WitchCityRopeUser? user;
+
+    public class TwoFactorModel
+    {
+        [Required(ErrorMessage = "Authenticator code is required")]
+        [StringLength(6, MinimumLength = 6, ErrorMessage = "Code must be exactly 6 digits")]
+        [Display(Name = "Authenticator code")]
+        public string TwoFactorCode { get; set; } = string.Empty;
+
+        [Display(Name = "Remember this device")]
+        public bool RememberMachine { get; set; }
+    }
+
+    public class RecoveryCodeModel
+    {
+        [Required(ErrorMessage = "Recovery code is required")]
+        [Display(Name = "Recovery code")]
+        public string RecoveryCode { get; set; } = string.Empty;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Ensure user has gone through the first factor of authentication
+        user = await SignInManager.GetTwoFactorAuthenticationUserAsync();
+        if (user == null)
+        {
+            Logger.LogWarning("User attempted to access 2FA page without completing first factor");
+            Navigation.NavigateTo("/login", forceLoad: true);
+        }
+    }
+
+    private async Task HandleTwoFactorLogin()
+    {
+        if (user == null)
+        {
+            Navigation.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+
+        try
+        {
+            isSubmitting = true;
+            errorMessage = null;
+            StateHasChanged();
+
+            // Remove spaces and dashes from the code
+            var code = twoFaModel.TwoFactorCode.Replace(" ", "").Replace("-", "");
+
+            var result = await SignInManager.TwoFactorAuthenticatorSignInAsync(
+                code, 
+                RememberMe, 
+                twoFaModel.RememberMachine);
+
+            if (result.Succeeded)
+            {
+                Logger.LogInformation("User {UserId} logged in with 2FA", user.Id);
+                Navigation.NavigateTo(ReturnUrl ?? "/");
+            }
+            else if (result.IsLockedOut)
+            {
+                Logger.LogWarning("User {UserId} account locked out", user.Id);
+                Navigation.NavigateTo("/lockout");
+            }
+            else
+            {
+                Logger.LogWarning("Invalid authenticator code for user {UserId}", user.Id);
+                errorMessage = "Invalid authenticator code. Please try again.";
+                twoFaModel.TwoFactorCode = string.Empty;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error during 2FA login");
+            errorMessage = "An error occurred. Please try again.";
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleRecoveryCodeLogin()
+    {
+        if (user == null)
+        {
+            Navigation.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+
+        try
+        {
+            isSubmittingRecovery = true;
+            errorMessage = null;
+            StateHasChanged();
+
+            // Remove spaces from the recovery code
+            var recoveryCode = recoveryModel.RecoveryCode.Replace(" ", "");
+
+            var result = await SignInManager.TwoFactorRecoveryCodeSignInAsync(recoveryCode);
+
+            if (result.Succeeded)
+            {
+                Logger.LogInformation("User {UserId} logged in with recovery code", user.Id);
+                Navigation.NavigateTo(ReturnUrl ?? "/");
+            }
+            else if (result.IsLockedOut)
+            {
+                Logger.LogWarning("User {UserId} account locked out", user.Id);
+                Navigation.NavigateTo("/lockout");
+            }
+            else
+            {
+                Logger.LogWarning("Invalid recovery code for user {UserId}", user.Id);
+                errorMessage = "Invalid recovery code. Please try again.";
+                recoveryModel.RecoveryCode = string.Empty;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error during recovery code login");
+            errorMessage = "An error occurred. Please try again.";
+        }
+        finally
+        {
+            isSubmittingRecovery = false;
+            StateHasChanged();
+        }
+    }
+}

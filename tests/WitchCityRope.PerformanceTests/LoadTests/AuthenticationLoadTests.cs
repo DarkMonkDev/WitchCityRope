@@ -11,6 +11,7 @@ using WitchCityRope.Api.Features.Auth.Models;
 using WitchCityRope.PerformanceTests.Infrastructure;
 using Xunit;
 using Xunit.Abstractions;
+using System.Net.Http.Headers;
 
 namespace WitchCityRope.PerformanceTests.LoadTests
 {
@@ -43,7 +44,7 @@ namespace WitchCityRope.PerformanceTests.LoadTests
                     Password = randomUser.Password
                 };
 
-                var content = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
+                var content = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
                 var response = await _httpClient.PostAsync("/api/auth/login", content);
 
                 return response.IsSuccessStatusCode ? Response.Ok() : Response.Fail(statusCode: response.ReasonPhrase ?? "Login failed");
@@ -72,7 +73,7 @@ namespace WitchCityRope.PerformanceTests.LoadTests
                     Pronouns = _faker.PickRandom("they/them", "she/her", "he/him", "xe/xir")
                 };
 
-                var content = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
+                var content = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
                 var response = await _httpClient.PostAsync("/api/auth/register", content);
 
                 return response.IsSuccessStatusCode ? Response.Ok() : Response.Fail(statusCode: response.ReasonPhrase ?? "Login failed");
@@ -106,7 +107,7 @@ namespace WitchCityRope.PerformanceTests.LoadTests
                     RefreshToken = randomToken
                 };
 
-                var content = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
+                var content = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
                 var response = await _httpClient.PostAsync("/api/auth/refresh", content);
 
                 return response.IsSuccessStatusCode ? Response.Ok() : Response.Fail(statusCode: response.ReasonPhrase ?? "Login failed");

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -8,19 +9,110 @@ using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Core.Entities;
 using WitchCityRope.Core.Enums;
 using WitchCityRope.Core.ValueObjects;
+using WitchCityRope.Infrastructure.Identity;
 using WitchCityRope.Infrastructure.Tests.Fixtures;
 using WitchCityRope.Tests.Common.Builders;
+using WitchCityRope.Tests.Common.Identity;
 using Xunit;
 
 namespace WitchCityRope.Infrastructure.Tests.Data
 {
     public class ConcurrencyTests : IntegrationTestBase
     {
+        private Event CreateTestEvent(string title = "Test Event", int capacity = 10)
+        {
+            var eventType = typeof(Event);
+            var eventCtor = eventType.GetConstructor(
+                BindingFlags.NonPublic | BindingFlags.Instance,
+                null,
+                Type.EmptyTypes,
+                null);
+
+            var @event = (Event)eventCtor.Invoke(null);
+            
+            // Use reflection to set properties
+            eventType.GetProperty("Id").SetValue(@event, Guid.NewGuid());
+            eventType.GetProperty("Title").SetValue(@event, title);
+            eventType.GetProperty("Description").SetValue(@event, "Test event description");
+            eventType.GetProperty("StartDate").SetValue(@event, DateTime.UtcNow.AddDays(7));
+            eventType.GetProperty("EndDate").SetValue(@event, DateTime.UtcNow.AddDays(7).AddHours(3));
+            eventType.GetProperty("Capacity").SetValue(@event, capacity);
+            eventType.GetProperty("EventType").SetValue(@event, EventType.Workshop);
+            eventType.GetProperty("Location").SetValue(@event, "Test Location");
+            eventType.GetProperty("IsPublished").SetValue(@event, true);
+            eventType.GetProperty("CreatedAt").SetValue(@event, DateTime.UtcNow);
+            eventType.GetProperty("UpdatedAt").SetValue(@event, DateTime.UtcNow);
+
+            return @event;
+        }
+
+        private Registration CreateTestRegistration(Guid userId, Guid eventId)
+        {
+            var regType = typeof(Registration);
+            var regCtor = regType.GetConstructor(
+                BindingFlags.NonPublic | BindingFlags.Instance,
+                null,
+                Type.EmptyTypes,
+                null);
+
+            var registration = (Registration)regCtor.Invoke(null);
+            
+            regType.GetProperty("Id").SetValue(registration, Guid.NewGuid());
+            regType.GetProperty("UserId").SetValue(registration, userId);
+            regType.GetProperty("EventId").SetValue(registration, eventId);
+            regType.GetProperty("Status").SetValue(registration, RegistrationStatus.Confirmed);
+            regType.GetProperty("SelectedPrice").SetValue(registration, Money.Create(50m));
+            regType.GetProperty("RegisteredAt").SetValue(registration, DateTime.UtcNow);
+
+            return registration;
+        }
+
+        private VettingApplication CreateTestVettingApplication(Guid applicantId)
+        {
+            var appType = typeof(VettingApplication);
+            var appCtor = appType.GetConstructor(
+                BindingFlags.NonPublic | BindingFlags.Instance,
+                null,
+                Type.EmptyTypes,
+                null);
+
+            var application = (VettingApplication)appCtor.Invoke(null);
+            
+            appType.GetProperty("Id").SetValue(application, Guid.NewGuid());
+            appType.GetProperty("ApplicantId").SetValue(application, applicantId);
+            appType.GetProperty("ExperienceLevel").SetValue(application, "Intermediate");
+            appType.GetProperty("Interests").SetValue(application, "Rope bondage, suspension");
+            appType.GetProperty("SafetyKnowledge").SetValue(application, "First aid certified");
+            appType.GetProperty("Status").SetValue(application, VettingStatus.Submitted);
+            appType.GetProperty("SubmittedAt").SetValue(application, DateTime.UtcNow);
+
+            return application;
+        }
+
+        private VettingReview CreateTestVettingReview(Guid reviewerId, bool recommendation = true)
+        {
+            var reviewType = typeof(VettingReview);
+            var reviewCtor = reviewType.GetConstructor(
+                BindingFlags.NonPublic | BindingFlags.Instance,
+                null,
+                Type.EmptyTypes,
+                null);
+
+            var review = (VettingReview)reviewCtor.Invoke(null);
+            
+            reviewType.GetProperty("Id").SetValue(review, Guid.NewGuid());
+            reviewType.GetProperty("ReviewerId").SetValue(review, reviewerId);
+            reviewType.GetProperty("Recommendation").SetValue(review, recommendation);
+            reviewType.GetProperty("Notes").SetValue(review, $"Review by {reviewerId}");
+            reviewType.GetProperty("ReviewedAt").SetValue(review, DateTime.UtcNow);
+
+            return review;
+        }
         [Fact]
         public async Task Should_Handle_Optimistic_Concurrency_With_RowVersion()
         {
             // Arrange
-            var user = new UserBuilder().Build();
+            var user = new IdentityUserBuilder().Build();
             Context.Users.Add(user);
             await Context.SaveChangesAsync();
 
@@ -48,12 +140,10 @@ namespace WitchCityRope.Infrastructure.Tests.Data
         public async Task Should_Handle_Concurrent_Event_Registration()
         {
             // Arrange
-            var @event = new EventBuilder()
-                .WithCapacity(1) // Only 1 spot available
-                .Build();
+            var @event = CreateTestEvent("Limited Capacity Event", 1); // Only 1 spot available
             
-            var user1 = new UserBuilder().WithEmail("user1@example.com").Build();
-            var user2 = new UserBuilder().WithEmail("user2@example.com").Build();
+            var user1 = new IdentityUserBuilder().WithEmail("user1@example.com").Build();
+            var user2 = new IdentityUserBuilder().WithEmail("user2@example.com").Build();
 
             Context.Events.Add(@event);
             Context.Users.AddRange(user1, user2);
@@ -82,10 +172,7 @@ namespace WitchCityRope.Infrastructure.Tests.Data
                             return false; // Skip if user not found
                         }
                         
-                        var registration = new RegistrationBuilder()
-                            .WithEvent(evt)
-                            .WithUser(usr)
-                            .Build();
+                        var registration = CreateTestRegistration(usr.Id, evt.Id);
 
                         context.Registrations.Add(registration);
                         
@@ -121,7 +208,13 @@ namespace WitchCityRope.Infrastructure.Tests.Data
         public async Task Should_Handle_Concurrent_Payment_Processing()
         {
             // Arrange
-            var registration = new RegistrationBuilder().Build();
+            var user = new IdentityUserBuilder().Build();
+            var @event = CreateTestEvent();
+            Context.Users.Add(user);
+            Context.Events.Add(@event);
+            await Context.SaveChangesAsync();
+            
+            var registration = CreateTestRegistration(user.Id, @event.Id);
             Context.Registrations.Add(registration);
             await Context.SaveChangesAsync();
 
@@ -178,19 +271,14 @@ namespace WitchCityRope.Infrastructure.Tests.Data
         public async Task Should_Handle_Concurrent_Vetting_Application_Reviews()
         {
             // Arrange
-            var applicant = new UserBuilder().Build();
-            var reviewer1 = new UserBuilder().WithRole(UserRole.Administrator).Build();
-            var reviewer2 = new UserBuilder().WithRole(UserRole.Administrator).Build();
+            var applicant = new IdentityUserBuilder().Build();
+            var reviewer1 = new IdentityUserBuilder().WithRole(UserRole.Administrator).Build();
+            var reviewer2 = new IdentityUserBuilder().WithRole(UserRole.Administrator).Build();
             
-            var application = new VettingApplication(
-                applicant,
-                "Intermediate",
-                "Rope bondage, suspension",
-                "Familiar with safety protocols and negotiation",
-                new[] { "Reference from existing member" }
-            );
-
             Context.Users.AddRange(applicant, reviewer1, reviewer2);
+            await Context.SaveChangesAsync();
+
+            var application = CreateTestVettingApplication(applicant.Id);
             Context.VettingApplications.Add(application);
             await Context.SaveChangesAsync();
 
@@ -216,8 +304,7 @@ namespace WitchCityRope.Infrastructure.Tests.Data
                     
                     if (app.Status == VettingStatus.UnderReview)
                     {
-                        var reviewer = await context.Users.FindAsync(reviewerId);
-                        var review = new VettingReview(reviewer, isApproved, $"Review by {reviewerId}");
+                        var review = CreateTestVettingReview(reviewerId, isApproved);
                         app.AddReview(review);
                         
                         try
@@ -252,9 +339,7 @@ namespace WitchCityRope.Infrastructure.Tests.Data
         public async Task Should_Handle_Concurrent_Updates_With_Retry_Logic()
         {
             // Arrange
-            var @event = new EventBuilder()
-                .WithTitle("Original Title")
-                .Build();
+            var @event = CreateTestEvent("Original Title");
             Context.Events.Add(@event);
             await Context.SaveChangesAsync();
 
@@ -319,8 +404,8 @@ namespace WitchCityRope.Infrastructure.Tests.Data
         public async Task Should_Handle_Deadlock_Scenario()
         {
             // Arrange
-            var user1 = new UserBuilder().WithEmail("user1@example.com").Build();
-            var user2 = new UserBuilder().WithEmail("user2@example.com").Build();
+            var user1 = new IdentityUserBuilder().WithEmail("user1@example.com").Build();
+            var user2 = new IdentityUserBuilder().WithEmail("user2@example.com").Build();
             
             Context.Users.AddRange(user1, user2);
             await Context.SaveChangesAsync();
@@ -397,10 +482,10 @@ namespace WitchCityRope.Infrastructure.Tests.Data
         public async Task Should_Handle_Parallel_Bulk_Operations()
         {
             // Arrange
-            var users = new List<User>();
+            var users = new List<WitchCityRopeUser>();
             for (int i = 0; i < 100; i++)
             {
-                users.Add(new UserBuilder()
+                users.Add(new IdentityUserBuilder()
                     .WithEmail($"user{i}@example.com")
                     .WithSceneName($"User{i}")
                     .Build());
@@ -435,12 +520,12 @@ namespace WitchCityRope.Infrastructure.Tests.Data
         public async Task Should_Handle_Concurrent_Aggregate_Updates()
         {
             // Arrange
-            var @event = new EventBuilder().Build();
-            var users = new List<User>();
+            var @event = CreateTestEvent();
+            var users = new List<WitchCityRopeUser>();
             
             for (int i = 0; i < 10; i++)
             {
-                users.Add(new UserBuilder()
+                users.Add(new IdentityUserBuilder()
                     .WithEmail($"user{i}@example.com")
                     .Build());
             }
@@ -463,10 +548,7 @@ namespace WitchCityRope.Infrastructure.Tests.Data
                     return false; // Skip if event or user not found
                 }
                 
-                var registration = new RegistrationBuilder()
-                    .WithEvent(loadedEvent)
-                    .WithUser(loadedUser)
-                    .Build();
+                var registration = CreateTestRegistration(loadedUser.Id, loadedEvent.Id);
                 
                 context.Registrations.Add(registration);
                 

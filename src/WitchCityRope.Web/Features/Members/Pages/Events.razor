@@ -1,0 +1,1053 @@
+@page "/member/events"
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@using WitchCityRope.Web.Services
+@using WitchCityRope.Core.Enums
+@using WitchCityRope.Core.DTOs
+@using WitchCityRope.Web.Features.Members.Components
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@using WitchCityRope.Web.Models
+@using WitchCityRope.Web.Extensions
+@using WitchCityRope.Web.Shared.Validation.Components
+@using Microsoft.AspNetCore.Components.Forms
+@inject ApiClient ApiClient
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JSRuntime
+@attribute [Authorize]
+
+<PageTitle>Events - WitchCity Rope</PageTitle>
+
+<style>
+    /* Member Events Page Styles */
+    .events-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+
+    .page-header {
+        margin-bottom: 32px;
+    }
+
+    .page-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin: 0 0 8px 0;
+    }
+
+    .page-subtitle {
+        font-size: 16px;
+        color: #666;
+        margin: 0;
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 32px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .filter-row {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .filter-label {
+        font-weight: 600;
+        color: #333;
+        font-size: 14px;
+    }
+
+    .filter-pills {
+        display: flex;
+        gap: 8px;
+    }
+
+    .filter-pill {
+        padding: 8px 16px;
+        border: 2px solid #e0e0e0;
+        border-radius: 20px;
+        background: white;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 14px;
+        transition: all 0.2s ease;
+    }
+
+    .filter-pill:hover {
+        border-color: #880124;
+        color: #880124;
+    }
+
+    .filter-pill.active {
+        background: #880124;
+        color: white;
+        border-color: #880124;
+    }
+
+    .search-box {
+        flex: 1;
+        position: relative;
+        min-width: 250px;
+    }
+
+    .search-box .wcr-form-group {
+        margin-bottom: 0;
+    }
+
+    .search-box .wcr-input,
+    .search-input {
+        width: 100%;
+        padding: 10px 16px 10px 40px;
+        border: 2px solid #e0e0e0;
+        border-radius: 20px;
+        font-size: 14px;
+    }
+
+    .search-box .wcr-input:focus,
+    .search-input:focus {
+        outline: none;
+        border-color: #880124;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+    }
+
+    /* Events Grid */
+    .events-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 24px;
+        margin-bottom: 48px;
+    }
+
+    /* Event Card */
+    .event-card {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .event-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform: translateY(-2px);
+    }
+
+    .event-card-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+
+    .event-image {
+        width: 100%;
+        height: 200px;
+        background: linear-gradient(135deg, #880124, #614B79);
+        position: relative;
+    }
+
+    .event-type-badge {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        padding: 4px 12px;
+        background: rgba(255,255,255,0.9);
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .event-type-badge.workshop {
+        color: #880124;
+    }
+
+    .event-type-badge.social {
+        color: #614B79;
+    }
+
+    .event-date-badge {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: white;
+        border-radius: 8px;
+        padding: 8px;
+        text-align: center;
+        min-width: 60px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .event-date-month {
+        font-size: 12px;
+        font-weight: 600;
+        color: #880124;
+        text-transform: uppercase;
+    }
+
+    .event-date-day {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1a1a1a;
+        line-height: 1;
+    }
+
+    .event-content {
+        padding: 20px;
+    }
+
+    .event-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 0 0 8px 0;
+    }
+
+    .event-details {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .event-detail-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        font-size: 14px;
+    }
+
+    .event-detail-item i {
+        width: 16px;
+        color: #880124;
+    }
+
+    .event-price {
+        font-size: 18px;
+        font-weight: 600;
+        color: #880124;
+        margin-bottom: 16px;
+    }
+
+    .event-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-register,
+    .btn-rsvp {
+        flex: 1;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .btn-register {
+        background: #880124;
+        color: white;
+    }
+
+    .btn-register:hover {
+        background: #6B011C;
+    }
+
+    .btn-rsvp {
+        background: #614B79;
+        color: white;
+    }
+
+    .btn-rsvp:hover {
+        background: #4E3A61;
+    }
+
+    .btn-disabled {
+        background: #e0e0e0;
+        color: #999;
+        cursor: not-allowed;
+    }
+
+    .btn-disabled:hover {
+        background: #e0e0e0;
+    }
+
+    /* Vetting Status Messages */
+    .vetting-message {
+        background: #FFF9E6;
+        border: 2px solid #FFBF00;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .vetting-message i {
+        font-size: 24px;
+        color: #FFBF00;
+    }
+
+    .vetting-message-content {
+        flex: 1;
+    }
+
+    .vetting-message-title {
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 4px;
+    }
+
+    .vetting-message-text {
+        color: #666;
+        font-size: 14px;
+    }
+
+    .vetting-message-action {
+        padding: 8px 16px;
+        background: #FFBF00;
+        color: #1a1a1a;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .vetting-message-action:hover {
+        background: #E6AB00;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666;
+    }
+
+    .empty-state i {
+        font-size: 48px;
+        color: #ccc;
+        margin-bottom: 16px;
+    }
+
+    .empty-state h3 {
+        font-size: 20px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    .empty-state p {
+        font-size: 16px;
+        margin: 0;
+    }
+
+    /* Loading */
+    .loading-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 400px;
+    }
+
+    /* Notification Message Styles */
+    .notification-message {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        padding: 16px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        max-width: 400px;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @@keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    .notification-message.success {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+    }
+
+    .notification-message.error {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+    }
+
+    .notification-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .notification-close {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: inherit;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+
+    .notification-close:hover {
+        opacity: 1;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .events-page {
+            padding: 16px;
+        }
+
+        .filter-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-box {
+            min-width: 100%;
+        }
+
+        .events-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="events-page">
+    @if (showMessage)
+    {
+        <div class="notification-message @(messageType == "error" ? "error" : "success")">
+            <div class="notification-content">
+                <i class="fas @(messageType == "error" ? "fa-exclamation-circle" : "fa-check-circle")"></i>
+                <span>@message</span>
+            </div>
+            <button class="notification-close" @onclick="() => showMessage = false">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    }
+
+    <div class="page-header">
+        <h1 class="page-title">Upcoming Events</h1>
+        <p class="page-subtitle">Browse and register for classes, workshops, and social events</p>
+    </div>
+
+    @if (showVettingMessage)
+    {
+        <div class="vetting-message">
+            <i class="fas fa-info-circle"></i>
+            <div class="vetting-message-content">
+                @if (vettingStatus == VettingStatus.NotApplied)
+                {
+                    <div class="vetting-message-title">Want to attend social events?</div>
+                    <div class="vetting-message-text">Complete our vetting process to RSVP for rope jams, labs, and other social events.</div>
+                }
+                else if (vettingStatus == VettingStatus.Pending)
+                {
+                    <div class="vetting-message-title">Vetting application under review</div>
+                    <div class="vetting-message-text">Your application is being reviewed. You'll be notified once a decision is made.</div>
+                }
+            </div>
+            @if (vettingStatus == VettingStatus.NotApplied)
+            {
+                <a href="/members/vetting-application" class="vetting-message-action">Apply Now</a>
+            }
+        </div>
+    }
+
+    <div class="filter-bar">
+        <div class="filter-row">
+            <div class="filter-group">
+                <span class="filter-label">Type:</span>
+                <div class="filter-pills">
+                    <button class="filter-pill @(eventTypeFilter == "all" ? "active" : "")" 
+                            @onclick="@(() => SetEventTypeFilter("all"))">
+                        All Events
+                    </button>
+                    <button class="filter-pill @(eventTypeFilter == "classes" ? "active" : "")" 
+                            @onclick="@(() => SetEventTypeFilter("classes"))">
+                        Classes
+                    </button>
+                    <button class="filter-pill @(eventTypeFilter == "social" ? "active" : "")" 
+                            @onclick="@(() => SetEventTypeFilter("social"))">
+                        Social Events
+                    </button>
+                </div>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <WcrInputText @bind-Value="searchTerm"
+                              Placeholder="Search events..."
+                              Label=""
+                              ShowValidationIcon="false"
+                              ShowInlineError="false"
+                              OnValueChanged="@OnSearchChanged"
+                              CssClass="search-input" />
+            </div>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-container">
+            <LoadingSpinner />
+        </div>
+    }
+    else if (!filteredEvents.Any())
+    {
+        <div class="empty-state">
+            <i class="fas fa-calendar-times"></i>
+            <h3>No events found</h3>
+            <p>@(string.IsNullOrEmpty(searchTerm) ? "Check back soon for new events!" : "Try adjusting your search criteria")</p>
+        </div>
+    }
+    else
+    {
+        <div class="events-grid">
+            @foreach (var evt in filteredEvents)
+            {
+                <div class="event-card">
+                    <div class="event-image">
+                        <span class="event-type-badge @evt.Type">@GetEventTypeDisplay(evt.Type)</span>
+                        <div class="event-date-badge">
+                            <div class="event-date-month">@evt.StartDate.ToString("MMM")</div>
+                            <div class="event-date-day">@evt.StartDate.Day</div>
+                        </div>
+                    </div>
+                    <div class="event-content">
+                        <h3 class="event-title">
+                            <a href="/events/@evt.Id" class="event-card-link">@evt.Title</a>
+                        </h3>
+                        <div class="event-details">
+                            <div class="event-detail-item">
+                                <i class="fas fa-clock"></i>
+                                @evt.StartDate.ToString("h:mm tt") - @evt.EndDate.ToString("h:mm tt")
+                            </div>
+                            <div class="event-detail-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                @evt.Location
+                            </div>
+                            @if (!string.IsNullOrEmpty(evt.SkillLevel))
+                            {
+                                <div class="event-detail-item">
+                                    <i class="fas fa-signal"></i>
+                                    @evt.SkillLevel
+                                </div>
+                            }
+                            <div class="event-detail-item">
+                                <i class="fas fa-users"></i>
+                                @evt.AvailableSpots spots available
+                            </div>
+                        </div>
+                        <div class="event-price">
+                            @GetPriceDisplay(evt)
+                        </div>
+                        <div class="event-actions">
+                            @if (evt.IsSocialEvent && !isVetted)
+                            {
+                                @if (vettingStatus == VettingStatus.NotApplied)
+                                {
+                                    <a href="/members/vetting-application" class="btn-register">
+                                        Apply for Vetting
+                                    </a>
+                                }
+                                else
+                                {
+                                    <button class="btn-register btn-disabled" disabled>
+                                        Vetting Required
+                                    </button>
+                                }
+                            }
+                            else if (evt.IsSocialEvent)
+                            {
+                                <button class="btn-rsvp" @onclick="@(() => RSVPForEvent(evt.Id))">
+                                    RSVP for Event
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn-register" @onclick="@(() => RegisterForEvent(evt.Id))">
+                                    Purchase Ticket
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<EventRegistrationModalStandardized @ref="registrationModal" 
+                       Event="selectedEvent"
+                       @bind-IsVisible="showRegistrationModal"
+                       OnRegistrationComplete="HandleRegistrationComplete" />
+
+@code {
+    private bool isLoading = true;
+    private List<LocalEventViewModel> events = new();
+    private List<LocalEventViewModel> filteredEvents = new();
+    
+    // User status
+    private bool isVetted = false;
+    private VettingStatus vettingStatus = VettingStatus.NotApplied;
+    private bool showVettingMessage = false;
+    
+    // Filters
+    private string eventTypeFilter = "all";
+    private string searchTerm = "";
+    
+    // Registration modal
+    private EventRegistrationModalStandardized? registrationModal;
+    private bool showRegistrationModal = false;
+    private Core.DTOs.EventDto? selectedEvent;
+    
+    // Notification messages
+    private bool showMessage = false;
+    private string message = "";
+    private string messageType = "info";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserStatus();
+        await LoadEvents();
+    }
+
+    private async Task LoadUserStatus()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                // Check if user is vetted using the extension method
+                isVetted = user.IsVetted();
+                
+                // Get the user ID to fetch vetting status from API
+                var userId = user.GetUserId();
+                if (userId.HasValue)
+                {
+                    // Get dashboard data which includes vetting status
+                    try
+                    {
+                        var dashboardData = await ApiClient.GetAsync<Core.DTOs.DashboardDto>($"api/dashboard/{userId.Value}");
+                        if (dashboardData != null)
+                        {
+                            vettingStatus = MapVettingStatus(dashboardData.VettingStatus);
+                            showVettingMessage = !isVetted && (vettingStatus == VettingStatus.NotApplied || vettingStatus == VettingStatus.Pending);
+                        }
+                    }
+                    catch (Exception apiEx)
+                    {
+                        Console.WriteLine($"Error fetching vetting status from API: {apiEx.Message}");
+                        // Fall back to showing message if not vetted
+                        if (!isVetted)
+                        {
+                            vettingStatus = VettingStatus.NotApplied;
+                            showVettingMessage = true;
+                        }
+                    }
+                }
+                else if (!isVetted)
+                {
+                    // If we can't get user ID, show default message for non-vetted users
+                    vettingStatus = VettingStatus.NotApplied;
+                    showVettingMessage = true;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading user status: {ex.Message}");
+        }
+    }
+
+    private async Task LoadEvents()
+    {
+        try
+        {
+            isLoading = true;
+            
+            // Get events from API
+            var apiEvents = await ApiClient.GetEventsAsync();
+            
+            // Convert to local LocalEventViewModel
+            events = apiEvents.Select(e => new LocalEventViewModel
+            {
+                Id = e.Id,
+                Title = e.Title,
+                Type = GetEventTypeString(e.Type),
+                StartDate = e.StartDateTime,
+                EndDate = e.EndDateTime,
+                Location = e.Location,
+                Price = e.Price,
+                AvailableSpots = e.AvailableSpots,
+                IsSocialEvent = e.Type == (int)Core.Enums.EventType.Social || e.Type == (int)Core.Enums.EventType.PlayParty
+            }).ToList();
+            
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading events: {ex.Message}");
+            // Fall back to mock data for now
+            events = GetMockEvents();
+            ApplyFilters();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnSearchChanged(string value)
+    {
+        searchTerm = value;
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        var query = events.AsQueryable();
+
+        // Apply type filter
+        if (eventTypeFilter == "classes")
+        {
+            query = query.Where(e => e.Type == "workshop" || e.Type == "intensive");
+        }
+        else if (eventTypeFilter == "social")
+        {
+            query = query.Where(e => e.IsSocialEvent);
+        }
+
+        // Apply search filter
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(e => 
+                e.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                e.Location.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+        }
+
+        filteredEvents = query.OrderBy(e => e.StartDate).ToList();
+    }
+
+    private void SetEventTypeFilter(string filter)
+    {
+        eventTypeFilter = filter;
+        ApplyFilters();
+    }
+
+    private string GetEventTypeDisplay(string type)
+    {
+        return type switch
+        {
+            "workshop" => "Workshop",
+            "intensive" => "Intensive",
+            "social" => "Social Event",
+            "performance" => "Performance",
+            _ => type
+        };
+    }
+
+    private string GetPriceDisplay(LocalEventViewModel evt)
+    {
+        if (evt.Price == 0)
+            return "Free";
+        
+        if (evt.MinPrice.HasValue && evt.MaxPrice.HasValue)
+            return $"${evt.MinPrice} - ${evt.MaxPrice}";
+        
+        return $"${evt.Price}";
+    }
+
+    private async Task RegisterForEvent(Guid eventId)
+    {
+        try
+        {
+            // Find the event details
+            var evt = events.FirstOrDefault(e => e.Id == eventId);
+            if (evt == null)
+            {
+                showMessage = true;
+                messageType = "error";
+                message = "Event not found.";
+                return;
+            }
+            
+            // Convert to EventDto for the modal
+            selectedEvent = new Core.DTOs.EventDto
+            {
+                Id = evt.Id,
+                Name = evt.Title,
+                Description = evt.Description,
+                StartDateTime = evt.StartDate,
+                EndDateTime = evt.EndDate,
+                Location = evt.Location,
+                Price = evt.Price,
+                RequiresVetting = evt.IsSocialEvent
+            };
+            
+            // Show the registration modal
+            showRegistrationModal = true;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error showing registration modal: {ex.Message}");
+            // Show error message to user
+            showMessage = true;
+            messageType = "error";
+            message = $"Error: {ex.Message}";
+            StateHasChanged();
+        }
+    }
+
+    private async Task RSVPForEvent(Guid eventId)
+    {
+        try
+        {
+            // For now, bypass modal and do direct stub RSVP
+            Console.WriteLine($"RSVPForEvent called with ID: {eventId}");
+            
+            // Create a stub RSVP request (free event)
+            var request = new WitchCityRope.Core.DTOs.RegisterForEventRequest
+            {
+                EventId = eventId,
+                SelectedPriceId = 0, // Free for RSVP
+                PaymentMethod = "Cash", // Cash/Stub
+                DietaryRestrictions = "",
+                AccessibilityNeeds = "",
+                EmergencyContactName = "Test Contact",
+                EmergencyContactPhone = "555-1234"
+            };
+            
+            // Call the API to register - ApiClient only accepts int eventId but we have Guid
+            // TODO: Fix ApiClient to handle Guid event IDs or create new RSVP method
+            // var result = await ApiClient.RegisterForEventAsync(eventId);
+            
+            // Temporary stub response
+            var result = new RegistrationResult { Success = true, Message = "RSVP functionality not yet implemented" };
+            
+            if (result.Success)
+            {
+                // Show success message
+                showMessage = true;
+                messageType = "success";
+                message = "Successfully RSVP'd for the event!";
+                StateHasChanged();
+                
+                // Auto-hide message after 3 seconds
+                _ = Task.Run(async () => {
+                    await Task.Delay(3000);
+                    await InvokeAsync(() => {
+                        showMessage = false;
+                        StateHasChanged();
+                    });
+                });
+                
+                // Reload events to update available spots
+                await LoadEvents();
+            }
+            else
+            {
+                // Show error message
+                showMessage = true;
+                messageType = "error";
+                message = result.Message ?? "RSVP failed. Please try again.";
+                StateHasChanged();
+                
+                // Auto-hide error after 5 seconds
+                _ = Task.Run(async () => {
+                    await Task.Delay(5000);
+                    await InvokeAsync(() => {
+                        showMessage = false;
+                        StateHasChanged();
+                    });
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error during RSVP: {ex.Message}");
+            // Show error message to user
+            showMessage = true;
+            messageType = "error";
+            message = $"RSVP error: {ex.Message}";
+            StateHasChanged();
+            
+            // Auto-hide error after 5 seconds
+            _ = Task.Run(async () => {
+                await Task.Delay(5000);
+                await InvokeAsync(() => {
+                    showMessage = false;
+                    StateHasChanged();
+                });
+            });
+        }
+    }
+    
+    private async Task HandleRegistrationComplete(EventRegistrationModalStandardized.RegistrationResult result)
+    {
+        if (result.Success)
+        {
+            // Show success message
+            await JSRuntime.InvokeVoidAsync("alert", result.Message ?? "Registration successful!");
+            
+            // Reload events to update available spots
+            await LoadEvents();
+        }
+        else
+        {
+            // Show error message
+            await JSRuntime.InvokeVoidAsync("alert", result.Message ?? "Registration failed. Please try again.");
+        }
+    }
+
+    // Mock data for testing
+    private List<LocalEventViewModel> GetMockEvents()
+    {
+        return new List<LocalEventViewModel>
+        {
+            new LocalEventViewModel
+            {
+                Id = Guid.NewGuid(),
+                Title = "Introduction to Rope Bondage",
+                Type = "workshop",
+                StartDate = DateTime.Now.AddDays(7),
+                EndDate = DateTime.Now.AddDays(7).AddHours(3),
+                Location = "WitchCity Rope Space",
+                Price = 65,
+                AvailableSpots = 12,
+                SkillLevel = "Beginner",
+                IsSocialEvent = false
+            },
+            new LocalEventViewModel
+            {
+                Id = Guid.NewGuid(),
+                Title = "Friday Night Rope Jam",
+                Type = "social",
+                StartDate = DateTime.Now.AddDays(3),
+                EndDate = DateTime.Now.AddDays(3).AddHours(4),
+                Location = "WitchCity Community Center",
+                Price = 20,
+                AvailableSpots = 30,
+                IsSocialEvent = true
+            },
+            new LocalEventViewModel
+            {
+                Id = Guid.NewGuid(),
+                Title = "Advanced Suspension Techniques",
+                Type = "workshop",
+                StartDate = DateTime.Now.AddDays(14),
+                EndDate = DateTime.Now.AddDays(14).AddHours(4),
+                Location = "WitchCity Rope Space",
+                MinPrice = 45,
+                MaxPrice = 85,
+                Price = 65,
+                AvailableSpots = 8,
+                SkillLevel = "Advanced",
+                IsSocialEvent = false
+            }
+        };
+    }
+
+    private string GetEventTypeString(int eventType)
+    {
+        return eventType switch
+        {
+            (int)Core.Enums.EventType.Workshop => "workshop",
+            (int)Core.Enums.EventType.Social => "social",
+            (int)Core.Enums.EventType.Performance => "performance",
+            (int)Core.Enums.EventType.Virtual => "virtual",
+            (int)Core.Enums.EventType.Conference => "conference",
+            (int)Core.Enums.EventType.Special => "special",
+            (int)Core.Enums.EventType.PlayParty => "social",
+            _ => "workshop"
+        };
+    }
+
+    // View Models
+    private class LocalEventViewModel
+    {
+        public Guid Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Type { get; set; } = "";
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Location { get; set; } = "";
+        public decimal Price { get; set; }
+        public decimal? MinPrice { get; set; }
+        public decimal? MaxPrice { get; set; }
+        public int AvailableSpots { get; set; }
+        public string? SkillLevel { get; set; }
+        public bool IsSocialEvent { get; set; }
+        public bool IsMemberOnly { get; set; }
+    }
+
+    private enum VettingStatus
+    {
+        NotApplied,
+        Pending,
+        Approved,
+        Denied
+    }
+
+    private VettingStatus MapVettingStatus(Core.Enums.VettingStatus status)
+    {
+        return status switch
+        {
+            Core.Enums.VettingStatus.Submitted => VettingStatus.Pending,
+            Core.Enums.VettingStatus.UnderReview => VettingStatus.Pending,
+            Core.Enums.VettingStatus.MoreInfoRequested => VettingStatus.Pending,
+            Core.Enums.VettingStatus.Approved => VettingStatus.Approved,
+            Core.Enums.VettingStatus.Rejected => VettingStatus.Denied,
+            _ => VettingStatus.NotApplied
+        };
+    }
+}

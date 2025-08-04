@@ -1,0 +1,248 @@
+@page "/about"
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
+
+<PageTitle>About Us - Witch City Rope</PageTitle>
+
+<style>
+    .about-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+
+    .about-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .about-title {
+        font-size: 36px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 16px;
+    }
+
+    .about-subtitle {
+        font-size: 18px;
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .about-section {
+        margin-bottom: 40px;
+    }
+
+    .section-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 16px;
+    }
+
+    .section-content {
+        font-size: 16px;
+        line-height: 1.8;
+        color: #444;
+        margin-bottom: 16px;
+    }
+
+    .mission-statement {
+        background: #f9f9f9;
+        border-radius: 8px;
+        padding: 32px;
+        margin: 40px 0;
+        text-align: center;
+    }
+
+    .mission-text {
+        font-size: 18px;
+        line-height: 1.6;
+        color: #333;
+        font-style: italic;
+    }
+
+    .values-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 24px;
+        margin-top: 24px;
+    }
+
+    .value-card {
+        background: white;
+        border-radius: 8px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .value-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #8B4513;
+        margin-bottom: 12px;
+    }
+
+    .value-description {
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .contact-section {
+        background: #8B4513;
+        color: white;
+        border-radius: 8px;
+        padding: 32px;
+        text-align: center;
+        margin-top: 40px;
+    }
+
+    .contact-title {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+
+    .contact-text {
+        font-size: 16px;
+        line-height: 1.6;
+        margin-bottom: 24px;
+    }
+
+    .contact-button {
+        display: inline-block;
+        background: white;
+        color: #8B4513;
+        padding: 12px 24px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .contact-button:hover {
+        background: #f5f5f5;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    @@media (max-width: 768px) {
+        .about-container {
+            padding: 24px 16px;
+        }
+
+        .about-title {
+            font-size: 28px;
+        }
+
+        .values-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="about-container">
+    <div class="about-header">
+        <h1 class="about-title">About Witch City Rope</h1>
+        <p class="about-subtitle">
+            Salem's premier rope bondage and education community
+        </p>
+    </div>
+
+    <div class="mission-statement">
+        <p class="mission-text">
+            "We are dedicated to creating a safe, inclusive, and educational environment 
+            for adults to explore rope bondage, Japanese shibari, and kinbaku through 
+            hands-on learning, community connection, and mutual respect."
+        </p>
+    </div>
+
+    <div class="about-section">
+        <h2 class="section-title">Our Story</h2>
+        <p class="section-content">
+            Founded in Salem, Massachusetts, Witch City Rope emerged from a desire to create 
+            a welcoming space for rope enthusiasts of all skill levels. Our community brings 
+            together experienced practitioners and curious beginners in an atmosphere of 
+            learning, safety, and mutual respect.
+        </p>
+        <p class="section-content">
+            We believe that rope bondage is both an art form and a means of intimate connection. 
+            Whether you're interested in the technical aspects of shibari, the aesthetic beauty 
+            of rope patterns, or the psychological dynamics of bondage, our community provides 
+            the resources and support you need to explore safely.
+        </p>
+    </div>
+
+    <div class="about-section">
+        <h2 class="section-title">What We Offer</h2>
+        <p class="section-content">
+            Our events include beginner-friendly workshops, advanced technique classes, 
+            practice sessions, and social gatherings. We maintain a structured approach 
+            to learning that prioritizes safety, consent, and skill development.
+        </p>
+        <p class="section-content">
+            All our instructors are experienced practitioners who are passionate about 
+            sharing their knowledge and helping others grow in their rope journey. We 
+            welcome people of all backgrounds, orientations, and experience levels.
+        </p>
+    </div>
+
+    <div class="about-section">
+        <h2 class="section-title">Our Values</h2>
+        <div class="values-grid">
+            <div class="value-card">
+                <h3 class="value-title">Safety First</h3>
+                <p class="value-description">
+                    We prioritize physical and emotional safety in all our activities, 
+                    with clear protocols and ongoing education about risk awareness.
+                </p>
+            </div>
+            <div class="value-card">
+                <h3 class="value-title">Informed Consent</h3>
+                <p class="value-description">
+                    All participants must understand and agree to activities. We promote 
+                    clear communication and respect for boundaries.
+                </p>
+            </div>
+            <div class="value-card">
+                <h3 class="value-title">Inclusive Community</h3>
+                <p class="value-description">
+                    We welcome people of all backgrounds, orientations, and experience levels. 
+                    Discrimination and harassment are not tolerated.
+                </p>
+            </div>
+            <div class="value-card">
+                <h3 class="value-title">Continuous Learning</h3>
+                <p class="value-description">
+                    We encourage ongoing education and skill development, supporting members 
+                    at every stage of their rope journey.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="about-section">
+        <h2 class="section-title">Membership & Vetting</h2>
+        <p class="section-content">
+            To maintain a safe and comfortable environment, we require all members to go 
+            through a vetting process. This includes meeting with our organizers, 
+            understanding our community guidelines, and demonstrating a commitment to 
+            our values of safety, consent, and respect.
+        </p>
+        <p class="section-content">
+            The vetting process is designed to ensure that all members are aligned with 
+            our community standards and are committed to creating a positive experience 
+            for everyone. Once vetted, members gain access to our full range of events 
+            and resources.
+        </p>
+    </div>
+
+    <div class="contact-section">
+        <h2 class="contact-title">Ready to Join Us?</h2>
+        <p class="contact-text">
+            If you're interested in learning more about rope bondage in a safe, 
+            supportive environment, we'd love to hear from you.
+        </p>
+        <a href="/contact" class="contact-button">Get in Touch</a>
+    </div>
+</div>

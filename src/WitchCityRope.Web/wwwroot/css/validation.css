@@ -1,0 +1,297 @@
+/* WitchCityRope Validation Styles */
+
+:root {
+    --wcr-color-midnight: #1a1a2e;
+    --wcr-color-burgundy: #880124;
+    --wcr-color-error: #dc143c;
+    --wcr-color-warning: #ff8c00;
+    --wcr-color-success: #228b22;
+    --wcr-color-stone: #71797e;
+    --wcr-color-error-bg: rgba(220, 20, 60, 0.1);
+    --wcr-color-success-bg: rgba(34, 139, 34, 0.1);
+}
+
+/* Form Group Container */
+.wcr-form-group {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+/* Labels */
+.wcr-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--wcr-color-midnight);
+    font-size: 0.9375rem;
+}
+
+.wcr-required {
+    color: var(--wcr-color-error);
+    margin-left: 0.25rem;
+    font-weight: normal;
+}
+
+/* Input Base Styles */
+.wcr-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--wcr-color-stone);
+    border-radius: 0.375rem;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    background-color: white;
+    color: var(--wcr-color-midnight);
+}
+
+.wcr-input:focus {
+    outline: none;
+    border-color: var(--wcr-color-burgundy);
+    box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.1);
+}
+
+/* Error States */
+.wcr-input-error {
+    border-color: var(--wcr-color-error);
+    background-color: var(--wcr-color-error-bg);
+}
+
+.wcr-input-error:focus {
+    border-color: var(--wcr-color-error);
+    box-shadow: 0 0 0 3px rgba(220, 20, 60, 0.1);
+}
+
+/* Success States */
+.wcr-input-success {
+    border-color: var(--wcr-color-success);
+    background-color: var(--wcr-color-success-bg);
+}
+
+.wcr-input-success:focus {
+    border-color: var(--wcr-color-success);
+    box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.1);
+}
+
+/* Validation Messages */
+.wcr-validation-message,
+.validation-message,
+.error-message {
+    color: var(--wcr-color-error);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+    animation: slideDown 0.2s ease-out;
+}
+
+.wcr-validation-message-icon {
+    margin-right: 0.25rem;
+}
+
+/* Help Text */
+.wcr-help-text {
+    color: var(--wcr-color-stone);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* Validation Summary */
+.wcr-validation-summary,
+.validation-summary,
+.alert-danger {
+    background-color: var(--wcr-color-error-bg);
+    border: 1px solid var(--wcr-color-error);
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    animation: slideDown 0.3s ease-out;
+}
+
+.wcr-validation-summary-title {
+    color: var(--wcr-color-error);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.wcr-validation-summary-icon {
+    margin-right: 0.5rem;
+    font-size: 1.25rem;
+}
+
+.wcr-validation-summary ul {
+    margin: 0;
+    padding-left: 1.5rem;
+    list-style-type: disc;
+}
+
+.wcr-validation-summary li {
+    color: var(--wcr-color-error);
+    margin-bottom: 0.25rem;
+}
+
+/* Textarea Styles */
+.wcr-textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Select/Dropdown Styles */
+.wcr-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1rem;
+    padding-right: 2.5rem;
+}
+
+/* Checkbox and Radio Styles */
+.wcr-checkbox-group,
+.wcr-radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.wcr-checkbox-item,
+.wcr-radio-item {
+    display: flex;
+    align-items: center;
+}
+
+.wcr-checkbox-item input[type="checkbox"],
+.wcr-radio-item input[type="radio"] {
+    margin-right: 0.5rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    cursor: pointer;
+}
+
+.wcr-checkbox-label,
+.wcr-radio-label {
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Disabled States */
+.wcr-input:disabled,
+.wcr-select:disabled,
+.wcr-textarea:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Loading States */
+.wcr-input-loading {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cstyle%3E@keyframes rotate %7B to %7B transform: rotate(360deg); %7D %7D%3C/style%3E%3Cg style='animation: rotate 1s linear infinite; transform-origin: center;'%3E%3Ccircle cx='10' cy='10' r='8' fill='none' stroke='%23880124' stroke-width='2' stroke-dasharray='12.566370614359172 12.566370614359172' /%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.25rem;
+}
+
+/* Animations */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-0.25rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-0.25rem);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(0.25rem);
+    }
+}
+
+.wcr-validation-shake {
+    animation: shake 0.4s ease-in-out;
+}
+
+/* Inline Validation Icons */
+.wcr-form-group.has-validation .wcr-input {
+    padding-right: 2.5rem;
+}
+
+.wcr-validation-icon {
+    position: absolute;
+    right: 1rem;
+    top: calc(50% + 0.75rem);
+    transform: translateY(-50%);
+    font-size: 1.25rem;
+    pointer-events: none;
+}
+
+.wcr-validation-icon.error {
+    color: var(--wcr-color-error);
+}
+
+.wcr-validation-icon.success {
+    color: var(--wcr-color-success);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .wcr-form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .wcr-input,
+    .wcr-select,
+    .wcr-textarea {
+        padding: 0.625rem 0.875rem;
+        font-size: 0.9375rem;
+    }
+    
+    .wcr-label {
+        font-size: 0.875rem;
+    }
+    
+    .wcr-validation-message,
+    .wcr-help-text {
+        font-size: 0.8125rem;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .wcr-input,
+    .wcr-select,
+    .wcr-textarea {
+        background-color: #2a2a3e;
+        color: #f0f0f0;
+        border-color: #4a4a5e;
+    }
+    
+    .wcr-input:focus,
+    .wcr-select:focus,
+    .wcr-textarea:focus {
+        border-color: var(--wcr-color-burgundy);
+    }
+    
+    .wcr-label {
+        color: #f0f0f0;
+    }
+    
+    .wcr-help-text {
+        color: #a0a0b0;
+    }
+    
+    .wcr-input:disabled,
+    .wcr-select:disabled,
+    .wcr-textarea:disabled {
+        background-color: #1a1a2e;
+    }
+}

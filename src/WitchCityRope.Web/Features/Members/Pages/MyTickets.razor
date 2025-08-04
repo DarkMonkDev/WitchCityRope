@@ -1,9 +1,11 @@
 @page "/my-tickets"
 @page "/my-tickets/{TicketId:int}"
+@page "/member/mytickets"
 @using WitchCityRope.Web.Services
 @inject ApiClient ApiClient
 @inject NavigationManager Navigation
 @attribute [Authorize]
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
 
 @* My Tickets page for viewing and managing event registrations *@
 

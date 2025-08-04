@@ -1,13 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Core.Entities;
 using WitchCityRope.Core.Enums;
+using WitchCityRope.Core.ValueObjects;
+using WitchCityRope.Infrastructure.Identity;
 using WitchCityRope.Infrastructure.Tests.Fixtures;
 using WitchCityRope.Tests.Common.Builders;
+using WitchCityRope.Tests.Common.Identity;
 using Xunit;
 
 namespace WitchCityRope.Infrastructure.Tests.Data
@@ -16,45 +20,105 @@ namespace WitchCityRope.Infrastructure.Tests.Data
     {
         protected override async Task SeedDataAsync()
         {
-            var users = new List<User>();
+            var users = new List<WitchCityRopeUser>();
             var events = new List<Event>();
 
             // Create users
             for (int i = 0; i < 10; i++)
             {
-                users.Add(new UserBuilder()
+                users.Add(new IdentityUserBuilder()
                     .WithEmail($"user{i}@example.com")
                     .WithSceneName($"User{i}")
                     .Build());
             }
 
-            // Create events with various dates and statuses
-            var organizer = users[0];
+            // Add users to context
+            Context.Users.AddRange(users);
+            await Context.SaveChangesAsync();
+
+            // Create events using reflection to bypass constructor requirements
+            var eventType = typeof(Event);
+            var eventCtor = eventType.GetConstructor(
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance,
+                null,
+                Type.EmptyTypes,
+                null);
+
             for (int i = 0; i < 5; i++)
             {
-                var @event = new EventBuilder()
-                    .WithTitle($"Event {i}")
-                    .WithPrimaryOrganizer(organizer)
-                    .WithStartDate(DateTime.UtcNow.AddDays(i - 2))
-                    .WithCapacity(20)
-                    .Build();
+                var @event = (Event)eventCtor.Invoke(null);
+                
+                // Use reflection to set properties
+                var idProp = eventType.GetProperty("Id");
+                idProp.SetValue(@event, Guid.NewGuid());
+                
+                var titleProp = eventType.GetProperty("Title");
+                titleProp.SetValue(@event, $"Event {i}");
+                
+                var descProp = eventType.GetProperty("Description");
+                descProp.SetValue(@event, "Test event description");
+                
+                var startProp = eventType.GetProperty("StartDate");
+                startProp.SetValue(@event, DateTime.UtcNow.AddDays(i - 2));
+                
+                var endProp = eventType.GetProperty("EndDate");
+                endProp.SetValue(@event, DateTime.UtcNow.AddDays(i - 2).AddHours(3));
+                
+                var capProp = eventType.GetProperty("Capacity");
+                capProp.SetValue(@event, 20);
+                
+                var typeProp = eventType.GetProperty("EventType");
+                typeProp.SetValue(@event, EventType.Workshop);
+                
+                var locProp = eventType.GetProperty("Location");
+                locProp.SetValue(@event, "Test Location");
+                
+                var pubProp = eventType.GetProperty("IsPublished");
+                pubProp.SetValue(@event, true);
+                
+                var createdProp = eventType.GetProperty("CreatedAt");
+                createdProp.SetValue(@event, DateTime.UtcNow);
+                
+                var updatedProp = eventType.GetProperty("UpdatedAt");
+                updatedProp.SetValue(@event, DateTime.UtcNow);
 
                 events.Add(@event);
             }
 
-            Context.Users.AddRange(users);
             Context.Events.AddRange(events);
             await Context.SaveChangesAsync();
 
-            // Create registrations
+            // Create registrations using reflection
+            var regType = typeof(Registration);
+            var regCtor = regType.GetConstructor(
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance,
+                null,
+                Type.EmptyTypes,
+                null);
+
             for (int i = 0; i < 3; i++)
             {
                 for (int j = 1; j <= 5; j++)
                 {
-                    var registration = new RegistrationBuilder()
-                        .WithEvent(events[i])
-                        .WithUser(users[j])
-                        .Build();
+                    var registration = (Registration)regCtor.Invoke(null);
+                    
+                    var idProp = regType.GetProperty("Id");
+                    idProp.SetValue(registration, Guid.NewGuid());
+                    
+                    var userIdProp = regType.GetProperty("UserId");
+                    userIdProp.SetValue(registration, users[j].Id);
+                    
+                    var eventIdProp = regType.GetProperty("EventId");
+                    eventIdProp.SetValue(registration, events[i].Id);
+                    
+                    var statusProp = regType.GetProperty("Status");
+                    statusProp.SetValue(registration, RegistrationStatus.Confirmed);
+                    
+                    var priceProp = regType.GetProperty("SelectedPrice");
+                    priceProp.SetValue(registration, Money.Create(50m));
+                    
+                    var regDateProp = regType.GetProperty("RegisteredAt");
+                    regDateProp.SetValue(registration, DateTime.UtcNow);
                     
                     Context.Registrations.Add(registration);
                 }
@@ -219,7 +283,7 @@ namespace WitchCityRope.Infrastructure.Tests.Data
         {
             // Arrange
             var compiledQuery = EF.CompileAsyncQuery(
-                (WitchCityRope.Infrastructure.Data.WitchCityRopeDbContext ctx, Guid userId) =>
+                (WitchCityRope.Infrastructure.Data.WitchCityRopeIdentityDbContext ctx, Guid userId) =>
                     ctx.Registrations
                         .Include(r => r.Event)
                         .Where(r => r.UserId == userId && r.Status == RegistrationStatus.Confirmed)

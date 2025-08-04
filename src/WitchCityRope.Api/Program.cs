@@ -7,8 +7,10 @@ global using Microsoft.Extensions.Caching.Memory;
 
 using WitchCityRope.Api.Infrastructure;
 using WitchCityRope.Infrastructure;
+using WitchCityRope.Infrastructure.Identity;
 using Microsoft.AspNetCore.HttpLogging;
 using Syncfusion.Licensing;
+using SendGrid;
 using SendGrid.Extensions.DependencyInjection;
 using WitchCityRope.Api.Features.Auth.Models;
 using WitchCityRope.Core.Exceptions;
@@ -53,6 +55,9 @@ builder.Services.AddHttpLogging(logging =>
 // Add Infrastructure services (includes DbContext, email, payment, encryption, etc.)
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// Add Identity services for API (includes UserManager, SignInManager, etc.)
+builder.Services.AddWitchCityRopeIdentityForApi(builder.Configuration);
+
 // Add API-specific services using extension methods
 builder.Services.AddApiServices(builder.Configuration);
 builder.Services.AddApiAuthentication(builder.Configuration);
@@ -63,7 +68,7 @@ builder.Services.AddApiCors(builder.Configuration);
 builder.Services.AddMemoryCache();
 builder.Services.AddResponseCaching();
 
-// Add SendGrid for email
+// Add SendGrid for email (with fallback for development)
 var sendGridApiKey = builder.Configuration["Email:SendGrid:ApiKey"];
 if (!string.IsNullOrEmpty(sendGridApiKey))
 {
@@ -71,6 +76,12 @@ if (!string.IsNullOrEmpty(sendGridApiKey))
     {
         options.ApiKey = sendGridApiKey;
     });
+}
+else
+{
+    // Add a null SendGrid client registration for development when API key is not configured
+    builder.Services.AddScoped<ISendGridClient>(provider => null!);
+    Console.WriteLine("[API] SendGrid API key not configured - using mock email service for development");
 }
 
 // Configure minimal APIs
@@ -91,9 +102,11 @@ using (var scope = app.Services.CreateScope())
 {
     try
     {
-        var context = scope.ServiceProvider.GetRequiredService<WitchCityRope.Infrastructure.Data.WitchCityRopeDbContext>();
+        var context = scope.ServiceProvider.GetRequiredService<WitchCityRope.Infrastructure.Data.WitchCityRopeIdentityDbContext>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<WitchCityRope.Infrastructure.Identity.WitchCityRopeUser>>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<WitchCityRope.Infrastructure.Identity.WitchCityRopeRole>>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        await WitchCityRope.Infrastructure.Data.DbInitializer.InitializeAsync(context, logger);
+        await WitchCityRope.Infrastructure.Data.DbInitializer.InitializeAsync(context, userManager, roleManager, logger);
     }
     catch (Exception ex)
     {
@@ -142,9 +155,9 @@ app.MapGet("/api/auth/me", async (
     return Results.Ok(new
     {
         id = user.Id.ToString(),
-        email = user.Email.Value,
-        firstName = user.SceneName.Value,  // Using scene name as first name
-        lastName = "",  // No last name in this system
+        email = user.Email,
+        legalName = "",  // TODO: Decrypt user.EncryptedLegalName when needed
+        sceneName = user.SceneName.Value,
         avatarUrl = (string?)null,
         roles = new List<string> { user.Role.ToString() }
     });
@@ -191,7 +204,7 @@ public static class EndpointExtensions
                 var result = await authService.LoginAsync(request);
                 return Results.Ok(result);
             }
-            catch (UnauthorizedException ex)
+            catch (WitchCityRope.Api.Exceptions.UnauthorizedException ex)
             {
                 logger.LogWarning("Login failed for user {Email}: {Message}", request.Email, ex.Message);
                 return Results.Problem(ex.Message, statusCode: 401);
@@ -231,7 +244,7 @@ public static class EndpointExtensions
                 var result = await authService.RefreshTokenAsync(request.RefreshToken);
                 return Results.Ok(result);
             }
-            catch (UnauthorizedException ex)
+            catch (WitchCityRope.Api.Exceptions.UnauthorizedException ex)
             {
                 return Results.Problem(ex.Message, statusCode: 401);
             }
@@ -577,12 +590,14 @@ public static class EndpointExtensions
             }
             
             // Return UserInfo structure expected by the Web app
+            // Note: LegalName would need to be decrypted from EncryptedLegalName
+            // For now, returning empty string as we need the decryption service
             return Results.Ok(new
             {
                 id = user.Id.ToString(),
-                email = user.Email.Value,
-                firstName = user.FirstName ?? "",
-                lastName = user.LastName ?? "",
+                email = user.Email,
+                legalName = "", // TODO: Decrypt user.EncryptedLegalName
+                sceneName = user.SceneName.Value,
                 avatarUrl = (string?)null,
                 roles = new List<string> { user.Role.ToString() }
             });
@@ -629,7 +644,7 @@ public static class HttpContextExtensions
         var userIdClaim = principal.FindFirst("UserId")?.Value;
         if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
         {
-            throw new UnauthorizedException("User ID not found in claims");
+            throw new WitchCityRope.Api.Exceptions.UnauthorizedException("User ID not found in claims");
         }
         return userId;
     }

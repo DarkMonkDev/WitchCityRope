@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using WitchCityRope.Api.Features.Auth.Models;
 using WitchCityRope.Core.Entities;
+using WitchCityRope.Infrastructure.Identity;
 
 namespace WitchCityRope.Api.Features.Auth.Services
 {
@@ -21,9 +23,9 @@ namespace WitchCityRope.Api.Features.Auth.Services
     public interface IUserRepository
     {
         Task<UserWithAuth?> GetByEmailAsync(string email);
-        Task<User?> GetByIdAsync(Guid userId);
+        Task<WitchCityRopeUser?> GetByIdAsync(Guid userId);
         Task<bool> IsSceneNameTakenAsync(string sceneName);
-        Task CreateAsync(User user, UserAuthentication userAuth);
+        Task CreateAsync(WitchCityRopeUser user, UserAuthentication userAuth);
         Task UpdateLastLoginAsync(Guid userId);
         Task StoreRefreshTokenAsync(Guid userId, string refreshToken, DateTime expiresAt);
         Task<RefreshTokenInfo?> GetRefreshTokenInfoAsync(string refreshToken);

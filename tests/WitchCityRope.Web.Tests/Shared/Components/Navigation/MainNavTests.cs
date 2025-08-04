@@ -1,11 +1,14 @@
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
 using Xunit;
 using Moq;
 using FluentAssertions;
+using Microsoft.AspNetCore.Components;
 using Bunit;
 using WitchCityRope.Web.Shared.Components.Navigation;
 using WitchCityRope.Web.Tests.Helpers;
+using WitchCityRope.Web.Services;
 
 namespace WitchCityRope.Web.Tests.Shared.Components.Navigation
 {
@@ -159,9 +162,9 @@ namespace WitchCityRope.Web.Tests.Shared.Components.Navigation
         {
             // Arrange
             AuthenticationTestContext.SetupAuthenticatedUser(this);
-            var userServiceMock = new Mock<IUserService>();
-            userServiceMock.Setup(x => x.GetVettingStatusAsync()).ReturnsAsync("Pending");
-            Services.AddSingleton(userServiceMock.Object);
+            var vettingServiceMock = new Mock<IVettingService>();
+            vettingServiceMock.Setup(x => x.GetMyVettingStatusAsync()).ReturnsAsync(new VettingStatus { Status = "Pending" });
+            Services.AddSingleton(vettingServiceMock.Object);
 
             // Act
             var component = RenderComponent<MainNav>();
@@ -213,7 +216,12 @@ namespace WitchCityRope.Web.Tests.Shared.Components.Navigation
             // Arrange
             AuthenticationTestContext.SetupAuthenticatedUser(this);
             var notificationServiceMock = new Mock<INotificationService>();
-            notificationServiceMock.Setup(x => x.GetUnreadCountAsync()).ReturnsAsync(3);
+            notificationServiceMock.Setup(x => x.GetNotificationsAsync()).ReturnsAsync(new List<UserNotification> 
+            {
+                new UserNotification { Id = Guid.NewGuid(), Title = "Test", Message = "Test", IsRead = false },
+                new UserNotification { Id = Guid.NewGuid(), Title = "Test2", Message = "Test2", IsRead = false },
+                new UserNotification { Id = Guid.NewGuid(), Title = "Test3", Message = "Test3", IsRead = false }
+            });
             Services.AddSingleton(notificationServiceMock.Object);
 
             // Act

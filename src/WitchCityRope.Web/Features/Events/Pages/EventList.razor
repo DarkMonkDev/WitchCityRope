@@ -6,11 +6,14 @@
 @using Syncfusion.Blazor.DropDowns
 @using Syncfusion.Blazor.Navigations
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Web
 @inject IEventService EventService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
 @inject IToastService ToastService
 @layout MainLayout
+@attribute [AllowAnonymous]
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
 
 @* Event listing page showing all upcoming Witch City Rope events *@
 
@@ -108,12 +111,12 @@
                             <div class="event-actions">
                                 @if (eventItem.IsMemberOnly && !isAuthenticated)
                                 {
-                                    <SfButton CssClass="e-outline" OnClick="@(() => Navigation.NavigateTo("/login"))">Login</SfButton>
-                                    <SfButton CssClass="e-primary" OnClick="@(() => Navigation.NavigateTo("/join"))">Become a Member</SfButton>
+                                    <SfButton CssClass="e-outline" OnClick="@((e) => NavigateToLogin(e))">Login</SfButton>
+                                    <SfButton CssClass="e-primary" OnClick="@((e) => NavigateToJoin(e))">Become a Member</SfButton>
                                 }
                                 else
                                 {
-                                    <SfButton CssClass="e-primary" OnClick="@(() => NavigateToEvent(eventItem.Id))">Learn More</SfButton>
+                                    <SfButton CssClass="e-primary" OnClick="@((e) => NavigateToEventWithStop(eventItem.Id, e))">Learn More</SfButton>
                                 }
                             </div>
                         </div>
@@ -261,7 +264,22 @@
 
     private void NavigateToEvent(Guid eventId)
     {
-        Navigation.NavigateTo($"/events/{eventId}");
+        Navigation.NavigateTo($"/events/{eventId}", forceLoad: true);
+    }
+
+    private void NavigateToLogin(MouseEventArgs args)
+    {
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+
+    private void NavigateToJoin(MouseEventArgs args)
+    {
+        Navigation.NavigateTo("/register", forceLoad: true);
+    }
+
+    private void NavigateToEventWithStop(Guid eventId, MouseEventArgs args)
+    {
+        Navigation.NavigateTo($"/events/{eventId}", forceLoad: true);
     }
 
     private string GetFilterTabClass(bool isActive)

@@ -1,0 +1,709 @@
+@page "/glossary"
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@using WitchCityRope.Core.Services
+@using WitchCityRope.Core.Entities
+@using System.Security.Claims
+@using Syncfusion.Blazor.RichTextEditor
+@using Microsoft.AspNetCore.Components.Forms
+@using WitchCityRope.Web.Shared.Validation.Components
+@inject IContentPageService ContentPageService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JSRuntime
+@layout MainLayout
+
+<PageTitle>Rope Bondage Glossary - Witch City Rope</PageTitle>
+
+<div class="glossary-page">
+    <div class="container">
+        <div class="page-header">
+            <h1>@(contentPage?.Title ?? "Rope Bondage Glossary")</h1>
+            <p class="lead">Common terms and concepts in rope bondage and kink community</p>
+        </div>
+        
+        @if (IsAdmin)
+        {
+            <div class="cms-admin-controls">
+                @if (IsEditing)
+                {
+                    <div class="cms-edit-toolbar">
+                        <button class="btn btn-success" @onclick="SaveContentAsync" disabled="@IsSaving">
+                            @if (IsSaving)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            <i class="fas fa-save me-1"></i> Save
+                        </button>
+                        <button class="btn btn-secondary" @onclick="CancelEditAsync">
+                            <i class="fas fa-times me-1"></i> Cancel
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <button class="btn btn-outline-primary btn-sm" @onclick="StartEditAsync">
+                        <i class="fas fa-edit me-1"></i> Edit Page
+                    </button>
+                }
+            </div>
+        }
+        
+        <div class="cms-content-container">
+            @if (IsEditing)
+            {
+                <div class="cms-editor-container">
+                    <EditForm Model="@editModel" OnValidSubmit="SaveContentAsync">
+                        <DataAnnotationsValidator />
+                        
+                        <div class="mb-3">
+                            <WcrInputText @bind-Value="editModel.Title" 
+                                          Label="Page Title"
+                                          IsRequired="true" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Content</label>
+                            <SfRichTextEditor @bind-Value="@EditableContent" 
+                                              Height="600px"
+                                              @ref="RichTextEditorRef"
+                                              Placeholder="Enter your content here...">
+                                <RichTextEditorToolbarSettings Items="@ToolbarItems" />
+                            </SfRichTextEditor>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <WcrInputTextArea @bind-Value="editModel.MetaDescription" 
+                                                  Label="Meta Description"
+                                                  Placeholder="Page description for SEO"
+                                                  Rows="3" />
+                            </div>
+                            <div class="col-md-6">
+                                <WcrInputTextArea @bind-Value="editModel.MetaKeywords" 
+                                                  Label="Meta Keywords"
+                                                  Placeholder="Keywords separated by commas"
+                                                  Rows="3" />
+                            </div>
+                        </div>
+                    </EditForm>
+                </div>
+            }
+            else
+            {
+                <div class="cms-content">
+                    @if (contentPage != null)
+                    {
+                        @((MarkupString)contentPage.Content)
+                    }
+                    else
+                    {
+                        <div class="default-content">
+                            <div class="search-section">
+                                <input type="text" class="search-input" placeholder="Search terms..." @oninput="FilterTerms" />
+                                <i class="fas fa-search search-icon"></i>
+                            </div>
+
+                            <div class="alphabet-filter">
+                                @foreach (var letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+                                {
+                                    <button class="letter-btn @(selectedLetter == letter ? "active" : "")" 
+                                            @onclick="() => FilterByLetter(letter)">@letter</button>
+                                }
+                                <button class="letter-btn @(selectedLetter == null ? "active" : "")" 
+                                        @onclick="() => FilterByLetter(null)">All</button>
+                            </div>
+
+                            <div class="glossary-terms">
+                                @foreach (var term in filteredTerms)
+                                {
+                                    <div class="term-entry" id="term-@term.Term.ToLower().Replace(" ", "-")">
+                                        <h3 class="term-title">@term.Term</h3>
+                                        <div class="term-definition">@term.Definition</div>
+                                        @if (!string.IsNullOrEmpty(term.Category))
+                                        {
+                                            <div class="term-category">Category: @term.Category</div>
+                                        }
+                                        @if (term.SeeAlso.Any())
+                                        {
+                                            <div class="see-also">
+                                                <strong>See also:</strong> 
+                                                @foreach (var relatedTerm in term.SeeAlso)
+                                                {
+                                                    <a href="#term-@relatedTerm.ToLower().Replace(" ", "-")" class="related-link">@relatedTerm</a>
+                                                    @if (relatedTerm != term.SeeAlso.Last()) { <text>, </text> }
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+
+                            @if (!filteredTerms.Any())
+                            {
+                                <div class="no-results">
+                                    <i class="fas fa-search"></i>
+                                    <h3>No terms found</h3>
+                                    <p>Try adjusting your search or browse all terms.</p>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private ContentPage? contentPage;
+    private bool IsAdmin = false;
+    private bool IsEditing = false;
+    private bool IsSaving = false;
+    private string UserId = string.Empty;
+    
+    private SfRichTextEditor? RichTextEditorRef;
+    private string EditableContent = string.Empty;
+    private ContentEditModel editModel = new();
+    
+    private string searchFilter = "";
+    private char? selectedLetter = null;
+    private List<GlossaryTerm> filteredTerms = new();
+    
+    private class ContentEditModel
+    {
+        public string Title { get; set; } = string.Empty;
+        public string MetaDescription { get; set; } = string.Empty;
+        public string MetaKeywords { get; set; } = string.Empty;
+    }
+    
+    private readonly List<ToolbarItemModel> ToolbarItems = new()
+    {
+        new() { Command = ToolbarCommand.Bold },
+        new() { Command = ToolbarCommand.Italic },
+        new() { Command = ToolbarCommand.Underline },
+        new() { Command = ToolbarCommand.StrikeThrough },
+        new() { Command = ToolbarCommand.Separator },
+        new() { Command = ToolbarCommand.Formats },
+        new() { Command = ToolbarCommand.Alignments },
+        new() { Command = ToolbarCommand.Separator },
+        new() { Command = ToolbarCommand.OrderedList },
+        new() { Command = ToolbarCommand.UnorderedList },
+        new() { Command = ToolbarCommand.Separator },
+        new() { Command = ToolbarCommand.CreateLink },
+        new() { Command = ToolbarCommand.Separator },
+        new() { Command = ToolbarCommand.SourceCode },
+        new() { Command = ToolbarCommand.Undo },
+        new() { Command = ToolbarCommand.Redo }
+    };
+
+    private readonly List<GlossaryTerm> glossaryTerms = new()
+    {
+        new("Aftercare", "The care and attention given to participants after a scene or session, which may include physical comfort, emotional support, and debriefing.", "Safety", new[] { "Scene", "Negotiation" }),
+        new("Bondage", "The practice of restraining someone using rope, restraints, or other materials for erotic, aesthetic, or psychological purposes.", "General", new[] { "Rope Bondage", "Restraints" }),
+        new("Bottom", "The person who receives the rope work or is being tied up in a rope bondage scene.", "Roles", new[] { "Top", "Rope Bottom", "Submissive" }),
+        new("Bunny", "Another term for a rope bottom or the person being tied up. Often used affectionately within the rope community.", "Roles", new[] { "Bottom", "Rope Bottom" }),
+        new("Chest Harness", "A rope pattern that goes around the torso, often creating decorative and functional patterns across the chest and back.", "Techniques", new[] { "Harness", "Rope Patterns" }),
+        new("Consent", "Informed, enthusiastic, and ongoing agreement to participate in specific activities. Essential foundation of all kink activities.", "Safety", new[] { "Negotiation", "Limits", "Safe Words" }),
+        new("Dojo", "A space or venue where rope bondage is practiced, learned, or demonstrated. Can be formal or informal.", "Community", new[] { "Play Space", "Studio" }),
+        new("Edge Play", "Activities considered to have higher risk or to be on the edge of what's typically practiced in kink.", "Safety", new[] { "Risk", "Negotiation" }),
+        new("Frog Tie", "A rope tie where the legs are folded so the heel touches the buttock, often used to restrict leg movement.", "Techniques", new[] { "Leg Bondage", "Positions" }),
+        new("Ground Work", "Rope bondage performed while the bottom remains on the ground, as opposed to suspension.", "Techniques", new[] { "Floor Work", "Suspension" }),
+        new("Hard Limits", "Activities that are absolutely off-limits and not to be negotiated or performed under any circumstances.", "Safety", new[] { "Limits", "Soft Limits", "Boundaries" }),
+        new("Hishi", "A diamond-pattern rope tie, often used in decorative rope work and sometimes called a diamond harness.", "Techniques", new[] { "Rope Patterns", "Japanese Bondage" }),
+        new("Jute", "A natural fiber commonly used for rope bondage, prized for its texture and holding ability.", "Equipment", new[] { "Rope", "Hemp", "Natural Fibers" }),
+        new("Karada", "A full-body rope harness or dress, creating patterns across the entire torso and sometimes limbs.", "Techniques", new[] { "Body Harness", "Full Body Tie" }),
+        new("Limits", "Boundaries set by participants regarding what they will and won't do in a scene.", "Safety", new[] { "Hard Limits", "Soft Limits", "Boundaries" }),
+        new("Munches", "Casual, public gatherings of kink community members, usually in vanilla settings like restaurants.", "Community", new[] { "Social Events", "Community" }),
+        new("Negotiation", "The process of discussing limits, desires, expectations, and safety considerations before a scene.", "Safety", new[] { "Consent", "Limits", "Communication" }),
+        new("Over-arm Tie", "A rope technique where the rope goes over the arm, often used in arm bondage or chest harnesses.", "Techniques", new[] { "Arm Bondage", "Chest Harness" }),
+        new("Play", "Engaging in kink activities. A 'scene' or 'session' might also be called 'play.'", "General", new[] { "Scene", "Session" }),
+        new("Rope Burn", "Friction burns that can occur from rope sliding across skin, a risk to be aware of and prevent.", "Safety", new[] { "Risk", "Safety", "Injury" }),
+        new("Rope Space", "An altered state of consciousness that rope bottoms may experience during rope bondage.", "Psychology", new[] { "Subspace", "Altered States" }),
+        new("Sadist", "Someone who enjoys giving pain, controlling, or dominating others (consensually).", "Roles", new[] { "Masochist", "Dominant", "Top" }),
+        new("Safe Words", "Pre-agreed words used to communicate during a scene, typically to slow down, check in, or stop.", "Safety", new[] { "Yellow", "Red", "Green", "Communication" }),
+        new("Scene", "A period of kink activity with defined beginning and end, involving negotiated activities.", "General", new[] { "Play", "Session" }),
+        new("Shibari", "A Japanese style of rope bondage emphasizing aesthetic beauty and the emotional exchange between partners.", "Techniques", new[] { "Japanese Bondage", "Kinbaku", "Art" }),
+        new("Single Column Tie", "A fundamental rope technique for securing rope around a single limb or body part.", "Techniques", new[] { "Column Tie", "Basic Ties" }),
+        new("Soft Limits", "Activities someone is unsure about or wants to approach cautiously, but might be open to under specific circumstances.", "Safety", new[] { "Limits", "Hard Limits", "Boundaries" }),
+        new("Suspension", "Rope bondage where the bottom is partially or fully lifted off the ground by rope.", "Techniques", new[] { "Partial Suspension", "Full Suspension", "Advanced" }),
+        new("Switch", "Someone who enjoys both topping and bottoming, or giving and receiving, in kink activities.", "Roles", new[] { "Versatile", "Top", "Bottom" }),
+        new("Top", "The person who does the rope work or is tying up another person in rope bondage.", "Roles", new[] { "Rigger", "Bottom", "Dominant" }),
+        new("Two Column Tie", "A rope technique for binding two limbs or body parts together, such as wrists or ankles.", "Techniques", new[] { "Column Tie", "Basic Ties" }),
+        new("Under-arm Tie", "A rope technique where the rope passes under the arm, commonly used in chest harnesses.", "Techniques", new[] { "Arm Bondage", "Chest Harness" }),
+        new("Vetting", "A process used by communities to evaluate potential members for compatibility and safety.", "Community", new[] { "Safety", "Community", "Screening" }),
+        new("Wrist Cuffs", "Restraints designed specifically for the wrists, can be rope, leather, or other materials.", "Equipment", new[] { "Restraints", "Cuffs", "Wrist Bondage" })
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAuthenticationStateAsync();
+        await Task.Delay(50);
+        await LoadContentAsync();
+        
+        // Initialize filtered terms
+        filteredTerms = glossaryTerms.OrderBy(t => t.Term).ToList();
+    }
+    
+    private async Task LoadAuthenticationStateAsync()
+    {
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                IsAdmin = user.IsInRole("Administrator");
+            }
+            
+            UserId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+        }
+        catch (Exception ex)
+        {
+            IsAdmin = false;
+            UserId = string.Empty;
+        }
+    }
+    
+    private async Task LoadContentAsync()
+    {
+        contentPage = await ContentPageService.GetOrCreateBySlugAsync("glossary", "Rope Bondage Glossary");
+    }
+
+    private void FilterTerms(Microsoft.AspNetCore.Components.ChangeEventArgs e)
+    {
+        searchFilter = e.Value?.ToString() ?? "";
+        ApplyFilters();
+    }
+
+    private void FilterByLetter(char? letter)
+    {
+        selectedLetter = letter;
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        var terms = glossaryTerms.AsEnumerable();
+
+        if (!string.IsNullOrEmpty(searchFilter))
+        {
+            terms = terms.Where(t => 
+                t.Term.Contains(searchFilter, StringComparison.OrdinalIgnoreCase) ||
+                t.Definition.Contains(searchFilter, StringComparison.OrdinalIgnoreCase) ||
+                t.Category.Contains(searchFilter, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (selectedLetter.HasValue)
+        {
+            terms = terms.Where(t => t.Term.StartsWith(selectedLetter.Value.ToString(), StringComparison.OrdinalIgnoreCase));
+        }
+
+        filteredTerms = terms.OrderBy(t => t.Term).ToList();
+        StateHasChanged();
+    }
+    
+    private async Task StartEditAsync()
+    {
+        if (!IsAdmin || contentPage == null) return;
+        
+        EditableContent = contentPage.Content;
+        editModel = new ContentEditModel
+        {
+            Title = contentPage.Title,
+            MetaDescription = contentPage.MetaDescription ?? string.Empty,
+            MetaKeywords = contentPage.MetaKeywords ?? string.Empty
+        };
+        
+        IsEditing = true;
+        StateHasChanged();
+        
+        await Task.Delay(100);
+    }
+    
+    private async Task SaveContentAsync()
+    {
+        if (!IsAdmin || contentPage == null || IsSaving) return;
+        
+        IsSaving = true;
+        StateHasChanged();
+        
+        try
+        {
+            contentPage = await ContentPageService.UpdateAsync(
+                contentPage.Id, 
+                EditableContent, 
+                editModel.Title, 
+                UserId, 
+                editModel.MetaDescription, 
+                editModel.MetaKeywords);
+            
+            IsEditing = false;
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("console.error", $"Error saving content: {ex.Message}");
+        }
+        finally
+        {
+            IsSaving = false;
+            StateHasChanged();
+        }
+    }
+    
+    private async Task CancelEditAsync()
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            "Are you sure you want to cancel? Any unsaved changes will be lost.");
+            
+        if (confirmed)
+        {
+            IsEditing = false;
+            StateHasChanged();
+        }
+    }
+
+    private class GlossaryTerm
+    {
+        public string Term { get; }
+        public string Definition { get; }
+        public string Category { get; }
+        public string[] SeeAlso { get; }
+
+        public GlossaryTerm(string term, string definition, string category, string[]? seeAlso = null)
+        {
+            Term = term;
+            Definition = definition;
+            Category = category;
+            SeeAlso = seeAlso ?? Array.Empty<string>();
+        }
+    }
+}
+
+<style>
+    .glossary-page {
+        padding: 2rem 0;
+        min-height: calc(100vh - 200px);
+        background: linear-gradient(135deg, #fff8f0 0%, #f5f5f5 100%);
+    }
+    
+    .page-header {
+        margin-bottom: 3rem;
+        text-align: center;
+    }
+    
+    .page-header h1 {
+        color: #8B4513;
+        margin-bottom: 0.5rem;
+        font-size: 2.5rem;
+        font-weight: 700;
+    }
+    
+    .page-header .lead {
+        color: #4A4A4A;
+        font-size: 1.125rem;
+    }
+    
+    .cms-admin-controls {
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        z-index: 1000;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 0.5rem;
+    }
+    
+    .cms-edit-toolbar {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    .cms-content-container {
+        min-height: 400px;
+    }
+    
+    .cms-editor-container {
+        background: #FFF8F0;
+        border-radius: 0.75rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .cms-content {
+        background: white;
+        border-radius: 12px;
+        padding: 3rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border: 1px solid rgba(139, 69, 19, 0.1);
+    }
+    
+    .search-section {
+        position: relative;
+        margin-bottom: 2rem;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 1rem 1rem 1rem 3rem;
+        border: 2px solid #8B4513;
+        border-radius: 25px;
+        font-size: 1.1rem;
+        outline: none;
+        transition: all 0.3s ease;
+    }
+    
+    .search-input:focus {
+        border-color: #6B3410;
+        box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #8B4513;
+        font-size: 1.2rem;
+    }
+    
+    .alphabet-filter {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    
+    .letter-btn {
+        width: 2.5rem;
+        height: 2.5rem;
+        border: 1px solid #8B4513;
+        background: white;
+        color: #8B4513;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+    
+    .letter-btn:hover {
+        background: #8B4513;
+        color: white;
+        transform: translateY(-1px);
+    }
+    
+    .letter-btn.active {
+        background: #8B4513;
+        color: white;
+        box-shadow: 0 2px 4px rgba(139, 69, 19, 0.3);
+    }
+    
+    .glossary-terms {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .term-entry {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-left: 4px solid #8B4513;
+        transition: all 0.3s ease;
+    }
+    
+    .term-entry:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .term-title {
+        color: #8B4513;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        margin-top: 0;
+    }
+    
+    .term-definition {
+        color: #333;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+    
+    .term-category {
+        color: #666;
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-bottom: 0.75rem;
+        padding: 0.25rem 0.75rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        display: inline-block;
+    }
+    
+    .see-also {
+        color: #555;
+        font-size: 0.95rem;
+        border-top: 1px solid #eee;
+        padding-top: 0.75rem;
+        margin-top: 0.75rem;
+    }
+    
+    .related-link {
+        color: #8B4513;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .related-link:hover {
+        color: #6B3410;
+        text-decoration: underline;
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 3rem;
+        color: #666;
+    }
+    
+    .no-results i {
+        font-size: 3rem;
+        color: #ccc;
+        margin-bottom: 1rem;
+    }
+    
+    .no-results h3 {
+        color: #999;
+        margin-bottom: 0.5rem;
+    }
+    
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-outline-primary {
+        background: transparent;
+        color: #8B4513;
+        border: 1px solid #8B4513;
+    }
+    
+    .btn-outline-primary:hover {
+        background: #8B4513;
+        color: white;
+    }
+    
+    .btn-secondary {
+        background: #f8f9fa;
+        color: #333;
+        border: 1px solid #dee2e6;
+    }
+    
+    .btn-secondary:hover {
+        background: #e9ecef;
+    }
+    
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+    
+    .btn-success:hover {
+        background: #218838;
+    }
+    
+    @@media (max-width: 768px) {
+        .glossary-page {
+            padding: 1rem 0;
+        }
+        
+        .cms-admin-controls {
+            position: static;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+        }
+        
+        .cms-content,
+        .cms-editor-container {
+            padding: 2rem;
+        }
+        
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        
+        .page-header h1 {
+            font-size: 2rem;
+        }
+        
+        .search-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .alphabet-filter {
+            gap: 0.25rem;
+            padding: 0.75rem;
+        }
+        
+        .letter-btn {
+            width: 2rem;
+            height: 2rem;
+            font-size: 0.9rem;
+        }
+        
+        .term-entry {
+            padding: 1.5rem;
+        }
+        
+        .term-title {
+            font-size: 1.25rem;
+        }
+        
+        .term-definition {
+            font-size: 1rem;
+        }
+    }
+    
+    @@media (max-width: 480px) {
+        .cms-content,
+        .cms-editor-container {
+            padding: 1.5rem;
+        }
+        
+        .alphabet-filter {
+            padding: 0.5rem;
+        }
+        
+        .letter-btn {
+            width: 1.75rem;
+            height: 1.75rem;
+            font-size: 0.8rem;
+        }
+        
+        .term-entry {
+            padding: 1.25rem;
+        }
+    }
+</style>

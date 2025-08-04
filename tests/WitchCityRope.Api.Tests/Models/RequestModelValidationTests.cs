@@ -7,7 +7,8 @@ using Xunit;
 using WitchCityRope.Api.Features.Auth.Models;
 using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Models;
-using WitchCityRope.Core.Enums;
+using CoreEnums = WitchCityRope.Core.Enums;
+using ApiEnums = WitchCityRope.Api.Features.Events.Models;
 
 namespace WitchCityRope.Api.Tests.Models;
 
@@ -217,7 +218,7 @@ public class RequestModelValidationTests
         {
             Title = "Test Event",
             Description = "A test event description",
-            Type = EventType.Workshop,
+            Type = ApiEnums.EventType.Workshop,
             StartDateTime = DateTime.UtcNow.AddDays(7),
             EndDateTime = DateTime.UtcNow.AddDays(7).AddHours(2),
             Location = "Test Venue",
@@ -249,7 +250,7 @@ public class RequestModelValidationTests
         {
             Title = title,
             Description = "Description",
-            Type = EventType.Workshop,
+            Type = ApiEnums.EventType.Workshop,
             StartDateTime = DateTime.UtcNow.AddDays(7),
             EndDateTime = DateTime.UtcNow.AddDays(7).AddHours(2),
             Location = "Venue",
@@ -271,7 +272,7 @@ public class RequestModelValidationTests
         {
             Title = new string('a', 201), // 201 characters
             Description = "Description",
-            Type = EventType.Workshop,
+            Type = ApiEnums.EventType.Workshop,
             StartDateTime = DateTime.UtcNow.AddDays(7),
             EndDateTime = DateTime.UtcNow.AddDays(7).AddHours(2),
             Location = "Venue",
@@ -295,7 +296,7 @@ public class RequestModelValidationTests
         {
             Title = "Test Event",
             Description = "Description",
-            Type = EventType.Workshop,
+            Type = ApiEnums.EventType.Workshop,
             StartDateTime = DateTime.UtcNow.AddDays(7),
             EndDateTime = DateTime.UtcNow.AddDays(7).AddHours(2),
             Location = "Venue",
@@ -319,7 +320,7 @@ public class RequestModelValidationTests
         {
             Title = "Test Event",
             Description = "Description",
-            Type = EventType.Workshop,
+            Type = ApiEnums.EventType.Workshop,
             StartDateTime = DateTime.UtcNow.AddDays(7),
             EndDateTime = DateTime.UtcNow.AddDays(7).AddHours(2),
             Location = "Venue",

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -5,8 +6,10 @@ using SendGrid.Extensions.DependencyInjection;
 using WitchCityRope.Core.Interfaces;
 using WitchCityRope.Infrastructure.Data;
 using WitchCityRope.Infrastructure.Email;
+using WitchCityRope.Infrastructure.Identity;
 using WitchCityRope.Infrastructure.PayPal;
 using WitchCityRope.Infrastructure.Security;
+using WitchCityRope.Infrastructure.Services;
 using WitchCityRope.Infrastructure.Mapping;
 
 namespace WitchCityRope.Infrastructure
@@ -22,7 +25,7 @@ namespace WitchCityRope.Infrastructure
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
             // Add Entity Framework Core with PostgreSQL
-            services.AddDbContext<WitchCityRopeDbContext>(options =>
+            services.AddDbContext<WitchCityRopeIdentityDbContext>(options =>
             {
                 // Check for Aspire-provided connection string first, then fall back to DefaultConnection
                 var connectionString = configuration.GetConnectionString("witchcityrope-db") 
@@ -51,6 +54,7 @@ namespace WitchCityRope.Infrastructure
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IPaymentService, PayPalService>();
             services.AddScoped<IEncryptionService, EncryptionService>();
+            services.AddScoped<IAuthorizationService, AuthorizationService>();
             services.AddScoped<JwtTokenService>();
 
             // Add AutoMapper with all profiles
@@ -58,7 +62,7 @@ namespace WitchCityRope.Infrastructure
 
             // Add health checks
             services.AddHealthChecks()
-                .AddDbContextCheck<WitchCityRopeDbContext>("database");
+                .AddDbContextCheck<WitchCityRopeIdentityDbContext>("database");
 
             return services;
         }
@@ -70,7 +74,7 @@ namespace WitchCityRope.Infrastructure
         {
             using (var scope = serviceProvider.CreateScope())
             {
-                var context = scope.ServiceProvider.GetRequiredService<WitchCityRopeDbContext>();
+                var context = scope.ServiceProvider.GetRequiredService<WitchCityRopeIdentityDbContext>();
                 context.Database.EnsureCreated();
                 
                 // In production, use migrations instead:
@@ -85,26 +89,31 @@ namespace WitchCityRope.Infrastructure
         {
             using (var scope = serviceProvider.CreateScope())
             {
-                var context = scope.ServiceProvider.GetRequiredService<WitchCityRopeDbContext>();
+                var context = scope.ServiceProvider.GetRequiredService<WitchCityRopeIdentityDbContext>();
                 var encryptionService = scope.ServiceProvider.GetRequiredService<IEncryptionService>();
 
                 // Check if we already have data
-                if (await context.Users.AnyAsync())
+                // Note: Identity manages Users table, check for Events or other entities instead
+                if (await context.Events.AnyAsync())
                 {
                     return;
                 }
 
                 // Seed initial data here if needed
-                // Example: Create default admin user
-                // var adminUser = new User(
-                //     await encryptionService.EncryptAsync("Admin User"),
-                //     new SceneName("Admin"),
-                //     new EmailAddress("admin@witchcityrope.com"),
-                //     DateTime.UtcNow.AddYears(-30),
-                //     UserRole.Admin
-                // );
-                // context.Users.Add(adminUser);
-                // await context.SaveChangesAsync();
+                // Note: For users, use ASP.NET Core Identity UserManager instead of direct DbContext access
+                // Example: Create default admin user using UserManager
+                // var userManager = scope.ServiceProvider.GetRequiredService<UserManager<WitchCityRopeUser>>();
+                // var adminUser = new WitchCityRopeUser
+                // {
+                //     UserName = "admin@witchcityrope.com",
+                //     Email = "admin@witchcityrope.com",
+                //     SceneNameValue = "Admin",
+                //     EncryptedLegalName = await encryptionService.EncryptAsync("Admin User"),
+                //     DateOfBirth = DateTime.UtcNow.AddYears(-30),
+                //     Role = UserRole.Admin
+                // };
+                // await userManager.CreateAsync(adminUser, "DefaultPassword123!");
+                // await userManager.AddToRoleAsync(adminUser, "Administrator");
             }
         }
     }

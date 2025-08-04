@@ -1,0 +1,474 @@
+{
+  "timestamp": "2025-07-22T20:08:23.612Z",
+  "baseUrl": "http://localhost:5651",
+  "forms": [
+    {
+      "name": "Login",
+      "url": "http://localhost:5651/Identity/Account/Login",
+      "timestamp": "2025-07-22T20:08:23.831Z",
+      "status": "fully_migrated",
+      "pageLoaded": true,
+      "hasForm": true,
+      "hasValidationComponents": true,
+      "validationBehavior": [
+        {
+          "test": "Empty form submission",
+          "passed": true,
+          "validationCount": 2
+        },
+        {
+          "test": "Real-time validation",
+          "passed": false,
+          "note": "No real-time validation detected"
+        }
+      ],
+      "errors": [],
+      "screenshots": [
+        "test-results/validation-diagnostics/Login-initial-1753214906632.png",
+        "test-results/validation-diagnostics/Login-validation-1753214908287.png"
+      ],
+      "elements": {
+        "wcrInputs": 2,
+        "wcrValidationMessages": 0,
+        "wcrValidationSummary": 0,
+        "standardInputs": 2,
+        "submitButtons": 1
+      },
+      "httpStatus": 200
+    },
+    {
+      "name": "Register",
+      "url": "http://localhost:5651/Identity/Account/Register",
+      "timestamp": "2025-07-22T20:08:28.918Z",
+      "status": "http_error",
+      "pageLoaded": false,
+      "hasForm": false,
+      "hasValidationComponents": false,
+      "validationBehavior": [],
+      "errors": [
+        "HTTP 500 error"
+      ],
+      "screenshots": [
+        "test-results/validation-diagnostics/Register-http-error-1753214909432.png"
+      ],
+      "elements": {
+        "wcrInputs": 0,
+        "wcrValidationMessages": 0,
+        "wcrValidationSummary": 0,
+        "standardInputs": 0,
+        "submitButtons": 0
+      },
+      "httpStatus": 500
+    },
+    {
+      "name": "Forgot Password",
+      "url": "http://localhost:5651/Identity/Account/ForgotPassword",
+      "timestamp": "2025-07-22T20:08:29.597Z",
+      "status": "http_error",
+      "pageLoaded": false,
+      "hasForm": false,
+      "hasValidationComponents": false,
+      "validationBehavior": [],
+      "errors": [
+        "HTTP 500 error"
+      ],
+      "screenshots": [
+        "test-results/validation-diagnostics/Forgot Password-http-error-1753214910109.png"
+      ],
+      "elements": {
+        "wcrInputs": 0,
+        "wcrValidationMessages": 0,
+        "wcrValidationSummary": 0,
+        "standardInputs": 0,
+        "submitButtons": 0
+      },
+      "httpStatus": 500
+    },
+    {
+      "name": "Reset Password",
+      "url": "http://localhost:5651/Identity/Account/ResetPassword?code=test",
+      "timestamp": "2025-07-22T20:08:30.269Z",
+      "status": "http_error",
+      "pageLoaded": false,
+      "hasForm": false,
+      "hasValidationComponents": false,
+      "validationBehavior": [],
+      "errors": [
+        "HTTP 500 error"
+      ],
+      "screenshots": [
+        "test-results/validation-diagnostics/Reset Password-http-error-1753214910782.png"
+      ],
+      "elements": {
+        "wcrInputs": 0,
+        "wcrValidationMessages": 0,
+        "wcrValidationSummary": 0,
+        "standardInputs": 0,
+        "submitButtons": 0
+      },
+      "httpStatus": 500
+    },
+    {
+      "name": "Change Password",
+      "url": "http://localhost:5651/Identity/Account/Manage/ChangePassword",
+      "timestamp": "2025-07-22T20:08:30.954Z",
+      "status": "fully_migrated",
+      "pageLoaded": true,
+      "hasForm": true,
+      "hasValidationComponents": true,
+      "validationBehavior": [
+        {
+          "test": "Empty form submission",
+          "passed": true,
+          "validationCount": 2
+        },
+        {
+          "test": "Real-time validation",
+          "passed": false,
+          "note": "No real-time validation detected"
+        }
+      ],
+      "errors": [],
+      "screenshots": [
+        "test-results/validation-diagnostics/Change Password-initial-1753214913735.png",
+        "test-results/validation-diagnostics/Change Password-validation-1753214915390.png"
+      ],
+      "elements": {
+        "wcrInputs": 2,
+        "wcrValidationMessages": 0,
+        "wcrValidationSummary": 0,
+        "standardInputs": 2,
+        "submitButtons": 1
+      },
+      "httpStatus": 200,
+      "redirectedTo": "http://localhost:5651/Identity/Account/Login?ReturnUrl=%2FIdentity%2FAccount%2FManage%2FChangePassword"
+    },
+    {
+      "name": "Manage Email",
+      "url": "http://localhost:5651/Identity/Account/Manage/Email",
+      "timestamp": "2025-07-22T20:08:36.014Z",
+      "status": "fully_migrated",
+      "pageLoaded": true,
+      "hasForm": true,
+      "hasValidationComponents": true,
+      "validationBehavior": [
+        {
+          "test": "Empty form submission",
+          "passed": true,
+          "validationCount": 2
+        },
+        {
+          "test": "Real-time validation",
+          "passed": false,
+          "note": "No real-time validation detected"
+        }
+      ],
+      "errors": [],
+      "screenshots": [
+        "test-results/validation-diagnostics/Manage Email-initial-1753214918801.png",
+        "test-results/validation-diagnostics/Manage Email-validation-1753214920454.png"
+      ],
+      "elements": {
+        "wcrInputs": 2,
+        "wcrValidationMessages": 0,
+        "wcrValidationSummary": 0,
+        "standardInputs": 2,
+        "submitButtons": 1
+      },
+      "httpStatus": 200,
+      "redirectedTo": "http://localhost:5651/Identity/Account/Login?ReturnUrl=%2FIdentity%2FAccount%2FManage%2FEmail"
+    },
+    {
+      "name": "Manage Profile",
+      "url": "http://localhost:5651/Identity/Account/Manage",
+      "timestamp": "2025-07-22T20:08:41.084Z",
+      "status": "fully_migrated",
+      "pageLoaded": true,
+      "hasForm": true,
+      "hasValidationComponents": true,
+      "validationBehavior": [
+        {
+          "test": "Empty form submission",
+          "passed": true,
+          "validationCount": 2
+        },
+        {
+          "test": "Real-time validation",
+          "passed": false,
+          "note": "No real-time validation detected"
+        }
+      ],
+      "errors": [],
+      "screenshots": [
+        "test-results/validation-diagnostics/Manage Profile-initial-1753214923874.png",
+        "test-results/validation-diagnostics/Manage Profile-validation-1753214925520.png"
+      ],
+      "elements": {
+        "wcrInputs": 2,
+        "wcrValidationMessages": 0,
+        "wcrValidationSummary": 0,
+        "standardInputs": 2,
+        "submitButtons": 1
+      },
+      "httpStatus": 200,
+      "redirectedTo": "http://localhost:5651/Identity/Account/Login?ReturnUrl=%2FIdentity%2FAccount%2FManage"
+    },
+    {
+      "name": "Delete Personal Data",
+      "url": "http://localhost:5651/Identity/Account/Manage/DeletePersonalData",
+      "timestamp": "2025-07-22T20:08:46.146Z",
+      "status": "fully_migrated",
+      "pageLoaded": true,
+      "hasForm": true,
+      "hasValidationComponents": true,
+      "validationBehavior": [
+        {
+          "test": "Empty form submission",
+          "passed": true,
+          "validationCount": 2
+        }
+      ],
+      "errors": [],
+      "screenshots": [
+        "test-results/validation-diagnostics/Delete Personal Data-initial-1753214928947.png",
+        "test-results/validation-diagnostics/Delete Personal Data-validation-1753214930601.png"
+      ],
+      "elements": {
+        "wcrInputs": 2,
+        "wcrValidationMessages": 0,
+        "wcrValidationSummary": 0,
+        "standardInputs": 2,
+        "submitButtons": 1
+      },
+      "httpStatus": 200,
+      "redirectedTo": "http://localhost:5651/Identity/Account/Login?ReturnUrl=%2FIdentity%2FAccount%2FManage%2FDeletePersonalData"
+    },
+    {
+      "name": "Login with 2FA",
+      "url": "http://localhost:5651/Identity/Account/LoginWith2fa",
+      "timestamp": "2025-07-22T20:08:50.713Z",
+      "status": "error",
+      "pageLoaded": true,
+      "hasForm": false,
+      "hasValidationComponents": false,
+      "validationBehavior": [],
+      "errors": [
+        "locator.isVisible: Error: strict mode violation: locator('form') resolved to 2 elements:\n    1) <form method=\"post\">…</form> aka getByText('Email or Username Password')\n    2) <form action=\"/login\" class=\"newsletter-form\" __internal_preventdefault_onsubmit=\"\">…</form> aka locator('form').filter({ hasText: 'Subscribe' })\n\nCall log:\n\u001b[2m    - checking visibility of locator('form')\u001b[22m\n"
+      ],
+      "screenshots": [
+        "test-results/validation-diagnostics/Login with 2FA-error-1753214933559.png"
+      ],
+      "elements": {
+        "wcrInputs": 0,
+        "wcrValidationMessages": 0,
+        "wcrValidationSummary": 0,
+        "standardInputs": 0,
+        "submitButtons": 0
+      },
+      "httpStatus": 200,
+      "redirectedTo": "http://localhost:5651/login"
+    },
+    {
+      "name": "Vetting Application",
+      "url": "http://localhost:5651/vetting/application",
+      "timestamp": "2025-07-22T20:08:53.744Z",
+      "status": "http_error",
+      "pageLoaded": false,
+      "hasForm": false,
+      "hasValidationComponents": false,
+      "validationBehavior": [],
+      "errors": [
+        "HTTP 404 error"
+      ],
+      "screenshots": [
+        "test-results/validation-diagnostics/Vetting Application-http-error-1753214934251.png"
+      ],
+      "elements": {
+        "wcrInputs": 0,
+        "wcrValidationMessages": 0,
+        "wcrValidationSummary": 0,
+        "standardInputs": 0,
+        "submitButtons": 0
+      },
+      "httpStatus": 404
+    },
+    {
+      "name": "Events List",
+      "url": "http://localhost:5651/events",
+      "timestamp": "2025-07-22T20:08:54.348Z",
+      "status": "partially_migrated",
+      "pageLoaded": true,
+      "hasForm": true,
+      "hasValidationComponents": false,
+      "validationBehavior": [
+        {
+          "test": "Empty form submission",
+          "passed": false,
+          "note": "No validation messages appeared"
+        }
+      ],
+      "errors": [],
+      "screenshots": [
+        "test-results/validation-diagnostics/Events List-initial-1753214937244.png"
+      ],
+      "elements": {
+        "wcrInputs": 0,
+        "wcrValidationMessages": 0,
+        "wcrValidationSummary": 0,
+        "standardInputs": 3,
+        "submitButtons": 1
+      },
+      "httpStatus": 200
+    },
+    {
+      "name": "Admin Events",
+      "url": "http://localhost:5651/admin/events",
+      "timestamp": "2025-07-22T20:08:59.000Z",
+      "status": "fully_migrated",
+      "pageLoaded": true,
+      "hasForm": true,
+      "hasValidationComponents": true,
+      "validationBehavior": [
+        {
+          "test": "Empty form submission",
+          "passed": true,
+          "validationCount": 2
+        }
+      ],
+      "errors": [],
+      "screenshots": [
+        "test-results/validation-diagnostics/Admin Events-initial-1753214941782.png",
+        "test-results/validation-diagnostics/Admin Events-validation-1753214943432.png"
+      ],
+      "elements": {
+        "wcrInputs": 2,
+        "wcrValidationMessages": 0,
+        "wcrValidationSummary": 0,
+        "standardInputs": 2,
+        "submitButtons": 1
+      },
+      "httpStatus": 200,
+      "redirectedTo": "http://localhost:5651/Identity/Account/Login?ReturnUrl=%2Fadmin%2Fevents"
+    },
+    {
+      "name": "Admin Incidents",
+      "url": "http://localhost:5651/admin/incidents",
+      "timestamp": "2025-07-22T20:09:03.547Z",
+      "status": "fully_migrated",
+      "pageLoaded": true,
+      "hasForm": true,
+      "hasValidationComponents": true,
+      "validationBehavior": [
+        {
+          "test": "Empty form submission",
+          "passed": true,
+          "validationCount": 2
+        }
+      ],
+      "errors": [],
+      "screenshots": [
+        "test-results/validation-diagnostics/Admin Incidents-initial-1753214946327.png",
+        "test-results/validation-diagnostics/Admin Incidents-validation-1753214947965.png"
+      ],
+      "elements": {
+        "wcrInputs": 2,
+        "wcrValidationMessages": 0,
+        "wcrValidationSummary": 0,
+        "standardInputs": 2,
+        "submitButtons": 1
+      },
+      "httpStatus": 200,
+      "redirectedTo": "http://localhost:5651/Identity/Account/Login?ReturnUrl=%2Fadmin%2Fincidents"
+    },
+    {
+      "name": "Member Dashboard",
+      "url": "http://localhost:5651/dashboard",
+      "timestamp": "2025-07-22T20:09:08.080Z",
+      "status": "error",
+      "pageLoaded": true,
+      "hasForm": false,
+      "hasValidationComponents": false,
+      "validationBehavior": [],
+      "errors": [
+        "locator.isVisible: Error: strict mode violation: locator('form') resolved to 2 elements:\n    1) <form method=\"post\">…</form> aka getByText('Email or Username Password')\n    2) <form class=\"newsletter-form\" __internal_preventdefault_onsubmit=\"\" action=\"/login?returnUrl=%2Fdashboard\">…</form> aka locator('form').filter({ hasText: 'Subscribe' })\n\nCall log:\n\u001b[2m    - checking visibility of locator('form')\u001b[22m\n"
+      ],
+      "screenshots": [
+        "test-results/validation-diagnostics/Member Dashboard-error-1753214950917.png"
+      ],
+      "elements": {
+        "wcrInputs": 0,
+        "wcrValidationMessages": 0,
+        "wcrValidationSummary": 0,
+        "standardInputs": 0,
+        "submitButtons": 0
+      },
+      "httpStatus": 200,
+      "redirectedTo": "http://localhost:5651/login?returnUrl=%2Fdashboard"
+    },
+    {
+      "name": "Member Events",
+      "url": "http://localhost:5651/member/events",
+      "timestamp": "2025-07-22T20:09:11.110Z",
+      "status": "fully_migrated",
+      "pageLoaded": true,
+      "hasForm": true,
+      "hasValidationComponents": true,
+      "validationBehavior": [
+        {
+          "test": "Empty form submission",
+          "passed": true,
+          "validationCount": 2
+        }
+      ],
+      "errors": [],
+      "screenshots": [
+        "test-results/validation-diagnostics/Member Events-initial-1753214953707.png",
+        "test-results/validation-diagnostics/Member Events-validation-1753214955350.png"
+      ],
+      "elements": {
+        "wcrInputs": 2,
+        "wcrValidationMessages": 0,
+        "wcrValidationSummary": 0,
+        "standardInputs": 2,
+        "submitButtons": 1
+      },
+      "httpStatus": 200,
+      "redirectedTo": "http://localhost:5651/Identity/Account/Login?ReturnUrl=%2Fmember%2Fevents"
+    },
+    {
+      "name": "Profile Edit",
+      "url": "http://localhost:5651/profile",
+      "timestamp": "2025-07-22T20:09:15.463Z",
+      "status": "fully_migrated",
+      "pageLoaded": true,
+      "hasForm": true,
+      "hasValidationComponents": true,
+      "validationBehavior": [
+        {
+          "test": "Empty form submission",
+          "passed": true,
+          "validationCount": 2
+        },
+        {
+          "test": "Real-time validation",
+          "passed": false,
+          "note": "No real-time validation detected"
+        }
+      ],
+      "errors": [],
+      "screenshots": [
+        "test-results/validation-diagnostics/Profile Edit-initial-1753214958258.png",
+        "test-results/validation-diagnostics/Profile Edit-validation-1753214959902.png"
+      ],
+      "elements": {
+        "wcrInputs": 2,
+        "wcrValidationMessages": 0,
+        "wcrValidationSummary": 0,
+        "standardInputs": 2,
+        "submitButtons": 1
+      },
+      "httpStatus": 200,
+      "redirectedTo": "http://localhost:5651/Identity/Account/Login?ReturnUrl=%2Fprofile"
+    }
+  ]
+}

@@ -373,6 +373,192 @@ CREATE INDEX idx_tickets_user ON tickets(user_id);
 CREATE INDEX idx_tickets_confirmation ON tickets(confirmation_code);
 ```
 
+## Event Validation System (July 18, 2025)
+
+### Overview
+A centralized validation system was implemented to ensure consistency between API and UI layers, solving compilation errors and improving user experience.
+
+### Components
+
+#### EventValidationConstants
+```csharp
+public static class EventValidationConstants
+{
+    // Title validation
+    public const int TitleMinLength = 3;
+    public const int TitleMaxLength = 200;
+    public const string TitlePattern = @"^[a-zA-Z0-9\s\-\.,:;!?()&'""]+$";
+    
+    // Description validation
+    public const int DescriptionMinLength = 10;
+    public const int DescriptionMaxLength = 4000;
+    
+    // Capacity validation
+    public const int CapacityMin = 1;
+    public const int CapacityMax = 500;
+    
+    // Price validation
+    public const decimal PriceMin = 0m;
+    public const decimal PriceMax = 10000m;
+    
+    // Date validation
+    public const int EventMinHoursInAdvance = 1;
+    public const int EventMaxDaysInAdvance = 365;
+    
+    // Error messages
+    public const string TitleRequired = "Event title is required";
+    public const string TitleLength = "Title must be between {0} and {1} characters";
+    public const string TitleInvalidChars = "Title contains invalid characters";
+    // ... more error messages
+}
+```
+
+#### EventValidationAttributes
+```csharp
+// Custom validation attribute for event dates
+public class EventDateValidationAttribute : ValidationAttribute
+{
+    protected override ValidationResult IsValid(object value, ValidationContext context)
+    {
+        if (value is DateTime dateTime)
+        {
+            var minDate = DateTime.UtcNow.AddHours(EventValidationConstants.EventMinHoursInAdvance);
+            var maxDate = DateTime.UtcNow.AddDays(EventValidationConstants.EventMaxDaysInAdvance);
+            
+            if (dateTime < minDate)
+                return new ValidationResult($"Event must be at least {EventValidationConstants.EventMinHoursInAdvance} hours in the future");
+                
+            if (dateTime > maxDate)
+                return new ValidationResult($"Event cannot be more than {EventValidationConstants.EventMaxDaysInAdvance} days in the future");
+        }
+        
+        return ValidationResult.Success;
+    }
+}
+
+// Custom validation for event duration
+public class EventDurationValidationAttribute : ValidationAttribute
+{
+    protected override ValidationResult IsValid(object value, ValidationContext context)
+    {
+        var instance = context.ObjectInstance;
+        var startProperty = instance.GetType().GetProperty("StartDateTime");
+        var endProperty = instance.GetType().GetProperty("EndDateTime");
+        
+        if (startProperty != null && endProperty != null)
+        {
+            var start = (DateTime?)startProperty.GetValue(instance);
+            var end = (DateTime?)endProperty.GetValue(instance);
+            
+            if (start.HasValue && end.HasValue)
+            {
+                if (end <= start)
+                    return new ValidationResult("End time must be after start time");
+                    
+                var duration = end.Value - start.Value;
+                if (duration.TotalMinutes < 15)
+                    return new ValidationResult("Event must be at least 15 minutes long");
+                    
+                if (duration.TotalHours > 12)
+                    return new ValidationResult("Event cannot be longer than 12 hours");
+            }
+        }
+        
+        return ValidationResult.Success;
+    }
+}
+```
+
+#### EventValidationService
+```csharp
+public class EventValidationService : IEventValidationService
+{
+    public ValidationResult ValidateEvent(EventDto eventDto)
+    {
+        var errors = new List<string>();
+        
+        // Title validation
+        if (string.IsNullOrWhiteSpace(eventDto.Title))
+            errors.Add(EventValidationConstants.TitleRequired);
+        else if (eventDto.Title.Length < EventValidationConstants.TitleMinLength || 
+                 eventDto.Title.Length > EventValidationConstants.TitleMaxLength)
+            errors.Add(string.Format(EventValidationConstants.TitleLength, 
+                EventValidationConstants.TitleMinLength, 
+                EventValidationConstants.TitleMaxLength));
+        
+        // Date validation
+        var minDate = DateTime.UtcNow.AddHours(EventValidationConstants.EventMinHoursInAdvance);
+        if (eventDto.StartDateTime < minDate)
+            errors.Add($"Event must be scheduled at least {EventValidationConstants.EventMinHoursInAdvance} hours in advance");
+        
+        // Capacity validation for classes
+        if (eventDto.Type == EventType.Class)
+        {
+            if (eventDto.Capacity < EventValidationConstants.CapacityMin || 
+                eventDto.Capacity > EventValidationConstants.CapacityMax)
+                errors.Add($"Capacity must be between {EventValidationConstants.CapacityMin} and {EventValidationConstants.CapacityMax}");
+        }
+        
+        return errors.Any() 
+            ? new ValidationResult(false, errors) 
+            : new ValidationResult(true);
+    }
+}
+```
+
+### Usage in DTOs
+```csharp
+public class CreateEventRequest
+{
+    [Required(ErrorMessage = EventValidationConstants.TitleRequired)]
+    [StringLength(EventValidationConstants.TitleMaxLength, 
+        MinimumLength = EventValidationConstants.TitleMinLength,
+        ErrorMessage = EventValidationConstants.TitleLength)]
+    [RegularExpression(EventValidationConstants.TitlePattern, 
+        ErrorMessage = EventValidationConstants.TitleInvalidChars)]
+    public string Title { get; set; }
+    
+    [Required]
+    [EventDateValidation]
+    public DateTime StartDateTime { get; set; }
+    
+    [Required]
+    [EventDurationValidation]
+    public DateTime EndDateTime { get; set; }
+    
+    [Range(EventValidationConstants.CapacityMin, EventValidationConstants.CapacityMax)]
+    public int Capacity { get; set; }
+}
+```
+
+### UI Integration
+```razor
+@* WCR validation components automatically use these validation attributes *@
+<EditForm Model="@model" OnValidSubmit="@HandleSubmit">
+    <DataAnnotationsValidator />
+    
+    <WcrInputText @bind-Value="model.Title" 
+        Label="Event Title" 
+        Required="true"
+        MinLength="@EventValidationConstants.TitleMinLength"
+        MaxLength="@EventValidationConstants.TitleMaxLength" />
+    
+    <WcrInputDateTime @bind-Value="model.StartDateTime" 
+        Label="Start Date & Time"
+        Required="true"
+        Min="@DateTime.UtcNow.AddHours(EventValidationConstants.EventMinHoursInAdvance)"
+        Max="@DateTime.UtcNow.AddDays(EventValidationConstants.EventMaxDaysInAdvance)" />
+</EditForm>
+```
+
+### Key Benefits
+1. **Single Source of Truth**: All validation rules defined in one place
+2. **Consistency**: Same validation logic in API and UI
+3. **Maintainability**: Change rules in one location
+4. **Type Safety**: Strongly typed constants prevent errors
+5. **User Experience**: Clear, consistent error messages
+6. **Testability**: Validation logic easily unit tested
+
 ## Integration Points
 
 ### Payment Processing

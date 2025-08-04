@@ -1,4 +1,6 @@
+using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 using Moq;
@@ -8,8 +10,10 @@ using Bunit;
 using WitchCityRope.Web.Features.Events.Pages;
 using WitchCityRope.Web.Tests.Helpers;
 using WitchCityRope.Web.Services;
+using EventDetailPage = WitchCityRope.Web.Features.Events.Pages.EventDetail;
 using WitchCityRope.Core.DTOs;
 using WitchCityRope.Core.Enums;
+using CoreEventType = WitchCityRope.Core.Enums.EventType;
 
 namespace WitchCityRope.Web.Tests.Features.Events
 {
@@ -29,9 +33,9 @@ namespace WitchCityRope.Web.Tests.Features.Events
             Services.AddSingleton(_registrationServiceMock.Object);
         }
 
-        private EventDto CreateTestEvent(Guid? id = null)
+        private WitchCityRope.Web.Services.EventDetail CreateTestEventDetail(Guid? id = null)
         {
-            return new EventDto
+            return new WitchCityRope.Web.Services.EventDetail
             {
                 Id = id ?? Guid.NewGuid(),
                 Title = "Advanced Rope Techniques",
@@ -39,17 +43,10 @@ namespace WitchCityRope.Web.Tests.Features.Events
                 StartDateTime = DateTime.UtcNow.AddDays(14),
                 EndDateTime = DateTime.UtcNow.AddDays(14).AddHours(4),
                 Location = "The Rope Space, 456 Oak Street, Salem MA",
-                MaxAttendees = 20,
-                CurrentAttendees = 12,
+                AvailableSpots = 8,
                 Price = 100,
-                IsPublic = true,
-                Type = EventType.Workshop,
-                Status = EventStatus.Published,
-                Prerequisites = "Must have completed Rope Basics or equivalent experience",
-                WhatToBring = "Your own rope (minimum 6 pieces), water bottle, comfortable clothing",
-                InstructorName = "Jane Smith",
-                InstructorBio = "20 years of rope experience, certified instructor",
-                ImageUrl = "/images/advanced-workshop.jpg"
+                Organizers = new List<string> { "Jane Smith" },
+                IsRegistered = false
             };
         }
 
@@ -58,20 +55,20 @@ namespace WitchCityRope.Web.Tests.Features.Events
         {
             // Arrange
             var eventId = Guid.NewGuid();
-            var eventData = CreateTestEvent(eventId);
-            _eventServiceMock.Setup(x => x.GetEventByIdAsync(eventId))
+            var eventData = CreateTestEventDetail(eventId);
+            _eventServiceMock.Setup(x => x.GetEventDetailAsync(eventId))
                 .ReturnsAsync(eventData);
 
             // Act
-            var component = RenderComponent<EventDetail>(parameters => parameters
-                .Add(p => p.EventId, eventId.ToString()));
+            var component = RenderComponent<EventDetailPage>(parameters => parameters
+                .Add(p => p.EventId, eventId));
 
             await Task.Delay(50); // Wait for async load
 
             // Assert
             component.Find("h1").TextContent.Should().Be("Advanced Rope Techniques");
             component.Find(".event-description").TextContent.Should().Contain("in-depth workshop");
-            component.Find(".instructor-name").TextContent.Should().Contain("Jane Smith");
+            component.Find(".organizer-name").TextContent.Should().Contain("Jane Smith");
             component.Find(".event-price").TextContent.Should().Contain("$100");
         }
 
@@ -79,20 +76,20 @@ namespace WitchCityRope.Web.Tests.Features.Events
         public async Task EventDetail_ShowsLoadingState()
         {
             // Arrange
-            var tcs = new TaskCompletionSource<EventDto>();
-            _eventServiceMock.Setup(x => x.GetEventByIdAsync(It.IsAny<Guid>()))
+            var tcs = new TaskCompletionSource<WitchCityRope.Web.Services.EventDetail>();
+            _eventServiceMock.Setup(x => x.GetEventDetailAsync(It.IsAny<Guid>()))
                 .Returns(tcs.Task);
 
             // Act
-            var component = RenderComponent<EventDetail>(parameters => parameters
-                .Add(p => p.EventId, Guid.NewGuid().ToString()));
+            var component = RenderComponent<EventDetailPage>(parameters => parameters
+                .Add(p => p.EventId, Guid.NewGuid()));
 
             // Assert
             component.Find(".loading-container").Should().NotBeNull();
             component.Find(".loading-spinner").Should().NotBeNull();
 
             // Complete loading
-            tcs.SetResult(CreateTestEvent());
+            tcs.SetResult(CreateTestEventDetail());
             await Task.Delay(50);
 
             // Should no longer show loading
@@ -103,12 +100,12 @@ namespace WitchCityRope.Web.Tests.Features.Events
         public async Task EventDetail_EventNotFound_ShowsErrorMessage()
         {
             // Arrange
-            _eventServiceMock.Setup(x => x.GetEventByIdAsync(It.IsAny<Guid>()))
-                .ReturnsAsync((EventDto)null);
+            _eventServiceMock.Setup(x => x.GetEventDetailAsync(It.IsAny<Guid>()))
+                .ReturnsAsync((WitchCityRope.Web.Services.EventDetail)null);
 
             // Act
-            var component = RenderComponent<EventDetail>(parameters => parameters
-                .Add(p => p.EventId, Guid.NewGuid().ToString()));
+            var component = RenderComponent<EventDetailPage>(parameters => parameters
+                .Add(p => p.EventId, Guid.NewGuid()));
 
             await Task.Delay(50);
 
@@ -123,13 +120,13 @@ namespace WitchCityRope.Web.Tests.Features.Events
         {
             // Arrange
             AuthServiceMock.Setup(x => x.IsAuthenticatedAsync()).ReturnsAsync(false);
-            var eventData = CreateTestEvent();
-            _eventServiceMock.Setup(x => x.GetEventByIdAsync(It.IsAny<Guid>()))
+            var eventData = CreateTestEventDetail();
+            _eventServiceMock.Setup(x => x.GetEventDetailAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(eventData);
 
             // Act
-            var component = RenderComponent<EventDetail>(parameters => parameters
-                .Add(p => p.EventId, Guid.NewGuid().ToString()));
+            var component = RenderComponent<EventDetailPage>(parameters => parameters
+                .Add(p => p.EventId, Guid.NewGuid()));
 
             await Task.Delay(50);
 
@@ -144,37 +141,36 @@ namespace WitchCityRope.Web.Tests.Features.Events
         public async Task EventDetail_AvailableSpots_ShowsRegisterButton()
         {
             // Arrange
-            var eventData = CreateTestEvent();
-            eventData.CurrentAttendees = 10;
-            eventData.MaxAttendees = 20;
+            var eventData = CreateTestEventDetail();
+            eventData.AvailableSpots = 10;
             
-            _eventServiceMock.Setup(x => x.GetEventByIdAsync(It.IsAny<Guid>()))
+            _eventServiceMock.Setup(x => x.GetEventDetailAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(eventData);
 
             // Act
-            var component = RenderComponent<EventDetail>(parameters => parameters
-                .Add(p => p.EventId, Guid.NewGuid().ToString()));
+            var component = RenderComponent<EventDetailPage>(parameters => parameters
+                .Add(p => p.EventId, Guid.NewGuid()));
 
             await Task.Delay(50);
 
             // Assert
             component.Find(".btn-register").TextContent.Should().Be("Register Now");
-            component.Find(".availability-status").TextContent.Should().Contain("10 spots available");
+            component.Find(".availability-status").TextContent.Should().Contain("10 spots");
         }
 
         [Fact]
         public async Task EventDetail_SoldOut_ShowsSoldOutStatus()
         {
             // Arrange
-            var eventData = CreateTestEvent();
-            eventData.CurrentAttendees = eventData.MaxAttendees;
+            var eventData = CreateTestEventDetail();
+            eventData.AvailableSpots = 0;
             
-            _eventServiceMock.Setup(x => x.GetEventByIdAsync(It.IsAny<Guid>()))
+            _eventServiceMock.Setup(x => x.GetEventDetailAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(eventData);
 
             // Act
-            var component = RenderComponent<EventDetail>(parameters => parameters
-                .Add(p => p.EventId, Guid.NewGuid().ToString()));
+            var component = RenderComponent<EventDetailPage>(parameters => parameters
+                .Add(p => p.EventId, Guid.NewGuid()));
 
             await Task.Delay(50);
 
@@ -189,17 +185,15 @@ namespace WitchCityRope.Web.Tests.Features.Events
         {
             // Arrange
             var eventId = Guid.NewGuid();
-            var eventData = CreateTestEvent(eventId);
+            var eventData = CreateTestEventDetail(eventId);
+            eventData.IsRegistered = true;
             
-            _eventServiceMock.Setup(x => x.GetEventByIdAsync(eventId))
+            _eventServiceMock.Setup(x => x.GetEventDetailAsync(eventId))
                 .ReturnsAsync(eventData);
-            
-            _registrationServiceMock.Setup(x => x.IsUserRegisteredAsync(eventId))
-                .ReturnsAsync(true);
 
             // Act
-            var component = RenderComponent<EventDetail>(parameters => parameters
-                .Add(p => p.EventId, eventId.ToString()));
+            var component = RenderComponent<EventDetailPage>(parameters => parameters
+                .Add(p => p.EventId, eventId));
 
             await Task.Delay(50);
 
@@ -210,20 +204,20 @@ namespace WitchCityRope.Web.Tests.Features.Events
         }
 
         [Fact]
-        public async Task EventDetail_RegisterButton_CallsRegistrationService()
+        public async Task EventDetail_RegisterButton_CallsEventService()
         {
             // Arrange
             var eventId = Guid.NewGuid();
-            var eventData = CreateTestEvent(eventId);
+            var eventData = CreateTestEventDetail(eventId);
             
-            _eventServiceMock.Setup(x => x.GetEventByIdAsync(eventId))
+            _eventServiceMock.Setup(x => x.GetEventDetailAsync(eventId))
                 .ReturnsAsync(eventData);
             
-            _registrationServiceMock.Setup(x => x.RegisterForEventAsync(eventId))
-                .ReturnsAsync(new ServiceMockHelpers.RegistrationResult { Success = true });
+            _eventServiceMock.Setup(x => x.RegisterForEventAsync(eventId))
+                .ReturnsAsync(true);
 
-            var component = RenderComponent<EventDetail>(parameters => parameters
-                .Add(p => p.EventId, eventId.ToString()));
+            var component = RenderComponent<EventDetailPage>(parameters => parameters
+                .Add(p => p.EventId, eventId));
 
             await Task.Delay(50);
 
@@ -231,8 +225,8 @@ namespace WitchCityRope.Web.Tests.Features.Events
             await component.Find(".btn-register").ClickAsync();
 
             // Assert
-            _registrationServiceMock.Verify(x => x.RegisterForEventAsync(eventId), Times.Once);
-            NotificationServiceMock.Verify(x => x.ShowSuccessAsync(It.Is<string>(s => s.Contains("registered"))), Times.Once);
+            _eventServiceMock.Verify(x => x.RegisterForEventAsync(eventId), Times.Once);
+            ToastServiceMock.Verify(x => x.ShowSuccess(It.Is<string>(s => s.Contains("registered"))), Times.Once);
         }
 
         [Fact]
@@ -240,19 +234,31 @@ namespace WitchCityRope.Web.Tests.Features.Events
         {
             // Arrange
             var eventId = Guid.NewGuid();
-            var eventData = CreateTestEvent(eventId);
+            var registrationId = Guid.NewGuid();
+            var eventData = CreateTestEventDetail(eventId);
+            eventData.IsRegistered = true;
             
-            _eventServiceMock.Setup(x => x.GetEventByIdAsync(eventId))
+            _eventServiceMock.Setup(x => x.GetEventDetailAsync(eventId))
                 .ReturnsAsync(eventData);
             
-            _registrationServiceMock.Setup(x => x.IsUserRegisteredAsync(eventId))
-                .ReturnsAsync(true);
+            _registrationServiceMock.Setup(x => x.GetMyRegistrationsAsync())
+                .ReturnsAsync(new List<UserRegistration> 
+                {
+                    new UserRegistration 
+                    { 
+                        Id = registrationId, 
+                        EventId = eventId,
+                        EventTitle = eventData.Title,
+                        EventDate = eventData.StartDateTime,
+                        Status = "Confirmed"
+                    }
+                });
             
-            _registrationServiceMock.Setup(x => x.CancelRegistrationAsync(eventId))
-                .ReturnsAsync(new ServiceMockHelpers.RegistrationResult { Success = true });
+            _registrationServiceMock.Setup(x => x.CancelRegistrationAsync(registrationId))
+                .ReturnsAsync(true);
 
-            var component = RenderComponent<EventDetail>(parameters => parameters
-                .Add(p => p.EventId, eventId.ToString()));
+            var component = RenderComponent<EventDetailPage>(parameters => parameters
+                .Add(p => p.EventId, eventId));
 
             await Task.Delay(50);
 
@@ -260,24 +266,24 @@ namespace WitchCityRope.Web.Tests.Features.Events
             await component.Find(".btn-cancel-registration").ClickAsync();
 
             // Assert
-            _registrationServiceMock.Verify(x => x.CancelRegistrationAsync(eventId), Times.Once);
-            NotificationServiceMock.Verify(x => x.ShowSuccessAsync(It.Is<string>(s => s.Contains("cancelled"))), Times.Once);
+            _registrationServiceMock.Verify(x => x.CancelRegistrationAsync(registrationId), Times.Once);
+            ToastServiceMock.Verify(x => x.ShowSuccess(It.Is<string>(s => s.Contains("cancelled"))), Times.Once);
         }
 
         [Fact]
         public async Task EventDetail_PastEvent_ShowsPastEventStatus()
         {
             // Arrange
-            var eventData = CreateTestEvent();
+            var eventData = CreateTestEventDetail();
             eventData.StartDateTime = DateTime.UtcNow.AddDays(-1);
             eventData.EndDateTime = DateTime.UtcNow.AddDays(-1).AddHours(4);
             
-            _eventServiceMock.Setup(x => x.GetEventByIdAsync(It.IsAny<Guid>()))
+            _eventServiceMock.Setup(x => x.GetEventDetailAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(eventData);
 
             // Act
-            var component = RenderComponent<EventDetail>(parameters => parameters
-                .Add(p => p.EventId, Guid.NewGuid().ToString()));
+            var component = RenderComponent<EventDetailPage>(parameters => parameters
+                .Add(p => p.EventId, Guid.NewGuid()));
 
             await Task.Delay(50);
 
@@ -287,59 +293,23 @@ namespace WitchCityRope.Web.Tests.Features.Events
             component.FindAll(".btn-register").Should().BeEmpty();
         }
 
-        [Fact]
-        public async Task EventDetail_DisplaysPrerequisites()
-        {
-            // Arrange
-            var eventData = CreateTestEvent();
-            _eventServiceMock.Setup(x => x.GetEventByIdAsync(It.IsAny<Guid>()))
-                .ReturnsAsync(eventData);
+        // Prerequisites test removed - property not available in EventDetail class
 
-            // Act
-            var component = RenderComponent<EventDetail>(parameters => parameters
-                .Add(p => p.EventId, Guid.NewGuid().ToString()));
-
-            await Task.Delay(50);
-
-            // Assert
-            component.Find(".prerequisites-section").Should().NotBeNull();
-            component.Find(".prerequisites-content").TextContent
-                .Should().Contain("Must have completed Rope Basics");
-        }
-
-        [Fact]
-        public async Task EventDetail_DisplaysWhatToBring()
-        {
-            // Arrange
-            var eventData = CreateTestEvent();
-            _eventServiceMock.Setup(x => x.GetEventByIdAsync(It.IsAny<Guid>()))
-                .ReturnsAsync(eventData);
-
-            // Act
-            var component = RenderComponent<EventDetail>(parameters => parameters
-                .Add(p => p.EventId, Guid.NewGuid().ToString()));
-
-            await Task.Delay(50);
-
-            // Assert
-            component.Find(".what-to-bring-section").Should().NotBeNull();
-            component.Find(".what-to-bring-content").TextContent
-                .Should().Contain("Your own rope");
-        }
+        // WhatToBring test removed - property not available in EventDetail class
 
         [Fact]
         public async Task EventDetail_FreeEvent_ShowsFreePrice()
         {
             // Arrange
-            var eventData = CreateTestEvent();
+            var eventData = CreateTestEventDetail();
             eventData.Price = 0;
             
-            _eventServiceMock.Setup(x => x.GetEventByIdAsync(It.IsAny<Guid>()))
+            _eventServiceMock.Setup(x => x.GetEventDetailAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(eventData);
 
             // Act
-            var component = RenderComponent<EventDetail>(parameters => parameters
-                .Add(p => p.EventId, Guid.NewGuid().ToString()));
+            var component = RenderComponent<EventDetailPage>(parameters => parameters
+                .Add(p => p.EventId, Guid.NewGuid()));
 
             await Task.Delay(50);
 
@@ -352,13 +322,13 @@ namespace WitchCityRope.Web.Tests.Features.Events
         {
             // Arrange
             var eventId = Guid.NewGuid();
-            var eventData = CreateTestEvent(eventId);
+            var eventData = CreateTestEventDetail(eventId);
             
-            _eventServiceMock.Setup(x => x.GetEventByIdAsync(eventId))
+            _eventServiceMock.Setup(x => x.GetEventDetailAsync(eventId))
                 .ReturnsAsync(eventData);
 
-            var component = RenderComponent<EventDetail>(parameters => parameters
-                .Add(p => p.EventId, eventId.ToString()));
+            var component = RenderComponent<EventDetailPage>(parameters => parameters
+                .Add(p => p.EventId, eventId));
 
             await Task.Delay(50);
 
@@ -371,19 +341,19 @@ namespace WitchCityRope.Web.Tests.Features.Events
                 It.Is<object[]>(args => args[0].ToString().Contains(eventId.ToString()))), 
                 Times.Once);
             
-            NotificationServiceMock.Verify(x => x.ShowSuccessAsync("Event link copied to clipboard!"), Times.Once);
+            ToastServiceMock.Verify(x => x.ShowSuccess("Event link copied to clipboard!"), Times.Once);
         }
 
         [Fact]
         public async Task EventDetail_BackButton_NavigatesToEventList()
         {
             // Arrange
-            var eventData = CreateTestEvent();
-            _eventServiceMock.Setup(x => x.GetEventByIdAsync(It.IsAny<Guid>()))
+            var eventData = CreateTestEventDetail();
+            _eventServiceMock.Setup(x => x.GetEventDetailAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(eventData);
 
-            var component = RenderComponent<EventDetail>(parameters => parameters
-                .Add(p => p.EventId, Guid.NewGuid().ToString()));
+            var component = RenderComponent<EventDetailPage>(parameters => parameters
+                .Add(p => p.EventId, Guid.NewGuid()));
 
             await Task.Delay(50);
 

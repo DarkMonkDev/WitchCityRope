@@ -1,0 +1,122 @@
+@using WitchCityRope.Core.DTOs
+
+<div class="member-incidents">
+    @if (Incidents == null || !Incidents.Any())
+    {
+        <div class="alert alert-success">
+            <i class="bi bi-check-circle me-2"></i>
+            No incidents recorded for this member.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Reference #</th>
+                        <th>Type</th>
+                        <th>Severity</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var incident in Incidents.OrderByDescending(i => i.IncidentDate))
+                    {
+                        <tr>
+                            <td>@incident.IncidentDate.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                <code>@incident.ReferenceNumber</code>
+                            </td>
+                            <td>@incident.IncidentType</td>
+                            <td>
+                                <span class="badge @GetSeverityClass(incident.Severity)">
+                                    @incident.Severity
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge @GetStatusClass(incident.Status)">
+                                    @incident.Status
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" @onclick="() => ViewIncidentDetails(incident.Id)">
+                                    <i class="bi bi-eye"></i> View
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-3">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Incidents</h5>
+                            <p class="card-text fs-3 fw-bold">@Incidents.Count</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">High Severity</h5>
+                            <p class="card-text fs-3 fw-bold text-danger">
+                                @Incidents.Count(i => i.Severity == "High")
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Unresolved</h5>
+                            <p class="card-text fs-3 fw-bold text-warning">
+                                @Incidents.Count(i => i.Status != "Resolved" && i.Status != "Closed")
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public List<IncidentSummaryDto> Incidents { get; set; } = new();
+
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
+
+    private string GetSeverityClass(string severity)
+    {
+        return severity?.ToLower() switch
+        {
+            "high" => "bg-danger",
+            "medium" => "bg-warning text-dark",
+            "low" => "bg-info text-dark",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetStatusClass(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "resolved" => "bg-success",
+            "closed" => "bg-secondary",
+            "investigating" => "bg-warning text-dark",
+            "open" => "bg-primary",
+            _ => "bg-secondary"
+        };
+    }
+
+    private void ViewIncidentDetails(Guid incidentId)
+    {
+        Navigation.NavigateTo($"/admin/incidents/{incidentId}");
+    }
+}

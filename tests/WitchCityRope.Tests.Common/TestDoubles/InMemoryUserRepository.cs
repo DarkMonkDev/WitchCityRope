@@ -9,15 +9,15 @@ namespace WitchCityRope.Tests.Common.TestDoubles
     /// </summary>
     public class InMemoryUserRepository : IUserRepository
     {
-        private readonly ConcurrentDictionary<Guid, User> _users = new();
-        private readonly ConcurrentDictionary<string, User> _usersByEmail = new();
-        private readonly ConcurrentDictionary<string, User> _usersBySceneName = new();
+        private readonly ConcurrentDictionary<Guid, IUser> _users = new();
+        private readonly ConcurrentDictionary<string, IUser> _usersByEmail = new();
+        private readonly ConcurrentDictionary<string, IUser> _usersBySceneName = new();
         private readonly ConcurrentDictionary<string, Interfaces.RefreshToken> _refreshTokens = new();
 
         public bool SimulateFailure { get; set; }
         public int DelayMs { get; set; }
 
-        public async Task<User?> GetByIdAsync(Guid id)
+        public async Task<IUser?> GetByIdAsync(Guid id)
         {
             if (DelayMs > 0) await Task.Delay(DelayMs);
             if (SimulateFailure) throw new InvalidOperationException("Repository failure");
@@ -25,7 +25,7 @@ namespace WitchCityRope.Tests.Common.TestDoubles
             return _users.TryGetValue(id, out var user) ? user : null;
         }
 
-        public async Task<User?> GetByEmailAsync(string email)
+        public async Task<IUser?> GetByEmailAsync(string email)
         {
             if (DelayMs > 0) await Task.Delay(DelayMs);
             if (SimulateFailure) throw new InvalidOperationException("Repository failure");
@@ -33,7 +33,7 @@ namespace WitchCityRope.Tests.Common.TestDoubles
             return _usersByEmail.TryGetValue(email.ToLowerInvariant(), out var user) ? user : null;
         }
 
-        public async Task<User?> GetBySceneNameAsync(string sceneName)
+        public async Task<IUser?> GetBySceneNameAsync(string sceneName)
         {
             if (DelayMs > 0) await Task.Delay(DelayMs);
             if (SimulateFailure) throw new InvalidOperationException("Repository failure");
@@ -65,7 +65,7 @@ namespace WitchCityRope.Tests.Common.TestDoubles
             return _usersBySceneName.ContainsKey(sceneName.ToLowerInvariant());
         }
 
-        public async Task<User> CreateAsync(User user)
+        public async Task<IUser> CreateAsync(IUser user)
         {
             if (DelayMs > 0) await Task.Delay(DelayMs);
             if (SimulateFailure) throw new InvalidOperationException("Repository failure");
@@ -76,13 +76,13 @@ namespace WitchCityRope.Tests.Common.TestDoubles
             if (!_users.TryAdd(user.Id, user))
                 throw new InvalidOperationException("User with this ID already exists");
 
-            _usersByEmail[user.Email.Value.ToLowerInvariant()] = user;
+            _usersByEmail[user.EmailAddress.Value.ToLowerInvariant()] = user;
             _usersBySceneName[user.SceneName.Value.ToLowerInvariant()] = user;
 
             return user;
         }
 
-        public async Task<User> UpdateAsync(User user)
+        public async Task<IUser> UpdateAsync(IUser user)
         {
             if (DelayMs > 0) await Task.Delay(DelayMs);
             if (SimulateFailure) throw new InvalidOperationException("Repository failure");
@@ -91,10 +91,10 @@ namespace WitchCityRope.Tests.Common.TestDoubles
                 throw new InvalidOperationException("User not found");
 
             // Update indexes if email or scene name changed
-            if (!string.Equals(existingUser.Email.Value, user.Email.Value, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(existingUser.EmailAddress.Value, user.EmailAddress.Value, StringComparison.OrdinalIgnoreCase))
             {
-                _usersByEmail.TryRemove(existingUser.Email.Value.ToLowerInvariant(), out _);
-                _usersByEmail[user.Email.Value.ToLowerInvariant()] = user;
+                _usersByEmail.TryRemove(existingUser.EmailAddress.Value.ToLowerInvariant(), out _);
+                _usersByEmail[user.EmailAddress.Value.ToLowerInvariant()] = user;
             }
 
             if (!string.Equals(existingUser.SceneName.Value, user.SceneName.Value, StringComparison.OrdinalIgnoreCase))
@@ -116,7 +116,7 @@ namespace WitchCityRope.Tests.Common.TestDoubles
 
             if (_users.TryRemove(id, out var user))
             {
-                _usersByEmail.TryRemove(user.Email.Value.ToLowerInvariant(), out _);
+                _usersByEmail.TryRemove(user.EmailAddress.Value.ToLowerInvariant(), out _);
                 _usersBySceneName.TryRemove(user.SceneName.Value.ToLowerInvariant(), out _);
 
                 // Remove user's refresh tokens
@@ -128,7 +128,7 @@ namespace WitchCityRope.Tests.Common.TestDoubles
             }
         }
 
-        public async Task<List<User>> GetAllAsync()
+        public async Task<List<IUser>> GetAllAsync()
         {
             if (DelayMs > 0) await Task.Delay(DelayMs);
             if (SimulateFailure) throw new InvalidOperationException("Repository failure");

@@ -2,9 +2,10 @@
 @using WitchCityRope.Web.Services
 @inject ApiClient ApiClient
 @inject NavigationManager Navigation
-@attribute [Authorize(Roles = "Admin,VettingTeam")]
+@attribute [Authorize(Roles = "Administrator,Admin,VettingTeam")]
 
 @* Vetting queue management page for reviewing member applications *@
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
 
 <div class="page-container">
     <div class="page-header">

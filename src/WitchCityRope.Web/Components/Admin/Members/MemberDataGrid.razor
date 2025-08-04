@@ -1,0 +1,200 @@
+@using WitchCityRope.Core.DTOs
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Navigations
+
+<div class="member-grid-container">
+    <SfGrid @ref="Grid" 
+            DataSource="@Members" 
+            AllowPaging="false"
+            AllowSorting="true"
+            EnableAltRow="true"
+            RowHeight="56"
+            GridLines="GridLine.Horizontal">
+        
+        <GridEvents TValue="MemberListDto" 
+                    RowSelected="@OnRowSelected"
+                    OnSort="@OnSortChanged" />
+        
+        <GridColumns>
+            <GridColumn Field="@nameof(MemberListDto.SceneName)" 
+                        HeaderText="Scene Name" 
+                        Width="180"
+                        AllowSorting="true">
+                <Template>
+                    @{
+                        var member = (context as MemberListDto);
+                        <div class="member-name">
+                            <strong>@member?.SceneName</strong>
+                        </div>
+                    }
+                </Template>
+            </GridColumn>
+            
+            <GridColumn Field="@nameof(MemberListDto.RealName)" 
+                        HeaderText="Real Name" 
+                        Width="180"
+                        AllowSorting="true" />
+                        
+            <GridColumn Field="@nameof(MemberListDto.FetLifeName)" 
+                        HeaderText="FetLife" 
+                        Width="150"
+                        AllowSorting="false">
+                <Template>
+                    @{
+                        var member = (context as MemberListDto);
+                        if (!string.IsNullOrEmpty(member?.FetLifeName))
+                        {
+                            <a href="https://fetlife.com/@member.FetLifeName" 
+                               target="_blank" 
+                               @onclick:stopPropagation="true"
+                               class="text-decoration-none">
+                                <i class="bi bi-box-arrow-up-right me-1"></i>@member.FetLifeName
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">-</span>
+                        }
+                    }
+                </Template>
+            </GridColumn>
+            
+            <GridColumn Field="@nameof(MemberListDto.Email)" 
+                        HeaderText="Email" 
+                        Width="220"
+                        AllowSorting="true">
+                <Template>
+                    @{
+                        var member = (context as MemberListDto);
+                        <a href="mailto:@member?.Email" 
+                           @onclick:stopPropagation="true"
+                           class="text-decoration-none">
+                            @member?.Email
+                        </a>
+                    }
+                </Template>
+            </GridColumn>
+            
+            <GridColumn Field="@nameof(MemberListDto.DateJoined)" 
+                        HeaderText="Joined" 
+                        Width="120" 
+                        Format="d" 
+                        Type="ColumnType.Date"
+                        AllowSorting="true" />
+                        
+            <GridColumn Field="@nameof(MemberListDto.EventsAttended)" 
+                        HeaderText="Events" 
+                        Width="100" 
+                        TextAlign="TextAlign.Center"
+                        AllowSorting="true" />
+                        
+            <GridColumn Field="@nameof(MemberListDto.MembershipStatus)" 
+                        HeaderText="Status" 
+                        Width="130"
+                        AllowSorting="true">
+                <Template>
+                    @{
+                        var member = (context as MemberListDto);
+                        <span class="badge badge-@GetStatusClass(member?.MembershipStatus)">
+                            @member?.MembershipStatus
+                        </span>
+                    }
+                </Template>
+            </GridColumn>
+        </GridColumns>
+    </SfGrid>
+    
+    @if (TotalCount > PageSize)
+    {
+        <div class="pagination-container mt-3">
+            <nav aria-label="Member list pagination">
+                <ul class="pagination justify-content-center align-items-center mb-0">
+                    <li class="page-item @(CurrentPage == 1 ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => GoToPage(1)" disabled="@(CurrentPage == 1)">
+                            First
+                        </button>
+                    </li>
+                    <li class="page-item @(CurrentPage == 1 ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => GoToPage(CurrentPage - 1)" disabled="@(CurrentPage == 1)">
+                            Previous
+                        </button>
+                    </li>
+                    
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            Page @CurrentPage of @TotalPages
+                        </span>
+                    </li>
+                    
+                    <li class="page-item @(CurrentPage == TotalPages ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => GoToPage(CurrentPage + 1)" disabled="@(CurrentPage == TotalPages)">
+                            Next
+                        </button>
+                    </li>
+                    <li class="page-item @(CurrentPage == TotalPages ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => GoToPage(TotalPages)" disabled="@(CurrentPage == TotalPages)">
+                            Last
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+            <div class="text-center text-muted small mt-2">
+                Showing @StartRecord - @EndRecord of @TotalCount members
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public List<MemberListDto> Members { get; set; } = new();
+    [Parameter] public int TotalCount { get; set; }
+    [Parameter] public int CurrentPage { get; set; } = 1;
+    [Parameter] public int PageSize { get; set; } = 100;
+    [Parameter] public string SortBy { get; set; } = "sceneName";
+    [Parameter] public string SortDirection { get; set; } = "asc";
+    [Parameter] public EventCallback<MemberListDto> OnRowClick { get; set; }
+    [Parameter] public EventCallback<string> OnSort { get; set; }
+    [Parameter] public EventCallback<int> OnPageChange { get; set; }
+    
+    private SfGrid<MemberListDto>? Grid;
+    
+    private int TotalPages => PageSize > 0 ? (int)Math.Ceiling(TotalCount / (double)PageSize) : 0;
+    private int StartRecord => ((CurrentPage - 1) * PageSize) + 1;
+    private int EndRecord => Math.Min(CurrentPage * PageSize, TotalCount);
+    
+    private async Task OnRowSelected(RowSelectEventArgs<MemberListDto> args)
+    {
+        if (args.Data != null)
+        {
+            await OnRowClick.InvokeAsync(args.Data);
+        }
+    }
+    
+    private async Task OnSortChanged(SortedEventArgs args)
+    {
+        if (args.ColumnName != null)
+        {
+            await OnSort.InvokeAsync(args.ColumnName.ToLower());
+        }
+    }
+    
+    private async Task GoToPage(int page)
+    {
+        if (page != CurrentPage && page >= 1 && page <= TotalPages)
+        {
+            await OnPageChange.InvokeAsync(page);
+        }
+    }
+    
+    private string GetStatusClass(string? status)
+    {
+        return status?.ToLower() switch
+        {
+            "vetted" => "success",
+            "member" => "info",
+            "pending" => "warning",
+            "unvetted" => "secondary",
+            _ => "secondary"
+        };
+    }
+}

@@ -1,0 +1,19 @@
+  Determining projects to restore...
+/home/chad/repos/witchcityrope/WitchCityRope/tests/WitchCityRope.Web.Tests/WitchCityRope.Web.Tests.csproj : warning NU1603: WitchCityRope.Web.Tests depends on MudBlazor (>= 7.23.3) but MudBlazor 7.23.3 was not found. MudBlazor 8.0.0 was resolved instead.
+/home/chad/repos/witchcityrope/WitchCityRope/tests/WitchCityRope.Web.Tests/WitchCityRope.Web.Tests.csproj : warning NU1603: WitchCityRope.Web.Tests depends on xunit.runner.visualstudio (>= 2.9.3) but xunit.runner.visualstudio 2.9.3 was not found. xunit.runner.visualstudio 3.0.0 was resolved instead.
+  All projects are up-to-date for restore.
+/home/chad/repos/witchcityrope/WitchCityRope/tests/WitchCityRope.Web.Tests/WitchCityRope.Web.Tests.csproj : warning NU1603: WitchCityRope.Web.Tests depends on MudBlazor (>= 7.23.3) but MudBlazor 7.23.3 was not found. MudBlazor 8.0.0 was resolved instead.
+/home/chad/repos/witchcityrope/WitchCityRope/tests/WitchCityRope.Web.Tests/WitchCityRope.Web.Tests.csproj : warning NU1603: WitchCityRope.Web.Tests depends on xunit.runner.visualstudio (>= 2.9.3) but xunit.runner.visualstudio 2.9.3 was not found. xunit.runner.visualstudio 3.0.0 was resolved instead.
+CSC : error CS0006: Metadata file '/home/chad/repos/witchcityrope/WitchCityRope/src/WitchCityRope.Web/obj/Debug/net9.0/ref/WitchCityRope.Web.dll' could not be found [/home/chad/repos/witchcityrope/WitchCityRope/tests/WitchCityRope.Web.Tests/WitchCityRope.Web.Tests.csproj]
+
+Build FAILED.
+
+/home/chad/repos/witchcityrope/WitchCityRope/tests/WitchCityRope.Web.Tests/WitchCityRope.Web.Tests.csproj : warning NU1603: WitchCityRope.Web.Tests depends on MudBlazor (>= 7.23.3) but MudBlazor 7.23.3 was not found. MudBlazor 8.0.0 was resolved instead.
+/home/chad/repos/witchcityrope/WitchCityRope/tests/WitchCityRope.Web.Tests/WitchCityRope.Web.Tests.csproj : warning NU1603: WitchCityRope.Web.Tests depends on xunit.runner.visualstudio (>= 2.9.3) but xunit.runner.visualstudio 2.9.3 was not found. xunit.runner.visualstudio 3.0.0 was resolved instead.
+/home/chad/repos/witchcityrope/WitchCityRope/tests/WitchCityRope.Web.Tests/WitchCityRope.Web.Tests.csproj : warning NU1603: WitchCityRope.Web.Tests depends on MudBlazor (>= 7.23.3) but MudBlazor 7.23.3 was not found. MudBlazor 8.0.0 was resolved instead.
+/home/chad/repos/witchcityrope/WitchCityRope/tests/WitchCityRope.Web.Tests/WitchCityRope.Web.Tests.csproj : warning NU1603: WitchCityRope.Web.Tests depends on xunit.runner.visualstudio (>= 2.9.3) but xunit.runner.visualstudio 2.9.3 was not found. xunit.runner.visualstudio 3.0.0 was resolved instead.
+CSC : error CS0006: Metadata file '/home/chad/repos/witchcityrope/WitchCityRope/src/WitchCityRope.Web/obj/Debug/net9.0/ref/WitchCityRope.Web.dll' could not be found [/home/chad/repos/witchcityrope/WitchCityRope/tests/WitchCityRope.Web.Tests/WitchCityRope.Web.Tests.csproj]
+    4 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:01.78

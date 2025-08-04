@@ -8,7 +8,7 @@ namespace WitchCityRope.Web.Models
     {
         public string SceneName { get; set; } = string.Empty;
         public WitchCityRope.Core.Enums.UserRole Role { get; set; }
-        public WitchCityRope.Core.Entities.VettingStatus VettingStatus { get; set; }
+        public WitchCityRope.Core.Enums.VettingStatus VettingStatus { get; set; }
         public List<EventViewModel> UpcomingEvents { get; set; } = new();
         public MembershipStatsViewModel Stats { get; set; } = new();
     }
@@ -33,7 +33,7 @@ namespace WitchCityRope.Web.Models
         public int MonthsAsMember { get; set; }
         public int ConsecutiveEvents { get; set; }
         public DateTime JoinDate { get; set; }
-        public WitchCityRope.Core.Entities.VettingStatus VettingStatus { get; set; }
+        public WitchCityRope.Core.Enums.VettingStatus VettingStatus { get; set; }
         public DateTime? NextInterviewDate { get; set; }
     }
 

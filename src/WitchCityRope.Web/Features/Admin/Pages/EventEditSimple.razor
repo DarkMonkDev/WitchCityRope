@@ -1,0 +1,57 @@
+@page "/admin/events/test-edit"
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@using Microsoft.AspNetCore.Components.Forms
+@attribute [Authorize(Roles = "Administrator,Organizer")]
+
+<PageTitle>Test Event Edit</PageTitle>
+
+<h3>Test Event Edit Page</h3>
+
+<p>Active Tab: @activeTab</p>
+
+<div class="tab-nav">
+    <button type="button" class="tab-button @(activeTab == "basic" ? "active" : "")" @onclick="@(() => activeTab = "basic")">
+        Basic Info
+    </button>
+    <button type="button" class="tab-button @(activeTab == "tickets" ? "active" : "")" @onclick="@(() => activeTab = "tickets")">
+        Tickets
+    </button>
+</div>
+
+<div class="tab-content">
+    @if (activeTab == "basic")
+    {
+        <p>Basic Info Content</p>
+    }
+    else if (activeTab == "tickets")
+    {
+        <p>Tickets Content</p>
+    }
+</div>
+
+<EditForm Model="@testModel" OnValidSubmit="@HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    
+    <div class="form-group">
+        <label>Test Field:</label>
+        <InputText @bind-Value="testModel.TestField" class="form-control" />
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Save</button>
+</EditForm>
+
+@code {
+    private string activeTab = "basic";
+    private TestModel testModel = new();
+    
+    private void HandleSubmit()
+    {
+        Console.WriteLine("Form submitted!");
+    }
+    
+    public class TestModel
+    {
+        public string TestField { get; set; } = "";
+    }
+}

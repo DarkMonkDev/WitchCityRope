@@ -10,6 +10,8 @@
 @inject IToastService ToastService
 @inject NavigationManager Navigation
 @layout MainLayout
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@attribute [AllowAnonymous]
 
 @* Event detail page showing full event information and registration *@
 
@@ -183,7 +185,7 @@ else if (eventDetail != null)
                         }
                         else
                         {
-                            <SfButton CssClass="e-primary e-block" OnClick="@(() => Navigation.NavigateTo($"/login?returnUrl=/events/{EventId}"))">
+                            <SfButton CssClass="e-primary e-block" OnClick="@(() => Navigation.NavigateTo($"/login?returnUrl=/events/{EventId}", forceLoad: true))">
                                 Login to Register
                             </SfButton>
                         }
@@ -237,7 +239,7 @@ else
     <div class="error-container">
         <h2>Event Not Found</h2>
         <p>The event you're looking for doesn't exist or has been removed.</p>
-        <SfButton CssClass="e-primary" OnClick="@(() => Navigation.NavigateTo("/events"))">
+        <SfButton CssClass="e-primary" OnClick="@(() => Navigation.NavigateTo("/events", forceLoad: true))">
             Browse Events
         </SfButton>
     </div>
@@ -321,7 +323,7 @@ else
 
     private void ViewTicket()
     {
-        Navigation.NavigateTo($"/my-tickets?eventId={EventId}");
+        Navigation.NavigateTo($"/my-tickets?eventId={EventId}", forceLoad: true);
     }
 
     private void OpenMap()

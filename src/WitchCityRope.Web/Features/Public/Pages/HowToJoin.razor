@@ -1,5 +1,8 @@
 @page "/how-to-join"
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
 @inject NavigationManager Navigation
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
 
 <PageTitle>How To Join - Witch City Rope</PageTitle>
 
@@ -128,11 +131,11 @@
                     Our application process is straightforward and respectful of your privacy.
                 </p>
                 <div class="cta-buttons">
-                    <button class="btn btn-primary btn-lg" @onclick='() => Navigation.NavigateTo("/vetting/apply")'>
+                    <button class="btn btn-primary btn-lg" @onclick='() => Navigation.NavigateTo("/vetting/apply", forceLoad: true)'>
                         Start Your Application
                         <i class="fas fa-arrow-right"></i>
                     </button>
-                    <button class="btn btn-secondary btn-lg" @onclick='() => Navigation.NavigateTo("/events")'>
+                    <button class="btn btn-secondary btn-lg" @onclick='() => Navigation.NavigateTo("/events", forceLoad: true)'>
                         View Public Events
                     </button>
                 </div>

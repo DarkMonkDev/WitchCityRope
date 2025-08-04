@@ -1,12 +1,13 @@
 using WitchCityRope.Core.Entities;
 using WitchCityRope.Core.ValueObjects;
 using WitchCityRope.Tests.Common.Fixtures;
+using WitchCityRope.Tests.Common.Identity;
 
 namespace WitchCityRope.Tests.Common.Builders
 {
     public class RegistrationBuilder : TestDataBuilder<Registration, RegistrationBuilder>
     {
-        private User _user;
+        private IUser _user;
         private Event _event;
         private Money _selectedPrice;
         private string? _dietaryRestrictions;
@@ -15,14 +16,14 @@ namespace WitchCityRope.Tests.Common.Builders
         public RegistrationBuilder()
         {
             // Set default valid values
-            _user = new UserBuilder().Build();
+            _user = new IdentityUserBuilder().Build();
             _event = new EventBuilder().Build();
             _selectedPrice = _event.PricingTiers.First(); // Select first available tier
             _dietaryRestrictions = null;
             _accessibilityNeeds = null;
         }
 
-        public RegistrationBuilder WithUser(User user)
+        public RegistrationBuilder WithUser(IUser user)
         {
             _user = user;
             return This;

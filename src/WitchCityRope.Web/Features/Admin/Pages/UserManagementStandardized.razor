@@ -1,0 +1,1226 @@
+@page "/admin/users-new"
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@using WitchCityRope.Web.Services
+@using WitchCityRope.Web.Shared.Validation.Components
+@using System.ComponentModel.DataAnnotations
+@using System.Linq
+@inject ApiClient ApiClient
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@attribute [Authorize(Roles = "Administrator")]
+
+<style>
+    /* Modern User Management Styles - Match Events Screen */
+    .users-container {
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Page Header */
+    .users-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+    }
+
+    .users-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin: 0;
+    }
+
+    .btn-create-user {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: #8B4513;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        text-decoration: none;
+    }
+
+    .btn-create-user:hover {
+        background: #6B3410;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 8px;
+        padding: 24px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        transition: box-shadow 0.2s ease;
+    }
+
+    .stat-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        background: #8B4513;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 16px;
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 4px;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+        background: white;
+        border-radius: 8px;
+        padding: 16px 24px;
+        margin-bottom: 24px;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .filter-tabs {
+        display: flex;
+        gap: 8px;
+        flex: 1;
+    }
+
+    .filter-tab {
+        padding: 8px 16px;
+        background: transparent;
+        border: 2px solid #e0e0e0;
+        border-radius: 20px;
+        font-weight: 600;
+        color: #333;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 14px;
+    }
+
+    .filter-tab:hover {
+        border-color: #8B4513;
+        color: #8B4513;
+    }
+
+    .filter-tab.active {
+        background: #8B4513;
+        color: white;
+        border-color: #8B4513;
+    }
+
+    .search-box {
+        position: relative;
+        min-width: 250px;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+        pointer-events: none;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 8px 16px 8px 40px;
+        border: 2px solid #e0e0e0;
+        border-radius: 20px;
+        font-size: 14px;
+        transition: border-color 0.2s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #8B4513;
+    }
+
+    /* Users Table */
+    .users-table-container {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+
+    .users-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .users-table th {
+        background: #f5f5f5;
+        padding: 16px 20px;
+        text-align: left;
+        font-weight: 600;
+        color: #333;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .users-table td {
+        padding: 16px 20px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .users-table tr:hover {
+        background: #f9f9f9;
+    }
+
+    .user-name {
+        font-weight: 600;
+        color: #1a1a1a;
+        font-size: 15px;
+        margin-bottom: 4px;
+    }
+
+    .user-email {
+        font-size: 13px;
+        color: #666;
+        display: block;
+    }
+
+    .role-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .role-badge.administrator {
+        background: rgba(139, 69, 19, 0.1);
+        color: #8B4513;
+    }
+
+    .role-badge.staff {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .role-badge.member {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .role-badge.guest {
+        background: #f3e5f5;
+        color: #7b1fa2;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+
+    .status-badge.active {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .status-badge.inactive {
+        background: #f3e5f5;
+        color: #7b1fa2;
+    }
+
+    .status-badge.suspended {
+        background: #ffebee;
+        color: #d32f2f;
+    }
+
+    .status-badge.pending {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-action {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        border: 1px solid #e0e0e0;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 16px;
+        color: #666;
+    }
+
+    .btn-action:hover {
+        background: #8B4513;
+        color: white;
+        border-color: #8B4513;
+        transform: translateY(-1px);
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666;
+    }
+
+    .empty-state i {
+        color: #ccc;
+        margin-bottom: 16px;
+    }
+
+    .empty-state p {
+        font-size: 16px;
+        margin: 0;
+    }
+
+    /* Loading */
+    .loading-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 400px;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .users-header {
+            flex-direction: column;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .filter-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .filter-tabs {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .search-box {
+            width: 100%;
+        }
+
+        .users-table-container {
+            overflow-x: auto;
+        }
+
+        .users-table {
+            min-width: 800px;
+        }
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .modal.modal-visible {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 1;
+    }
+
+    .modal-content {
+        background-color: white;
+        padding: 32px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        max-width: 500px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+        animation: modalSlideIn 0.3s ease;
+    }
+
+    .modal-content.modal-small {
+        max-width: 400px;
+    }
+
+    .modal-content.modal-large {
+        max-width: 700px;
+    }
+
+    @@keyframes modalSlideIn {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .modal-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin: 0;
+    }
+
+    .modal-close {
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #666;
+        transition: color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-close:hover {
+        color: #333;
+    }
+
+    .modal-body {
+        margin-bottom: 24px;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        padding-top: 24px;
+        border-top: 1px solid #e0e0e0;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+        font-size: 14px;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.2s;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #8B4513;
+        box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+    }
+
+    /* Button Styles */
+    .btn {
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: #8B4513;
+        color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        background: #6B3410;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .btn-secondary {
+        background: white;
+        color: #666;
+        border: 1px solid #e0e0e0;
+    }
+
+    .btn-secondary:hover {
+        background: #f8f8f8;
+        border-color: #ccc;
+    }
+
+    /* Role Permissions */
+    .role-permissions {
+        margin-top: 20px;
+        padding: 16px;
+        background: #f8f8f8;
+        border-radius: 6px;
+    }
+
+    .role-permissions h4 {
+        margin: 0 0 12px 0;
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .permission-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .permission-list li {
+        padding: 4px 0;
+        font-size: 13px;
+        color: #666;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .permission-list i {
+        color: #28a745;
+    }
+
+    /* Recipients */
+    .recipient-single {
+        padding: 12px;
+        background: #f8f8f8;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    .recipient-count {
+        padding: 12px;
+        background: #e3f2fd;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #1976d2;
+        font-weight: 600;
+    }
+</style>
+
+<div class="users-container">
+    <!-- Page Header -->
+    <div class="users-header">
+        <h1 class="users-title">User Management</h1>
+        <button class="btn-create-user" @onclick="ShowAddUserModal">
+            <span>+</span> Add User
+        </button>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value">@stats.TotalUsers</div>
+            <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value">@stats.ActiveUsers</div>
+            <div class="stat-label">Active Users</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📈</div>
+            <div class="stat-value">@stats.NewUsersThisMonth</div>
+            <div class="stat-label">New This Month</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🚫</div>
+            <div class="stat-value">@stats.SuspendedUsers</div>
+            <div class="stat-label">Suspended</div>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div class="filter-tabs">
+            <button class="filter-tab @(currentFilter == "all" ? "active" : "")" @onclick="@(() => SetFilter("all"))">
+                All Users
+            </button>
+            <button class="filter-tab @(currentFilter == "admin" ? "active" : "")" @onclick="@(() => SetFilter("admin"))">
+                Admins
+            </button>
+            <button class="filter-tab @(currentFilter == "staff" ? "active" : "")" @onclick="@(() => SetFilter("staff"))">
+                Staff
+            </button>
+            <button class="filter-tab @(currentFilter == "member" ? "active" : "")" @onclick="@(() => SetFilter("member"))">
+                Members
+            </button>
+            <button class="filter-tab @(currentFilter == "suspended" ? "active" : "")" @onclick="@(() => SetFilter("suspended"))">
+                Suspended
+            </button>
+        </div>
+        
+        <div class="search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-input" placeholder="Search users..." 
+                   @bind="searchTerm" @bind:event="oninput" />
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-container">
+            <LoadingSpinner />
+        </div>
+    }
+    else if (!filteredUsers.Any())
+    {
+        <div class="empty-state">
+            <i class="fas fa-users fa-3x"></i>
+            <p>No users found matching your criteria.</p>
+        </div>
+    }
+    else
+    {
+        <!-- Users Table -->
+        <div class="users-table-container">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>User Name</th>
+                        <th>Role</th>
+                        <th>Join Date</th>
+                        <th>Last Active</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in filteredUsers)
+                    {
+                        <tr>
+                            <td>
+                                <div class="user-name">@user.FullName</div>
+                                <span class="user-email">@user.Email</span>
+                            </td>
+                            <td>
+                                <span class="role-badge @user.Role.ToLower()">
+                                    @user.Role
+                                </span>
+                            </td>
+                            <td>@user.JoinDate.ToString("MMM d, yyyy")</td>
+                            <td>@(user.LastActiveDate?.ToString("MMM d, yyyy") ?? "Never")</td>
+                            <td>
+                                <span class="status-badge @user.Status">
+                                    @user.Status
+                                </span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-action" @onclick="() => ViewUserProfile(user.Id)" title="View">
+                                        👁️
+                                    </button>
+                                    <button class="btn-action" @onclick="() => ShowEditUserModal(user)" title="Edit">
+                                        ✏️
+                                    </button>
+                                    <button class="btn-action" @onclick="() => ShowEditRoleModal(user)" title="Role">
+                                        🏷️
+                                    </button>
+                                    <button class="btn-action" @onclick="() => ShowSendEmailModal(user)" title="Email">
+                                        ✉️
+                                    </button>
+                                    <button class="btn-action" @onclick="() => ToggleUserStatus(user)" title="Status">
+                                        ⋮
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@* Add/Edit User Modal *@
+@if (showUserModal)
+{
+    <div class="modal modal-visible" @onclick="CloseUserModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2 class="modal-title">@(editingUser == null ? "Add New User" : "Edit User")</h2>
+                <button type="button" class="modal-close" @onclick="CloseUserModal">×</button>
+            </div>
+            
+            <EditForm Model="userForm" OnValidSubmit="SaveUser">
+                <DataAnnotationsValidator />
+
+                <WcrInputText @bind-Value="userForm.FullName" 
+                              Label="Full Name"
+                              Placeholder="Enter user's full name"
+                              IsRequired="true" />
+
+                <WcrInputEmail @bind-Value="userForm.Email" 
+                               Label="Email"
+                               Placeholder="user@example.com"
+                               IsRequired="true" />
+
+                <WcrInputText @bind-Value="userForm.Username" 
+                              Label="Username"
+                              Placeholder="Enter username"
+                              IsRequired="true" />
+
+                <WcrInputSelect @bind-Value="userForm.Role" 
+                                Label="Role"
+                                IsRequired="true">
+                    <option value="Guest">Guest</option>
+                    <option value="Member">Member</option>
+                    <option value="Staff">Staff</option>
+                    <option value="Admin">Admin</option>
+                </WcrInputSelect>
+
+                <WcrInputSelect @bind-Value="userForm.Status" 
+                                Label="Status"
+                                IsRequired="true">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="suspended">Suspended</option>
+                    <option value="pending">Pending Verification</option>
+                </WcrInputSelect>
+
+                @if (editingUser == null)
+                {
+                    <WcrInputPassword @bind-Value="userForm.Password" 
+                                      Label="Password"
+                                      Placeholder="Enter a secure password"
+                                      IsRequired="true" />
+
+                    <WcrInputCheckbox @bind-Value="userForm.SendWelcomeEmail" 
+                                      Label="Send welcome email" />
+                }
+
+                <WcrValidationSummary />
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary" disabled="@isProcessing">
+                        @if (isProcessing)
+                        {
+                            <span>Saving...</span>
+                        }
+                        else
+                        {
+                            <span>@(editingUser == null ? "Add User" : "Save Changes")</span>
+                        }
+                    </button>
+                    <button type="button" class="btn btn-secondary" @onclick="CloseUserModal">Cancel</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@* Edit Role Modal *@
+@if (showRoleModal)
+{
+    <div class="modal modal-visible" @onclick="CloseRoleModal">
+        <div class="modal-content modal-small" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit Role: @roleEditUser?.FullName</h2>
+                <button type="button" class="modal-close" @onclick="CloseRoleModal">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Current Role: <strong>@roleEditUser?.Role</strong></label>
+                </div>
+
+                <WcrInputSelect @bind-Value="newRole" 
+                                Label="New Role"
+                                IsRequired="true">
+                    <option value="Guest">Guest</option>
+                    <option value="Member">Member</option>
+                    <option value="Staff">Staff</option>
+                    <option value="Admin">Admin</option>
+                </WcrInputSelect>
+
+                <div class="role-permissions">
+                    <h4>Role Permissions</h4>
+                    <ul class="permission-list">
+                        @foreach (var permission in GetRolePermissions(newRole))
+                        {
+                            <li><i class="fas fa-check"></i> @permission</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-primary" @onclick="UpdateUserRole" disabled="@isProcessing">
+                    Update Role
+                </button>
+                <button class="btn btn-secondary" @onclick="CloseRoleModal">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+@* Send Email Modal *@
+@if (showEmailModal)
+{
+    <div class="modal modal-visible" @onclick="CloseEmailModal">
+        <div class="modal-content modal-large" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2 class="modal-title">Send Email</h2>
+                <button type="button" class="modal-close" @onclick="CloseEmailModal">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Recipients</label>
+                    @if (emailRecipients.Count == 1)
+                    {
+                        <div class="recipient-single">@emailRecipients.First().FullName (@emailRecipients.First().Email)</div>
+                    }
+                    else
+                    {
+                        <div class="recipient-count">@emailRecipients.Count users selected</div>
+                    }
+                </div>
+
+                <WcrInputText @bind-Value="emailSubject" 
+                              Label="Subject"
+                              Placeholder="Enter email subject"
+                              IsRequired="true" />
+
+                <WcrInputSelect @bind-Value="emailTemplate" 
+                                Label="Template">
+                    <option value="">Custom Message</option>
+                    <option value="welcome">Welcome Email</option>
+                    <option value="password-reset">Password Reset</option>
+                    <option value="account-suspended">Account Suspended</option>
+                    <option value="event-reminder">Event Reminder</option>
+                </WcrInputSelect>
+
+                <WcrInputTextArea @bind-Value="emailBody" 
+                                  Label="Message"
+                                  Placeholder="Enter your message here..."
+                                  Rows="10"
+                                  IsRequired="true" />
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-primary" @onclick="SendEmail" disabled="@isProcessing">
+                    <i class="fas fa-paper-plane"></i> Send Email
+                </button>
+                <button class="btn btn-secondary" @onclick="CloseEmailModal">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private UserStatsViewModel stats = new();
+    private List<UserViewModel> users = new();
+    private List<UserViewModel> filteredUsers = new();
+    
+    private bool isLoading = true;
+    private bool isProcessing = false;
+    
+    // Filters
+    private string searchTerm = "";
+    private string currentFilter = "all";
+
+    // Modal states
+    private bool showUserModal = false;
+    private bool showRoleModal = false;
+    private bool showEmailModal = false;
+    
+    private UserViewModel? editingUser = null;
+    private UserViewModel? roleEditUser = null;
+    private List<UserViewModel> emailRecipients = new();
+    
+    private UserFormModel userForm = new();
+    private string newRole = "";
+    private string emailSubject = "";
+    private string emailTemplate = "";
+    private string emailBody = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStats();
+        await LoadUsers();
+    }
+
+    private async Task LoadStats()
+    {
+        // Mock stats for testing
+        stats = new UserStatsViewModel
+        {
+            TotalUsers = 156,
+            ActiveUsers = 142,
+            NewUsersThisMonth = 12,
+            SuspendedUsers = 5
+        };
+    }
+
+    private async Task LoadUsers()
+    {
+        try
+        {
+            isLoading = true;
+            
+            // Mock users for testing
+            users = GenerateMockUsers(50);
+            
+            ApplyFilters();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private List<UserViewModel> GenerateMockUsers(int count)
+    {
+        var random = new Random();
+        var roles = new[] { "Admin", "Staff", "Member", "Guest" };
+        var statuses = new[] { "active", "inactive", "suspended", "pending" };
+        var firstNames = new[] { "Alice", "Bob", "Charlie", "Diana", "Emma", "Frank", "Grace", "Henry", "Iris", "Jack" };
+        var lastNames = new[] { "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez" };
+
+        return Enumerable.Range(1, count).Select(i =>
+        {
+            var firstName = firstNames[random.Next(firstNames.Length)];
+            var lastName = lastNames[random.Next(lastNames.Length)];
+            var joinDate = DateTime.Now.AddDays(-random.Next(1, 730));
+            
+            return new UserViewModel
+            {
+                Id = i,
+                FullName = $"{firstName} {lastName}",
+                Email = $"{firstName.ToLower()}.{lastName.ToLower()}@example.com",
+                Username = $"{firstName.ToLower()}{i}",
+                Role = roles[random.Next(roles.Length)],
+                Status = statuses[random.Next(statuses.Length)],
+                JoinDate = joinDate,
+                LastActiveDate = joinDate.AddDays(random.Next(0, (int)(DateTime.Now - joinDate).TotalDays)),
+                AvatarUrl = random.Next(2) == 0 ? $"https://i.pravatar.cc/150?img={i}" : null
+            };
+        }).ToList();
+    }
+
+    private void SetFilter(string filter)
+    {
+        currentFilter = filter;
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        var query = users.AsEnumerable();
+
+        // Apply search term
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            query = query.Where(u =>
+                u.FullName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                u.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                u.Username.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Apply filter
+        query = currentFilter switch
+        {
+            "admin" => query.Where(u => u.Role == "Admin"),
+            "staff" => query.Where(u => u.Role == "Staff"),
+            "member" => query.Where(u => u.Role == "Member"),
+            "suspended" => query.Where(u => u.Status == "suspended"),
+            _ => query // "all" - no additional filter
+        };
+
+        filteredUsers = query.OrderBy(u => u.FullName).ToList();
+    }
+
+    private void ShowAddUserModal()
+    {
+        editingUser = null;
+        userForm = new UserFormModel();
+        showUserModal = true;
+    }
+
+    private void ShowEditUserModal(UserViewModel user)
+    {
+        editingUser = user;
+        userForm = new UserFormModel
+        {
+            FullName = user.FullName,
+            Email = user.Email,
+            Username = user.Username,
+            Role = user.Role,
+            Status = user.Status
+        };
+        showUserModal = true;
+    }
+
+    private void CloseUserModal()
+    {
+        showUserModal = false;
+        editingUser = null;
+        userForm = new UserFormModel();
+    }
+
+    private async Task SaveUser()
+    {
+        try
+        {
+            isProcessing = true;
+            
+            // TODO: Call API to save user
+            await Task.Delay(1000); // Simulate API call
+            
+            CloseUserModal();
+            await LoadUsers();
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private void ShowEditRoleModal(UserViewModel user)
+    {
+        roleEditUser = user;
+        newRole = user.Role;
+        showRoleModal = true;
+    }
+
+    private void CloseRoleModal()
+    {
+        showRoleModal = false;
+        roleEditUser = null;
+        newRole = "";
+    }
+
+    private async Task UpdateUserRole()
+    {
+        try
+        {
+            isProcessing = true;
+            
+            // TODO: Call API to update role
+            await Task.Delay(1000); // Simulate API call
+            
+            if (roleEditUser != null)
+            {
+                roleEditUser.Role = newRole;
+            }
+            
+            CloseRoleModal();
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private void ShowSendEmailModal(UserViewModel user)
+    {
+        emailRecipients = new List<UserViewModel> { user };
+        emailSubject = "";
+        emailTemplate = "";
+        emailBody = "";
+        showEmailModal = true;
+    }
+
+    private void CloseEmailModal()
+    {
+        showEmailModal = false;
+        emailRecipients.Clear();
+    }
+
+    private async Task SendEmail()
+    {
+        try
+        {
+            isProcessing = true;
+            
+            // TODO: Call API to send email
+            await Task.Delay(1000); // Simulate API call
+            
+            CloseEmailModal();
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task ToggleUserStatus(UserViewModel user)
+    {
+        // TODO: Call API to toggle status
+        user.Status = user.Status == "active" ? "suspended" : "active";
+    }
+
+    private void ViewUserProfile(int userId)
+    {
+        Navigation.NavigateTo($"/admin/users/{userId}", forceLoad: true);
+    }
+
+    private List<string> GetRolePermissions(string role)
+    {
+        return role switch
+        {
+            "Admin" => new List<string> 
+            { 
+                "Full system access",
+                "User management",
+                "Event management",
+                "Vetting queue access",
+                "System configuration",
+                "Reports and analytics"
+            },
+            "Staff" => new List<string> 
+            { 
+                "Event management",
+                "Vetting queue access",
+                "Member management",
+                "Limited reports access"
+            },
+            "Member" => new List<string> 
+            { 
+                "View events",
+                "RSVP to events",
+                "Update profile",
+                "View member directory"
+            },
+            "Guest" => new List<string> 
+            { 
+                "View public events",
+                "Limited profile access"
+            },
+            _ => new List<string>()
+        };
+    }
+
+    // View Models
+    public class UserStatsViewModel
+    {
+        public int TotalUsers { get; set; }
+        public int ActiveUsers { get; set; }
+        public int NewUsersThisMonth { get; set; }
+        public int SuspendedUsers { get; set; }
+    }
+
+    public class UserViewModel
+    {
+        public int Id { get; set; }
+        public string FullName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Username { get; set; } = "";
+        public string Role { get; set; } = "Member";
+        public string Status { get; set; } = "active";
+        public DateTime JoinDate { get; set; }
+        public DateTime? LastActiveDate { get; set; }
+        public string? AvatarUrl { get; set; }
+    }
+
+    public class UserFormModel
+    {
+        [Required(ErrorMessage = "Full name is required")]
+        [StringLength(100, ErrorMessage = "Full name must not exceed 100 characters")]
+        public string FullName { get; set; } = "";
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address")]
+        public string Email { get; set; } = "";
+
+        [Required(ErrorMessage = "Username is required")]
+        [StringLength(50, ErrorMessage = "Username must not exceed 50 characters")]
+        public string Username { get; set; } = "";
+
+        [Required(ErrorMessage = "Role is required")]
+        public string Role { get; set; } = "Member";
+
+        [Required(ErrorMessage = "Status is required")]
+        public string Status { get; set; } = "active";
+
+        [StringLength(100, MinimumLength = 8, ErrorMessage = "Password must be at least 8 characters")]
+        public string? Password { get; set; }
+
+        public bool SendWelcomeEmail { get; set; } = true;
+    }
+}

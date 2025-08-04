@@ -115,12 +115,12 @@ namespace WitchCityRope.Web.Services
         {
             switch (model.EventType)
             {
-                case EventType.Workshop:
+                case Core.Enums.EventType.Workshop:
                     if (!model.InstructorId.HasValue || model.InstructorId == Guid.Empty)
                         result.AddError(nameof(model.InstructorId), EventValidationConstants.INSTRUCTOR_REQUIRED_FOR_WORKSHOP);
                     break;
 
-                case EventType.Social:
+                case Core.Enums.EventType.Social:
                     // Social events might have different requirements
                     break;
             }
@@ -188,7 +188,7 @@ namespace WitchCityRope.Web.Services
                     break;
 
                 case "instructorid":
-                    if (model.EventType == EventType.Workshop && (!model.InstructorId.HasValue || model.InstructorId == Guid.Empty))
+                    if (model.EventType == Core.Enums.EventType.Workshop && (!model.InstructorId.HasValue || model.InstructorId == Guid.Empty))
                         errors.Add(EventValidationConstants.INSTRUCTOR_REQUIRED_FOR_WORKSHOP);
                     break;
             }

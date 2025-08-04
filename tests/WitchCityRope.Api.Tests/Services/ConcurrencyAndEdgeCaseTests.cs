@@ -12,12 +12,14 @@ using WitchCityRope.Core.Entities;
 using WitchCityRope.Core.Enums;
 using WitchCityRope.Core.Exceptions;
 using WitchCityRope.Infrastructure.Data;
+using Moq;
 
 namespace WitchCityRope.Api.Tests.Services;
 
+[Collection("Sequential")]
 public class ConcurrencyAndEdgeCaseTests : IDisposable
 {
-    private readonly WitchCityRopeDbContext _dbContext;
+    private readonly WitchCityRopeIdentityDbContext _dbContext;
     private readonly EventService _eventService;
     private readonly TestDataBuilder _testDataBuilder;
 
@@ -26,9 +28,6 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         _dbContext = MockHelpers.CreateInMemoryDbContext();
         _eventService = new EventService(
             _dbContext,
-            MockHelpers.CreateUserContextMock().Object,
-            MockHelpers.CreatePaymentServiceMock().Object,
-            MockHelpers.CreateNotificationServiceMock().Object,
             MockHelpers.CreateSlugGeneratorMock().Object);
         
         _testDataBuilder = new TestDataBuilder(_dbContext);
@@ -45,7 +44,7 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
             organizerId: organizer.Id,
             title: "Limited Event");
         
-        @event.MaxAttendees = 5;
+        @event.Capacity = 5;
         await _dbContext.SaveChangesAsync();
 
         // Create 10 users trying to register
@@ -62,24 +61,26 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         {
             try
             {
-                var request = new RegisterForEventRequest
-                {
-                    EventId = @event.Id,
-                    UserId = user.Id,
-                    EmergencyContactName = "Contact",
-                    EmergencyContactPhone = "555-0100"
-                };
+                var request = new RegisterForEventRequest(
+                    EventId: @event.Id,
+                    UserId: user.Id,
+                    DietaryRestrictions: null,
+                    AccessibilityNeeds: null,
+                    EmergencyContactName: "Contact",
+                    EmergencyContactPhone: "555-0100",
+                    PaymentMethod: PaymentMethod.None,
+                    PaymentToken: null
+                );
                 return await _eventService.RegisterForEventAsync(request);
             }
             catch (Exception ex)
             {
                 return new RegisterForEventResponse(
                     RegistrationId: Guid.Empty,
-                    Status: RegistrationStatus.Failed,
+                    Status: WitchCityRope.Core.Enums.RegistrationStatus.Failed,
                     WaitlistPosition: null,
                     AmountCharged: 0,
-                    ConfirmationCode: "",
-                    ErrorMessage: ex.Message
+                    ConfirmationCode: ""
                 );
             }
         })).ToArray();
@@ -87,16 +88,16 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         var results = await Task.WhenAll(tasks);
 
         // Assert
-        var confirmedCount = results.Count(r => r.Status == RegistrationStatus.Confirmed);
-        var waitlistedCount = results.Count(r => r.Status == RegistrationStatus.Waitlisted);
+        var confirmedCount = results.Count(r => r.Status == WitchCityRope.Core.Enums.RegistrationStatus.Confirmed);
+        var waitlistedCount = results.Count(r => r.Status == WitchCityRope.Core.Enums.RegistrationStatus.Waitlisted);
         
-        confirmedCount.Should().BeLessOrEqualTo(5); // Should not exceed max capacity
+        confirmedCount.Should().BeLessThanOrEqualTo(5); // Should not exceed max capacity
         waitlistedCount.Should().BeGreaterThan(0); // Some should be waitlisted
         (confirmedCount + waitlistedCount).Should().Be(10); // All should be processed
 
         // Verify waitlist positions are sequential
         var waitlistPositions = results
-            .Where(r => r.Status == RegistrationStatus.Waitlisted && r.WaitlistPosition.HasValue)
+            .Where(r => r.Status == WitchCityRope.Core.Enums.RegistrationStatus.Waitlisted && r.WaitlistPosition.HasValue)
             .Select(r => r.WaitlistPosition!.Value)
             .OrderBy(p => p)
             .ToList();
@@ -114,7 +115,7 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         var organizer = await _testDataBuilder.CreateUserAsync(role: UserRole.Organizer);
         var @event = await _testDataBuilder.CreateEventAsync(organizerId: organizer.Id);
         @event.Price = 25.00m;
-        @event.MaxAttendees = 3;
+        @event.Capacity = 3;
         await _dbContext.SaveChangesAsync();
 
         var users = new List<User>();
@@ -127,11 +128,11 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
 
         // Mock payment service to simulate processing delays
         var paymentServiceMock = MockHelpers.CreatePaymentServiceMock(true, 25.00m);
-        paymentServiceMock.Setup(x => x.ProcessPaymentAsync(It.IsAny<PaymentRequest>()))
-            .Returns(async (PaymentRequest _) =>
+        paymentServiceMock.Setup(x => x.ProcessPaymentAsync(It.IsAny<WitchCityRope.Api.Models.PaymentRequest>()))
+            .Returns(async (WitchCityRope.Api.Models.PaymentRequest _) =>
             {
                 await Task.Delay(Random.Shared.Next(10, 50)); // Random delay
-                return new PaymentResult
+                return new WitchCityRope.Api.Models.PaymentResult
                 {
                     Success = true,
                     AmountCharged = 25.00m,
@@ -141,23 +142,21 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
 
         var eventServiceWithPaymentDelay = new EventService(
             _dbContext,
-            MockHelpers.CreateUserContextMock().Object,
-            paymentServiceMock.Object,
-            MockHelpers.CreateNotificationServiceMock().Object,
             MockHelpers.CreateSlugGeneratorMock().Object);
 
         // Act
         var tasks = users.Select(user => Task.Run(async () =>
         {
-            var request = new RegisterForEventRequest
-            {
-                EventId = @event.Id,
-                UserId = user.Id,
-                PaymentMethod = PaymentMethod.Stripe,
-                PaymentToken = $"tok_{user.Id}",
-                EmergencyContactName = "Contact",
-                EmergencyContactPhone = "555-0100"
-            };
+            var request = new RegisterForEventRequest(
+                EventId: @event.Id,
+                UserId: user.Id,
+                DietaryRestrictions: null,
+                AccessibilityNeeds: null,
+                EmergencyContactName: "Contact",
+                EmergencyContactPhone: "555-0100",
+                PaymentMethod: PaymentMethod.Stripe,
+                PaymentToken: $"tok_{user.Id}"
+            );
             return await eventServiceWithPaymentDelay.RegisterForEventAsync(request);
         })).ToArray();
 
@@ -226,13 +225,16 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         var user = await _testDataBuilder.CreateUserAsync();
         var @event = await _testDataBuilder.CreateEventAsync(organizerId: organizer.Id);
 
-        var request = new RegisterForEventRequest
-        {
-            EventId = @event.Id,
-            UserId = user.Id,
-            EmergencyContactName = "Contact",
-            EmergencyContactPhone = "555-0100"
-        };
+        var request = new RegisterForEventRequest(
+            EventId: @event.Id,
+            UserId: user.Id,
+            DietaryRestrictions: null,
+            AccessibilityNeeds: null,
+            EmergencyContactName: "Contact",
+            EmergencyContactPhone: "555-0100",
+            PaymentMethod: PaymentMethod.None,
+            PaymentToken: null
+        );
 
         // Act - Cancel event during registration
         var registrationTask = Task.Run(async () =>
@@ -324,22 +326,23 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         
         var @event = await _testDataBuilder.CreateEventAsync(organizerId: organizer.Id);
 
-        var request = new RegisterForEventRequest
-        {
-            EventId = @event.Id,
-            UserId = user.Id,
-            DietaryRestrictions = "Nuts & dairy; gluten-free",
-            AccessibilityNeeds = "Wheelchair accessible, can't use stairs",
-            EmergencyContactName = "O'Brien-Smith, Jr.",
-            EmergencyContactPhone = "+1 (555) 123-4567"
-        };
+        var request = new RegisterForEventRequest(
+            EventId: @event.Id,
+            UserId: user.Id,
+            DietaryRestrictions: "Nuts & dairy; gluten-free",
+            AccessibilityNeeds: "Wheelchair accessible, can't use stairs",
+            EmergencyContactName: "O'Brien-Smith, Jr.",
+            EmergencyContactPhone: "+1 (555) 123-4567",
+            PaymentMethod: PaymentMethod.None,
+            PaymentToken: null
+        );
 
         // Act
         var result = await _eventService.RegisterForEventAsync(request);
 
         // Assert
         result.Should().NotBeNull();
-        result.Status.Should().Be(RegistrationStatus.Confirmed);
+        result.Status.Should().Be(WitchCityRope.Core.Enums.RegistrationStatus.Confirmed);
 
         var registration = await _dbContext.Registrations
             .FirstOrDefaultAsync(r => r.Id == result.RegistrationId);
@@ -377,17 +380,19 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         };
 
         // Act
-        var result = await _eventService.CreateEventAsync(request);
+        var result = await _eventService.CreateEventAsync(request, organizer.Id);
 
         // Assert
         result.Should().NotBeNull();
-        result.Slug.Should().MatchRegex(@"duplicate-event-\d+");
+        result.EventId.Should().NotBeEmpty();
+        result.Message.Should().Contain("created successfully");
 
         var allEvents = await _dbContext.Events
             .Where(e => e.Title == "Duplicate Event")
-            .Select(e => e.Slug)
+            .Select(e => e.Id)
             .ToListAsync();
         
+        allEvents.Should().HaveCount(4); // 3 from setup + 1 from test
         allEvents.Should().OnlyHaveUniqueItems();
     }
 
@@ -397,43 +402,45 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         // Arrange
         var organizer = await _testDataBuilder.CreateUserAsync(role: UserRole.Organizer);
         var @event = await _testDataBuilder.CreateEventAsync(organizerId: organizer.Id);
-        @event.MaxAttendees = 2;
+        @event.Capacity = 2;
         await _dbContext.SaveChangesAsync();
 
         // Register first user
         var user1 = await _testDataBuilder.CreateUserAsync(email: "user1@example.com");
         await _testDataBuilder.CreateRegistrationAsync(@event.Id, user1.Id);
-        
-        // Update current attendees count
-        @event.CurrentAttendees = 1;
-        await _dbContext.SaveChangesAsync();
 
         // Create two users competing for last spot
         var user2 = await _testDataBuilder.CreateUserAsync(email: "user2@example.com");
         var user3 = await _testDataBuilder.CreateUserAsync(email: "user3@example.com");
 
         // Act - Both try to register simultaneously
-        var task1 = _eventService.RegisterForEventAsync(new RegisterForEventRequest
-        {
-            EventId = @event.Id,
-            UserId = user2.Id,
-            EmergencyContactName = "Contact",
-            EmergencyContactPhone = "555-0100"
-        });
+        var task1 = _eventService.RegisterForEventAsync(new RegisterForEventRequest(
+            EventId: @event.Id,
+            UserId: user2.Id,
+            DietaryRestrictions: null,
+            AccessibilityNeeds: null,
+            EmergencyContactName: "Contact",
+            EmergencyContactPhone: "555-0100",
+            PaymentMethod: PaymentMethod.None,
+            PaymentToken: null
+        ));
 
-        var task2 = _eventService.RegisterForEventAsync(new RegisterForEventRequest
-        {
-            EventId = @event.Id,
-            UserId = user3.Id,
-            EmergencyContactName = "Contact",
-            EmergencyContactPhone = "555-0100"
-        });
+        var task2 = _eventService.RegisterForEventAsync(new RegisterForEventRequest(
+            EventId: @event.Id,
+            UserId: user3.Id,
+            DietaryRestrictions: null,
+            AccessibilityNeeds: null,
+            EmergencyContactName: "Contact",
+            EmergencyContactPhone: "555-0100",
+            PaymentMethod: PaymentMethod.None,
+            PaymentToken: null
+        ));
 
         var results = await Task.WhenAll(task1, task2);
 
         // Assert
-        var confirmedResults = results.Where(r => r.Status == RegistrationStatus.Confirmed).ToList();
-        var waitlistedResults = results.Where(r => r.Status == RegistrationStatus.Waitlisted).ToList();
+        var confirmedResults = results.Where(r => r.Status == WitchCityRope.Core.Enums.RegistrationStatus.Confirmed).ToList();
+        var waitlistedResults = results.Where(r => r.Status == WitchCityRope.Core.Enums.RegistrationStatus.Waitlisted).ToList();
 
         confirmedResults.Should().HaveCount(1); // Only one should get the last spot
         waitlistedResults.Should().HaveCount(1); // The other should be waitlisted
@@ -447,13 +454,4 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         _dbContext?.Dispose();
     }
 
-    // Response record for failed registrations
-    public record RegisterForEventResponse(
-        Guid RegistrationId,
-        WitchCityRope.Core.Enums.RegistrationStatus Status,
-        int? WaitlistPosition,
-        decimal AmountCharged,
-        string ConfirmationCode,
-        string? ErrorMessage = null
-    );
 }

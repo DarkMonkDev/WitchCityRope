@@ -1,0 +1,163 @@
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+@inherits InputText
+
+<div class="wcr-form-group @(HasErrors ? "has-validation" : "")">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label for="@Id" class="wcr-label">
+            @Label
+            @if (IsRequired)
+            {
+                <span class="wcr-required">*</span>
+            }
+        </label>
+    }
+    
+    <div class="wcr-input-wrapper">
+        <input class="@GetCssClass()"
+               value="@CurrentValue"
+               @oninput="HandleInput"
+               id="@Id"
+               name="@Name"
+               placeholder="@Placeholder"
+               disabled="@IsDisabled"
+               readonly="@IsReadOnly"
+               type="@InputType"
+               aria-invalid="@HasErrors.ToString().ToLower()"
+               aria-describedby="@GetAriaDescribedBy()"
+               @attributes="AdditionalAttributes" />
+               
+        @if (ShowValidationIcon && EditContext != null)
+        {
+            @if (HasErrors)
+            {
+                <span class="wcr-validation-icon error e-icons e-error"></span>
+            }
+            else if (IsModified && !HasErrors)
+            {
+                <span class="wcr-validation-icon success e-icons e-check-circle"></span>
+            }
+        }
+    </div>
+    
+    @if (HasErrors && ShowInlineError)
+    {
+        <div id="@($"{Id}-error")" class="wcr-validation-message" role="alert">
+            <ValidationMessage For="@ValidationFor" />
+        </div>
+    }
+    
+    @if (!string.IsNullOrEmpty(HelpText) && !HasErrors)
+    {
+        <small id="@($"{Id}-help")" class="wcr-help-text">@HelpText</small>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    [Parameter] public string? Name { get; set; }
+    [Parameter] public bool IsRequired { get; set; }
+    [Parameter] public string? HelpText { get; set; }
+    [Parameter] public string? Placeholder { get; set; }
+    [Parameter] public bool IsDisabled { get; set; }
+    [Parameter] public bool IsReadOnly { get; set; }
+    [Parameter] public bool ShowValidationIcon { get; set; } = true;
+    [Parameter] public bool ShowInlineError { get; set; } = true;
+    [Parameter] public string InputType { get; set; } = "text";
+    [Parameter] public bool AutoFocus { get; set; }
+    [Parameter] public EventCallback<string> OnValueChanged { get; set; }
+    [Parameter] public Expression<Func<string>>? ValidationFor { get; set; }
+    
+    private bool HasErrors => EditContext != null && EditContext.GetValidationMessages(FieldIdentifier).Any();
+    private bool IsModified => EditContext != null && EditContext.IsModified(FieldIdentifier);
+    
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        
+        // Set ValidationFor to the Value expression if not explicitly set
+        if (ValidationFor == null && ValueExpression != null)
+        {
+            ValidationFor = ValueExpression;
+        }
+        
+        // Set Name if not explicitly provided
+        if (string.IsNullOrEmpty(Name))
+        {
+            // Try to get the property name from the FieldIdentifier
+            if (FieldIdentifier.FieldName != null)
+            {
+                // Convert PascalCase to camelCase
+                Name = char.ToLowerInvariant(FieldIdentifier.FieldName[0]) + FieldIdentifier.FieldName.Substring(1);
+            }
+            else if (!string.IsNullOrEmpty(Label))
+            {
+                // Fallback to label-based name
+                Name = Label.Replace(" ", "").ToLowerInvariant();
+            }
+            else
+            {
+                // Last resort: use the Id
+                Name = Id;
+            }
+        }
+    }
+    
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && AutoFocus)
+        {
+            // Note: In a real implementation, you'd use JavaScript interop to focus the element
+        }
+    }
+    
+    private async Task HandleInput(ChangeEventArgs e)
+    {
+        CurrentValue = e.Value?.ToString() ?? string.Empty;
+        
+        if (OnValueChanged.HasDelegate)
+        {
+            await OnValueChanged.InvokeAsync(CurrentValue);
+        }
+    }
+    
+    private string GetCssClass()
+    {
+        var css = "wcr-input";
+        
+        if (HasErrors)
+        {
+            css += " wcr-input-error";
+        }
+        else if (IsModified && !HasErrors)
+        {
+            css += " wcr-input-success";
+        }
+        
+        if (!string.IsNullOrEmpty(CssClass))
+        {
+            css += $" {CssClass}";
+        }
+        
+        return css;
+    }
+    
+    private string GetAriaDescribedBy()
+    {
+        var describedBy = new List<string>();
+        
+        if (HasErrors)
+        {
+            describedBy.Add($"{Id}-error");
+        }
+        
+        if (!string.IsNullOrEmpty(HelpText))
+        {
+            describedBy.Add($"{Id}-help");
+        }
+        
+        return string.Join(" ", describedBy);
+    }
+}

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
-using WitchCityRope.Core.Entities;
+using WitchCityRope.Infrastructure.Identity;
 
 namespace WitchCityRope.Api.Interfaces
 {
@@ -13,7 +13,7 @@ namespace WitchCityRope.Api.Interfaces
         /// <summary>
         /// Generates a JWT token for the specified user
         /// </summary>
-        string GenerateToken(User user);
+        string GenerateToken(WitchCityRopeUser user);
 
         /// <summary>
         /// Generates a JWT token with custom claims

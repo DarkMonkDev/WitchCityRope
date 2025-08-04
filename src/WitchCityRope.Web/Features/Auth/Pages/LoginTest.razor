@@ -1,0 +1,307 @@
+@page "/login-test"
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@layout MainLayout
+
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Identity
+@using WitchCityRope.Infrastructure.Identity
+
+@inject SignInManager<WitchCityRopeUser> SignInManager
+@inject ILogger<LoginTest> Logger
+@inject NavigationManager NavigationManager
+
+<PageTitle>Test Login - Witch City Rope</PageTitle>
+
+<div class="login-page">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1 class="welcome-title">Test Login</h1>
+                <p class="welcome-subtitle">Simple form without EditForm</p>
+            </div>
+            
+            <div class="login-content">
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger">@errorMessage</div>
+                }
+                
+                @if (!string.IsNullOrEmpty(successMessage))
+                {
+                    <div class="alert alert-success">@successMessage</div>
+                }
+                
+                <form method="post" @onsubmit="HandleSubmit" @onsubmit:preventDefault="true">
+                    <div class="wcr-form-group">
+                        <label class="wcr-label" for="email">EMAIL ADDRESS <span class="wcr-required">*</span></label>
+                        <div class="wcr-input-wrapper">
+                            <input @bind="email" type="text" id="email" name="email" 
+                                   class="wcr-input" placeholder="admin@witchcityrope.com" required />
+                        </div>
+                    </div>
+
+                    <div class="wcr-form-group">
+                        <label class="wcr-label" for="password">PASSWORD <span class="wcr-required">*</span></label>
+                        <div class="wcr-input-wrapper">
+                            <input @bind="password" type="password" id="password" name="password"
+                                   class="wcr-input" placeholder="Enter your password" required />
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <label class="checkbox-label" for="rememberMe">
+                            <input @bind="rememberMe" type="checkbox" id="rememberMe" name="rememberMe" 
+                                   class="darker-border-checkbox form-check-input" />
+                            <span>Keep me signed in for 30 days</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="sign-in-btn" disabled="@isLoading">
+                        <span>@(isLoading ? "SIGNING IN..." : "SIGN IN")</span>
+                    </button>
+                </form>
+                
+                <div class="login-footer">
+                    <a href="/login" class="forgot-link">Back to main login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.login-page {
+    min-height: 100vh;
+    background-color: var(--wcr-color-midnight);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    font-family: var(--wcr-font-body);
+}
+
+.login-container {
+    width: 100%;
+    max-width: 480px;
+}
+
+.login-card {
+    background: var(--wcr-color-ivory);
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.login-header {
+    background: var(--wcr-color-burgundy);
+    color: var(--wcr-color-ivory);
+    text-align: center;
+    padding: 3rem 2rem 2rem;
+}
+
+.welcome-title {
+    font-family: var(--wcr-font-heading);
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+    border: 2px solid var(--wcr-color-ivory);
+    padding: 0.5rem 1.5rem;
+    display: inline-block;
+    border-radius: 8px;
+}
+
+.welcome-subtitle {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin: 1rem 0 1.5rem;
+    line-height: 1.4;
+}
+
+.login-content {
+    padding: 2rem;
+}
+
+.wcr-form-group {
+    margin-bottom: 1.5rem;
+}
+
+.wcr-label {
+    font-family: var(--wcr-font-heading);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--wcr-color-charcoal);
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.wcr-input {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    background: white;
+    color: #333;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+}
+
+.wcr-input:focus {
+    border-color: var(--wcr-color-burgundy);
+    box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.1);
+    outline: none;
+}
+
+.checkbox-group {
+    margin: 1.5rem 0;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--wcr-color-charcoal);
+}
+
+.sign-in-btn {
+    width: 100%;
+    padding: 1rem;
+    background: var(--wcr-color-amber);
+    color: var(--wcr-color-midnight);
+    border: none;
+    border-radius: 8px;
+    font-family: var(--wcr-font-heading);
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 1rem 0;
+}
+
+.sign-in-btn:hover:not(:disabled) {
+    background: var(--wcr-color-amber-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 191, 0, 0.4);
+}
+
+.sign-in-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.alert {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+}
+
+.alert-danger {
+    background: rgba(220, 20, 60, 0.1);
+    border: 2px solid var(--wcr-color-error);
+    color: var(--wcr-color-error-dark);
+}
+
+.alert-success {
+    background: rgba(0, 128, 0, 0.1);
+    border: 2px solid green;
+    color: darkgreen;
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.forgot-link {
+    color: var(--wcr-color-burgundy);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.forgot-link:hover {
+    text-decoration: underline;
+}
+</style>
+
+@code {
+    private string email = "";
+    private string password = "";
+    private bool rememberMe = false;
+    private bool isLoading = false;
+    private string? errorMessage;
+    private string? successMessage;
+
+    private async Task HandleSubmit()
+    {
+        isLoading = true;
+        errorMessage = null;
+        successMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            Logger.LogInformation("Attempting login for: {Email}", email);
+            
+            // Use the same logic as the main login
+            Microsoft.AspNetCore.Identity.SignInResult result;
+            
+            if (SignInManager is WitchCityRope.Infrastructure.Identity.WitchCityRopeSignInManager customSignInManager)
+            {
+                Logger.LogInformation("Using custom SignInManager");
+                result = await customSignInManager.PasswordSignInByEmailOrSceneNameAsync(
+                    email, password, rememberMe, lockoutOnFailure: false);
+            }
+            else
+            {
+                Logger.LogInformation("Using standard SignInManager");
+                result = await SignInManager.PasswordSignInAsync(
+                    email, password, rememberMe, lockoutOnFailure: false);
+            }
+
+            Logger.LogInformation("Login result: Succeeded={Succeeded}, RequiresTwoFactor={RequiresTwoFactor}, IsLockedOut={IsLockedOut}", 
+                result.Succeeded, result.RequiresTwoFactor, result.IsLockedOut);
+
+            if (result.Succeeded)
+            {
+                Logger.LogInformation("User logged in successfully.");
+                successMessage = "Login successful! Redirecting...";
+                StateHasChanged();
+                
+                await Task.Delay(1000); // Brief delay to show success message
+                NavigationManager.NavigateTo("/", forceLoad: true);
+            }
+            else if (result.RequiresTwoFactor)
+            {
+                successMessage = "Two-factor authentication required.";
+                Logger.LogInformation("Two-factor authentication required.");
+                // NavigationManager.NavigateTo("/Account/LoginWith2fa");
+            }
+            else if (result.IsLockedOut)
+            {
+                errorMessage = "Account locked out. Please try again later.";
+                Logger.LogWarning("User account locked out.");
+            }
+            else
+            {
+                errorMessage = "Invalid login attempt. Please check your credentials.";
+                Logger.LogWarning("Invalid login attempt for: {Email}", email);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error during login attempt for: {Email}", email);
+            errorMessage = "An error occurred during login. Please try again.";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+}

@@ -1,3 +1,5 @@
+using WitchCityRope.Core.DTOs;
+
 namespace WitchCityRope.Web.Models;
 
 // Request/Response models for authentication

@@ -4,6 +4,7 @@
 @inject IAuthService AuthService
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
 
 <PageTitle>Set Up Two-Factor Authentication - Witch City Rope</PageTitle>
 
@@ -949,7 +950,7 @@
     
     private void Cancel()
     {
-        Navigation.NavigateTo("/member/dashboard");
+        Navigation.NavigateTo("/member/dashboard", forceLoad: true);
     }
     
     private void ToggleManualEntry()

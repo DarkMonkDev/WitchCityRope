@@ -2,7 +2,8 @@
 @using WitchCityRope.Web.Services
 @inject ApiClient ApiClient
 @inject NavigationManager Navigation
-@attribute [Authorize(Roles = "Admin,EventOrganizer")]
+@attribute [Authorize(Roles = "Administrator,Admin,EventOrganizer")]
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
 
 @* Event management page for administrators and organizers *@
 
@@ -355,12 +356,12 @@
 
     private void ViewEventDetails(int eventId)
     {
-        Navigation.NavigateTo($"/events/{eventId}");
+        Navigation.NavigateTo($"/events/{eventId}", forceLoad: true);
     }
 
     private void ManageAttendees(int eventId)
     {
-        Navigation.NavigateTo($"/admin/events/{eventId}/attendees");
+        Navigation.NavigateTo($"/admin/events/{eventId}/attendees", forceLoad: true);
     }
 
     private async Task DuplicateEvent(int eventId)

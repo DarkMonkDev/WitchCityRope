@@ -1,0 +1,84 @@
+.member-grid-container {
+    position: relative;
+}
+
+.member-name {
+    font-weight: 500;
+}
+
+::deep .e-grid {
+    border: none;
+    font-size: 0.95rem;
+}
+
+::deep .e-grid .e-gridheader {
+    background-color: var(--bs-gray-100);
+    border-bottom: 2px solid var(--bs-gray-300);
+}
+
+::deep .e-grid .e-gridheader .e-headercell {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    color: var(--bs-gray-700);
+}
+
+::deep .e-grid .e-row {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+::deep .e-grid .e-row:hover {
+    background-color: var(--bs-primary-bg-subtle);
+}
+
+::deep .e-grid .e-altrow {
+    background-color: var(--bs-gray-50);
+}
+
+::deep .e-grid .e-altrow:hover {
+    background-color: var(--bs-primary-bg-subtle);
+}
+
+::deep .e-grid .e-rowcell {
+    border-color: var(--bs-gray-200);
+    padding: 0.75rem 1rem;
+}
+
+.pagination-container {
+    border-top: 1px solid var(--bs-gray-200);
+    padding-top: 1rem;
+}
+
+.badge {
+    font-size: 0.85rem;
+    padding: 0.35rem 0.65rem;
+    font-weight: 500;
+}
+
+.badge-success {
+    background-color: var(--bs-success);
+}
+
+.badge-info {
+    background-color: var(--bs-info);
+}
+
+.badge-warning {
+    background-color: var(--bs-warning);
+}
+
+.badge-secondary {
+    background-color: var(--bs-secondary);
+}
+
+@media (max-width: 768px) {
+    ::deep .e-grid {
+        font-size: 0.875rem;
+    }
+    
+    ::deep .e-grid .e-rowcell {
+        padding: 0.5rem 0.75rem;
+    }
+}

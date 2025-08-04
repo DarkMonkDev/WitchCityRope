@@ -454,3 +454,9 @@ appsettings.Local.json
 .vscode/
 .vs/
 .idea/
+# Session work directory (temporary files)
+/session-work/
+!session-work/README.md
+/keys/
+/src/WitchCityRope.Api/keys/
+**/keys/

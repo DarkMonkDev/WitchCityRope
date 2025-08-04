@@ -22,9 +22,7 @@ public class UserAuthenticationConfiguration : IEntityTypeConfiguration<UserAuth
         builder.HasIndex(e => e.UserId)
             .IsUnique();
 
-        builder.HasOne(e => e.User)
-            .WithOne()
-            .HasForeignKey<UserAuthentication>(e => e.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // Ignore the User navigation property since it uses IUser interface
+        builder.Ignore(e => e.User);
     }
 }

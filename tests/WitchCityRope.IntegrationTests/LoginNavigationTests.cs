@@ -25,7 +25,7 @@ public class LoginNavigationTests : IClassFixture<WebApplicationFactory<Program>
                 // Ensure we use the test database
                 var sp = services.BuildServiceProvider();
                 using var scope = sp.CreateScope();
-                var db = scope.ServiceProvider.GetRequiredService<WitchCityRopeDbContext>();
+                var db = scope.ServiceProvider.GetRequiredService<WitchCityRopeIdentityDbContext>();
                 db.Database.EnsureCreated();
                 // Test data is already seeded by the test factory
             });

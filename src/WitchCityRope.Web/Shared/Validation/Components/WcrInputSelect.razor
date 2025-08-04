@@ -1,0 +1,121 @@
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+@typeparam TValue
+@inherits InputSelect<TValue>
+
+<div class="wcr-form-group @(HasErrors ? "has-validation" : "")">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label for="@Id" class="wcr-label">
+            @Label
+            @if (IsRequired)
+            {
+                <span class="wcr-required">*</span>
+            }
+        </label>
+    }
+    
+    <select @attributes="AdditionalAttributes"
+            class="@GetCssClass()"
+            value="@CurrentValueAsString"
+            @onchange="HandleChange"
+            id="@Id"
+            disabled="@IsDisabled"
+            aria-invalid="@HasErrors.ToString().ToLower()"
+            aria-describedby="@GetAriaDescribedBy()">
+        @if (!string.IsNullOrEmpty(Placeholder))
+        {
+            <option value="" disabled selected="@(string.IsNullOrEmpty(CurrentValueAsString))">
+                @Placeholder
+            </option>
+        }
+        @ChildContent
+    </select>
+    
+    @if (HasErrors && ShowInlineError)
+    {
+        <div id="@($"{Id}-error")" class="wcr-validation-message" role="alert">
+            <ValidationMessage For="@ValidationFor" />
+        </div>
+    }
+    
+    @if (!string.IsNullOrEmpty(HelpText) && !HasErrors)
+    {
+        <small id="@($"{Id}-help")" class="wcr-help-text">@HelpText</small>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    [Parameter] public bool IsRequired { get; set; }
+    [Parameter] public string? HelpText { get; set; }
+    [Parameter] public string? Placeholder { get; set; } = "Select an option";
+    [Parameter] public bool IsDisabled { get; set; }
+    [Parameter] public bool ShowInlineError { get; set; } = true;
+    // ChildContent is already defined in the base InputSelect class
+    [Parameter] public EventCallback<TValue> OnValueChanged { get; set; }
+    [Parameter] public Expression<Func<TValue>>? ValidationFor { get; set; }
+    
+    private bool HasErrors => EditContext != null && EditContext.GetValidationMessages(FieldIdentifier).Any();
+    private bool IsModified => EditContext != null && EditContext.IsModified(FieldIdentifier);
+    
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        
+        // Set ValidationFor to the Value expression if not explicitly set
+        if (ValidationFor == null && ValueExpression != null)
+        {
+            ValidationFor = ValueExpression;
+        }
+    }
+    
+    private async Task HandleChange(ChangeEventArgs e)
+    {
+        CurrentValueAsString = e.Value?.ToString() ?? string.Empty;
+        
+        if (OnValueChanged.HasDelegate)
+        {
+            await OnValueChanged.InvokeAsync(CurrentValue);
+        }
+    }
+    
+    private string GetCssClass()
+    {
+        var css = "wcr-input wcr-select";
+        
+        if (HasErrors)
+        {
+            css += " wcr-input-error";
+        }
+        else if (IsModified && !HasErrors)
+        {
+            css += " wcr-input-success";
+        }
+        
+        if (!string.IsNullOrEmpty(CssClass))
+        {
+            css += $" {CssClass}";
+        }
+        
+        return css;
+    }
+    
+    private string GetAriaDescribedBy()
+    {
+        var describedBy = new List<string>();
+        
+        if (HasErrors)
+        {
+            describedBy.Add($"{Id}-error");
+        }
+        
+        if (!string.IsNullOrEmpty(HelpText))
+        {
+            describedBy.Add($"{Id}-help");
+        }
+        
+        return string.Join(" ", describedBy);
+    }
+}

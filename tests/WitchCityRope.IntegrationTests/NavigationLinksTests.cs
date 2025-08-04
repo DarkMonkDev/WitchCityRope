@@ -6,14 +6,15 @@ using Xunit;
 
 namespace WitchCityRope.IntegrationTests;
 
+[Collection("PostgreSQL Integration Tests")]
 public class NavigationLinksTests : IClassFixture<TestWebApplicationFactory>
 {
     private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
 
-    public NavigationLinksTests(TestWebApplicationFactory factory)
+    public NavigationLinksTests(TestWebApplicationFactory factory, PostgreSqlFixture fixture)
     {
-        _factory = factory;
+        _factory = new TestWebApplicationFactory(fixture.PostgresContainer);
         _client = _factory.CreateClient(new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false // We want to test redirects manually

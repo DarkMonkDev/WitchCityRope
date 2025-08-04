@@ -41,9 +41,9 @@ namespace WitchCityRope.Web.Tests.Features.Auth
         {
             // Arrange
             AuthServiceMock.Setup(x => x.RegisterAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(new AuthResult { Success = true, RequiresEmailVerification = false });
+                .ReturnsAsync(new RegisterResult { Success = true, RequiresEmailVerification = false });
             AuthServiceMock.Setup(x => x.LoginAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()))
-                .ReturnsAsync(new AuthResult { Success = true });
+                .ReturnsAsync(new LoginResult { Success = true });
 
             var component = RenderRegisterForm();
 
@@ -67,7 +67,7 @@ namespace WitchCityRope.Web.Tests.Features.Auth
         {
             // Arrange
             AuthServiceMock.Setup(x => x.RegisterAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(new AuthResult { Success = true, RequiresEmailVerification = true });
+                .ReturnsAsync(new RegisterResult { Success = true, RequiresEmailVerification = true });
 
             var component = RenderRegisterForm();
 
@@ -228,7 +228,7 @@ namespace WitchCityRope.Web.Tests.Features.Auth
         public async Task Register_LoadingState_DisablesFormSubmission()
         {
             // Arrange
-            var tcs = new TaskCompletionSource<AuthResult>();
+            var tcs = new TaskCompletionSource<RegisterResult>();
             AuthServiceMock.Setup(x => x.RegisterAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(tcs.Task);
 
@@ -249,7 +249,7 @@ namespace WitchCityRope.Web.Tests.Features.Auth
             component.Find(".btn-primary-full").TextContent.Should().Contain("Creating Account...");
 
             // Complete the task
-            tcs.SetResult(new AuthResult { Success = true });
+            tcs.SetResult(new RegisterResult { Success = true });
             await submitTask;
         }
 
@@ -258,7 +258,7 @@ namespace WitchCityRope.Web.Tests.Features.Auth
         {
             // Arrange
             AuthServiceMock.Setup(x => x.RegisterAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(new AuthResult { Success = false, Error = "Email already registered" });
+                .ReturnsAsync(new RegisterResult { Success = false, Error = "Email already registered" });
 
             var component = RenderRegisterForm();
 

@@ -1,0 +1,218 @@
+@typeparam TValue
+@inherits InputBase<TValue>
+@implements IAsyncDisposable
+
+<div class="wcr-form-group @(HasError ? "has-error" : "")">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label class="wcr-label">
+            @Label
+            @if (IsRequired)
+            {
+                <span class="wcr-required">*</span>
+            }
+        </label>
+    }
+    
+    <input type="number" 
+           value="@CurrentValueAsString" 
+           @onchange="HandleChange"
+           @attributes="AdditionalAttributes"
+           placeholder="@Placeholder"
+           class="wcr-input"
+           disabled="@IsDisabled"
+           min="@Min"
+           max="@Max"
+           step="@Step" />
+    
+    @if (HasError && !string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="wcr-field-validation">
+            <i class="bi bi-exclamation-circle"></i>
+            <span>@ErrorMessage</span>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = string.Empty;
+    [Parameter] public string Placeholder { get; set; } = string.Empty;
+    [Parameter] public bool IsRequired { get; set; }
+    [Parameter] public bool IsDisabled { get; set; }
+    [Parameter] public decimal? Min { get; set; }
+    [Parameter] public decimal? Max { get; set; }
+    [Parameter] public string Step { get; set; } = "any";
+    
+    private bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+    private string? ErrorMessage;
+    private ValidationMessageStore? messageStore;
+
+    protected override void OnInitialized()
+    {
+        if (EditContext != null)
+        {
+            messageStore = new ValidationMessageStore(EditContext);
+            EditContext.OnValidationStateChanged += HandleValidationStateChanged;
+        }
+    }
+
+    private void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs e)
+    {
+        UpdateErrorState();
+    }
+
+    private void UpdateErrorState()
+    {
+        if (EditContext != null && FieldIdentifier.FieldName != null)
+        {
+            var messages = EditContext.GetValidationMessages(FieldIdentifier);
+            ErrorMessage = messages.FirstOrDefault();
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleChange(ChangeEventArgs e)
+    {
+        if (TryParseValueFromString(e.Value?.ToString(), out var result, out var validationErrorMessage))
+        {
+            CurrentValue = result;
+            if (messageStore != null && EditContext != null && !string.IsNullOrEmpty(validationErrorMessage))
+            {
+                messageStore.Clear(FieldIdentifier);
+                messageStore.Add(FieldIdentifier, validationErrorMessage);
+                EditContext.NotifyValidationStateChanged();
+            }
+        }
+    }
+
+    protected override bool TryParseValueFromString(string? value, out TValue result, out string? validationErrorMessage)
+    {
+        validationErrorMessage = null;
+        
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            result = default!;
+            return true;
+        }
+
+        try
+        {
+            if (typeof(TValue) == typeof(int))
+            {
+                if (int.TryParse(value, out var intValue))
+                {
+                    // Check min/max constraints
+                    if (Min.HasValue && intValue < Min.Value)
+                    {
+                        validationErrorMessage = $"Value must be at least {Min.Value}";
+                        result = default!;
+                        return false;
+                    }
+                    
+                    if (Max.HasValue && intValue > Max.Value)
+                    {
+                        validationErrorMessage = $"Value must be no more than {Max.Value}";
+                        result = default!;
+                        return false;
+                    }
+                    
+                    result = (TValue)(object)intValue;
+                    return true;
+                }
+            }
+            else if (typeof(TValue) == typeof(int?))
+            {
+                if (int.TryParse(value, out var intValue))
+                {
+                    // Check min/max constraints
+                    if (Min.HasValue && intValue < Min.Value)
+                    {
+                        validationErrorMessage = $"Value must be at least {Min.Value}";
+                        result = default!;
+                        return false;
+                    }
+                    
+                    if (Max.HasValue && intValue > Max.Value)
+                    {
+                        validationErrorMessage = $"Value must be no more than {Max.Value}";
+                        result = default!;
+                        return false;
+                    }
+                    
+                    result = (TValue)(object)intValue;
+                    return true;
+                }
+            }
+            else if (typeof(TValue) == typeof(decimal))
+            {
+                if (decimal.TryParse(value, out var decimalValue))
+                {
+                    // Check min/max constraints
+                    if (Min.HasValue && decimalValue < Min.Value)
+                    {
+                        validationErrorMessage = $"Value must be at least {Min.Value}";
+                        result = default!;
+                        return false;
+                    }
+                    
+                    if (Max.HasValue && decimalValue > Max.Value)
+                    {
+                        validationErrorMessage = $"Value must be no more than {Max.Value}";
+                        result = default!;
+                        return false;
+                    }
+                    
+                    result = (TValue)(object)decimalValue;
+                    return true;
+                }
+            }
+            else if (typeof(TValue) == typeof(decimal?))
+            {
+                if (decimal.TryParse(value, out var decimalValue))
+                {
+                    // Check min/max constraints
+                    if (Min.HasValue && decimalValue < Min.Value)
+                    {
+                        validationErrorMessage = $"Value must be at least {Min.Value}";
+                        result = default!;
+                        return false;
+                    }
+                    
+                    if (Max.HasValue && decimalValue > Max.Value)
+                    {
+                        validationErrorMessage = $"Value must be no more than {Max.Value}";
+                        result = default!;
+                        return false;
+                    }
+                    
+                    result = (TValue)(object)decimalValue;
+                    return true;
+                }
+            }
+        }
+        catch
+        {
+            // Fall through to error case
+        }
+
+        result = default!;
+        validationErrorMessage = "Please enter a valid number";
+        return false;
+    }
+
+    protected override string? FormatValueAsString(TValue value)
+    {
+        if (value is null)
+            return string.Empty;
+            
+        return value.ToString() ?? string.Empty;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (EditContext != null)
+        {
+            EditContext.OnValidationStateChanged -= HandleValidationStateChanged;
+        }
+    }
+}

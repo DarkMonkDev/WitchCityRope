@@ -10,7 +10,7 @@ namespace WitchCityRope.Tests.Common.Interfaces
     /// </summary>
     public interface IJwtService
     {
-        Task<JwtToken> GenerateTokenAsync(User user);
+        Task<JwtToken> GenerateTokenAsync(IUser user);
         Task<bool> ValidateTokenAsync(string token);
         Task<Guid?> GetUserIdFromTokenAsync(string token);
         Task<string> GenerateRefreshTokenAsync();
@@ -67,16 +67,16 @@ namespace WitchCityRope.Tests.Common.Interfaces
     /// </summary>
     public interface IUserRepository
     {
-        Task<User?> GetByIdAsync(Guid id);
-        Task<User?> GetByEmailAsync(string email);
-        Task<User?> GetBySceneNameAsync(string sceneName);
+        Task<IUser?> GetByIdAsync(Guid id);
+        Task<IUser?> GetByEmailAsync(string email);
+        Task<IUser?> GetBySceneNameAsync(string sceneName);
         Task<bool> ExistsAsync(Guid id);
         Task<bool> EmailExistsAsync(string email);
         Task<bool> SceneNameExistsAsync(string sceneName);
-        Task<User> CreateAsync(User user);
-        Task<User> UpdateAsync(User user);
+        Task<IUser> CreateAsync(IUser user);
+        Task<IUser> UpdateAsync(IUser user);
         Task DeleteAsync(Guid id);
-        Task<List<User>> GetAllAsync();
+        Task<List<IUser>> GetAllAsync();
         Task<RefreshToken?> GetRefreshTokenAsync(string token);
         Task SaveRefreshTokenAsync(RefreshToken refreshToken);
         Task DeleteRefreshTokenAsync(string token);
@@ -100,7 +100,7 @@ namespace WitchCityRope.Tests.Common.Interfaces
     /// </summary>
     public interface IUserContext
     {
-        Task<User?> GetCurrentUserAsync();
+        Task<IUser?> GetCurrentUserAsync();
         Guid? GetCurrentUserId();
         bool IsAuthenticated();
         bool IsInRole(string role);

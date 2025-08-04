@@ -27,14 +27,32 @@ window.addScrollListener = (dotNetHelper) => {
 
 // Click outside listener for dropdowns
 window.addClickOutsideListener = (dotNetHelper) => {
+    // For details-based dropdown, close when clicking outside
     document.addEventListener('click', (event) => {
-        const userMenu = document.querySelector('.user-menu');
-        const userMenuBtn = document.querySelector('.user-menu-btn');
+        const userMenu = document.querySelector('details.user-menu');
         
-        if (userMenu && !userMenu.contains(event.target)) {
-            dotNetHelper.invokeMethodAsync('OnClickOutside');
+        // If clicking outside the menu and it's open, close it
+        if (userMenu && userMenu.open && !userMenu.contains(event.target)) {
+            userMenu.open = false;
         }
     });
+};
+
+// Setup click outside handler for user menu component
+window.setupClickOutsideHandler = (dotNetHelper, element) => {
+    const clickHandler = (event) => {
+        if (!element.contains(event.target)) {
+            dotNetHelper.invokeMethodAsync('HandleClickOutside');
+        }
+    };
+    
+    // Add slight delay to avoid closing immediately on open
+    setTimeout(() => {
+        document.addEventListener('click', clickHandler);
+    }, 100);
+    
+    // Store the handler so it can be removed later if needed
+    element._clickHandler = clickHandler;
 };
 
 // Copy to clipboard functionality

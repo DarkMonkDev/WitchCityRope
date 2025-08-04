@@ -1,0 +1,187 @@
+@typeparam TValue
+@inherits InputBase<TValue>
+@implements IAsyncDisposable
+@using WitchCityRope.Web.Shared.Validation.Enums
+
+<div class="wcr-form-group @(HasError ? "has-error" : "")">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label class="wcr-label">
+            @Label
+            @if (IsRequired)
+            {
+                <span class="wcr-required">*</span>
+            }
+        </label>
+    }
+    
+    <input type="@GetInputType()" 
+           value="@CurrentValueAsString" 
+           @onchange="HandleChange"
+           @attributes="AdditionalAttributes"
+           placeholder="@Placeholder"
+           class="wcr-input"
+           disabled="@IsDisabled"
+           min="@GetMinValue()"
+           max="@GetMaxValue()" />
+    
+    @if (HasError && !string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="wcr-field-validation">
+            <i class="bi bi-exclamation-circle"></i>
+            <span>@ErrorMessage</span>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = string.Empty;
+    [Parameter] public string Placeholder { get; set; } = string.Empty;
+    [Parameter] public bool IsRequired { get; set; }
+    [Parameter] public bool IsDisabled { get; set; }
+    [Parameter] public WcrDateInputType DateType { get; set; } = WcrDateInputType.DateTimeLocal;
+    [Parameter] public DateTime? Min { get; set; }
+    [Parameter] public DateTime? Max { get; set; }
+    
+    private bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+    private string? ErrorMessage;
+    private ValidationMessageStore? messageStore;
+
+    protected override void OnInitialized()
+    {
+        if (EditContext != null)
+        {
+            messageStore = new ValidationMessageStore(EditContext);
+            EditContext.OnValidationStateChanged += HandleValidationStateChanged;
+        }
+    }
+
+    private void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs e)
+    {
+        UpdateErrorState();
+    }
+
+    private void UpdateErrorState()
+    {
+        if (EditContext != null && FieldIdentifier.FieldName != null)
+        {
+            var messages = EditContext.GetValidationMessages(FieldIdentifier);
+            ErrorMessage = messages.FirstOrDefault();
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleChange(ChangeEventArgs e)
+    {
+        if (TryParseValueFromString(e.Value?.ToString(), out var result, out var validationErrorMessage))
+        {
+            CurrentValue = result;
+            if (messageStore != null && EditContext != null && !string.IsNullOrEmpty(validationErrorMessage))
+            {
+                messageStore.Clear(FieldIdentifier);
+                messageStore.Add(FieldIdentifier, validationErrorMessage);
+                EditContext.NotifyValidationStateChanged();
+            }
+        }
+    }
+
+    private string GetInputType()
+    {
+        return DateType switch
+        {
+            WcrDateInputType.Date => "date",
+            WcrDateInputType.DateTimeLocal => "datetime-local",
+            WcrDateInputType.Month => "month",
+            WcrDateInputType.Time => "time",
+            _ => "datetime-local"
+        };
+    }
+
+    private string? GetMinValue()
+    {
+        if (!Min.HasValue) return null;
+        return FormatDateForType(Min.Value);
+    }
+
+    private string? GetMaxValue()
+    {
+        if (!Max.HasValue) return null;
+        return FormatDateForType(Max.Value);
+    }
+
+    private string FormatDateForType(DateTime date)
+    {
+        return DateType switch
+        {
+            WcrDateInputType.Date => date.ToString("yyyy-MM-dd"),
+            WcrDateInputType.DateTimeLocal => date.ToString("yyyy-MM-ddTHH:mm"),
+            WcrDateInputType.Month => date.ToString("yyyy-MM"),
+            WcrDateInputType.Time => date.ToString("HH:mm"),
+            _ => date.ToString("yyyy-MM-ddTHH:mm")
+        };
+    }
+
+    protected override bool TryParseValueFromString(string? value, out TValue result, out string? validationErrorMessage)
+    {
+        validationErrorMessage = null;
+        
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            result = default!;
+            return true;
+        }
+
+        if (DateTime.TryParse(value, out var parsedValue))
+        {
+            // Check min/max constraints
+            if (Min.HasValue && parsedValue < Min.Value)
+            {
+                validationErrorMessage = $"Date must be after {Min.Value:g}";
+                result = default!;
+                return false;
+            }
+            
+            if (Max.HasValue && parsedValue > Max.Value)
+            {
+                validationErrorMessage = $"Date must be before {Max.Value:g}";
+                result = default!;
+                return false;
+            }
+            
+            if (typeof(TValue) == typeof(DateTime))
+            {
+                result = (TValue)(object)parsedValue;
+                return true;
+            }
+            else if (typeof(TValue) == typeof(DateTime?))
+            {
+                result = (TValue)(object)parsedValue;
+                return true;
+            }
+        }
+
+        result = default!;
+        validationErrorMessage = "Please enter a valid date";
+        return false;
+    }
+
+    protected override string? FormatValueAsString(TValue value)
+    {
+        if (value is null) return string.Empty;
+        
+        if (value is DateTime dateValue)
+        {
+            return FormatDateForType(dateValue);
+        }
+        
+        return string.Empty;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (EditContext != null)
+        {
+            EditContext.OnValidationStateChanged -= HandleValidationStateChanged;
+        }
+    }
+}

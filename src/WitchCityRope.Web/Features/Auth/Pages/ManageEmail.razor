@@ -1,0 +1,525 @@
+@page "/manage-email"
+@page "/identity/account/manage/email"
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Identity.UI.Services
+@using Microsoft.AspNetCore.WebUtilities
+@using System.Text
+@using System.Text.Encodings.Web
+@using System.ComponentModel.DataAnnotations
+@using WitchCityRope.Infrastructure.Identity
+@using WitchCityRope.Web.Shared.Validation.Components
+@using WitchCityRope.Web.Shared.Validation.Services
+@using Microsoft.AspNetCore.Authorization
+
+@inject UserManager<WitchCityRopeUser> UserManager
+@inject IEmailSender EmailSender
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IValidationService ValidationService
+@inject NavigationManager Navigation
+@inject ILogger<ManageEmail> Logger
+
+<PageTitle>Manage Email - Witch City Rope</PageTitle>
+
+<div class="auth-container">
+    <div class="auth-card manage-email-card">
+        <div class="auth-header">
+            <h1 class="auth-title">MANAGE EMAIL</h1>
+            <p class="auth-subtitle">Update your email address or verify your current email.</p>
+        </div>
+
+        @if (showSuccess)
+        {
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle"></i>
+                <span>@successMessage</span>
+            </div>
+        }
+
+        <div class="current-email-section">
+            <label class="form-label">CURRENT EMAIL</label>
+            <div class="current-email-display">
+                <span class="email-text">@currentEmail</span>
+                @if (isEmailConfirmed)
+                {
+                    <span class="email-verified">
+                        <i class="bi bi-check-circle-fill"></i> Verified
+                    </span>
+                }
+                else
+                {
+                    <span class="email-unverified">
+                        <i class="bi bi-exclamation-circle"></i> Not Verified
+                    </span>
+                }
+            </div>
+            
+            @if (!isEmailConfirmed)
+            {
+                <button type="button" class="btn-link resend-btn" @onclick="SendVerificationEmail" disabled="@isSendingVerification">
+                    @if (isSendingVerification)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span>Sending...</span>
+                    }
+                    else
+                    {
+                        <span>Send verification email</span>
+                    }
+                </button>
+            }
+        </div>
+
+        <EditForm Model="emailModel" OnValidSubmit="HandleChangeEmail">
+            <DataAnnotationsValidator />
+            
+            <div class="form-group">
+                <WcrInputEmail @bind-Value="emailModel.NewEmail" 
+                               Placeholder="new@email.com"
+                               Label="NEW EMAIL ADDRESS*"
+                               CheckUniqueness="true"
+                               ExcludeUserId="@currentUser?.Id" />
+            </div>
+
+            <WcrValidationSummary />
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger mt-3">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span>@errorMessage</span>
+                </div>
+            }
+
+            <button type="submit" class="btn-primary change-email-btn" disabled="@isSubmitting">
+                @if (isSubmitting)
+                {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    <span>Updating...</span>
+                }
+                else
+                {
+                    <span>CHANGE EMAIL</span>
+                }
+            </button>
+        </EditForm>
+
+        <div class="email-notice">
+            <i class="bi bi-info-circle"></i>
+            <p>After changing your email, you'll need to verify your new email address. A verification link will be sent to the new address.</p>
+        </div>
+
+        <div class="auth-footer">
+            <p><a href="/member/account" class="auth-link">← Back to Account Settings</a></p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .manage-email-card {
+        max-width: 450px;
+        margin: 0 auto;
+    }
+
+    .auth-subtitle {
+        color: #666;
+        font-size: 0.95rem;
+        margin-bottom: 2rem;
+        line-height: 1.5;
+    }
+
+    .current-email-section {
+        background-color: rgba(0, 0, 0, 0.02);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .current-email-display {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 0.5rem;
+        padding: 0.75rem;
+        background-color: white;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+    }
+
+    .email-text {
+        font-size: 1rem;
+        color: #333;
+    }
+
+    .email-verified {
+        color: #28a745;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .email-unverified {
+        color: #dc3545;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .resend-btn {
+        margin-top: 0.75rem;
+        padding: 0;
+        font-size: 0.9rem;
+        color: var(--primary-color);
+        background: none;
+        border: none;
+        cursor: pointer;
+        text-decoration: underline;
+        transition: color 0.2s ease;
+    }
+
+    .resend-btn:hover:not(:disabled) {
+        color: var(--primary-hover);
+    }
+
+    .resend-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .change-email-btn {
+        width: 100%;
+        padding: 14px;
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        margin-top: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .change-email-btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+    }
+
+    .change-email-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .email-notice {
+        background-color: rgba(13, 110, 253, 0.05);
+        border: 1px solid rgba(13, 110, 253, 0.2);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .email-notice i {
+        color: #0d6efd;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .email-notice p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #084298;
+        line-height: 1.5;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .alert i {
+        font-size: 1.25rem;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .alert-success {
+        background-color: rgba(40, 167, 69, 0.1);
+        border: 1px solid rgba(40, 167, 69, 0.2);
+        color: #155724;
+    }
+
+    .alert-success i {
+        color: #28a745;
+    }
+
+    .alert-danger {
+        background-color: rgba(220, 53, 69, 0.1);
+        border: 1px solid rgba(220, 53, 69, 0.2);
+        color: #721c24;
+    }
+
+    .alert-danger i {
+        color: #dc3545;
+    }
+
+    .auth-footer {
+        margin-top: 2rem;
+        text-align: center;
+    }
+
+    .auth-footer p {
+        margin: 0.5rem 0;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .auth-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .auth-link:hover {
+        color: var(--primary-hover);
+        text-decoration: underline;
+    }
+
+    .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.2rem;
+    }
+
+    /* Dark mode support */
+    @@media (prefers-color-scheme: dark) {
+        .manage-email-card {
+            background-color: #1a1a1a;
+            border-color: #333;
+        }
+
+        .auth-subtitle {
+            color: #999;
+        }
+
+        .current-email-section {
+            background-color: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .current-email-display {
+            background-color: #222;
+            border-color: #444;
+        }
+
+        .email-text {
+            color: #ddd;
+        }
+
+        .email-notice {
+            background-color: rgba(13, 110, 253, 0.1);
+            border-color: rgba(13, 110, 253, 0.3);
+        }
+
+        .email-notice p {
+            color: #6ea8fe;
+        }
+
+        .alert-success {
+            background-color: rgba(40, 167, 69, 0.05);
+            border-color: rgba(40, 167, 69, 0.3);
+            color: #5cb85c;
+        }
+
+        .alert-danger {
+            background-color: rgba(220, 53, 69, 0.05);
+            border-color: rgba(220, 53, 69, 0.3);
+            color: #e74c3c;
+        }
+
+        .auth-footer p {
+            color: #999;
+        }
+    }
+</style>
+
+@code {
+    private EmailModel emailModel = new();
+    private WitchCityRopeUser? currentUser;
+    private string currentEmail = string.Empty;
+    private bool isEmailConfirmed = false;
+    private bool isSubmitting = false;
+    private bool isSendingVerification = false;
+    private bool showSuccess = false;
+    private string? successMessage;
+    private string? errorMessage;
+
+    public class EmailModel
+    {
+        [Required(ErrorMessage = "Email address is required")]
+        [EmailAddress(ErrorMessage = "Please enter a valid email address")]
+        public string NewEmail { get; set; } = string.Empty;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Skip auth operations during prerendering
+        if (!OperatingSystem.IsBrowser())
+        {
+            return;
+        }
+        
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState?.User?.Identity?.IsAuthenticated != true)
+        {
+            Navigation.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+
+        currentUser = await UserManager.GetUserAsync(authState.User);
+        if (currentUser == null)
+        {
+            Navigation.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+
+        currentEmail = currentUser.Email ?? string.Empty;
+        isEmailConfirmed = currentUser.EmailConfirmed;
+    }
+
+    private async Task SendVerificationEmail()
+    {
+        if (currentUser == null) return;
+
+        try
+        {
+            isSendingVerification = true;
+            errorMessage = null;
+            StateHasChanged();
+
+            var code = await UserManager.GenerateEmailConfirmationTokenAsync(currentUser);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            
+            var callbackUrl = Navigation.ToAbsoluteUri($"/confirm-email?userId={currentUser.Id}&code={code}").ToString();
+
+            await EmailSender.SendEmailAsync(
+                currentEmail,
+                "Confirm your Witch City Rope email",
+                $@"
+                <h2>Email Verification</h2>
+                <p>Hello {currentUser.SceneNameValue},</p>
+                <p>Please confirm your email address by clicking the link below:</p>
+                <p><a href='{HtmlEncoder.Default.Encode(callbackUrl)}' style='display: inline-block; padding: 10px 20px; background-color: #8B4513; color: white; text-decoration: none; border-radius: 5px;'>Verify Email</a></p>
+                <p>If you didn't request this verification, you can safely ignore this email.</p>
+                <br>
+                <p>Best regards,<br>The Witch City Rope Team</p>
+                ");
+
+            showSuccess = true;
+            successMessage = "Verification email sent! Please check your inbox.";
+            Logger.LogInformation("Verification email sent to {Email}", currentEmail);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error sending verification email");
+            errorMessage = "Failed to send verification email. Please try again.";
+        }
+        finally
+        {
+            isSendingVerification = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleChangeEmail()
+    {
+        if (currentUser == null)
+        {
+            errorMessage = "Session expired. Please refresh the page.";
+            return;
+        }
+
+        try
+        {
+            isSubmitting = true;
+            errorMessage = null;
+            showSuccess = false;
+            StateHasChanged();
+
+            // Check if email is already taken
+            var isUnique = await ValidationService.IsEmailUniqueAsync(emailModel.NewEmail, currentUser.Id);
+            if (!isUnique)
+            {
+                errorMessage = "This email address is already in use.";
+                return;
+            }
+
+            // Check if it's the same as current email
+            if (emailModel.NewEmail.Equals(currentEmail, StringComparison.OrdinalIgnoreCase))
+            {
+                errorMessage = "New email must be different from current email.";
+                return;
+            }
+
+            // Generate email change token
+            var code = await UserManager.GenerateChangeEmailTokenAsync(currentUser, emailModel.NewEmail);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            
+            var callbackUrl = Navigation.ToAbsoluteUri($"/confirm-email-change?userId={currentUser.Id}&email={emailModel.NewEmail}&code={code}").ToString();
+
+            // Send confirmation email to new address
+            await EmailSender.SendEmailAsync(
+                emailModel.NewEmail,
+                "Confirm your new email for Witch City Rope",
+                $@"
+                <h2>Email Change Confirmation</h2>
+                <p>Hello {currentUser.SceneNameValue},</p>
+                <p>You requested to change your email address to this one. Please confirm this change by clicking the link below:</p>
+                <p><a href='{HtmlEncoder.Default.Encode(callbackUrl)}' style='display: inline-block; padding: 10px 20px; background-color: #8B4513; color: white; text-decoration: none; border-radius: 5px;'>Confirm Email Change</a></p>
+                <p>If you didn't request this change, please ignore this email and your email address will remain unchanged.</p>
+                <br>
+                <p>Best regards,<br>The Witch City Rope Team</p>
+                ");
+
+            // Also send notification to old email
+            await EmailSender.SendEmailAsync(
+                currentEmail,
+                "Email change requested for your Witch City Rope account",
+                $@"
+                <h2>Email Change Notice</h2>
+                <p>Hello {currentUser.SceneNameValue},</p>
+                <p>A request was made to change your email address to: {emailModel.NewEmail}</p>
+                <p>If you didn't make this request, please contact us immediately or change your password.</p>
+                <p>The change will not take effect until it's confirmed via the link sent to the new email address.</p>
+                <br>
+                <p>Best regards,<br>The Witch City Rope Team</p>
+                ");
+
+            showSuccess = true;
+            successMessage = $"Confirmation email sent to {emailModel.NewEmail}. Please check your inbox to complete the change.";
+            emailModel = new(); // Clear form
+            
+            Logger.LogInformation("Email change requested for user {UserId} from {OldEmail} to {NewEmail}", 
+                currentUser.Id, currentEmail, emailModel.NewEmail);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error during email change request");
+            errorMessage = "An error occurred while processing your request. Please try again.";
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+}

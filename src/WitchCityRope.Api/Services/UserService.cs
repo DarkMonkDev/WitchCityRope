@@ -8,10 +8,10 @@ namespace WitchCityRope.Api.Services;
 
 public class UserService : IUserService
 {
-    private readonly WitchCityRopeDbContext _dbContext;
+    private readonly WitchCityRopeIdentityDbContext _dbContext;
     private readonly IPasswordHasher _passwordHasher;
 
-    public UserService(WitchCityRopeDbContext dbContext, IPasswordHasher passwordHasher)
+    public UserService(WitchCityRopeIdentityDbContext dbContext, IPasswordHasher passwordHasher)
     {
         _dbContext = dbContext;
         _passwordHasher = passwordHasher;
@@ -29,7 +29,7 @@ public class UserService : IUserService
         return new UserProfileDto
         {
             Id = user.Id,
-            Email = user.Email.Value,
+            Email = user.Email,
             SceneName = user.SceneName.Value,
             Bio = "", // TODO: Add user profile extension
             Pronouns = "", // TODO: Add user profile extension

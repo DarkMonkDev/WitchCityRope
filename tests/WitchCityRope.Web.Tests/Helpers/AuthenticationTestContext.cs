@@ -5,6 +5,7 @@ using Bunit;
 using Bunit.TestDoubles;
 using Moq;
 using WitchCityRope.Web.Services;
+using WitchCityRope.Core.DTOs;
 
 namespace WitchCityRope.Web.Tests.Helpers
 {
@@ -40,7 +41,7 @@ namespace WitchCityRope.Web.Tests.Helpers
             var principal = new ClaimsPrincipal(identity);
 
             var authContext = context.AddTestAuthorization();
-            authContext.SetAuthorized(principal);
+            authContext.SetAuthorized(sceneName);
 
             return authContext;
         }
@@ -68,12 +69,12 @@ namespace WitchCityRope.Web.Tests.Helpers
             if (isAuthenticated)
             {
                 mock.Setup(x => x.GetCurrentUserAsync())
-                    .ReturnsAsync(new WitchCityRope.Web.Models.UserDto
+                    .ReturnsAsync(new UserDto
                     {
-                        Id = "test-user-id",
+                        Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
                         Email = "test@example.com",
                         SceneName = "TestUser",
-                        Roles = new[] { "Member" }
+                        Roles = new List<string> { "Member" }
                     });
             }
 

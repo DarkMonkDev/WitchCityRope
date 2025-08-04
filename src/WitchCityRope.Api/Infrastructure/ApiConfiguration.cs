@@ -155,21 +155,62 @@ public static class ApiConfiguration
 
         services.AddAuthorization(options =>
         {
-            // Define authorization policies
+            // Base Identity policies
+            options.AddPolicy("AgeVerified", policy =>
+                policy.RequireAssertion(context =>
+                {
+                    var user = context.User;
+                    if (user.Identity?.IsAuthenticated != true)
+                        return false;
+                    return true; // Age is validated during registration
+                }));
+
+            options.AddPolicy("VettedUser", policy =>
+                policy.RequireClaim("IsVetted", "True"));
+
+            // Role-based policies
+            options.AddPolicy("AttendeeOnly", policy =>
+                policy.RequireRole("Attendee", "Member", "Organizer", "Moderator", "Administrator"));
+
+            options.AddPolicy("MemberOnly", policy =>
+                policy.RequireRole("Member", "Organizer", "Moderator", "Administrator"));
+
+            options.AddPolicy("OrganizerOnly", policy =>
+                policy.RequireRole("Organizer", "Moderator", "Administrator"));
+
+            options.AddPolicy("ModeratorOnly", policy =>
+                policy.RequireRole("Moderator", "Administrator"));
+
+            options.AddPolicy("AdministratorOnly", policy =>
+                policy.RequireRole("Administrator"));
+
+            // Event management policy
+            options.AddPolicy("CanManageEvents", policy =>
+                policy.RequireRole("Organizer", "Moderator", "Administrator"));
+
+            // Vetting review policy
+            options.AddPolicy("CanReviewVetting", policy =>
+                policy.RequireRole("Moderator", "Administrator"));
+
+            // Incident management policy
+            options.AddPolicy("CanManageIncidents", policy =>
+                policy.RequireRole("Moderator", "Administrator"));
+
+            // API-specific policies
             options.AddPolicy("RequireVettedMember", policy =>
                 policy.RequireRole("Member").RequireClaim("IsVetted", "true"));
             
             options.AddPolicy("RequireOrganizer", policy =>
-                policy.RequireRole("Organizer", "Admin"));
+                policy.RequireRole("Organizer", "Administrator"));
             
             options.AddPolicy("RequireVettingTeam", policy =>
-                policy.RequireRole("VettingTeam", "Admin"));
+                policy.RequireRole("Moderator", "Administrator"));
             
             options.AddPolicy("RequireSafetyTeam", policy =>
-                policy.RequireRole("SafetyTeam", "Admin"));
+                policy.RequireRole("Moderator", "Administrator"));
             
             options.AddPolicy("RequireAdmin", policy =>
-                policy.RequireRole("Admin"));
+                policy.RequireRole("Administrator"));
         });
 
         return services;
@@ -183,7 +224,7 @@ public static class ApiConfiguration
         var connectionString = configuration.GetConnectionString("DefaultConnection") 
             ?? "Host=localhost;Database=witchcityrope_db;Username=postgres;Password=your_password_here";
         
-        services.AddDbContext<WitchCityRopeDbContext>(options =>
+        services.AddDbContext<WitchCityRopeIdentityDbContext>(options =>
         {
             options.UseNpgsql(connectionString);
             
@@ -333,7 +374,11 @@ public static class ApiConfiguration
         });
 
         // Core middleware
-        app.UseHttpsRedirection();
+        // Only use HTTPS redirection in production (not in development or testing)
+        if (!app.Environment.IsDevelopment() && app.Environment.EnvironmentName != "Testing" && app.Environment.EnvironmentName != "Test")
+        {
+            app.UseHttpsRedirection();
+        }
         app.UseResponseCompression();
         
         // CORS

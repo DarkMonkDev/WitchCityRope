@@ -1,0 +1,261 @@
+/* Missing Styles for Identity Login Page */
+/* Copy these styles to match the old Blazor login page appearance */
+
+/* 1. Fix Background Shapes - Reduce blur and opacity */
+.wcr-bg-shape-1 {
+    filter: blur(60px) !important; /* was 100px */
+    opacity: 0.1 !important; /* was 0.15 */
+    background: radial-gradient(circle, var(--wcr-color-plum) 0%, transparent 70%) !important; /* swap colors */
+}
+
+.wcr-bg-shape-2 {
+    filter: blur(50px) !important; /* was 100px */
+    opacity: 0.08 !important; /* was 0.15 */
+    background: radial-gradient(circle, var(--wcr-color-burgundy) 0%, transparent 70%) !important; /* swap colors */
+}
+
+/* 2. Fix Card Background Color */
+.wcr-auth-card {
+    background: var(--wcr-color-ivory) !important; /* was white */
+    border-radius: 24px !important; /* explicit value like old page */
+}
+
+/* 3. Fix Header Gradient and Styling */
+.wcr-auth-header {
+    background: linear-gradient(135deg, var(--wcr-color-burgundy) 0%, var(--wcr-color-plum) 100%) !important;
+    padding: var(--wcr-space-2xl) var(--wcr-space-xl) var(--wcr-space-xl) !important;
+}
+
+.wcr-auth-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    transform: rotate(45deg);
+}
+
+.wcr-auth-subtitle {
+    color: var(--wcr-color-dusty-rose) !important;
+    font-size: 16px !important;
+}
+
+.wcr-auth-title {
+    font-size: 32px !important;
+    color: var(--wcr-color-ivory) !important;
+}
+
+/* 4. Fix Age Notice with Gradient */
+.wcr-age-notice {
+    background: linear-gradient(135deg, var(--wcr-color-burgundy-light) 0%, var(--wcr-color-burgundy) 100%) !important;
+    color: var(--wcr-color-ivory) !important;
+    font-size: 14px !important;
+}
+
+/* 5. Fix Tab Navigation */
+.wcr-auth-tabs {
+    background: var(--wcr-color-cream) !important;
+    border-bottom: 1px solid var(--wcr-color-taupe) !important;
+}
+
+.wcr-auth-tab {
+    font-size: 16px !important;
+    transition: all 0.3s ease !important;
+}
+
+.wcr-auth-tab::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--wcr-color-burgundy);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.wcr-auth-tab-active::after {
+    transform: scaleX(1) !important;
+    bottom: -1px !important;
+    height: 3px !important;
+}
+
+/* 6. Fix Form Container Padding */
+.wcr-form-container {
+    padding: var(--wcr-space-xl) !important;
+}
+
+/* 7. Fix Form Labels */
+.wcr-form-label {
+    font-family: var(--wcr-font-heading) !important;
+    font-size: 14px !important;
+    color: var(--wcr-color-smoke) !important;
+}
+
+/* 8. Fix Input Styling */
+.wcr-input {
+    border: 2px solid var(--wcr-color-taupe) !important;
+    border-radius: 8px !important;
+    background: var(--wcr-color-ivory) !important;
+    color: var(--wcr-color-charcoal) !important;
+    font-size: 16px !important;
+    padding: var(--wcr-space-sm) var(--wcr-space-md) !important;
+}
+
+.wcr-input:focus {
+    border-color: var(--wcr-color-burgundy) !important;
+    box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.1) !important;
+}
+
+.wcr-input::placeholder {
+    color: var(--wcr-color-stone) !important;
+    opacity: 0.7;
+}
+
+/* 9. Fix Button Styling */
+.wcr-btn-primary {
+    margin-top: var(--wcr-space-lg) !important;
+    background: var(--wcr-gradient-primary) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.5px !important;
+    font-weight: 600 !important;
+    padding: var(--wcr-space-md) !important;
+}
+
+/* 10. Google OAuth Button */
+.wcr-btn-oauth {
+    margin-bottom: var(--wcr-space-md);
+    background: white !important;
+    border: 2px solid var(--wcr-color-taupe) !important;
+    color: var(--wcr-color-charcoal) !important;
+    font-weight: 600 !important;
+    font-size: 16px !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+}
+
+.wcr-btn-oauth:hover {
+    background: var(--wcr-color-cream) !important;
+    border-color: var(--wcr-color-stone) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 11. Fix Divider */
+.wcr-divider {
+    margin: var(--wcr-space-lg) 0 !important;
+}
+
+.wcr-divider::before {
+    background: var(--wcr-color-taupe) !important;
+}
+
+.wcr-divider span {
+    background: var(--wcr-color-ivory) !important;
+    font-size: 14px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+/* 12. Add Footer Styling */
+.wcr-auth-footer {
+    background: var(--wcr-color-cream);
+    border-top: 1px solid var(--wcr-color-taupe) !important;
+    padding: var(--wcr-space-md) !important;
+    margin: 0 !important;
+    margin-top: 0 !important;
+}
+
+.wcr-form-container {
+    padding-bottom: 0 !important;
+}
+
+.wcr-auth-footer p {
+    font-size: 14px !important;
+    color: var(--wcr-color-stone) !important;
+    margin: var(--wcr-space-xs) 0 !important;
+}
+
+/* 13. Fix Checkbox Styling */
+.wcr-checkbox {
+    width: 18px !important;
+    height: 18px !important;
+    border-radius: 4px !important;
+    accent-color: var(--wcr-color-burgundy);
+}
+
+.wcr-checkbox-label {
+    font-size: 14px !important;
+    color: var(--wcr-color-smoke) !important;
+}
+
+/* 14. Loading State for Button */
+.wcr-btn-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.wcr-btn-loading {
+    position: relative;
+}
+
+.wcr-btn-loading::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 3px solid var(--wcr-color-midnight);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+@keyframes spin {
+    to { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* 15. Validation Message Styling */
+.wcr-validation-message {
+    color: var(--wcr-color-error) !important;
+    font-size: 12px !important;
+    margin-top: var(--wcr-space-xs) !important;
+}
+
+.wcr-validation-summary {
+    background: rgba(220, 20, 60, 0.1) !important;
+    border: 1px solid var(--wcr-color-error) !important;
+    color: var(--wcr-color-error) !important;
+    padding: var(--wcr-space-sm) var(--wcr-space-md) !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+}
+
+/* 16. Responsive Adjustments */
+@media (max-width: 768px) {
+    .wcr-auth-title {
+        font-size: 28px !important;
+    }
+    
+    .wcr-form-container {
+        padding: var(--wcr-space-lg) !important;
+    }
+    
+    .wcr-auth-card {
+        border-radius: 24px !important; /* maintain radius on mobile */
+    }
+}
+
+/* 17. Move footer outside form container structure */
+.wcr-auth-card > .wcr-form-container {
+    border-bottom: 1px solid var(--wcr-color-taupe);
+}
+
+/* 18. Fix auth page background */
+.wcr-auth-page {
+    background-color: var(--wcr-color-cream) !important;
+}

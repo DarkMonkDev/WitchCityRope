@@ -1,0 +1,599 @@
+@page "/member/tickets"
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@using WitchCityRope.Web.Services
+@using WitchCityRope.Web.Shared.Layouts
+@using Microsoft.AspNetCore.Authorization
+@inject IApiClient ApiClient
+@inject IToastService ToastService
+@inject NavigationManager Navigation
+@attribute [Authorize]
+@layout MainLayout
+
+<PageTitle>My Tickets - Witch City Rope</PageTitle>
+
+<style>
+    .tickets-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .tickets-header {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .tickets-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+    }
+
+    .tickets-subtitle {
+        color: #666;
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .tickets-tabs {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .tab-button {
+        padding: 0.75rem 1.5rem;
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 6px;
+        color: #666;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .tab-button.active {
+        background: #8B4513;
+        color: white;
+        border-color: #8B4513;
+    }
+
+    .tab-button:hover:not(.active) {
+        border-color: #8B4513;
+        color: #8B4513;
+    }
+
+    .tickets-grid {
+        display: grid;
+        gap: 1.5rem;
+    }
+
+    .ticket-card {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease;
+    }
+
+    .ticket-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .ticket-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .ticket-info {
+        flex: 1;
+    }
+
+    .ticket-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+    }
+
+    .ticket-date {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .ticket-location {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .ticket-status {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-confirmed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-cancelled {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-completed {
+        background: #cce5ff;
+        color: #0056b3;
+    }
+
+    .ticket-details {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #eee;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+    }
+
+    .detail-label {
+        font-weight: 500;
+        color: #333;
+    }
+
+    .detail-value {
+        color: #666;
+    }
+
+    .ticket-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .action-button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+        background: #8B4513;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #6B3410;
+    }
+
+    .btn-secondary {
+        background: #f8f9fa;
+        color: #333;
+        border: 1px solid #dee2e6;
+    }
+
+    .btn-secondary:hover {
+        background: #e9ecef;
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #c82333;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #666;
+    }
+
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #ccc;
+    }
+
+    .empty-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-description {
+        margin-bottom: 1.5rem;
+    }
+
+    .browse-events-btn {
+        background: #8B4513;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .browse-events-btn:hover {
+        background: #6B3410;
+        transform: translateY(-1px);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #8B4513;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    @@media (max-width: 768px) {
+        .tickets-container {
+            padding: 1rem;
+        }
+
+        .tickets-tabs {
+            flex-wrap: wrap;
+        }
+
+        .ticket-header {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .ticket-actions {
+            flex-direction: column;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+
+<div class="tickets-container">
+    <div class="tickets-header">
+        <h1 class="tickets-title">My Tickets</h1>
+        <p class="tickets-subtitle">View and manage your event tickets and registrations</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">@totalTickets</div>
+            <div class="stat-label">Total Tickets</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">@upcomingEvents</div>
+            <div class="stat-label">Upcoming Events</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">@completedEvents</div>
+            <div class="stat-label">Completed Events</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">@totalSpent.ToString("C")</div>
+            <div class="stat-label">Total Spent</div>
+        </div>
+    </div>
+
+    <div class="tickets-tabs">
+        <button class="tab-button @(activeTab == "upcoming" ? "active" : "")" @onclick='() => SetActiveTab("upcoming")'>
+            Upcoming (@upcomingTickets.Count)
+        </button>
+        <button class="tab-button @(activeTab == "past" ? "active" : "")" @onclick='() => SetActiveTab("past")'>
+            Past Events (@pastTickets.Count)
+        </button>
+        <button class="tab-button @(activeTab == "cancelled" ? "active" : "")" @onclick='() => SetActiveTab("cancelled")'>
+            Cancelled (@cancelledTickets.Count)
+        </button>
+    </div>
+
+    <div class="tickets-grid">
+        @if (GetActiveTickets().Any())
+        {
+            @foreach (var ticket in GetActiveTickets())
+            {
+                <div class="ticket-card">
+                    <div class="ticket-header">
+                        <div class="ticket-info">
+                            <h3 class="ticket-title">@ticket.EventTitle</h3>
+                            <div class="ticket-date">@ticket.EventDate.ToString("dddd, MMMM d, yyyy 'at' h:mm tt")</div>
+                            <div class="ticket-location">@ticket.Location</div>
+                        </div>
+                        <div class="ticket-status @GetStatusClass(ticket.Status)">
+                            @ticket.Status
+                        </div>
+                    </div>
+
+                    <div class="ticket-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Ticket Type:</span>
+                            <span class="detail-value">@ticket.TicketType</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Price:</span>
+                            <span class="detail-value">@ticket.Price.ToString("C")</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Purchased:</span>
+                            <span class="detail-value">@ticket.PurchaseDate.ToString("MMM d, yyyy")</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Ticket ID:</span>
+                            <span class="detail-value">#@ticket.TicketId</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-actions">
+                        @if (ticket.Status == "Confirmed" && ticket.EventDate > DateTime.Now)
+                        {
+                            <button class="action-button btn-primary" @onclick="() => ViewEventDetails(ticket.EventId)">
+                                View Event
+                            </button>
+                            <button class="action-button btn-secondary" @onclick="() => DownloadTicket(ticket.TicketId)">
+                                Download Ticket
+                            </button>
+                            <button class="action-button btn-danger" @onclick="() => CancelTicket(ticket.TicketId)">
+                                Cancel
+                            </button>
+                        }
+                        else if (ticket.Status == "Completed")
+                        {
+                            <button class="action-button btn-primary" @onclick="() => ViewEventDetails(ticket.EventId)">
+                                View Event
+                            </button>
+                            <button class="action-button btn-secondary" @onclick="() => DownloadTicket(ticket.TicketId)">
+                                Download Receipt
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="action-button btn-secondary" @onclick="() => ViewEventDetails(ticket.EventId)">
+                                View Event
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-icon">🎫</div>
+                <h3 class="empty-title">No tickets found</h3>
+                <p class="empty-description">
+                    @GetEmptyStateMessage()
+                </p>
+                <button class="browse-events-btn" @onclick='() => Navigation.NavigateTo("/events", forceLoad: true)'>
+                    Browse Events
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private string activeTab = "upcoming";
+    private List<TicketDto> allTickets = new();
+    private List<TicketDto> upcomingTickets = new();
+    private List<TicketDto> pastTickets = new();
+    private List<TicketDto> cancelledTickets = new();
+    
+    private int totalTickets = 0;
+    private int upcomingEvents = 0;
+    private int completedEvents = 0;
+    private decimal totalSpent = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTickets();
+    }
+
+    private async Task LoadTickets()
+    {
+        try
+        {
+            // Mock data - in real implementation, this would call the API
+            allTickets = new List<TicketDto>
+            {
+                new TicketDto
+                {
+                    TicketId = "WCR001",
+                    EventId = 1,
+                    EventTitle = "Shibari Fundamentals Workshop",
+                    EventDate = DateTime.Now.AddDays(7),
+                    Location = "Salem Community Center",
+                    TicketType = "Standard",
+                    Price = 45.00m,
+                    Status = "Confirmed",
+                    PurchaseDate = DateTime.Now.AddDays(-14)
+                },
+                new TicketDto
+                {
+                    TicketId = "WCR002",
+                    EventId = 2,
+                    EventTitle = "Advanced Rope Techniques",
+                    EventDate = DateTime.Now.AddDays(21),
+                    Location = "Salem Community Center",
+                    TicketType = "VIP",
+                    Price = 75.00m,
+                    Status = "Confirmed",
+                    PurchaseDate = DateTime.Now.AddDays(-7)
+                },
+                new TicketDto
+                {
+                    TicketId = "WCR003",
+                    EventId = 3,
+                    EventTitle = "Intro to Rope Bondage",
+                    EventDate = DateTime.Now.AddDays(-30),
+                    Location = "Salem Community Center",
+                    TicketType = "Standard",
+                    Price = 40.00m,
+                    Status = "Completed",
+                    PurchaseDate = DateTime.Now.AddDays(-45)
+                }
+            };
+
+            CategorizeTickets();
+            CalculateStats();
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Failed to load tickets: {ex.Message}");
+        }
+    }
+
+    private void CategorizeTickets()
+    {
+        var now = DateTime.Now;
+        
+        upcomingTickets = allTickets.Where(t => t.EventDate > now && t.Status == "Confirmed").ToList();
+        pastTickets = allTickets.Where(t => t.EventDate <= now || t.Status == "Completed").ToList();
+        cancelledTickets = allTickets.Where(t => t.Status == "Cancelled").ToList();
+    }
+
+    private void CalculateStats()
+    {
+        totalTickets = allTickets.Count;
+        upcomingEvents = upcomingTickets.Count;
+        completedEvents = pastTickets.Count(t => t.Status == "Completed");
+        totalSpent = allTickets.Where(t => t.Status != "Cancelled").Sum(t => t.Price);
+    }
+
+    private void SetActiveTab(string tab)
+    {
+        activeTab = tab;
+    }
+
+    private List<TicketDto> GetActiveTickets()
+    {
+        return activeTab switch
+        {
+            "upcoming" => upcomingTickets,
+            "past" => pastTickets,
+            "cancelled" => cancelledTickets,
+            _ => upcomingTickets
+        };
+    }
+
+    private string GetStatusClass(string status)
+    {
+        return status.ToLower() switch
+        {
+            "confirmed" => "status-confirmed",
+            "pending" => "status-pending",
+            "cancelled" => "status-cancelled",
+            "completed" => "status-completed",
+            _ => "status-pending"
+        };
+    }
+
+    private string GetEmptyStateMessage()
+    {
+        return activeTab switch
+        {
+            "upcoming" => "You don't have any upcoming events. Browse our events to find something interesting!",
+            "past" => "You haven't attended any events yet. Check out our upcoming events to get started!",
+            "cancelled" => "You don't have any cancelled tickets.",
+            _ => "No tickets found."
+        };
+    }
+
+    private void ViewEventDetails(int eventId)
+    {
+        Navigation.NavigateTo($"/events/{eventId}", forceLoad: true);
+    }
+
+    private async Task DownloadTicket(string ticketId)
+    {
+        try
+        {
+            // In real implementation, this would download the ticket
+            ToastService.ShowSuccess("Ticket download started!");
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Failed to download ticket: {ex.Message}");
+        }
+    }
+
+    private async Task CancelTicket(string ticketId)
+    {
+        try
+        {
+            // In real implementation, this would call the API to cancel the ticket
+            var ticket = allTickets.FirstOrDefault(t => t.TicketId == ticketId);
+            if (ticket != null)
+            {
+                ticket.Status = "Cancelled";
+                CategorizeTickets();
+                CalculateStats();
+                ToastService.ShowSuccess("Ticket cancelled successfully!");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Failed to cancel ticket: {ex.Message}");
+        }
+    }
+
+    public class TicketDto
+    {
+        public string TicketId { get; set; } = string.Empty;
+        public int EventId { get; set; }
+        public string EventTitle { get; set; } = string.Empty;
+        public DateTime EventDate { get; set; }
+        public string Location { get; set; } = string.Empty;
+        public string TicketType { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public DateTime PurchaseDate { get; set; }
+    }
+}

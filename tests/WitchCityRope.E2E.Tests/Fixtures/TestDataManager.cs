@@ -1,10 +1,12 @@
 using Bogus;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Core.Entities;
+using WitchCityRope.Infrastructure.Identity;
 using WitchCityRope.Core.ValueObjects;
 using WitchCityRope.Core.Enums;
 using WitchCityRope.E2E.Tests.Infrastructure;
 using WitchCityRope.Api.Services;
+using Microsoft.AspNetCore.Identity;
 
 namespace WitchCityRope.E2E.Tests.Fixtures;
 
@@ -12,7 +14,7 @@ public class TestDataManager
 {
     private readonly DatabaseFixture _databaseFixture;
     private readonly TestDataSettings _settings;
-    private readonly IPasswordHasher _passwordHasher;
+    private readonly Microsoft.AspNetCore.Identity.IPasswordHasher<WitchCityRopeUser> _passwordHasher;
     private readonly List<Guid> _createdUserIds = new();
     private readonly List<Guid> _createdEventIds = new();
 
@@ -20,7 +22,7 @@ public class TestDataManager
     {
         _databaseFixture = databaseFixture;
         _settings = settings;
-        _passwordHasher = new PasswordHasher();
+        _passwordHasher = new PasswordHasher<WitchCityRopeUser>();
     }
 
     public async Task<TestUser> CreateTestUserAsync(
@@ -33,13 +35,19 @@ public class TestDataManager
         email ??= $"{_settings.TestUserPrefix}{faker.Random.AlphaNumeric(8)}@test.com";
         password ??= _settings.DefaultPassword;
 
-        var user = new User(
+        var sceneName = $"Test{faker.Random.AlphaNumeric(6)}";
+        var dateOfBirth = faker.Date.Past(30, DateTime.Now.AddYears(-21)); // Generate age between 21-51
+        
+        var user = WitchCityRope.Tests.Common.Factories.TestUserFactory.CreateTestUser(
+            email: email,
+            sceneName: sceneName,
             encryptedLegalName: faker.Name.FullName(), // Note: In production this should be encrypted
-            sceneName: SceneName.Create($"Test{faker.Random.AlphaNumeric(6)}"),
-            email: EmailAddress.Create(email),
-            dateOfBirth: faker.Date.Past(30, DateTime.Now.AddYears(-21)), // Generate age between 21-51
-            role: UserRole.Attendee
-        );
+            dateOfBirth: dateOfBirth,
+            role: UserRole.Attendee,
+            isActive: true,
+            isVetted: isVetted,
+            emailConfirmed: isVerified,
+            passwordHash: _passwordHasher.HashPassword(new WitchCityRopeUser(), password));
 
         if (isVetted)
         {
@@ -88,7 +96,7 @@ public class TestDataManager
             eventType: EventType.Workshop, // Default to workshop for tests
             location: faker.Address.FullAddress(),
             primaryOrganizer: organizerEntity,
-            pricingTiers: new[] { Money.Create("USD", price.Value) }
+            pricingTiers: new[] { Money.Create(price.Value, "USD") }
         );
         
         // Publish the event
@@ -104,7 +112,7 @@ public class TestDataManager
             Id = eventEntity.Id,
             Title = eventEntity.Title,
             StartDate = eventEntity.StartDate,
-            Price = eventEntity.Price.Amount,
+            Price = eventEntity.PricingTiers.FirstOrDefault()?.Amount ?? 0m,
             Capacity = eventEntity.Capacity
         };
     }
@@ -121,7 +129,7 @@ public class TestDataManager
             ?? throw new InvalidOperationException("Event not found");
             
         var selectedPrice = eventEntity.PricingTiers.FirstOrDefault() 
-            ?? Money.Create("USD", 50); // Default price if none found
+            ?? Money.Create(50, "USD"); // Default price if none found
             
         var registration = new Registration(
             user: user,

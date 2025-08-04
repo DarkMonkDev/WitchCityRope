@@ -1,0 +1,1596 @@
+{
+  "config": {
+    "configFile": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/playwright.config.ts",
+    "rootDir": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/helpers/global-setup.ts",
+    "globalTeardown": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/helpers/global-teardown.ts",
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 12
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/home/chad/repos/witchcityrope/WitchCityRope/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 12
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/chad/repos/witchcityrope/WitchCityRope/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 12
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/chad/repos/witchcityrope/WitchCityRope/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 12
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/chad/repos/witchcityrope/WitchCityRope/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 12
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/chad/repos/witchcityrope/WitchCityRope/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 12
+        },
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "changed",
+    "updateSourceMethod": "patch",
+    "version": "1.54.1",
+    "workers": 12,
+    "webServer": {
+      "command": "echo \"Dev server should already be running\"",
+      "port": 5651,
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "admin/admin-dashboard.spec.ts",
+      "file": "admin/admin-dashboard.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Admin Dashboard - Visual Tests",
+          "file": "admin/admin-dashboard.spec.ts",
+          "line": 256,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should match visual snapshot",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "test-id",
+                      "description": "admin-dashboard-visual"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 31030,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/pages/admin-dashboard.page.ts",
+                            "column": 26,
+                            "line": 82
+                          },
+                          "message": "Error: locator.waitFor: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('h1:has-text(\"Admin Dashboard\"), .page-title:has-text(\"Admin\")').first() to be visible\u001b[22m\n\n\n   at pages/admin-dashboard.page.ts:82\n\n  80 |     \n  81 |     // Wait for dashboard to load\n> 82 |     await this.pageTitle.waitFor({ state: 'visible', timeout: testConfig.timeouts.navigation });\n     |                          ^\n  83 |   }\n  84 |\n  85 |   /**\n    at AdminDashboardPage.goto (/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/pages/admin-dashboard.page.ts:82:26)\n    at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/admin/admin-dashboard.spec.ts:268:5"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "🔗 Current URL after login: http://localhost:5651/\n"
+                        },
+                        {
+                          "text": "✅ Login verification successful\n"
+                        },
+                        {
+                          "text": "Not a Blazor page, skipping Blazor initialization wait\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:06:58.251Z",
+                      "annotations": [
+                        {
+                          "type": "test-id",
+                          "description": "admin-dashboard-visual"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/admin-admin-dashboard-Admi-74de8-hould-match-visual-snapshot-Mobile-Safari/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/admin-admin-dashboard-Admi-74de8-hould-match-visual-snapshot-Mobile-Safari/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "356588c3a798a4aafe3b-67407c622c6fab0a405e",
+              "file": "admin/admin-dashboard.spec.ts",
+              "line": 257,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "admin/admin-login-success.spec.ts",
+      "file": "admin/admin-login-success.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Admin Login Success - Visual Verification",
+          "file": "admin/admin-login-success.spec.ts",
+          "line": 277,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should match admin dashboard visual snapshot",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "test-id",
+                      "description": "admin-dashboard-visual-snapshot"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "timedOut",
+                      "duration": 31034,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/pages/admin-dashboard.page.ts",
+                            "column": 26,
+                            "line": 82
+                          },
+                          "message": "Error: locator.waitFor: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('h1:has-text(\"Admin Dashboard\"), .page-title:has-text(\"Admin\")').first() to be visible\u001b[22m\n\n\n   at pages/admin-dashboard.page.ts:82\n\n  80 |     \n  81 |     // Wait for dashboard to load\n> 82 |     await this.pageTitle.waitFor({ state: 'visible', timeout: testConfig.timeouts.navigation });\n     |                          ^\n  83 |   }\n  84 |\n  85 |   /**\n    at AdminDashboardPage.goto (/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/pages/admin-dashboard.page.ts:82:26)\n    at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/admin/admin-login-success.spec.ts:290:5"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "🔗 Current URL after login: http://localhost:5651/\n"
+                        },
+                        {
+                          "text": "✅ Login verification successful\n"
+                        },
+                        {
+                          "text": "Not a Blazor page, skipping Blazor initialization wait\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:06:58.227Z",
+                      "annotations": [
+                        {
+                          "type": "test-id",
+                          "description": "admin-dashboard-visual-snapshot"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/admin-admin-login-success--dcf45-n-dashboard-visual-snapshot-Mobile-Safari/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/admin-admin-login-success--dcf45-n-dashboard-visual-snapshot-Mobile-Safari/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "ec59fa992b4efb3950e7-2cb93fc268108869681b",
+              "file": "admin/admin-login-success.spec.ts",
+              "line": 278,
+              "column": 7
+            },
+            {
+              "title": "should match admin events visual snapshot",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "test-id",
+                      "description": "admin-events-visual-snapshot"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "timedOut",
+                      "duration": 31055,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/pages/admin-events.page.ts",
+                            "column": 26,
+                            "line": 122
+                          },
+                          "message": "Error: locator.waitFor: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('h1:has-text(\"Events\"), .page-title:has-text(\"Event Management\")').first() to be visible\u001b[22m\n\n\n   at pages/admin-events.page.ts:122\n\n  120 |     \n  121 |     // Wait for events table to load\n> 122 |     await this.pageTitle.waitFor({ state: 'visible', timeout: testConfig.timeouts.navigation });\n      |                          ^\n  123 |   }\n  124 |\n  125 |   /**\n    at AdminEventsPage.goto (/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/pages/admin-events.page.ts:122:26)\n    at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/admin/admin-login-success.spec.ts:315:5"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "🔗 Current URL after login: http://localhost:5651/\n"
+                        },
+                        {
+                          "text": "✅ Login verification successful\n"
+                        },
+                        {
+                          "text": "Not a Blazor page, skipping Blazor initialization wait\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:06:58.316Z",
+                      "annotations": [
+                        {
+                          "type": "test-id",
+                          "description": "admin-events-visual-snapshot"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/admin-admin-login-success--0b78f-dmin-events-visual-snapshot-Mobile-Safari/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/admin-admin-login-success--0b78f-dmin-events-visual-snapshot-Mobile-Safari/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "ec59fa992b4efb3950e7-0abb42315ab529c66d6c",
+              "file": "admin/admin-login-success.spec.ts",
+              "line": 303,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "auth/login-basic.spec.ts",
+      "file": "auth/login-basic.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Login Page - Visual Regression",
+          "file": "auth/login-basic.spec.ts",
+          "line": 168,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should match visual snapshot",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 1675,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Not a Blazor page, skipping Blazor initialization wait\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:06:58.294Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d1badfe87d8fc42c2848-b3cc0b846d08b5a2680b",
+              "file": "auth/login-basic.spec.ts",
+              "line": 169,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "auth/register-basic.spec.ts",
+      "file": "auth/register-basic.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Register Page - Visual Tests",
+          "file": "auth/register-basic.spec.ts",
+          "line": 409,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should match visual snapshot",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "test-id",
+                      "description": "visual-snapshot"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "timedOut",
+                      "duration": 31217,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/pages/register.page.ts",
+                            "column": 27,
+                            "line": 69
+                          },
+                          "message": "Error: locator.waitFor: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"Input.Email\"]') to be visible\u001b[22m\n\n\n   at pages/register.page.ts:69\n\n  67 |     \n  68 |     // Wait for register form to be visible\n> 69 |     await this.emailInput.waitFor({ state: 'visible', timeout: testConfig.timeouts.navigation });\n     |                           ^\n  70 |   }\n  71 |\n  72 |   /**\n    at RegisterPage.goto (/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/pages/register.page.ts:69:27)\n    at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/auth/register-basic.spec.ts:414:5"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:06:58.293Z",
+                      "annotations": [
+                        {
+                          "type": "test-id",
+                          "description": "visual-snapshot"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/auth-register-basic-Regist-a29a6-hould-match-visual-snapshot-Mobile-Safari/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/auth-register-basic-Regist-a29a6-hould-match-visual-snapshot-Mobile-Safari/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/auth-register-basic-Regist-a29a6-hould-match-visual-snapshot-Mobile-Safari/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "24e668f6d87d6bff939b-cde688c9b65dfef437bb",
+              "file": "auth/register-basic.spec.ts",
+              "line": 410,
+              "column": 7
+            },
+            {
+              "title": "should show proper error styling",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "test-id",
+                      "description": "error-styling"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "timedOut",
+                      "duration": 31201,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/pages/register.page.ts",
+                            "column": 27,
+                            "line": 69
+                          },
+                          "message": "Error: locator.waitFor: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"Input.Email\"]') to be visible\u001b[22m\n\n\n   at pages/register.page.ts:69\n\n  67 |     \n  68 |     // Wait for register form to be visible\n> 69 |     await this.emailInput.waitFor({ state: 'visible', timeout: testConfig.timeouts.navigation });\n     |                           ^\n  70 |   }\n  71 |\n  72 |   /**\n    at RegisterPage.goto (/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/pages/register.page.ts:69:27)\n    at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/auth/register-basic.spec.ts:430:5"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:06:58.271Z",
+                      "annotations": [
+                        {
+                          "type": "test-id",
+                          "description": "error-styling"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/auth-register-basic-Regist-288ad-d-show-proper-error-styling-Mobile-Safari/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/auth-register-basic-Regist-288ad-d-show-proper-error-styling-Mobile-Safari/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/auth-register-basic-Regist-288ad-d-show-proper-error-styling-Mobile-Safari/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "24e668f6d87d6bff939b-29bd4b0b002168289960",
+              "file": "auth/register-basic.spec.ts",
+              "line": 426,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "events/event-creation.spec.ts",
+      "file": "events/event-creation.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Event Creation - Visual Regression",
+          "file": "events/event-creation.spec.ts",
+          "line": 242,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should match visual snapshot of create event form",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 6,
+                      "status": "timedOut",
+                      "duration": 31186,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/pages/event.page.ts",
+                            "column": 26,
+                            "line": 101
+                          },
+                          "message": "Error: locator.waitFor: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.event-editor-container, form[class*=\"event\"]').first() to be visible\u001b[22m\n\n\n   at pages/event.page.ts:101\n\n   99 |     await this.page.goto(`${testConfig.urls.admin}/events/new-standardized`);\n  100 |     await BlazorHelpers.waitForBlazorReady(this.page);\n> 101 |     await this.eventForm.waitFor({ state: 'visible', timeout: testConfig.timeouts.navigation });\n      |                          ^\n  102 |   }\n  103 |\n  104 |   /**\n    at EventPage.gotoCreateEvent (/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/pages/event.page.ts:101:26)\n    at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/events/event-creation.spec.ts:250:5"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Not a Blazor page, skipping Blazor initialization wait\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:06:58.270Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/events-event-creation-Even-2f763-apshot-of-create-event-form-Mobile-Safari/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/events-event-creation-Even-2f763-apshot-of-create-event-form-Mobile-Safari/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "334e5a54560b390ccce9-c955695344e2e383c25e",
+              "file": "events/event-creation.spec.ts",
+              "line": 243,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "events/event-display.spec.ts",
+      "file": "events/event-display.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Event Display - Visual Regression",
+          "file": "events/event-display.spec.ts",
+          "line": 362,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should match visual snapshot of events list",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 7,
+                      "status": "passed",
+                      "duration": 6166,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Not a Blazor page, skipping Blazor initialization wait\n"
+                        },
+                        {
+                          "text": "Not a Blazor page, skipping Blazor initialization wait\n"
+                        },
+                        {
+                          "text": "A snapshot doesn't exist at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/events/event-display.spec.ts-snapshots/events-list-Mobile-Safari-linux.png, writing actual.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:06:58.261Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "events-list-expected.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/events/event-display.spec.ts-snapshots/events-list-Mobile-Safari-linux.png"
+                        },
+                        {
+                          "name": "events-list-actual.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/events-event-display-Event-8a9d3-ual-snapshot-of-events-list-Mobile-Safari/events-list-actual.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c749a6b801d5ab396f82-750fceaf9d314c0fa616",
+              "file": "events/event-display.spec.ts",
+              "line": 363,
+              "column": 7
+            },
+            {
+              "title": "should match visual snapshot of public events page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 8,
+                      "status": "passed",
+                      "duration": 3749,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "A snapshot doesn't exist at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/events/event-display.spec.ts-snapshots/events-public-Mobile-Safari-linux.png, writing actual.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:06:58.268Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "events-public-expected.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/events/event-display.spec.ts-snapshots/events-public-Mobile-Safari-linux.png"
+                        },
+                        {
+                          "name": "events-public-actual.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/events-event-display-Event-7749a-pshot-of-public-events-page-Mobile-Safari/events-public-actual.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c749a6b801d5ab396f82-4a45ad0f3762755d60b5",
+              "file": "events/event-display.spec.ts",
+              "line": 381,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "specs/visual/example.visual.spec.ts",
+      "file": "specs/visual/example.visual.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Visual Regression Example",
+          "file": "specs/visual/example.visual.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "homepage visual test",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 9,
+                      "status": "passed",
+                      "duration": 7533,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "A snapshot doesn't exist at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/homepage-full-Mobile-Safari-linux.png, writing actual.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:06:58.260Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "homepage-full-expected.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/homepage-full-Mobile-Safari-linux.png"
+                        },
+                        {
+                          "name": "homepage-full-actual.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/specs-visual-example.visua-30c95-xample-homepage-visual-test-Mobile-Safari/homepage-full-actual.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "edbe2cd964dad073eb0f-ae9bbebfde8512278c42",
+              "file": "specs/visual/example.visual.spec.ts",
+              "line": 21,
+              "column": 7
+            },
+            {
+              "title": "homepage header visual test",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 10,
+                      "status": "passed",
+                      "duration": 5163,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "A snapshot doesn't exist at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/homepage-header-Mobile-Safari-linux.png, writing actual.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:06:58.244Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "homepage-header-expected.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/homepage-header-Mobile-Safari-linux.png"
+                        },
+                        {
+                          "name": "homepage-header-actual.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/specs-visual-example.visua-ddf8c-homepage-header-visual-test-Mobile-Safari/homepage-header-actual.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "edbe2cd964dad073eb0f-de3c21fe5e2722ef4160",
+              "file": "specs/visual/example.visual.spec.ts",
+              "line": 34,
+              "column": 7
+            },
+            {
+              "title": "homepage with masked dynamic content",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 11,
+                      "status": "passed",
+                      "duration": 7703,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "A snapshot doesn't exist at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/homepage-masked-Mobile-Safari-linux.png, writing actual.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:06:58.306Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "homepage-masked-expected.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/homepage-masked-Mobile-Safari-linux.png"
+                        },
+                        {
+                          "name": "homepage-masked-actual.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/specs-visual-example.visua-6ccdd-with-masked-dynamic-content-Mobile-Safari/homepage-masked-actual.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "edbe2cd964dad073eb0f-a569141997ea64b0954d",
+              "file": "specs/visual/example.visual.spec.ts",
+              "line": 43,
+              "column": 7
+            },
+            {
+              "title": "responsive design - mobile view",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 7329,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "A snapshot doesn't exist at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/homepage-mobile-Mobile-Safari-linux.png, writing actual.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:07:00.115Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "homepage-mobile-expected.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/homepage-mobile-Mobile-Safari-linux.png"
+                        },
+                        {
+                          "name": "homepage-mobile-actual.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/specs-visual-example.visua-b2772-onsive-design---mobile-view-Mobile-Safari/homepage-mobile-actual.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "edbe2cd964dad073eb0f-1779aa07c35f8d61723d",
+              "file": "specs/visual/example.visual.spec.ts",
+              "line": 58,
+              "column": 7
+            },
+            {
+              "title": "responsive design - tablet view",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 8,
+                      "status": "passed",
+                      "duration": 5874,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "A snapshot doesn't exist at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/homepage-tablet-Mobile-Safari-linux.png, writing actual.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:07:02.135Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "homepage-tablet-expected.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/homepage-tablet-Mobile-Safari-linux.png"
+                        },
+                        {
+                          "name": "homepage-tablet-actual.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/specs-visual-example.visua-14f6f-onsive-design---tablet-view-Mobile-Safari/homepage-tablet-actual.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "edbe2cd964dad073eb0f-254b35bfe93ecec21f58",
+              "file": "specs/visual/example.visual.spec.ts",
+              "line": 70,
+              "column": 7
+            },
+            {
+              "title": "dark mode visual test",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 10,
+                      "status": "passed",
+                      "duration": 4251,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "A snapshot doesn't exist at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/homepage-dark-mode-Mobile-Safari-linux.png, writing actual.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:07:03.525Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "homepage-dark-mode-expected.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/homepage-dark-mode-Mobile-Safari-linux.png"
+                        },
+                        {
+                          "name": "homepage-dark-mode-actual.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/specs-visual-example.visua-d373b-ample-dark-mode-visual-test-Mobile-Safari/homepage-dark-mode-actual.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "edbe2cd964dad073eb0f-a205c51be0614bdab819",
+              "file": "specs/visual/example.visual.spec.ts",
+              "line": 82,
+              "column": 7
+            },
+            {
+              "title": "form states visual test",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 7,
+                      "status": "failed",
+                      "duration": 11822,
+                      "error": {
+                        "message": "TimeoutError: page.focus: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"text\"]')\u001b[22m\n",
+                        "stack": "TimeoutError: page.focus: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"text\"]')\u001b[22m\n\n    at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts:110:16",
+                        "location": {
+                          "file": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts",
+                          "column": 16,
+                          "line": 110
+                        },
+                        "snippet": "  108 |     \n  109 |     // Focus state\n> 110 |     await page.focus('input[type=\"text\"]');\n      |                ^\n  111 |     await expect(page).toHaveScreenshot('form-focused.png');\n  112 |     \n  113 |     // Error state (trigger validation)"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts",
+                            "column": 16,
+                            "line": 110
+                          },
+                          "message": "TimeoutError: page.focus: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"text\"]')\u001b[22m\n\n\n  108 |     \n  109 |     // Focus state\n> 110 |     await page.focus('input[type=\"text\"]');\n      |                ^\n  111 |     await expect(page).toHaveScreenshot('form-focused.png');\n  112 |     \n  113 |     // Error state (trigger validation)\n    at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts:110:16"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "A snapshot doesn't exist at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/form-normal-Mobile-Safari-linux.png, writing actual.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:07:04.549Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "form-normal-expected.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/form-normal-Mobile-Safari-linux.png"
+                        },
+                        {
+                          "name": "form-normal-actual.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/specs-visual-example.visua-a4d68-ple-form-states-visual-test-Mobile-Safari/form-normal-actual.png"
+                        },
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/specs-visual-example.visua-a4d68-ple-form-states-visual-test-Mobile-Safari/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/specs-visual-example.visua-a4d68-ple-form-states-visual-test-Mobile-Safari/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/specs-visual-example.visua-a4d68-ple-form-states-visual-test-Mobile-Safari/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts",
+                        "column": 16,
+                        "line": 110
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "edbe2cd964dad073eb0f-11c30770a1b269116cd1",
+              "file": "specs/visual/example.visual.spec.ts",
+              "line": 102,
+              "column": 7
+            },
+            {
+              "title": "component isolation visual test",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 9,
+                      "status": "failed",
+                      "duration": 6158,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveScreenshot\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nLocator: locator('.card-component').first()\n  Timeout 5000ms exceeded.\n\n  Snapshot: card-component.png\n\nCall log:\n\u001b[2m  - Expect \"toHaveScreenshot(card-component.png)\" with timeout 5000ms\u001b[22m\n\u001b[2m    - generating new stable screenshot expectation\u001b[22m\n\u001b[2m  - waiting for locator('.card-component').first()\u001b[22m\n\u001b[2m  - Timeout 5000ms exceeded.\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveScreenshot\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nLocator: locator('.card-component').first()\n  Timeout 5000ms exceeded.\n\n  Snapshot: card-component.png\n\nCall log:\n\u001b[2m  - Expect \"toHaveScreenshot(card-component.png)\" with timeout 5000ms\u001b[22m\n\u001b[2m    - generating new stable screenshot expectation\u001b[22m\n\u001b[2m  - waiting for locator('.card-component').first()\u001b[22m\n\u001b[2m  - Timeout 5000ms exceeded.\u001b[22m\n\n    at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts:125:24",
+                        "location": {
+                          "file": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts",
+                          "column": 24,
+                          "line": 125
+                        },
+                        "snippet": "  123 |     // Isolate and screenshot specific component\n  124 |     const card = page.locator('.card-component').first();\n> 125 |     await expect(card).toHaveScreenshot('card-component.png', {\n      |                        ^\n  126 |       // Add padding around the component\n  127 |       clip: {\n  128 |         x: -10,"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts",
+                            "column": 24,
+                            "line": 125
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveScreenshot\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nLocator: locator('.card-component').first()\n  Timeout 5000ms exceeded.\n\n  Snapshot: card-component.png\n\nCall log:\n\u001b[2m  - Expect \"toHaveScreenshot(card-component.png)\" with timeout 5000ms\u001b[22m\n\u001b[2m    - generating new stable screenshot expectation\u001b[22m\n\u001b[2m  - waiting for locator('.card-component').first()\u001b[22m\n\u001b[2m  - Timeout 5000ms exceeded.\u001b[22m\n\n\n  123 |     // Isolate and screenshot specific component\n  124 |     const card = page.locator('.card-component').first();\n> 125 |     await expect(card).toHaveScreenshot('card-component.png', {\n      |                        ^\n  126 |       // Add padding around the component\n  127 |       clip: {\n  128 |         x: -10,\n    at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts:125:24"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:07:05.904Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/specs-visual-example.visua-46a8a-onent-isolation-visual-test-Mobile-Safari/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/specs-visual-example.visua-46a8a-onent-isolation-visual-test-Mobile-Safari/video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts",
+                        "column": 24,
+                        "line": 125
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "edbe2cd964dad073eb0f-895f08eba940fe69593d",
+              "file": "specs/visual/example.visual.spec.ts",
+              "line": 118,
+              "column": 7
+            },
+            {
+              "title": "hover and interaction states",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 11,
+                      "status": "passed",
+                      "duration": 5753,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "A snapshot doesn't exist at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/button-normal-Mobile-Safari-linux.png, writing actual.\n"
+                        },
+                        {
+                          "text": "A snapshot doesn't exist at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/button-hover-Mobile-Safari-linux.png, writing actual.\n"
+                        },
+                        {
+                          "text": "A snapshot doesn't exist at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/button-active-Mobile-Safari-linux.png, writing actual.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:07:06.143Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "button-normal-expected.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/button-normal-Mobile-Safari-linux.png"
+                        },
+                        {
+                          "name": "button-normal-actual.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/specs-visual-example.visua-90656-over-and-interaction-states-Mobile-Safari/button-normal-actual.png"
+                        },
+                        {
+                          "name": "button-hover-expected.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/button-hover-Mobile-Safari-linux.png"
+                        },
+                        {
+                          "name": "button-hover-actual.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/specs-visual-example.visua-90656-over-and-interaction-states-Mobile-Safari/button-hover-actual.png"
+                        },
+                        {
+                          "name": "button-active-expected.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/button-active-Mobile-Safari-linux.png"
+                        },
+                        {
+                          "name": "button-active-actual.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/specs-visual-example.visua-90656-over-and-interaction-states-Mobile-Safari/button-active-actual.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "edbe2cd964dad073eb0f-d8ddc1cfe21ab4a80a18",
+              "file": "specs/visual/example.visual.spec.ts",
+              "line": 136,
+              "column": 7
+            },
+            {
+              "title": "cross-browser visual consistency",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 3779,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "A snapshot doesn't exist at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/homepage-webkit-Mobile-Safari-linux.png, writing actual.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:07:07.461Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "homepage-webkit-expected.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/homepage-webkit-Mobile-Safari-linux.png"
+                        },
+                        {
+                          "name": "homepage-webkit-actual.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/specs-visual-example.visua-ea4ea--browser-visual-consistency-Mobile-Safari/homepage-webkit-actual.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "edbe2cd964dad073eb0f-34c7a3ecacdbee9a1909",
+              "file": "specs/visual/example.visual.spec.ts",
+              "line": 157,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Color Scheme Tests",
+          "file": "specs/visual/example.visual.spec.ts",
+          "line": 169,
+          "column": 6,
+          "specs": [
+            {
+              "title": "visual test - light color scheme",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 10,
+                      "status": "passed",
+                      "duration": 3766,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "A snapshot doesn't exist at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/color-scheme-light-Mobile-Safari-linux.png, writing actual.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:07:07.784Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "color-scheme-light-expected.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/color-scheme-light-Mobile-Safari-linux.png"
+                        },
+                        {
+                          "name": "color-scheme-light-actual.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/specs-visual-example.visua-07f7a-l-test---light-color-scheme-Mobile-Safari/color-scheme-light-actual.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "edbe2cd964dad073eb0f-c2f77e4d2593576034c3",
+              "file": "specs/visual/example.visual.spec.ts",
+              "line": 175,
+              "column": 9
+            },
+            {
+              "title": "visual test - dark color scheme",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 8,
+                      "status": "passed",
+                      "duration": 3826,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "A snapshot doesn't exist at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/color-scheme-dark-Mobile-Safari-linux.png, writing actual.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:07:08.020Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "color-scheme-dark-expected.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/color-scheme-dark-Mobile-Safari-linux.png"
+                        },
+                        {
+                          "name": "color-scheme-dark-actual.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/specs-visual-example.visua-fc53a-al-test---dark-color-scheme-Mobile-Safari/color-scheme-dark-actual.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "edbe2cd964dad073eb0f-d12bfdf1c69d02a88c61",
+              "file": "specs/visual/example.visual.spec.ts",
+              "line": 175,
+              "column": 9
+            },
+            {
+              "title": "visual test - high-contrast color scheme",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 3160,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "A snapshot doesn't exist at /home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/color-scheme-high-contrast-Mobile-Safari-linux.png, writing actual.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-23T00:07:11.246Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "color-scheme-high-contrast-expected.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/specs/visual/example.visual.spec.ts-snapshots/color-scheme-high-contrast-Mobile-Safari-linux.png"
+                        },
+                        {
+                          "name": "color-scheme-high-contrast-actual.png",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope/WitchCityRope/test-results/specs-visual-example.visua-86a19--high-contrast-color-scheme-Mobile-Safari/color-scheme-high-contrast-actual.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "edbe2cd964dad073eb0f-9e797c1d59bb41efa036",
+              "file": "specs/visual/example.visual.spec.ts",
+              "line": 175,
+              "column": 9
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-07-23T00:06:34.350Z",
+    "duration": 55318.518,
+    "expected": 14,
+    "skipped": 0,
+    "unexpected": 8,
+    "flaky": 0
+  }
+}

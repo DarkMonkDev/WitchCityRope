@@ -14,6 +14,7 @@
 
 <PageTitle>Dashboard - WitchCity Rope</PageTitle>
 
+
 @if (IsLoading)
 {
     <DashboardSkeleton />
@@ -103,10 +104,10 @@ else if (DashboardData != null)
     
     private CancellationTokenSource? _cancellationTokenSource;
     private Timer? _refreshTimer;
-    private bool _hasRendered = false;
     
     protected override async Task OnInitializedAsync()
     {
+        Logger.LogInformation("Dashboard OnInitializedAsync started");
         // Set up timer but don't load data yet
         _refreshTimer = new Timer(async _ => await RefreshData(), null, 
             Timeout.Infinite, Timeout.Infinite);
@@ -114,17 +115,16 @@ else if (DashboardData != null)
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && !_hasRendered)
+        if (firstRender)
         {
-            _hasRendered = true;
+            Logger.LogInformation("Dashboard OnAfterRenderAsync - first render, loading data");
+            
             // Load dashboard data after the component has been rendered
             // This ensures JavaScript interop is available for localStorage access
             await LoadDashboardData();
             
             // Start the refresh timer
             _refreshTimer?.Change(TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
-            
-            StateHasChanged();
         }
     }
     
@@ -132,6 +132,7 @@ else if (DashboardData != null)
     {
         try
         {
+            Logger.LogInformation("LoadDashboardData started");
             IsLoading = true;
             HasError = false;
             ErrorMessage = null;
@@ -139,6 +140,7 @@ else if (DashboardData != null)
             _cancellationTokenSource?.Cancel();
             _cancellationTokenSource = new CancellationTokenSource();
             
+            Logger.LogInformation("Getting current user from AuthService");
             var currentUser = await AuthService.GetCurrentUserAsync();
             if (currentUser == null)
             {
@@ -147,17 +149,21 @@ else if (DashboardData != null)
                 Logger.LogWarning("Current user is null in Dashboard");
                 HasError = true;
                 ErrorMessage = "Unable to load user information. Please try logging in again.";
+                IsLoading = false;
+                await InvokeAsync(StateHasChanged);
                 return;
             }
             
+            Logger.LogInformation("Current user found: {UserId}, loading dashboard data", currentUser.Id);
             DashboardData = await DashboardService.GetDashboardDataAsync(
                 currentUser.Id, _cancellationTokenSource.Token);
                 
-            Logger.LogInformation("Dashboard loaded for user {UserId}", currentUser.Id);
+            Logger.LogInformation("Dashboard loaded successfully for user {UserId}", currentUser.Id);
         }
         catch (OperationCanceledException)
         {
             // Request was cancelled, ignore
+            Logger.LogInformation("Dashboard load was cancelled");
         }
         catch (Exception ex)
         {
@@ -169,7 +175,8 @@ else if (DashboardData != null)
         finally
         {
             IsLoading = false;
-            StateHasChanged();
+            Logger.LogInformation("LoadDashboardData completed, IsLoading = false");
+            await InvokeAsync(StateHasChanged);
         }
     }
     

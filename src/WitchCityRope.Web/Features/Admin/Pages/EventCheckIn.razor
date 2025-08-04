@@ -1,0 +1,595 @@
+@page "/admin/events/{EventId:guid}/checkin"
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@using WitchCityRope.Web.Services
+@using WitchCityRope.Core.DTOs
+@using WitchCityRope.Core.Enums
+@using Microsoft.AspNetCore.Authorization
+@using WitchCityRope.Web.Shared.Validation.Components
+@inject ApiClient ApiClient
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@attribute [Authorize(Roles = "Administrator,Organizer")]
+
+<PageTitle>Event Check-In - Admin</PageTitle>
+
+<style>
+    .checkin-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .checkin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+    }
+
+    .event-info {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+
+    .event-info h2 {
+        margin: 0 0 8px 0;
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    .event-stats {
+        display: flex;
+        gap: 32px;
+        margin-top: 16px;
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #8B4513;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #666;
+    }
+
+    .search-section {
+        background: white;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+
+    .search-box {
+        display: flex;
+        gap: 16px;
+        align-items: flex-end;
+    }
+
+    .search-input-group {
+        flex: 1;
+    }
+
+    .search-input-group .wcr-form-group {
+        margin-bottom: 0;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 16px;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #8B4513;
+    }
+
+    .attendees-table-container {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+
+    .attendees-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .attendees-table th {
+        background: #f5f5f5;
+        padding: 16px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 14px;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .attendees-table td {
+        padding: 16px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .attendees-table tr:hover {
+        background: #f9f9f9;
+    }
+
+    .attendee-name {
+        font-weight: 600;
+        font-size: 16px;
+        color: #1a1a1a;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-badge.checked-in {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .status-badge.not-checked-in {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+
+    .status-badge.has-ticket {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .status-badge.no-ticket {
+        background: #fce4ec;
+        color: #c2185b;
+    }
+
+    .btn-checkin {
+        padding: 8px 16px;
+        background: #8B4513;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-checkin:hover {
+        background: #6B3410;
+        transform: translateY(-1px);
+    }
+
+    .btn-checkin:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .checked-in-time {
+        font-size: 13px;
+        color: #666;
+    }
+
+    .loading-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 60px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px;
+        color: #666;
+    }
+
+    .tab-nav {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 24px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .tab-button {
+        padding: 12px 24px;
+        background: none;
+        border: none;
+        font-weight: 600;
+        color: #666;
+        cursor: pointer;
+        position: relative;
+        transition: color 0.2s;
+    }
+
+    .tab-button:hover {
+        color: #8B4513;
+    }
+
+    .tab-button.active {
+        color: #8B4513;
+    }
+
+    .tab-button.active::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #8B4513;
+    }
+</style>
+
+<div class="checkin-container">
+    <!-- Back Navigation -->
+    <div class="back-nav mb-4">
+        <a href="/admin/events" class="back-link">
+            <span>←</span> Back to Events
+        </a>
+    </div>
+
+    <div class="checkin-header">
+        <h1 class="page-title">Event Check-In</h1>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-container">
+            <LoadingSpinner />
+        </div>
+    }
+    else if (eventDetails != null)
+    {
+        <!-- Event Info -->
+        <div class="event-info">
+            <h2>@eventDetails.Name</h2>
+            <p class="text-muted">@eventDetails.StartDateTime.ToString("dddd, MMMM d, yyyy at h:mm tt")</p>
+            
+            <div class="event-stats">
+                @if (IsSocialEvent)
+                {
+                    <div class="stat-item">
+                        <span class="stat-value">@rsvps.Count(r => r.Status == RsvpStatus.Confirmed.ToString())</span>
+                        <span class="stat-label">Confirmed RSVPs</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">@rsvps.Count(r => r.Status == RsvpStatus.CheckedIn.ToString())</span>
+                        <span class="stat-label">Checked In</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">@tickets.Count(t => t.Status == TicketStatus.Confirmed.ToString())</span>
+                        <span class="stat-label">Tickets Purchased</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="stat-item">
+                        <span class="stat-value">@tickets.Count(t => t.Status == TicketStatus.Confirmed.ToString())</span>
+                        <span class="stat-label">Tickets Sold</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">@tickets.Count(t => t.Status == TicketStatus.CheckedIn.ToString())</span>
+                        <span class="stat-label">Checked In</span>
+                    </div>
+                }
+                <div class="stat-item">
+                    <span class="stat-value">@eventDetails.MaxAttendees</span>
+                    <span class="stat-label">Total Capacity</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <div class="search-box">
+                <div class="search-input-group">
+                    <WcrInputText @bind-Value="searchTerm" 
+                                  @bind-Value:event="oninput"
+                                  Label="Search by name or confirmation code"
+                                  Placeholder="Enter name or confirmation code..."
+                                  CssClass="search-input"
+                                  ShowValidationIcon="false" />
+                </div>
+                <button type="button" class="btn btn-secondary" @onclick="ScanQRCode">
+                    <i class="fas fa-qrcode"></i> Scan QR Code
+                </button>
+            </div>
+        </div>
+
+        @if (IsSocialEvent)
+        {
+            <!-- Tabs for Social Events -->
+            <div class="tab-nav">
+                <button class="tab-button @(showRsvps ? "active" : "")" @onclick="() => ShowRsvps()">
+                    RSVPs (@rsvps.Count)
+                </button>
+                <button class="tab-button @(!showRsvps ? "active" : "")" @onclick="() => ShowTickets()">
+                    Tickets (@tickets.Count)
+                </button>
+            </div>
+        }
+
+        <!-- Attendees Table -->
+        <div class="attendees-table-container">
+            @if (FilteredAttendees.Any())
+            {
+                <table class="attendees-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Confirmation Code</th>
+                            @if (IsSocialEvent && showRsvps)
+                            {
+                                <th>Has Ticket</th>
+                            }
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var attendee in FilteredAttendees)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="attendee-name">@attendee.Name</div>
+                                    @if (!string.IsNullOrEmpty(attendee.Email))
+                                    {
+                                        <div class="text-muted small">@attendee.Email</div>
+                                    }
+                                </td>
+                                <td>@attendee.ConfirmationCode</td>
+                                @if (IsSocialEvent && showRsvps)
+                                {
+                                    <td>
+                                        @if (attendee.HasTicket)
+                                        {
+                                            <span class="status-badge has-ticket">Has Ticket</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-badge no-ticket">No Ticket</span>
+                                        }
+                                    </td>
+                                }
+                                <td>
+                                    @if (attendee.IsCheckedIn)
+                                    {
+                                        <span class="status-badge checked-in">Checked In</span>
+                                        @if (attendee.CheckedInAt.HasValue)
+                                        {
+                                            <div class="checked-in-time">
+                                                @attendee.CheckedInAt.Value.ToString("h:mm tt")
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge not-checked-in">Not Checked In</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!attendee.IsCheckedIn)
+                                    {
+                                        <button class="btn-checkin" @onclick="() => CheckInAttendee(attendee)">
+                                            Check In
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-search fa-3x mb-3"></i>
+                    <p>@(string.IsNullOrEmpty(searchTerm) ? "No attendees found" : "No attendees match your search")</p>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fas fa-calendar-times fa-3x"></i>
+            <p>Event not found</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid EventId { get; set; }
+
+    private Core.DTOs.EventDto eventDetails;
+    private List<RsvpDto> rsvps = new();
+    private List<TicketDto> tickets = new();
+    private bool isLoading = true;
+    private string searchTerm = "";
+    private bool showRsvps = true;
+
+    private bool IsSocialEvent => eventDetails?.EventType == Core.Enums.EventType.Social.ToString() || 
+                                  eventDetails?.EventType == Core.Enums.EventType.PlayParty.ToString();
+
+    private class AttendeeViewModel
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; }
+        public string Email { get; set; }
+        public string ConfirmationCode { get; set; }
+        public bool IsCheckedIn { get; set; }
+        public DateTime? CheckedInAt { get; set; }
+        public bool HasTicket { get; set; }
+        public bool IsRsvp { get; set; }
+    }
+
+    private List<AttendeeViewModel> FilteredAttendees
+    {
+        get
+        {
+            var attendees = new List<AttendeeViewModel>();
+
+            if (IsSocialEvent && showRsvps)
+            {
+                // Show RSVPs for social events
+                attendees.AddRange(rsvps.Select(r => new AttendeeViewModel
+                {
+                    Id = r.Id,
+                    Name = r.UserSceneName ?? "Unknown",
+                    Email = "", // RSVPs don't have email in DTO
+                    ConfirmationCode = "", // RSVPs don't have confirmation codes
+                    IsCheckedIn = r.Status == RsvpStatus.CheckedIn.ToString(),
+                    CheckedInAt = r.CheckedInAt,
+                    HasTicket = tickets.Any(t => t.UserId == r.UserId && t.Status == TicketStatus.Confirmed.ToString()),
+                    IsRsvp = true
+                }));
+            }
+            else
+            {
+                // Show tickets for classes or when viewing tickets tab
+                attendees.AddRange(tickets.Select(t => new AttendeeViewModel
+                {
+                    Id = t.Id,
+                    Name = "Ticket Holder", // TicketDto doesn't have user name
+                    Email = "", // TicketDto doesn't have email
+                    ConfirmationCode = t.ConfirmationCode ?? "",
+                    IsCheckedIn = t.Status == TicketStatus.CheckedIn.ToString(),
+                    CheckedInAt = t.CheckedInAt,
+                    HasTicket = true,
+                    IsRsvp = false
+                }));
+            }
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                var search = searchTerm.ToLower();
+                attendees = attendees.Where(a => 
+                    a.Name.ToLower().Contains(search) ||
+                    a.Email?.ToLower().Contains(search) == true ||
+                    a.ConfirmationCode.ToLower().Contains(search)
+                ).ToList();
+            }
+
+            return attendees.OrderBy(a => a.Name).ToList();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            isLoading = true;
+
+            // Load event details
+            eventDetails = await ApiClient.GetEventByIdAsync(EventId);
+            
+            if (eventDetails == null)
+            {
+                return;
+            }
+
+            // Load RSVPs for social events
+            if (IsSocialEvent)
+            {
+                rsvps = await ApiClient.GetEventRsvpsAsync(EventId) ?? new List<RsvpDto>();
+            }
+
+            // Always load tickets and RSVPs
+            var attendeesResponse = await ApiClient.GetEventAttendeesAsync(EventId);
+            tickets = attendeesResponse.Tickets;
+            rsvps = attendeesResponse.Rsvps;
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error loading data: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ShowRsvps()
+    {
+        showRsvps = true;
+    }
+
+    private void ShowTickets()
+    {
+        showRsvps = false;
+    }
+
+    private async Task CheckInAttendee(AttendeeViewModel attendee)
+    {
+        try
+        {
+            if (attendee.IsRsvp)
+            {
+                // Check in RSVP
+                await ApiClient.CheckInRsvpAsync(attendee.Id);
+                
+                // Update local state
+                var rsvp = rsvps.FirstOrDefault(r => r.Id == attendee.Id);
+                if (rsvp != null)
+                {
+                    rsvp.Status = RsvpStatus.CheckedIn.ToString();
+                    rsvp.CheckedInAt = DateTime.UtcNow;
+                }
+            }
+            else
+            {
+                // Check in ticket
+                var request = new CheckInRequest
+                {
+                    ConfirmationCode = attendee.ConfirmationCode
+                };
+                await ApiClient.CheckInAttendeeAsync(EventId, request);
+                
+                // Update local state
+                var ticket = tickets.FirstOrDefault(t => t.Id == attendee.Id);
+                if (ticket != null)
+                {
+                    ticket.Status = TicketStatus.CheckedIn.ToString();
+                    ticket.CheckedInAt = DateTime.UtcNow;
+                }
+            }
+            
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error checking in attendee: {ex.Message}");
+        }
+    }
+
+    private async Task ScanQRCode()
+    {
+        // TODO: Implement QR code scanning
+        await JSRuntime.InvokeVoidAsync("alert", "QR code scanning not yet implemented");
+    }
+}

@@ -37,7 +37,7 @@ services:
     environment:
       # ASP.NET Core Configuration
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
-      - ASPNETCORE_URLS=http://+:8080;https://+:8081
+      - ASPNETCORE_URLS=http://+:8080
       - ASPNETCORE_HTTPS_PORT=5654
       
       # Database Configuration - PostgreSQL
@@ -103,12 +103,17 @@ services:
     environment:
       # ASP.NET Core Configuration
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
-      - ASPNETCORE_URLS=http://+:8080;https://+:8081
-      - ASPNETCORE_HTTPS_PORT=5652
+      - ASPNETCORE_URLS=http://+:8080
+      # Disable HTTPS for development
+      # - ASPNETCORE_HTTPS_PORT=5652
       
       # API Configuration
       - ApiBaseUrl=http://api:8080/
       - ApiBaseUrlExternal=https://localhost:5654/
+      - ApiUrl=http://api:8080
+      
+      # Database Configuration - PostgreSQL  
+      - ConnectionStrings__DefaultConnection=Host=${POSTGRES_HOST:-postgres};Port=5432;Database=${POSTGRES_DB:-witchcityrope_db};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-WitchCity2024!};Include Error Detail=true
       
       # Syncfusion License
       - Syncfusion__LicenseKey=${SYNCFUSION_LICENSE_KEY}

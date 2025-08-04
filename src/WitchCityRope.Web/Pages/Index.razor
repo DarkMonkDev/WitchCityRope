@@ -1,8 +1,10 @@
 @page "/"
 @using WitchCityRope.Web.Services
 @using WitchCityRope.Web.Features.Events.Components
+@using Microsoft.AspNetCore.Authorization
 @inject IEventService EventService
 @inject NavigationManager Navigation
+@attribute [AllowAnonymous]
 
 <PageTitle>Witch City Rope - Salem's Rope Bondage Community</PageTitle>
 
@@ -845,7 +847,7 @@
 
     private void NavigateToEvent(Guid eventId)
     {
-        Navigation.NavigateTo($"/events/{eventId}");
+        Navigation.NavigateTo($"/events/{eventId}", forceLoad: true);
     }
 
     private string GetEventDescription(string title)

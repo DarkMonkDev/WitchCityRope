@@ -1,7 +1,9 @@
 @page "/profile/vetting"
 @using WitchCityRope.Web.Services
+@using WitchCityRope.Core.DTOs
 @inject IVettingService VettingService
 @inject IAuthService AuthService
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
 @inject NavigationManager Navigation
 
 <PageTitle>Vetting Status - Witch City Rope</PageTitle>
@@ -31,8 +33,8 @@
                 <p>You haven't submitted a vetting application yet.</p>
                 <p>Ready to join our community?</p>
                 <div class="actions">
-                    <button class="btn btn-secondary" @onclick='() => Navigation.NavigateTo("/how-to-join")'>Learn More</button>
-                    <button class="btn btn-primary" @onclick='() => Navigation.NavigateTo("/vetting/apply")'>
+                    <button class="btn btn-secondary" @onclick='() => Navigation.NavigateTo("/how-to-join", forceLoad: true)'>Learn More</button>
+                    <button class="btn btn-primary" @onclick='() => Navigation.NavigateTo("/vetting/apply", forceLoad: true)'>
                         Start Application
                         <i class="fas fa-arrow-right"></i>
                     </button>

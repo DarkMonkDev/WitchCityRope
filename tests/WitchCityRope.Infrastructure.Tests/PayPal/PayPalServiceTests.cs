@@ -10,6 +10,7 @@ using WitchCityRope.Core.Interfaces;
 using WitchCityRope.Core.ValueObjects;
 using WitchCityRope.Infrastructure.PayPal;
 using WitchCityRope.Tests.Common.Builders;
+using WitchCityRope.Tests.Common.Identity;
 using Xunit;
 
 namespace WitchCityRope.Infrastructure.Tests.PayPal
@@ -55,11 +56,14 @@ namespace WitchCityRope.Infrastructure.Tests.PayPal
         }
 
         [Fact]
-        public async Task ProcessPaymentAsync_Should_Return_Success_Result()
+        public async Task ProcessPaymentAsync_Should_Return_Success_Result_For_Registration()
         {
             // Arrange
-            var user = new UserBuilder().Build();
-            var @event = new EventBuilder().Build();
+            var user = new IdentityUserBuilder().Build();
+            var @event = new EventBuilder()
+                .WithEventType(EventType.Workshop)
+                .WithPricingTiers(50m, 75m, 100m)
+                .Build();
             var registration = new RegistrationBuilder()
                 .WithUser(user)
                 .WithEvent(@event)
@@ -88,7 +92,7 @@ namespace WitchCityRope.Infrastructure.Tests.PayPal
         }
 
         [Fact]
-        public async Task ProcessPaymentAsync_Should_Handle_Exceptions()
+        public async Task ProcessPaymentAsync_Should_Handle_Exceptions_For_Registration()
         {
             // Arrange
             var registration = new RegistrationBuilder().Build();

@@ -7,7 +7,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using WitchCityRope.Core.Enums;
 using WitchCityRope.Infrastructure.Security;
-using WitchCityRope.Tests.Common.Builders;
+using WitchCityRope.Infrastructure.Identity;
+using WitchCityRope.Tests.Common.Identity;
 using Xunit;
 
 namespace WitchCityRope.Infrastructure.Tests.Security
@@ -22,10 +23,10 @@ namespace WitchCityRope.Infrastructure.Tests.Security
         {
             var configValues = new Dictionary<string, string?>
             {
-                {"Jwt:SecretKey", _secretKey},
-                {"Jwt:Issuer", "TestIssuer"},
-                {"Jwt:Audience", "TestAudience"},
-                {"Jwt:ExpirationMinutes", "60"}
+                {"JwtSettings:SecretKey", _secretKey},
+                {"JwtSettings:Issuer", "TestIssuer"},
+                {"JwtSettings:Audience", "TestAudience"},
+                {"JwtSettings:ExpirationMinutes", "60"}
             };
 
             _configuration = new ConfigurationBuilder()
@@ -50,8 +51,8 @@ namespace WitchCityRope.Infrastructure.Tests.Security
             var configWithoutKey = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    {"Jwt:Issuer", "TestIssuer"},
-                    {"Jwt:Audience", "TestAudience"}
+                    {"JwtSettings:Issuer", "TestIssuer"},
+                    {"JwtSettings:Audience", "TestAudience"}
                 })
                 .Build();
 
@@ -65,7 +66,7 @@ namespace WitchCityRope.Infrastructure.Tests.Security
         public void GenerateToken_Should_Create_Valid_JWT_Token()
         {
             // Arrange
-            var user = new UserBuilder()
+            var user = new IdentityUserBuilder()
                 .WithEmail("test@example.com")
                 .WithSceneName("TestUser")
                 .WithRole(UserRole.Member)
@@ -83,7 +84,7 @@ namespace WitchCityRope.Infrastructure.Tests.Security
         public void GenerateToken_Should_Throw_For_Null_User()
         {
             // Act & Assert
-            var act = () => _jwtTokenService.GenerateToken(null!);
+            var act = () => _jwtTokenService.GenerateToken((WitchCityRopeUser)null!);
             act.Should().Throw<ArgumentNullException>();
         }
 
@@ -91,7 +92,7 @@ namespace WitchCityRope.Infrastructure.Tests.Security
         public void GenerateToken_Should_Include_All_Required_Claims()
         {
             // Arrange
-            var user = new UserBuilder()
+            var user = new IdentityUserBuilder()
                 .WithEmail("test@example.com")
                 .WithSceneName("TestUser")
                 .WithRole(UserRole.Administrator)
@@ -104,18 +105,18 @@ namespace WitchCityRope.Infrastructure.Tests.Security
 
             // Assert
             jsonToken.Claims.Should().Contain(c => c.Type == ClaimTypes.NameIdentifier && c.Value == user.Id.ToString());
-            jsonToken.Claims.Should().Contain(c => c.Type == ClaimTypes.Email && c.Value == user.Email.Value);
-            jsonToken.Claims.Should().Contain(c => c.Type == ClaimTypes.Name && c.Value == user.SceneName.Value);
+            jsonToken.Claims.Should().Contain(c => c.Type == ClaimTypes.Email && c.Value == user.Email);
+            jsonToken.Claims.Should().Contain(c => c.Type == ClaimTypes.Name && c.Value == user.UserName);
             jsonToken.Claims.Should().Contain(c => c.Type == ClaimTypes.Role && c.Value == UserRole.Administrator.ToString());
             jsonToken.Claims.Should().Contain(c => c.Type == "UserId" && c.Value == user.Id.ToString());
-            jsonToken.Claims.Should().Contain(c => c.Type == "SceneName" && c.Value == user.SceneName.Value);
+            jsonToken.Claims.Should().Contain(c => c.Type == "SceneName" && c.Value == user.SceneNameValue);
         }
 
         [Fact]
         public void GenerateToken_Should_Set_Correct_Expiration()
         {
             // Arrange
-            var user = new UserBuilder().Build();
+            var user = new IdentityUserBuilder().Build();
             var expectedExpiration = DateTime.UtcNow.AddMinutes(60);
 
             // Act
@@ -131,7 +132,7 @@ namespace WitchCityRope.Infrastructure.Tests.Security
         public void GenerateToken_Should_Set_Correct_Issuer_And_Audience()
         {
             // Arrange
-            var user = new UserBuilder().Build();
+            var user = new IdentityUserBuilder().Build();
 
             // Act
             var token = _jwtTokenService.GenerateToken(user);
@@ -147,7 +148,7 @@ namespace WitchCityRope.Infrastructure.Tests.Security
         public void ValidateToken_Should_Return_ClaimsPrincipal_For_Valid_Token()
         {
             // Arrange
-            var user = new UserBuilder().Build();
+            var user = new IdentityUserBuilder().Build();
             var token = _jwtTokenService.GenerateToken(user);
 
             // Act
@@ -187,15 +188,15 @@ namespace WitchCityRope.Infrastructure.Tests.Security
             var configWithShortExpiration = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    {"Jwt:SecretKey", _secretKey},
-                    {"Jwt:Issuer", "TestIssuer"},
-                    {"Jwt:Audience", "TestAudience"},
-                    {"Jwt:ExpirationMinutes", "-1"} // Already expired
+                    {"JwtSettings:SecretKey", _secretKey},
+                    {"JwtSettings:Issuer", "TestIssuer"},
+                    {"JwtSettings:Audience", "TestAudience"},
+                    {"JwtSettings:ExpirationMinutes", "-1"} // Already expired
                 })
                 .Build();
 
             var service = new JwtTokenService(configWithShortExpiration);
-            var user = new UserBuilder().Build();
+            var user = new IdentityUserBuilder().Build();
             var token = service.GenerateToken(user);
 
             // Act
@@ -212,15 +213,15 @@ namespace WitchCityRope.Infrastructure.Tests.Security
             var wrongIssuerConfig = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    {"Jwt:SecretKey", _secretKey},
-                    {"Jwt:Issuer", "WrongIssuer"},
-                    {"Jwt:Audience", "TestAudience"},
-                    {"Jwt:ExpirationMinutes", "60"}
+                    {"JwtSettings:SecretKey", _secretKey},
+                    {"JwtSettings:Issuer", "WrongIssuer"},
+                    {"JwtSettings:Audience", "TestAudience"},
+                    {"JwtSettings:ExpirationMinutes", "60"}
                 })
                 .Build();
 
             var wrongService = new JwtTokenService(wrongIssuerConfig);
-            var user = new UserBuilder().Build();
+            var user = new IdentityUserBuilder().Build();
             var token = wrongService.GenerateToken(user);
 
             // Act
@@ -237,15 +238,15 @@ namespace WitchCityRope.Infrastructure.Tests.Security
             var wrongAudienceConfig = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    {"Jwt:SecretKey", _secretKey},
-                    {"Jwt:Issuer", "TestIssuer"},
-                    {"Jwt:Audience", "WrongAudience"},
-                    {"Jwt:ExpirationMinutes", "60"}
+                    {"JwtSettings:SecretKey", _secretKey},
+                    {"JwtSettings:Issuer", "TestIssuer"},
+                    {"JwtSettings:Audience", "WrongAudience"},
+                    {"JwtSettings:ExpirationMinutes", "60"}
                 })
                 .Build();
 
             var wrongService = new JwtTokenService(wrongAudienceConfig);
-            var user = new UserBuilder().Build();
+            var user = new IdentityUserBuilder().Build();
             var token = wrongService.GenerateToken(user);
 
             // Act
@@ -262,15 +263,15 @@ namespace WitchCityRope.Infrastructure.Tests.Security
             var wrongSecretConfig = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    {"Jwt:SecretKey", "WrongSecretKey12345678901234567890123456789012345678"},
-                    {"Jwt:Issuer", "TestIssuer"},
-                    {"Jwt:Audience", "TestAudience"},
-                    {"Jwt:ExpirationMinutes", "60"}
+                    {"JwtSettings:SecretKey", "WrongSecretKey12345678901234567890123456789012345678"},
+                    {"JwtSettings:Issuer", "TestIssuer"},
+                    {"JwtSettings:Audience", "TestAudience"},
+                    {"JwtSettings:ExpirationMinutes", "60"}
                 })
                 .Build();
 
             var wrongService = new JwtTokenService(wrongSecretConfig);
-            var user = new UserBuilder().Build();
+            var user = new IdentityUserBuilder().Build();
             var token = wrongService.GenerateToken(user);
 
             // Act
@@ -284,7 +285,7 @@ namespace WitchCityRope.Infrastructure.Tests.Security
         public void GetUserIdFromToken_Should_Return_UserId_For_Valid_Token()
         {
             // Arrange
-            var user = new UserBuilder().Build();
+            var user = new IdentityUserBuilder().Build();
             var token = _jwtTokenService.GenerateToken(user);
 
             // Act
@@ -343,12 +344,12 @@ namespace WitchCityRope.Infrastructure.Tests.Security
             var minimalConfig = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    {"Jwt:SecretKey", _secretKey}
+                    {"JwtSettings:SecretKey", _secretKey}
                 })
                 .Build();
 
             var service = new JwtTokenService(minimalConfig);
-            var user = new UserBuilder().Build();
+            var user = new IdentityUserBuilder().Build();
 
             // Act
             var token = service.GenerateToken(user);

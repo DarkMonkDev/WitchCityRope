@@ -1,0 +1,491 @@
+@page "/delete-personal-data"
+@page "/identity/account/manage/deletepersonaldata"
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Identity
+@using System.ComponentModel.DataAnnotations
+@using WitchCityRope.Infrastructure.Identity
+@using WitchCityRope.Web.Shared.Validation.Components
+@using Microsoft.AspNetCore.Authorization
+
+@inject UserManager<WitchCityRopeUser> UserManager
+@inject SignInManager<WitchCityRopeUser> SignInManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@inject ILogger<DeletePersonalData> Logger
+
+<PageTitle>Delete Personal Data - Witch City Rope</PageTitle>
+
+<div class="auth-container">
+    <div class="auth-card delete-data-card">
+        <div class="auth-header">
+            <h1 class="auth-title">DELETE PERSONAL DATA</h1>
+            <div class="warning-banner">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <p>Deleting your account is permanent and cannot be undone.</p>
+            </div>
+        </div>
+
+        @if (showConfirmation)
+        {
+            <div class="deletion-complete">
+                <i class="bi bi-check-circle-fill"></i>
+                <h2>Account Deleted</h2>
+                <p>Your account and all associated data have been permanently deleted.</p>
+                <p>Thank you for being part of the Witch City Rope community.</p>
+                <a href="/" class="btn-primary return-home-btn">Return to Home</a>
+            </div>
+        }
+        else
+        {
+            <div class="deletion-info">
+                <h2 class="info-title">What will be deleted:</h2>
+                <ul class="deletion-list">
+                    <li><i class="bi bi-person-x"></i> Your profile and account information</li>
+                    <li><i class="bi bi-calendar-x"></i> All event registrations and history</li>
+                    <li><i class="bi bi-envelope-x"></i> Email preferences and communications</li>
+                    <li><i class="bi bi-shield-x"></i> Vetting status and applications</li>
+                    <li><i class="bi bi-cash-stack"></i> Payment history (kept for legal requirements)</li>
+                </ul>
+                
+                <div class="retention-notice">
+                    <i class="bi bi-info-circle"></i>
+                    <p>Some information may be retained for legal compliance, including payment records and incident reports.</p>
+                </div>
+            </div>
+
+            <EditForm Model="deleteModel" OnValidSubmit="HandleDeleteAccount">
+                <DataAnnotationsValidator />
+                
+                @if (requiresPassword)
+                {
+                    <div class="form-group">
+                        <WcrInputPassword @bind-Value="deleteModel.Password" 
+                                          Placeholder="Enter your password"
+                                          Label="CONFIRM YOUR PASSWORD*"
+                                          ShowRequirements="false" />
+                    </div>
+                }
+                
+                <div class="form-group">
+                    <WcrInputCheckbox @bind-Value="deleteModel.ConfirmDeletion" 
+                                      Label="I understand that deleting my account is permanent and cannot be undone"
+                                      IsRequired="true" />
+                </div>
+
+                <WcrValidationSummary />
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger mt-3">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <span>@errorMessage</span>
+                    </div>
+                }
+
+                <div class="action-buttons">
+                    <button type="button" class="btn-secondary cancel-btn" @onclick="CancelDeletion">
+                        CANCEL
+                    </button>
+                    <button type="submit" class="btn-danger delete-btn" disabled="@isDeleting">
+                        @if (isDeleting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            <span>Deleting...</span>
+                        }
+                        else
+                        {
+                            <span>DELETE MY ACCOUNT</span>
+                        }
+                    </button>
+                </div>
+            </EditForm>
+
+            <div class="auth-footer">
+                <p><a href="/manage-profile" class="auth-link">← Back to Profile</a></p>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .delete-data-card {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .warning-banner {
+        background-color: rgba(220, 53, 69, 0.1);
+        border: 1px solid rgba(220, 53, 69, 0.2);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .warning-banner i {
+        color: #dc3545;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .warning-banner p {
+        margin: 0;
+        color: #721c24;
+        font-weight: 500;
+    }
+
+    .deletion-info {
+        margin-bottom: 2rem;
+    }
+
+    .info-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    .deletion-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 1.5rem 0;
+    }
+
+    .deletion-list li {
+        padding: 0.75rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .deletion-list li:last-child {
+        border-bottom: none;
+    }
+
+    .deletion-list i {
+        color: #dc3545;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .retention-notice {
+        background-color: rgba(13, 110, 253, 0.05);
+        border: 1px solid rgba(13, 110, 253, 0.2);
+        border-radius: 8px;
+        padding: 1rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .retention-notice i {
+        color: #0d6efd;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .retention-notice p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #084298;
+        line-height: 1.5;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .cancel-btn,
+    .delete-btn {
+        flex: 1;
+        padding: 14px;
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .cancel-btn {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .cancel-btn:hover {
+        background-color: #5a6268;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    }
+
+    .delete-btn {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .delete-btn:hover:not(:disabled) {
+        background-color: #c82333;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+
+    .delete-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .deletion-complete {
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .deletion-complete i {
+        font-size: 4rem;
+        color: #28a745;
+        margin-bottom: 1.5rem;
+    }
+
+    .deletion-complete h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    .deletion-complete p {
+        color: #666;
+        margin-bottom: 1rem;
+        line-height: 1.5;
+    }
+
+    .return-home-btn {
+        display: inline-block;
+        padding: 12px 32px;
+        margin-top: 1rem;
+        text-decoration: none;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .alert i {
+        font-size: 1.25rem;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .alert-danger {
+        background-color: rgba(220, 53, 69, 0.1);
+        border: 1px solid rgba(220, 53, 69, 0.2);
+        color: #721c24;
+    }
+
+    .alert-danger i {
+        color: #dc3545;
+    }
+
+    .auth-footer {
+        margin-top: 2rem;
+        text-align: center;
+    }
+
+    .auth-footer p {
+        margin: 0;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .auth-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .auth-link:hover {
+        color: var(--primary-hover);
+        text-decoration: underline;
+    }
+
+    .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.2rem;
+    }
+
+    /* Dark mode support */
+    @@media (prefers-color-scheme: dark) {
+        .delete-data-card {
+            background-color: #1a1a1a;
+            border-color: #333;
+        }
+
+        .warning-banner {
+            background-color: rgba(220, 53, 69, 0.05);
+            border-color: rgba(220, 53, 69, 0.3);
+        }
+
+        .warning-banner p {
+            color: #e74c3c;
+        }
+
+        .info-title {
+            color: #e9ecef;
+        }
+
+        .deletion-list li {
+            border-bottom-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .retention-notice {
+            background-color: rgba(13, 110, 253, 0.1);
+            border-color: rgba(13, 110, 253, 0.3);
+        }
+
+        .retention-notice p {
+            color: #6ea8fe;
+        }
+
+        .deletion-complete h2 {
+            color: #e9ecef;
+        }
+
+        .deletion-complete p {
+            color: #999;
+        }
+
+        .alert-danger {
+            background-color: rgba(220, 53, 69, 0.05);
+            border-color: rgba(220, 53, 69, 0.3);
+            color: #e74c3c;
+        }
+
+        .auth-footer p {
+            color: #999;
+        }
+    }
+</style>
+
+@code {
+    private DeleteAccountModel deleteModel = new();
+    private WitchCityRopeUser? currentUser;
+    private bool requiresPassword = false;
+    private bool isDeleting = false;
+    private bool showConfirmation = false;
+    private string? errorMessage;
+
+    public class DeleteAccountModel
+    {
+        [Required(ErrorMessage = "Password is required to delete your account")]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "You must confirm that you understand account deletion is permanent")]
+        [Display(Name = "Confirm deletion")]
+        public bool ConfirmDeletion { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Skip auth operations during prerendering
+        if (!OperatingSystem.IsBrowser())
+        {
+            return;
+        }
+        
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState?.User?.Identity?.IsAuthenticated != true)
+        {
+            Navigation.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+
+        currentUser = await UserManager.GetUserAsync(authState.User);
+        if (currentUser == null)
+        {
+            Navigation.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+
+        // Check if user has a password (not using external login)
+        requiresPassword = await UserManager.HasPasswordAsync(currentUser);
+    }
+
+    private void CancelDeletion()
+    {
+        Navigation.NavigateTo("/manage-profile");
+    }
+
+    private async Task HandleDeleteAccount()
+    {
+        if (currentUser == null)
+        {
+            errorMessage = "Session expired. Please refresh the page.";
+            return;
+        }
+
+        try
+        {
+            isDeleting = true;
+            errorMessage = null;
+            StateHasChanged();
+
+            // Verify password if required
+            if (requiresPassword)
+            {
+                var passwordCheck = await UserManager.CheckPasswordAsync(currentUser, deleteModel.Password);
+                if (!passwordCheck)
+                {
+                    errorMessage = "Incorrect password. Please try again.";
+                    return;
+                }
+            }
+
+            // Log the deletion attempt
+            Logger.LogWarning("User {UserId} ({Email}) is deleting their account", currentUser.Id, currentUser.Email);
+
+            // Delete the user account
+            var result = await UserManager.DeleteAsync(currentUser);
+            if (result.Succeeded)
+            {
+                // Sign out the user
+                await SignInManager.SignOutAsync();
+                
+                Logger.LogWarning("User account deleted successfully: {UserId}", currentUser.Id);
+                
+                // Show confirmation
+                showConfirmation = true;
+            }
+            else
+            {
+                var errors = string.Join(" ", result.Errors.Select(e => e.Description));
+                errorMessage = $"Failed to delete account: {errors}";
+                Logger.LogError("Failed to delete user account {UserId}: {Errors}", currentUser.Id, errors);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error during account deletion for user {UserId}", currentUser?.Id);
+            errorMessage = "An error occurred while deleting your account. Please try again.";
+        }
+        finally
+        {
+            isDeleting = false;
+            StateHasChanged();
+        }
+    }
+}

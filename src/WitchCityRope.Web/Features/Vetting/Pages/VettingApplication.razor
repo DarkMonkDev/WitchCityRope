@@ -5,6 +5,7 @@
 @inject HttpClient Http
 @inject IToastService ToastService
 
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
 <PageTitle>Vetting Application - Witch City Rope</PageTitle>
 
 <div class="vetting-application-page">
@@ -499,7 +500,7 @@
             {
                 var result = await response.Content.ReadFromJsonAsync<VettingApplicationResponse>();
                 ToastService.ShowSuccess("Application submitted successfully! We'll be in touch soon.");
-                Navigation.NavigateTo("/member/dashboard");
+                Navigation.NavigateTo("/member/dashboard", forceLoad: true);
             }
             else
             {

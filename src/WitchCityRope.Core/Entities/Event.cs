@@ -16,8 +16,12 @@ namespace WitchCityRope.Core.Entities
     public class Event
     {
         private readonly List<Registration> _registrations = new();
-        private readonly List<User> _organizers = new();
+        private readonly List<IUser> _organizers = new();
         private readonly List<Money> _pricingTiers = new();
+        private readonly List<Ticket> _tickets = new();
+        private readonly List<Rsvp> _rsvps = new();
+        private readonly List<EventEmailTemplate> _emailTemplates = new();
+        private readonly List<VolunteerTask> _volunteerTasks = new();
 
         // Private constructor for EF Core
         private Event() 
@@ -35,7 +39,7 @@ namespace WitchCityRope.Core.Entities
             int capacity,
             EventType eventType,
             string location,
-            User primaryOrganizer,
+            IUser primaryOrganizer,
             IEnumerable<Money> pricingTiers)
         {
             ValidateCapacity(capacity);
@@ -87,12 +91,32 @@ namespace WitchCityRope.Core.Entities
         
         public IReadOnlyCollection<Registration> Registrations => _registrations.AsReadOnly();
         
-        public IReadOnlyCollection<User> Organizers => _organizers.AsReadOnly();
+        public IReadOnlyCollection<IUser> Organizers => _organizers.AsReadOnly();
         
         /// <summary>
         /// Sliding scale pricing tiers for the event
         /// </summary>
         public IReadOnlyCollection<Money> PricingTiers => _pricingTiers.AsReadOnly();
+        
+        /// <summary>
+        /// Tickets for paid workshop/class events
+        /// </summary>
+        public IReadOnlyCollection<Ticket> Tickets => _tickets.AsReadOnly();
+        
+        /// <summary>
+        /// RSVPs for free social events
+        /// </summary>
+        public IReadOnlyCollection<Rsvp> Rsvps => _rsvps.AsReadOnly();
+        
+        /// <summary>
+        /// Email templates configured for this event
+        /// </summary>
+        public IReadOnlyCollection<EventEmailTemplate> EmailTemplates => _emailTemplates.AsReadOnly();
+        
+        /// <summary>
+        /// Volunteer tasks defined for this event
+        /// </summary>
+        public IReadOnlyCollection<VolunteerTask> VolunteerTasks => _volunteerTasks.AsReadOnly();
 
         /// <summary>
         /// Gets the number of confirmed registrations
@@ -195,7 +219,7 @@ namespace WitchCityRope.Core.Entities
         /// <summary>
         /// Adds an organizer to the event
         /// </summary>
-        public void AddOrganizer(User organizer)
+        public void AddOrganizer(IUser organizer)
         {
             if (organizer == null)
                 throw new ArgumentNullException(nameof(organizer));
@@ -210,7 +234,7 @@ namespace WitchCityRope.Core.Entities
         /// <summary>
         /// Removes an organizer from the event
         /// </summary>
-        public void RemoveOrganizer(User organizer)
+        public void RemoveOrganizer(IUser organizer)
         {
             if (_organizers.Count == 1)
                 throw new DomainException("Event must have at least one organizer");

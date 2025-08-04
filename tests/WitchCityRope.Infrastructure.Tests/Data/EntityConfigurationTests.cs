@@ -1,32 +1,124 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Core.Entities;
 using WitchCityRope.Core.Enums;
 using WitchCityRope.Core.ValueObjects;
+using WitchCityRope.Infrastructure.Identity;
 using WitchCityRope.Infrastructure.Tests.Fixtures;
 using WitchCityRope.Tests.Common.Builders;
+using WitchCityRope.Tests.Common.Identity;
 using Xunit;
 
 namespace WitchCityRope.Infrastructure.Tests.Data
 {
     public class EntityConfigurationTests : IntegrationTestBase
     {
+        private Event CreateTestEvent(string title = "Test Event", int capacity = 10)
+        {
+            var eventType = typeof(Event);
+            var eventCtor = eventType.GetConstructor(
+                BindingFlags.NonPublic | BindingFlags.Instance,
+                null,
+                Type.EmptyTypes,
+                null);
+
+            var @event = (Event)eventCtor.Invoke(null);
+            
+            // Use reflection to set properties
+            eventType.GetProperty("Id").SetValue(@event, Guid.NewGuid());
+            eventType.GetProperty("Title").SetValue(@event, title);
+            eventType.GetProperty("Description").SetValue(@event, "Test event description");
+            eventType.GetProperty("StartDate").SetValue(@event, DateTime.UtcNow.AddDays(7));
+            eventType.GetProperty("EndDate").SetValue(@event, DateTime.UtcNow.AddDays(7).AddHours(3));
+            eventType.GetProperty("Capacity").SetValue(@event, capacity);
+            eventType.GetProperty("EventType").SetValue(@event, EventType.Workshop);
+            eventType.GetProperty("Location").SetValue(@event, "Test Location");
+            eventType.GetProperty("IsPublished").SetValue(@event, true);
+            eventType.GetProperty("CreatedAt").SetValue(@event, DateTime.UtcNow);
+            eventType.GetProperty("UpdatedAt").SetValue(@event, DateTime.UtcNow);
+
+            return @event;
+        }
+
+        private Registration CreateTestRegistration(Guid userId, Guid eventId)
+        {
+            var regType = typeof(Registration);
+            var regCtor = regType.GetConstructor(
+                BindingFlags.NonPublic | BindingFlags.Instance,
+                null,
+                Type.EmptyTypes,
+                null);
+
+            var registration = (Registration)regCtor.Invoke(null);
+            
+            regType.GetProperty("Id").SetValue(registration, Guid.NewGuid());
+            regType.GetProperty("UserId").SetValue(registration, userId);
+            regType.GetProperty("EventId").SetValue(registration, eventId);
+            regType.GetProperty("Status").SetValue(registration, RegistrationStatus.Confirmed);
+            regType.GetProperty("SelectedPrice").SetValue(registration, Money.Create(50m));
+            regType.GetProperty("RegisteredAt").SetValue(registration, DateTime.UtcNow);
+
+            return registration;
+        }
+
+        private VettingApplication CreateTestVettingApplication(Guid applicantId)
+        {
+            var appType = typeof(VettingApplication);
+            var appCtor = appType.GetConstructor(
+                BindingFlags.NonPublic | BindingFlags.Instance,
+                null,
+                Type.EmptyTypes,
+                null);
+
+            var application = (VettingApplication)appCtor.Invoke(null);
+            
+            appType.GetProperty("Id").SetValue(application, Guid.NewGuid());
+            appType.GetProperty("ApplicantId").SetValue(application, applicantId);
+            appType.GetProperty("ExperienceLevel").SetValue(application, "Intermediate");
+            appType.GetProperty("Interests").SetValue(application, "Rope bondage, suspension");
+            appType.GetProperty("SafetyKnowledge").SetValue(application, "I have attended safety workshops and understand risk awareness");
+            appType.GetProperty("Status").SetValue(application, VettingStatus.Submitted);
+            appType.GetProperty("SubmittedAt").SetValue(application, DateTime.UtcNow);
+
+            return application;
+        }
+
+        private VettingReview CreateTestVettingReview(Guid reviewerId, bool recommendation = true)
+        {
+            var reviewType = typeof(VettingReview);
+            var reviewCtor = reviewType.GetConstructor(
+                BindingFlags.NonPublic | BindingFlags.Instance,
+                null,
+                Type.EmptyTypes,
+                null);
+
+            var review = (VettingReview)reviewCtor.Invoke(null);
+            
+            reviewType.GetProperty("Id").SetValue(review, Guid.NewGuid());
+            reviewType.GetProperty("ReviewerId").SetValue(review, reviewerId);
+            reviewType.GetProperty("Recommendation").SetValue(review, recommendation);
+            reviewType.GetProperty("Notes").SetValue(review, "Looks good, experienced member");
+            reviewType.GetProperty("ReviewedAt").SetValue(review, DateTime.UtcNow);
+
+            return review;
+        }
         [Fact]
-        public async Task User_Configuration_Should_Enforce_Unique_Email()
+        public async Task WitchCityRopeUser_Configuration_Should_Enforce_Unique_Email()
         {
             // Arrange
             var email = EmailAddress.Create("test@example.com");
-            var user1 = new UserBuilder().WithEmail(email).Build();
-            var user2 = new UserBuilder().WithEmail(email).Build();
+            var user1 = new IdentityUserBuilder().WithEmail(email).Build();
+            var user2 = new IdentityUserBuilder().WithEmail(email).Build();
 
             // Act
-            Context.Users.Add(user1);
+            await Context.Users.AddAsync(user1);
             await Context.SaveChangesAsync();
 
-            Context.Users.Add(user2);
+            await Context.Users.AddAsync(user2);
             var act = async () => await Context.SaveChangesAsync();
 
             // Assert
@@ -34,45 +126,49 @@ namespace WitchCityRope.Infrastructure.Tests.Data
         }
 
         [Fact]
-        public async Task User_Configuration_Should_Store_Value_Objects_Correctly()
+        public async Task WitchCityRopeUser_Configuration_Should_Store_Value_Objects_Correctly()
         {
             // Arrange
-            var user = new UserBuilder()
+            var user = new IdentityUserBuilder()
                 .WithEmail("test@example.com")
                 .WithSceneName("TestScene")
                 .Build();
 
             // Act
-            Context.Users.Add(user);
+            await Context.Users.AddAsync(user);
             await Context.SaveChangesAsync();
 
             var retrieved = await ExecuteWithNewContextAsync(async ctx =>
                 await ctx.Users.FirstAsync(u => u.Id == user.Id));
 
             // Assert
-            retrieved.Email.Value.Should().Be("test@example.com");
-            retrieved.SceneName.Value.Should().Be("TestScene");
+            retrieved.Email.Should().Be("test@example.com");
+            retrieved.SceneNameValue.Should().Be("TestScene");
         }
 
         [Fact]
+        [Obsolete("Registration entity is being phased out in favor of Ticket/RSVP")]
         public async Task Event_Registration_Relationship_Should_Be_Configured_Correctly()
         {
             // Arrange
-            var organizer = new UserBuilder().Build();
-            var attendee = new UserBuilder().Build();
-            var @event = new EventBuilder()
-                .WithPrimaryOrganizer(organizer)
-                .Build();
+            // Note: This test is obsolete as Registration is being phased out
+            // Keeping for backwards compatibility
+            var organizer = new IdentityUserBuilder().Build();
+            var attendee = new IdentityUserBuilder().Build();
+            
+            Context.Users.AddRange(organizer, attendee);
+            await Context.SaveChangesAsync();
+            
+            var @event = CreateTestEvent();
+            Context.Events.Add(@event);
+            await Context.SaveChangesAsync();
 
-            var registration = new RegistrationBuilder()
-                .WithEvent(@event)
-                .WithUser(attendee)
-                .Build();
+            var registration = CreateTestRegistration(attendee.Id, @event.Id);
 
             // Act
-            Context.Users.AddRange(organizer, attendee);
-            Context.Events.Add(@event);
-            Context.Registrations.Add(registration);
+            // These entities don't exist in the Identity context
+            // This test needs to be rewritten or removed
+            throw new NotImplementedException("Registration entity is no longer available in Identity context");
             await Context.SaveChangesAsync();
 
             // Retrieve with includes
@@ -89,23 +185,25 @@ namespace WitchCityRope.Infrastructure.Tests.Data
         }
 
         [Fact]
+        [Obsolete("Registration entity is being phased out in favor of Ticket/RSVP")]
         public async Task Payment_Registration_Relationship_Should_Be_Configured_Correctly()
         {
             // Arrange
-            var user = new UserBuilder().Build();
-            var @event = new EventBuilder().Build();
-            var registration = new RegistrationBuilder()
-                .WithEvent(@event)
-                .WithUser(user)
-                .Build();
+            var user = new IdentityUserBuilder().Build();
+            Context.Users.Add(user);
+            await Context.SaveChangesAsync();
+            
+            var @event = CreateTestEvent();
+            Context.Events.Add(@event);
+            await Context.SaveChangesAsync();
+            
+            var registration = CreateTestRegistration(user.Id, @event.Id);
 
             var payment = new PaymentBuilder()
                 .WithRegistration(registration)
                 .Build();
 
             // Act
-            Context.Users.Add(user);
-            Context.Events.Add(@event);
             Context.Registrations.Add(registration);
             Context.Payments.Add(payment);
             await Context.SaveChangesAsync();
@@ -123,28 +221,23 @@ namespace WitchCityRope.Infrastructure.Tests.Data
         }
 
         [Fact]
-        public async Task VettingApplication_User_Relationship_Should_Be_Configured_Correctly()
+        public async Task VettingApplication_Relationship_Should_Be_Configured_Correctly()
         {
             // Arrange
-            var applicant = new UserBuilder().Build();
-            var reviewer = new UserBuilder().WithRole(UserRole.Administrator).Build();
+            var applicant = new IdentityUserBuilder().Build();
+            var reviewer = new IdentityUserBuilder().WithRole(UserRole.Administrator).Build();
             
-            var application = new VettingApplication(
-                applicant,
-                "Intermediate",
-                "Rope bondage, suspension",
-                "I have attended safety workshops and understand risk awareness",
-                new[] { "Reference from existing member", "Second reference" }
-            );
-
             // Act
-            Context.Users.AddRange(applicant, reviewer);
+            await Context.Users.AddRangeAsync(applicant, reviewer);
+            await Context.SaveChangesAsync();
+            
+            var application = CreateTestVettingApplication(applicant.Id);
             Context.VettingApplications.Add(application);
             await Context.SaveChangesAsync();
 
             // Review the application
             application.StartReview();
-            var review = new VettingReview(reviewer, true, "Looks good, experienced member");
+            var review = CreateTestVettingReview(reviewer.Id, true);
             application.AddReview(review);
             application.Approve("Approved after review");
             await Context.SaveChangesAsync();
@@ -166,8 +259,8 @@ namespace WitchCityRope.Infrastructure.Tests.Data
         public async Task IncidentReport_Should_Support_Anonymous_Reports()
         {
             // Arrange
-            var @event = new EventBuilder().Build();
-            var reportedUser = new UserBuilder().Build();
+            var @event = CreateTestEvent();
+            var reportedUser = new IdentityUserBuilder().Build();
             
             var anonymousReport = new IncidentReport(
                 reporter: null,
@@ -195,18 +288,19 @@ namespace WitchCityRope.Infrastructure.Tests.Data
         }
 
         [Fact]
+        [Obsolete("Registration entity is being phased out in favor of Ticket/RSVP")]
         public async Task Should_Handle_Cascade_Delete_For_Event_Registrations()
         {
             // Arrange
-            var user = new UserBuilder().Build();
-            var @event = new EventBuilder().Build();
-            var registration = new RegistrationBuilder()
-                .WithEvent(@event)
-                .WithUser(user)
-                .Build();
-
+            var user = new IdentityUserBuilder().Build();
             Context.Users.Add(user);
+            await Context.SaveChangesAsync();
+            
+            var @event = CreateTestEvent();
             Context.Events.Add(@event);
+            await Context.SaveChangesAsync();
+            
+            var registration = CreateTestRegistration(user.Id, @event.Id);
             Context.Registrations.Add(registration);
             await Context.SaveChangesAsync();
 
@@ -246,10 +340,9 @@ namespace WitchCityRope.Infrastructure.Tests.Data
         {
             // Arrange
             var longString = new string('a', 1000); // Assuming there are max length constraints
-            var @event = new EventBuilder()
-                .WithTitle("Test Event")
-                .WithDescription(longString)
-                .Build();
+            var @event = CreateTestEvent("Test Event");
+            // Set long description using reflection
+            @event.GetType().GetProperty("Description").SetValue(@event, longString);
 
             // Act
             Context.Events.Add(@event);

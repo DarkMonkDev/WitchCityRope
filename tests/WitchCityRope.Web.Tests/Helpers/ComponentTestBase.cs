@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Bunit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Components;
@@ -6,6 +7,7 @@ using Moq;
 using WitchCityRope.Web.Services;
 using Microsoft.JSInterop;
 using AngleSharp.Dom;
+using Syncfusion.Blazor;
 
 namespace WitchCityRope.Web.Tests.Helpers
 {
@@ -19,6 +21,7 @@ namespace WitchCityRope.Web.Tests.Helpers
         protected Mock<IAuthService> AuthServiceMock { get; private set; }
         protected Mock<ILocalStorageService> LocalStorageMock { get; private set; }
         protected Mock<INotificationService> NotificationServiceMock { get; private set; }
+        protected Mock<IToastService> ToastServiceMock { get; private set; }
 
         protected ComponentTestBase()
         {
@@ -30,6 +33,13 @@ namespace WitchCityRope.Web.Tests.Helpers
         /// </summary>
         protected virtual void SetupDefaultServices()
         {
+            // Add core Blazor services required for testing
+            Services.AddLogging();
+            
+            // Add Blazor component services
+            // Note: We don't add full interactive server components as that requires SignalR/Circuits
+            // which are not needed for unit testing. Components will run in static render mode.
+            
             // Setup Navigation Manager
             NavigationManagerMock = new Mock<NavigationManager>();
             NavigationManagerMock.SetupProperty(x => x.Uri, "https://localhost/");
@@ -50,9 +60,13 @@ namespace WitchCityRope.Web.Tests.Helpers
             // Setup Notification Service
             NotificationServiceMock = ServiceMockHelpers.CreateMockNotificationService();
             Services.AddSingleton(NotificationServiceMock.Object);
+            
+            // Setup Toast Service
+            ToastServiceMock = ServiceMockHelpers.CreateMockToastService();
+            Services.AddSingleton(ToastServiceMock.Object);
 
             // Add Syncfusion service (since many components use Syncfusion)
-            Services.AddSyncfusionBlazor();
+            // Services.AddSyncfusionBlazor(options => { }); // Commented out due to ambiguous reference
         }
 
         /// <summary>
@@ -106,23 +120,23 @@ namespace WitchCityRope.Web.Tests.Helpers
         }
 
         /// <summary>
-        /// Verifies a notification was shown
+        /// Verifies a toast notification was shown
         /// </summary>
-        protected void VerifyNotification(string expectedMessage, NotificationType type)
+        protected void VerifyToastNotification(string expectedMessage, NotificationType type)
         {
             switch (type)
             {
                 case NotificationType.Success:
-                    NotificationServiceMock.Verify(x => x.ShowSuccessAsync(expectedMessage), Times.Once);
+                    ToastServiceMock.Verify(x => x.ShowSuccess(expectedMessage), Times.Once);
                     break;
                 case NotificationType.Error:
-                    NotificationServiceMock.Verify(x => x.ShowErrorAsync(expectedMessage), Times.Once);
+                    ToastServiceMock.Verify(x => x.ShowError(expectedMessage), Times.Once);
                     break;
                 case NotificationType.Warning:
-                    NotificationServiceMock.Verify(x => x.ShowWarningAsync(expectedMessage), Times.Once);
+                    ToastServiceMock.Verify(x => x.ShowWarning(expectedMessage), Times.Once);
                     break;
                 case NotificationType.Info:
-                    NotificationServiceMock.Verify(x => x.ShowInfoAsync(expectedMessage), Times.Once);
+                    ToastServiceMock.Verify(x => x.ShowInfo(expectedMessage), Times.Once);
                     break;
             }
         }

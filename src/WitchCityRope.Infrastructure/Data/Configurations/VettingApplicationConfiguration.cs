@@ -64,10 +64,10 @@ namespace WitchCityRope.Infrastructure.Data.Configurations
                 .HasColumnType("TEXT");
 
             // Configure relationship with User
-            builder.HasOne(v => v.Applicant)
-                .WithMany(u => u.VettingApplications)
-                .HasForeignKey(v => v.ApplicantId)
-                .OnDelete(DeleteBehavior.Restrict);
+            // Since VettingApplication uses IUser interface, we need to ignore the navigation property
+            builder.Ignore(v => v.Applicant);
+            
+            // The relationship is maintained via the ApplicantId foreign key
 
             // Configure Reviews as owned entities
             builder.OwnsMany(v => v.Reviews, review =>
@@ -92,10 +92,8 @@ namespace WitchCityRope.Infrastructure.Data.Configurations
                 review.Property(r => r.ReviewedAt)
                     .IsRequired();
                 
-                review.HasOne(r => r.Reviewer)
-                    .WithMany()
-                    .HasForeignKey(r => r.ReviewerId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                // Ignore the Reviewer navigation property since it uses IUser interface
+                review.Ignore(r => r.Reviewer);
             });
 
             // Indexes

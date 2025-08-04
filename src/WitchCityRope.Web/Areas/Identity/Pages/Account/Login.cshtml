@@ -5,53 +5,86 @@
     Layout = "/Shared/Layouts/_IdentityLayout.cshtml";
 }
 
-<div class="auth-page">
-    <div class="bg-shape-1"></div>
-    <div class="bg-shape-2"></div>
+<div class="wcr-auth-page">
+    <div class="wcr-bg-shape wcr-bg-shape-1"></div>
+    <div class="wcr-bg-shape wcr-bg-shape-2"></div>
     
-    <div class="auth-card">
-        <div class="auth-header">
-            <h1 class="auth-title">Welcome Back</h1>
-            <p class="auth-subtitle">Salem's premier rope education community</p>
+    <div class="wcr-auth-card">
+        <div class="wcr-auth-header">
+            <div class="wcr-auth-header-overlay"></div>
+            <h1 class="wcr-auth-title">Welcome Back</h1>
+            <p class="wcr-auth-subtitle">Salem's premier rope education community</p>
         </div>
         
-        <div class="age-notice">
+        <div class="wcr-age-notice">
             21+ COMMUNITY • AGE VERIFICATION REQUIRED
         </div>
         
-        <div class="form-container">
-            <form id="account" method="post">
-                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+        <div class="wcr-auth-tabs">
+            <button type="button" class="wcr-auth-tab wcr-auth-tab-active">Sign In</button>
+            <button type="button" class="wcr-auth-tab" onclick="window.location.href='@Url.Page("./Register", new { returnUrl = Model.ReturnUrl })'">Create Account</button>
+        </div>
+        
+        <div class="wcr-form-container">
+            <form id="account" method="post" asp-route-returnUrl="@Model.ReturnUrl">
+                <div asp-validation-summary="ModelOnly" class="wcr-validation-summary" role="alert"></div>
                 
-                <div class="form-group">
-                    <label asp-for="Input.EmailOrUsername" class="form-label">Email or Username</label>
-                    <input asp-for="Input.EmailOrUsername" class="form-control wcr-input" placeholder="your@email.com or username" />
-                    <span asp-validation-for="Input.EmailOrUsername" class="text-danger"></span>
+                <div class="wcr-form-group">
+                    <label asp-for="Input.EmailOrUsername" class="wcr-form-label">Email or Username</label>
+                    <input asp-for="Input.EmailOrUsername" type="text" class="wcr-input" placeholder="your@email.com or username" />
+                    <span asp-validation-for="Input.EmailOrUsername" class="wcr-validation-message"></span>
                 </div>
                 
-                <div class="form-group">
-                    <label asp-for="Input.Password" class="form-label">Password</label>
-                    <input asp-for="Input.Password" class="form-control wcr-input" placeholder="Enter your password" />
-                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                <div class="wcr-form-group">
+                    <label asp-for="Input.Password" class="wcr-form-label">Password</label>
+                    <input asp-for="Input.Password" type="password" class="wcr-input" placeholder="Enter your password" />
+                    <span asp-validation-for="Input.Password" class="wcr-validation-message"></span>
                 </div>
                 
-                <div class="checkbox-group">
-                    <label asp-for="Input.RememberMe" class="form-label">
-                        <input asp-for="Input.RememberMe" />
-                        @Html.DisplayNameFor(m => m.Input.RememberMe)
+                <div class="wcr-checkbox-group">
+                    <label class="wcr-checkbox-label">
+                        <input asp-for="Input.RememberMe" type="checkbox" class="wcr-checkbox" />
+                        <span class="wcr-checkbox-text">@Html.DisplayNameFor(m => m.Input.RememberMe)</span>
                     </label>
                 </div>
                 
-                <div>
-                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Sign In</button>
+                <div class="wcr-form-group">
+                    <button id="login-submit" type="submit" class="wcr-btn wcr-btn-primary wcr-btn-block">Sign In</button>
                 </div>
                 
-                <div class="auth-footer">
+                @if ((Model.ExternalLogins?.Count ?? 0) > 0)
+                {
+                    <div class="wcr-divider">
+                        <span>or</span>
+                    </div>
+                    
+                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="wcr-external-login">
+                        @foreach (var provider in Model.ExternalLogins!)
+                        {
+                            <button type="submit" class="wcr-btn wcr-btn-oauth wcr-btn-block" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
+                                <span class="wcr-btn-icon">
+                                    @if (provider.Name == "Google")
+                                    {
+                                        <svg viewBox="0 0 24 24" width="20" height="20">
+                                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                                        </svg>
+                                    }
+                                </span>
+                                Continue with @provider.DisplayName
+                            </button>
+                        }
+                    </form>
+                }
+                
+                <div class="wcr-auth-footer">
                     <p>
-                        <a id="forgot-password" asp-page="./ForgotPassword">Forgot your password?</a>
+                        <a id="forgot-password" asp-page="./ForgotPassword" class="wcr-link">Forgot your password?</a>
                     </p>
                     <p>
-                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Register as a new user</a>
+                        Don't have an account? <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="wcr-link">Sign up</a>
                     </p>
                 </div>
             </form>
@@ -61,153 +94,450 @@
 
 
 <style>
-    .auth-page {
+    /* WCR Authentication Page Styles */
+    .wcr-identity-body {
+        margin: 0;
+        padding: 0;
+        background-color: var(--wcr-color-cream, #FAF6F2);
+    }
+    
+    .wcr-auth-page {
         min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 2rem 1rem;
+        padding: var(--wcr-space-lg) var(--wcr-space-sm);
         position: relative;
-        background-color: #f5f5f5;
+        background-color: var(--wcr-color-cream) !important;
     }
     
-    .bg-shape-1, .bg-shape-2 {
+    /* Background Shapes with Blur Effect - FIXED */
+    .wcr-bg-shape {
         position: fixed;
         border-radius: 50%;
-        opacity: 0.1;
         z-index: -1;
     }
     
-    .bg-shape-1 {
+    .wcr-bg-shape-1 {
         top: -200px;
         right: -200px;
         width: 400px;
         height: 400px;
-        background: radial-gradient(circle, #880124 0%, transparent 70%);
+        filter: blur(60px) !important;
+        opacity: 0.1 !important;
+        background: radial-gradient(circle, var(--wcr-color-plum) 0%, transparent 70%) !important;
     }
     
-    .bg-shape-2 {
+    .wcr-bg-shape-2 {
         bottom: -150px;
         left: -150px;
         width: 300px;
         height: 300px;
-        background: radial-gradient(circle, #880124 0%, transparent 70%);
+        filter: blur(50px) !important;
+        opacity: 0.08 !important;
+        background: radial-gradient(circle, var(--wcr-color-burgundy) 0%, transparent 70%) !important;
     }
     
-    .auth-card {
-        background: white;
-        border-radius: 24px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    /* Auth Card - FIXED */
+    .wcr-auth-card {
+        background: var(--wcr-color-ivory) !important;
+        border-radius: 24px !important;
+        box-shadow: var(--wcr-shadow-xl);
         width: 100%;
         max-width: 480px;
         overflow: hidden;
     }
     
-    .auth-header {
-        background: linear-gradient(135deg, #880124 0%, #660033 100%);
-        padding: 3rem 2rem 2rem;
+    /* Auth Header with Overlay - FIXED */
+    .wcr-auth-header {
+        background: linear-gradient(135deg, var(--wcr-color-burgundy) 0%, var(--wcr-color-plum) 100%) !important;
+        padding: var(--wcr-space-2xl) var(--wcr-space-xl) var(--wcr-space-xl) !important;
         text-align: center;
-        color: white;
+        color: var(--wcr-color-white);
+        position: relative;
+        overflow: hidden;
     }
     
-    .auth-title {
-        font-size: 32px;
+    .wcr-auth-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        transform: rotate(45deg);
+    }
+    
+    .wcr-auth-header-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+    }
+    
+    .wcr-auth-title {
+        font-family: var(--wcr-font-heading);
+        font-size: 32px !important;
         font-weight: 800;
-        margin-bottom: 0.5rem;
+        color: var(--wcr-color-ivory) !important;
+        margin-bottom: var(--wcr-space-sm);
+        position: relative;
+        z-index: 1;
     }
     
-    .auth-subtitle {
-        font-size: 16px;
+    .wcr-auth-subtitle {
+        font-family: var(--wcr-font-body);
+        color: var(--wcr-color-dusty-rose) !important;
+        font-size: 16px !important;
         opacity: 0.9;
+        position: relative;
+        z-index: 1;
     }
     
-    .age-notice {
-        background: rgba(136, 1, 36, 0.1);
-        color: #880124;
-        padding: 0.75rem 1rem;
+    /* Age Notice - FIXED */
+    .wcr-age-notice {
+        background: linear-gradient(135deg, var(--wcr-color-burgundy-light) 0%, var(--wcr-color-burgundy) 100%) !important;
+        color: var(--wcr-color-ivory) !important;
+        padding: var(--wcr-space-sm) var(--wcr-space-md);
         text-align: center;
-        font-size: 14px;
+        font-size: 14px !important;
         font-weight: 600;
         letter-spacing: 0.5px;
     }
     
-    .form-container {
-        padding: 2rem;
+    /* Tab Navigation - FIXED */
+    .wcr-auth-tabs {
+        display: flex;
+        background: var(--wcr-color-cream) !important;
+        border-bottom: 1px solid var(--wcr-color-taupe) !important;
     }
     
-    .form-group {
-        margin-bottom: 1.5rem;
-    }
-    
-    .form-label {
-        display: block;
-        font-size: 14px;
+    .wcr-auth-tab {
+        flex: 1;
+        padding: var(--wcr-space-md);
+        background: none;
+        border: none;
+        font-family: var(--wcr-font-heading);
+        font-size: 16px !important;
         font-weight: 600;
-        color: #333;
-        margin-bottom: 0.5rem;
+        color: var(--wcr-color-stone);
+        cursor: pointer;
+        position: relative;
+        transition: all 0.3s ease !important;
+    }
+    
+    .wcr-auth-tab::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--wcr-color-burgundy);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+    
+    .wcr-auth-tab:hover {
+        color: var(--wcr-color-burgundy);
+    }
+    
+    .wcr-auth-tab-active {
+        color: var(--wcr-color-burgundy);
+    }
+    
+    .wcr-auth-tab-active::after {
+        transform: scaleX(1) !important;
+        bottom: -1px !important;
+        height: 3px !important;
+    }
+    
+    /* Form Container - FIXED */
+    .wcr-form-container {
+        padding: var(--wcr-space-xl) !important;
+        padding-bottom: 0 !important;
+    }
+    
+    .wcr-form-group {
+        margin-bottom: var(--wcr-space-md);
+    }
+    
+    .wcr-form-label {
+        display: block;
+        font-family: var(--wcr-font-heading) !important;
+        font-size: 14px !important;
+        font-weight: 600;
+        color: var(--wcr-color-smoke) !important;
+        margin-bottom: var(--wcr-space-xs);
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
     
+    /* Inputs - FIXED */
     .wcr-input {
         width: 100%;
-        padding: 0.75rem 1rem;
-        font-size: 16px;
-        border: 2px solid #e0e0e0;
-        border-radius: 8px;
-        transition: all 0.3s ease;
+        padding: var(--wcr-space-sm) var(--wcr-space-md) !important;
+        font-family: var(--wcr-font-body);
+        font-size: 16px !important;
+        border: 2px solid var(--wcr-color-taupe) !important;
+        border-radius: 8px !important;
+        transition: all var(--wcr-transition-base);
+        background: var(--wcr-color-ivory) !important;
+        color: var(--wcr-color-charcoal) !important;
     }
     
     .wcr-input:focus {
         outline: none;
-        border-color: #880124;
-        box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.1);
+        border-color: var(--wcr-color-burgundy) !important;
+        box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.1) !important;
     }
     
-    .checkbox-group {
+    .wcr-input::placeholder {
+        color: var(--wcr-color-stone) !important;
+        opacity: 0.7;
+    }
+    
+    /* Checkbox - FIXED */
+    .wcr-checkbox-group {
+        margin: var(--wcr-space-md) 0;
+    }
+    
+    .wcr-checkbox-label {
         display: flex;
         align-items: center;
-        margin: 1.5rem 0;
+        cursor: pointer;
+        font-size: 14px !important;
+        color: var(--wcr-color-smoke) !important;
     }
     
-    .checkbox-group input[type="checkbox"] {
-        margin-right: 0.5rem;
+    .wcr-checkbox {
+        width: 18px !important;
+        height: 18px !important;
+        margin-right: var(--wcr-space-sm);
+        border: 2px solid var(--wcr-color-border);
+        border-radius: 4px !important;
+        cursor: pointer;
+        transition: all var(--wcr-transition-base);
+        accent-color: var(--wcr-color-burgundy);
     }
     
-    .btn-primary {
-        background: #880124;
-        border: none;
-        padding: 1rem;
-        font-size: 16px;
+    .wcr-checkbox:checked {
+        background-color: var(--wcr-color-burgundy);
+        border-color: var(--wcr-color-burgundy);
+    }
+    
+    .wcr-checkbox-text {
+        user-select: none;
+    }
+    
+    /* Buttons - FIXED */
+    .wcr-btn {
+        font-family: var(--wcr-font-heading);
         font-weight: 600;
-        border-radius: 8px;
-        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        padding: var(--wcr-space-md) var(--wcr-space-lg);
+        border-radius: var(--wcr-radius-md);
+        transition: all var(--wcr-transition-base);
+        cursor: pointer;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--wcr-space-sm);
     }
     
-    .btn-primary:hover {
-        background: #660033;
+    .wcr-btn-block {
+        width: 100%;
+    }
+    
+    .wcr-btn-primary {
+        margin-top: var(--wcr-space-lg) !important;
+        background: var(--wcr-gradient-primary) !important;
+        color: var(--wcr-color-midnight);
+        box-shadow: 0 4px 15px rgba(255, 191, 0, 0.3);
+        text-transform: uppercase !important;
+        letter-spacing: 1.5px !important;
+        font-weight: 600 !important;
+        padding: var(--wcr-space-md) !important;
+    }
+    
+    .wcr-btn-primary:hover {
+        background: var(--wcr-gradient-primary-hover, linear-gradient(135deg, var(--wcr-color-amber-dark) 0%, var(--wcr-color-amber) 100%));
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(255, 191, 0, 0.4);
+    }
+    
+    .wcr-btn-primary:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 10px rgba(255, 191, 0, 0.3);
+    }
+    
+    .wcr-btn-primary:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+    
+    /* Google OAuth Button - FIXED */
+    .wcr-btn-oauth {
+        margin-bottom: var(--wcr-space-md);
+        background: white !important;
+        border: 2px solid var(--wcr-color-taupe) !important;
+        color: var(--wcr-color-charcoal) !important;
+        font-weight: 600 !important;
+        font-size: 16px !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+    }
+    
+    .wcr-btn-oauth:hover {
+        background: var(--wcr-color-cream) !important;
+        border-color: var(--wcr-color-stone) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(136, 1, 36, 0.3);
     }
     
-    .auth-footer {
+    .wcr-btn-icon {
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    /* Divider - FIXED */
+    .wcr-divider {
+        position: relative;
         text-align: center;
-        margin-top: 2rem;
+        margin: var(--wcr-space-lg) 0 !important;
     }
     
-    .auth-footer a {
-        color: #880124;
+    .wcr-divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: var(--wcr-color-taupe) !important;
+        transform: translateY(-50%);
+    }
+    
+    .wcr-divider span {
+        position: relative;
+        padding: 0 var(--wcr-space-md);
+        background: var(--wcr-color-ivory) !important;
+        color: var(--wcr-color-stone);
+        font-size: 14px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+    }
+    
+    /* External Login */
+    .wcr-external-login {
+        margin-top: var(--wcr-space-md);
+    }
+    
+    /* Auth Footer - FIXED */
+    .wcr-auth-footer {
+        background: var(--wcr-color-cream);
+        border-top: 1px solid var(--wcr-color-taupe) !important;
+        padding: var(--wcr-space-md) !important;
+        margin: 0 !important;
+        margin-top: 0 !important;
+        text-align: center;
+    }
+    
+    .wcr-auth-footer p {
+        font-size: 14px !important;
+        color: var(--wcr-color-stone) !important;
+        margin: var(--wcr-space-xs) 0 !important;
+    }
+    
+    .wcr-link {
+        color: var(--wcr-color-burgundy);
         text-decoration: none;
         font-weight: 600;
+        transition: all var(--wcr-transition-base);
     }
     
-    .auth-footer a:hover {
+    .wcr-link:hover {
+        color: var(--wcr-color-burgundy-dark);
         text-decoration: underline;
     }
     
-    .text-danger {
-        color: #dc3545;
-        font-size: 14px;
-        margin-top: 0.25rem;
+    /* Validation - FIXED */
+    .wcr-validation-message {
+        color: var(--wcr-color-error) !important;
+        font-size: 12px !important;
+        margin-top: var(--wcr-space-xs) !important;
+    }
+    
+    .wcr-validation-summary {
+        background: rgba(220, 20, 60, 0.1) !important;
+        border: 1px solid var(--wcr-color-error) !important;
+        color: var(--wcr-color-error) !important;
+        padding: var(--wcr-space-sm) var(--wcr-space-md) !important;
+        border-radius: 8px !important;
+        font-size: 14px !important;
+        margin-bottom: var(--wcr-space-md);
+    }
+    
+    /* Loading State for Button */
+    .wcr-btn-loading {
+        position: relative;
+    }
+    
+    .wcr-btn-loading::before {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border: 3px solid var(--wcr-color-midnight);
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    
+    @@keyframes spin {
+        to { transform: translateY(-50%) rotate(360deg); }
+    }
+    
+    /* Move footer outside form container structure */
+    .wcr-auth-card > .wcr-form-container {
+        border-bottom: 1px solid var(--wcr-color-taupe);
+    }
+    
+    /* Responsive - FIXED */
+    @@media (max-width: 768px) {
+        .wcr-auth-title {
+            font-size: 28px !important;
+        }
+        
+        .wcr-form-container {
+            padding: var(--wcr-space-lg) !important;
+        }
+        
+        .wcr-auth-card {
+            border-radius: 24px !important;
+        }
+    }
+    
+    @@media (max-width: 640px) {
+        .wcr-auth-card {
+            max-width: 100%;
+            border-radius: 0;
+        }
+        
+        .wcr-auth-page {
+            padding: 0;
+        }
     }
 </style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

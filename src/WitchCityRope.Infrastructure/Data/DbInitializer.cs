@@ -11,6 +11,65 @@ namespace WitchCityRope.Infrastructure.Data;
 
 public static class DbInitializer
 {
+    // Overload that accepts UserManager and RoleManager for proper role assignment
+    public static async Task InitializeAsync(
+        WitchCityRopeIdentityDbContext context, 
+        UserManager<WitchCityRopeUser> userManager, 
+        RoleManager<WitchCityRopeRole> roleManager, 
+        ILogger logger)
+    {
+        try
+        {
+            // Apply any pending migrations
+            await context.Database.MigrateAsync();
+            logger.LogInformation("Database migrations applied successfully");
+
+            bool dataSeeded = false;
+
+            // Check and seed users if needed
+            if (!await context.Users.AnyAsync())
+            {
+                logger.LogInformation("No users found. Seeding users...");
+                await SeedUsersWithRolesAsync(context, userManager, roleManager, logger);
+                await context.SaveChangesAsync();
+                dataSeeded = true;
+            }
+
+            // Check and seed events if needed
+            if (!await context.Events.AnyAsync())
+            {
+                logger.LogInformation("No events found. Seeding events...");
+                
+                // Ensure we have the required users for events
+                if (!await context.Users.AnyAsync(u => u.Email == "admin@witchcityrope.com") ||
+                    !await context.Users.AnyAsync(u => u.Email == "teacher@witchcityrope.com"))
+                {
+                    logger.LogWarning("Required users for events not found. Seeding users first...");
+                    await SeedUsersWithRolesAsync(context, userManager, roleManager, logger);
+                    await context.SaveChangesAsync();
+                }
+                
+                await SeedEventsAsync(context, logger);
+                dataSeeded = true;
+            }
+
+            if (!dataSeeded)
+            {
+                logger.LogInformation("Database already contains data. Skipping seeding.");
+            }
+            else
+            {
+                logger.LogInformation("Database seeding completed successfully");
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error occurred while initializing database");
+            throw;
+        }
+    }
+
+    // Legacy overload for backwards compatibility
     public static async Task InitializeAsync(WitchCityRopeIdentityDbContext context, ILogger logger)
     {
         try
@@ -166,6 +225,143 @@ public static class DbInitializer
         }
 
         logger.LogInformation($"Seeded {seededCount} new users");
+    }
+
+    private static async Task SeedUsersWithRolesAsync(
+        WitchCityRopeIdentityDbContext context, 
+        UserManager<WitchCityRopeUser> userManager, 
+        RoleManager<WitchCityRopeRole> roleManager, 
+        ILogger logger)
+    {
+        var usersToSeed = new[]
+        {
+            new { 
+                Email = "admin@witchcityrope.com",
+                LegalName = "Admin User",
+                SceneName = "Admin",
+                DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                Role = UserRole.Administrator,
+                IdentityRole = "Administrator"  // The actual Identity role name
+            },
+            new {
+                Email = "staff@witchcityrope.com",
+                LegalName = "Staff Member",
+                SceneName = "StaffMember",
+                DateOfBirth = new DateTime(1992, 5, 15, 0, 0, 0, DateTimeKind.Utc),
+                Role = UserRole.Moderator,
+                IdentityRole = "Moderator"
+            },
+            new {
+                Email = "member@witchcityrope.com",
+                LegalName = "Regular Member",
+                SceneName = "RopeLover",
+                DateOfBirth = new DateTime(1995, 8, 20, 0, 0, 0, DateTimeKind.Utc),
+                Role = UserRole.Member,
+                IdentityRole = "Member"
+            },
+            new {
+                Email = "guest@witchcityrope.com",
+                LegalName = "Guest User",
+                SceneName = "CuriousGuest",
+                DateOfBirth = new DateTime(2000, 3, 10, 0, 0, 0, DateTimeKind.Utc),
+                Role = UserRole.Attendee,
+                IdentityRole = "Attendee"
+            },
+            new {
+                Email = "organizer@witchcityrope.com",
+                LegalName = "Event Organizer",
+                SceneName = "EventOrganizer",
+                DateOfBirth = new DateTime(1988, 11, 5, 0, 0, 0, DateTimeKind.Utc),
+                Role = UserRole.Member,
+                IdentityRole = "Member"
+            },
+            new {
+                Email = "teacher@witchcityrope.com",
+                LegalName = "Teacher User",
+                SceneName = "Teacher",
+                DateOfBirth = new DateTime(1985, 3, 15, 0, 0, 0, DateTimeKind.Utc),
+                Role = UserRole.Member,
+                IdentityRole = "Member"
+            },
+            new {
+                Email = "vetted@witchcityrope.com",
+                LegalName = "Vetted Member",
+                SceneName = "VettedUser",
+                DateOfBirth = new DateTime(1993, 6, 20, 0, 0, 0, DateTimeKind.Utc),
+                Role = UserRole.Member,
+                IdentityRole = "Member"
+            },
+            new {
+                Email = "attendee@witchcityrope.com",
+                LegalName = "Attendee User",
+                SceneName = "AttendeeUser",
+                DateOfBirth = new DateTime(1998, 9, 10, 0, 0, 0, DateTimeKind.Utc),
+                Role = UserRole.Attendee,
+                IdentityRole = "Attendee"
+            }
+        };
+
+        // Ensure all roles exist
+        foreach (var roleName in usersToSeed.Select(u => u.IdentityRole).Distinct())
+        {
+            if (!await roleManager.RoleExistsAsync(roleName))
+            {
+                await roleManager.CreateAsync(new WitchCityRopeRole(roleName));
+                logger.LogInformation($"Created role: {roleName}");
+            }
+        }
+
+        int seededCount = 0;
+        foreach (var userToSeed in usersToSeed)
+        {
+            // Check if user already exists
+            var existingUser = await userManager.FindByEmailAsync(userToSeed.Email);
+            if (existingUser != null)
+            {
+                // Check if user is in role
+                if (!await userManager.IsInRoleAsync(existingUser, userToSeed.IdentityRole))
+                {
+                    await userManager.AddToRoleAsync(existingUser, userToSeed.IdentityRole);
+                    logger.LogInformation($"Added existing user {userToSeed.Email} to role {userToSeed.IdentityRole}");
+                }
+                continue;
+            }
+            
+            // Create WitchCityRopeUser
+            var user = new WitchCityRopeUser(
+                encryptedLegalName: EncryptLegalName(userToSeed.LegalName),
+                sceneName: SceneName.Create(userToSeed.SceneName),
+                email: EmailAddress.Create(userToSeed.Email),
+                dateOfBirth: userToSeed.DateOfBirth,
+                role: userToSeed.Role
+            );
+            
+            // Set additional Identity properties
+            user.UserName = userToSeed.Email;
+            user.EmailConfirmed = true;
+            
+            // Special handling for vetted user
+            if (userToSeed.Email == "vetted@witchcityrope.com")
+            {
+                user.IsVetted = true;
+            }
+            
+            // Create user with password
+            var result = await userManager.CreateAsync(user, "Test123!");
+            if (result.Succeeded)
+            {
+                // Add to role
+                await userManager.AddToRoleAsync(user, userToSeed.IdentityRole);
+                logger.LogInformation($"Created user {userToSeed.Email} and added to role {userToSeed.IdentityRole}");
+                seededCount++;
+            }
+            else
+            {
+                logger.LogError($"Failed to create user {userToSeed.Email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            }
+        }
+
+        logger.LogInformation($"Seeded {seededCount} new users with roles");
     }
 
     private static async Task SeedEventsAsync(WitchCityRopeIdentityDbContext context, ILogger logger)

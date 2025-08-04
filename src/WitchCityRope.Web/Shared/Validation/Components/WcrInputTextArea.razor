@@ -1,0 +1,173 @@
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+@inherits InputTextArea
+
+<div class="wcr-form-group @(HasErrors ? "has-validation" : "")">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label for="@Id" class="wcr-label">
+            @Label
+            @if (IsRequired)
+            {
+                <span class="wcr-required">*</span>
+            }
+        </label>
+    }
+    
+    <div class="wcr-textarea-wrapper">
+        <textarea @attributes="AdditionalAttributes"
+                  class="@GetCssClass()"
+                  value="@CurrentValue"
+                  @oninput="HandleInput"
+                  id="@Id"
+                  placeholder="@Placeholder"
+                  disabled="@IsDisabled"
+                  readonly="@IsReadOnly"
+                  rows="@Rows"
+                  maxlength="@(MaxLength > 0 ? MaxLength : null)"
+                  aria-invalid="@HasErrors.ToString().ToLower()"
+                  aria-describedby="@GetAriaDescribedBy()"></textarea>
+        
+        @if (ShowCharacterCount && MaxLength > 0)
+        {
+            <div class="wcr-character-count @((CurrentValue?.Length ?? 0) > MaxLength * 0.9 ? "warning" : "")">
+                @(CurrentValue?.Length ?? 0) / @MaxLength
+            </div>
+        }
+    </div>
+    
+    @if (HasErrors && ShowInlineError)
+    {
+        <div id="@($"{Id}-error")" class="wcr-validation-message" role="alert">
+            <ValidationMessage For="@ValidationFor" />
+        </div>
+    }
+    
+    @if (!string.IsNullOrEmpty(HelpText) && !HasErrors)
+    {
+        <small id="@($"{Id}-help")" class="wcr-help-text">@HelpText</small>
+    }
+</div>
+
+<style>
+    .wcr-textarea-wrapper {
+        position: relative;
+    }
+    
+    .wcr-textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+    
+    .wcr-character-count {
+        position: absolute;
+        bottom: 0.5rem;
+        right: 0.75rem;
+        font-size: 0.75rem;
+        color: var(--wcr-color-stone);
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 0.125rem 0.375rem;
+        border-radius: 0.25rem;
+    }
+    
+    .wcr-character-count.warning {
+        color: var(--wcr-color-warning);
+        font-weight: 600;
+    }
+</style>
+
+@code {
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    [Parameter] public bool IsRequired { get; set; }
+    [Parameter] public string? HelpText { get; set; }
+    [Parameter] public string? Placeholder { get; set; }
+    [Parameter] public bool IsDisabled { get; set; }
+    [Parameter] public bool IsReadOnly { get; set; }
+    [Parameter] public bool ShowInlineError { get; set; } = true;
+    [Parameter] public int Rows { get; set; } = 4;
+    [Parameter] public int MaxLength { get; set; } = 0;
+    [Parameter] public bool ShowCharacterCount { get; set; } = true;
+    [Parameter] public bool AutoResize { get; set; } = false;
+    [Parameter] public EventCallback<string> OnValueChanged { get; set; }
+    [Parameter] public Expression<Func<string>>? ValidationFor { get; set; }
+    
+    private bool HasErrors => EditContext != null && EditContext.GetValidationMessages(FieldIdentifier).Any();
+    private bool IsModified => EditContext != null && EditContext.IsModified(FieldIdentifier);
+    
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        
+        // Set ValidationFor to the Value expression if not explicitly set
+        if (ValidationFor == null && ValueExpression != null)
+        {
+            ValidationFor = ValueExpression;
+        }
+        
+        // Initialize CurrentValue if null
+        if (CurrentValue == null)
+        {
+            CurrentValue = string.Empty;
+        }
+    }
+    
+    private async Task HandleInput(ChangeEventArgs e)
+    {
+        CurrentValue = e.Value?.ToString() ?? string.Empty;
+        
+        if (OnValueChanged.HasDelegate)
+        {
+            await OnValueChanged.InvokeAsync(CurrentValue);
+        }
+        
+        if (AutoResize)
+        {
+            // Note: Auto-resize would require JavaScript interop
+            // This is a placeholder for future implementation
+        }
+    }
+    
+    private string GetCssClass()
+    {
+        var css = "wcr-input wcr-textarea";
+        
+        if (HasErrors)
+        {
+            css += " wcr-input-error";
+        }
+        else if (IsModified && !HasErrors)
+        {
+            css += " wcr-input-success";
+        }
+        
+        if (!string.IsNullOrEmpty(CssClass))
+        {
+            css += $" {CssClass}";
+        }
+        
+        return css;
+    }
+    
+    private string GetAriaDescribedBy()
+    {
+        var describedBy = new List<string>();
+        
+        if (HasErrors)
+        {
+            describedBy.Add($"{Id}-error");
+        }
+        
+        if (!string.IsNullOrEmpty(HelpText))
+        {
+            describedBy.Add($"{Id}-help");
+        }
+        
+        if (ShowCharacterCount && MaxLength > 0)
+        {
+            describedBy.Add($"{Id}-count");
+        }
+        
+        return string.Join(" ", describedBy);
+    }
+}

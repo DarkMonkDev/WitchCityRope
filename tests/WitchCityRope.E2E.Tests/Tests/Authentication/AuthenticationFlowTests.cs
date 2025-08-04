@@ -69,10 +69,9 @@ public class AuthenticationFlowTests : BaseE2ETest
         await loginPage.LoginAsync(unverifiedUser.Email, unverifiedUser.Password);
 
         // Assert
-        await loginPage.HasErrorMessageAsync().Should().BeTrueAsync();
+        (await loginPage.HasErrorMessageAsync()).Should().BeTrue();
         var errorMessage = await loginPage.GetErrorMessageAsync();
-        errorMessage.Should().Contain(new[] { "verify", "verification", "email" }, 
-            StringComparison.OrdinalIgnoreCase);
+        errorMessage.Should().ContainAny("verify", "verification", "email");
 
         // Should show option to resend verification
         var resendLink = await Page.QuerySelectorAsync("a:has-text('Resend'), button:has-text('Resend')");
@@ -104,10 +103,10 @@ public class AuthenticationFlowTests : BaseE2ETest
 
         // Assert - Should still be logged in
         var newDashboardPage = new DashboardPage(newPage, TestSettings.BaseUrl);
-        await newDashboardPage.IsCurrentPageAsync().Should().BeTrueAsync();
+        (await newDashboardPage.IsCurrentPageAsync()).Should().BeTrue();
         
         var newNavigation = new NavigationComponent(newPage, TestSettings.BaseUrl);
-        await newNavigation.IsLoggedInAsync().Should().BeTrueAsync();
+        (await newNavigation.IsLoggedInAsync()).Should().BeTrue();
 
         await newPage.CloseAsync();
     }
@@ -126,20 +125,20 @@ public class AuthenticationFlowTests : BaseE2ETest
         await loginPage.WaitForLoginSuccessAsync();
 
         // Verify logged in
-        await navigation.IsLoggedInAsync().Should().BeTrueAsync();
+        (await navigation.IsLoggedInAsync()).Should().BeTrue();
 
         // Logout
         await navigation.LogoutAsync();
         await navigation.WaitForLogoutAsync();
 
         // Assert - Should be logged out
-        await navigation.IsLoggedInAsync().Should().BeFalseAsync();
+        (await navigation.IsLoggedInAsync()).Should().BeFalse();
 
         // Try to access protected page
         await Page.GotoAsync($"{TestSettings.BaseUrl}/dashboard");
         
         // Should redirect to login
-        await loginPage.IsCurrentPageAsync().Should().BeTrueAsync();
+        (await loginPage.IsCurrentPageAsync()).Should().BeTrue();
     }
 
     [TestMethod]
@@ -163,8 +162,7 @@ public class AuthenticationFlowTests : BaseE2ETest
         // Assert - Should show success message
         await Page.WaitForSelectorAsync(".alert-success, .success-message");
         var successMessage = await Page.TextContentAsync(".alert-success, .success-message");
-        successMessage.Should().Contain(new[] { "email", "sent", "reset" }, 
-            StringComparison.OrdinalIgnoreCase);
+        successMessage.Should().ContainAny("email", "sent", "reset");
 
         // Take screenshot
         await TakeScreenshotAsync("password_reset_requested");
@@ -194,15 +192,14 @@ public class AuthenticationFlowTests : BaseE2ETest
 
         // Assert - Should redirect to login
         await Page.WaitForURLAsync("**/login");
-        await loginPage.IsCurrentPageAsync().Should().BeTrueAsync();
+        (await loginPage.IsCurrentPageAsync()).Should().BeTrue();
 
         // Should show session expired message if implemented
         var messageSelector = ".alert-info, .session-expired-message";
         if (await Page.IsVisibleAsync(messageSelector))
         {
             var message = await Page.TextContentAsync(messageSelector);
-            message.Should().Contain(new[] { "session", "expired", "login again" }, 
-                StringComparison.OrdinalIgnoreCase);
+            message.Should().ContainAny("session", "expired", "login again");
         }
     }
 

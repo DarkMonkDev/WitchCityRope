@@ -16,6 +16,38 @@ namespace WitchCityRope.Core.Entities
         // Private constructor for EF Core
         private Payment() { }
 
+        // Constructor for Ticket (new approach)
+        public Payment(
+            Ticket ticket,
+            Money amount,
+            string paymentMethod,
+            string transactionId)
+        {
+            if (ticket == null)
+                throw new ArgumentNullException(nameof(ticket));
+
+            if (amount == null)
+                throw new ArgumentNullException(nameof(amount));
+
+            if (string.IsNullOrWhiteSpace(paymentMethod))
+                throw new ArgumentException("Payment method is required", nameof(paymentMethod));
+
+            if (string.IsNullOrWhiteSpace(transactionId))
+                throw new ArgumentException("Transaction ID is required", nameof(transactionId));
+
+            Id = Guid.NewGuid();
+            TicketId = ticket.Id;
+            Ticket = ticket;
+            Amount = amount;
+            PaymentMethod = paymentMethod;
+            TransactionId = transactionId;
+            Status = PaymentStatus.Pending;
+            ProcessedAt = DateTime.UtcNow;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        // Constructor for Registration (legacy support during migration)
+        [Obsolete("Use the constructor with Ticket parameter instead. Registration is being phased out.")]
         public Payment(
             Registration registration,
             Money amount,
@@ -47,9 +79,16 @@ namespace WitchCityRope.Core.Entities
 
         public Guid Id { get; private set; }
         
-        public Guid RegistrationId { get; private set; }
+        // Ticket relationship (new approach)
+        public Guid? TicketId { get; private set; }
+        public Ticket? Ticket { get; private set; }
         
-        public Registration Registration { get; private set; }
+        // Registration relationship (legacy support during migration)
+        [Obsolete("Use TicketId instead. Registration is being phased out.")]
+        public Guid? RegistrationId { get; private set; }
+        
+        [Obsolete("Use Ticket instead. Registration is being phased out.")]
+        public Registration? Registration { get; private set; }
         
         /// <summary>
         /// The amount paid (from sliding scale pricing)

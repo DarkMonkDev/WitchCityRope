@@ -1,0 +1,210 @@
+@using WitchCityRope.Core.DTOs
+@using System.ComponentModel.DataAnnotations
+@using WitchCityRope.Web.Shared.Validation.Components
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">Profile Information</h5>
+            </div>
+            <div class="card-body">
+                @if (IsEditing)
+                {
+                    <EditForm Model="@EditModel" OnValidSubmit="@SaveChanges">
+                        <DataAnnotationsValidator />
+                        <WcrValidationSummary />
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Scene Name</label>
+                            <WcrInputText @bind-Value="EditModel.SceneName" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Pronouns</label>
+                            <WcrInputText @bind-Value="EditModel.Pronouns" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Pronounced Name</label>
+                            <WcrInputText @bind-Value="EditModel.PronouncedName" />
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i> Save
+                            </button>
+                            <button type="button" class="btn btn-secondary" @onclick="CancelEdit">
+                                Cancel
+                            </button>
+                        </div>
+                    </EditForm>
+                }
+                else
+                {
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Scene Name:</dt>
+                        <dd class="col-sm-8">@Member.SceneName</dd>
+                        
+                        <dt class="col-sm-4">Real Name:</dt>
+                        <dd class="col-sm-8">@Member.RealName</dd>
+                        
+                        <dt class="col-sm-4">Email:</dt>
+                        <dd class="col-sm-8">
+                            <a href="mailto:@Member.Email">@Member.Email</a>
+                        </dd>
+                        
+                        <dt class="col-sm-4">Date of Birth:</dt>
+                        <dd class="col-sm-8">@Member.DateOfBirth.ToString("d") (Age: @Member.Age)</dd>
+                        
+                        <dt class="col-sm-4">Pronouns:</dt>
+                        <dd class="col-sm-8">@(Member.Pronouns ?? "-")</dd>
+                        
+                        <dt class="col-sm-4">Pronounced Name:</dt>
+                        <dd class="col-sm-8">@(Member.PronouncedName ?? "-")</dd>
+                        
+                        <dt class="col-sm-4">Member Since:</dt>
+                        <dd class="col-sm-8">@Member.CreatedAt.ToString("d")</dd>
+                    </dl>
+                    
+                    <button class="btn btn-outline-primary btn-sm mt-3" @onclick="StartEdit">
+                        <i class="bi bi-pencil me-1"></i> Edit Profile
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">Account Status</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Role:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-primary">@Member.Role</span>
+                    </dd>
+                    
+                    <dt class="col-sm-4">Vetted:</dt>
+                    <dd class="col-sm-8">
+                        @if (Member.IsVetted)
+                        {
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle me-1"></i> Yes
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning">
+                                <i class="bi bi-x-circle me-1"></i> No
+                            </span>
+                        }
+                    </dd>
+                    
+                    <dt class="col-sm-4">Active:</dt>
+                    <dd class="col-sm-8">
+                        @if (Member.IsActive)
+                        {
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle me-1"></i> Yes
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">
+                                <i class="bi bi-x-circle me-1"></i> No
+                            </span>
+                        }
+                    </dd>
+                    
+                    <dt class="col-sm-4">Last Login:</dt>
+                    <dd class="col-sm-8">
+                        @if (Member.LastLoginAt.HasValue)
+                        {
+                            @Member.LastLoginAt.Value.ToString("g")
+                        }
+                        else
+                        {
+                            <span class="text-muted">Never</span>
+                        }
+                    </dd>
+                    
+                    <dt class="col-sm-4">Events Attended:</dt>
+                    <dd class="col-sm-8">@Member.TotalEventsAttended</dd>
+                    
+                    <dt class="col-sm-4">Total Spent:</dt>
+                    <dd class="col-sm-8">$@Member.TotalSpent.ToString("N2")</dd>
+                </dl>
+                
+                <div class="mt-3">
+                    <button class="btn btn-outline-secondary btn-sm me-2" @onclick="ShowStatusModal">
+                        <i class="bi bi-gear me-1"></i> Change Status
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" @onclick="ShowPasswordReset">
+                        <i class="bi bi-key me-1"></i> Reset Password
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public MemberDetailDto Member { get; set; } = null!;
+    [Parameter] public EventCallback<UpdateMemberDto> OnUpdate { get; set; }
+    
+    private bool IsEditing = false;
+    private ProfileEditModel EditModel = new();
+    
+    private void StartEdit()
+    {
+        EditModel = new ProfileEditModel
+        {
+            SceneName = Member.SceneName,
+            Pronouns = Member.Pronouns,
+            PronouncedName = Member.PronouncedName
+        };
+        IsEditing = true;
+    }
+    
+    private void CancelEdit()
+    {
+        IsEditing = false;
+        EditModel = new();
+    }
+    
+    private async Task SaveChanges()
+    {
+        var dto = new UpdateMemberDto
+        {
+            SceneName = EditModel.SceneName,
+            Pronouns = EditModel.Pronouns,
+            PronouncedName = EditModel.PronouncedName
+        };
+        
+        await OnUpdate.InvokeAsync(dto);
+        IsEditing = false;
+    }
+    
+    private void ShowStatusModal()
+    {
+        // TODO: Implement status change modal
+    }
+    
+    private void ShowPasswordReset()
+    {
+        // TODO: Implement password reset functionality
+    }
+    
+    private class ProfileEditModel
+    {
+        [Required]
+        [StringLength(50, MinimumLength = 2)]
+        public string SceneName { get; set; } = "";
+        
+        public string? Pronouns { get; set; }
+        public string? PronouncedName { get; set; }
+    }
+}

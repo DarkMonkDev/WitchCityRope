@@ -5,7 +5,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using WitchCityRope.Core.Entities;
+using WitchCityRope.Infrastructure.Identity;
 
 namespace WitchCityRope.Infrastructure.Security
 {
@@ -37,7 +37,7 @@ namespace WitchCityRope.Infrastructure.Security
         /// <summary>
         /// Generates a JWT token for a user
         /// </summary>
-        public string GenerateToken(User user)
+        public string GenerateToken(WitchCityRopeUser user)
         {
             if (user == null)
                 throw new ArgumentNullException(nameof(user));
@@ -48,11 +48,11 @@ namespace WitchCityRope.Infrastructure.Security
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email.Value),
-                new Claim(ClaimTypes.Name, user.SceneName.Value),
+                new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+                new Claim(ClaimTypes.Name, user.SceneNameValue ?? string.Empty),
                 new Claim(ClaimTypes.Role, user.Role.ToString()),
                 new Claim("UserId", user.Id.ToString()),
-                new Claim("SceneName", user.SceneName.Value)
+                new Claim("SceneName", user.SceneNameValue ?? string.Empty)
             };
 
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -69,6 +69,7 @@ namespace WitchCityRope.Infrastructure.Security
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+
 
         /// <summary>
         /// Validates a JWT token and returns the claims principal

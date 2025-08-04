@@ -1,0 +1,401 @@
+@page "/privacy"
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
+
+<PageTitle>Privacy Policy - Witch City Rope</PageTitle>
+
+<style>
+    .privacy-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+
+    .privacy-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .privacy-title {
+        font-size: 36px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 16px;
+    }
+
+    .privacy-subtitle {
+        font-size: 18px;
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .last-updated {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 32px;
+        text-align: center;
+        font-size: 14px;
+        color: #666;
+    }
+
+    .privacy-section {
+        margin-bottom: 40px;
+    }
+
+    .section-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 16px;
+    }
+
+    .subsection-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 12px;
+        margin-top: 24px;
+    }
+
+    .section-content {
+        font-size: 16px;
+        line-height: 1.8;
+        color: #444;
+        margin-bottom: 16px;
+    }
+
+    .info-highlight {
+        background: #e7f3ff;
+        border-left: 4px solid #007bff;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 0 8px 8px 0;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .data-table th {
+        background: #8B4513;
+        color: white;
+        padding: 16px;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    .data-table td {
+        padding: 16px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .data-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .contact-section {
+        background: #8B4513;
+        color: white;
+        border-radius: 8px;
+        padding: 32px;
+        text-align: center;
+        margin-top: 40px;
+    }
+
+    .contact-title {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+
+    .contact-text {
+        font-size: 16px;
+        line-height: 1.6;
+        margin-bottom: 24px;
+    }
+
+    .contact-button {
+        display: inline-block;
+        background: white;
+        color: #8B4513;
+        padding: 12px 24px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        margin-right: 16px;
+    }
+
+    .contact-button:hover {
+        background: #f5f5f5;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    @@media (max-width: 768px) {
+        .privacy-container {
+            padding: 24px 16px;
+        }
+
+        .privacy-title {
+            font-size: 28px;
+        }
+
+        .data-table {
+            font-size: 14px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px 8px;
+        }
+
+        .contact-button {
+            display: block;
+            margin: 8px 0;
+        }
+    }
+</style>
+
+<div class="privacy-container">
+    <div class="privacy-header">
+        <h1 class="privacy-title">Privacy Policy</h1>
+        <p class="privacy-subtitle">
+            How we collect, use, and protect your personal information
+        </p>
+    </div>
+
+    <div class="last-updated">
+        <strong>Last Updated:</strong> January 15, 2025
+    </div>
+
+    <div class="privacy-section">
+        <h2 class="section-title">Introduction</h2>
+        <p class="section-content">
+            Witch City Rope ("we," "us," or "our") is committed to protecting your privacy and personal information. 
+            This Privacy Policy explains how we collect, use, share, and protect information about you when you 
+            use our website and participate in our community activities.
+        </p>
+        <p class="section-content">
+            Given the sensitive nature of our community activities, we take extra care to ensure your information 
+            is handled with the utmost discretion and security.
+        </p>
+    </div>
+
+    <div class="privacy-section">
+        <h2 class="section-title">Information We Collect</h2>
+        
+        <h3 class="subsection-title">Personal Information</h3>
+        <p class="section-content">
+            We collect information you provide directly to us, including:
+        </p>
+        
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Information Type</th>
+                    <th>Purpose</th>
+                    <th>Required/Optional</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Name and Scene Name</td>
+                    <td>Member identification and community interaction</td>
+                    <td>Required</td>
+                </tr>
+                <tr>
+                    <td>Email Address</td>
+                    <td>Account management and communication</td>
+                    <td>Required</td>
+                </tr>
+                <tr>
+                    <td>Phone Number</td>
+                    <td>Emergency contact and event coordination</td>
+                    <td>Required</td>
+                </tr>
+                <tr>
+                    <td>Age/Date of Birth</td>
+                    <td>Age verification (18+ requirement)</td>
+                    <td>Required</td>
+                </tr>
+                <tr>
+                    <td>Emergency Contact Information</td>
+                    <td>Safety and emergency situations</td>
+                    <td>Required</td>
+                </tr>
+                <tr>
+                    <td>Profile Information</td>
+                    <td>Community engagement and matching</td>
+                    <td>Optional</td>
+                </tr>
+                <tr>
+                    <td>Event History</td>
+                    <td>Attendance tracking and skill progression</td>
+                    <td>Automatic</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3 class="subsection-title">Technical Information</h3>
+        <p class="section-content">
+            We automatically collect certain technical information when you use our website:
+        </p>
+        <ul>
+            <li>IP address and device information</li>
+            <li>Browser type and version</li>
+            <li>Pages visited and time spent</li>
+            <li>Referral source</li>
+            <li>Cookies and similar tracking technologies</li>
+        </ul>
+    </div>
+
+    <div class="privacy-section">
+        <h2 class="section-title">How We Use Your Information</h2>
+        <p class="section-content">
+            We use the information we collect for the following purposes:
+        </p>
+        <ul>
+            <li><strong>Account Management:</strong> Creating and maintaining your member account</li>
+            <li><strong>Event Coordination:</strong> Managing event registrations and communications</li>
+            <li><strong>Safety:</strong> Maintaining emergency contact information and incident records</li>
+            <li><strong>Community Features:</strong> Enabling member interactions and community building</li>
+            <li><strong>Vetting Process:</strong> Verifying member eligibility and community standards</li>
+            <li><strong>Communication:</strong> Sending updates, newsletters, and important information</li>
+            <li><strong>Analytics:</strong> Understanding usage patterns to improve our services</li>
+            <li><strong>Legal Compliance:</strong> Meeting legal requirements and protecting our rights</li>
+        </ul>
+    </div>
+
+    <div class="privacy-section">
+        <h2 class="section-title">Information Sharing</h2>
+        <p class="section-content">
+            We do not sell, trade, or otherwise transfer your personal information to third parties except in the following limited circumstances:
+        </p>
+        
+        <h3 class="subsection-title">Within Our Community</h3>
+        <ul>
+            <li>Your scene name and profile information may be visible to other vetted members</li>
+            <li>Event organizers may access your contact information for event coordination</li>
+            <li>Your attendance history may be visible to instructors for skill assessment</li>
+        </ul>
+
+        <h3 class="subsection-title">Third-Party Services</h3>
+        <ul>
+            <li>Payment processors (for event fees and donations)</li>
+            <li>Email service providers (for community communications)</li>
+            <li>Web hosting and analytics services</li>
+        </ul>
+
+        <h3 class="subsection-title">Legal Requirements</h3>
+        <ul>
+            <li>When required by law or legal process</li>
+            <li>To protect our rights, property, or safety</li>
+            <li>To protect the rights, property, or safety of our members</li>
+            <li>In case of emergency situations</li>
+        </ul>
+    </div>
+
+    <div class="info-highlight">
+        <strong>Important:</strong> We never share your personal information with other rope communities 
+        or organizations without your explicit consent, except in cases of serious safety violations 
+        where we believe it's necessary to protect others.
+    </div>
+
+    <div class="privacy-section">
+        <h2 class="section-title">Data Security</h2>
+        <p class="section-content">
+            We implement appropriate technical and organizational security measures to protect your personal information:
+        </p>
+        <ul>
+            <li>Encryption of sensitive data in transit and at rest</li>
+            <li>Access controls limiting who can view your information</li>
+            <li>Regular security audits and updates</li>
+            <li>Secure servers and databases</li>
+            <li>Staff training on privacy and security practices</li>
+        </ul>
+        <p class="section-content">
+            However, no method of transmission over the internet or electronic storage is 100% secure. 
+            While we strive to protect your information, we cannot guarantee absolute security.
+        </p>
+    </div>
+
+    <div class="privacy-section">
+        <h2 class="section-title">Your Rights and Choices</h2>
+        <p class="section-content">
+            You have the following rights regarding your personal information:
+        </p>
+        <ul>
+            <li><strong>Access:</strong> Request a copy of the information we have about you</li>
+            <li><strong>Correction:</strong> Request corrections to inaccurate information</li>
+            <li><strong>Deletion:</strong> Request deletion of your account and associated data</li>
+            <li><strong>Portability:</strong> Request a copy of your data in a common format</li>
+            <li><strong>Opt-out:</strong> Unsubscribe from non-essential communications</li>
+            <li><strong>Restrict Processing:</strong> Limit how we use your information</li>
+        </ul>
+        <p class="section-content">
+            To exercise these rights, please contact us using the information provided below.
+        </p>
+    </div>
+
+    <div class="privacy-section">
+        <h2 class="section-title">Data Retention</h2>
+        <p class="section-content">
+            We retain your personal information for as long as necessary to fulfill the purposes outlined in this policy:
+        </p>
+        <ul>
+            <li><strong>Active Members:</strong> Information retained while membership is active</li>
+            <li><strong>Inactive Members:</strong> Basic information retained for 2 years after last activity</li>
+            <li><strong>Safety Records:</strong> Incident reports retained for 7 years</li>
+            <li><strong>Financial Records:</strong> Payment information retained per legal requirements</li>
+            <li><strong>Legal Obligations:</strong> Information retained as required by law</li>
+        </ul>
+    </div>
+
+    <div class="privacy-section">
+        <h2 class="section-title">Cookies and Tracking</h2>
+        <p class="section-content">
+            We use cookies and similar technologies to improve your experience:
+        </p>
+        <ul>
+            <li><strong>Essential Cookies:</strong> Required for website functionality</li>
+            <li><strong>Analytics Cookies:</strong> Help us understand how you use our site</li>
+            <li><strong>Preference Cookies:</strong> Remember your settings and preferences</li>
+        </ul>
+        <p class="section-content">
+            You can control cookies through your browser settings, but this may affect website functionality.
+        </p>
+    </div>
+
+    <div class="privacy-section">
+        <h2 class="section-title">Changes to This Policy</h2>
+        <p class="section-content">
+            We may update this Privacy Policy from time to time. We will notify you of any material changes by:
+        </p>
+        <ul>
+            <li>Posting the updated policy on our website</li>
+            <li>Sending an email notification to registered members</li>
+            <li>Providing notice at our next event</li>
+        </ul>
+        <p class="section-content">
+            Your continued use of our services after any changes constitutes acceptance of the updated policy.
+        </p>
+    </div>
+
+    <div class="contact-section">
+        <h2 class="contact-title">Contact Us</h2>
+        <p class="contact-text">
+            If you have questions about this Privacy Policy or want to exercise your rights, 
+            please contact us:
+        </p>
+        <a href="/contact" class="contact-button">Contact Form</a>
+        <a href="mailto:privacy@witchcityrope.com" class="contact-button">Email Us</a>
+    </div>
+</div>

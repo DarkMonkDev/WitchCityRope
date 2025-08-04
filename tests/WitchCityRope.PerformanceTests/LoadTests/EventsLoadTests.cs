@@ -13,6 +13,7 @@ using WitchCityRope.Core.Enums;
 using WitchCityRope.PerformanceTests.Infrastructure;
 using Xunit;
 using Xunit.Abstractions;
+using System.Net.Http.Headers;
 
 namespace WitchCityRope.PerformanceTests.LoadTests
 {
@@ -73,7 +74,7 @@ namespace WitchCityRope.PerformanceTests.LoadTests
                     PaymentToken: null
                 );
 
-                var content = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
+                var content = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"/api/events/{eventId}/register")
                 {
                     Content = content
@@ -169,7 +170,7 @@ namespace WitchCityRope.PerformanceTests.LoadTests
                     PaymentToken: null
                 );
 
-                var content = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
+                var content = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"/api/events/{eventId}/register")
                 {
                     Content = content

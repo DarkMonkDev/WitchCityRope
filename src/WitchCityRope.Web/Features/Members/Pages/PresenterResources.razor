@@ -1,0 +1,864 @@
+@page "/member/presenter-resources"
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@using WitchCityRope.Web.Services
+@using WitchCityRope.Web.Shared.Layouts
+@using Microsoft.AspNetCore.Authorization
+@inject IApiClient ApiClient
+@inject IToastService ToastService
+@inject NavigationManager Navigation
+@attribute [Authorize]
+@layout MainLayout
+
+<PageTitle>Presenter Resources - Witch City Rope</PageTitle>
+
+<style>
+    .presenter-resources-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .resources-header {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .resources-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+    }
+
+    .resources-subtitle {
+        color: #666;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .presenter-notice {
+        background: #e7f3ff;
+        border: 1px solid #bee5eb;
+        border-radius: 6px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .notice-title {
+        font-weight: 600;
+        color: #0c5460;
+        margin-bottom: 0.5rem;
+    }
+
+    .notice-text {
+        color: #0c5460;
+        font-size: 0.9rem;
+    }
+
+    .resources-tabs {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid #eee;
+    }
+
+    .tab-button {
+        padding: 0.75rem 1rem;
+        background: none;
+        border: none;
+        color: #666;
+        cursor: pointer;
+        font-weight: 500;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+    .tab-button.active {
+        color: #8B4513;
+        border-bottom-color: #8B4513;
+    }
+
+    .tab-button:hover:not(.active) {
+        color: #333;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .resources-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+    }
+
+    .resource-card {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease;
+    }
+
+    .resource-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .resource-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .resource-icon {
+        width: 48px;
+        height: 48px;
+        background: #8B4513;
+        color: white;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .resource-info {
+        flex: 1;
+    }
+
+    .resource-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.25rem;
+    }
+
+    .resource-category {
+        color: #666;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .resource-description {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+
+    .resource-features {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 1.5rem;
+    }
+
+    .resource-features li {
+        padding: 0.25rem 0;
+        position: relative;
+        padding-left: 1.5rem;
+    }
+
+    .resource-features li::before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #8B4513;
+        font-weight: bold;
+    }
+
+    .resource-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .action-button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+        background: #8B4513;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #6B3410;
+    }
+
+    .btn-secondary {
+        background: #f8f9fa;
+        color: #333;
+        border: 1px solid #dee2e6;
+    }
+
+    .btn-secondary:hover {
+        background: #e9ecef;
+    }
+
+    .application-form {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+    }
+
+    .form-section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 1rem;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+
+    .form-textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .form-select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        background: white;
+    }
+
+    .form-help {
+        font-size: 0.8rem;
+        color: #666;
+        margin-top: 0.25rem;
+    }
+
+    .guidelines-section {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .guidelines-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 1rem;
+    }
+
+    .guidelines-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .guideline-item {
+        background: white;
+        border-radius: 6px;
+        padding: 1.5rem;
+    }
+
+    .guideline-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+    }
+
+    .guideline-text {
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .download-section {
+        margin-top: 2rem;
+    }
+
+    .download-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+
+    .download-item {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .download-item:hover {
+        background: #f8f9fa;
+        border-color: #8B4513;
+    }
+
+    .download-icon {
+        width: 40px;
+        height: 40px;
+        background: #8B4513;
+        color: white;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .download-info {
+        flex: 1;
+    }
+
+    .download-title {
+        font-weight: 500;
+        color: #1a1a1a;
+        margin-bottom: 0.25rem;
+    }
+
+    .download-description {
+        color: #666;
+        font-size: 0.8rem;
+    }
+
+    @@media (max-width: 768px) {
+        .presenter-resources-container {
+            padding: 1rem;
+        }
+
+        .resources-tabs {
+            flex-wrap: wrap;
+        }
+
+        .resources-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .guidelines-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="presenter-resources-container">
+    <div class="resources-header">
+        <h1 class="resources-title">Presenter Resources</h1>
+        <p class="resources-subtitle">Resources and tools for community presenters and instructors</p>
+    </div>
+
+    <div class="presenter-notice">
+        <div class="notice-title">🎓 Presenter Program</div>
+        <div class="notice-text">
+            Our presenter program is designed to support experienced community members who want to share their knowledge 
+            and skills. Whether you're interested in teaching workshops, leading discussions, or creating educational content, 
+            we provide the resources and support you need to succeed.
+        </div>
+    </div>
+
+    <div class="resources-tabs">
+        <button class="tab-button @(activeTab == "resources" ? "active" : "")" @onclick='() => SetActiveTab("resources")'>
+            Resources
+        </button>
+        <button class="tab-button @(activeTab == "guidelines" ? "active" : "")" @onclick='() => SetActiveTab("guidelines")'>
+            Guidelines
+        </button>
+        <button class="tab-button @(activeTab == "application" ? "active" : "")" @onclick='() => SetActiveTab("application")'>
+            Apply to Present
+        </button>
+        <button class="tab-button @(activeTab == "downloads" ? "active" : "")" @onclick='() => SetActiveTab("downloads")'>
+            Downloads
+        </button>
+    </div>
+
+    <!-- Resources Tab -->
+    <div class="tab-content @(activeTab == "resources" ? "active" : "")">
+        <div class="resources-grid">
+            <div class="resource-card">
+                <div class="resource-header">
+                    <div class="resource-icon">📚</div>
+                    <div class="resource-info">
+                        <h3 class="resource-title">Teaching Materials</h3>
+                        <div class="resource-category">Educational Resources</div>
+                    </div>
+                </div>
+                <p class="resource-description">
+                    Access our library of teaching materials, including presentation templates, safety checklists, 
+                    and curriculum guides for various skill levels.
+                </p>
+                <ul class="resource-features">
+                    <li>PowerPoint templates</li>
+                    <li>Safety assessment forms</li>
+                    <li>Skill progression guides</li>
+                    <li>Anatomy and risk awareness materials</li>
+                </ul>
+                <div class="resource-actions">
+                    <button class="action-button btn-primary" @onclick='() => AccessResource("materials")'>
+                        Access Materials
+                    </button>
+                </div>
+            </div>
+
+            <div class="resource-card">
+                <div class="resource-header">
+                    <div class="resource-icon">🎥</div>
+                    <div class="resource-info">
+                        <h3 class="resource-title">Video Equipment</h3>
+                        <div class="resource-category">Technical Resources</div>
+                    </div>
+                </div>
+                <p class="resource-description">
+                    Borrow professional video equipment to create high-quality educational content and document 
+                    your presentations for future reference.
+                </p>
+                <ul class="resource-features">
+                    <li>4K cameras and tripods</li>
+                    <li>Wireless microphones</li>
+                    <li>Lighting equipment</li>
+                    <li>Video editing software access</li>
+                </ul>
+                <div class="resource-actions">
+                    <button class="action-button btn-primary" @onclick='() => AccessResource("equipment")'>
+                        Reserve Equipment
+                    </button>
+                </div>
+            </div>
+
+            <div class="resource-card">
+                <div class="resource-header">
+                    <div class="resource-icon">🏢</div>
+                    <div class="resource-info">
+                        <h3 class="resource-title">Venue Booking</h3>
+                        <div class="resource-category">Event Management</div>
+                    </div>
+                </div>
+                <p class="resource-description">
+                    Access to our network of venues and spaces for hosting workshops, practice sessions, 
+                    and educational events.
+                </p>
+                <ul class="resource-features">
+                    <li>Studio spaces with rigging points</li>
+                    <li>Classroom environments</li>
+                    <li>Private practice rooms</li>
+                    <li>Event coordination support</li>
+                </ul>
+                <div class="resource-actions">
+                    <button class="action-button btn-primary" @onclick='() => AccessResource("venue")'>
+                        Book Venue
+                    </button>
+                </div>
+            </div>
+
+            <div class="resource-card">
+                <div class="resource-header">
+                    <div class="resource-icon">🤝</div>
+                    <div class="resource-info">
+                        <h3 class="resource-title">Mentorship Program</h3>
+                        <div class="resource-category">Professional Development</div>
+                    </div>
+                </div>
+                <p class="resource-description">
+                    Connect with experienced instructors who can provide guidance, feedback, and support 
+                    as you develop your presenting skills.
+                </p>
+                <ul class="resource-features">
+                    <li>One-on-one mentoring</li>
+                    <li>Teaching skill development</li>
+                    <li>Presentation feedback</li>
+                    <li>Professional networking</li>
+                </ul>
+                <div class="resource-actions">
+                    <button class="action-button btn-primary" @onclick='() => AccessResource("mentorship")'>
+                        Find Mentor
+                    </button>
+                </div>
+            </div>
+
+            <div class="resource-card">
+                <div class="resource-header">
+                    <div class="resource-icon">💰</div>
+                    <div class="resource-info">
+                        <h3 class="resource-title">Funding Support</h3>
+                        <div class="resource-category">Financial Resources</div>
+                    </div>
+                </div>
+                <p class="resource-description">
+                    Financial assistance for educational materials, equipment, and professional development 
+                    opportunities for qualified presenters.
+                </p>
+                <ul class="resource-features">
+                    <li>Material purchase assistance</li>
+                    <li>Conference attendance funding</li>
+                    <li>Equipment rental subsidies</li>
+                    <li>Professional development grants</li>
+                </ul>
+                <div class="resource-actions">
+                    <button class="action-button btn-primary" @onclick='() => AccessResource("funding")'>
+                        Apply for Funding
+                    </button>
+                </div>
+            </div>
+
+            <div class="resource-card">
+                <div class="resource-header">
+                    <div class="resource-icon">📈</div>
+                    <div class="resource-info">
+                        <h3 class="resource-title">Analytics & Feedback</h3>
+                        <div class="resource-category">Performance Tracking</div>
+                    </div>
+                </div>
+                <p class="resource-description">
+                    Track your presentation performance, gather attendee feedback, and access analytics 
+                    to improve your teaching effectiveness.
+                </p>
+                <ul class="resource-features">
+                    <li>Event attendance tracking</li>
+                    <li>Feedback collection tools</li>
+                    <li>Performance analytics</li>
+                    <li>Improvement recommendations</li>
+                </ul>
+                <div class="resource-actions">
+                    <button class="action-button btn-primary" @onclick='() => AccessResource("analytics")'>
+                        View Analytics
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guidelines Tab -->
+    <div class="tab-content @(activeTab == "guidelines" ? "active" : "")">
+        <div class="guidelines-section">
+            <h2 class="guidelines-title">Presenter Guidelines</h2>
+            <div class="guidelines-grid">
+                <div class="guideline-item">
+                    <h3 class="guideline-title">Safety First</h3>
+                    <p class="guideline-text">
+                        All presentations must prioritize safety. Include comprehensive safety discussions, 
+                        risk assessments, and emergency procedures. Presenters must be certified in first aid.
+                    </p>
+                </div>
+                <div class="guideline-item">
+                    <h3 class="guideline-title">Consent & Communication</h3>
+                    <p class="guideline-text">
+                        Emphasize informed consent in all activities. Teach clear communication techniques 
+                        and ensure all participants understand their rights and boundaries.
+                    </p>
+                </div>
+                <div class="guideline-item">
+                    <h3 class="guideline-title">Inclusive Environment</h3>
+                    <p class="guideline-text">
+                        Create welcoming spaces for all participants regardless of experience level, 
+                        background, or physical abilities. Use inclusive language and teaching methods.
+                    </p>
+                </div>
+                <div class="guideline-item">
+                    <h3 class="guideline-title">Skill-Appropriate Content</h3>
+                    <p class="guideline-text">
+                        Ensure your content matches the advertised skill level. Provide clear prerequisites 
+                        and build upon foundational knowledge appropriately.
+                    </p>
+                </div>
+                <div class="guideline-item">
+                    <h3 class="guideline-title">Professional Conduct</h3>
+                    <p class="guideline-text">
+                        Maintain professional boundaries and ethical standards. Respect confidentiality 
+                        and avoid conflicts of interest in your teaching role.
+                    </p>
+                </div>
+                <div class="guideline-item">
+                    <h3 class="guideline-title">Continuous Learning</h3>
+                    <p class="guideline-text">
+                        Stay current with best practices, attend continuing education opportunities, 
+                        and regularly update your knowledge and skills.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Tab -->
+    <div class="tab-content @(activeTab == "application" ? "active" : "")">
+        <div class="application-form">
+            <h2 class="section-title">Presenter Application</h2>
+            
+            <div class="form-section">
+                <h3 class="form-section-title">Personal Information</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Scene Name *</label>
+                        <input type="text" class="form-input" @bind="applicationData.SceneName" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Address *</label>
+                        <input type="email" class="form-input" @bind="applicationData.Email" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Years of Experience *</label>
+                        <select class="form-select" @bind="applicationData.YearsOfExperience">
+                            <option value="">Select...</option>
+                            <option value="2-4">2-4 years</option>
+                            <option value="5-9">5-9 years</option>
+                            <option value="10+">10+ years</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">Teaching Experience</h3>
+                <div class="form-group">
+                    <label class="form-label">Previous Teaching Experience *</label>
+                    <textarea class="form-textarea" @bind="applicationData.TeachingExperience" 
+                              placeholder="Describe your previous teaching experience, including where, when, and what you taught..."></textarea>
+                    <div class="form-help">Include both formal and informal teaching experiences</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Proposed Topic/Class *</label>
+                    <input type="text" class="form-input" @bind="applicationData.ProposedTopic" 
+                           placeholder="e.g., Basic Shibari Ties, Advanced Suspension, Safety & Risk Awareness" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Class Description *</label>
+                    <textarea class="form-textarea" @bind="applicationData.ClassDescription" 
+                              placeholder="Provide a detailed description of your proposed class..."></textarea>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">Qualifications</h3>
+                <div class="form-group">
+                    <label class="form-label">Relevant Certifications</label>
+                    <textarea class="form-textarea" @bind="applicationData.Certifications" 
+                              placeholder="List any relevant certifications (First Aid, CPR, etc.)..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">References *</label>
+                    <textarea class="form-textarea" @bind="applicationData.References" 
+                              placeholder="Provide at least 2 references from the rope/kink community..."></textarea>
+                    <div class="form-help">Include names and contact information for community references</div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">Additional Information</h3>
+                <div class="form-group">
+                    <label class="form-label">Why do you want to present?</label>
+                    <textarea class="form-textarea" @bind="applicationData.Motivation" 
+                              placeholder="Share your motivation for wanting to teach in our community..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Additional Comments</label>
+                    <textarea class="form-textarea" @bind="applicationData.AdditionalComments" 
+                              placeholder="Any additional information you'd like to share..."></textarea>
+                </div>
+            </div>
+
+            <div class="resource-actions">
+                <button class="action-button btn-primary" @onclick="SubmitApplication">
+                    Submit Application
+                </button>
+                <button class="action-button btn-secondary" @onclick="SaveDraft">
+                    Save Draft
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Downloads Tab -->
+    <div class="tab-content @(activeTab == "downloads" ? "active" : "")">
+        <div class="download-section">
+            <h2 class="section-title">Download Resources</h2>
+            <div class="download-grid">
+                <div class="download-item" @onclick='() => DownloadResource("presenter-handbook")'>
+                    <div class="download-icon">📖</div>
+                    <div class="download-info">
+                        <div class="download-title">Presenter Handbook</div>
+                        <div class="download-description">Complete guide to presenting in our community</div>
+                    </div>
+                </div>
+                <div class="download-item" @onclick='() => DownloadResource("safety-checklist")'>
+                    <div class="download-icon">✅</div>
+                    <div class="download-info">
+                        <div class="download-title">Safety Checklist</div>
+                        <div class="download-description">Pre-event safety assessment form</div>
+                    </div>
+                </div>
+                <div class="download-item" @onclick='() => DownloadResource("consent-forms")'>
+                    <div class="download-icon">📝</div>
+                    <div class="download-info">
+                        <div class="download-title">Consent Forms</div>
+                        <div class="download-description">Templates for informed consent documentation</div>
+                    </div>
+                </div>
+                <div class="download-item" @onclick='() => DownloadResource("presentation-template")'>
+                    <div class="download-icon">🎨</div>
+                    <div class="download-info">
+                        <div class="download-title">Presentation Template</div>
+                        <div class="download-description">PowerPoint template with WCR branding</div>
+                    </div>
+                </div>
+                <div class="download-item" @onclick='() => DownloadResource("feedback-form")'>
+                    <div class="download-icon">📊</div>
+                    <div class="download-info">
+                        <div class="download-title">Feedback Form</div>
+                        <div class="download-description">Attendee feedback collection template</div>
+                    </div>
+                </div>
+                <div class="download-item" @onclick='() => DownloadResource("marketing-kit")'>
+                    <div class="download-icon">📢</div>
+                    <div class="download-info">
+                        <div class="download-title">Marketing Kit</div>
+                        <div class="download-description">Logos, images, and promotional materials</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string activeTab = "resources";
+    private PresenterApplicationData applicationData = new();
+
+    private void SetActiveTab(string tab)
+    {
+        activeTab = tab;
+    }
+
+    private async Task AccessResource(string resourceType)
+    {
+        try
+        {
+            // Navigate to specific resource or open modal
+            await Task.Delay(100);
+            ToastService.ShowSuccess($"Accessing {resourceType} resource...");
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Failed to access resource: {ex.Message}");
+        }
+    }
+
+    private async Task SubmitApplication()
+    {
+        try
+        {
+            // Validate required fields
+            if (string.IsNullOrEmpty(applicationData.SceneName) || 
+                string.IsNullOrEmpty(applicationData.Email) || 
+                string.IsNullOrEmpty(applicationData.TeachingExperience) ||
+                string.IsNullOrEmpty(applicationData.ProposedTopic) ||
+                string.IsNullOrEmpty(applicationData.ClassDescription) ||
+                string.IsNullOrEmpty(applicationData.References))
+            {
+                ToastService.ShowError("Please fill in all required fields.");
+                return;
+            }
+
+            // Submit application via API
+            await Task.Delay(1000); // Mock delay
+            
+            ToastService.ShowSuccess("Application submitted successfully! We'll review your application and get back to you within 1-2 weeks.");
+            
+            // Reset form
+            applicationData = new PresenterApplicationData();
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Failed to submit application: {ex.Message}");
+        }
+    }
+
+    private async Task SaveDraft()
+    {
+        try
+        {
+            // Save draft via API
+            await Task.Delay(500); // Mock delay
+            ToastService.ShowSuccess("Draft saved successfully!");
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Failed to save draft: {ex.Message}");
+        }
+    }
+
+    private async Task DownloadResource(string resourceType)
+    {
+        try
+        {
+            // Download resource file
+            await Task.Delay(500); // Mock delay
+            ToastService.ShowSuccess($"Download started for {resourceType}!");
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Failed to download resource: {ex.Message}");
+        }
+    }
+
+    public class PresenterApplicationData
+    {
+        public string SceneName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string YearsOfExperience { get; set; } = string.Empty;
+        public string TeachingExperience { get; set; } = string.Empty;
+        public string ProposedTopic { get; set; } = string.Empty;
+        public string ClassDescription { get; set; } = string.Empty;
+        public string Certifications { get; set; } = string.Empty;
+        public string References { get; set; } = string.Empty;
+        public string Motivation { get; set; } = string.Empty;
+        public string AdditionalComments { get; set; } = string.Empty;
+    }
+}

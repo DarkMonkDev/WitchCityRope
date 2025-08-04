@@ -1,0 +1,58 @@
+@page "/Error"
+@using Microsoft.AspNetCore.Diagnostics
+@inject IWebHostEnvironment Environment
+
+<PageTitle>Error - Witch City Rope</PageTitle>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="alert alert-danger">
+                <h3 class="alert-heading">An error occurred</h3>
+                <p>We're sorry, but something went wrong while processing your request.</p>
+                <hr>
+                <p class="mb-0">Please try refreshing the page or navigating back to the <a href="/">home page</a>.</p>
+            </div>
+
+            @if (ShowDetails)
+            {
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">Error Details (Development Mode)</h5>
+                    </div>
+                    <div class="card-body">
+                        <pre class="text-danger">@ErrorMessage</pre>
+                        @if (!string.IsNullOrEmpty(StackTrace))
+                        {
+                            <hr>
+                            <h6>Stack Trace:</h6>
+                            <pre class="small">@StackTrace</pre>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter]
+    private HttpContext? HttpContext { get; set; }
+
+    private string? ErrorMessage { get; set; }
+    private string? StackTrace { get; set; }
+    private bool ShowDetails => Environment.IsDevelopment();
+
+    protected override void OnInitialized()
+    {
+        if (HttpContext != null)
+        {
+            var exceptionFeature = HttpContext.Features.Get<IExceptionHandlerFeature>();
+            if (exceptionFeature?.Error != null)
+            {
+                ErrorMessage = exceptionFeature.Error.Message;
+                StackTrace = exceptionFeature.Error.StackTrace;
+            }
+        }
+    }
+}

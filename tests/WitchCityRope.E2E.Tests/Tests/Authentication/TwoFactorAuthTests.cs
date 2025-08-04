@@ -25,7 +25,7 @@ public class TwoFactorAuthTests : BaseE2ETest
         await profilePage.NavigateAsync();
 
         // Enable 2FA
-        await profilePage.Is2FAEnabledAsync().Should().BeFalseAsync();
+        (await profilePage.Is2FAEnabledAsync()).Should().BeFalse();
         await profilePage.ClickEnable2FAAsync();
 
         // Should show QR code and setup instructions
@@ -50,7 +50,7 @@ public class TwoFactorAuthTests : BaseE2ETest
 
         // Confirm 2FA is enabled (assuming verification succeeded)
         await Page.WaitForTimeoutAsync(1000);
-        await profilePage.Is2FAEnabledAsync().Should().BeTrueAsync();
+        (await profilePage.Is2FAEnabledAsync()).Should().BeTrue();
 
         // Logout
         await Page.GotoAsync($"{TestSettings.BaseUrl}/logout");
@@ -61,7 +61,7 @@ public class TwoFactorAuthTests : BaseE2ETest
 
         // Should redirect to 2FA page
         await Page.WaitForURLAsync("**/two-factor");
-        await twoFactorPage.IsCurrentPageAsync().Should().BeTrueAsync();
+        (await twoFactorPage.IsCurrentPageAsync()).Should().BeTrue();
 
         // Take screenshot
         await TakeScreenshotAsync("2fa_verification_required");
@@ -93,7 +93,7 @@ public class TwoFactorAuthTests : BaseE2ETest
             await twoFactorPage.WaitForVerificationSuccessAsync();
 
             // Assert - Should be on dashboard
-            await dashboardPage.IsCurrentPageAsync().Should().BeTrueAsync();
+            (await dashboardPage.IsCurrentPageAsync()).Should().BeTrue();
         }
     }
 
@@ -116,13 +116,12 @@ public class TwoFactorAuthTests : BaseE2ETest
             await twoFactorPage.VerifyCodeAsync("000000");
 
             // Assert - Should show error
-            await twoFactorPage.HasErrorMessageAsync().Should().BeTrueAsync();
+            (await twoFactorPage.HasErrorMessageAsync()).Should().BeTrue();
             var errorMessage = await twoFactorPage.GetErrorMessageAsync();
-            errorMessage.Should().Contain(new[] { "invalid", "incorrect", "code" }, 
-                StringComparison.OrdinalIgnoreCase);
+            errorMessage.Should().ContainAny("invalid", "incorrect", "code");
 
             // Should still be on 2FA page
-            await twoFactorPage.IsCurrentPageAsync().Should().BeTrueAsync();
+            (await twoFactorPage.IsCurrentPageAsync()).Should().BeTrue();
         }
     }
 
@@ -148,10 +147,10 @@ public class TwoFactorAuthTests : BaseE2ETest
 
             // Assert - Should show success message
             await Page.WaitForTimeoutAsync(1000);
-            await twoFactorPage.WasCodeResentAsync().Should().BeTrueAsync();
+            (await twoFactorPage.WasCodeResentAsync()).Should().BeTrue();
 
             // Should still be on 2FA page
-            await twoFactorPage.IsCurrentPageAsync().Should().BeTrueAsync();
+            (await twoFactorPage.IsCurrentPageAsync()).Should().BeTrue();
         }
     }
 
@@ -223,7 +222,7 @@ public class TwoFactorAuthTests : BaseE2ETest
             await Page.WaitForTimeoutAsync(1000);
 
             // Assert - 2FA should be disabled
-            await profilePage.Is2FAEnabledAsync().Should().BeFalseAsync();
+            (await profilePage.Is2FAEnabledAsync()).Should().BeFalse();
         }
 
         // Logout and login again
@@ -263,6 +262,6 @@ public class TwoFactorAuthTests : BaseE2ETest
 
         // Assert - Should not require 2FA code
         Page.Url.Should().NotContain("two-factor");
-        await dashboardPage.IsCurrentPageAsync().Should().BeTrueAsync();
+        (await dashboardPage.IsCurrentPageAsync()).Should().BeTrue();
     }
 }

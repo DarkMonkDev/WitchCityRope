@@ -17,7 +17,7 @@ namespace WitchCityRope.Core.Entities
         private Registration() { }
 
         public Registration(
-            User user,
+            IUser user,
             Event eventToRegister,
             Money selectedPrice,
             string? dietaryRestrictions = null,
@@ -58,7 +58,7 @@ namespace WitchCityRope.Core.Entities
         
         public Guid UserId { get; private set; }
         
-        public User User { get; private set; }
+        public IUser User { get; private set; }
         
         public Guid EventId { get; private set; }
         

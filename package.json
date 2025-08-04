@@ -1,0 +1,62 @@
+{
+  "name": "witchcityrope-tests",
+  "version": "1.0.0",
+  "description": "Test scripts for WitchCityRope",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:login": "playwright test tests/playwright/auth/login-basic.spec.ts",
+    "test:admin": "playwright test tests/playwright/admin/",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ci": "playwright test --config=playwright.config.ci.ts --reporter=html,github,junit",
+    "playwright:install": "playwright install --with-deps",
+    "test:smoke": "./scripts/run-playwright-categorized.sh --category smoke",
+    "test:auth": "./scripts/run-playwright-categorized.sh --category auth",
+    "test:events": "./scripts/run-playwright-categorized.sh --category events",
+    "test:admin": "./scripts/run-playwright-categorized.sh --category admin",
+    "test:validation": "./scripts/run-playwright-categorized.sh --category validation",
+    "test:ui": "./scripts/run-playwright-categorized.sh --category ui",
+    "test:api": "./scripts/run-playwright-categorized.sh --category api",
+    "test:visual": "./scripts/run-playwright-categorized.sh --category visual",
+    "test:all": "./scripts/run-playwright-categorized.sh --category all",
+    "test:ci-fast": "./scripts/run-playwright-categorized.sh --category smoke --environment docker",
+    "test:ci-standard": "npm run test:smoke && npm run test:auth && npm run test:events",
+    "test:debug": "./scripts/run-playwright-categorized.sh --category smoke --debug",
+    "test:categories": "./scripts/run-playwright-categorized.sh --list",
+    "ci:setup": "npm ci && npx playwright install --with-deps",
+    "ci:test": "npm run test:e2e:playwright:ci",
+    "lighthouse": "lhci autorun"
+  },
+  "dependencies": {
+    "axios": "^1.10.0"
+  },
+  "main": "analyze-login-logs.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://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@github.com/DarkMonkDev/WitchCityRope.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DarkMonkDev/WitchCityRope/issues"
+  },
+  "homepage": "https://github.com/DarkMonkDev/WitchCityRope#readme",
+  "devDependencies": {
+    "@faker-js/faker": "^8.4.1",
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.10.0",
+    "@types/pg": "^8.15.4",
+    "node-fetch": "^2.7.0",
+    "pg": "^8.16.3",
+    "typescript": "^5.3.0"
+  }
+}

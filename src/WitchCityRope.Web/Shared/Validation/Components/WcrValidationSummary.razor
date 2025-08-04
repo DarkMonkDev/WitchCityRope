@@ -1,0 +1,44 @@
+@using Microsoft.AspNetCore.Components.Forms
+
+@if (_editContext != null && _editContext.GetValidationMessages().Any())
+{
+    <div class="wcr-validation-summary validation-summary alert-danger" role="alert">
+        <div class="wcr-validation-summary-title">
+            <span class="wcr-validation-summary-icon e-icons e-warning"></span>
+            <span>@Title</span>
+        </div>
+        <ul>
+            @foreach (var message in _editContext.GetValidationMessages())
+            {
+                <li>@message</li>
+            }
+        </ul>
+    </div>
+}
+
+@code {
+    [CascadingParameter] private EditContext? _editContext { get; set; }
+    
+    [Parameter] public string Title { get; set; } = "Please correct the following errors:";
+    
+    protected override void OnInitialized()
+    {
+        if (_editContext != null)
+        {
+            _editContext.OnValidationStateChanged += HandleValidationStateChanged;
+        }
+    }
+
+    private void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs e)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        if (_editContext != null)
+        {
+            _editContext.OnValidationStateChanged -= HandleValidationStateChanged;
+        }
+    }
+}

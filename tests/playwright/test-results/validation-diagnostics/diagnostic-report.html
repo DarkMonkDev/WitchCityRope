@@ -1,0 +1,175 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Form Validation Diagnostic Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; }
+        h2 { color: #555; margin-top: 30px; }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+        .summary-card { padding: 15px; border-radius: 8px; text-align: center; }
+        .summary-card.fully_migrated { background: #d4edda; color: #155724; }
+        .summary-card.partially_migrated { background: #fff3cd; color: #856404; }
+        .summary-card.error { background: #f8d7da; color: #721c24; }
+        .summary-card.http_error { background: #f8d7da; color: #721c24; }
+        .summary-card.no_form_found { background: #e2e3e5; color: #383d41; }
+        .form-card { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .form-card.fully_migrated { border-left: 4px solid #28a745; }
+        .form-card.partially_migrated { border-left: 4px solid #ffc107; }
+        .form-card.error { border-left: 4px solid #dc3545; }
+        .form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .form-title { font-size: 18px; font-weight: bold; }
+        .status-badge { padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .status-badge.fully_migrated { background: #28a745; color: white; }
+        .status-badge.partially_migrated { background: #ffc107; color: #333; }
+        .status-badge.error { background: #dc3545; color: white; }
+        .details-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 15px 0; }
+        .detail-item { padding: 10px; background: #f8f9fa; border-radius: 4px; }
+        .detail-label { font-weight: bold; color: #666; font-size: 12px; text-transform: uppercase; }
+        .detail-value { margin-top: 5px; font-size: 14px; }
+        .screenshots { margin-top: 15px; }
+        .screenshot-link { display: inline-block; margin-right: 10px; color: #007bff; text-decoration: none; }
+        .screenshot-link:hover { text-decoration: underline; }
+        .validation-test { margin: 5px 0; padding: 5px 10px; background: #f8f9fa; border-radius: 4px; }
+        .validation-test.passed { border-left: 3px solid #28a745; }
+        .validation-test.failed { border-left: 3px solid #dc3545; }
+        .error-message { color: #dc3545; margin: 10px 0; padding: 10px; background: #f8d7da; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Form Validation Diagnostic Report</h1>
+        <p>Generated: 7/22/2025, 4:20:16 PM</p>
+        <p>Environment: http://localhost:5651</p>
+        
+        <h2>Summary</h2>
+        <div class="summary-grid">
+            
+                <div class="summary-card fully_migrated">
+                    <div style="font-size: 24px; font-weight: bold;">1</div>
+                    <div>Fully Migrated</div>
+                </div>
+            
+                <div class="summary-card error">
+                    <div style="font-size: 24px; font-weight: bold;">1</div>
+                    <div>Error</div>
+                </div>
+            
+        </div>
+        
+        <h2>Form Details</h2>
+        
+    <div class="form-card fully_migrated">
+        <div class="form-header">
+            <div class="form-title">Login</div>
+            <div class="status-badge fully_migrated">Fully Migrated</div>
+        </div>
+        
+        
+        
+        
+        
+        <div class="details-grid">
+            <div class="detail-item">
+                <div class="detail-label">Page Loaded</div>
+                <div class="detail-value">✅ Yes</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Form Found</div>
+                <div class="detail-value">✅ Yes</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">WCR Components</div>
+                <div class="detail-value">2</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Standard Inputs</div>
+                <div class="detail-value">2</div>
+            </div>
+        </div>
+        
+        
+            <h4>Validation Tests</h4>
+            
+                <div class="validation-test passed">
+                    Empty form submission: ✅ Passed
+                    
+                    <br><small>2 validation messages</small>
+                </div>
+            
+                <div class="validation-test failed">
+                    Real-time validation: ❌ Failed
+                    <br><small>No real-time validation detected</small>
+                    
+                </div>
+            
+        
+        
+        
+            <div class="screenshots">
+                Screenshots: 
+                
+                    <a href="Login-initial-1753215610896.png" class="screenshot-link" target="_blank">View 1</a>
+                
+                    <a href="Login-validation-1753215612561.png" class="screenshot-link" target="_blank">View 2</a>
+                
+            </div>
+        
+    </div>
+  
+    <div class="form-card error">
+        <div class="form-header">
+            <div class="form-title">Login with 2FA</div>
+            <div class="status-badge error">Error</div>
+        </div>
+        
+        <p>Redirected to: <code>http://localhost:5651/login</code></p>
+        
+        
+            <div class="error-message">
+                locator.isVisible: Error: strict mode violation: locator('form') resolved to 2 elements:
+    1) <form method="post">…</form> aka getByText('Email or Username Password')
+    2) <form action="/login" class="newsletter-form" __internal_preventdefault_onsubmit="">…</form> aka locator('form').filter({ hasText: 'Subscribe' })
+
+Call log:
+[2m    - checking visibility of locator('form')[22m
+
+            </div>
+        
+        
+        <div class="details-grid">
+            <div class="detail-item">
+                <div class="detail-label">Page Loaded</div>
+                <div class="detail-value">✅ Yes</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Form Found</div>
+                <div class="detail-value">❌ No</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">WCR Components</div>
+                <div class="detail-value">0</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Standard Inputs</div>
+                <div class="detail-value">0</div>
+            </div>
+        </div>
+        
+        
+        
+        
+            <div class="screenshots">
+                Screenshots: 
+                
+                    <a href="Login with 2FA-error-1753215616085.png" class="screenshot-link" target="_blank">View 1</a>
+                
+            </div>
+        
+    </div>
+  
+    </div>
+</body>
+</html>

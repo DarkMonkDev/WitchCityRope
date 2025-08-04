@@ -166,7 +166,7 @@ namespace WitchCityRope.Web.Tests.Shared.Layouts
             mobileMenu.GetClasses().Should().Contain("open");
             
             // Should have minimal mobile menu items
-            var mobileLinks = mobileMenu.FindAll(".mobile-nav-link");
+            var mobileLinks = component.FindAll(".mobile-menu .mobile-nav-link");
             mobileLinks.Should().HaveCountLessThanOrEqualTo(4);
         }
 
@@ -190,13 +190,11 @@ namespace WitchCityRope.Web.Tests.Shared.Layouts
         public void PublicLayout_ContentWrapper_HasProperStyling()
         {
             // Act
-            var component = RenderComponent<PublicLayout>
-            (
-                childContent: builder =>
+            var component = RenderComponent<PublicLayout>(parameters => parameters
+                .AddChildContent(builder =>
                 {
                     builder.AddMarkupContent(0, "<div>Test Content</div>");
-                }
-            );
+                }));
 
             // Assert
             var content = component.Find(".layout-content");

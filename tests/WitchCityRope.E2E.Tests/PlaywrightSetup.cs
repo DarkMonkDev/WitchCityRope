@@ -10,7 +10,7 @@ public static class PlaywrightSetup
     public static void AssemblyInitialize(TestContext context)
     {
         // Install Playwright browsers if not already installed
-        var exitCode = Program.Main(new[] { "install" });
+        var exitCode = Microsoft.Playwright.Program.Main(new[] { "install" });
         if (exitCode != 0)
         {
             throw new Exception($"Playwright installation failed with exit code {exitCode}");

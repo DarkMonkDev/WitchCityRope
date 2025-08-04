@@ -1,0 +1,307 @@
+@page "/code-of-conduct"
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
+
+<PageTitle>Code of Conduct - Witch City Rope</PageTitle>
+
+<style>
+    .code-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+
+    .code-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .code-title {
+        font-size: 36px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 16px;
+    }
+
+    .code-subtitle {
+        font-size: 18px;
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .code-section {
+        margin-bottom: 40px;
+    }
+
+    .section-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 16px;
+    }
+
+    .section-content {
+        font-size: 16px;
+        line-height: 1.8;
+        color: #444;
+        margin-bottom: 16px;
+    }
+
+    .principles-list {
+        background: #f9f9f9;
+        border-radius: 8px;
+        padding: 32px;
+        margin: 24px 0;
+    }
+
+    .principles-list ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .principles-list li {
+        margin-bottom: 16px;
+        padding-left: 32px;
+        position: relative;
+    }
+
+    .principles-list li:before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #8B4513;
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    .violation-section {
+        background: #fff5f5;
+        border-left: 4px solid #dc3545;
+        padding: 24px;
+        margin: 24px 0;
+        border-radius: 0 8px 8px 0;
+    }
+
+    .violation-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #dc3545;
+        margin-bottom: 16px;
+    }
+
+    .contact-section {
+        background: #8B4513;
+        color: white;
+        border-radius: 8px;
+        padding: 32px;
+        text-align: center;
+        margin-top: 40px;
+    }
+
+    .contact-title {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+
+    .contact-text {
+        font-size: 16px;
+        line-height: 1.6;
+        margin-bottom: 24px;
+    }
+
+    .contact-button {
+        display: inline-block;
+        background: white;
+        color: #8B4513;
+        padding: 12px 24px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        margin-right: 16px;
+    }
+
+    .contact-button:hover {
+        background: #f5f5f5;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .emergency-highlight {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+        text-align: center;
+    }
+
+    .emergency-title {
+        font-weight: 600;
+        color: #8B4513;
+        margin-bottom: 8px;
+    }
+
+    @@media (max-width: 768px) {
+        .code-container {
+            padding: 24px 16px;
+        }
+
+        .code-title {
+            font-size: 28px;
+        }
+
+        .contact-button {
+            display: block;
+            margin: 8px 0;
+        }
+    }
+</style>
+
+<div class="code-container">
+    <div class="code-header">
+        <h1 class="code-title">Code of Conduct</h1>
+        <p class="code-subtitle">
+            Our community standards for safe, respectful, and inclusive participation
+        </p>
+    </div>
+
+    <div class="code-section">
+        <h2 class="section-title">Our Commitment</h2>
+        <p class="section-content">
+            Witch City Rope is committed to providing a safe, inclusive, and educational environment 
+            for all members. This Code of Conduct outlines our community standards and expectations 
+            for behavior at all events, gatherings, and interactions within our community.
+        </p>
+        <p class="section-content">
+            By participating in our community, you agree to uphold these standards and contribute 
+            to creating a positive experience for everyone involved.
+        </p>
+    </div>
+
+    <div class="code-section">
+        <h2 class="section-title">Core Principles</h2>
+        <div class="principles-list">
+            <ul>
+                <li><strong>Informed Consent:</strong> All activities require clear, enthusiastic, and ongoing consent from all participants. Consent can be withdrawn at any time.</li>
+                <li><strong>Safety First:</strong> Physical and emotional safety are paramount. We maintain strict safety protocols and expect all members to prioritize risk awareness.</li>
+                <li><strong>Respect for Boundaries:</strong> Everyone has the right to set and maintain their personal boundaries. These must be respected without question or pressure.</li>
+                <li><strong>Inclusive Environment:</strong> We welcome people of all backgrounds, orientations, and experience levels. Discrimination is not tolerated.</li>
+                <li><strong>Confidentiality:</strong> What happens in our community stays in our community. Respect others' privacy and personal information.</li>
+                <li><strong>Educational Focus:</strong> We prioritize learning and skill development over performance or demonstration.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="code-section">
+        <h2 class="section-title">Expected Behavior</h2>
+        <p class="section-content">
+            All community members are expected to:
+        </p>
+        <ul>
+            <li>Treat all participants with respect and courtesy</li>
+            <li>Communicate clearly and honestly about boundaries and interests</li>
+            <li>Follow all safety protocols and guidelines</li>
+            <li>Respect the decisions and comfort levels of others</li>
+            <li>Maintain appropriate hygiene and dress standards</li>
+            <li>Arrive on time and prepared for activities</li>
+            <li>Contribute positively to the learning environment</li>
+            <li>Support fellow community members in their journey</li>
+        </ul>
+    </div>
+
+    <div class="code-section">
+        <h2 class="section-title">Prohibited Behavior</h2>
+        <p class="section-content">
+            The following behaviors are strictly prohibited and may result in immediate removal and/or permanent ban:
+        </p>
+        <ul>
+            <li>Any form of harassment, intimidation, or discrimination</li>
+            <li>Non-consensual touching or sexual contact</li>
+            <li>Ignoring or pressuring someone to change their stated boundaries</li>
+            <li>Attending events under the influence of drugs or alcohol</li>
+            <li>Photography or recording without explicit consent</li>
+            <li>Sharing personal information about other members</li>
+            <li>Disrupting classes or events</li>
+            <li>Unsafe practices that put others at risk</li>
+            <li>Engaging in commercial activity without permission</li>
+        </ul>
+    </div>
+
+    <div class="violation-section">
+        <h3 class="violation-title">Reporting Violations</h3>
+        <p class="section-content">
+            If you experience or witness behavior that violates this Code of Conduct, please report it immediately to:
+        </p>
+        <ul>
+            <li>Any event organizer or instructor present</li>
+            <li>Our safety officer (identified at each event)</li>
+            <li>Through our confidential reporting system</li>
+            <li>Via email to safety@witchcityrope.com</li>
+        </ul>
+        <p class="section-content">
+            All reports will be taken seriously and handled with discretion. We are committed to addressing 
+            violations promptly and fairly.
+        </p>
+    </div>
+
+    <div class="emergency-highlight">
+        <div class="emergency-title">Emergency Situations</div>
+        <p>If you are in immediate danger or experiencing a medical emergency, 
+           call 911 first, then notify event organizers.</p>
+    </div>
+
+    <div class="code-section">
+        <h2 class="section-title">Consequences</h2>
+        <p class="section-content">
+            Violations of this Code of Conduct may result in:
+        </p>
+        <ul>
+            <li>Verbal warning and coaching</li>
+            <li>Temporary suspension from events</li>
+            <li>Mandatory safety refresher training</li>
+            <li>Permanent ban from the community</li>
+            <li>Notification to other communities (for serious violations)</li>
+        </ul>
+        <p class="section-content">
+            The severity of consequences will depend on the nature and severity of the violation, 
+            as well as the member's history within our community.
+        </p>
+    </div>
+
+    <div class="code-section">
+        <h2 class="section-title">Appeals Process</h2>
+        <p class="section-content">
+            If you believe you have been unfairly disciplined, you may appeal the decision by:
+        </p>
+        <ul>
+            <li>Submitting a written appeal within 30 days</li>
+            <li>Providing any relevant evidence or witness statements</li>
+            <li>Requesting a hearing with our leadership team</li>
+        </ul>
+        <p class="section-content">
+            All appeals will be reviewed fairly and impartially by members of our leadership team 
+            who were not involved in the original incident.
+        </p>
+    </div>
+
+    <div class="code-section">
+        <h2 class="section-title">Updates and Changes</h2>
+        <p class="section-content">
+            This Code of Conduct may be updated periodically to reflect the evolving needs of our community. 
+            All members will be notified of significant changes, and continued participation constitutes 
+            acceptance of the updated terms.
+        </p>
+    </div>
+
+    <div class="contact-section">
+        <h2 class="contact-title">Questions or Concerns?</h2>
+        <p class="contact-text">
+            If you have questions about this Code of Conduct or need to report a violation, 
+            please don't hesitate to reach out.
+        </p>
+        <a href="/contact" class="contact-button">Contact Us</a>
+        <a href="mailto:safety@witchcityrope.com" class="contact-button">Report Concern</a>
+    </div>
+</div>

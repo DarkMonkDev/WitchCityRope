@@ -1,0 +1,55 @@
+@page "/test-registration"
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@using WitchCityRope.Core.DTOs
+@using WitchCityRope.Core.Enums
+@using WitchCityRope.Web.Features.Members.Components
+
+<h3>Test Event Registration Modal (Standardized Version)</h3>
+
+<button class="btn btn-primary" @onclick="OpenModal">Open Registration Modal</button>
+
+<EventRegistrationModalStandardized 
+    Event="@testEvent" 
+    @bind-IsVisible="@isModalVisible"
+    OnRegistrationComplete="@HandleRegistrationComplete" />
+
+@if (registrationResult != null)
+{
+    <div class="alert @(registrationResult.Success ? "alert-success" : "alert-danger") mt-3">
+        <h4>Registration Result:</h4>
+        <p>Success: @registrationResult.Success</p>
+        <p>Message: @registrationResult.Message</p>
+        @if (registrationResult.Success)
+        {
+            <p>Confirmation Code: @registrationResult.ConfirmationCode</p>
+            <p>Status: @registrationResult.Status</p>
+        }
+    </div>
+}
+
+@code {
+    private bool isModalVisible = false;
+    private EventRegistrationModalStandardized.RegistrationResult? registrationResult;
+    
+    private Core.DTOs.EventDto testEvent = new()
+    {
+        Id = Guid.NewGuid(),
+        Name = "Test Rope Workshop",
+        StartDateTime = DateTime.Now.AddDays(7),
+        EndDateTime = DateTime.Now.AddDays(7).AddHours(3),
+        Location = "Main Studio",
+        Price = 45,
+        EventType = Core.Enums.EventType.Workshop.ToString()
+    };
+
+    private void OpenModal()
+    {
+        isModalVisible = true;
+        registrationResult = null;
+    }
+
+    private void HandleRegistrationComplete(EventRegistrationModalStandardized.RegistrationResult result)
+    {
+        registrationResult = result;
+    }
+}

@@ -1,0 +1,25 @@
+{
+  "startTime": "2025-07-22T22:17:42.456Z",
+  "forms": {
+    "Event Edit Form": {
+      "name": "Event Edit Form",
+      "startTime": "2025-07-22T22:17:42.880Z",
+      "tests": [
+        {
+          "name": "Event edit form accessibility",
+          "passed": false,
+          "skipped": true
+        }
+      ],
+      "status": "passed",
+      "screenshots": [],
+      "endTime": "2025-07-22T22:17:46.963Z"
+    }
+  },
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 1
+  }
+}

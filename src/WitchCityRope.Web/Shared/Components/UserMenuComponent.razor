@@ -1,0 +1,229 @@
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@using WitchCityRope.Core.DTOs
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JS
+@implements IDisposable
+
+@if (_currentUser != null)
+{
+    <div class="user-menu" @ref="_userMenuElement">
+        <button class="user-menu-btn" @onclick="ToggleDropdown" @onclick:stopPropagation="true" aria-haspopup="true" aria-expanded="@_showDropdown.ToString().ToLower()">
+            <img src="/images/avatar-placeholder.svg" alt="User" class="user-avatar-sm">
+            <span>@(_currentUser.SceneName ?? _currentUser.DisplayName ?? _currentUser.Email ?? "User")</span>
+            <i class="fas fa-chevron-down @(_showDropdown ? "rotated" : "")"></i>
+        </button>
+        <div class="user-dropdown @(_showDropdown ? "show" : "")" role="menu" @onclick:stopPropagation="true">
+            <a href="/member/dashboard" class="dropdown-item" role="menuitem" @onclick="CloseDropdown">
+                <i class="fas fa-tachometer-alt"></i> My Dashboard
+            </a>
+            @if (_currentUser.IsAdmin == true)
+            {
+                <a href="/admin" class="dropdown-item" role="menuitem" @onclick="CloseDropdown">
+                    <i class="fas fa-shield-alt"></i> Admin Dashboard
+                </a>
+            }
+            <a href="/profile" class="dropdown-item" role="menuitem" @onclick="CloseDropdown">
+                <i class="fas fa-user"></i> My Profile
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="/logout" class="dropdown-item" role="menuitem" @onclick="CloseDropdown">
+                <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="auth-buttons">
+        <a href="/Identity/Account/Login" class="btn btn-cta">LOGIN</a>
+    </div>
+}
+
+@code {
+    private UserDto? _currentUser;
+    private bool _showDropdown = false;
+    private ElementReference _userMenuElement;
+    private DotNetObjectReference<UserMenuComponent>? _dotNetRef;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Subscribe to authentication state changes
+        AuthenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+        await LoadCurrentUser();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("setupClickOutsideHandler", _dotNetRef, _userMenuElement);
+        }
+    }
+
+    private async void OnAuthenticationStateChanged(Task<AuthenticationState> authStateTask)
+    {
+        await LoadCurrentUser();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadCurrentUser()
+    {
+        try
+        {
+            _currentUser = await AuthService.GetCurrentUserAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading current user: {ex.Message}");
+            _currentUser = null;
+        }
+    }
+
+    private void ToggleDropdown()
+    {
+        _showDropdown = !_showDropdown;
+    }
+
+    private void CloseDropdown()
+    {
+        _showDropdown = false;
+    }
+
+    [JSInvokable]
+    public void HandleClickOutside()
+    {
+        if (_showDropdown)
+        {
+            _showDropdown = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetAvatarUrl(string? profilePictureUrl)
+    {
+        return string.IsNullOrEmpty(profilePictureUrl) 
+            ? "/images/default-avatar.png" 
+            : profilePictureUrl;
+    }
+
+    public void Dispose()
+    {
+        AuthenticationStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+        _dotNetRef?.Dispose();
+    }
+}
+
+<style>
+    .user-menu {
+        position: relative;
+    }
+
+    .user-menu-btn {
+        background: none;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+        cursor: pointer;
+        padding: var(--wcr-space-sm);
+        border-radius: var(--wcr-radius-sm);
+        transition: all 0.3s ease;
+        font-family: var(--wcr-font-body);
+        color: var(--wcr-color-charcoal);
+    }
+
+    .user-menu-btn:hover {
+        background: var(--wcr-color-cream);
+    }
+
+    .user-avatar-sm {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .user-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: var(--wcr-space-sm);
+        background: white;
+        border-radius: var(--wcr-radius-md);
+        box-shadow: var(--wcr-shadow-lg);
+        min-width: 200px;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+    }
+
+    .user-dropdown.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+        padding: var(--wcr-space-sm) var(--wcr-space-md);
+        color: var(--wcr-color-charcoal);
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .dropdown-item:hover {
+        background: var(--wcr-color-cream);
+        color: var(--wcr-color-burgundy);
+    }
+
+    .dropdown-divider {
+        height: 1px;
+        background: var(--wcr-color-cream);
+        margin: var(--wcr-space-xs) 0;
+    }
+
+    .auth-buttons {
+        display: flex;
+        gap: var(--wcr-space-sm);
+        align-items: center;
+    }
+
+    .btn-cta {
+        padding: 12px 28px;
+        font-size: 14px;
+        font-family: var(--wcr-font-heading);
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        font-weight: 600;
+        background: linear-gradient(135deg, var(--wcr-color-amber) 0%, var(--wcr-color-amber-dark) 100%);
+        color: var(--wcr-color-midnight);
+        border: none;
+        border-radius: 4px;
+        box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+        transition: all 0.4s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-cta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(255, 191, 0, 0.5);
+        background: linear-gradient(135deg, var(--wcr-color-amber-dark) 0%, var(--wcr-color-amber) 100%);
+    }
+
+    .fa-chevron-down {
+        transition: transform 0.3s ease;
+        font-size: 12px;
+    }
+
+    .fa-chevron-down.rotated {
+        transform: rotate(180deg);
+    }
+</style>

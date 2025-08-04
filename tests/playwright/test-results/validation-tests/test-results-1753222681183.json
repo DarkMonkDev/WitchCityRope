@@ -1,0 +1,33 @@
+{
+  "startTime": "2025-07-22T22:17:38.210Z",
+  "forms": {
+    "Forgot Password Form": {
+      "name": "Forgot Password Form",
+      "startTime": "2025-07-22T22:17:38.564Z",
+      "tests": [],
+      "status": "failed",
+      "error": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"]')\u001b[22m\n",
+      "screenshots": [
+        "test-results/validation-tests/Forgot-Password-Form-error-1753222669103.png"
+      ],
+      "endTime": "2025-07-22T22:17:49.243Z"
+    },
+    "Reset Password Form": {
+      "name": "Reset Password Form",
+      "startTime": "2025-07-22T22:17:49.880Z",
+      "tests": [],
+      "status": "failed",
+      "error": "locator.textContent: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.alert-danger, .error-message, .text-danger')\u001b[22m\n",
+      "screenshots": [
+        "test-results/validation-tests/Reset-Password-Form-error-1753222680412.png"
+      ],
+      "endTime": "2025-07-22T22:18:00.554Z"
+    }
+  },
+  "summary": {
+    "total": 2,
+    "passed": 0,
+    "failed": 2,
+    "skipped": 0
+  }
+}

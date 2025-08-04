@@ -1,6 +1,8 @@
 @using WitchCityRope.Web.Services
-@inject AuthenticationService AuthService
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IAuthService AuthService
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 @* Main navigation component for the application *@
 
@@ -31,105 +33,109 @@
                     </NavLink>
                 </li>
                 
-                @if (AuthService.IsAuthenticated)
-                {
-                    <li class="nav-item">
-                        <NavLink class="nav-link" href="/dashboard">
-                            Dashboard
-                        </NavLink>
-                    </li>
-                    <li class="nav-item">
-                        <NavLink class="nav-link" href="/my-tickets">
-                            My Tickets
-                        </NavLink>
-                    </li>
-                    
-                    @if (AuthService.IsInRole("Admin") || AuthService.IsInRole("EventOrganizer"))
-                    {
-                        <li class="nav-item dropdown" @onmouseenter="ShowAdminMenu" @onmouseleave="HideAdminMenu">
-                            <a class="nav-link dropdown-toggle" @onclick="ToggleAdminMenu">
-                                Admin
-                            </a>
-                            <ul class="dropdown-menu @(isAdminMenuOpen ? "show" : "")">
-                                <li>
-                                    <NavLink class="dropdown-link" href="/admin/events">
-                                        Event Management
-                                    </NavLink>
-                                </li>
-                                @if (AuthService.IsInRole("Admin") || AuthService.IsInRole("VettingTeam"))
-                                {
-                                    <li>
-                                        <NavLink class="dropdown-link" href="/admin/vetting">
-                                            Vetting Queue
-                                        </NavLink>
-                                    </li>
-                                }
-                                @if (AuthService.IsInRole("Admin"))
-                                {
-                                    <li>
-                                        <NavLink class="dropdown-link" href="/admin/users">
-                                            User Management
-                                        </NavLink>
-                                    </li>
-                                    <li>
-                                        <NavLink class="dropdown-link" href="/admin/reports">
-                                            Reports
-                                        </NavLink>
-                                    </li>
-                                }
-                            </ul>
+                <AuthorizeView>
+                    <Authorized>
+                        <li class="nav-item">
+                            <NavLink class="nav-link" href="/dashboard">
+                                Dashboard
+                            </NavLink>
                         </li>
-                    }
-                }
+                        <li class="nav-item">
+                            <NavLink class="nav-link" href="/my-tickets">
+                                My Tickets
+                            </NavLink>
+                        </li>
+                        
+                        <AuthorizeView Roles="Administrator,Admin,EventOrganizer">
+                            <Authorized Context="adminContext">
+                                <li class="nav-item dropdown" @onmouseenter="ShowAdminMenu" @onmouseleave="HideAdminMenu">
+                                    <a class="nav-link dropdown-toggle" @onclick="ToggleAdminMenu">
+                                        Admin
+                                    </a>
+                                    <ul class="dropdown-menu @(isAdminMenuOpen ? "show" : "")">
+                                        <li>
+                                            <NavLink class="dropdown-link" href="/admin/events">
+                                                Event Management
+                                            </NavLink>
+                                        </li>
+                                        <AuthorizeView Roles="Administrator,Admin,VettingTeam">
+                                            <Authorized Context="vettingContext">
+                                                <li>
+                                                    <NavLink class="dropdown-link" href="/admin/vetting">
+                                                        Vetting Queue
+                                                    </NavLink>
+                                                </li>
+                                            </Authorized>
+                                        </AuthorizeView>
+                                        <AuthorizeView Roles="Administrator,Admin">
+                                            <Authorized Context="superAdminContext">
+                                                <li>
+                                                    <NavLink class="dropdown-link" href="/admin/users">
+                                                        User Management
+                                                    </NavLink>
+                                                </li>
+                                                <li>
+                                                    <NavLink class="dropdown-link" href="/admin/reports">
+                                                        Reports
+                                                    </NavLink>
+                                                </li>
+                                            </Authorized>
+                                        </AuthorizeView>
+                                    </ul>
+                                </li>
+                            </Authorized>
+                        </AuthorizeView>
+                    </Authorized>
+                </AuthorizeView>
             </ul>
 
             <div class="nav-actions">
-                @if (AuthService.IsAuthenticated)
-                {
-                    <div class="user-menu dropdown" @onmouseenter="ShowUserMenu" @onmouseleave="HideUserMenu">
-                        <button class="user-menu-toggle" @onclick="ToggleUserMenu">
-                            <span class="user-avatar">
-                                @if (!string.IsNullOrEmpty(userAvatar))
-                                {
-                                    <img src="@userAvatar" alt="@userName" />
-                                }
-                                else
-                                {
-                                    <span class="avatar-placeholder">@GetInitials(userName)</span>
-                                }
-                            </span>
-                            <span class="user-name">@userName</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-right @(isUserMenuOpen ? "show" : "")">
-                            <li>
-                                <NavLink class="dropdown-link" href="/profile">
-                                    Profile Settings
-                                </NavLink>
-                            </li>
-                            <li>
-                                <NavLink class="dropdown-link" href="/profile/vetting">
-                                    Vetting Status
-                                </NavLink>
-                            </li>
-                            <li>
-                                <NavLink class="dropdown-link" href="/profile/emergency-contacts">
-                                    Emergency Contacts
-                                </NavLink>
-                            </li>
-                            <li class="dropdown-divider"></li>
-                            <li>
-                                <button class="dropdown-link" @onclick="Logout">
-                                    Sign Out
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-                }
-                else
-                {
-                    <a href="/auth/login" class="btn btn-secondary btn-sm">Sign In</a>
-                    <a href="/auth/login" class="btn btn-primary btn-sm">Join</a>
-                }
+                <AuthorizeView>
+                    <Authorized>
+                        <div class="user-menu dropdown" @onmouseenter="ShowUserMenu" @onmouseleave="HideUserMenu">
+                            <button class="user-menu-toggle" @onclick="ToggleUserMenu">
+                                <span class="user-avatar">
+                                    @if (!string.IsNullOrEmpty(userAvatar))
+                                    {
+                                        <img src="@userAvatar" alt="@userName" />
+                                    }
+                                    else
+                                    {
+                                        <span class="avatar-placeholder">@GetInitials(userName)</span>
+                                    }
+                                </span>
+                                <span class="user-name">@userName</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-right @(isUserMenuOpen ? "show" : "")">
+                                <li>
+                                    <NavLink class="dropdown-link" href="/profile">
+                                        Profile Settings
+                                    </NavLink>
+                                </li>
+                                <li>
+                                    <NavLink class="dropdown-link" href="/profile/vetting">
+                                        Vetting Status
+                                    </NavLink>
+                                </li>
+                                <li>
+                                    <NavLink class="dropdown-link" href="/profile/emergency-contacts">
+                                        Emergency Contacts
+                                    </NavLink>
+                                </li>
+                                <li class="dropdown-divider"></li>
+                                <li>
+                                    <button class="dropdown-link" @onclick="Logout">
+                                        Sign Out
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="/Identity/Account/Login" class="btn btn-secondary btn-sm">Sign In</a>
+                        <a href="/Identity/Account/Register" class="btn btn-primary btn-sm">Join</a>
+                    </NotAuthorized>
+                </AuthorizeView>
             </div>
         </div>
     </div>
@@ -144,11 +150,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (AuthService.IsAuthenticated)
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
         {
             var user = await AuthService.GetCurrentUserAsync();
-            userName = user?.FirstName ?? "User";
-            userAvatar = user?.AvatarUrl;
+            userName = user?.SceneName ?? user?.DisplayName ?? "User";
+            userAvatar = null; // Avatar not implemented in new service yet
         }
 
         // Subscribe to authentication state changes
@@ -207,7 +214,7 @@
     private async Task Logout()
     {
         await AuthService.LogoutAsync();
-        Navigation.NavigateTo("/");
+        Navigation.NavigateTo("/", forceLoad: true);
     }
 
     private async void OnAuthenticationStateChanged(object? sender, bool isAuthenticated)
@@ -215,8 +222,8 @@
         if (isAuthenticated)
         {
             var user = await AuthService.GetCurrentUserAsync();
-            userName = user?.FirstName ?? "User";
-            userAvatar = user?.AvatarUrl;
+            userName = user?.SceneName ?? user?.DisplayName ?? "User";
+            userAvatar = null; // Avatar not implemented in new service yet
         }
         else
         {

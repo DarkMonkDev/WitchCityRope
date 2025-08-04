@@ -1,0 +1,161 @@
+@inherits InputBase<bool>
+@implements IAsyncDisposable
+
+<div class="wcr-checkbox-group @(HasError ? "has-error" : "")">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label class="wcr-checkbox-label">
+            <input type="checkbox" 
+                   @bind="CurrentValue" 
+                   @bind:event="onchange"
+                   @attributes="AdditionalAttributes"
+                   class="wcr-checkbox-input"
+                   name="@Name"
+                   disabled="@IsDisabled" />
+            <span class="wcr-checkbox-text">@Label</span>
+            @if (IsRequired)
+            {
+                <span class="wcr-required">*</span>
+            }
+        </label>
+    }
+    else
+    {
+        <input type="checkbox" 
+               @bind="CurrentValue" 
+               @bind:event="onchange"
+               @attributes="AdditionalAttributes"
+               class="wcr-checkbox-input"
+               name="@Name"
+               disabled="@IsDisabled" />
+    }
+    
+    @if (HasError && !string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="wcr-field-validation">
+            <i class="bi bi-exclamation-circle"></i>
+            <span>@ErrorMessage</span>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = string.Empty;
+    [Parameter] public string? Name { get; set; }
+    [Parameter] public bool IsRequired { get; set; }
+    [Parameter] public bool IsDisabled { get; set; }
+    
+    private bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+    private string? ErrorMessage;
+    private ValidationMessageStore? messageStore;
+
+    protected override void OnInitialized()
+    {
+        if (EditContext != null)
+        {
+            messageStore = new ValidationMessageStore(EditContext);
+            EditContext.OnValidationStateChanged += HandleValidationStateChanged;
+        }
+        
+        // Set Name if not explicitly provided
+        if (string.IsNullOrEmpty(Name))
+        {
+            if (!string.IsNullOrEmpty(Label))
+            {
+                // Convert label to a valid name attribute
+                Name = Label.Replace(" ", "").Replace(".", "").ToLowerInvariant();
+            }
+            else if (FieldIdentifier.FieldName != null)
+            {
+                // Use the field name from the binding
+                Name = char.ToLowerInvariant(FieldIdentifier.FieldName[0]) + FieldIdentifier.FieldName.Substring(1);
+            }
+        }
+    }
+
+    private void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs e)
+    {
+        UpdateErrorState();
+    }
+
+    private void UpdateErrorState()
+    {
+        if (EditContext != null && FieldIdentifier.FieldName != null)
+        {
+            var messages = EditContext.GetValidationMessages(FieldIdentifier);
+            ErrorMessage = messages.FirstOrDefault();
+            StateHasChanged();
+        }
+    }
+
+    protected override bool TryParseValueFromString(string? value, out bool result, out string? validationErrorMessage)
+    {
+        result = bool.TryParse(value, out var parsedValue) && parsedValue;
+        validationErrorMessage = null;
+        return true;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (EditContext != null)
+        {
+            EditContext.OnValidationStateChanged -= HandleValidationStateChanged;
+        }
+    }
+}
+
+<style>
+    .wcr-checkbox-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .wcr-checkbox-label {
+        display: flex;
+        align-items: flex-start;
+        cursor: pointer;
+        user-select: none;
+        font-size: 0.95rem;
+        color: #333;
+        line-height: 1.5;
+    }
+
+    .wcr-checkbox-input {
+        width: 18px;
+        height: 18px;
+        margin: 2px 10px 0 0;
+        cursor: pointer;
+        accent-color: var(--primary-color);
+        flex-shrink: 0;
+    }
+
+    .wcr-checkbox-input:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .wcr-checkbox-text {
+        flex: 1;
+    }
+
+    .wcr-required {
+        color: #dc3545;
+        margin-left: 4px;
+        font-weight: 600;
+    }
+
+    .wcr-checkbox-group.has-error .wcr-checkbox-label {
+        color: #dc3545;
+    }
+
+    .wcr-checkbox-group.has-error .wcr-checkbox-input {
+        border-color: #dc3545;
+        outline-color: #dc3545;
+    }
+
+    /* Dark mode support */
+    @@media (prefers-color-scheme: dark) {
+        .wcr-checkbox-label {
+            color: #e9ecef;
+        }
+    }
+</style>

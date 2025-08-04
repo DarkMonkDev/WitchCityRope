@@ -20,14 +20,17 @@ namespace WitchCityRope.Infrastructure.Mapping
                 .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => Core.ValueObjects.Money.Create(src.Amount, "USD")))
                 .ForMember(dest => dest.PaymentMethod, opt => opt.MapFrom(src => ParsePaymentMethod(src.PaymentMethod)))
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.TicketId, opt => opt.Ignore())
+                .ForMember(dest => dest.Ticket, opt => opt.Ignore())
                 .ForMember(dest => dest.RegistrationId, opt => opt.Ignore())
                 .ForMember(dest => dest.Registration, opt => opt.Ignore())
                 .ForMember(dest => dest.TransactionId, opt => opt.Ignore())
                 .ForMember(dest => dest.Status, opt => opt.Ignore())
                 .ForMember(dest => dest.ProcessedAt, opt => opt.Ignore())
-                .ForMember(dest => dest.ProcessedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.RefundAmount, opt => opt.Ignore())
                 .ForMember(dest => dest.RefundedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.RefundTransactionId, opt => opt.Ignore())
                 .ForMember(dest => dest.RefundReason, opt => opt.Ignore());
         }
 

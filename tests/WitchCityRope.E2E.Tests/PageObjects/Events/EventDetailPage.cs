@@ -137,7 +137,7 @@ public class EventDetailPage : BasePage
     public async Task<bool> IsEventFullAsync()
     {
         var status = await GetEventStatusAsync();
-        return status?.Contains("Full", StringComparison.OrdinalIgnoreCase) ?? false;
+        return status?.Contains("Full") ?? false;
     }
 
     public async Task ClickBackToEventsAsync()

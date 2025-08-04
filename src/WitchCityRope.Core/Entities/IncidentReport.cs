@@ -32,7 +32,7 @@ namespace WitchCityRope.Core.Entities
         }
 
         public IncidentReport(
-            User reporter,
+            IUser reporter,
             Event relatedEvent,
             string description,
             IncidentSeverity severity,
@@ -77,7 +77,7 @@ namespace WitchCityRope.Core.Entities
         
         public Guid? ReporterId { get; private set; }
         
-        public User Reporter { get; private set; }
+        public IUser Reporter { get; private set; }
         
         public Guid? EventId { get; private set; }
         
@@ -137,7 +137,7 @@ namespace WitchCityRope.Core.Entities
         /// </summary>
         public Guid? AssignedToId { get; private set; }
         
-        public User AssignedTo { get; private set; }
+        public IUser AssignedTo { get; private set; }
         
         public IReadOnlyCollection<IncidentReview> Reviews => _reviews.AsReadOnly();
         
@@ -233,7 +233,7 @@ namespace WitchCityRope.Core.Entities
         /// <summary>
         /// Assigns the incident to a user for handling
         /// </summary>
-        public void AssignTo(User assignee)
+        public void AssignTo(IUser assignee)
         {
             if (assignee == null)
                 throw new ArgumentNullException(nameof(assignee));

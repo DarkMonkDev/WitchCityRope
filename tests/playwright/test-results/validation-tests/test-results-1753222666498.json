@@ -1,0 +1,33 @@
+{
+  "startTime": "2025-07-22T22:17:37.751Z",
+  "forms": {
+    "Change Password Form": {
+      "name": "Change Password Form",
+      "startTime": "2025-07-22T22:17:37.798Z",
+      "tests": [],
+      "status": "failed",
+      "error": "Not authenticated - cannot access change password form",
+      "screenshots": [
+        "test-results/validation-tests/Change-Password-Form-error-1753222661830.png"
+      ],
+      "endTime": "2025-07-22T22:17:42.006Z"
+    },
+    "Manage Email Form": {
+      "name": "Manage Email Form",
+      "startTime": "2025-07-22T22:17:42.225Z",
+      "tests": [],
+      "status": "failed",
+      "error": "Not authenticated - cannot access manage email form",
+      "screenshots": [
+        "test-results/validation-tests/Manage-Email-Form-error-1753222666255.png"
+      ],
+      "endTime": "2025-07-22T22:17:46.379Z"
+    }
+  },
+  "summary": {
+    "total": 2,
+    "passed": 0,
+    "failed": 2,
+    "skipped": 0
+  }
+}

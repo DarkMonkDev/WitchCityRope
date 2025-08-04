@@ -4,6 +4,7 @@ using WitchCityRope.Core.Entities;
 using WitchCityRope.Core.Enums;
 using WitchCityRope.Core.ValueObjects;
 using WitchCityRope.Tests.Common.Builders;
+using WitchCityRope.Tests.Common.Identity;
 using WitchCityRope.Tests.Common.Fixtures;
 using Xunit;
 
@@ -11,13 +12,13 @@ namespace WitchCityRope.Core.Tests.Entities
 {
     public class RegistrationTests
     {
-        private readonly User _user;
+        private readonly IUser _user;
         private readonly Event _event;
         private readonly Money _validPrice;
 
         public RegistrationTests()
         {
-            _user = new UserBuilder().Build();
+            _user = new IdentityUserBuilder().Build();
             _event = new EventBuilder().Build();
             _validPrice = _event.PricingTiers.First();
         }

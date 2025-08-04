@@ -6,17 +6,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using WitchCityRope.Infrastructure.Data;
-using WitchCityRope.Infrastructure.Tests.Fixtures;
 using Xunit;
 
 namespace WitchCityRope.Infrastructure.Tests.Data
 {
-    [Collection("Database Collection")]
+    [Collection("Migration Tests")]
     public class MigrationTests
     {
-        private readonly DatabaseFixture _fixture;
+        private readonly MigrationTestFixture _fixture;
 
-        public MigrationTests(DatabaseFixture fixture)
+        public MigrationTests(MigrationTestFixture fixture)
         {
             _fixture = fixture;
         }
@@ -25,6 +24,7 @@ namespace WitchCityRope.Infrastructure.Tests.Data
         public async Task Should_Apply_All_Migrations_Successfully()
         {
             // Arrange
+            await _fixture.EnsureCleanDatabaseAsync();
             using var context = _fixture.CreateContext();
 
             // Act
@@ -48,12 +48,24 @@ namespace WitchCityRope.Infrastructure.Tests.Data
             var tables = await GetTableNamesAsync(context);
 
             // Assert
+            // Core tables
             tables.Should().Contain("Users");
             tables.Should().Contain("Events");
             tables.Should().Contain("Registrations");
             tables.Should().Contain("Payments");
             tables.Should().Contain("VettingApplications");
             tables.Should().Contain("IncidentReports");
+            tables.Should().Contain("RefreshTokens");
+            
+            // Identity tables
+            tables.Should().Contain("Roles");
+            tables.Should().Contain("RoleClaims");
+            tables.Should().Contain("UserClaims");
+            tables.Should().Contain("UserLogins");
+            tables.Should().Contain("UserRoles");
+            tables.Should().Contain("UserTokens");
+            
+            // System table
             tables.Should().Contain("__EFMigrationsHistory");
         }
 
@@ -65,15 +77,21 @@ namespace WitchCityRope.Infrastructure.Tests.Data
             await context.Database.MigrateAsync();
 
             // Act & Assert
-            // Test Users table columns
+            // Test Users table columns (Identity-based WitchCityRopeUser)
             var userColumns = await GetColumnNamesAsync(context, "Users");
             userColumns.Should().Contain("Id");
             userColumns.Should().Contain("Email");
-            userColumns.Should().Contain("SceneName");
+            userColumns.Should().Contain("EmailConfirmed");
+            userColumns.Should().Contain("SceneNameValue");
             userColumns.Should().Contain("PasswordHash");
             userColumns.Should().Contain("Role");
             userColumns.Should().Contain("CreatedAt");
             userColumns.Should().Contain("UpdatedAt");
+            userColumns.Should().Contain("UserName");
+            userColumns.Should().Contain("NormalizedUserName");
+            userColumns.Should().Contain("NormalizedEmail");
+            userColumns.Should().Contain("SecurityStamp");
+            userColumns.Should().Contain("ConcurrencyStamp");
 
             // Test Events table columns
             var eventColumns = await GetColumnNamesAsync(context, "Events");
@@ -98,8 +116,9 @@ namespace WitchCityRope.Infrastructure.Tests.Data
             var indexes = await GetIndexesAsync(context);
 
             // Assert
-            // Check for expected indexes (adjust based on actual indexes in your migrations)
-            indexes.Should().Contain(i => i.TableName == "Users" && i.ColumnName == "Email");
+            // Check for expected indexes
+            // The email index is on NormalizedEmail column in the auth schema
+            indexes.Should().Contain(i => i.TableName == "Users" && i.ColumnName == "NormalizedEmail" && i.IndexName == "EmailIndex");
         }
 
         [Fact]
@@ -169,7 +188,7 @@ namespace WitchCityRope.Infrastructure.Tests.Data
             appliedMigrations.Should().NotContain(allMigrations.Last());
         }
 
-        private async Task<string[]> GetTableNamesAsync(WitchCityRopeDbContext context)
+        private async Task<string[]> GetTableNamesAsync(WitchCityRopeIdentityDbContext context)
         {
             var tables = await context.Database
                 .SqlQueryRaw<string>(@"
@@ -182,7 +201,7 @@ namespace WitchCityRope.Infrastructure.Tests.Data
             return tables;
         }
 
-        private async Task<string[]> GetColumnNamesAsync(WitchCityRopeDbContext context, string tableName)
+        private async Task<string[]> GetColumnNamesAsync(WitchCityRopeIdentityDbContext context, string tableName)
         {
             var columns = await context.Database
                 .SqlQueryRaw<string>($@"
@@ -195,7 +214,7 @@ namespace WitchCityRope.Infrastructure.Tests.Data
             return columns;
         }
 
-        private async Task<IndexInfo[]> GetIndexesAsync(WitchCityRopeDbContext context)
+        private async Task<IndexInfo[]> GetIndexesAsync(WitchCityRopeIdentityDbContext context)
         {
             var indexes = await context.Database
                 .SqlQueryRaw<IndexInfo>(@"
@@ -214,7 +233,7 @@ namespace WitchCityRope.Infrastructure.Tests.Data
             return indexes;
         }
 
-        private async Task<ForeignKeyInfo[]> GetForeignKeysAsync(WitchCityRopeDbContext context)
+        private async Task<ForeignKeyInfo[]> GetForeignKeysAsync(WitchCityRopeIdentityDbContext context)
         {
             var foreignKeys = await context.Database
                 .SqlQueryRaw<ForeignKeyInfo>(@"

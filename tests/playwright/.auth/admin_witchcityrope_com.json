@@ -1,0 +1,25 @@
+{
+  "cookies": [
+    {
+      "name": ".AspNetCore.Antiforgery.MeU_jSfAjZQ",
+      "value": "CfDJ8BJmjGvcJJpAoVb8CR21Uv-fjzztocYFoR840aVxUl4cfycBzCisAzvJ7NDgkFOZ_fjMgXGqI83z6-n2twdhMdbxOyrDEHQR6UiVGM3P6JqHfLU5QyK4QrVlVY5vEgVYhYTW4HtYhqVsLrUb6sFs2jA",
+      "domain": "localhost",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Strict"
+    },
+    {
+      "name": ".AspNetCore.Identity.Application",
+      "value": "CfDJ8BJmjGvcJJpAoVb8CR21Uv-UDCMvqTeP3GcTbcY3KF7U-wSoGcuUKL1oXpZwZEQgxKhcT2cZU_ABNwnjICdWjSibaOYvmc6fr2yF4LsPLfMP6vkoAAyhA2IMnKoUKY9hW_qGKexO9mooeT4GPw8sFq-o2JS3tzoUae1kwq-Zu_bVL2Q-HnFm-4BzzGNlpcMXluQbeP7OblQFujHtbsIOzRTaZ7cLMHY2xHm66UHnWhdahhj9iK7aTLP9gzSQsh2ZS93CN6hNwGc0deWLOqxnfH9fUdQhwuFH-XHkgsp1xXVAO1OwnjvDjUSOnu4CiuGnPQ__DLT_qv-vpIe02q4ugR2Ufk14_hIPPhwI3Uv3nRUl2Db1fzuamyhYuwNUxsyEYs31Nvi9MiU3jDZ3Q77VunIeYkkmvJq80ojocM5KwVxukIw3chfkkoXbzO8qnbI8AwJavdhy4008a0PlrQejBPwpk0-qmQBrIwoo6K86fIkpjdGlHmWoBYwSbTIpKTQxliLfIfyTooqsJgyDfwjngaOHErJFOZlYgPefo-qbm5iKGr5xkLIuDuNPojnAmWJ8FfNAbfynElSjz06wUpWNkv3l5d71UiNCK1uKsssDVqOqHpPSTN093oAhbDPt1hms9lfiL8FkXbO2_ofzF5qhXQ6kZ0X5I3i7kfQpDL01Hbt-A9wxTEu8KNcxaD_w1vYMfVD7EcXcfl71YloqHnhRpCeRtUVvwCvMZvJTDHXJPxo_J4xAsLQCrqLNbNQoPtIcKt0962Iv6UFGxA5QjJ1m69ob1ke2c8uj7zxcM3L0dJe-ddIXD9eNs_3WvcE3abhjm16S87hjabp6_X4OTJwbfYm2bYsKFRzvMVj1LOHEaZILpsRUaHxav2xXoozDm9egLw",
+      "domain": "localhost",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}

@@ -1,0 +1,112 @@
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+@using WitchCityRope.Web.Shared.Validation.Services
+@inject IValidationService ValidationService
+
+<WcrInputText @bind-Value="@CurrentValue"
+              Label="@Label"
+              Id="@Id"
+              Name="email"
+              IsRequired="@IsRequired"
+              HelpText="@HelpText"
+              Placeholder="@Placeholder"
+              IsDisabled="@IsDisabled"
+              IsReadOnly="@IsReadOnly"
+              ShowValidationIcon="@ShowValidationIcon"
+              ShowInlineError="@ShowInlineError"
+              InputType="email"
+              AutoFocus="@AutoFocus"
+              OnValueChanged="HandleEmailChanged"
+              ValidationFor="@ValidationFor"
+              CssClass="@CssClass" />
+
+@code {
+    [Parameter] public string CurrentValue { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> CurrentValueChanged { get; set; }
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    [Parameter] public bool IsRequired { get; set; }
+    [Parameter] public string? HelpText { get; set; }
+    [Parameter] public string? Placeholder { get; set; } = "email@example.com";
+    [Parameter] public bool IsDisabled { get; set; }
+    [Parameter] public bool IsReadOnly { get; set; }
+    [Parameter] public bool ShowValidationIcon { get; set; } = true;
+    [Parameter] public bool ShowInlineError { get; set; } = true;
+    [Parameter] public bool AutoFocus { get; set; }
+    [Parameter] public Expression<Func<string>>? ValidationFor { get; set; }
+    [Parameter] public bool CheckUniqueness { get; set; } = false;
+    [Parameter] public Guid? ExcludeUserId { get; set; }
+    [Parameter] public EventCallback<bool> OnUniquenessChecked { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    [Parameter] public string? CssClass { get; set; }
+    
+    [CascadingParameter] private EditContext? EditContext { get; set; }
+    
+    private bool _isCheckingUniqueness;
+    private System.Timers.Timer? _debounceTimer;
+    
+    protected override void OnInitialized()
+    {
+        _debounceTimer = new System.Timers.Timer(500);
+        _debounceTimer.Elapsed += async (sender, e) => await CheckEmailUniqueness();
+        _debounceTimer.AutoReset = false;
+    }
+    
+    private async Task HandleEmailChanged(string value)
+    {
+        CurrentValue = value;
+        await CurrentValueChanged.InvokeAsync(value);
+        
+        // Reset debounce timer for uniqueness check
+        if (CheckUniqueness && !string.IsNullOrWhiteSpace(value))
+        {
+            _debounceTimer?.Stop();
+            _debounceTimer?.Start();
+        }
+    }
+    
+    private async Task CheckEmailUniqueness()
+    {
+        if (!CheckUniqueness || string.IsNullOrWhiteSpace(CurrentValue))
+            return;
+            
+        _isCheckingUniqueness = true;
+        await InvokeAsync(StateHasChanged);
+        
+        try
+        {
+            var isValid = await ValidationService.IsEmailValidAsync(CurrentValue);
+            if (!isValid)
+            {
+                // Email format is invalid, no need to check uniqueness
+                _isCheckingUniqueness = false;
+                return;
+            }
+            
+            var isUnique = await ValidationService.IsEmailUniqueAsync(CurrentValue, ExcludeUserId);
+            
+            if (!isUnique && EditContext != null && ValidationFor != null)
+            {
+                var fieldIdentifier = FieldIdentifier.Create(ValidationFor);
+                var messageStore = new ValidationMessageStore(EditContext);
+                messageStore.Add(fieldIdentifier, "This email address is already in use");
+                EditContext.NotifyValidationStateChanged();
+            }
+            
+            if (OnUniquenessChecked.HasDelegate)
+            {
+                await OnUniquenessChecked.InvokeAsync(isUnique);
+            }
+        }
+        finally
+        {
+            _isCheckingUniqueness = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+    
+    public void Dispose()
+    {
+        _debounceTimer?.Dispose();
+    }
+}

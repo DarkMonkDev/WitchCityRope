@@ -5,26 +5,24 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WitchCityRope.Web.Models;
-using System.Net.Http;
-using System.Net.Http.Json;
 using WitchCityRope.Core.Enums;
-// DTOs are defined in WitchCityRope.Web.Models
+using WitchCityRope.Core.DTOs;
 
 namespace WitchCityRope.Web.Services
 {
     public class DashboardService : IDashboardService
     {
-        private readonly HttpClient _httpClient;
+        private readonly ApiClient _apiClient;
         private readonly IMemoryCache _cache;
         private readonly ILogger<DashboardService> _logger;
         private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(5);
         
         public DashboardService(
-            HttpClient httpClient, 
+            ApiClient apiClient,
             IMemoryCache cache,
             ILogger<DashboardService> logger)
         {
-            _httpClient = httpClient;
+            _apiClient = apiClient;
             _cache = cache;
             _logger = logger;
         }
@@ -41,18 +39,33 @@ namespace WitchCityRope.Web.Services
             
             try
             {
+                // Get basic dashboard data from API
+                var dashboardDto = await _apiClient.GetAsync<Core.DTOs.DashboardDto>($"Dashboard/{userId}");
+                
+                if (dashboardDto == null)
+                {
+                    _logger.LogWarning("Dashboard data not found for user: {UserId}", userId);
+                    return new DashboardViewModel
+                    {
+                        SceneName = "Guest",
+                        Role = UserRole.Attendee,
+                        VettingStatus = Core.Enums.VettingStatus.NotStarted,
+                        UpcomingEvents = new List<Models.EventViewModel>(),
+                        Stats = new MembershipStatsViewModel()
+                    };
+                }
+                
                 // Fetch all data in parallel for performance
                 var upcomingEventsTask = GetUpcomingEventsAsync(userId, 3, cancellationToken);
                 var statsTask = GetMembershipStatsAsync(userId, cancellationToken);
-                var userTask = _httpClient.GetFromJsonAsync<DashboardDto>($"api/dashboard/{userId}", cancellationToken);
                 
-                await Task.WhenAll(upcomingEventsTask, statsTask, userTask);
+                await Task.WhenAll(upcomingEventsTask, statsTask);
                 
                 var dashboardData = new DashboardViewModel
                 {
-                    SceneName = userTask.Result?.SceneName ?? string.Empty,
-                    Role = userTask.Result?.Role ?? WitchCityRope.Core.Enums.UserRole.Attendee,
-                    VettingStatus = userTask.Result?.VettingStatus ?? WitchCityRope.Core.Entities.VettingStatus.Submitted,
+                    SceneName = dashboardDto.SceneName ?? "Guest",
+                    Role = dashboardDto.Role,
+                    VettingStatus = dashboardDto.VettingStatus,
                     UpcomingEvents = await upcomingEventsTask,
                     Stats = await statsTask
                 };
@@ -70,8 +83,8 @@ namespace WitchCityRope.Web.Services
                 return new DashboardViewModel
                 {
                     SceneName = "Guest",
-                    Role = WitchCityRope.Core.Enums.UserRole.Attendee,
-                    VettingStatus = WitchCityRope.Core.Entities.VettingStatus.Submitted,
+                    Role = UserRole.Attendee,
+                    VettingStatus = Core.Enums.VettingStatus.NotStarted,
                     UpcomingEvents = new List<Models.EventViewModel>(),
                     Stats = new MembershipStatsViewModel()
                 };
@@ -82,27 +95,26 @@ namespace WitchCityRope.Web.Services
         {
             try
             {
-                var eventsResponse = await _httpClient.GetFromJsonAsync<List<EventDto>>(
-                    $"api/dashboard/users/{userId}/upcoming-events?count={count}", cancellationToken);
+                var events = await _apiClient.GetAsync<List<DashboardEventDto>>($"Dashboard/users/{userId}/upcoming-events?count={count}");
                 
-                // Map API response to view model
-                if (eventsResponse != null)
+                if (events == null)
                 {
-                    return eventsResponse.Select(e => new Models.EventViewModel
-                    {
-                        Id = e.Id,
-                        Title = e.Title,
-                        StartDate = e.StartDate,
-                        EndDate = e.EndDate,
-                        Location = e.Location,
-                        EventType = e.EventType,
-                        InstructorName = e.InstructorName,
-                        RegistrationStatus = e.RegistrationStatus,
-                        TicketId = e.TicketId
-                    }).ToList();
+                    return new List<Models.EventViewModel>();
                 }
                 
-                return new List<Models.EventViewModel>();
+                // Convert API DTOs to view models
+                return events.Select(e => new Models.EventViewModel
+                {
+                    Id = e.Id,
+                    Title = e.Title,
+                    StartDate = e.StartDate,
+                    EndDate = e.EndDate,
+                    Location = e.Location,
+                    EventType = e.EventType,
+                    InstructorName = e.InstructorName,
+                    RegistrationStatus = e.RegistrationStatus,
+                    TicketId = e.TicketId
+                }).ToList();
             }
             catch (Exception ex)
             {
@@ -116,32 +128,32 @@ namespace WitchCityRope.Web.Services
         {
             try
             {
-                var statsResponse = await _httpClient.GetFromJsonAsync<MembershipStatsDto>(
-                    $"api/dashboard/users/{userId}/stats", cancellationToken);
+                var stats = await _apiClient.GetAsync<Core.DTOs.MembershipStatsDto>($"Dashboard/users/{userId}/stats");
                 
-                if (statsResponse != null)
+                if (stats == null)
                 {
                     return new MembershipStatsViewModel
                     {
-                        IsVerified = statsResponse.IsVerified,
-                        EventsAttended = statsResponse.EventsAttended,
-                        MonthsAsMember = statsResponse.MonthsAsMember,
-                        ConsecutiveEvents = statsResponse.ConsecutiveEvents,
-                        JoinDate = statsResponse.JoinDate,
-                        VettingStatus = statsResponse.VettingStatus,
-                        NextInterviewDate = statsResponse.NextInterviewDate
+                        IsVerified = false,
+                        EventsAttended = 0,
+                        MonthsAsMember = 0,
+                        ConsecutiveEvents = 0,
+                        JoinDate = DateTime.UtcNow,
+                        VettingStatus = Core.Enums.VettingStatus.NotStarted,
+                        NextInterviewDate = null
                     };
                 }
                 
+                // Convert API DTO to view model
                 return new MembershipStatsViewModel
                 {
-                    IsVerified = false,
-                    EventsAttended = 0,
-                    MonthsAsMember = 0,
-                    ConsecutiveEvents = 0,
-                    JoinDate = DateTime.UtcNow,
-                    VettingStatus = WitchCityRope.Core.Entities.VettingStatus.Submitted,
-                    NextInterviewDate = null
+                    IsVerified = stats.IsVerified,
+                    EventsAttended = stats.EventsAttended,
+                    MonthsAsMember = stats.MonthsAsMember,
+                    ConsecutiveEvents = stats.ConsecutiveEvents,
+                    JoinDate = stats.JoinDate,
+                    VettingStatus = stats.VettingStatus,
+                    NextInterviewDate = stats.NextInterviewDate
                 };
             }
             catch (Exception ex)
@@ -155,7 +167,7 @@ namespace WitchCityRope.Web.Services
                     MonthsAsMember = 0,
                     ConsecutiveEvents = 0,
                     JoinDate = DateTime.UtcNow,
-                    VettingStatus = WitchCityRope.Core.Entities.VettingStatus.Submitted,
+                    VettingStatus = Core.Enums.VettingStatus.NotStarted,
                     NextInterviewDate = null
                 };
             }

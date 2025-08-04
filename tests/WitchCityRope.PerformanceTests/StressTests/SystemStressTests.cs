@@ -14,6 +14,7 @@ using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.PerformanceTests.Infrastructure;
 using Xunit;
 using Xunit.Abstractions;
+using System.Net.Http.Headers;
 
 namespace WitchCityRope.PerformanceTests.StressTests
 {
@@ -54,7 +55,7 @@ namespace WitchCityRope.PerformanceTests.StressTests
                                 Password = "TestPassword123!"
                             };
                             
-                            var content = new StringContent(JsonSerializer.Serialize(loginRequest), System.Text.Encoding.UTF8, "application/json");
+                            var content = new StringContent(JsonSerializer.Serialize(loginRequest), System.Text.Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
                             var loginResponse = await _httpClient.PostAsync("/api/auth/login", content);
                             return loginResponse.IsSuccessStatusCode ? Response.Ok() : Response.Fail(statusCode: loginResponse.ReasonPhrase ?? "Login failed");
 
@@ -172,7 +173,7 @@ namespace WitchCityRope.PerformanceTests.StressTests
                     }).ToList()
                 };
 
-                var content = new StringContent(JsonSerializer.Serialize(largeRequest), System.Text.Encoding.UTF8, "application/json");
+                var content = new StringContent(JsonSerializer.Serialize(largeRequest), System.Text.Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
                 var response = await _httpClient.PostAsync("/api/events/search", content);
 
                 // Periodically capture memory usage

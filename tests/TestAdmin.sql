@@ -1,0 +1,71 @@
+-- Create a test admin user
+-- Password: Test123!
+INSERT INTO auth."Users" (
+    "Id",
+    "UserName",
+    "NormalizedUserName",
+    "Email",
+    "NormalizedEmail",
+    "EmailConfirmed",
+    "PasswordHash",
+    "SecurityStamp",
+    "ConcurrencyStamp",
+    "PhoneNumber",
+    "PhoneNumberConfirmed",
+    "TwoFactorEnabled",
+    "LockoutEnd",
+    "LockoutEnabled",
+    "AccessFailedCount",
+    "EncryptedLegalName",
+    "SceneName",
+    "DateOfBirth",
+    "Role",
+    "IsActive",
+    "IsVetted",
+    "PronouncedName",
+    "Pronouns",
+    "CreatedAt",
+    "UpdatedAt",
+    "LastLoginAt",
+    "FailedLoginAttempts",
+    "LockedOutUntil",
+    "LastPasswordChangeAt",
+    "EmailVerificationToken",
+    "EmailVerificationTokenCreatedAt"
+) VALUES (
+    '99999999-9999-9999-9999-999999999999',
+    'admin@witchcityrope.com',
+    'ADMIN@WITCHCITYROPE.COM',
+    'admin@witchcityrope.com',
+    'ADMIN@WITCHCITYROPE.COM',
+    true,
+    'AQAAAAEAACcQAAAAEMq3S2cV7F8Wy1UbMNemfRq/jtyXZdoVPjwWBBWcWNGDiKfW5Q4VWDrdtvxxmpAaGQ==', -- Test123!
+    'EXNRV2JO3LFGDYLTFMPGUXCZK3PGFCOG',
+    '99999999-9999-9999-9999-999999999999',
+    NULL,
+    false,
+    false,
+    NULL,
+    true,
+    0,
+    'QWRtaW4gVXNlcg==', -- Base64 encoded "Admin User"
+    'AdminUser',
+    '1990-01-01',
+    'Administrator',
+    true,
+    true,
+    'Admin',
+    'they/them',
+    NOW(),
+    NOW(),
+    NULL,
+    0,
+    NULL,
+    NULL,
+    '',
+    NULL
+);
+
+-- Add the admin user to the Administrator role
+INSERT INTO auth."UserRoles" ("UserId", "RoleId") VALUES 
+('99999999-9999-9999-9999-999999999999', '55555555-5555-5555-5555-555555555555');

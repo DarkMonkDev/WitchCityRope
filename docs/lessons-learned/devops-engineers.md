@@ -2,39 +2,98 @@
 <!-- Last Updated: 2025-08-04 -->
 <!-- Next Review: 2025-09-04 -->
 
+## 🚨 CRITICAL: Docker Build Configuration
+
+### NEVER Use Production Build for Development
+
+**REPEATED ISSUE**: Developers keep using `docker-compose up` which uses PRODUCTION build target and FAILS!
+
+**Problem**: The default docker-compose.yml uses `target: ${BUILD_TARGET:-final}` which builds production images that try to run `dotnet watch` on compiled assemblies. This ALWAYS FAILS.
+
+**Solution**: ALWAYS use development build
+```bash
+# ❌ WRONG - Uses production target, dotnet watch FAILS
+docker-compose up -d
+
+# ✅ CORRECT - Development build with source mounting
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+# ✅ OR use helper script (RECOMMENDED):
+./dev.sh
+```
+
+**Why This Matters**:
+- Production build tries to run `dotnet watch` on compiled DLLs → FAILS
+- Development build mounts source code and enables hot reload → WORKS
+- This has caused repeated failures across multiple sessions
+
 ## Docker Development
 
-### Hot Reload Issues
+### Hot Reload Issues - CRITICAL UPDATE
 **Issue**: Code changes not reflected in running containers  
-**Solution**: Know when to restart containers
-```bash
-# Quick restart for code changes
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml restart web
+**Root Cause**: .NET 9 Blazor Server hot reload in Docker is notoriously unreliable
 
-# Full rebuild when packages change
+**Solution**: Use helper scripts for reliable restarts
+```bash
+# Quick restart when hot reload fails:
+./restart-web.sh
+
+# Full rebuild when needed:
+./dev.sh  # Select option 7
+
+# Manual commands:
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml restart web
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 ```
-**When to restart**:
+
+**Container Restart Triggers** - ALWAYS restart after:
+- Authentication/authorization changes
+- Layout component modifications
+- Render mode changes
+- Dependency injection modifications
+- Route configuration changes
+- CSS changes in layout files
 - Program.cs changes
 - Package additions/updates
-- Configuration changes
-- Authentication logic changes
 - _Imports.razor modifications
 
-### Container Communication
+### Container Communication - CRITICAL
 **Issue**: Services can't reach each other  
-**Solution**: Use container names, not localhost
+**Solution**: Use container names AND internal ports, not localhost or external ports
+
 ```yaml
 # docker-compose.yml
 services:
   web:
+    ports:
+      - "5651:8080"  # External:Internal
     environment:
-      - ApiUrl=http://api:8080  # NOT http://localhost:5653
+      - ApiUrl=http://api:8080  # ✅ CORRECT: Container name + internal port
+      # - ApiUrl=http://localhost:5653  # ❌ WRONG: localhost
+      # - ApiUrl=http://api:5653  # ❌ WRONG: external port
+      
   api:
+    ports:
+      - "5653:8080"  # External:Internal
     environment:
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;...
 ```
-**Applies to**: All inter-service communication
+
+**Common Authentication Fix**:
+```csharp
+// ❌ WRONG - HttpClient using external port
+services.AddHttpClient<IAuthService, IdentityAuthService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5651");
+});
+
+// ✅ CORRECT - Using internal container port
+services.AddHttpClient<IAuthService, IdentityAuthService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:8080");
+});
+```
+**Applies to**: All inter-service communication, especially authentication endpoints
 
 ### Volume Mounting
 **Issue**: File permission problems in containers  

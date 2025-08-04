@@ -15,7 +15,7 @@ namespace WitchCityRope.Core.Entities
             Findings = null!;
         }
 
-        public IncidentReview(User reviewer, string findings, IncidentSeverity recommendedSeverity)
+        public IncidentReview(IUser reviewer, string findings, IncidentSeverity recommendedSeverity)
         {
             if (reviewer == null)
                 throw new ArgumentNullException(nameof(reviewer));
@@ -36,7 +36,7 @@ namespace WitchCityRope.Core.Entities
         
         public Guid ReviewerId { get; private set; }
         
-        public User Reviewer { get; private set; }
+        public IUser Reviewer { get; private set; }
         
         /// <summary>
         /// Encrypted findings from the reviewer

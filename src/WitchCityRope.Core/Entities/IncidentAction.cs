@@ -15,7 +15,7 @@ namespace WitchCityRope.Core.Entities
             PerformedBy = null!;
         }
 
-        public IncidentAction(string actionType, string description, User performedBy)
+        public IncidentAction(string actionType, string description, IUser performedBy)
         {
             if (string.IsNullOrWhiteSpace(actionType))
                 throw new ArgumentException("Action type is required", nameof(actionType));
@@ -42,7 +42,7 @@ namespace WitchCityRope.Core.Entities
         
         public Guid PerformedById { get; private set; }
         
-        public User PerformedBy { get; private set; }
+        public IUser PerformedBy { get; private set; }
         
         public DateTime PerformedAt { get; private set; }
     }

@@ -69,20 +69,16 @@ namespace WitchCityRope.Infrastructure.Data.Configurations
             builder.Property(i => i.AssignedToId);
 
             // Configure relationships
-            builder.HasOne(i => i.Reporter)
-                .WithMany()
-                .HasForeignKey(i => i.ReporterId)
-                .OnDelete(DeleteBehavior.Restrict);
+            // Ignore the Reporter navigation property since it uses IUser interface
+            builder.Ignore(i => i.Reporter);
 
             builder.HasOne(i => i.Event)
                 .WithMany()
                 .HasForeignKey(i => i.EventId)
                 .OnDelete(DeleteBehavior.Restrict);
                 
-            builder.HasOne(i => i.AssignedTo)
-                .WithMany()
-                .HasForeignKey(i => i.AssignedToId)
-                .OnDelete(DeleteBehavior.Restrict);
+            // Ignore the AssignedTo navigation property since it uses IUser interface
+            builder.Ignore(i => i.AssignedTo);
 
             // Configure Reviews as owned entities
             builder.OwnsMany(i => i.Reviews, review =>
@@ -108,10 +104,8 @@ namespace WitchCityRope.Infrastructure.Data.Configurations
                 review.Property(r => r.ReviewedAt)
                     .IsRequired();
                 
-                review.HasOne(r => r.Reviewer)
-                    .WithMany()
-                    .HasForeignKey(r => r.ReviewerId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                // Ignore the Reviewer navigation property since it uses IUser interface
+                review.Ignore(r => r.Reviewer);
             });
 
             // Configure Actions as owned entities
@@ -138,10 +132,8 @@ namespace WitchCityRope.Infrastructure.Data.Configurations
                 action.Property(a => a.PerformedAt)
                     .IsRequired();
                 
-                action.HasOne(a => a.PerformedBy)
-                    .WithMany()
-                    .HasForeignKey(a => a.PerformedById)
-                    .OnDelete(DeleteBehavior.Restrict);
+                // Ignore the PerformedBy navigation property since it uses IUser interface
+                action.Ignore(a => a.PerformedBy);
             });
 
             // Indexes
