@@ -13,17 +13,27 @@ A comprehensive membership and event management platform for Salem's rope bondag
 - Professional UI/UX throughout
 
 ### Recent Updates
-- Enhanced development environment with WSL2 support
-- Integrated 8 MCP servers for AI-assisted development
-- Added comprehensive status checking and debugging tools
-- Improved documentation and developer experience
+- 🚨 **CRITICAL: Authorization Migration Complete (January 22, 2025)**
+  - Fixed "Headers are read-only" error in Blazor Server authentication
+  - Implemented Microsoft-approved pattern: API endpoints for SignInManager operations
+  - **IMPORTANT**: Never use SignInManager directly in Blazor components
+  - See `/docs/AUTHORIZATION_MIGRATION.md` for details
+- ✅ **All E2E tests migrated to Playwright (180/180 tests complete)**
+- ❌ **DEPRECATED: All Puppeteer tests in `/tests/e2e/` and `/ToBeDeleted/`**
+- Enhanced development environment with Docker and MCP servers
+- Pure Blazor Server architecture (no Razor Pages)
+
+> 🚨 **CRITICAL FOR DEVELOPERS**: 
+> 1. Authentication MUST use API endpoints - see `AuthEndpoints.cs`
+> 2. Use only Playwright tests in `/tests/playwright/` - NO PUPPETEER!
+> 3. Read `/docs/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md` before starting
 
 ## 🛠️ Tech Stack
 
 - **Framework**: ASP.NET Core 9.0 with Blazor Server
 - **Database**: PostgreSQL with Entity Framework Core
 - **UI Components**: Syncfusion Blazor
-- **Authentication**: JWT + Google OAuth 2.0
+- **Authentication**: ASP.NET Core Identity (Cookie-based)
 - **Payments**: PayPal Checkout SDK
 - **Email**: SendGrid
 - **Development Tools**: MCP (Model Context Protocol) Servers

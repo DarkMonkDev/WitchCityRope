@@ -1,6 +1,12 @@
 # Witch City Rope - Site Map
+<!-- Last Updated: 2025-08-04 -->
+<!-- Owner: Architecture Team -->
+<!-- Status: Active -->
 
-*Based on completed wireframes as of December 2024*
+## Overview
+This document provides the complete site map for the WitchCityRope application, showing all pages, their relationships, and access controls. This is the authoritative reference for navigation structure.
+
+*Based on completed wireframes and current implementation*
 
 ## Public Pages (Unauthenticated Users)
 
@@ -208,3 +214,43 @@ Hamburger Menu (All users):
 ├── User status indicator
 └── Context-specific options
 ```
+
+## Site Map Maintenance Process
+
+### When to Update
+The site map should be updated when:
+1. New pages or routes are added
+2. Navigation structure changes
+3. Access control requirements change
+4. Pages are removed or consolidated
+5. Mobile navigation patterns change
+
+### Update Process
+1. **Before Implementation**: Update site map during feature planning
+2. **During Development**: Verify implementation matches site map
+3. **After Deployment**: Confirm production routes match documentation
+4. **Regular Review**: Quarterly review for accuracy
+
+### Validation Checklist
+- [ ] All routes match actual application URLs
+- [ ] Access controls are correctly documented
+- [ ] Parent-child relationships are accurate
+- [ ] Mobile navigation reflects desktop structure
+- [ ] Error pages are included
+- [ ] New features are represented
+
+### Related Documentation
+- `/docs/functional-areas/*/current-state/user-flows.md` - Detailed user journeys
+- `/docs/architecture/ARCHITECTURE.md` - System architecture
+- `/docs/00-START-HERE.md` - Documentation navigation
+- Route definitions in Blazor components (`@page` directives)
+
+### Route Naming Conventions
+- Public pages: Simple, descriptive URLs (`/events`, `/join`)
+- Member pages: Contextual prefixes (`/member/dashboard`, `/member/events`)
+- Admin pages: `/admin/` prefix for all administrative functions
+- API endpoints: `/api/` prefix with RESTful patterns
+
+---
+
+*This site map is maintained by the Architecture Team. For questions or updates, see the project PROGRESS.md file.*

@@ -114,21 +114,38 @@
 > **MUST READ**: [DOCKER_DEV_GUIDE.md](./DOCKER_DEV_GUIDE.md) for development environment setup and troubleshooting.
 > Use `./dev.sh` for all Docker operations and `./restart-web.sh` when hot reload fails.
 
+> 📚 **CRITICAL: NEW DOCUMENTATION STRUCTURE (August 2025)** 📚
+> 
+> **BEFORE STARTING ANY WORK, YOU MUST:**
+> 1. **Read Documentation Navigation**: [/docs/00-START-HERE.md](./docs/00-START-HERE.md) - Complete guide to finding documentation
+> 2. **Review Current Project Status**: [PROGRESS.md](./PROGRESS.md) - Authoritative source for project state
+> 3. **Check Functional Areas**: [/docs/functional-areas/](./docs/functional-areas/) - Feature-specific documentation
+> 4. **Follow Standards**: [/docs/standards-processes/](./docs/standards-processes/) - Development and documentation standards
+> 
+> **Documentation Organization:**
+> - **Single Source of Truth**: Each piece of information exists in exactly ONE place
+> - **No Duplication**: This file contains ONLY Claude-specific configuration
+> - **Authoritative Sources**:
+>   - Project Status → PROGRESS.md
+>   - Test Information → /docs/standards-processes/testing/TEST_CATALOG.md
+>   - Architecture → ARCHITECTURE.md and /docs/architecture/
+>   - Features → /docs/functional-areas/[feature-name]/
+>   - Lessons Learned → /docs/lessons-learned/[role].md
+
 ## Project Overview
 WitchCityRope is a Blazor Server application for a rope bondage community in Salem, offering workshops, performances, and social events.
 
 ## 🚀 Quick Start Guide for Claude Code Sessions
 
 ### Essential First Steps
-1. **🏗️ READ ARCHITECTURE GUIDE**: **MANDATORY** - Read [ARCHITECTURE.md](./ARCHITECTURE.md) to understand the Web+API microservices pattern
-2. **🚨 USE DEVELOPMENT DOCKER BUILD**: NEVER run `docker-compose up` directly - use `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d` or `./dev.sh`
-3. **🔍 Understand Service Communication**: Web (5651) calls API (5653) for business data, both access shared database (5433)
-4. **Read Current Status**: Always start by checking the project's current state
-5. **Review Docker Dev Guide**: IMPORTANT - Read [DOCKER_DEV_GUIDE.md](./DOCKER_DEV_GUIDE.md) for development environment setup and hot reload issues
-6. **Verify Tests**: Core tests are fully working (202/203 passing) - Integration tests compile but need app running
-7. **Check for Updates**: Architecture has migrated to ASP.NET Core Identity with Clean Architecture patterns
-8. **Use TodoWrite**: For any multi-step tasks, use TodoWrite tool to track progress
-9. **Use Context7**: Add "use context7" to prompts when you need current library documentation (.NET 9, EF Core 9, Blazor, etc.)
+1. **📚 REVIEW DOCUMENTATION**: Start with [/docs/00-START-HERE.md](./docs/00-START-HERE.md) for navigation
+2. **📊 CHECK PROJECT STATUS**: Read [PROGRESS.md](./PROGRESS.md) for current state and test results
+3. **🏗️ UNDERSTAND ARCHITECTURE**: Study [ARCHITECTURE.md](./ARCHITECTURE.md) for Web+API pattern
+4. **🚨 USE DEVELOPMENT DOCKER**: Run `./dev.sh` or `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d`
+5. **🔧 DOCKER TROUBLESHOOTING**: See [DOCKER_DEV_GUIDE.md](./DOCKER_DEV_GUIDE.md) for hot reload issues
+6. **✅ FOLLOW STANDARDS**: Check [/docs/standards-processes/](./docs/standards-processes/) for guidelines
+7. **📝 USE TODOWRITE**: Track multi-step tasks with TodoWrite tool
+8. **🔍 USE CONTEXT7**: Add "use context7" for current library documentation
 
 ### Architecture Quick Reference
 - **Web Service**: Blazor Server UI at `http://localhost:5651` (handles authentication & UI)
@@ -137,17 +154,11 @@ WitchCityRope is a Blazor Server application for a rope bondage community in Sal
 - **Key Pattern**: Web → HTTP calls → API → Database (NEVER Web → Database for business data)
 - **Start Command**: `./dev.sh` (option 1) or `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d`
 
-### Project Status (Updated: July 16, 2025)
-- ✅ **PURE BLAZOR SERVER**: Successfully converted from hybrid Razor Pages + Blazor to pure Blazor Server
-- ✅ **Authentication**: .NET 9 patterns with ASP.NET Core Identity, interactive components, consistent state management
-- ✅ **Render Modes**: All interactive pages use proper .NET 9 Blazor Server render modes (no conflicts)
-- ✅ **HTML Layout**: Complete structure with head, CSS, JavaScript properly loaded
-- ✅ **Core Domain Tests**: All compilation errors fixed, 202/203 tests passing
-- ✅ **Integration Tests**: PostgreSQL Testcontainers with 115/133 tests passing
-- ✅ **Form Migration**: 100% complete - ALL forms now use WCR validation components
-- ✅ **MudBlazor Removal**: Completely removed - project uses Syncfusion exclusively
-- ✅ **Docker Development**: Hot reload issues resolved with new dev tools
-- ✅ **Clean Architecture**: Domain logic isolated from infrastructure concerns
+### Current Project State
+For detailed project status, test results, and feature implementation progress, see [PROGRESS.md](./PROGRESS.md)
+- ✅ **E2E Test Migration**: Successfully migrated all 180 Puppeteer tests to Playwright
+- ⚠️ **Admin Role Authorization**: Known issue with role assignment - workaround available
+- 🔄 **Test Suite Status**: Unit tests passing, integration tests mostly passing, E2E tests working
 - ✅ **E2E Tests**: Updated and functional with pure Blazor Server architecture
 - ✅ **Authentication State Management**: Fixed inconsistencies, removed duplicate logic, standardized on AuthorizeView
 - ⚠️ **Infrastructure/API Tests**: Have compilation issues due to architectural changes (separate from Core domain)
@@ -1399,43 +1410,13 @@ docker-compose -f docker-compose.prod.yml exec db pg_dump -U postgres witchcityr
    - Vulnerability scanning with Trivy
    - Non-root user in containers
 
-## 🔧 Troubleshooting & Common Issues
+## 🔧 Troubleshooting & Test Information
 
-### Recent Work Completed (January 16, 2025)
-- ✅ Fixed API test suite - achieved 95% pass rate (117/123 tests)
-- ✅ Resolved all model validation test failures (27 tests) 
-- ✅ Fixed all validator test failures (3 tests)
-- ✅ Identified and documented 6 architectural concurrency issues
-- ✅ Created comprehensive handoff documentation for remaining issues
-- ✅ Key Discovery: C# positional records don't support validation attributes
+### Test Suite Status & Commands
+For comprehensive test information, see [/docs/standards-processes/testing/TEST_CATALOG.md](./docs/standards-processes/testing/TEST_CATALOG.md)
 
-### Recent Work Completed (July 8, 2025)
-- ✅ Fixed all Core test compilation errors (user.Email → user.EmailAddress)
-- ✅ Updated Registration entity constructor validation (Guid.Empty validation)
-- ✅ Fixed Event entity method signatures (User objects → Guid IDs)
-- ✅ Migrated Integration tests to WitchCityRopeIdentityDbContext
-- ✅ Updated FluentAssertions API usage (BeGreaterOrEqualTo → BeGreaterThanOrEqualTo)
-- ✅ Fixed dependency version mismatches across test projects
-
-### Test Status Reference (Updated: January 16, 2025)
-```bash
-# ✅ WORKING: Core Domain Tests
-dotnet test tests/WitchCityRope.Core.Tests/WitchCityRope.Core.Tests.csproj
-# Result: 202 passed, 1 skipped, 0 failed
-
-# ✅ WORKING: API Tests (95% passing!)
-dotnet test tests/WitchCityRope.Api.Tests/WitchCityRope.Api.Tests.csproj
-# Result: 117 passed, 6 failed (concurrency issues only)
-# See /docs/TEST_FIXES_HANDOFF.md for remaining issues
-
-# ✅ WORKING: Integration Tests (compilation)
-dotnet build tests/WitchCityRope.IntegrationTests/WitchCityRope.IntegrationTests.csproj
-# Result: Build succeeds with warnings only
-
-# ⚠️ NEEDS WORK: Infrastructure Tests
-dotnet build tests/WitchCityRope.Infrastructure.Tests/WitchCityRope.Infrastructure.Tests.csproj
-# Issue: WitchCityRopeDbContext references need updating to WitchCityRopeIdentityDbContext
-```
+### Recent Work & Session History
+For detailed session history and recent fixes, see [PROGRESS.md](./PROGRESS.md#recent-session-history)
 
 ### Common Compilation Issues & Solutions
 
@@ -1488,7 +1469,7 @@ value.Should().BeGreaterThanOrEqualTo(0);
 2. The project uses nullable reference types - be mindful of null checks
 3. Syncfusion components require proper namespace imports - DO NOT add MudBlazor or other UI frameworks
 4. CSS escape sequences in Razor files need @@ (e.g., @@keyframes, @@media)
-5. **Follow coding standards**: Apply SOLID principles where they add value and document all code comprehensively - see [docs/architecture/CODING_STANDARDS.md](./docs/architecture/CODING_STANDARDS.md)
+5. **Follow coding standards**: Apply SOLID principles where they add value and document all code comprehensively - see [/docs/standards-processes/](./docs/standards-processes/)
 6. **CRITICAL**: This project uses Syncfusion Blazor Components ONLY. Do not add MudBlazor, Radzen, or any other UI component libraries
 7. **Service Types**: ApiClient is a concrete class, not an interface. Check actual implementations before assuming patterns
 8. **Use Context7 MCP**: When implementing new features or using unfamiliar APIs, add "use context7" to get current documentation
@@ -1570,13 +1551,13 @@ Quick reference:
 - Run specific test: `npx playwright test tests/playwright/auth/login-basic.spec.ts`
 - Run in UI mode: `npx playwright test --ui`
 
-## Documentation Files
-- **PROGRESS.md** - Development progress and completed features
-- **TODO.md** - Current task list and upcoming work
-- **/docs/errors/** - Error documentation and troubleshooting guides
-- **/docs/MCP_SERVERS.md** - MCP (Model Context Protocol) servers documentation
-- **/docs/enhancements/UserDashboard/** - User dashboard specifications
-- **/docs/design/user-flows/** - Navigation architecture documentation
+## Key Documentation References
+- **[/docs/00-START-HERE.md](./docs/00-START-HERE.md)** - Documentation navigation guide
+- **[PROGRESS.md](./PROGRESS.md)** - Current project status and progress
+- **[/docs/functional-areas/](./docs/functional-areas/)** - Feature-specific documentation
+- **[/docs/standards-processes/](./docs/standards-processes/)** - Development standards
+- **[/docs/lessons-learned/](./docs/lessons-learned/)** - Role-based experience guides
+- **[/docs/architecture/site-map.md](./docs/architecture/site-map.md)** - Application navigation structure
 
 ### Test Accounts (DbInitializer.cs)
 - **Admin**: admin@witchcityrope.com / Test123!
@@ -1585,66 +1566,8 @@ Quick reference:
 - **General Member**: member@witchcityrope.com / Test123!
 - **Attendee**: attendee@witchcityrope.com / Test123!
 
-## 📝 Recent Development History
-
-### Latest Session (January 11, 2025) - Web Test Infrastructure Rewrite
-- ✅ **Created Test Infrastructure for ASP.NET Core Identity**:
-  - Built complete test helper library (TestBase, AuthenticationTestHelper, ServiceMockHelper, etc.)
-  - Created new test project to avoid 318+ legacy compilation errors
-  - Wrote LoginTests (8 tests) and MainLayoutTests (24 tests) as examples
-- ⚠️ **Fixed Critical Issues**:
-  - Removed incorrectly added MudBlazor references (project uses Syncfusion ONLY)
-  - Fixed incorrect interface assumptions (ApiClient is concrete class, not interface)
-  - Removed non-existent namespace references
-- ✅ **Documentation**:
-  - Created comprehensive test plan and best practices guide
-  - Documented all issues and resolutions for future developers
-  - Updated CLAUDE.md with critical warnings about dependencies
-
-### Previous Session (July 10, 2025) - EF Core Migration Fix & Event Configuration
-- ✅ **Fixed Critical EF Core Migration Blocker**: 
-  - Root cause: Navigation properties to old Core.User entity caused unwanted entity discovery
-  - Solution: Removed User navigation from VolunteerAssignment, updated all services
-  - Created permanent fix with migration scripts and documentation
-- ✅ **Implemented Event Configuration Features**:
-  - Added VolunteerTask and VolunteerAssignment entities for volunteer management
-  - Added EventEmailTemplate entity for email template configuration
-  - Created comprehensive seed data for all new entities
-- ✅ **Created End-to-End Tests**:
-  - Puppeteer tests for event configuration, volunteer management, and email templates
-  - Test scripts cover full admin workflow from creation to management
-- ✅ **Documentation Updates**:
-  - Added "Critical EF Core Entity Discovery Learnings" section
-  - Updated migration best practices with specific examples
-  - Documented all pitfalls to prevent future issues
-
-### Previous Session (July 8, 2025) - Test Compilation Fixes
-- ✅ **Core Domain Tests**: Fixed all 4 remaining compilation errors
-  - Updated User.Email → User.EmailAddress property references
-  - Fixed Registration constructor parameter validation (Guid.Empty handling)
-  - Corrected Event entity method signatures (User objects → Guid IDs)
-  - Updated exception types (ArgumentNullException → ArgumentException where appropriate)
-- ✅ **Integration Tests**: Migrated to WitchCityRopeIdentityDbContext
-- ✅ **Dependency Updates**: Updated FluentAssertions, xUnit, and other test dependencies
-- ✅ **Test Results**: Core tests now fully pass (202/203), Integration tests compile successfully
-
-### Previous Major Work Completed
-- ✅ Performance optimizations achieving 70% reduction
-- ✅ Complete admin portal implementation  
-- ✅ UI testing and fixes against wireframes
-- ✅ Authentication system migration to ASP.NET Core Identity
-- ✅ Clean Architecture implementation with domain-driven design
-- ✅ Comprehensive User Dashboard planning and documentation (see /docs/enhancements/UserDashboard/)
-- ✅ Navigation architecture analysis and documentation (see /docs/design/user-flows/navigation-flows.md)
-
-### Navigation Architecture
-- **Current Implementation**: Navigation is integrated in MainLayout.razor (not separate component)
-- **Desktop**: Horizontal nav with user dropdown menu
-- **Mobile**: Slide-out menu with overlay
-- **Documentation**: See /docs/design/user-flows/ for navigation patterns and site map
-- **Note**: MainNav.razor component has been removed (was unused legacy code)
-
-For any GitHub operations, the credentials are already configured and will work automatically.
+## 📝 Development History & Session Notes
+For detailed development history, recent fixes, and session notes, see [PROGRESS.md - Recent Session History](./PROGRESS.md#recent-session-history)
 
 ## MCP Server Usage Patterns
 
@@ -2278,3 +2201,134 @@ cd /home/chad/repos/witchcityrope/WitchCityRope
 Run `./scripts/validate-blazor-architecture.sh` to check for common issues.
 
 **See `/docs/BLAZOR_ARCHITECTURE_REQUIREMENTS.md` for complete details.**
+
+## 🚨 UPDATE: Current Test Suite Status (January 23, 2025)
+
+### Test Suite Overview
+The project has a comprehensive test suite across multiple layers:
+- **Unit Tests**: Core domain logic tests
+- **Integration Tests**: API and database integration tests using PostgreSQL Testcontainers
+- **E2E Tests**: Playwright-based end-to-end tests (Puppeteer tests deprecated)
+
+### Current Test Results
+```bash
+# Unit Tests: ✅ PASSING
+dotnet test tests/WitchCityRope.Core.Tests
+# Result: All tests pass
+
+# Integration Tests: ⚠️ MOSTLY PASSING
+dotnet test tests/WitchCityRope.Integration.Tests
+# Result: Most tests pass, some timing/concurrency issues remain
+
+# E2E Tests: ✅ PASSING (when run individually)
+npm run test:e2e:playwright
+# Result: 20 test files migrated from Puppeteer, running successfully
+```
+
+### Known Test Issues
+1. **Integration Test Concurrency**: Some tests fail when run in parallel due to database state conflicts
+2. **Test Isolation**: Need better cleanup between test runs
+3. **Timing Issues**: Occasional failures due to async operation timing
+
+## 🔒 Authentication/Authorization Fixes Applied (January 2025)
+
+### Major Authentication Fixes
+1. **Blazor Server Authentication Pattern**: 
+   - Migrated from direct SignInManager usage to API endpoint pattern
+   - Created dedicated auth endpoints: `/auth/login`, `/auth/logout`, `/auth/register`
+   - Fixed "Headers are read-only" errors in Blazor components
+
+2. **Cookie Authentication Configuration**:
+   - Fixed cookie settings for Docker environment
+   - Proper SameSite and Secure cookie configuration
+   - Fixed authentication state propagation between services
+
+3. **Authorization Policies**:
+   - Implemented role-based authorization policies
+   - Fixed authorize attributes on Blazor pages
+   - Proper claims propagation from API to Web service
+
+### Implementation Details
+- **AuthEndpoints.cs**: Minimal API endpoints handle all authentication operations
+- **IdentityAuthService.cs**: Service layer that calls auth endpoints via HttpClient
+- **Cookie Middleware**: Properly configured for both development and production
+
+## ⚠️ Admin Role Issue - PENDING
+
+### Current Status
+There is an ongoing issue with admin role authorization that needs attention:
+
+1. **Problem**: Admin users may not have proper role assignment after registration
+2. **Symptoms**: 
+   - Admin pages return 403 Forbidden
+   - Role claims not properly attached to user principal
+   - Inconsistent role checking between Web and API services
+
+3. **Temporary Workaround**: 
+   - Manually assign admin role via database update
+   - Use DbInitializer seeded admin accounts
+
+4. **Required Fix**:
+   - Implement proper role assignment during user registration
+   - Add role management UI for administrators
+   - Ensure role claims are properly synchronized between services
+
+## 📋 Testing Approach Updates
+
+### Current Testing Strategy
+1. **Docker-First Development**: All development uses Docker containers for consistency
+2. **Testcontainers**: Integration tests use PostgreSQL Testcontainers for isolation
+3. **Playwright Only**: All E2E tests migrated to Playwright (no Puppeteer)
+4. **API Testing**: Direct API testing for business logic validation
+
+### Testing Best Practices
+- Always run `./dev.sh up` before running tests
+- Use `--no-build` flag for faster test runs when code hasn't changed
+- Run integration tests sequentially to avoid concurrency issues
+- Use Playwright UI mode for debugging E2E test failures
+
+## 🐛 Recently Fixed Bugs (January 2025)
+
+### Critical Bugs Fixed
+1. **Event Date Validation**: Fixed validation issues in Event entity for test scenarios
+2. **User Dropdown Menu**: Fixed null reference exceptions in user menu component
+3. **Authentication State Loss**: Fixed state propagation between page navigations
+4. **Docker Hot Reload**: Fixed file watching issues in containerized development
+5. **Form Validation**: Migrated all forms to WCR validation components
+
+### Performance Improvements
+- Optimized database queries with proper eager loading
+- Fixed N+1 query issues in event listings
+- Improved caching for static resources
+
+## 🗄️ Database Seeding and Role Names
+
+### Database Initialization
+The `DbInitializer` class handles initial database seeding with:
+
+### Default Roles
+```csharp
+public static class Roles
+{
+    public const string Admin = "Admin";
+    public const string Member = "Member";
+    public const string Guest = "Guest";
+}
+```
+
+### Seeded Test Accounts
+- **Admin**: admin@witchcityrope.com / Test123!
+- **Member**: member@witchcityrope.com / Test123!
+- **Guest**: guest@witchcityrope.com / Test123!
+
+### Role Assignment Process
+1. Roles are created during database initialization
+2. Default admin user is assigned Admin role
+3. New registrations default to Member role
+4. Role upgrades must be done manually (admin UI pending)
+
+### Important Notes on Seeding
+- Seeding only runs on empty databases
+- Re-seeding requires database reset
+- Production seeding uses environment variables for admin credentials
+- Development uses hardcoded test credentials
