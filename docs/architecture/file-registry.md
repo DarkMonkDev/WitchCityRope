@@ -76,6 +76,9 @@
 | 2025-08-04 | /tools/start-ui-monitoring.sh | MOVED | Bash launcher archived | Visual tests cleanup | ARCHIVED | N/A |
 | 2025-08-04 | /docs/standards-processes/MCP/MCP_VISUAL_VERIFICATION_SETUP.md | MODIFIED | Added deprecation notice | Visual tests cleanup | PERMANENT | N/A |
 | 2025-08-04 | /docs/standards-processes/MCP/MCP_QUICK_REFERENCE.md | MODIFIED | Updated to reference current tests | Visual tests cleanup | PERMANENT | N/A |
+| 2025-08-04 | /session-work/2025-08-04/archived-screenshots/ | CREATED | Archive directory for old screenshots | Screenshots cleanup | ARCHIVED | N/A |
+| 2025-08-04 | /session-work/2025-08-04/archived-screenshots/README.md | CREATED | Document archived screenshots | Screenshots cleanup | ARCHIVED | N/A |
+| 2025-08-04 | /screenshots/* | MOVED | Old test screenshots archived | Screenshots cleanup | ARCHIVED | N/A |
 
 ## File Status Definitions
 
