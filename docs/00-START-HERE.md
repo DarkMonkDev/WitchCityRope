@@ -48,6 +48,7 @@ Welcome to the WitchCityRope documentation. This guide helps you find exactly wh
 - **Lessons Learned**: [lessons-learned/devops-engineers.md](lessons-learned/devops-engineers.md)
 - **Docker Setup**: [DOCKER_DEV_GUIDE.md](DOCKER_DEV_GUIDE.md)
 - **CI/CD**: [functional-areas/deployment/CI_CD_GUIDE.md](functional-areas/deployment/CI_CD_GUIDE.md)
+- **Script Inventory**: [/scripts/SCRIPT_INVENTORY.md](/scripts/SCRIPT_INVENTORY.md) - All development scripts
 
 ### By Task
 
@@ -88,6 +89,13 @@ docs/
 ├── architecture/                 # System design
 ├── lessons-learned/              # Role-based learnings
 └── guides-setup/                 # Setup guides
+
+scripts/                          # Development & utility scripts
+├── SCRIPT_INVENTORY.md           # Complete listing of all scripts
+├── docker/                       # Docker management scripts
+├── diagnostics/                  # Environment & health checks
+├── setup/                        # Installation & setup scripts
+└── _archive/                     # Deprecated/legacy scripts
 ```
 
 ### 🔍 Finding Information
@@ -114,12 +122,31 @@ docs/
 4. **COMMIT** to git before removing any archived files
 5. **CHECK** your role's lessons learned before starting work
 
+### 🛠️ Development Scripts
+
+The `/scripts/` directory contains all development and utility scripts organized by function:
+
+#### Essential Scripts (Root Directory)
+- `./dev.sh` - Main development menu system
+- `./restart-web.sh` - Quick restart when hot reload fails
+- `./check-dev-tools-status.sh` - Verify development environment
+
+#### Script Categories
+- **Test Runners**: `/scripts/` - Integration, performance, and coverage tests
+- **Docker Management**: `/scripts/docker/` - Container utilities
+- **Diagnostics**: `/scripts/diagnostics/` - Health checks and status tools
+- **Database**: `/scripts/` - Migration and seeding scripts
+- **Setup**: `/scripts/setup/` - Installation and configuration
+
+**📍 Complete Script Reference**: See [/scripts/SCRIPT_INVENTORY.md](/scripts/SCRIPT_INVENTORY.md) for all scripts, their purposes, and usage instructions.
+
 ### 🆘 Need Help?
 
 - **Can't find something?** Check if it was archived (git history)
 - **Not sure where to put new docs?** Ask the project manager
 - **Found outdated info?** Update it following the process guide
 - **Have lessons to share?** Add to your role's lessons learned file
+- **Looking for a script?** Check the [Script Inventory](/scripts/SCRIPT_INVENTORY.md)
 
 ---
 

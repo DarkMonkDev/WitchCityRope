@@ -63,6 +63,7 @@
 | 2025-08-04 | /scripts/_archive/utilities/*.sh | MOVED | 5 utility scripts archived | Shell script organization | ARCHIVED | N/A |
 | 2025-08-04 | /scripts/README.md | MODIFIED | Added script inventory reference | Shell script organization | PERMANENT | N/A |
 | 2025-08-04 | /docs/lessons-learned/devops-engineers.md | MODIFIED | Added script management section | Shell script organization | PERMANENT | N/A |
+| 2025-08-04 | /docs/00-START-HERE.md | MODIFIED | Added development scripts section | Shell script organization | PERMANENT | N/A |
 
 ## File Status Definitions
 
