@@ -64,7 +64,9 @@
 | 2025-08-04 | /scripts/README.md | MODIFIED | Added script inventory reference | Shell script organization | PERMANENT | N/A |
 | 2025-08-04 | /docs/lessons-learned/devops-engineers.md | MODIFIED | Added script management section | Shell script organization | PERMANENT | N/A |
 | 2025-08-04 | /docs/00-START-HERE.md | MODIFIED | Added development scripts section | Shell script organization | PERMANENT | N/A |
-| 2025-08-04 | /VISUAL_TESTS_CLEANUP_PLAN.md | CREATED | Plan for cleaning up visual-tests directory | Visual tests cleanup | TEMPORARY | 2025-08-11 |
+| 2025-08-04 | /VISUAL_TESTS_CLEANUP_PLAN.md | DELETED | Plan for cleaning up visual-tests directory | Visual tests cleanup | DELETED | 2025-08-04 |
+| 2025-08-04 | /PLAYWRIGHT_CLEANUP_PLAN.md | DELETED | Plan for cleaning up test scripts | Playwright script cleanup | DELETED | 2025-08-04 |
+| 2025-08-04 | /SHELL_SCRIPTS_ORGANIZATION_PLAN.md | DELETED | Plan for organizing shell scripts | Shell script organization | DELETED | 2025-08-04 |
 | 2025-08-04 | /session-work/2025-08-04/archived-visual-tests/ | CREATED | Archive directory for visual tests | Visual tests cleanup | ARCHIVED | N/A |
 | 2025-08-04 | /session-work/2025-08-04/archived-visual-tests/README.md | CREATED | Document archived visual test system | Visual tests cleanup | ARCHIVED | N/A |
 | 2025-08-04 | /visual-tests/* | MOVED | Visual test directory archived | Visual tests cleanup | ARCHIVED | N/A |
