@@ -1,0 +1,21 @@
+{
+  "test_date": "2025-07-06T17:35:12.910310",
+  "base_url": "http://localhost:5651",
+  "errors": [],
+  "warnings": [
+    {
+      "timestamp": "17:35:12.910",
+      "message": "Blazor runtime script not found"
+    },
+    {
+      "timestamp": "17:35:12.910",
+      "message": "Still on login page after redirect"
+    }
+  ],
+  "network_errors": [],
+  "summary": {
+    "total_errors": 0,
+    "total_warnings": 2,
+    "network_errors": 0
+  }
+}

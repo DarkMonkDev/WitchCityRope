@@ -26,7 +26,7 @@ This document provides a comprehensive summary of the current architecture and t
 ### Core Framework
 - **ASP.NET Core 9.0** - Latest LTS version
 - **Blazor Server** - Not WebAssembly (simpler deployment)
-- **Entity Framework Core 9.0** - With SQLite provider
+- **Entity Framework Core 9.0** - With Postgres provider
 
 ### UI & Frontend
 - **Syncfusion Blazor Components** - Commercial license available
@@ -34,7 +34,7 @@ This document provides a comprehensive summary of the current architecture and t
 - **Minimal JavaScript** - Only for mobile menu and interactions
 
 ### Data & Storage
-- **SQLite** - File-based database (not PostgreSQL)
+- **PostgreSQL**
 - **IMemoryCache** - Built-in caching (not Redis)
 - **Entity Framework** - Direct usage (no repository pattern)
 

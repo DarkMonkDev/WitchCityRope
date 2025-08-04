@@ -1,166 +1,183 @@
-# Database Seed Data - WitchCityRope
-
-This document contains information about the default seed data created when the application starts.
+# WitchCityRope Database Seed Data & Login Documentation
 
 ## Default User Accounts
 
-All default accounts use the password: `Test123!`
+All default accounts use the password: **`Test123!`**
 
-| Email | Scene Name | Role | Status | Notes |
-|-------|------------|------|--------|-------|
-| admin@witchcityrope.com | Admin | Administrator | Active | Full system access |
-| staff@witchcityrope.com | StaffMember | Moderator | Active | Event management, user moderation |
-| member@witchcityrope.com | RopeLover | Member | Active/Vetted | Vetted member with full access |
-| guest@witchcityrope.com | CuriousGuest | Guest | Active | Basic attendee access |
-| organizer@witchcityrope.com | EventOrganizer | Moderator | Active | Event creation and management |
+### 1. Admin Account
+- **Email:** admin@witchcityrope.com
+- **Scene Name:** RopeMaster
+- **Role:** Administrator
+- **Password:** Test123!
+- **Features:** Full system access, user management, event management, financial reports
 
-## Login URLs
+### 2. Staff Account (Moderator)
+- **Email:** staff@witchcityrope.com
+- **Scene Name:** SafetyFirst
+- **Role:** Moderator
+- **Password:** Test123!
+- **Features:** Safety team access, incident management, vetting review
 
-### Web Application
-- **Login Page**: https://localhost:5652/login or https://localhost:5652/auth/login
-- **Admin Dashboard**: https://localhost:5652/admin (requires Admin role)
-- **Member Dashboard**: https://localhost:5652/dashboard or https://localhost:5652/member/dashboard
-- **Events Page**: https://localhost:5652/events
+### 3. Member Account (Vetted)
+- **Email:** member@witchcityrope.com
+- **Scene Name:** RopeEnthusiast
+- **Role:** Member (Vetted)
+- **Password:** Test123!
+- **Features:** Access to member-only events, can register for advanced classes
+
+### 4. Guest Account (Attendee)
+- **Email:** guest@witchcityrope.com
+- **Scene Name:** Newcomer
+- **Role:** Attendee
+- **Password:** Test123!
+- **Features:** Basic access, can register for beginner events
+
+### 5. Event Organizer Account
+- **Email:** organizer@witchcityrope.com
+- **Scene Name:** EventMaker
+- **Role:** Organizer
+- **Password:** Test123!
+- **Features:** Can create and manage events
+
+## Login URLs & Routes
+
+### Web Application (Blazor)
+- **Main Login Page:** `/auth/login`
+- **Direct URL:** https://localhost:5653/auth/login (or your configured port)
+
+### Dashboard URLs (After Login)
+- **Admin Dashboard:** `/admin/dashboard` or `/admin`
+- **Member Dashboard:** `/dashboard`
+- **Profile Page:** `/profile`
+- **Events Page:** `/events`
 
 ### API Endpoints
-- **Login Endpoint**: `POST https://localhost:5654/api/v1/auth/login`
-  ```json
-  {
-    "email": "admin@witchcityrope.com",
-    "password": "Test123!"
-  }
-  ```
+- **Base API URL:** https://localhost:5654 (or your configured port)
+- **Login Endpoint:** `POST /api/v1/auth/login`
+- **Register Endpoint:** `POST /api/v1/auth/register`
+- **Refresh Token:** `POST /api/v1/auth/refresh`
 
-## Seeded Events
+## Seeded Events Data
 
-The database is populated with 12 sample events:
+The database is populated with 12 default events:
 
-### Upcoming Events (10)
-
+### Beginner Events
 1. **Introduction to Rope Safety**
-   - Date: 5 days from now
-   - Time: 2:00 PM - 4:00 PM
-   - Price: $45 (sliding scale: $35/$25)
-   - Capacity: 30 (12 registered)
-   - Level: Beginner
+   - When: 7 days from now, 6:00 PM - 9:00 PM
+   - Location: Main Dungeon Space
+   - Capacity: 20 people
+   - Price: $25-$45 (sliding scale)
 
-2. **March Rope Jam** (Members Only)
-   - Date: 8 days from now
-   - Time: 7:00 PM - 10:00 PM
-   - Price: $15 (sliding scale: $10/$5)
-   - Capacity: 60 (28 registered)
-   - Level: All Levels
-   - Requires vetting
+2. **Beginner's Rope Jam**
+   - When: 10 days from now, 7:00 PM - 10:00 PM
+   - Location: Community Hall
+   - Capacity: 30 people
+   - Price: $10-$20 (sliding scale)
 
-3. **Suspension Intensive Workshop**
-   - Date: 12 days from now
-   - Time: 1:00 PM - 6:00 PM
-   - Price: $95 (early bird: $85, sliding scale: $75)
-   - Capacity: 20 (18 registered - almost full!)
-   - Level: Advanced
-   - Prerequisites required
+### Intermediate Events
+3. **Intermediate Suspension Techniques**
+   - When: 14 days from now, 6:00 PM - 9:00 PM
+   - Location: Main Dungeon Space
+   - Capacity: 12 people
+   - Price: $50-$80 (sliding scale)
 
 4. **Rope and Sensation Play**
-   - Date: 15 days from now
-   - Time: 2:00 PM - 5:00 PM
-   - Price: $55 (sliding scale: $40)
-   - Capacity: 24 (10 registered)
-   - Level: Intermediate
+   - When: 21 days from now, 7:00 PM - 10:00 PM
+   - Location: Workshop Room A
+   - Capacity: 16 people
+   - Price: $40-$60 (sliding scale)
 
-5. **Rope Fundamentals: Floor Work**
-   - Date: 18 days from now
-   - Time: 2:00 PM - 4:00 PM
-   - Price: $45 (sliding scale: $35/$25)
-   - Capacity: 30 (8 registered)
-   - Level: Beginner
+### Advanced Events
+5. **Advanced Dynamic Suspension**
+   - When: 28 days from now, 10:00 AM - 6:00 PM
+   - Location: Main Dungeon Space
+   - Capacity: 8 people
+   - Price: $100-$150 (sliding scale)
+   - Note: Vetting required
 
-6. **Dynamic Suspension: Movement and Flow** (Vetted Members Only)
-   - Date: 22 days from now
-   - Time: 1:00 PM - 6:00 PM
-   - Price: $125 (early bird: $110)
-   - Capacity: 16 (14 registered - almost full!)
-   - Level: Advanced
-   - Requires vetting
+### Social Events
+6. **Monthly Rope Social**
+   - When: 15 days from now, 7:00 PM - 10:00 PM
+   - Location: Community Hall
+   - Capacity: 50 people
+   - Price: $0-$10 (donation-based)
 
-7. **Monthly Rope Social** (FREE)
-   - Date: 25 days from now
-   - Time: 6:00 PM - 9:00 PM
-   - Price: FREE
-   - Capacity: 80 (35 registered)
-   - Level: All Levels
+### Special Events
+7. **Rope Play Party - Summer Solstice**
+   - When: 35 days from now, 8:00 PM - 2:00 AM
+   - Location: Main Venue - All Spaces
+   - Capacity: 75 people
+   - Price: $30-$50 (sliding scale)
+   - Note: Vetting required
 
-8. **Rope Play Party** (Vetted Members Only, 21+)
-   - Date: 28 days from now
-   - Time: 8:00 PM - 2:00 AM
-   - Price: $25 (sliding scale: $15)
-   - Capacity: 50 (32 registered)
-   - Level: All Levels
-   - Requires vetting
+8. **Online: Self-Tying Techniques**
+   - When: 5 days from now, 7:00 PM - 9:00 PM
+   - Location: Online - Zoom Link Provided
+   - Capacity: 100 people
+   - Price: $15-$25 (sliding scale)
 
-9. **Virtual Rope Workshop: Self-Tying**
-   - Date: 30 days from now
-   - Time: 7:00 PM - 9:00 PM (Online)
-   - Price: $25 (sliding scale: $15)
-   - Capacity: 100 (45 registered)
-   - Level: Beginner
+9. **Rope Art Performance Night**
+   - When: 30 days from now, 7:00 PM - 10:00 PM
+   - Location: Theater Space
+   - Capacity: 60 people
+   - Price: $20-$40 (sliding scale)
 
-10. **New England Rope Intensive** (3-Day Conference)
-    - Date: 45 days from now
-    - Price: $250 (early bird: $200, single day: $100)
-    - Capacity: 200 (156 registered)
-    - Level: All Levels
+10. **New England Rope Intensive**
+    - When: 60-62 days from now (3-day conference)
+    - Location: Convention Center
+    - Capacity: 150 people
+    - Price: $200-$300 (sliding scale)
 
-### Past Events (2)
+### Past Events (for testing)
+11. **Spring Rope Basics (Past)**
+    - When: 30 days ago
+    - Location: Workshop Room B
+    - Capacity: 20 people
 
-1. **February Rope Jam**
-   - Date: 10 days ago
-   - Attendance: 52/60
-   - Status: Completed
+12. **Valentine's Rope Social (Past)**
+    - When: 45 days ago
+    - Location: Community Hall
+    - Capacity: 40 people
 
-2. **Valentine's Rope Workshop**
-   - Date: 15 days ago
-   - Attendance: 20/20 (Sold Out)
-   - Status: Completed
+## How to Initialize the Database
 
-## Testing Different User Scenarios
+The database is automatically initialized when the API starts up. The seeding process:
+
+1. Applies any pending migrations
+2. Creates default user accounts with authentication data
+3. Creates sample events with various types and price points
+4. All events are published and ready for registration
+
+## Testing Different User Experiences
 
 ### As Admin (admin@witchcityrope.com)
-- Full access to admin dashboard
-- Can manage all users
-- Can create/edit/delete any event
-- Can view financial reports
+- Full access to admin dashboard at `/admin`
+- Can manage users, events, and view financial reports
+- Can access safety team features
+
+### As Staff (staff@witchcityrope.com)
+- Access to moderation features
+- Can review vetting applications
 - Can manage incident reports
-- Can approve vetting applications
 
-### As Staff/Moderator (staff@witchcityrope.com)
-- Access to limited admin features
-- Can manage events
-- Can moderate users
-- Cannot view financial reports
-- Can handle incident reports
-
-### As Vetted Member (member@witchcityrope.com)
-- Can register for all events including member-only
-- Can view member dashboard
-- Can update profile
-- Can view past registrations
-- Can access member resources
+### As Member (member@witchcityrope.com)
+- Vetted status allows registration for advanced events
+- Access to member dashboard at `/dashboard`
+- Can view and register for all event types
 
 ### As Guest (guest@witchcityrope.com)
-- Can only register for public events
-- Cannot access member-only events
-- Limited dashboard features
-- Cannot access vetted content
+- Limited to beginner events and public content
+- Cannot register for events requiring vetting
+- Basic dashboard access
 
-### As Event Organizer (organizer@witchcityrope.com)
-- Can create and manage events
-- Can view event registrations
-- Can send event updates
-- Limited admin access
+### As Organizer (organizer@witchcityrope.com)
+- Can create new events
+- Manage existing events they organize
+- View registration lists for their events
 
-## API Testing Examples
+## API Testing with Default Accounts
 
-### Login Request
+### Login Request Example
 ```bash
 curl -X POST https://localhost:5654/api/v1/auth/login \
   -H "Content-Type: application/json" \
@@ -170,27 +187,26 @@ curl -X POST https://localhost:5654/api/v1/auth/login \
   }'
 ```
 
-### Get Events (Authenticated)
-```bash
-curl -X GET https://localhost:5654/api/v1/events \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Register for Event
-```bash
-curl -X POST https://localhost:5654/api/v1/events/{eventId}/register \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "priceTierId": "full-price"
-  }'
+### Expected Response
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "refresh_token_here",
+  "expiresAt": "2025-06-30T12:00:00Z",
+  "user": {
+    "id": "user-guid-here",
+    "email": "admin@witchcityrope.com",
+    "sceneName": "RopeMaster",
+    "role": "Administrator",
+    "isActive": true
+  }
+}
 ```
 
 ## Notes
 
-- All users start with verified emails for immediate testing
-- The member@witchcityrope.com account is pre-vetted
-- Events have realistic attendance numbers for testing capacity limits
-- Sliding scale pricing is implemented on all paid events
-- Some events are marked as "almost full" to test UI states
-- Past events are included to test historical data display
+- All users are created with verified email addresses for immediate testing
+- The encryption service is used to securely store legal names
+- Passwords are hashed using BCrypt
+- Events use sliding scale pricing with 3 tiers each
+- The database uses SQLite by default (configured in appsettings.json)
