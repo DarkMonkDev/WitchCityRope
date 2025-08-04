@@ -1,6 +1,13 @@
 # MCP Visual Verification Quick Reference
 
-## Available MCP Commands
+> **⚠️ DEPRECATED**: This MCP-based approach has been replaced by Playwright visual regression tests.
+> 
+> **Current Visual Testing**: 
+> - Location: `/tests/playwright/visual-regression/`
+> - Run: `cd tests/playwright && npm test specs/visual/`
+> - Update snapshots: `npm test specs/visual/ -- --update-snapshots`
+
+## Available MCP Commands (Historical Reference)
 
 Once the MCP servers are configured, you can use these commands in Claude:
 
@@ -156,28 +163,30 @@ mcp_puppeteer.screenshot({
 .\tools\Start-UIMonitoring.ps1 -Port 5000
 ```
 
-### Start Monitoring (Bash)
+### Start Monitoring (Bash) - DEPRECATED
 ```bash
-# Start application and monitoring
-cd /mnt/c/users/chad/source/repos/WitchCityRope
-dotnet run --project src/WitchCityRope.Web &
-node tools/ui-monitor.js
+# Note: ui-monitor.js has been archived
+# Use standard development workflow instead:
+cd /home/chad/repos/witchcityrope
+./dev.sh  # Use development menu
 ```
 
-### Run Visual Tests
+### Run Visual Tests (Current Approach)
 ```bash
-# Run all visual tests
-cd visual-tests
-npx playwright test
+# Navigate to Playwright tests
+cd tests/playwright
 
-# Run specific test
-npx playwright test witch-city-rope.spec.js
+# Run visual regression tests
+npm test specs/visual/
 
 # Update snapshots
-npx playwright test --update-snapshots
+npm test specs/visual/ -- --update-snapshots
 
-# Run in headed mode (see browser)
-npx playwright test --headed
+# Run specific visual test
+npm test specs/visual/example.visual.spec.ts
+
+# Run in UI mode for debugging
+npm test -- --ui
 ```
 
 ## Typical Workflow
