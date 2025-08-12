@@ -342,6 +342,90 @@ export class AdminUsersPage {
   }
 
   /**
+   * Get statistics cards count
+   */
+  async getStatsCardsCount(): Promise<number> {
+    const statCards = this.page.locator('.card').filter({ hasText: /Total Users|Pending Vetting|On Hold/ });
+    return await statCards.count();
+  }
+
+  /**
+   * Get all statistics values
+   */
+  async getStatisticsData(): Promise<Array<{ title: string, value: string }>> {
+    const statCards = this.page.locator('.card').filter({ hasText: /Total Users|Pending Vetting|On Hold/ });
+    const count = await statCards.count();
+    const stats = [];
+    
+    for (let i = 0; i < count; i++) {
+      const card = statCards.nth(i);
+      const title = await card.locator('text=/Total Users|Pending Vetting|On Hold/').textContent();
+      const value = await card.locator('text=/\\d+/').textContent();
+      stats.push({ 
+        title: title?.trim() || '', 
+        value: value?.trim() || '0'
+      });
+    }
+    
+    return stats;
+  }
+
+  /**
+   * Get user grid column headers (new 6-column layout)
+   */
+  async getColumnHeaders(): Promise<string[]> {
+    const table = this.page.locator('table, .sf-grid').first();
+    const headers = table.locator('thead th, .e-columnheader .e-headercell');
+    const headerCount = await headers.count();
+    const headerTexts = [];
+    
+    for (let i = 0; i < headerCount; i++) {
+      const headerText = await headers.nth(i).textContent();
+      if (headerText?.trim() && 
+          !headerText.toLowerCase().includes('action') && 
+          !headerText.toLowerCase().includes('select')) {
+        headerTexts.push(headerText.trim());
+      }
+    }
+    
+    return headerTexts;
+  }
+
+  /**
+   * Verify expected column order
+   */
+  async verifyColumnOrder(): Promise<boolean> {
+    const headers = await this.getColumnHeaders();
+    const expectedOrder = ['First Name', 'Scene Name', 'Last Name', 'Email', 'Status', 'Role'];
+    
+    if (headers.length !== 6) return false;
+    
+    for (let i = 0; i < expectedOrder.length; i++) {
+      if (!headers[i].match(new RegExp(expectedOrder[i], 'i'))) {
+        return false;
+      }
+    }
+    
+    return true;
+  }
+
+  /**
+   * Count user rows in grid
+   */
+  async getUserRowCount(): Promise<number> {
+    const userRows = this.page.locator('table tbody tr, .sf-grid .e-row').filter({ hasNot: this.page.locator('.e-emptyrow') });
+    return await userRows.count();
+  }
+
+  /**
+   * Check if removed columns are present
+   */
+  async hasRemovedColumns(): Promise<boolean> {
+    const pageContent = await this.page.textContent('body');
+    return pageContent ? /Created|Last Login/i.test(pageContent) : false;
+  }
+
+  /**
    * Take a screenshot for debugging
    */
   async screenshot(name: string): Promise<void> {

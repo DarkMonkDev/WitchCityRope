@@ -1,7 +1,11 @@
-# WCR Validation Component Library
+# WCR Validation Component Library - Definitive Reference
 
 ## Overview
 The WitchCityRope Validation Component Library provides a complete set of Blazor components for consistent form validation across the application. All components follow ASP.NET Core validation patterns while providing enhanced user experience and consistent branding.
+
+**This is the definitive reference for all WCR validation components.** For usage patterns and standards, also see:
+- `/docs/standards-processes/form-fields-and-validation-standards.md` - When/how to use components
+- `/docs/standards-processes/validation-standardization/VALIDATION_STANDARDS.md` - Architecture and principles
 
 ## Component Library (100% Complete)
 

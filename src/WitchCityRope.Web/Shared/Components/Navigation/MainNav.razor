@@ -67,6 +67,15 @@
                                                 </li>
                                             </Authorized>
                                         </AuthorizeView>
+                                        <AuthorizeView Roles="Administrator,Admin,Moderator">
+                                            <Authorized Context="moderatorContext">
+                                                <li>
+                                                    <NavLink class="dropdown-link" href="/admin/members">
+                                                        Member Management
+                                                    </NavLink>
+                                                </li>
+                                            </Authorized>
+                                        </AuthorizeView>
                                         <AuthorizeView Roles="Administrator,Admin">
                                             <Authorized Context="superAdminContext">
                                                 <li>

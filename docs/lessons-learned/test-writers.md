@@ -199,6 +199,15 @@ public void Test1() { }
 public void Given_ValidEvent_When_Created_Then_ReturnsSuccessStatus() { }
 ```
 
+## Documentation Consolidation (August 2025)
+
+**Problem**: Testing documentation scattered across multiple files with duplicates
+**Solution**: Consolidated into single source of truth pattern
+- ✅ E2E_TESTING_PATTERNS.md → redirects to playwright-guide.md
+- ✅ Agent definitions reference standards instead of duplicating code
+- ✅ Health check commands centralized with cross-references
+**Result**: Eliminated 400+ lines of duplicate Puppeteer patterns and outdated examples
+
 ## Deprecated Testing Approaches
 
 1. **Puppeteer** - All E2E tests migrated to Playwright

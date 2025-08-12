@@ -65,15 +65,12 @@ Pages that only display content can use default server-side rendering:
 
 ### .NET 9 Render Mode Syntax
 
-**❌ WRONG (Old Syntax):**
-```razor
-@rendermode InteractiveServer
-```
-
-**✅ CORRECT (.NET 9 Syntax):**
+**✅ REQUIRED Syntax for This Project:**
 ```razor
 @rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
 ```
+
+**Note**: While `@rendermode InteractiveServer` is valid .NET 9 syntax, this project uses the explicit instantiation syntax for consistency.
 
 ### Layout Component Restrictions
 

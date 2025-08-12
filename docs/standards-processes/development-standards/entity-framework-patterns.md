@@ -292,8 +292,110 @@ Health checks validate:
 - Schema and migrations
 - Seed data presence
 
+## Advanced Entity Configuration Patterns
+
+### Separate Configuration Classes
+
+**Issue**: EF configurations in OnModelCreating getting huge  
+**Solution**: Use separate configuration classes
+
+```csharp
+// ✅ CORRECT - Separate configuration class
+public class EventConfiguration : IEntityTypeConfiguration<Event>
+{
+    public void Configure(EntityTypeBuilder<Event> builder)
+    {
+        builder.ToTable("Events", "public");
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Name).IsRequired().HasMaxLength(200);
+        builder.Property(e => e.Description).HasMaxLength(2000);
+        
+        // Configure relationships
+        builder.HasMany(e => e.Registrations)
+               .WithOne(r => r.Event)
+               .HasForeignKey(r => r.EventId);
+    }
+}
+
+// In DbContext OnModelCreating
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.ApplyConfiguration(new EventConfiguration());
+    modelBuilder.ApplyConfiguration(new UserConfiguration());
+    // etc.
+}
+```
+
+### PostgreSQL Specific Patterns
+
+**Reference**: See [Database Developer Lessons](/docs/lessons-learned/database-developers.md) for PostgreSQL-specific patterns including:
+- Case sensitivity handling with CITEXT and collation
+- JSONB configuration and indexing
+- Timezone handling and conversions
+- UUID vs GUID mappings
+- Reserved word handling
+
+### Value Object Storage Strategies
+
+#### Option 1: Owned Type Configuration
+```csharp
+modelBuilder.Entity<User>()
+    .OwnsOne(u => u.Email, email =>
+    {
+        email.Property(e => e.Value)
+             .HasColumnName("Email")
+             .IsRequired()
+             .HasMaxLength(256);
+    });
+```
+
+#### Option 2: Store as Primitive (Recommended)
+```csharp
+modelBuilder.Entity<User>()
+    .Property(u => u.EmailAddress)
+    .HasColumnName("Email")
+    .IsRequired()
+    .HasMaxLength(256);
+```
+
+## Query Optimization Patterns
+
+### Selective Loading vs Include
+```csharp
+// ❌ WRONG - Loading entire entities when only need few fields
+var names = await _context.Users
+    .Include(u => u.Events)
+    .Select(u => u.Name)
+    .ToListAsync();
+
+// ✅ CORRECT - Only loads what's needed
+var names = await _context.Users
+    .Select(u => u.Name)
+    .ToListAsync();
+```
+
+### Pagination Best Practices
+```csharp
+// ✅ CORRECT - Always paginate large datasets
+var pagedResults = await query
+    .OrderBy(e => e.CreatedAt) // MUST order before Skip/Take
+    .Skip((page - 1) * pageSize)
+    .Take(pageSize)
+    .ToListAsync();
+```
+
+### AsNoTracking for Read-Only Queries
+```csharp
+// ✅ CORRECT - Use AsNoTracking for read-only operations
+var events = await _context.Events
+    .AsNoTracking()
+    .Where(e => e.StartTime > DateTime.UtcNow)
+    .ToListAsync();
+```
+
 ## Additional Resources
 
 - [EF Core PostgreSQL Provider](https://www.npgsql.org/efcore/)
 - [EF Core Testing Documentation](https://docs.microsoft.com/ef/core/testing/)
 - [Testcontainers for .NET](https://dotnet.testcontainers.org/)
+- [EF Core Performance Best Practices](https://docs.microsoft.com/ef/core/performance/)

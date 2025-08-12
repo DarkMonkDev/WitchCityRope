@@ -56,52 +56,8 @@ You are a senior Blazor Server developer for WitchCityRope, implementing high-qu
 - FluentValidation
 
 ### Component Patterns
-```razor
-@page "/admin/users"
-@rendermode InteractiveServer
-@using Microsoft.AspNetCore.Authorization
-@attribute [Authorize(Roles = "Admin")]
-@inject IUserService UserService
-@inject NavigationManager Navigation
-@inject ILogger<UserManagement> Logger
 
-<PageTitle>User Management</PageTitle>
-
-<div class="page-container">
-    @if (isLoading)
-    {
-        <SfSpinner @bind-Visible="isLoading" />
-    }
-    else
-    {
-        <SfGrid DataSource="@users" AllowPaging="true" AllowSorting="true">
-            <!-- Grid configuration -->
-        </SfGrid>
-    }
-</div>
-
-@code {
-    private List<UserDto> users = new();
-    private bool isLoading = true;
-
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            isLoading = true;
-            var result = await UserService.GetUsersAsync();
-            if (result.IsSuccess)
-            {
-                users = result.Value;
-            }
-        }
-        finally
-        {
-            isLoading = false;
-        }
-    }
-}
-```
+**Reference**: See `/docs/standards-processes/development-standards/blazor-server-patterns.md` for complete component patterns and syntax examples.
 
 ## File Organization (Vertical Slice)
 
@@ -126,32 +82,9 @@ You are a senior Blazor Server developer for WitchCityRope, implementing high-qu
 
 ## Syncfusion Component Usage
 
-### Common Components
-```razor
-<!-- Data Grid -->
-<SfGrid DataSource="@data" AllowPaging="true">
-    <GridColumns>
-        <GridColumn Field="@nameof(User.Email)" HeaderText="Email" />
-        <GridColumn Field="@nameof(User.Role)" HeaderText="Role" />
-    </GridColumns>
-</SfGrid>
+**Note**: Use WCR validation components instead of SfTextBox in forms. See validation documentation for details.
 
-<!-- Form Controls -->
-<EditForm Model="@model" OnValidSubmit="HandleSubmit">
-    <FluentValidationValidator />
-    <SfTextBox @bind-Value="model.Email" Placeholder="Email" />
-    <ValidationMessage For="@(() => model.Email)" />
-    <SfButton Type="submit">Save</SfButton>
-</EditForm>
-
-<!-- Dialogs -->
-<SfDialog @bind-Visible="showDialog" Width="500px">
-    <DialogTemplates>
-        <Header>Confirm Action</Header>
-        <Content>Are you sure?</Content>
-    </DialogTemplates>
-</SfDialog>
-```
+**Reference**: For Syncfusion patterns, see `/docs/standards-processes/development-standards/blazor-server-patterns.md`
 
 ## Service Pattern
 
@@ -227,47 +160,7 @@ public class UserManagementService : IUserManagementService
 
 ## Form Handling with Validation
 
-```razor
-<EditForm Model="@editModel" OnValidSubmit="HandleSubmit">
-    <FluentValidationValidator />
-    <ValidationSummary />
-    
-    <div class="form-group">
-        <label>Email</label>
-        <SfTextBox @bind-Value="editModel.Email" />
-        <ValidationMessage For="@(() => editModel.Email)" />
-    </div>
-    
-    <SfButton Type="submit" Disabled="@isSubmitting">
-        @if (isSubmitting)
-        {
-            <SfSpinner Size="16" />
-        }
-        else
-        {
-            <span>Save Changes</span>
-        }
-    </SfButton>
-</EditForm>
-
-@code {
-    private async Task HandleSubmit()
-    {
-        isSubmitting = true;
-        var result = await UserService.UpdateAsync(editModel);
-        isSubmitting = false;
-        
-        if (result.IsSuccess)
-        {
-            Navigation.NavigateTo("/admin/users");
-        }
-        else
-        {
-            errorMessage = result.Error;
-        }
-    }
-}
-```
+**Reference**: See `/docs/standards-processes/form-fields-and-validation-standards.md` and `/docs/standards-processes/validation-standardization/VALIDATION_COMPONENT_LIBRARY.md` for form patterns and WCR validation components.
 
 ## Common Patterns
 
@@ -293,36 +186,7 @@ else
 }
 ```
 
-### Authorization
-```razor
-<AuthorizeView Roles="Admin">
-    <Authorized>
-        <!-- Admin-only content -->
-    </Authorized>
-    <NotAuthorized>
-        <p>You don't have permission to view this page.</p>
-    </NotAuthorized>
-</AuthorizeView>
-```
-
-### Grid Actions
-```razor
-<SfGrid>
-    <GridColumns>
-        <GridColumn HeaderText="Actions" Width="120">
-            <Template>
-                @{
-                    var user = (context as UserDto);
-                    <div class="action-buttons">
-                        <SfButton @onclick="() => EditUser(user.Id)">Edit</SfButton>
-                        <SfButton @onclick="() => DeleteUser(user.Id)">Delete</SfButton>
-                    </div>
-                }
-            </Template>
-        </GridColumn>
-    </GridColumns>
-</SfGrid>
-```
+**Reference**: See `/docs/standards-processes/development-standards/blazor-server-patterns.md` for authorization patterns and grid usage examples.
 
 ## Testing Considerations
 
@@ -342,21 +206,7 @@ When implementing:
 
 ## CSS Organization
 
-```razor
-<style>
-    /* Component-specific styles */
-    .page-container {
-        padding: 1.5rem;
-    }
-    
-    /* Use @@media for responsive design */
-    @@media (max-width: 768px) {
-        .page-container {
-            padding: 1rem;
-        }
-    }
-</style>
-```
+**Reference**: See `/docs/standards-processes/development-standards/blazor-server-patterns.md` for CSS requirements including double @ escaping.
 
 ## Error Handling
 

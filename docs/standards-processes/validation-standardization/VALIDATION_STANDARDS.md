@@ -87,41 +87,9 @@ public class LoginModel
 
 ### 3. Custom Validation Components
 
-Always use the custom Wcr* components instead of standard HTML inputs:
+Always use the custom WCR validation components instead of standard HTML inputs.
 
-```razor
-<!-- Email Input with Async Validation -->
-<WcrInputEmail @bind-Value="model.Email" 
-               Placeholder="your@email.com"
-               Label="EMAIL ADDRESS*"
-               CheckUniqueness="true"
-               ExcludeUserId="@currentUserId" />
-
-<!-- Password Input with Requirements Display -->
-<WcrInputPassword @bind-Value="model.Password" 
-                  Placeholder="Choose a strong password"
-                  Label="PASSWORD*"
-                  ShowRequirements="true" />
-
-<!-- Text Input -->
-<WcrInputText @bind-Value="model.SceneName" 
-              Placeholder="Your scene name"
-              Label="SCENE NAME*" />
-
-<!-- TextArea -->
-<WcrInputTextArea @bind-Value="model.Bio" 
-                  Placeholder="Tell us about yourself"
-                  Label="BIO"
-                  Rows="5" />
-
-<!-- Select -->
-<WcrSelect @bind-Value="model.Role" 
-           Label="SELECT ROLE*">
-    <option value="">Choose a role</option>
-    <option value="attendee">Attendee</option>
-    <option value="member">Member</option>
-</WcrSelect>
-```
+**Reference**: See `/docs/standards-processes/validation-standardization/VALIDATION_COMPONENT_LIBRARY.md` for complete component documentation and usage examples.
 
 ### 4. Async Validation
 

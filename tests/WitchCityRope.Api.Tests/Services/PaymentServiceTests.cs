@@ -30,7 +30,7 @@ public class PaymentServiceTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var request = new ProcessPaymentRequest
+        var request = new WitchCityRope.Core.DTOs.ProcessPaymentRequest
         {
             PaymentId = Guid.NewGuid(),
             PaymentToken = "tok_test_123",
@@ -52,7 +52,7 @@ public class PaymentServiceTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var request = new ProcessPaymentRequest
+        var request = new WitchCityRope.Core.DTOs.ProcessPaymentRequest
         {
             PaymentId = Guid.NewGuid(),
             PaymentToken = "PAYID-123",
@@ -76,7 +76,7 @@ public class PaymentServiceTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var request = new ProcessPaymentRequest
+        var request = new WitchCityRope.Core.DTOs.ProcessPaymentRequest
         {
             PaymentId = Guid.NewGuid(),
             PaymentToken = "tok_test",
@@ -97,7 +97,7 @@ public class PaymentServiceTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var request = new ProcessPaymentRequest
+        var request = new WitchCityRope.Core.DTOs.ProcessPaymentRequest
         {
             PaymentId = Guid.NewGuid(),
             PaymentToken = "test_token",
@@ -207,7 +207,7 @@ public class PaymentServiceTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var request = new ProcessPaymentRequest
+        var request = new WitchCityRope.Core.DTOs.ProcessPaymentRequest
         {
             Amount = 1.00m,
             Currency = "USD",
@@ -228,7 +228,7 @@ public class PaymentServiceTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var request = new ProcessPaymentRequest
+        var request = new WitchCityRope.Core.DTOs.ProcessPaymentRequest
         {
             Amount = 250.00m,
             Currency = "USD",
@@ -263,7 +263,7 @@ public class PaymentServiceTests
         // Act
         for (int i = 0; i < 10; i++)
         {
-            var request = new ProcessPaymentRequest
+            var request = new WitchCityRope.Core.DTOs.ProcessPaymentRequest
             {
                 Amount = 10.00m + i,
                 Currency = "USD",

@@ -31,16 +31,16 @@ namespace WitchCityRope.Api.Tests.Controllers
             { 
                 Email = "test@example.com",
                 Password = "Test123!",
-                ConfirmPassword = "Test123!",
-                Username = "testuser",
                 LegalName = "Test User",
-                SceneName = "TestScene"
+                SceneName = "TestScene",
+                DateOfBirth = DateTime.Today.AddYears(-25)
             };
             var response = new RegisterResponse 
             { 
-                Token = "test-token",
                 UserId = Guid.NewGuid(),
-                Email = request.Email
+                Email = request.Email,
+                EmailVerificationSent = true,
+                Message = "Registration successful"
             };
             _authServiceMock.Setup(x => x.RegisterAsync(It.IsAny<RegisterRequest>()))
                 .ReturnsAsync(response);

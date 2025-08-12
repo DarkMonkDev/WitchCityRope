@@ -1,0 +1,166 @@
+@using WitchCityRope.Core.DTOs
+
+@if (IsVisible)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-@(User?.IsLockedOut == true ? "unlock" : "lock") me-2"></i>
+                        @(User?.IsLockedOut == true ? "Unlock" : "Lock Out") User - @(User?.SceneName ?? "Unknown")
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="OnCancel"></button>
+                </div>
+                
+                <EditForm Model="@LockoutModel" OnValidSubmit="@HandleSubmit">
+                    <DataAnnotationsValidator />
+                    
+                    <div class="modal-body">
+                        @if (User != null)
+                        {
+                            @if (User.IsLockedOut)
+                            {
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    <strong>Current Status:</strong> User is currently locked out until @User.LockoutEnd?.ToString("F")
+                                    <br />
+                                    <strong>Failed Attempts:</strong> @User.AccessFailedCount
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="lockoutAction" id="unlock" 
+                                               checked="@(!LockoutModel.IsLocked)" @onchange="() => LockoutModel.IsLocked = false" />
+                                        <label class="form-check-label" for="unlock">
+                                            <strong>Unlock user account</strong>
+                                        </label>
+                                    </div>
+                                    <div class="form-text ms-4">
+                                        Remove the lockout and reset failed login attempts.
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="lockoutAction" id="extend" 
+                                               checked="@LockoutModel.IsLocked" @onchange="() => LockoutModel.IsLocked = true" />
+                                        <label class="form-check-label" for="extend">
+                                            <strong>Extend or modify lockout</strong>
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    <strong>Warning:</strong> This will lock the user out of their account. 
+                                    They will not be able to log in until the lockout is removed or expires.
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="lockoutAction" id="lockPermanent" 
+                                               checked="@(LockoutModel.IsLocked && !LockoutModel.LockoutEnd.HasValue)" 
+                                               @onchange="() => { LockoutModel.IsLocked = true; LockoutModel.LockoutEnd = null; }" />
+                                        <label class="form-check-label" for="lockPermanent">
+                                            <strong>Lock out permanently</strong>
+                                        </label>
+                                    </div>
+                                    <div class="form-text ms-4">
+                                        User will be locked out until manually unlocked by an administrator.
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="lockoutAction" id="lockTemporary" 
+                                               checked="@(LockoutModel.IsLocked && LockoutModel.LockoutEnd.HasValue)" 
+                                               @onchange="() => { LockoutModel.IsLocked = true; LockoutModel.LockoutEnd = DateTime.UtcNow.AddHours(24); }" />
+                                        <label class="form-check-label" for="lockTemporary">
+                                            <strong>Lock out until specific date/time</strong>
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                            
+                            @if (LockoutModel.IsLocked && (User.IsLockedOut || LockoutModel.LockoutEnd.HasValue))
+                            {
+                                <div class="mb-3">
+                                    <label for="lockoutEnd" class="form-label">Lockout End Date/Time (UTC)</label>
+                                    <input type="datetime-local" id="lockoutEnd" class="form-control" 
+                                           value="@(LockoutModel.LockoutEnd?.ToString("yyyy-MM-ddTHH:mm"))" 
+                                           @onchange="@((ChangeEventArgs e) => LockoutModel.LockoutEnd = DateTime.TryParse(e.Value?.ToString(), out var date) ? date.ToUniversalTime() : (DateTime?)null)" />
+                                    <div class="form-text">
+                                        Leave empty for permanent lockout. Time is in UTC.
+                                    </div>
+                                </div>
+                            }
+                            
+                            <div class="mb-3">
+                                <label for="reason" class="form-label">Reason</label>
+                                <InputTextArea id="reason" class="form-control" rows="3" @bind-Value="LockoutModel.Reason" 
+                                              placeholder="Reason for lockout/unlock (will be logged)" />
+                                <ValidationMessage For="@(() => LockoutModel.Reason)" />
+                            </div>
+                        }
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="OnCancel">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn @(LockoutModel.IsLocked ? "btn-danger" : "btn-success")" disabled="@IsSubmitting">
+                            @if (IsSubmitting)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            }
+                            <i class="bi bi-@(LockoutModel.IsLocked ? "lock" : "unlock") me-1"></i>
+                            @(LockoutModel.IsLocked ? "Lock Out" : "Unlock") User
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public AdminUserDto? User { get; set; }
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<UserLockoutDto> OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private UserLockoutDto LockoutModel = new();
+    private bool IsSubmitting = false;
+
+    protected override void OnParametersSet()
+    {
+        if (User != null && IsVisible)
+        {
+            LockoutModel = new UserLockoutDto
+            {
+                IsLocked = User.IsLockedOut,
+                LockoutEnd = User.LockoutEnd,
+                AccessFailedCount = User.AccessFailedCount,
+                Reason = ""
+            };
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (IsSubmitting) return;
+        
+        IsSubmitting = true;
+        try
+        {
+            await OnSave.InvokeAsync(LockoutModel);
+        }
+        finally
+        {
+            IsSubmitting = false;
+        }
+    }
+}

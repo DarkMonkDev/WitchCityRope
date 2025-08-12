@@ -120,6 +120,119 @@ public class ApiClient
     
     #endregion
 
+    #region Admin Methods (No v1 prefix)
+    
+    public async Task<TResponse?> GetAdminAsync<TResponse>(string endpoint)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync(endpoint);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Admin API call failed: {StatusCode} - {Error}", response.StatusCode, error);
+                throw new HttpRequestException($"API call failed: {response.StatusCode}");
+            }
+            
+            var result = await response.Content.ReadFromJsonAsync<TResponse>();
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling admin API endpoint: {Endpoint}", endpoint);
+            throw;
+        }
+    }
+    
+    public async Task<TResponse> PostAdminAsync<TRequest, TResponse>(string endpoint, TRequest request)
+    {
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync(endpoint, request);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Admin API call failed: {StatusCode} - {Error}", response.StatusCode, error);
+                throw new HttpRequestException($"API call failed: {response.StatusCode}");
+            }
+            
+            var result = await response.Content.ReadFromJsonAsync<TResponse>();
+            return result ?? throw new InvalidOperationException("Invalid response from API");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling admin API endpoint: {Endpoint}", endpoint);
+            throw;
+        }
+    }
+    
+    public async Task<TResponse?> PutAdminAsync<TRequest, TResponse>(string endpoint, TRequest request)
+    {
+        try
+        {
+            var response = await _httpClient.PutAsJsonAsync(endpoint, request);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Admin API call failed: {StatusCode} - {Error}", response.StatusCode, error);
+                throw new HttpRequestException($"API call failed: {response.StatusCode}");
+            }
+            
+            var result = await response.Content.ReadFromJsonAsync<TResponse>();
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling admin API endpoint: {Endpoint}", endpoint);
+            throw;
+        }
+    }
+    
+    public async Task PostAdminAsync<TRequest>(string endpoint, TRequest request)
+    {
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync(endpoint, request);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Admin API call failed: {StatusCode} - {Error}", response.StatusCode, error);
+                throw new HttpRequestException($"API call failed: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling admin API endpoint: {Endpoint}", endpoint);
+            throw;
+        }
+    }
+    
+    public async Task PutAdminAsync<TRequest>(string endpoint, TRequest request)
+    {
+        try
+        {
+            var response = await _httpClient.PutAsJsonAsync(endpoint, request);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Admin API call failed: {StatusCode} - {Error}", response.StatusCode, error);
+                throw new HttpRequestException($"API call failed: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling admin API endpoint: {Endpoint}", endpoint);
+            throw;
+        }
+    }
+    
+    #endregion
+
     #region Events
 
     public async Task<List<EventViewModel>> GetEventsAsync(int page = 1, int pageSize = 12)

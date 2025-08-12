@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.AspNetCore.Components.Server.Circuits;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.AspNetCore.DataProtection;
 using WitchCityRope.Web.Services;
 using WitchCityRope.Web.Models;
 using WitchCityRope.Web.Components.Account;
@@ -16,6 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authorization;
 using WitchCityRope.Infrastructure.Identity;
 using WitchCityRope.Infrastructure;
+using System.Security.Claims;
 
 // Register Syncfusion license early
 var syncfusionLicense = Environment.GetEnvironmentVariable("SYNCFUSION_LICENSE_KEY") 
@@ -48,35 +50,37 @@ builder.Services.AddControllers(); // Add controllers support for API endpoints
 builder.Services.AddSyncfusionBlazor();
 
 // Add Entity Framework Core with PostgreSQL
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+}
+
 builder.Services.AddDbContext<WitchCityRopeIdentityDbContext>(options =>
-{
-    // Check for Aspire-provided connection string first, then fall back to DefaultConnection
-    var connectionString = builder.Configuration.GetConnectionString("witchcityrope-db") 
-        ?? builder.Configuration.GetConnectionString("DefaultConnection") 
-        ?? "Host=localhost;Database=witchcityrope_db;Username=postgres;Password=your_password_here";
-    options.UseNpgsql(connectionString);
-});
+    options.UseNpgsql(connectionString, npgsqlOptions =>
+    {
+        npgsqlOptions.MigrationsAssembly("WitchCityRope.Infrastructure");
+    })
+    .EnableSensitiveDataLogging(builder.Environment.IsDevelopment())
+    .EnableDetailedErrors(builder.Environment.IsDevelopment()));
 
-// Add Infrastructure services (without DbContext since we already registered it above)
-builder.Services.AddInfrastructureWithoutDbContext(builder.Configuration);
-
-// Add Identity services
-builder.Services.AddIdentity<WitchCityRope.Infrastructure.Identity.WitchCityRopeUser, WitchCityRope.Infrastructure.Identity.WitchCityRopeRole>(options =>
+// Add Identity services using the custom user and role types
+builder.Services.AddIdentity<WitchCityRopeUser, WitchCityRopeRole>(options =>
 {
-    // Password settings
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireNonAlphanumeric = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequiredLength = 8;
+    // Configure password requirements (make them simpler for development)
+    options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireDigit = false;
     
-    // Lockout settings
-    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-    options.Lockout.MaxFailedAccessAttempts = 5;
-    
-    // User settings
-    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+    // Configure user settings
     options.User.RequireUniqueEmail = true;
+    
+    // Configure lockout settings
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
     
     // Sign-in settings
     options.SignIn.RequireConfirmedAccount = false;
@@ -93,47 +97,82 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
     options.ExpireTimeSpan = TimeSpan.FromDays(7);
     options.SlidingExpiration = true;
+    
+    // Configure cookie settings for Blazor Server
     options.Cookie.HttpOnly = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
     options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+    options.Cookie.Name = ".WitchCityRope.Identity";
     
-    // Handle authentication challenges appropriately based on request type
+    // For Blazor Server, handle authentication challenges differently
     options.Events.OnRedirectToLogin = context =>
     {
-        // For API-style requests, return 401 instead of redirect
-        if (context.Request.Path.StartsWithSegments("/api") ||
-            context.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
-            context.Request.Headers.ContainsKey("Authorization"))
+        var request = context.Request;
+        
+        // For API calls (AJAX/Fetch), return 401 instead of redirect
+        if (request.Headers["X-Requested-With"] == "XMLHttpRequest" || 
+            request.Headers["Accept"].ToString().Contains("application/json") ||
+            request.Path.StartsWithSegments("/api"))
         {
             context.Response.StatusCode = 401;
             return Task.CompletedTask;
         }
         
-        // For Blazor navigation requests, return 401 to let Blazor handle it
-        if (context.Request.Path.StartsWithSegments("/_blazor"))
-        {
-            context.Response.StatusCode = 401;
-            return Task.CompletedTask;
-        }
-        
-        // For regular browser requests, redirect to login
-        context.Response.StatusCode = 302;
-        context.Response.Headers["Location"] = context.RedirectUri;
+        // For regular page requests, do the redirect
+        context.Response.Redirect(context.RedirectUri);
         return Task.CompletedTask;
+    };
+    
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        var request = context.Request;
+        
+        // For API calls (AJAX/Fetch), return 403 instead of redirect
+        if (request.Headers["X-Requested-With"] == "XMLHttpRequest" || 
+            request.Headers["Accept"].ToString().Contains("application/json") ||
+            request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = 403;
+            return Task.CompletedTask;
+        }
+        
+        // For regular page requests, do the redirect
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
+    
+    // Add JWT token management events
+    options.Events.OnSigningIn = async context =>
+    {
+        var serviceProvider = context.HttpContext.RequestServices;
+        var eventHandler = serviceProvider.GetRequiredService<AuthenticationEventHandler>();
+        await eventHandler.SigningIn(context);
+    };
+    
+    options.Events.OnSigningOut = async context =>
+    {
+        var serviceProvider = context.HttpContext.RequestServices;
+        var eventHandler = serviceProvider.GetRequiredService<AuthenticationEventHandler>();
+        await eventHandler.SigningOut(context);
     };
 });
 
-// Note: .NET 9 authentication state serialization is built-in with Blazor Server
-// No additional configuration needed - AddIdentity already configures authentication
-
-// Add HttpContextAccessor for authentication service
+// Add HTTP Context Accessor
 builder.Services.AddHttpContextAccessor();
 
 // Configure caching
 builder.Services.AddMemoryCache();
 builder.Services.AddDistributedMemoryCache(); // For session state
 
-// Configure HttpClient for API calls
+// Register JWT token services
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<IApiAuthenticationService, ApiAuthenticationService>();
+builder.Services.AddScoped<AuthenticationEventHandler>();
+
+// Register AuthenticationDelegatingHandler
+builder.Services.AddTransient<AuthenticationDelegatingHandler>();
+
+// Configure HttpClient for API calls with authentication
 builder.Services.AddHttpClient<ApiClient>(client =>
 {
     // Use configuration to get the API URL
@@ -141,7 +180,9 @@ builder.Services.AddHttpClient<ApiClient>(client =>
     client.BaseAddress = new Uri(apiUrl);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
     client.Timeout = TimeSpan.FromSeconds(30);
-}).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
+})
+.AddHttpMessageHandler<AuthenticationDelegatingHandler>()
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
 {
     ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => 
     {
@@ -159,6 +200,15 @@ builder.Services.AddHttpClient("LocalApi", (serviceProvider, client) =>
     client.BaseAddress = new Uri("http://localhost:8080");
 });
 
+// Configure HttpClient for API service authentication (JWT tokens)
+builder.Services.AddHttpClient("ApiClient", (serviceProvider, client) =>
+{
+    var apiUrl = builder.Configuration["ApiUrl"] ?? "http://localhost:5653";
+    client.BaseAddress = new Uri(apiUrl);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
 // Add HttpClient for external services
 builder.Services.AddHttpClient();
 
@@ -173,33 +223,26 @@ if (!string.IsNullOrEmpty(sendGridApiKey))
     {
         options.ApiKey = sendGridApiKey;
     });
-    
-    // Register real email sender when SendGrid is available
-    builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, WitchCityRope.Infrastructure.Services.EmailSenderAdapter>();
-}
-else
-{
-    // Register a no-op email sender for development (ALWAYS register something)
-    builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender>(provider =>
-        new NoOpEmailSender());
+
+    // SendGrid client is registered by AddSendGrid above
 }
 
-// Add Authentication services (.NET 9 Blazor Server pattern)
-// Register the authentication state provider for Blazor Server
-builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+// Add cascading auth state provider (using default server-side auth state provider)
+builder.Services.AddCascadingAuthenticationState();
 
-// Register LocalStorage service for authentication (needed for any remaining legacy components)
-builder.Services.AddScoped<ILocalStorageService, LocalStorageService>();
+// Add infrastructure services
+builder.Services.AddInfrastructure(builder.Configuration);
 
-// Register the .NET 9 compliant auth service that uses SignInManager directly (CORRECT)
-builder.Services.AddScoped<IAuthService, IdentityAuthService>();
-
-// Add direct service implementations
-builder.Services.AddScoped<WitchCityRope.Web.Services.IEventService, WitchCityRope.Web.Services.EventService>();
+// Add application services
+builder.Services.AddScoped<WitchCityRope.Web.Services.IAuthService, WitchCityRope.Web.Services.IdentityAuthService>();
 builder.Services.AddScoped<WitchCityRope.Web.Services.IUserService, WitchCityRope.Web.Services.UserService>();
+builder.Services.AddScoped<WitchCityRope.Web.Services.IEventService, WitchCityRope.Web.Services.EventService>();
 builder.Services.AddScoped<WitchCityRope.Web.Services.IRegistrationService, WitchCityRope.Web.Services.RegistrationService>();
 builder.Services.AddScoped<WitchCityRope.Web.Services.IVettingService, WitchCityRope.Web.Services.VettingService>();
-builder.Services.AddScoped<WitchCityRope.Web.Services.IPaymentService, WitchCityRope.Web.Services.PaymentService>();
+// TODO: Implement these services
+// builder.Services.AddScoped<WitchCityRope.Web.Services.ITicketService, WitchCityRope.Web.Services.TicketService>();
+// builder.Services.AddScoped<WitchCityRope.Web.Services.IProfileService, WitchCityRope.Web.Services.ProfileService>();
+// builder.Services.AddScoped<WitchCityRope.Web.Services.IPrivacyService, WitchCityRope.Web.Services.PrivacyService>();
 builder.Services.AddScoped<WitchCityRope.Web.Services.ISafetyService, WitchCityRope.Web.Services.SafetyService>();
 builder.Services.AddScoped<WitchCityRope.Web.Services.INotificationService, WitchCityRope.Web.Services.NotificationService>();
 // DashboardService is registered with HttpClient below
@@ -215,206 +258,127 @@ builder.Services.AddScoped<WitchCityRope.Web.Shared.Validation.Services.IValidat
 // Add authorization (.NET 9 pattern with multiple schemes support)
 builder.Services.AddAuthorization(options =>
 {
-    // Don't set a default policy that requires authentication
-    // This allows pages marked with [AllowAnonymous] to work properly
-    
-    // Define custom authorization policies
-    options.AddPolicy("RequireAuthenticated", policy => policy.RequireAuthenticatedUser());
-    options.AddPolicy("RequireAdmin", policy => policy.RequireRole("Administrator", "Admin"));
-    options.AddPolicy("RequireEventOrganizer", policy => policy.RequireRole("Administrator", "Admin", "EventOrganizer"));
-    options.AddPolicy("RequireVettingTeam", policy => policy.RequireRole("Administrator", "Admin", "VettingTeam"));
-    options.AddPolicy("RequireSafetyTeam", policy => policy.RequireRole("Administrator", "Admin", "SafetyTeam"));
-    options.AddPolicy("RequireVettedMember", policy => 
-        policy.RequireRole("Member").RequireClaim("IsVetted", "true"));
+    // Define policies using roles from the UserRole enum
+    options.AddPolicy("RequireEventAttendee", policy => policy.RequireRole("Attendee", "Member", "Organizer", "Moderator", "Administrator"));
+    options.AddPolicy("RequireCommunityMember", policy => policy.RequireRole("Member", "Organizer", "Moderator", "Administrator"));
+    options.AddPolicy("RequireOrganizer", policy => policy.RequireRole("Organizer", "Moderator", "Administrator"));
+    options.AddPolicy("RequireModerator", policy => policy.RequireRole("Moderator", "Administrator"));
+    options.AddPolicy("RequireAdministrator", policy => policy.RequireRole("Administrator"));
+    options.AddPolicy("RequireVetting", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("IsVetted", "True");
+    });
 });
 
+// Add data protection for secure cookie handling
+builder.Services.AddDataProtection()
+    .SetApplicationName("WitchCityRope")
+    .PersistKeysToFileSystem(new DirectoryInfo("/app/shared/keys")); // Shared volume for consistent encryption
 
-// Configure logging
-builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
-builder.Logging.AddConsole();
-builder.Logging.AddDebug();
-
-// Add session support for server-side Blazor
+// Configure session (for temporary data and state management)
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
-    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
+    options.IdleTimeout = TimeSpan.FromMinutes(20); // Set session timeout
+    options.Cookie.HttpOnly = true; // Make session cookie HTTP only
+    options.Cookie.IsEssential = true; // Make session cookie essential
+    options.Cookie.Name = ".WitchCityRope.Session";
 });
 
-// Add data protection for secure storage
-builder.Services.AddDataProtection();
-
-// Configure circuit handler for monitoring and logging
-builder.Services.AddScoped<CircuitHandler, WitchCityRope.Web.Services.CircuitHandlerService>();
-
-// Configure server-side Blazor performance monitoring
-builder.Services.Configure<Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerOptions>(options =>
-{
-    options.Limits.MaxRequestBodySize = 30 * 1024 * 1024; // 30MB for file uploads
-});
-
-// Configure SignalR for real-time updates with performance optimizations
-builder.Services.AddSignalR(options =>
-{
-    options.EnableDetailedErrors = builder.Environment.IsDevelopment();
-    options.MaximumReceiveMessageSize = 32 * 1024; // 32KB
-    
-    // Performance optimizations
-    options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
-    options.HandshakeTimeout = TimeSpan.FromSeconds(15);
-    options.KeepAliveInterval = TimeSpan.FromSeconds(15);
-    
-    // Configure message buffer
-    options.StreamBufferCapacity = 10;
-})
-.AddJsonProtocol(options =>
-{
-    // Use more compact JSON serialization
-    options.PayloadSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
-    options.PayloadSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
-});
-
-// Add response compression with Brotli and Gzip providers
+// Add response compression for better performance
 builder.Services.AddResponseCompression(options =>
 {
     options.EnableForHttps = true;
-    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProvider>();
-    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
 });
 
-// Configure Brotli compression
-builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProviderOptions>(options =>
-{
-    options.Level = System.IO.Compression.CompressionLevel.Optimal;
-});
+// Configure authentication and authorization
+// Circuit Handler for managing SignalR connections in Blazor Server
+builder.Services.AddScoped<CircuitHandler, WitchCityRope.Web.Services.CircuitHandlerService>();
 
-// Configure Gzip compression
-builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProviderOptions>(options =>
-{
-    options.Level = System.IO.Compression.CompressionLevel.Optimal;
-});
+// Add user manager and role manager for Identity access within Blazor components
+// These are already added by AddIdentity, but we want to ensure they're available as scoped services
 
-// Add antiforgery services for Blazor forms
-builder.Services.AddAntiforgery();
+// Add services for the circuit and preloading
+builder.Services.AddScoped<WitchCityRope.Web.Services.AdminDataPreloadService>();
+// TODO: Implement UserContextService
+// builder.Services.AddScoped<WitchCityRope.Web.Services.UserContextService>(); // User context for Blazor components
 
-// Add health checks
-builder.Services.AddHealthChecks();
-
-// Add response caching
-builder.Services.AddResponseCaching();
-
+// Configure the app
 var app = builder.Build();
 
-// Health checks will be mapped later with other endpoints
+// Configure request pipeline
 
-// Initialize database with seed data
-using (var scope = app.Services.CreateScope())
+// Security headers middleware (must be early in pipeline)
+app.Use(async (context, next) =>
 {
-    try
-    {
-        var context = scope.ServiceProvider.GetRequiredService<WitchCityRope.Infrastructure.Data.WitchCityRopeIdentityDbContext>();
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<WitchCityRope.Infrastructure.Identity.WitchCityRopeUser>>();
-        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<WitchCityRope.Infrastructure.Identity.WitchCityRopeRole>>();
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        await WitchCityRope.Infrastructure.Data.DbInitializer.InitializeAsync(context, userManager, roleManager, logger);
-    }
-    catch (Exception ex)
-    {
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while seeding the database.");
-    }
-}
+    context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Add("X-Frame-Options", "DENY");
+    context.Response.Headers.Add("X-XSS-Protection", "1; mode=block");
+    context.Response.Headers.Add("Referrer-Policy", "strict-origin-when-cross-origin");
+    await next();
+});
 
 // Configure the HTTP request pipeline
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
 {
     app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
 
-// Disable HTTPS redirection in development and testing environments
-if (!app.Environment.IsDevelopment() && app.Environment.EnvironmentName != "Testing" && app.Environment.EnvironmentName != "Test")
-{
-    app.UseHttpsRedirection();
-}
-
-// Use response compression early in the pipeline
+// Enable response compression
 app.UseResponseCompression();
 
-// Use response caching
-app.UseResponseCaching();
+// Static files should be served before authentication
+app.UseStaticFiles();
 
-// Configure static files with caching headers
-app.UseStaticFiles(new StaticFileOptions
-{
-    OnPrepareResponse = ctx =>
-    {
-        // Set cache control header for static assets
-        // Cache for 1 year (365 days)
-        const int durationInSeconds = 365 * 24 * 60 * 60;
-        ctx.Context.Response.Headers[HeaderNames.CacheControl] = 
-            $"public,max-age={durationInSeconds}";
-    }
-});
-
-app.UseRouting();
-
-// Add authentication and authorization middleware
-app.UseAuthentication();
-app.UseAuthorization();
-
-// Add antiforgery middleware after authentication
-app.UseAntiforgery();
-
-// Add Blazor initialization middleware
-app.UseMiddleware<WitchCityRope.Web.Middleware.BlazorInitializationMiddleware>();
-
-// Add custom Blazor authorization middleware
-app.UseMiddleware<WitchCityRope.Web.Middleware.BlazorAuthorizationMiddleware>();
-
+// Enable session middleware
 app.UseSession();
 
-// Map endpoints
-app.MapControllers(); // Map API controllers
-app.MapRazorPages(); // Map Razor Pages (for Identity)
+// Essential middleware for authentication/authorization
+app.UseRouting();
 
-// Map Blazor Server components
+// Authentication and authorization middleware (order is important)
+app.UseAuthentication(); // Must come before UseAuthorization
+app.UseAuthorization();
+
+// Enable anti-forgery protection
+app.UseAntiforgery();
+
+// Map endpoints
 app.MapRazorComponents<WitchCityRope.Web.App>()
     .AddInteractiveServerRenderMode();
 
-// Map health check endpoints
-app.MapHealthChecks("/health");
-app.MapHealthChecks("/alive", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
-{
-    Predicate = _ => false
-});
+// Map Razor Pages for Identity
+app.MapRazorPages();
 
+// Map controllers (for any API endpoints in the web app)
+app.MapControllers();
+
+// Add a health check endpoint
+app.MapGet("/health", () => "Healthy");
+
+// Add a debug endpoint to check authentication
+if (app.Environment.IsDevelopment())
+{
+    app.MapGet("/debug/auth", async (HttpContext context) =>
+    {
+        var isAuth = context.User?.Identity?.IsAuthenticated ?? false;
+        var userName = context.User?.Identity?.Name ?? "Anonymous";
+        var roles = context.User?.Claims?.Where(c => c.Type == ClaimTypes.Role)?.Select(c => c.Value)?.ToList() ?? new List<string>();
+        
+        return new 
+        { 
+            IsAuthenticated = isAuth,
+            UserName = userName,
+            Roles = roles,
+            Claims = context.User?.Claims?.Select(c => new { c.Type, c.Value })?.ToArray() ?? Array.Empty<object>()
+        };
+    });
+}
+
+// Run the application
 app.Run();
-
-// Make the Program class partial for integration testing
-namespace WitchCityRope.Web
-{
-    public partial class Program { }
-}
-
-/// <summary>
-/// No-op implementation of IEmailSender for development when SendGrid is not configured
-/// </summary>
-public class NoOpEmailSender : Microsoft.AspNetCore.Identity.UI.Services.IEmailSender
-{
-    private readonly ILogger<NoOpEmailSender> _logger;
-
-    public NoOpEmailSender()
-    {
-        _logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<NoOpEmailSender>();
-    }
-
-    public Task SendEmailAsync(string email, string subject, string htmlMessage)
-    {
-        _logger.LogInformation("EMAIL NOT SENT (SendGrid not configured): To: {Email}, Subject: {Subject}", email, subject);
-        return Task.CompletedTask;
-    }
-}
-

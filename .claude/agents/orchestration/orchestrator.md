@@ -83,16 +83,16 @@ Example for user management:
 - Phase 1 review document at: `/docs/functional-areas/[feature]/new-work/[date]/reviews/phase1-review.md`
 
 ### Phase 2: Design & Architecture
-**Agents**: blazor-architect, database-designer, api-designer, test-planner
+**Available Agents**: database-designer, ui-designer
+**Note**: Additional design agents (blazor-architect, api-designer, test-planner) planned for future implementation
 **Deliverables**:
-- Technical design documents
-- Database schema
-- API contracts
-- Test strategy
+- Database design documents
+- UI/UX design specifications
+- Technical design approach
 
 ### Phase 3: Implementation
-**Agents**: blazor-developer, backend-developer, database-developer
-**Parallel Execution**: Up to 3 agents can work simultaneously
+**Available Agents**: blazor-developer, backend-developer
+**Parallel Execution**: Up to 2 agents can work simultaneously
 **Human Review**: AFTER FIRST VERTICAL SLICE (component + service + test)
 **Deliverables**:
 - Working code
@@ -100,7 +100,7 @@ Example for user management:
 - Component documentation
 
 ### Phase 4: Testing & Validation
-**Agents**: test-developer, code-reviewer
+**Available Agents**: test-developer, code-reviewer
 **Deliverables**:
 - All tests passing
 - Code review complete
@@ -171,7 +171,7 @@ Track everything: decisions, blockers, agent outputs, review feedback
 ## Parallel Execution Management
 
 When running parallel agents:
-1. Maximum 3-4 agents simultaneously
+1. Maximum 2-3 agents simultaneously (based on available agents)
 2. Agents coordinate through shared documents in scope folder
 3. Check for conflicts before proceeding to next phase
 4. If conflicts detected, consolidate and resolve before continuing
@@ -240,32 +240,36 @@ Prompt: [specific instructions INCLUDING EXACT FILE PATHS]
 2. NEVER let agents search for files themselves
 3. PASS exact paths in the prompt to each agent
 
-## Available Sub-Agents
+## Available Sub-Agents (Currently Implemented)
 
 ### Planning Phase
-- `business-requirements`: Requirements analysis
-- `functional-spec`: Technical specifications
-- `ui-designer`: UI/UX design
+- `business-requirements`: Requirements analysis and business documentation
+- `functional-spec`: Technical specifications and detailed requirements
+- `ui-designer`: UI/UX design and wireframes
 
 ### Design Phase
-- `blazor-architect`: System architecture
-- `database-designer`: Database design
-- `api-designer`: API design
-- `test-planner`: Test strategy
+- `database-designer`: Database schema design and migrations
+- `ui-designer`: UI/UX design specifications
 
 ### Implementation Phase
-- `blazor-developer`: Blazor components
-- `backend-developer`: C# services
-- `database-developer`: PostgreSQL/EF Core
+- `blazor-developer`: Blazor Server components and UI implementation
+- `backend-developer`: C# API services and business logic
 
 ### Testing Phase
-- `test-developer`: Test creation
-- `code-reviewer`: Quality review
+- `test-developer`: Test creation and test strategy
+- `code-reviewer`: Code quality review and validation
 
 ### Utility
-- `librarian`: Documentation management
-- `git-manager`: Version control
-- `progress-manager`: Status tracking
+- `librarian`: Documentation management and file organization
+- `git-manager`: Version control and branch operations
+
+### Future Agents (Planned)
+The following agents are planned for future implementation to complete the workflow:
+- `blazor-architect`: System architecture design
+- `api-designer`: API contract design
+- `test-planner`: Comprehensive test strategy
+- `database-developer`: Advanced PostgreSQL/EF Core operations
+- `progress-manager`: Advanced status tracking and reporting
 
 ## Critical Rules
 

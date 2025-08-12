@@ -232,6 +232,69 @@ namespace WitchCityRope.Api.Features.Auth.Services
             };
         }
 
+        /// <summary>
+        /// Authenticates a user that is already authenticated in the Web service
+        /// This creates a JWT token for API access without requiring password validation
+        /// </summary>
+        public async Task<LoginResponse> WebServiceLoginAsync(WebServiceLoginRequest request)
+        {
+            // Validate the request
+            if (request.AuthenticationType != "web-service")
+            {
+                throw new UnauthorizedException("Invalid authentication type");
+            }
+
+            // Find user by email and validate the user ID matches
+            var user = await _userRepository.GetByEmailAsync(request.Email);
+            if (user == null || user.Id.ToString() != request.UserId)
+            {
+                throw new UnauthorizedException("User not found or ID mismatch");
+            }
+
+            // Check if account is active
+            if (!user.IsActive)
+            {
+                throw new UnauthorizedException("Account is not active");
+            }
+
+            // Note: We skip email verification check for web service login
+            // since the user is already authenticated in the Web service
+
+            // Generate JWT token
+            var userWithAuth = new UserWithAuth
+            {
+                User = user,
+                PasswordHash = user.PasswordHash ?? string.Empty,
+                EmailVerified = user.EmailConfirmed,
+                PronouncedName = user.PronouncedName,
+                Pronouns = user.Pronouns,
+                LastLoginAt = user.LastLoginAt
+            };
+            var token = _jwtService.GenerateToken(userWithAuth);
+            var refreshToken = _jwtService.GenerateRefreshToken();
+            
+            // Store refresh token
+            await _userRepository.StoreRefreshTokenAsync(user.Id, refreshToken, token.ExpiresAt.AddDays(7));
+            
+            // Update last login timestamp
+            await _userRepository.UpdateLastLoginAsync(user.Id);
+
+            return new LoginResponse
+            {
+                Token = token.Token,
+                RefreshToken = refreshToken,
+                ExpiresAt = token.ExpiresAt,
+                User = new UserDto
+                {
+                    Id = userWithAuth.Id,
+                    Email = userWithAuth.Email.Value,
+                    SceneName = userWithAuth.SceneName.Value,
+                    Role = userWithAuth.Role,
+                    IsActive = userWithAuth.IsActive
+                }
+            };
+        }
+
         private string GenerateVerificationToken()
         {
             return Guid.NewGuid().ToString("N");

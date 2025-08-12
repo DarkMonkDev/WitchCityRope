@@ -1,4 +1,38 @@
-# Claude Code Project Configuration
+# Claude Code Project Configuration - WitchCityRope
+
+## 🤖 AI Workflow Orchestration Active
+
+**Project**: WitchCityRope - A membership and event management platform for Salem's rope bondage community.
+
+### ⚡ AUTOMATIC ORCHESTRATION
+**ANY development request automatically triggers the orchestrator agent.**
+You don't need to mention it - just describe what you want built.
+
+### Quick Start for New Sessions
+1. **Development tasks auto-trigger orchestrator** (implement, create, fix, etc.)
+2. Say "Status" to check workflow progress
+3. Orchestrator manages all phases with mandatory human reviews
+
+### ⚠️ CRITICAL: Human Review Points
+The orchestrator MUST pause and wait for explicit approval:
+- **After Requirements Phase**: Review requirements before design
+- **After First Vertical Slice**: Review implementation before full rollout
+
+### Available Sub-Agents
+All agents located in `/.claude/agents/`:
+- **orchestrator**: Master workflow coordinator (auto-invoked for complex tasks)
+- **librarian**: Documentation and file organization
+- **git-manager**: Version control operations
+- **business-requirements**: Requirements analysis
+- **blazor-developer**: Blazor Server component development
+- Additional agents being added for full workflow support
+
+### Workflow Process
+**Phases**: Requirements → Design → Implementation → Testing → Finalization
+**Quality Gates**: Configurable by work type (Feature/Bug/Hotfix/Docs/Refactor)
+**Human Reviews**: After requirements, after first vertical slice
+**Details**: See `/docs/functional-areas/ai-workflow-orchstration/`
+
 
 > 📚 **DOCUMENTATION STRUCTURE** 📚
 > 

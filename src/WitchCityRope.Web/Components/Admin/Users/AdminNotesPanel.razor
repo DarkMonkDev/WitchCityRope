@@ -1,0 +1,355 @@
+@using WitchCityRope.Core.DTOs
+@using WitchCityRope.Core.Enums
+@using System.Net.Http.Json
+@inject HttpClient HttpClient
+@inject ILogger<AdminNotesPanel> Logger
+@inject IJSRuntime JSRuntime
+
+<div class="admin-notes-panel">
+    <div class="notes-header d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">
+            <i class="fas fa-sticky-note me-2"></i>Admin Notes (@_notes.Count)
+        </h5>
+        <div class="notes-actions">
+            <button type="button" class="btn btn-primary btn-sm" @onclick="OpenAddNoteModal">
+                <i class="fas fa-plus me-1"></i>Add Note
+            </button>
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="text-center py-4">
+            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+            Loading notes...
+        </div>
+    }
+    else if (_notes.Any())
+    {
+        <div class="notes-list">
+            @foreach (var note in _notes.OrderByDescending(n => n.CreatedAt))
+            {
+                <div class="note-card card mb-2 @GetNoteCardClass(note.NoteType)">
+                    <div class="card-body py-2">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="note-content flex-grow-1">
+                                <div class="note-header d-flex align-items-center mb-1">
+                                    <span class="note-type badge me-2 @GetNoteTypeClass(note.NoteType)">
+                                        @GetNoteTypeIcon(note.NoteType) @note.NoteType
+                                    </span>
+                                    <small class="text-muted">
+                                        @note.CreatedAt.ToString("MMM d, yyyy 'at' h:mm tt")
+                                    </small>
+                                </div>
+                                <p class="note-text mb-1">@note.Content</p>
+                                @if (note.UpdatedAt > note.CreatedAt)
+                                {
+                                    <small class="text-muted fst-italic">
+                                        Updated @note.UpdatedAt.ToString("MMM d, yyyy 'at' h:mm tt")
+                                    </small>
+                                }
+                            </div>
+                            <div class="note-actions dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <button class="dropdown-item" @onclick="() => OpenEditNoteModal(note)">
+                                            <i class="fas fa-edit me-2"></i>Edit
+                                        </button>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <button class="dropdown-item text-danger" @onclick="() => DeleteNote(note.Id)">
+                                            <i class="fas fa-trash me-2"></i>Delete
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-4 text-muted">
+            <i class="fas fa-sticky-note fa-2x mb-3 d-block text-black-50"></i>
+            <p>No admin notes for this user.</p>
+        </div>
+    }
+</div>
+
+<!-- Add/Edit Note Modal -->
+<div class="modal fade" id="noteModal" tabindex="-1" aria-labelledby="noteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="noteModalLabel">
+                    @(_editingNote != null ? "Edit Note" : "Add New Note")
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="_noteModel" OnValidSubmit="SaveNote">
+                    <DataAnnotationsValidator />
+                    
+                    <div class="mb-3">
+                        <label for="noteType" class="form-label">Note Type</label>
+                        <InputSelect id="noteType" @bind-Value="_noteModel.NoteType" class="form-select">
+                            <option value="General">General</option>
+                            <option value="Safety">Safety Concern</option>
+                            <option value="Incident">Incident Report</option>
+                            <option value="Vetting">Vetting Information</option>
+                            <option value="Administrative">Administrative</option>
+                        </InputSelect>
+                        <ValidationMessage For="() => _noteModel.NoteType" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="noteContent" class="form-label">Content</label>
+                        <InputTextArea id="noteContent" @bind-Value="_noteModel.Content" 
+                                     class="form-control" rows="4" 
+                                     placeholder="Enter note content..."></InputTextArea>
+                        <ValidationMessage For="() => _noteModel.Content" />
+                    </div>
+
+                    <div class="modal-footer px-0 pb-0">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" disabled="@_isSaving">
+                            @if (_isSaving)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            }
+                            @(_editingNote != null ? "Update" : "Save") Note
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Guid UserId { get; set; }
+    [Parameter] public EventCallback OnNotesChanged { get; set; }
+
+    private List<UserNoteDto> _notes = new();
+    private bool _isLoading = true;
+    private bool _isSaving = false;
+    private UserNoteDto? _editingNote = null;
+    private NoteFormModel _noteModel = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadNotes();
+    }
+
+    private async Task LoadNotes()
+    {
+        try
+        {
+            _isLoading = true;
+            var response = await HttpClient.GetFromJsonAsync<List<UserNoteDto>>($"api/admin/users/{UserId}/notes");
+            _notes = response ?? new List<UserNoteDto>();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading notes for user {UserId}", UserId);
+            _notes = new List<UserNoteDto>();
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OpenAddNoteModal()
+    {
+        _editingNote = null;
+        _noteModel = new NoteFormModel { NoteType = "General", Content = "" };
+        await JSRuntime.InvokeVoidAsync("eval", "new bootstrap.Modal(document.getElementById('noteModal')).show()");
+    }
+
+    private async Task OpenEditNoteModal(UserNoteDto note)
+    {
+        _editingNote = note;
+        _noteModel = new NoteFormModel 
+        { 
+            NoteType = note.NoteType, 
+            Content = note.Content 
+        };
+        await JSRuntime.InvokeVoidAsync("eval", "new bootstrap.Modal(document.getElementById('noteModal')).show()");
+    }
+
+    private async Task SaveNote()
+    {
+        try
+        {
+            _isSaving = true;
+
+            if (_editingNote != null)
+            {
+                // Update existing note
+                var updateDto = new { Content = _noteModel.Content };
+                var response = await HttpClient.PutAsJsonAsync($"api/admin/users/{UserId}/notes/{_editingNote.Id}", updateDto);
+                response.EnsureSuccessStatusCode();
+            }
+            else
+            {
+                // Create new note
+                var createDto = new { NoteType = _noteModel.NoteType, Content = _noteModel.Content };
+                var response = await HttpClient.PostAsJsonAsync($"api/admin/users/{UserId}/notes", createDto);
+                response.EnsureSuccessStatusCode();
+            }
+
+            await JSRuntime.InvokeVoidAsync("eval", "bootstrap.Modal.getInstance(document.getElementById('noteModal')).hide()");
+            await LoadNotes();
+            await OnNotesChanged.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error saving note for user {UserId}", UserId);
+            // TODO: Show error message to user
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private async Task DeleteNote(Guid noteId)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this note? This action cannot be undone.");
+        if (!confirmed) return;
+
+        try
+        {
+            var response = await HttpClient.DeleteAsync($"api/admin/users/{UserId}/notes/{noteId}");
+            response.EnsureSuccessStatusCode();
+            await LoadNotes();
+            await OnNotesChanged.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error deleting note {NoteId} for user {UserId}", noteId, UserId);
+            // TODO: Show error message to user
+        }
+    }
+
+    private string GetNoteCardClass(string noteType)
+    {
+        return noteType switch
+        {
+            "Safety" => "border-danger",
+            "Incident" => "border-warning",
+            "Vetting" => "border-info",
+            "Administrative" => "border-secondary",
+            _ => "border-light"
+        };
+    }
+
+    private string GetNoteTypeClass(string noteType)
+    {
+        return noteType switch
+        {
+            "Safety" => "bg-danger",
+            "Incident" => "bg-warning text-dark",
+            "Vetting" => "bg-info",
+            "Administrative" => "bg-secondary",
+            _ => "bg-light text-dark"
+        };
+    }
+
+    private string GetNoteTypeIcon(string noteType)
+    {
+        return noteType switch
+        {
+            "Safety" => "⚠️",
+            "Incident" => "🚨",
+            "Vetting" => "✓",
+            "Administrative" => "📋",
+            _ => "📝"
+        };
+    }
+
+    public class NoteFormModel
+    {
+        public string NoteType { get; set; } = "General";
+        public string Content { get; set; } = "";
+    }
+
+    public class UserNoteDto
+    {
+        public Guid Id { get; set; }
+        public Guid UserId { get; set; }
+        public string NoteType { get; set; } = string.Empty;
+        public string Content { get; set; } = string.Empty;
+        public Guid CreatedById { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTime? DeletedAt { get; set; }
+        public Guid? DeletedById { get; set; }
+    }
+}
+
+<style>
+    .admin-notes-panel {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .note-card {
+        transition: all 0.2s ease;
+    }
+
+    .note-card:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .note-type.badge {
+        font-size: 0.7em;
+        font-weight: 500;
+    }
+
+    .note-text {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    .note-actions .btn {
+        border: none;
+        background: transparent;
+        color: #6c757d;
+    }
+
+    .note-actions .btn:hover {
+        color: #495057;
+        background: rgba(0,0,0,0.05);
+    }
+
+    .dropdown-menu {
+        font-size: 0.9em;
+    }
+
+    .notes-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    @@media (max-width: 768px) {
+        .note-header {
+            flex-direction: column;
+            align-items: flex-start !important;
+        }
+        
+        .note-type.badge {
+            margin-bottom: 0.25rem;
+        }
+    }
+</style>

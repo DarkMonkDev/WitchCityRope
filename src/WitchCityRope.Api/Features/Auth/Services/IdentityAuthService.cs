@@ -398,6 +398,66 @@ namespace WitchCityRope.Api.Features.Auth.Services
             };
         }
 
+        /// <summary>
+        /// Authenticates a user that is already authenticated in the Web service
+        /// </summary>
+        public async Task<LoginResponse> WebServiceLoginAsync(WebServiceLoginRequest request)
+        {
+            try
+            {
+                _logger.LogInformation("Web service login requested for email: {Email}", request.Email);
+
+                // Validate the request
+                if (request.AuthenticationType != "web-service")
+                {
+                    throw new Services.UnauthorizedException("Invalid authentication type");
+                }
+
+                // Find user by email
+                var user = await _userManager.FindByEmailAsync(request.Email);
+                if (user == null || user.Id.ToString() != request.UserId)
+                {
+                    _logger.LogWarning("Web service login failed: User not found or ID mismatch for {Email}", request.Email);
+                    throw new Services.UnauthorizedException("User not found or ID mismatch");
+                }
+
+                // Check if account is active
+                if (!user.IsActive)
+                {
+                    _logger.LogWarning("Web service login failed: Account inactive for {Email}", request.Email);
+                    throw new Services.UnauthorizedException("Account is not active");
+                }
+
+                // Generate tokens
+                var userWithAuth = await MapToUserWithAuth(user);
+                var token = _jwtService.GenerateToken(userWithAuth);
+                var refreshToken = _jwtService.GenerateRefreshToken();
+
+                // Update last login
+                user.LastLoginAt = DateTime.UtcNow;
+                await _userManager.UpdateAsync(user);
+
+                _logger.LogInformation("Web service login successful for {Email}", request.Email);
+
+                return new LoginResponse
+                {
+                    Token = token.Token,
+                    RefreshToken = refreshToken,
+                    ExpiresAt = token.ExpiresAt,
+                    User = MapToUserDto(user)
+                };
+            }
+            catch (Services.UnauthorizedException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error during web service login for {Email}", request.Email);
+                throw new Services.UnauthorizedException("Authentication failed");
+            }
+        }
+
         private Task<UserWithAuth> MapToUserWithAuth(WitchCityRopeUser identityUser)
         {
             var userWithAuth = new UserWithAuth

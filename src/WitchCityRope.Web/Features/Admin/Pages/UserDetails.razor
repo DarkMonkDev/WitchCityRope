@@ -1,0 +1,177 @@
+@page "/admin/users/{userId:guid}"
+@attribute [Authorize(Policy = "RequireAdmin")]
+@using WitchCityRope.Web.Components.Admin.Users
+@using WitchCityRope.Core.DTOs
+
+<PageTitle>User Details - Admin</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>User Details</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item">
+                                <a href="/admin">Admin</a>
+                            </li>
+                            <li class="breadcrumb-item">
+                                <a href="/admin/users">Users</a>
+                            </li>
+                            <li class="breadcrumb-item active">Details</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="/admin/users" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Users
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-8 col-lg-7">
+            <!-- User Information Panel -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user me-2"></i>User Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (_user != null)
+                    {
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Scene Name</label>
+                                <p class="form-control-plaintext">@_user.SceneName</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Email</label>
+                                <p class="form-control-plaintext">@_user.Email</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Role</label>
+                                <span class="badge bg-primary">@_user.Role</span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Status</label>
+                                <div>
+                                    @if (_user.IsActive)
+                                    {
+                                        <span class="badge bg-success me-2">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger me-2">Inactive</span>
+                                    }
+                                    
+                                    @if (_user.IsVetted)
+                                    {
+                                        <span class="badge bg-info">Vetted</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Created</label>
+                                <p class="form-control-plaintext">@_user.CreatedAt.ToString("MMM d, yyyy")</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Last Login</label>
+                                <p class="form-control-plaintext">
+                                    @(_user.LastLoginAt?.ToString("MMM d, yyyy") ?? "Never")
+                                </p>
+                            </div>
+                        </div>
+                    }
+                    else if (_isLoading)
+                    {
+                        <div class="text-center py-4">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            User not found or access denied.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-lg-5">
+            <!-- Admin Notes Panel -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-sticky-note me-2"></i>Admin Notes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (_user != null)
+                    {
+                        <AdminNotesPanel UserId="@UserId" OnNotesChanged="@HandleNotesChanged" />
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Guid UserId { get; set; }
+
+    private AdminUserDto? _user;
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUser();
+    }
+
+    private async Task LoadUser()
+    {
+        try
+        {
+            _isLoading = true;
+            // This would typically call the API to get user details
+            // For now, we'll create a mock user for demonstration
+            await Task.Delay(500); // Simulate API call
+            
+            _user = new AdminUserDto
+            {
+                Id = UserId,
+                SceneName = "MockUser",
+                Email = "mock@example.com",
+                Role = WitchCityRope.Core.Enums.UserRole.Member,
+                IsActive = true,
+                IsVetted = false,
+                CreatedAt = DateTime.Now.AddMonths(-6),
+                LastLoginAt = DateTime.Now.AddDays(-2)
+            };
+        }
+        catch (Exception ex)
+        {
+            // Log error
+            _user = null;
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleNotesChanged()
+    {
+        // This could trigger a refresh of user statistics or other related data
+        await Task.CompletedTask;
+    }
+}

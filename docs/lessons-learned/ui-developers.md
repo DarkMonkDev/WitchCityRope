@@ -30,33 +30,11 @@ This document contains critical lessons learned from the WitchCityRope project t
 
 ## .NET 9 Render Mode Syntax
 
-### Critical Syntax Change
-
 **Problem**: Used old `@rendermode InteractiveServer` syntax causing compilation errors
 
-**Correct Syntax**:
-```razor
-@* ❌ WRONG - Old syntax *@
-@rendermode InteractiveServer
+**Solution**: Use .NET 9 syntax and follow layout restrictions
 
-@* ✅ CORRECT - .NET 9 syntax *@
-@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
-```
-
-### Layout Components Cannot Be Interactive
-
-**Critical**: Layout components (MainLayout) CANNOT have interactive render modes - they receive RenderFragment parameters that cannot be serialized.
-
-**Solution**: Move interactive behavior to separate components
-```razor
-@* ❌ WRONG - Interactive layout *@
-@layout MainLayout
-@rendermode @(new InteractiveServerRenderMode())
-
-@* ✅ CORRECT - Interactive component in layout *@
-@* In MainLayout.razor: *@
-<UserMenuComponent @rendermode="@(new InteractiveServerRenderMode())" />
-```
+**Reference**: See `/docs/standards-processes/development-standards/blazor-server-patterns.md` for complete render mode documentation and patterns.
 
 ## Authentication State Management
 
@@ -66,58 +44,17 @@ This document contains critical lessons learned from the WitchCityRope project t
 
 **Root Cause**: Duplicate authentication logic in MainLayout AND UserMenuComponent competing with each other
 
-**Solution Pattern**:
-```razor
-@* ❌ BAD: Multiple auth state sources *@
-@code {
-    private UserDto? _currentUser; // in MainLayout
-    @if (_currentUser != null) { ... }
-    // AND separate UserMenuComponent with its own auth logic
-}
+**Solution**: Use `AuthorizeView` consistently everywhere instead of custom authentication state management
 
-@* ✅ GOOD: Single source of truth *@
-<AuthorizeView>
-    <Authorized>My Dashboard</Authorized>
-    <NotAuthorized>Login</NotAuthorized>
-</AuthorizeView>
-@* Use AuthorizeView consistently everywhere *@
-```
-
-### Authentication State Propagation
-
-**Issue**: After implementing authentication, Blazor components weren't updating with auth state
-
-**Solution**: Properly register `AuthenticationStateProvider` in Program.cs
-```csharp
-// In Program.cs
-services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
-```
-
-**Key Changes**:
-- MainLayout uses `AuthorizeView` components instead of custom auth service
-- Remove duplicate authentication state management
-- Authentication state properly flows from login to Blazor components
+**Reference**: See `/docs/standards-processes/development-standards/blazor-server-patterns.md` for complete authentication patterns.
 
 ## CSS Escape Sequences in Razor
-
-### Double @ Required
 
 **Issue**: CSS @media and @keyframes cause Razor compilation errors
 
 **Solution**: Always use double @ in CSS within Razor files
-```css
-/* ❌ WRONG - Causes compilation errors */
-<style>
-    @media (max-width: 768px) { }
-    @keyframes fadeIn { }
-</style>
 
-/* ✅ CORRECT - Always use double @ */
-<style>
-    @@media (max-width: 768px) { }
-    @@keyframes fadeIn { }
-</style>
-```
+**Reference**: See `/docs/standards-processes/development-standards/blazor-server-patterns.md` for CSS requirements and examples.
 
 ## User Menu Dropdown Issues
 
@@ -151,47 +88,17 @@ services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvide
 
 ## Form Validation Components
 
-### WCR Validation Components
-
 **Standard**: ALL forms must use WCR validation components for consistency
 
-```razor
-@* ❌ WRONG - Direct InputText usage *@
-<InputText @bind-Value="model.Email" class="form-control" />
-
-@* ✅ CORRECT - WCR validation component *@
-<WcrInputText @bind-Value="model.Email" 
-              Label="Email" 
-              ValidationFor="@(() => model.Email)" />
-```
-
-**Available Components**:
-- `WcrInputText` - Text inputs
-- `WcrInputNumber` - Numeric inputs
-- `WcrInputDate` - Date inputs
-- `WcrInputSelect` - Dropdowns
-- `WcrInputCheckbox` - Checkboxes
+**Reference**: See `/docs/standards-processes/form-fields-and-validation-standards.md` and `/docs/standards-processes/validation-standardization/VALIDATION_COMPONENT_LIBRARY.md` for complete component documentation and usage patterns.
 
 ## Antiforgery Token Handling
 
-### Automatic Handling in .NET 9
-
 **Rule**: NEVER manually add `<AntiforgeryToken />` to EditForm components
 
-```razor
-@* ❌ WRONG - Manual token *@
-<EditForm Model="model" OnValidSubmit="HandleSubmit">
-    <AntiforgeryToken />
-    <!-- form fields -->
-</EditForm>
+**Solution**: Use `FormName` + `SupplyParameterFromForm` for automatic handling
 
-@* ✅ CORRECT - Framework handles automatically *@
-<EditForm Model="model" FormName="loginForm" OnValidSubmit="HandleSubmit">
-    <!-- form fields -->
-</EditForm>
-```
-
-**Key**: Use `FormName` + `SupplyParameterFromForm` for automatic handling
+**Reference**: See `/docs/standards-processes/development-standards/blazor-server-patterns.md` for antiforgery token patterns.
 
 ## Docker Hot Reload Issues
 
@@ -247,12 +154,12 @@ private bool isOpen = false;
 ## Key Learnings Summary
 
 1. **Pure Blazor Server only** - No Razor Pages allowed
-2. **Use .NET 9 render mode syntax** - `@(new InteractiveServerRenderMode())`
-3. **Layout components cannot be interactive** - Move logic to child components
-4. **Use AuthorizeView everywhere** - Single source of auth truth
-5. **Double @ in CSS** - Escape sequences in Razor files
-6. **Use native HTML when possible** - Avoids Blazor re-render issues
-7. **Always use WCR components** - Consistency across forms
-8. **Restart containers for UI changes** - Hot reload is unreliable
-9. **Know when to use interactive mode** - Not all pages need it
-10. **State management matters** - Use proper component patterns
+2. **Use native HTML when possible** - Avoids Blazor re-render issues (e.g., `<details>/<summary>` for dropdowns)
+3. **Restart containers for UI changes** - Hot reload is unreliable in Docker
+4. **Know when to use interactive mode** - Not all pages need it
+5. **State management matters** - Use proper component patterns
+
+**For complete patterns and syntax, see:**
+- **Blazor patterns**: `/docs/standards-processes/development-standards/blazor-server-patterns.md`
+- **Validation components**: `/docs/standards-processes/form-fields-and-validation-standards.md`
+- **Component library**: `/docs/standards-processes/validation-standardization/VALIDATION_COMPONENT_LIBRARY.md`

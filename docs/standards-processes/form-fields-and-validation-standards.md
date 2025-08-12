@@ -1,8 +1,10 @@
-# WitchCityRope Validation Standards
+# WitchCityRope Form Design and Validation Standards
 
 ## Overview
 
-This document outlines the validation standards and components used throughout the WitchCityRope application. All forms should use these standardized components for consistent user experience and maintainability.
+This document outlines the **form design standards and validation patterns** used throughout the WitchCityRope application. This focuses on **when and how** to use validation components and patterns.
+
+**For detailed component documentation**: See `/docs/standards-processes/validation-standardization/VALIDATION_COMPONENT_LIBRARY.md`
 
 ## Validation Components
 
@@ -26,88 +28,9 @@ Displays validation message for a specific field.
 
 ### 3. Input Components
 
-All input components follow a consistent pattern:
-- Support for `@bind-Value`
-- Built-in validation display
-- Required field indicators
-- Consistent styling
-- Accessibility support
+All input components follow a consistent pattern and support validation. 
 
-#### WcrInputText
-```razor
-<WcrInputText @bind-Value="model.Name" 
-              Label="Name" 
-              Placeholder="Enter your name"
-              IsRequired="true" />
-```
-
-#### WcrInputEmail
-```razor
-<WcrInputEmail @bind-Value="model.Email" 
-               Label="Email Address"
-               CheckUniqueness="true"
-               ExcludeUserId="currentUserId" />
-```
-
-#### WcrInputPassword
-```razor
-<WcrInputPassword @bind-Value="model.Password"
-                  Label="Password"
-                  ShowRequirements="true"
-                  ShowToggle="true" />
-```
-
-#### WcrInputSelect
-```razor
-<WcrInputSelect @bind-Value="model.Role"
-                Label="Role"
-                IsRequired="true">
-    <option value="">-- Select --</option>
-    <option value="Member">Member</option>
-    <option value="Admin">Admin</option>
-</WcrInputSelect>
-```
-
-#### WcrInputTextArea
-```razor
-<WcrInputTextArea @bind-Value="model.Bio"
-                  Label="Biography"
-                  Rows="4"
-                  MaxLength="500" />
-```
-
-#### WcrInputCheckbox
-```razor
-<WcrInputCheckbox @bind-Value="model.AgreeToTerms"
-                  Label="I agree to the terms and conditions"
-                  IsRequired="true" />
-```
-
-#### WcrInputNumber
-```razor
-<WcrInputNumber TValue="int" 
-                @bind-Value="model.Age"
-                Label="Age"
-                Min="21"
-                Max="100" />
-```
-
-#### WcrInputDate
-```razor
-<WcrInputDate TValue="DateTime" 
-              @bind-Value="model.BirthDate"
-              Label="Birth Date"
-              Max="@DateTime.Today.AddYears(-21)" />
-```
-
-#### WcrInputRadio
-```razor
-<WcrInputRadio TValue="string" 
-               @bind-Value="model.MembershipType"
-               Label="Membership Type"
-               Options="membershipOptions"
-               Orientation="horizontal" />
-```
+**Component Library Reference**: See `/docs/standards-processes/validation-standardization/VALIDATION_COMPONENT_LIBRARY.md` for complete component documentation, usage examples, and parameter lists.
 
 ## Validation Patterns
 

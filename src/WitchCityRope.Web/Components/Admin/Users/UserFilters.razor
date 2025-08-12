@@ -1,0 +1,239 @@
+@using WitchCityRope.Core.Enums
+
+<div class="user-filters">
+    <div class="row g-3">
+        <div class="col-md-3">
+            <label for="searchTerm" class="form-label">Search</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" id="searchTerm" 
+                       placeholder="Scene name, email, username..." 
+                       @bind="SearchTerm" @oninput="OnSearchInput" />
+                @if (!string.IsNullOrEmpty(SearchTerm))
+                {
+                    <button class="btn btn-outline-secondary" type="button" @onclick="ClearSearch">
+                        <i class="bi bi-x"></i>
+                    </button>
+                }
+            </div>
+        </div>
+        
+        <div class="col-md-2">
+            <label for="roleFilter" class="form-label">Role</label>
+            <select class="form-select" id="roleFilter" @bind="Role" @bind:after="OnFilterChange">
+                <option value="">All Roles</option>
+                @foreach (var role in Enum.GetValues<UserRole>())
+                {
+                    <option value="@role">@role</option>
+                }
+            </select>
+        </div>
+        
+        <div class="col-md-2">
+            <label for="activeFilter" class="form-label">Status</label>
+            <select class="form-select" id="activeFilter" @bind="IsActive" @bind:after="OnFilterChange">
+                <option value="">All Users</option>
+                <option value="True">Active</option>
+                <option value="False">Inactive</option>
+            </select>
+        </div>
+        
+        <div class="col-md-2">
+            <label for="vettedFilter" class="form-label">Vetting</label>
+            <select class="form-select" id="vettedFilter" @bind="IsVetted" @bind:after="OnFilterChange">
+                <option value="">All</option>
+                <option value="True">Vetted</option>
+                <option value="False">Unvetted</option>
+            </select>
+        </div>
+        
+        <div class="col-md-2">
+            <label for="emailFilter" class="form-label">Email</label>
+            <select class="form-select" id="emailFilter" @bind="EmailConfirmed" @bind:after="OnFilterChange">
+                <option value="">All</option>
+                <option value="True">Confirmed</option>
+                <option value="False">Unconfirmed</option>
+            </select>
+        </div>
+        
+        <div class="col-md-1">
+            <label for="pageSizeFilter" class="form-label">Size</label>
+            <select class="form-select" id="pageSizeFilter" @bind="PageSize" @bind:after="OnFilterChange">
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="200">200</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="row mt-3">
+        <div class="col-md-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="lockedOutFilter" 
+                       checked="@(IsLockedOut == true)" @onchange="OnLockedOutChange" />
+                <label class="form-check-label" for="lockedOutFilter">
+                    Show only locked out users
+                </label>
+            </div>
+        </div>
+        
+        @if (HasActiveFilters)
+        {
+            <div class="col-md-9 text-end">
+                <button class="btn btn-outline-secondary btn-sm" @onclick="ClearAllFilters">
+                    <i class="bi bi-x-circle me-1"></i>Clear All Filters
+                </button>
+            </div>
+        }
+    </div>
+    
+    @if (HasActiveFilters)
+    {
+        <div class="row mt-2">
+            <div class="col-12">
+                <div class="active-filters">
+                    <small class="text-muted me-2">Active filters:</small>
+                    @if (!string.IsNullOrEmpty(SearchTerm))
+                    {
+                        <span class="badge bg-primary me-1">
+                            Search: @SearchTerm
+                            <button type="button" class="btn-close btn-close-white btn-sm ms-1" @onclick="ClearSearch"></button>
+                        </span>
+                    }
+                    @if (Role.HasValue)
+                    {
+                        <span class="badge bg-info me-1">
+                            Role: @Role
+                            <button type="button" class="btn-close btn-close-white btn-sm ms-1" @onclick="() => { Role = null; OnFilterChange(); }"></button>
+                        </span>
+                    }
+                    @if (IsActive.HasValue)
+                    {
+                        <span class="badge bg-success me-1">
+                            Status: @(IsActive == true ? "Active" : "Inactive")
+                            <button type="button" class="btn-close btn-close-white btn-sm ms-1" @onclick="() => { IsActive = null; OnFilterChange(); }"></button>
+                        </span>
+                    }
+                    @if (IsVetted.HasValue)
+                    {
+                        <span class="badge bg-warning me-1">
+                            Vetting: @(IsVetted == true ? "Vetted" : "Unvetted")
+                            <button type="button" class="btn-close btn-close-white btn-sm ms-1" @onclick="() => { IsVetted = null; OnFilterChange(); }"></button>
+                        </span>
+                    }
+                    @if (EmailConfirmed.HasValue)
+                    {
+                        <span class="badge bg-secondary me-1">
+                            Email: @(EmailConfirmed == true ? "Confirmed" : "Unconfirmed")
+                            <button type="button" class="btn-close btn-close-white btn-sm ms-1" @onclick="() => { EmailConfirmed = null; OnFilterChange(); }"></button>
+                        </span>
+                    }
+                    @if (IsLockedOut == true)
+                    {
+                        <span class="badge bg-danger me-1">
+                            Locked Out
+                            <button type="button" class="btn-close btn-close-white btn-sm ms-1" @onclick="() => { IsLockedOut = null; OnFilterChange(); }"></button>
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .active-filters {
+        padding: 0.5rem;
+        background-color: #f8f9fa;
+        border-radius: 0.375rem;
+        border: 1px solid #dee2e6;
+    }
+    
+    .active-filters .badge {
+        font-size: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .btn-close-white {
+        font-size: 0.6em;
+    }
+</style>
+
+@code {
+    [Parameter] public UserRole? Role { get; set; }
+    [Parameter] public EventCallback<UserRole?> RoleChanged { get; set; }
+    
+    [Parameter] public bool? IsActive { get; set; }
+    [Parameter] public EventCallback<bool?> IsActiveChanged { get; set; }
+    
+    [Parameter] public bool? IsVetted { get; set; }
+    [Parameter] public EventCallback<bool?> IsVettedChanged { get; set; }
+    
+    [Parameter] public bool? EmailConfirmed { get; set; }
+    [Parameter] public EventCallback<bool?> EmailConfirmedChanged { get; set; }
+    
+    [Parameter] public bool? IsLockedOut { get; set; }
+    [Parameter] public EventCallback<bool?> IsLockedOutChanged { get; set; }
+    
+    [Parameter] public string SearchTerm { get; set; } = "";
+    [Parameter] public EventCallback<string> SearchTermChanged { get; set; }
+    
+    [Parameter] public int PageSize { get; set; } = 50;
+    [Parameter] public EventCallback<int> PageSizeChanged { get; set; }
+    
+    [Parameter] public EventCallback OnFilterChanged { get; set; }
+
+    private bool HasActiveFilters => 
+        !string.IsNullOrEmpty(SearchTerm) || 
+        Role.HasValue || 
+        IsActive.HasValue || 
+        IsVetted.HasValue || 
+        EmailConfirmed.HasValue || 
+        IsLockedOut == true;
+
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        SearchTerm = e.Value?.ToString() ?? "";
+        await SearchTermChanged.InvokeAsync(SearchTerm);
+        await OnFilterChanged.InvokeAsync();
+    }
+
+    private async Task OnFilterChange()
+    {
+        await OnFilterChanged.InvokeAsync();
+    }
+
+    private async Task OnLockedOutChange(ChangeEventArgs e)
+    {
+        IsLockedOut = e.Value as bool? == true ? true : null;
+        await IsLockedOutChanged.InvokeAsync(IsLockedOut);
+        await OnFilterChanged.InvokeAsync();
+    }
+
+    private async Task ClearSearch()
+    {
+        SearchTerm = "";
+        await SearchTermChanged.InvokeAsync(SearchTerm);
+        await OnFilterChanged.InvokeAsync();
+    }
+
+    private async Task ClearAllFilters()
+    {
+        SearchTerm = "";
+        Role = null;
+        IsActive = null;
+        IsVetted = null;
+        EmailConfirmed = null;
+        IsLockedOut = null;
+        
+        await SearchTermChanged.InvokeAsync(SearchTerm);
+        await RoleChanged.InvokeAsync(Role);
+        await IsActiveChanged.InvokeAsync(IsActive);
+        await IsVettedChanged.InvokeAsync(IsVetted);
+        await EmailConfirmedChanged.InvokeAsync(EmailConfirmed);
+        await IsLockedOutChanged.InvokeAsync(IsLockedOut);
+        await OnFilterChanged.InvokeAsync();
+    }
+}

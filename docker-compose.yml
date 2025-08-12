@@ -73,6 +73,8 @@ services:
       - ./logs/api:/app/logs
       # Uploads volume (for file uploads if needed)
       - ./uploads:/app/uploads
+      # Shared keys for data protection (must match web service)
+      - ./shared/keys:/app/shared/keys
       # Development certificates
       - ~/.aspnet/https:/https:ro
       # For hot reload in development (only when BUILD_TARGET=development)
@@ -139,6 +141,8 @@ services:
       - ./logs/web:/app/logs
       # Static files/uploads
       - ./uploads:/app/wwwroot/uploads:ro
+      # Shared keys for data protection (must match api service)
+      - ./shared/keys:/app/shared/keys
       # Development certificates
       - ~/.aspnet/https:/https:ro
       # For hot reload in development (only when BUILD_TARGET=development)

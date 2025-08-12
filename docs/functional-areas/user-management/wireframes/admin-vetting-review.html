@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vetting Application - Alex Rivers - Admin - Witch City Rope</title>
+    <link rel="stylesheet" href="../../design/style-guide/design-system.css">
+    <style>
+        /* Admin-specific colors */
+        :root {
+            --admin-primary: #1a1a1a;
+            --admin-accent: #8B4513;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-family);
+            font-size: var(--text-base);
+            line-height: var(--leading-normal);
+            color: var(--color-gray-900);
+            background: var(--color-gray-100);
+        }
+        
+        /* Admin Header */
+        .admin-header {
+            background: var(--admin-primary);
+            padding: var(--space-4) var(--space-10);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .admin-header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .admin-logo {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            text-decoration: none;
+        }
+        
+        .logo-text {
+            font-family: var(--font-family);
+            font-size: var(--text-3xl);
+            font-weight: var(--font-bold);
+            color: var(--color-white);
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .admin-badge {
+            background: var(--admin-accent);
+            color: var(--color-white);
+            padding: var(--space-1) var(--space-3);
+            border-radius: var(--radius-pill);
+            font-size: var(--text-xs);
+            font-weight: var(--font-bold);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .admin-user {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            color: var(--color-white);
+        }
+        
+        .admin-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-full);
+            background: var(--admin-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: var(--font-semibold);
+            color: var(--color-white);
+        }
+        
+        /* Layout */
+        .admin-layout {
+            display: flex;
+            max-width: 1600px;
+            margin: 0 auto;
+            min-height: calc(100vh - 70px);
+        }
+        
+        /* Sidebar */
+        .admin-sidebar {
+            width: 260px;
+            background: var(--color-white);
+            padding: var(--space-8);
+            border-right: 2px solid var(--color-gray-200);
+        }
+        
+        .sidebar-nav {
+            list-style: none;
+        }
+        
+        .sidebar-section {
+            margin-bottom: var(--space-10);
+        }
+        
+        .sidebar-title {
+            font-family: var(--font-family);
+            font-size: var(--text-sm);
+            font-weight: var(--font-bold);
+            color: var(--color-gray-600);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: var(--space-4);
+        }
+        
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3) var(--space-4);
+            color: var(--color-gray-800);
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            transition: all var(--transition-base) ease;
+            margin-bottom: var(--space-2);
+            font-weight: var(--font-medium);
+        }
+        
+        .sidebar-link:hover {
+            background: var(--color-gray-100);
+            color: var(--color-primary);
+        }
+        
+        .sidebar-link.active {
+            background: var(--color-primary);
+            color: var(--color-white);
+        }
+        
+        .sidebar-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .notification-badge {
+            background: var(--color-error-border);
+            color: var(--color-white);
+            padding: 2px var(--space-2);
+            border-radius: 10px;
+            font-size: 11px;
+            margin-left: auto;
+        }
+        
+        /* Main Content */
+        .admin-main {
+            flex: 1;
+            padding: var(--space-10);
+        }
+        
+        /* Back Navigation */
+        .back-nav {
+            margin-bottom: var(--space-4);
+        }
+        
+        .back-link {
+            color: var(--color-primary);
+            text-decoration: none;
+            font-weight: var(--font-medium);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* Application Header */
+        .application-header {
+            background: var(--color-white);
+            border-radius: var(--radius-md);
+            padding: var(--space-8);
+            margin-bottom: var(--space-8);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--space-4);
+        }
+        
+        .applicant-name {
+            font-family: var(--font-family);
+            font-size: var(--text-4xl);
+            font-weight: var(--font-bold);
+            color: var(--color-gray-900);
+            margin-bottom: var(--space-1);
+        }
+        
+        .applicant-pronouns {
+            font-size: var(--text-base);
+            color: var(--color-gray-600);
+        }
+        
+        .application-status {
+            text-align: right;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-pill);
+            font-size: var(--text-xs);
+            font-weight: var(--font-semibold);
+            margin-bottom: var(--space-1);
+        }
+        
+        .status-pending {
+            background: var(--color-warning-bg);
+            color: var(--color-warning-text);
+        }
+        
+        .status-info {
+            font-size: var(--text-sm);
+            color: var(--color-gray-600);
+        }
+        
+        .interview-status {
+            background: var(--color-info-bg);
+            border-left: 3px solid var(--color-info-border);
+            padding: var(--space-3) var(--space-4);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-4);
+            font-size: var(--text-sm);
+            color: var(--color-info-text);
+        }
+        
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 450px;
+            gap: var(--space-8);
+        }
+        
+        /* Application Details */
+        .application-details {
+            background: var(--color-white);
+            border-radius: var(--radius-md);
+            padding: var(--space-8);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .detail-section {
+            margin-bottom: var(--space-8);
+        }
+        
+        .detail-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .section-title {
+            font-family: var(--font-family);
+            font-size: var(--text-sm);
+            font-weight: var(--font-bold);
+            color: var(--color-gray-600);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: var(--space-3);
+        }
+        
+        .detail-content {
+            color: var(--color-gray-900);
+            line-height: var(--leading-normal);
+        }
+        
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-4);
+        }
+        
+        .detail-item {
+            margin-bottom: var(--space-4);
+        }
+        
+        .detail-label {
+            font-size: var(--text-sm);
+            color: var(--color-gray-600);
+            margin-bottom: var(--space-1);
+        }
+        
+        .detail-value {
+            font-size: var(--text-base);
+            color: var(--color-gray-900);
+        }
+        
+        .detail-value a {
+            color: var(--color-primary);
+            text-decoration: none;
+        }
+        
+        .detail-value a:hover {
+            text-decoration: underline;
+        }
+        
+        .confirmation-box {
+            background: var(--color-success-bg);
+            border-left: 3px solid var(--color-success-border);
+            padding: var(--space-3) var(--space-4);
+            border-radius: var(--radius-md);
+            font-size: var(--text-sm);
+            color: var(--color-success-text);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        /* Notes Section */
+        .notes-section {
+            background: var(--color-white);
+            border-radius: var(--radius-md);
+            padding: var(--space-8);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .notes-header {
+            font-family: var(--font-family);
+            font-size: var(--text-xl);
+            font-weight: var(--font-bold);
+            margin-bottom: var(--space-4);
+            color: var(--color-gray-900);
+        }
+        
+        .add-note-form {
+            margin-bottom: var(--space-4);
+        }
+        
+        .note-textarea {
+            width: 100%;
+            padding: var(--space-3);
+            border: 2px solid var(--color-gray-200);
+            border-radius: var(--radius-md);
+            font-family: var(--font-family);
+            font-size: var(--text-sm);
+            min-height: 100px;
+            resize: vertical;
+            margin-bottom: var(--space-3);
+            background: var(--color-white);
+            transition: border-color var(--transition-base) ease;
+        }
+        
+        .note-textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+        
+        .btn {
+            padding: var(--space-3) var(--space-5);
+            border-radius: var(--radius-base);
+            font-family: var(--font-family);
+            font-weight: var(--font-medium);
+            font-size: var(--text-sm);
+            cursor: pointer;
+            transition: all var(--transition-base) ease;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1;
+        }
+        
+        .btn-primary {
+            background: var(--color-primary);
+            color: var(--color-white);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn-primary:hover {
+            background: var(--color-primary-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .notes-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: var(--space-2);
+        }
+        
+        /* Custom scrollbar for notes */
+        .notes-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .notes-list::-webkit-scrollbar-track {
+            background: var(--color-gray-100);
+            border-radius: 3px;
+        }
+        
+        .notes-list::-webkit-scrollbar-thumb {
+            background: var(--color-gray-300);
+            border-radius: 3px;
+        }
+        
+        .notes-list::-webkit-scrollbar-thumb:hover {
+            background: var(--color-gray-400);
+        }
+        
+        .note-item {
+            padding: var(--space-4);
+            background: var(--color-gray-100);
+            border-radius: var(--radius-md);
+            border-left: 3px solid var(--color-primary);
+        }
+        
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--space-2);
+            font-size: var(--text-sm);
+            color: var(--color-gray-600);
+        }
+        
+        .note-author {
+            font-weight: var(--font-semibold);
+            color: var(--color-gray-900);
+        }
+        
+        .note-content {
+            color: var(--color-gray-900);
+            line-height: var(--leading-normal);
+        }
+        
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: var(--space-4);
+            padding-top: var(--space-4);
+            border-top: 1px solid var(--color-gray-200);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: var(--space-3);
+        }
+        
+        .btn-approve {
+            background: var(--color-success-border);
+            color: var(--color-white);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn-approve:hover {
+            background: var(--color-success-text);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .btn-deny {
+            background: var(--color-error-border);
+            color: var(--color-white);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn-deny:hover {
+            background: var(--color-error-text);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--color-gray-800);
+            border: 2px solid var(--color-gray-200);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--color-gray-100);
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+        
+        .status-flagged {
+            background: var(--color-error-bg);
+            color: var(--color-error-text);
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal {
+            background: var(--color-white);
+            border-radius: var(--radius-md);
+            width: 90%;
+            max-width: 500px;
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .modal-header {
+            padding: var(--space-4);
+            border-bottom: 2px solid var(--color-gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--color-gray-100);
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+        }
+        
+        .modal-header h3 {
+            font-family: var(--font-family);
+            font-size: var(--text-2xl);
+            font-weight: var(--font-bold);
+            color: var(--color-gray-900);
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: var(--text-2xl);
+            color: var(--color-gray-600);
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-md);
+            transition: all var(--transition-base) ease;
+        }
+        
+        .close-btn:hover {
+            background: var(--color-gray-200);
+            color: var(--color-primary);
+        }
+        
+        .modal-body {
+            padding: var(--space-8);
+        }
+        
+        .modal-text {
+            margin-bottom: var(--space-4);
+            color: var(--color-gray-900);
+            line-height: var(--leading-normal);
+        }
+        
+        .modal-footer {
+            padding: var(--space-4);
+            border-top: 2px solid var(--color-gray-200);
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--space-3);
+            background: var(--color-gray-100);
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+        }
+    </style>
+</head>
+<body>
+    <!-- Admin Header -->
+    <header class="admin-header">
+        <div class="admin-header-content">
+            <a href="landing-page-visual-v2.html" class="admin-logo">
+                <span class="logo-text">Witch City Rope</span>
+                <span class="admin-badge">Admin</span>
+            </a>
+            
+            <div class="admin-user">
+                <span>Welcome, River Moon</span>
+                <div class="admin-avatar">RM</div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Layout -->
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <nav>
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Main</h3>
+                    <ul class="sidebar-nav">
+                        <li>
+                            <a href="#" class="sidebar-link">
+                                <span class="sidebar-icon">📊</span>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="admin-events-visual.html" class="sidebar-link">
+                                <span class="sidebar-icon">📅</span>
+                                Events
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="sidebar-link">
+                                <span class="sidebar-icon">👥</span>
+                                Members
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Vetting</h3>
+                    <ul class="sidebar-nav">
+                        <li>
+                            <a href="admin-vetting-queue.html" class="sidebar-link active">
+                                <span class="sidebar-icon">📋</span>
+                                Applications
+                                <span class="notification-badge">3</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="sidebar-link">
+                                <span class="sidebar-icon">🎯</span>
+                                Interviews
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Reports</h3>
+                    <ul class="sidebar-nav">
+                        <li>
+                            <a href="#" class="sidebar-link">
+                                <span class="sidebar-icon">💰</span>
+                                Financials
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="sidebar-link">
+                                <span class="sidebar-icon">📈</span>
+                                Analytics
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="sidebar-link">
+                                <span class="sidebar-icon">⚠️</span>
+                                Incidents
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Back Navigation -->
+            <div class="back-nav">
+                <a href="admin-vetting-queue.html" class="back-link">
+                    <span>←</span> Back to Vetting Queue
+                </a>
+            </div>
+            
+            <!-- Application Header -->
+            <div class="application-header">
+                <div class="header-top">
+                    <div>
+                        <h1 class="applicant-name">Alex Rivers</h1>
+                        <div class="applicant-pronouns">they/them</div>
+                    </div>
+                    <div class="application-status">
+                        <div class="status-badge status-pending">PENDING REVIEW</div>
+                        <div class="status-info">Applied 7 days ago</div>
+                    </div>
+                </div>
+                
+                <div class="interview-status">
+                    <strong>Interview Scheduled:</strong> Tomorrow (March 16) at 3:00 PM with Sky Chen
+                </div>
+                
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="flagForReview()">
+                        <span>🚩</span> Flag for Review
+                    </button>
+                    <div class="action-buttons">
+                        <button class="btn btn-deny" onclick="showDenyModal()">Deny Application</button>
+                        <button class="btn btn-approve" onclick="showApproveModal()">Approve Membership</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content Grid -->
+            <div class="content-grid">
+                <!-- Left Column - Application Details -->
+                <div class="application-details">
+                    <div class="detail-section">
+                        <h3 class="section-title">About Themselves</h3>
+                        <div class="detail-content">
+                            I've been practicing rope for about 2 years, mostly self-taught through online resources and workshops. I attended RopeCraft last year and met some WCR members who spoke highly of your community. I'm looking for a safe space to practice and learn from experienced riggers. I'm particularly interested in floor work and developing my technical skills.
+                        </div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h3 class="section-title">How They Found WCR</h3>
+                        <div class="detail-content">
+                            Met Sage and Luna at RopeCraft who recommended your community
+                        </div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h3 class="section-title">FetLife Profile</h3>
+                        <div class="detail-content">
+                            <a href="https://fetlife.com/users/RiversideRopes" target="_blank">@RiversideRopes</a>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h3 class="section-title">Contact Information</h3>
+                        <div class="detail-item">
+                            <div class="detail-label">Email</div>
+                            <div class="detail-value">alexrivers.rope@gmail.com</div>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h3 class="section-title">Other Handles</h3>
+                        <div class="detail-content">
+                            RiverRopes on Discord, alex_ties on Instagram
+                        </div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <div class="confirmation-box">
+                            <span>✓</span> Confirmed 21+ years old
+                        </div>
+                        <div class="confirmation-box" style="margin-top: 8px;">
+                            <span>✓</span> Agreed to Code of Conduct
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column - Notes -->
+                <div class="notes-section">
+                    <h3 class="notes-header">Admin Notes</h3>
+                    
+                    <!-- Add Note Form -->
+                    <div class="add-note-form">
+                        <textarea class="note-textarea" placeholder="Add a note about this application..."></textarea>
+                        <button class="btn btn-primary">Add Note</button>
+                    </div>
+                    
+                    <!-- Notes List -->
+                    <div class="notes-list">
+                        <div class="note-item">
+                            <div class="note-header">
+                                <span class="note-author">Sky Chen</span>
+                                <span>March 14, 2024 at 2:30 PM</span>
+                            </div>
+                            <div class="note-content">
+                                Scheduled interview for March 16. They seem eager to learn and have good references from Sage and Luna.
+                            </div>
+                        </div>
+                        
+                        <div class="note-item">
+                            <div class="note-header">
+                                <span class="note-author">Luna Martinez</span>
+                                <span>March 12, 2024 at 4:45 PM</span>
+                            </div>
+                            <div class="note-content">
+                                I can confirm they attended RopeCraft - I remember seeing them in my advanced floorwork class. Very respectful and asked good safety questions.
+                            </div>
+                        </div>
+                        
+                        <div class="note-item">
+                            <div class="note-header">
+                                <span class="note-author">River Moon</span>
+                                <span>March 11, 2024 at 11:20 AM</span>
+                            </div>
+                            <div class="note-content">
+                                Cross-referenced with Sage - they confirmed Alex has been practicing safely in the Boston scene. No red flags.
+                            </div>
+                        </div>
+                        
+                        <div class="note-item">
+                            <div class="note-header">
+                                <span class="note-author">Sky Chen</span>
+                                <span>March 10, 2024 at 9:00 AM</span>
+                            </div>
+                            <div class="note-content">
+                                Instagram handle checks out - lots of rope practice photos, appropriate captions, seems to understand consent culture well. Following several respected educators.
+                            </div>
+                        </div>
+                        
+                        <div class="note-item">
+                            <div class="note-header">
+                                <span class="note-author">River Moon</span>
+                                <span>March 9, 2024 at 10:15 AM</span>
+                            </div>
+                            <div class="note-content">
+                                FetLife profile looks legitimate, active in the community for 2+ years. Has attended several major events.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Approve Modal -->
+    <div id="approveModal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Approve Membership</h3>
+                <button class="close-btn" onclick="closeModal('approveModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-text">You are about to approve <strong>Alex Rivers</strong> for membership.</p>
+                <textarea class="note-textarea" placeholder="Add a note about this approval (optional)..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('approveModal')">Cancel</button>
+                <button class="btn btn-approve">Confirm Approval</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Deny Modal -->
+    <div id="denyModal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Deny Application</h3>
+                <button class="close-btn" onclick="closeModal('denyModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-text">You are about to deny <strong>Alex Rivers</strong>'s application.</p>
+                <textarea class="note-textarea" placeholder="Add a reason for denial (required)..." required></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('denyModal')">Cancel</button>
+                <button class="btn btn-deny">Confirm Denial</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function showApproveModal() {
+            document.getElementById('approveModal').style.display = 'flex';
+        }
+        
+        function showDenyModal() {
+            document.getElementById('denyModal').style.display = 'flex';
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        function flagForReview() {
+            // In real app, this would update the status
+            alert('Application flagged for additional review');
+        }
+    </script>
+</body>
+</html>

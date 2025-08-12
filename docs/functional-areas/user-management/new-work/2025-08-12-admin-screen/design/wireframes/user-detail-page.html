@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Detail Page - WitchCityRope Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0F0F1E;
+            color: #FFFFFF;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Admin Sidebar */
+        .admin-sidebar {
+            width: 250px;
+            background: #1A1A2E;
+            border-right: 1px solid #2A2A4E;
+            padding: 20px 0;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid #2A2A4E;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-title {
+            color: #6B46C1;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+        }
+
+        .sidebar-nav li {
+            margin-bottom: 5px;
+        }
+
+        .sidebar-nav a {
+            display: block;
+            padding: 12px 20px;
+            color: #CCCCCC;
+            text-decoration: none;
+            border-left: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            background: #2A2A4E;
+            color: #FFFFFF;
+            border-left-color: #6B46C1;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Header - Updated with First Name and Last Name, removed avatar */
+        .page-header {
+            background: #1A1A2E;
+            border-bottom: 1px solid #2A2A4E;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .user-name {
+            font-size: 24px;
+            font-weight: 600;
+            color: #FFFFFF;
+        }
+
+        .user-details {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            color: #CCCCCC;
+        }
+
+        .user-detail-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Quick Actions - Removed Export Data and Send Message */
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #6B46C1;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #553C9A;
+        }
+
+        .btn-secondary {
+            background: #2A2A4E;
+            color: white;
+            border: 1px solid #4A4A6E;
+        }
+
+        .btn-secondary:hover {
+            background: #3A3A5E;
+        }
+
+        .btn-danger {
+            background: #DC2626;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #B91C1C;
+        }
+
+        /* Content Layout - LEFT: Overview, RIGHT: Admin Notes */
+        .content-layout {
+            display: flex;
+            flex: 1;
+        }
+
+        .main-panel {
+            flex: 1;
+            padding: 30px;
+            background: #0F0F1E;
+        }
+
+        .admin-notes-panel {
+            width: 350px;
+            background: #1A1A2E;
+            border-left: 1px solid #2A2A4E;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        /* Tab Navigation - Removed Notes tab */
+        .tab-nav {
+            display: flex;
+            border-bottom: 1px solid #2A2A4E;
+            margin-bottom: 30px;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 12px 20px;
+            color: #CCCCCC;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            color: #6B46C1;
+            border-bottom-color: #6B46C1;
+        }
+
+        .tab-button:hover {
+            color: #FFFFFF;
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .info-card {
+            background: #1A1A2E;
+            border: 1px solid #2A2A4E;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .info-card h3 {
+            color: #6B46C1;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #2A2A4E;
+        }
+
+        .info-item:last-child {
+            margin-bottom: 0;
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #CCCCCC;
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: #FFFFFF;
+        }
+
+        /* Admin Notes Panel - Always visible, replaced Quick Stats and Recent Activity */
+        .admin-notes-panel h3 {
+            color: #6B46C1;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .note-form {
+            margin-bottom: 20px;
+        }
+
+        .note-textarea {
+            width: 100%;
+            min-height: 120px;
+            background: #0F0F1E;
+            border: 1px solid #2A2A4E;
+            border-radius: 4px;
+            padding: 10px;
+            color: #FFFFFF;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .note-textarea:focus {
+            outline: none;
+            border-color: #6B46C1;
+        }
+
+        .char-count {
+            font-size: 12px;
+            color: #CCCCCC;
+            text-align: right;
+            margin-top: 5px;
+        }
+
+        .note-history {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .note-item {
+            background: #0F0F1E;
+            border: 1px solid #2A2A4E;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: #CCCCCC;
+        }
+
+        .note-author {
+            font-weight: 500;
+        }
+
+        .note-content {
+            color: #FFFFFF;
+            line-height: 1.4;
+        }
+
+        /* Edit User Modal - Added as requested */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1A1A2E;
+            border: 1px solid #2A2A4E;
+            border-radius: 8px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            color: #FFFFFF;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #CCCCCC;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: #FFFFFF;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            color: #CCCCCC;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            background: #0F0F1E;
+            border: 1px solid #2A2A4E;
+            border-radius: 4px;
+            color: #FFFFFF;
+            font-family: inherit;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #6B46C1;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 10px;
+            background: #0F0F1E;
+            border: 1px solid #2A2A4E;
+            border-radius: 4px;
+            color: #FFFFFF;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: #10B981;
+            color: white;
+        }
+
+        .status-pending {
+            background: #F59E0B;
+            color: white;
+        }
+
+        .status-suspended {
+            background: #DC2626;
+            color: white;
+        }
+
+        .status-vetted {
+            background: #6B46C1;
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .admin-notes-panel {
+                width: 300px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .layout {
+                flex-direction: column;
+            }
+
+            .admin-sidebar {
+                width: 100%;
+            }
+
+            .content-layout {
+                flex-direction: column;
+            }
+
+            .admin-notes-panel {
+                width: 100%;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <!-- Admin Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">Admin Panel</div>
+            </div>
+            <nav>
+                <ul class="sidebar-nav">
+                    <li><a href="#dashboard">Dashboard</a></li>
+                    <li><a href="#users" class="active">User Management</a></li>
+                    <li><a href="#events">Event Management</a></li>
+                    <li><a href="#vetting">Vetting System</a></li>
+                    <li><a href="#payments">Payment Processing</a></li>
+                    <li><a href="#reports">Reports & Analytics</a></li>
+                    <li><a href="#settings">System Settings</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header - Updated: Added First/Last Name, removed avatar, merged quick actions -->
+            <header class="page-header">
+                <div class="user-info">
+                    <div class="user-name">Sarah Johnson (DarkRose)</div>
+                    <div class="user-details">
+                        <div class="user-detail-item">
+                            <span class="info-label">Email:</span>
+                            <span class="info-value">sarah.johnson@email.com</span>
+                        </div>
+                        <div class="user-detail-item">
+                            <span class="info-label">Status:</span>
+                            <span class="status-badge status-vetted">Vetted Member</span>
+                        </div>
+                        <div class="user-detail-item">
+                            <span class="info-label">Member Since:</span>
+                            <span class="info-value">Jan 15, 2024</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Quick Actions - Only Edit User, Send Email, Suspend -->
+                <div class="quick-actions">
+                    <button class="btn btn-primary" onclick="openEditModal()">Edit User</button>
+                    <button class="btn btn-secondary" onclick="sendEmail()">Send Email</button>
+                    <button class="btn btn-danger" onclick="suspendUser()">Suspend</button>
+                </div>
+            </header>
+
+            <!-- Content Layout -->
+            <div class="content-layout">
+                <!-- Main Panel - LEFT: Overview content -->
+                <div class="main-panel">
+                    <!-- Tab Navigation - Removed Notes tab -->
+                    <nav class="tab-nav">
+                        <button class="tab-button active" onclick="showTab('overview')">Overview</button>
+                        <button class="tab-button" onclick="showTab('events')">Events</button>
+                        <button class="tab-button" onclick="showTab('vetting')">Vetting</button>
+                        <button class="tab-button" onclick="showTab('audit')">Audit Trail</button>
+                    </nav>
+
+                    <!-- Overview Tab - Content shown directly -->
+                    <div id="overview" class="content-section active">
+                        <div class="info-grid">
+                            <!-- Personal Information - Including First and Last Name -->
+                            <div class="info-card">
+                                <h3>Personal Information</h3>
+                                <div class="info-item">
+                                    <span class="info-label">First Name:</span>
+                                    <span class="info-value">Sarah</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Last Name:</span>
+                                    <span class="info-value">Johnson</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Scene Name:</span>
+                                    <span class="info-value">DarkRose</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Email:</span>
+                                    <span class="info-value">sarah.johnson@email.com</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Phone:</span>
+                                    <span class="info-value">(555) 123-4567</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Emergency Contact:</span>
+                                    <span class="info-value">John Doe - (555) 987-6543</span>
+                                </div>
+                            </div>
+
+                            <!-- Account Details -->
+                            <div class="info-card">
+                                <h3>Account Details</h3>
+                                <div class="info-item">
+                                    <span class="info-label">Member Type:</span>
+                                    <span class="info-value">Vetted Member</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Status:</span>
+                                    <span class="status-badge status-vetted">Active</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Join Date:</span>
+                                    <span class="info-value">January 15, 2024</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Last Login:</span>
+                                    <span class="info-value">2 hours ago</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Payment Status:</span>
+                                    <span class="status-badge status-active">Current</span>
+                                </div>
+                            </div>
+
+                            <!-- Preferences -->
+                            <div class="info-card">
+                                <h3>Preferences & Settings</h3>
+                                <div class="info-item">
+                                    <span class="info-label">Email Notifications:</span>
+                                    <span class="info-value">Enabled</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Profile Visibility:</span>
+                                    <span class="info-value">Members Only</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Event Reminders:</span>
+                                    <span class="info-value">24 hours before</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Photography Consent:</span>
+                                    <span class="info-value">Limited</span>
+                                </div>
+                            </div>
+
+                            <!-- Statistics -->
+                            <div class="info-card">
+                                <h3>Activity Statistics</h3>
+                                <div class="info-item">
+                                    <span class="info-label">Events Attended:</span>
+                                    <span class="info-value">23</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Events Hosted:</span>
+                                    <span class="info-value">3</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Total Payments:</span>
+                                    <span class="info-value">$465.00</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Referrals:</span>
+                                    <span class="info-value">2</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Events Tab -->
+                    <div id="events" class="content-section">
+                        <div class="info-card">
+                            <h3>Event History</h3>
+                            <p style="color: #CCCCCC; margin-bottom: 20px;">User's event attendance and hosting history</p>
+                            <div style="text-align: center; padding: 40px; color: #666;">
+                                Event history content will be loaded here
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vetting Tab - Vetting Status no longer modal -->
+                    <div id="vetting" class="content-section">
+                        <div class="info-card">
+                            <h3>Vetting Information</h3>
+                            <div class="info-item">
+                                <span class="info-label">Vetting Status:</span>
+                                <span class="status-badge status-vetted">Approved</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Vetted By:</span>
+                                <span class="info-value">Admin User</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Vetting Date:</span>
+                                <span class="info-value">February 1, 2024</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Background Check:</span>
+                                <span class="status-badge status-active">Passed</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">References:</span>
+                                <span class="info-value">2 verified</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Audit Trail Tab -->
+                    <div id="audit" class="content-section">
+                        <div class="info-card">
+                            <h3>Audit Trail</h3>
+                            <p style="color: #CCCCCC; margin-bottom: 20px;">System actions and changes for this user</p>
+                            <div style="text-align: center; padding: 40px; color: #666;">
+                                Audit trail content will be loaded here
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Notes Panel - RIGHT: Always visible, 5000 char limit -->
+                <aside class="admin-notes-panel">
+                    <h3>Admin Notes</h3>
+                    
+                    <div class="note-form">
+                        <textarea 
+                            class="note-textarea" 
+                            placeholder="Add a private admin note about this user..."
+                            maxlength="5000"
+                            oninput="updateCharCount(this)"
+                        ></textarea>
+                        <div class="char-count">0 / 5000 characters</div>
+                        <button class="btn btn-primary" style="margin-top: 10px;">Add Note</button>
+                    </div>
+
+                    <div class="note-history">
+                        <div class="note-item">
+                            <div class="note-header">
+                                <span class="note-author">Admin User</span>
+                                <span class="note-date">Aug 10, 2024 2:30 PM</span>
+                            </div>
+                            <div class="note-content">
+                                User completed vetting process smoothly. All documentation provided on time. Positive references from existing members.
+                            </div>
+                        </div>
+
+                        <div class="note-item">
+                            <div class="note-header">
+                                <span class="note-author">Admin User</span>
+                                <span class="note-date">Jul 25, 2024 10:15 AM</span>
+                            </div>
+                            <div class="note-content">
+                                Initial application received. Background check initiated.
+                            </div>
+                        </div>
+
+                        <div class="note-item">
+                            <div class="note-header">
+                                <span class="note-author">System</span>
+                                <span class="note-date">Jul 20, 2024 6:45 PM</span>
+                            </div>
+                            <div class="note-content">
+                                User account created through online registration.
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit User Modal - New modal for editing user information -->
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit User</h2>
+                <button class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+
+            <form>
+                <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <input type="text" class="form-input" value="Sarah">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" class="form-input" value="Johnson">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Scene Name</label>
+                    <input type="text" class="form-input" value="DarkRose">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-input" value="sarah.johnson@email.com">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" class="form-input" value="(555) 123-4567">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Member Type</label>
+                    <select class="form-select">
+                        <option value="general">General Member</option>
+                        <option value="vetted" selected>Vetted Member</option>
+                        <option value="teacher">Teacher</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Account Status</label>
+                    <select class="form-select">
+                        <option value="active" selected>Active</option>
+                        <option value="suspended">Suspended</option>
+                        <option value="pending">Pending Approval</option>
+                    </select>
+                </div>
+            </form>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                <button class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab functionality
+        function showTab(tabName) {
+            // Hide all content sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected content section
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab button
+            event.target.classList.add('active');
+        }
+
+        // Edit User Modal functionality
+        function openEditModal() {
+            document.getElementById('editUserModal').classList.add('active');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editUserModal').classList.remove('active');
+        }
+
+        // Character count for admin notes - 5000 character limit
+        function updateCharCount(textarea) {
+            const charCount = textarea.value.length;
+            const maxChars = 5000;
+            const charCountElement = textarea.parentNode.querySelector('.char-count');
+            charCountElement.textContent = `${charCount} / ${maxChars} characters`;
+            
+            if (charCount > maxChars * 0.9) {
+                charCountElement.style.color = '#F59E0B';
+            } else {
+                charCountElement.style.color = '#CCCCCC';
+            }
+        }
+
+        // Quick actions
+        function sendEmail() {
+            alert('Send Email functionality would be implemented here');
+        }
+
+        function suspendUser() {
+            if (confirm('Are you sure you want to suspend this user?')) {
+                alert('User suspension functionality would be implemented here');
+            }
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        });
+
+        // ESC key to close modals
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

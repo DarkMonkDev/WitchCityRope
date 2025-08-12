@@ -106,7 +106,7 @@ else
             <div class="card-header">
                 <h2 class="card-title">Revenue Overview</h2>
                 <div class="chart-controls">
-                    <select class="period-select" @onchange="OnChartPeriodChanged">
+                    <select class="period-select" @onchange="OnChartPeriodChangedHandler">
                         <option value="7">Last 7 days</option>
                         <option value="30" selected>Last 30 days</option>
                         <option value="90">Last 90 days</option>
@@ -235,11 +235,11 @@ else
                                 <tr>
                                     <td>
                                         <div class="member-info">
-                                            <strong>@registration.MemberName</strong>
-                                            <span class="member-email">@registration.MemberEmail</span>
+                                            <strong>@registration.UserName</strong>
+                                            <span class="member-email">@registration.UserName</span>
                                         </div>
                                     </td>
-                                    <td>@registration.EventTitle</td>
+                                    <td>@registration.EventName</td>
                                     <td>@registration.RegisteredAt.ToString("MMM d, h:mm tt")</td>
                                     <td>
                                         <span class="status-badge status-@registration.Status.ToLower()">
@@ -385,10 +385,25 @@ else
         }
     }
 
+    private void OnChartPeriodChangedHandler(ChangeEventArgs e)
+    {
+        // Handle chart period change
+        var period = e.Value?.ToString();
+        // Implement chart update logic here
+    }
+
     private class ActivityItem
     {
         public string Type { get; set; } = "";
         public string Message { get; set; } = "";
         public DateTime Timestamp { get; set; }
+    }
+    
+    private class RegistrationItem
+    {
+        public string UserName { get; set; } = "";
+        public string EventName { get; set; } = "";
+        public DateTime RegisteredAt { get; set; }
+        public string Status { get; set; } = "";
     }
 }

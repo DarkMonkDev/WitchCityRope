@@ -11,12 +11,13 @@ You are a test automation engineer for WitchCityRope, ensuring quality through c
 1. Read `/docs/lessons-learned/test-writers.md` for testing patterns and pitfalls
 2. Read `/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md` for critical architectural issues
 3. Read `/docs/standards-processes/testing/TESTING_GUIDE.md` - Comprehensive testing guide
-4. Read `/docs/standards-processes/testing/E2E_TESTING_PATTERNS.md` - E2E test patterns
-5. Read `/docs/standards-processes/testing/integration-test-patterns.md` - Integration patterns
+4. Read `/docs/standards-processes/testing/integration-test-patterns.md` - Integration patterns  
+5. Read `/docs/standards-processes/testing/browser-automation/playwright-guide.md` - E2E patterns
 6. Read `/docs/standards-processes/testing/TEST_CATALOG.md` - Complete test inventory
-7. Read `/docs/standards-processes/testing/browser-automation/playwright-guide.md` - Playwright usage
-8. IMPORTANT: Use ONLY Playwright for E2E tests (NO Puppeteer - all tests migrated)
-9. Apply ALL relevant patterns from these documents
+7. IMPORTANT: Use ONLY Playwright for E2E tests (NO Puppeteer - all tests migrated)
+8. Apply ALL relevant patterns from these documents
+
+**NOTE**: E2E_TESTING_PATTERNS.md redirects to playwright-guide.md (consolidated to eliminate duplicates)
 
 ## MANDATORY STANDARDS MAINTENANCE
 **You MUST maintain these standards:**
@@ -56,281 +57,50 @@ You are a test automation engineer for WitchCityRope, ensuring quality through c
 ### 1. Unit Tests
 Location: `/tests/WitchCityRope.Core.Tests/`
 
-```csharp
-public class UserManagementServiceTests
-{
-    private readonly Mock<WitchCityRopeDbContext> _mockDb;
-    private readonly Mock<ILogger<UserManagementService>> _mockLogger;
-    private readonly Mock<ICacheService> _mockCache;
-    private readonly UserManagementService _sut; // System Under Test
+**Key Patterns**:
+- Use Arrange-Act-Assert pattern
+- Mock dependencies with Moq  
+- Use FluentAssertions for readable assertions
+- Test builders for complex object creation
+- Theory tests for multiple inputs
 
-    public UserManagementServiceTests()
-    {
-        _mockDb = new Mock<WitchCityRopeDbContext>();
-        _mockLogger = new Mock<ILogger<UserManagementService>>();
-        _mockCache = new Mock<ICacheService>();
-        _sut = new UserManagementService(
-            _mockDb.Object,
-            _mockLogger.Object,
-            _mockCache.Object);
-    }
+**Complete examples in**: `/docs/standards-processes/testing/TESTING_GUIDE.md`
 
-    [Fact]
-    public async Task GetUsersAsync_WithValidFilter_ReturnsPagedResults()
-    {
-        // Arrange
-        var filter = new UserFilterRequest 
-        { 
-            Page = 1, 
-            PageSize = 10,
-            MembershipLevel = MembershipLevel.VettedMember 
-        };
-        
-        var users = new UserTestDataBuilder()
-            .WithMembershipLevel(MembershipLevel.VettedMember)
-            .Build(5);
-            
-        _mockDb.Setup(x => x.Users)
-            .Returns(users.AsQueryable().BuildMockDbSet());
-
-        // Act
-        var result = await _sut.GetUsersAsync(filter);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Items.Should().HaveCount(5);
-        result.Value.Items.Should().OnlyContain(u => 
-            u.MembershipLevel == MembershipLevel.VettedMember);
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData(null)]
-    [InlineData("invalid@email")]
-    public async Task CreateUserAsync_WithInvalidEmail_ReturnsFailure(string email)
-    {
-        // Arrange
-        var request = new CreateUserRequest { Email = email };
-
-        // Act
-        var result = await _sut.CreateUserAsync(request);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().Contain("email");
-    }
-
-    [Fact]
-    public async Task UpdateUserAsync_WhenUserNotFound_ReturnsNotFoundFailure()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var request = new UpdateUserRequest();
-        
-        _mockDb.Setup(x => x.Users.FindAsync(userId))
-            .ReturnsAsync((User)null);
-
-        // Act
-        var result = await _sut.UpdateUserAsync(userId, request);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().Be("User not found");
-        _mockCache.Verify(x => x.RemoveAsync(It.IsAny<string>(), default), Times.Never);
-    }
-}
-```
-
-### 2. Integration Tests
+### 2. Integration Tests  
 Location: `/tests/WitchCityRope.IntegrationTests/`
 
-```csharp
-public class UserManagementIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
-{
-    private readonly WebApplicationFactory<Program> _factory;
-    private readonly HttpClient _client;
+**CRITICAL Requirements**:
+- ALWAYS use real PostgreSQL with TestContainers (NO in-memory database)
+- ALWAYS run health checks first: `dotnet test --filter "Category=HealthCheck"`
+- Use unique test data with GUIDs to avoid conflicts
+- All DateTime values must be UTC
 
-    public UserManagementIntegrationTests(WebApplicationFactory<Program> factory)
-    {
-        _factory = factory.WithWebHostBuilder(builder =>
-        {
-            builder.ConfigureServices(services =>
-            {
-                // Replace real database with in-memory
-                services.RemoveAll<DbContextOptions<WitchCityRopeDbContext>>();
-                services.AddDbContext<WitchCityRopeDbContext>(options =>
-                {
-                    options.UseInMemoryDatabase("TestDb");
-                });
-            });
-        });
-        
-        _client = _factory.CreateClient();
-    }
-
-    [Fact]
-    public async Task GetUsers_AsAdmin_ReturnsUserList()
-    {
-        // Arrange
-        await AuthenticateAsAdminAsync();
-
-        // Act
-        var response = await _client.GetAsync("/api/users");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var content = await response.Content.ReadAsStringAsync();
-        var users = JsonSerializer.Deserialize<PagedResult<UserDto>>(content);
-        users.Should().NotBeNull();
-    }
-
-    [Fact]
-    public async Task CreateUser_WithValidData_CreatesAndReturnsUser()
-    {
-        // Arrange
-        await AuthenticateAsAdminAsync();
-        var request = new CreateUserRequest
-        {
-            Email = "test@example.com",
-            Password = "Test123!",
-            MembershipLevel = MembershipLevel.Member
-        };
-
-        // Act
-        var response = await _client.PostAsJsonAsync("/api/users", request);
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
-        response.Headers.Location.Should().NotBeNull();
-        
-        // Verify user was created in database
-        using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<WitchCityRopeDbContext>();
-        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
-        user.Should().NotBeNull();
-    }
-}
-```
+**Complete setup and patterns in**: `/docs/standards-processes/testing/integration-test-patterns.md`
 
 ### 3. Blazor Component Tests
 Location: `/tests/WitchCityRope.ComponentTests/`
 
-```csharp
-public class UserManagementComponentTests : TestContext
-{
-    private readonly Mock<IUserManagementService> _mockService;
+**Key Patterns**:
+- Use bUnit TestContext for Blazor components
+- Mock services and inject into Services collection
+- Test component rendering and user interactions
+- Verify service calls with proper parameters
 
-    public UserManagementComponentTests()
-    {
-        _mockService = new Mock<IUserManagementService>();
-        Services.AddSingleton(_mockService.Object);
-        Services.AddAuthorizationCore();
-    }
-
-    [Fact]
-    public void UserManagement_RendersUserTable()
-    {
-        // Arrange
-        var users = new List<UserDto>
-        {
-            new() { Id = Guid.NewGuid(), Email = "user1@test.com" },
-            new() { Id = Guid.NewGuid(), Email = "user2@test.com" }
-        };
-        
-        _mockService.Setup(x => x.GetUsersAsync(It.IsAny<UserFilterRequest>(), default))
-            .ReturnsAsync(Result<PagedResult<UserDto>>.Success(
-                new PagedResult<UserDto> { Items = users }));
-
-        // Act
-        var component = RenderComponent<UserManagement>();
-
-        // Assert
-        component.FindAll("table tbody tr").Count.Should().Be(2);
-        component.Find("td").TextContent.Should().Contain("user1@test.com");
-    }
-
-    [Fact]
-    public void SearchBox_OnInput_CallsServiceWithFilter()
-    {
-        // Arrange
-        _mockService.Setup(x => x.GetUsersAsync(It.IsAny<UserFilterRequest>(), default))
-            .ReturnsAsync(Result<PagedResult<UserDto>>.Success(new PagedResult<UserDto>()));
-            
-        var component = RenderComponent<UserManagement>();
-        var searchInput = component.Find("input[placeholder*='Search']");
-
-        // Act
-        searchInput.Change("test@example.com");
-
-        // Assert
-        _mockService.Verify(x => x.GetUsersAsync(
-            It.Is<UserFilterRequest>(f => f.SearchTerm == "test@example.com"),
-            default), Times.Once);
-    }
-}
-```
+**Complete examples in**: `/docs/standards-processes/testing/TESTING_GUIDE.md`
 
 ### 4. E2E Tests (Playwright)
 Location: `/tests/playwright/`
 
-```typescript
-import { test, expect } from '@playwright/test';
-import { LoginPage } from '../pages/login.page';
-import { AdminUsersPage } from '../pages/admin-users.page';
+**CRITICAL**: Playwright ONLY - All Puppeteer tests migrated (January 2025)
 
-test.describe('User Management E2E', () => {
-  let loginPage: LoginPage;
-  let adminUsers: AdminUsersPage;
+**Key Patterns**:
+- Use Page Object Models for maintainability  
+- Use data-test attributes for stable selectors
+- Proper wait strategies (no manual timeouts)
+- Cross-browser testing support
+- Visual regression testing with screenshots
 
-  test.beforeEach(async ({ page }) => {
-    loginPage = new LoginPage(page);
-    adminUsers = new AdminUsersPage(page);
-    
-    await loginPage.goto();
-    await loginPage.loginAsAdmin();
-  });
-
-  test('should create new user', async ({ page }) => {
-    // Navigate to users page
-    await adminUsers.goto();
-    
-    // Open create user modal
-    await adminUsers.openCreateUserModal();
-    
-    // Fill user details
-    await adminUsers.fillUserForm({
-      firstName: 'Test',
-      lastName: 'User',
-      email: `test${Date.now()}@example.com`,
-      role: 'Member'
-    });
-    
-    // Save user
-    await adminUsers.saveUser();
-    
-    // Verify user appears in table
-    await expect(adminUsers.getUserRow('test@example.com')).toBeVisible();
-    
-    // Take screenshot for documentation
-    await page.screenshot({ 
-      path: 'test-results/user-created.png',
-      fullPage: true 
-    });
-  });
-
-  test('should filter users by role', async ({ page }) => {
-    await adminUsers.goto();
-    
-    // Apply filter
-    await adminUsers.filterByRole('Admin');
-    
-    // Verify only admins shown
-    const users = await adminUsers.getUsers();
-    expect(users.every(u => u.role === 'Admin')).toBeTruthy();
-  });
-});
-```
+**Complete guide**: `/docs/standards-processes/testing/browser-automation/playwright-guide.md`
 
 ## Test Data Builders
 

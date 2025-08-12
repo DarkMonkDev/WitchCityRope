@@ -67,325 +67,54 @@ You are a senior backend developer for WitchCityRope, implementing robust and sc
     └── [Feature]Extensions.cs
 ```
 
-## Service Implementation Pattern
+## Development Standards Reference
 
-```csharp
-public interface IUserManagementService
-{
-    Task<Result<PagedResult<UserDto>>> GetUsersAsync(UserFilterRequest filter, CancellationToken ct = default);
-    Task<Result<UserDto>> GetUserAsync(Guid id, CancellationToken ct = default);
-    Task<Result<UserDto>> CreateUserAsync(CreateUserRequest request, CancellationToken ct = default);
-    Task<Result<UserDto>> UpdateUserAsync(Guid id, UpdateUserRequest request, CancellationToken ct = default);
-    Task<Result> DeleteUserAsync(Guid id, CancellationToken ct = default);
-}
+**MUST READ BEFORE CODING**: Refer to the comprehensive development standards:
 
-public class UserManagementService : IUserManagementService
-{
-    private readonly WitchCityRopeDbContext _db;
-    private readonly ILogger<UserManagementService> _logger;
-    private readonly IValidator<CreateUserRequest> _createValidator;
-    private readonly IValidator<UpdateUserRequest> _updateValidator;
-    private readonly ICacheService _cache;
-    private readonly IEmailService _email;
+### 🚨 Critical Architecture Patterns
+- **[Critical Learnings](/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md)** - Architecture-breaking issues and solutions
+- **[Coding Standards](/docs/standards-processes/CODING_STANDARDS.md)** - Service implementation patterns, templates, and requirements
 
-    public UserManagementService(
-        WitchCityRopeDbContext db,
-        ILogger<UserManagementService> logger,
-        IValidator<CreateUserRequest> createValidator,
-        IValidator<UpdateUserRequest> updateValidator,
-        ICacheService cache,
-        IEmailService email)
-    {
-        _db = db;
-        _logger = logger;
-        _createValidator = createValidator;
-        _updateValidator = updateValidator;
-        _cache = cache;
-        _email = email;
-    }
+### 📚 Specialized Patterns  
+- **[Authentication Patterns](/docs/standards-processes/development-standards/authentication-patterns.md)** - Blazor Server auth architecture
+- **[Entity Framework Patterns](/docs/standards-processes/development-standards/entity-framework-patterns.md)** - EF Core best practices and pitfalls
+- **[Docker Development](/docs/standards-processes/development-standards/docker-development.md)** - Container development standards
 
-    public async Task<Result<PagedResult<UserDto>>> GetUsersAsync(
-        UserFilterRequest filter, 
-        CancellationToken ct = default)
-    {
-        try
-        {
-            var query = _db.Users
-                .Include(u => u.UserExtended)
-                .Include(u => u.UserRoles)
-                    .ThenInclude(ur => ur.Role)
-                .AsNoTracking();
+### 🔍 Role-Specific Lessons
+- **[Backend Developers](/docs/lessons-learned/backend-developers.md)** - C#, API, database lessons learned
 
-            // Apply filters
-            if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
-            {
-                query = query.Where(u => 
-                    u.Email.Contains(filter.SearchTerm) ||
-                    u.UserExtended.SceneName.Contains(filter.SearchTerm));
-            }
+### 📋 Implementation Checklist
+Follow the service implementation template in CODING_STANDARDS.md:
+- [ ] Result pattern for error handling
+- [ ] FluentValidation for input validation  
+- [ ] Structured logging with context
+- [ ] Database transactions for multi-operations
+- [ ] Cache invalidation strategies
+- [ ] Async/await throughout
+- [ ] Cancellation token support
 
-            if (filter.MembershipLevel.HasValue)
-            {
-                query = query.Where(u => u.UserExtended.MembershipLevel == filter.MembershipLevel);
-            }
+## Quick Reference Standards
 
-            // Apply sorting
-            query = filter.SortBy switch
-            {
-                "email" => query.OrderBy(u => u.Email),
-                "joined" => query.OrderByDescending(u => u.UserExtended.CreatedAt),
-                _ => query.OrderBy(u => u.UserExtended.SceneName ?? u.Email)
-            };
+**All implementation details, patterns, and examples are in the standards documents above.**
 
-            // Execute with pagination
-            var totalCount = await query.CountAsync(ct);
-            
-            var users = await query
-                .Skip((filter.Page - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .Select(u => new UserDto(u))
-                .ToListAsync(ct);
+### Quality Checklist
+- [ ] All methods async with CancellationToken support
+- [ ] Result pattern for error handling
+- [ ] FluentValidation for input validation
+- [ ] Structured logging implemented
+- [ ] Database transactions for multi-operations
+- [ ] Cache invalidation strategies
+- [ ] EF Core queries optimized (AsNoTracking, projections)
+- [ ] Authentication via API endpoints only
+- [ ] Integration tests written
+- [ ] Follows service layer template
 
-            return Result<PagedResult<UserDto>>.Success(new PagedResult<UserDto>
-            {
-                Items = users,
-                TotalCount = totalCount,
-                Page = filter.Page,
-                PageSize = filter.PageSize
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error fetching users");
-            return Result<PagedResult<UserDto>>.Failure("Failed to fetch users");
-        }
-    }
+### Common Pitfalls to Avoid
+- ❌ Using SignInManager directly in Blazor components
+- ❌ Navigation properties to ignored entities
+- ❌ Non-UTC DateTime values with PostgreSQL
+- ❌ Missing entity Id initialization in constructors
+- ❌ Direct database access from Web project
+- ❌ Using default docker-compose commands
 
-    public async Task<Result<UserDto>> CreateUserAsync(
-        CreateUserRequest request, 
-        CancellationToken ct = default)
-    {
-        // Validate
-        var validationResult = await _createValidator.ValidateAsync(request, ct);
-        if (!validationResult.IsValid)
-        {
-            return Result<UserDto>.Failure(validationResult.Errors.First().ErrorMessage);
-        }
-
-        using var transaction = await _db.Database.BeginTransactionAsync(ct);
-        try
-        {
-            // Create user
-            var user = new ApplicationUser
-            {
-                Email = request.Email,
-                UserName = request.Email,
-                EmailConfirmed = false
-            };
-
-            var createResult = await _userManager.CreateAsync(user, request.Password);
-            if (!createResult.Succeeded)
-            {
-                return Result<UserDto>.Failure(createResult.Errors.First().Description);
-            }
-
-            // Create extended profile
-            var userExtended = new UserExtended
-            {
-                UserId = user.Id,
-                MembershipLevel = request.MembershipLevel,
-                VettingStatus = VettingStatus.NotStarted,
-                Pronouns = request.Pronouns,
-                SceneName = request.SceneName
-            };
-
-            _db.UsersExtended.Add(userExtended);
-            await _db.SaveChangesAsync(ct);
-
-            // Send welcome email
-            await _email.SendWelcomeEmailAsync(user.Email, ct);
-
-            // Invalidate cache
-            await _cache.RemoveAsync("users:*", ct);
-
-            await transaction.CommitAsync(ct);
-
-            return Result<UserDto>.Success(new UserDto(user, userExtended));
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync(ct);
-            _logger.LogError(ex, "Error creating user");
-            return Result<UserDto>.Failure("Failed to create user");
-        }
-    }
-}
-```
-
-## API Controller Pattern
-
-```csharp
-[ApiController]
-[Route("api/[controller]")]
-[Authorize(Roles = "Admin")]
-public class UsersController : ControllerBase
-{
-    private readonly IUserManagementService _userService;
-
-    public UsersController(IUserManagementService userService)
-    {
-        _userService = userService;
-    }
-
-    [HttpGet]
-    [ProducesResponseType(typeof(PagedResult<UserDto>), 200)]
-    public async Task<IActionResult> GetUsers([FromQuery] UserFilterRequest filter)
-    {
-        var result = await _userService.GetUsersAsync(filter);
-        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
-    }
-
-    [HttpPost]
-    [ProducesResponseType(typeof(UserDto), 201)]
-    [ProducesResponseType(typeof(ProblemDetails), 400)]
-    public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
-    {
-        var result = await _userService.CreateUserAsync(request);
-        return result.IsSuccess 
-            ? CreatedAtAction(nameof(GetUser), new { id = result.Value.Id }, result.Value)
-            : BadRequest(result.Error);
-    }
-}
-```
-
-## Data Access Patterns
-
-### Specification Pattern
-```csharp
-public class ActiveUsersSpecification : Specification<User>
-{
-    public override Expression<Func<User, bool>> ToExpression()
-    {
-        return user => user.UserExtended.DeletedAt == null 
-            && user.EmailConfirmed;
-    }
-}
-```
-
-### Query Optimization
-```csharp
-// Good - Single query with includes
-var users = await _db.Users
-    .Include(u => u.UserExtended)
-    .Include(u => u.Roles)
-    .Where(u => u.Active)
-    .ToListAsync();
-
-// Avoid - N+1 queries
-foreach (var user in users)
-{
-    var roles = await _db.UserRoles.Where(r => r.UserId == user.Id).ToListAsync();
-}
-```
-
-## Error Handling
-
-### Result Pattern
-```csharp
-public class Result<T>
-{
-    public bool IsSuccess { get; }
-    public T Value { get; }
-    public string Error { get; }
-    
-    public static Result<T> Success(T value) => new(true, value, null);
-    public static Result<T> Failure(string error) => new(false, default, error);
-}
-```
-
-### Global Exception Handler
-```csharp
-public class GlobalExceptionMiddleware
-{
-    public async Task InvokeAsync(HttpContext context)
-    {
-        try
-        {
-            await _next(context);
-        }
-        catch (ValidationException ex)
-        {
-            await HandleValidationException(context, ex);
-        }
-        catch (NotFoundException ex)
-        {
-            await HandleNotFoundException(context, ex);
-        }
-        catch (Exception ex)
-        {
-            await HandleGenericException(context, ex);
-        }
-    }
-}
-```
-
-## Performance Optimization
-
-### Caching Strategy
-```csharp
-// Cache frequently accessed data
-var cacheKey = $"user:{id}";
-var cached = await _cache.GetAsync<UserDto>(cacheKey);
-if (cached != null) return Result<UserDto>.Success(cached);
-
-var user = await _db.Users.FindAsync(id);
-await _cache.SetAsync(cacheKey, new UserDto(user), TimeSpan.FromMinutes(5));
-```
-
-### Async Best Practices
-```csharp
-// Good - Async all the way
-public async Task<Result> ProcessAsync()
-{
-    await Task1Async();
-    await Task2Async();
-}
-
-// Avoid - Blocking async
-public Result Process()
-{
-    Task1Async().Wait(); // Don't do this
-}
-```
-
-## Testing Considerations
-
-### Unit Testable Design
-```csharp
-// Service depends on interfaces
-public UserService(IDbContext db, ICache cache, IEmail email)
-
-// Easy to mock in tests
-var mockDb = new Mock<IDbContext>();
-var service = new UserService(mockDb.Object, ...);
-```
-
-## Security Best Practices
-- Always validate input
-- Use parameterized queries
-- Implement rate limiting
-- Audit sensitive operations
-- Never log sensitive data
-- Use proper authorization
-
-## Quality Checklist
-- [ ] All methods async
-- [ ] Proper error handling
-- [ ] Input validation
-- [ ] Logging implemented
-- [ ] Cache invalidation
-- [ ] Transaction handling
-- [ ] Query optimized
-- [ ] Tests written
-
-Remember: Write clean, performant, and maintainable backend code that scales.
+**Remember**: Always reference the comprehensive standards documents linked above for implementation details and patterns.

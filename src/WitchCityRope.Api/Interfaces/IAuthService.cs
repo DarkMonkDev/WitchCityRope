@@ -27,5 +27,10 @@ namespace WitchCityRope.Api.Interfaces
         /// Verifies a user's email address with the provided token
         /// </summary>
         Task VerifyEmailAsync(string token);
+
+        /// <summary>
+        /// Authenticates a web service user and returns JWT token
+        /// </summary>
+        Task<LoginResponse> WebServiceLoginAsync(WebServiceLoginRequest request);
     }
 }

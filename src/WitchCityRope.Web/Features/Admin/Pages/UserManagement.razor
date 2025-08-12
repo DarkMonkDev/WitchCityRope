@@ -1,4 +1,6 @@
-@page "/admin/users"
+@* @page "/admin/users" *@
+@* TEMPORARILY DISABLED - ROUTE CONFLICT WITH /Pages/Admin/Users/Index.razor *@
+@page "/admin/users-old"
 @using WitchCityRope.Web.Services
 @using System.Linq
 @inject ApiClient ApiClient
@@ -11,8 +13,8 @@
 
 <div class="page-container">
     <div class="page-header">
-        <h1 class="page-title">User Management</h1>
-        <p class="page-subtitle">Manage system users, roles, and permissions</p>
+        <h1 class="page-title">User Management (Old Version)</h1>
+        <p class="page-subtitle">Manage system users, roles, and permissions - THIS IS THE OLD VERSION</p>
     </div>
 
     <div class="user-stats">

@@ -164,9 +164,14 @@ public class EventRepositoryTests : IntegrationTestBase
 #### Important: PostgreSQL Requirements
 - All DateTime values must be UTC
 - Use unique test data (GUIDs for names/emails)
-- Run health check before integration tests:
+- **ALWAYS run health check first** (see [integration-test-patterns.md](integration-test-patterns.md) for complete setup):
+
 ```bash
-dotnet test --filter "Category=HealthCheck"
+# 1. FIRST: Run health checks
+dotnet test tests/WitchCityRope.IntegrationTests/ --filter "Category=HealthCheck"
+
+# 2. ONLY if health checks pass: Run integration tests  
+dotnet test tests/WitchCityRope.IntegrationTests/
 ```
 
 ### E2E Test Guidelines (Playwright)

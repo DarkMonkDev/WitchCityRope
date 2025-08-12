@@ -1,20 +1,11 @@
 # Lessons Learned - Database Developers
-<!-- Last Updated: 2025-08-04 -->
-<!-- Next Review: 2025-09-04 -->
+<!-- Last Updated: 2025-08-12 -->
+<!-- Next Review: 2025-09-12 -->
 
 ## PostgreSQL Specific
 
-### DateTime Handling
-**Issue**: "cannot write DateTime with Kind=Local to PostgreSQL"  
-**Solution**: Always use UTC for timestamps
-```sql
--- Table definition
-created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC')
-
--- In C#
-entity.CreatedAt = DateTime.UtcNow; // Never DateTime.Now
-```
-**Applies to**: All timestamp columns
+### DateTime Handling  
+**Reference**: See [Entity Framework Patterns](/docs/standards-processes/development-standards/entity-framework-patterns.md#datetime-handling-with-postgresql) for complete DateTime UTC implementation with PostgreSQL
 
 ### Case Sensitivity
 **Issue**: Queries not matching due to case  

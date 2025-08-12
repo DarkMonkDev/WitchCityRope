@@ -65,13 +65,14 @@ namespace WitchCityRope.Api.Tests.Features.Events
                 CreatedAt: DateTime.UtcNow
             );
 
-            _eventServiceMock.Setup(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>()))
+            var organizerId = Guid.NewGuid();
+            _eventServiceMock.Setup(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>(), It.IsAny<Guid>()))
                 .ReturnsAsync(response);
 
             var service = _eventServiceMock.Object;
 
             // Act
-            var result = await service.CreateEventAsync(request);
+            var result = await service.CreateEventAsync(request, organizerId);
 
             // Assert
             result.Should().NotBeNull();

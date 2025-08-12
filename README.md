@@ -10,7 +10,7 @@ A comprehensive membership and event management platform for Salem's rope bondag
 - Staff vetting system
 - Complete admin portal
 - Optimized performance
-- Professional UI/UX throughout
+
 
 ### Recent Updates
 - 🚨 **CRITICAL: Authorization Migration Complete (January 22, 2025)**
@@ -36,8 +36,8 @@ A comprehensive membership and event management platform for Salem's rope bondag
 - **Authentication**: ASP.NET Core Identity (Cookie-based)
 - **Payments**: PayPal Checkout SDK
 - **Email**: SendGrid
-- **Development Tools**: MCP (Model Context Protocol) Servers
-- **Environment**: WSL2 (Windows Subsystem for Linux)
+
+
 
 ## 📁 Project Structure
 
@@ -49,6 +49,9 @@ WitchCityRope/
 │   ├── WitchCityRope.Api/            # REST API endpoints
 │   └── WitchCityRope.Web/            # Blazor Server UI
 ├── tests/                            # Comprehensive test suite
+│   ├── WitchCityRope.Core.Tests/    # Unit tests
+│   ├── WitchCityRope.IntegrationTests/ # Integration tests
+│   ├── playwright/                   # E2E tests
 ├── docs/                             # Documentation
 └── deployment/                       # Deployment scripts
 ```
@@ -171,10 +174,9 @@ The project includes 8 configured MCP (Model Context Protocol) servers for enhan
    - Browser control and web scraping
    - Requires browser server running
 
-8. **Stagehand MCP** - Advanced browser automation
-   - AI-powered web interaction
-   - Requires Chrome with debug port enabled
-
+8. **PlayWright MCP** - Advanced browser automation
+   
+   
 ### Checking MCP Status
 Run the status checker to verify all servers are working:
 ```bash

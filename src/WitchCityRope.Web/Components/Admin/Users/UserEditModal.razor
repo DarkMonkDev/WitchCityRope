@@ -1,0 +1,234 @@
+@using WitchCityRope.Core.DTOs
+@using WitchCityRope.Core.Enums
+
+@if (IsVisible)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-person-gear me-2"></i>
+                        Edit User - @(User?.SceneName ?? "Unknown")
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="OnCancel"></button>
+                </div>
+                
+                <EditForm Model="@EditModel" OnValidSubmit="@HandleSubmit">
+                    <DataAnnotationsValidator />
+                    
+                    <div class="modal-body">
+                        @if (User != null)
+                        {
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <div class="alert alert-info">
+                                        <strong>User ID:</strong> @User.Id<br />
+                                        <strong>Current Email:</strong> @User.Email<br />
+                                        <strong>Created:</strong> @User.CreatedAt.ToString("F")<br />
+                                        @if (User.LastLoginAt.HasValue)
+                                        {
+                                            <strong>Last Login:</strong> @User.LastLoginAt.Value.ToString("F")
+                                        }
+                                        else
+                                        {
+                                            <strong>Last Login:</strong> <span class="text-muted">Never</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="sceneName" class="form-label">Scene Name</label>
+                                        <InputText id="sceneName" class="form-control" @bind-Value="EditModel.SceneName" />
+                                        <ValidationMessage For="@(() => EditModel.SceneName)" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="role" class="form-label">Role</label>
+                                        <InputSelect id="role" class="form-select" @bind-Value="EditModel.Role">
+                                            <option value="">-- Keep Current --</option>
+                                            @foreach (var role in Roles)
+                                            {
+                                                <option value="@role.Name">@role.DisplayName</option>
+                                            }
+                                        </InputSelect>
+                                        <ValidationMessage For="@(() => EditModel.Role)" />
+                                        @if (EditModel.Role.HasValue)
+                                        {
+                                            <div class="form-text">@GetRoleDescription(EditModel.Role.Value)</div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="pronouns" class="form-label">Pronouns</label>
+                                        <InputText id="pronouns" class="form-control" @bind-Value="EditModel.Pronouns" placeholder="e.g., they/them, she/her, he/him" />
+                                        <ValidationMessage For="@(() => EditModel.Pronouns)" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="pronouncedName" class="form-label">Pronounced Name</label>
+                                        <InputText id="pronouncedName" class="form-control" @bind-Value="EditModel.PronouncedName" placeholder="Phonetic pronunciation" />
+                                        <ValidationMessage For="@(() => EditModel.PronouncedName)" />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-12">
+                                    <label class="form-label">Account Status</label>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="form-check form-switch">
+                                                <InputCheckbox id="isActive" class="form-check-input" @bind-Value="IsActiveValue" />
+                                                <label class="form-check-label" for="isActive">Active</label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-3">
+                                            <div class="form-check form-switch">
+                                                <InputCheckbox id="isVetted" class="form-check-input" @bind-Value="IsVettedValue" />
+                                                <label class="form-check-label" for="isVetted">Vetted</label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-3">
+                                            <div class="form-check form-switch">
+                                                <InputCheckbox id="emailConfirmed" class="form-check-input" @bind-Value="EmailConfirmedValue" />
+                                                <label class="form-check-label" for="emailConfirmed">Email Confirmed</label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-3">
+                                            <div class="form-check form-switch">
+                                                <InputCheckbox id="lockoutEnabled" class="form-check-input" @bind-Value="LockoutEnabledValue" />
+                                                <label class="form-check-label" for="lockoutEnabled">Lockout Enabled</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="adminNote" class="form-label">Admin Note</label>
+                                        <InputTextArea id="adminNote" class="form-control" rows="3" @bind-Value="EditModel.AdminNote" 
+                                                      placeholder="Optional note about this change (will be logged)" />
+                                        <ValidationMessage For="@(() => EditModel.AdminNote)" />
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="OnCancel">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary" disabled="@IsSubmitting">
+                            @if (IsSubmitting)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            }
+                            Save Changes
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public AdminUserDto? User { get; set; }
+    [Parameter] public List<RoleDto> Roles { get; set; } = new();
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<UpdateUserDto> OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private UpdateUserDto EditModel = new();
+    private bool IsSubmitting = false;
+
+    // Helper properties for InputCheckbox binding (nullable bool -> bool)
+    private bool IsActiveValue 
+    { 
+        get => EditModel.IsActive ?? false; 
+        set => EditModel.IsActive = value; 
+    }
+    
+    private bool IsVettedValue 
+    { 
+        get => EditModel.IsVetted ?? false; 
+        set => EditModel.IsVetted = value; 
+    }
+    
+    private bool EmailConfirmedValue 
+    { 
+        get => EditModel.EmailConfirmed ?? false; 
+        set => EditModel.EmailConfirmed = value; 
+    }
+    
+    private bool LockoutEnabledValue 
+    { 
+        get => EditModel.LockoutEnabled ?? false; 
+        set => EditModel.LockoutEnabled = value; 
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (User != null && IsVisible)
+        {
+            EditModel = new UpdateUserDto
+            {
+                SceneName = User.SceneName,
+                Role = User.Role,
+                IsActive = User.IsActive,
+                IsVetted = User.IsVetted,
+                EmailConfirmed = User.EmailConfirmed,
+                LockoutEnabled = User.LockoutEnabled,
+                Pronouns = User.Pronouns,
+                PronouncedName = User.PronouncedName,
+                AdminNote = ""
+            };
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (IsSubmitting) return;
+        
+        IsSubmitting = true;
+        try
+        {
+            await OnSave.InvokeAsync(EditModel);
+        }
+        finally
+        {
+            IsSubmitting = false;
+        }
+    }
+
+    private string GetRoleDescription(UserRole role)
+    {
+        return role switch
+        {
+            UserRole.Attendee => "Standard event attendee with basic access",
+            UserRole.Member => "Verified community member with additional privileges",
+            UserRole.Organizer => "Can create and manage events",
+            UserRole.Moderator => "Can review incidents, vetting, and moderate community",
+            UserRole.Administrator => "Full system access and user management",
+            _ => "Unknown role"
+        };
+    }
+}

@@ -1,0 +1,263 @@
+@using WitchCityRope.Core.DTOs
+@using WitchCityRope.Core.Enums
+
+<div class="user-data-grid">
+    <div class="table-responsive">
+        <table class="table table-hover table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col" class="sortable" @onclick="() => OnSort.InvokeAsync(nameof(AdminUserDto.FirstName).ToLower())">
+                        First Name
+                        @if (SortBy == "firstName")
+                        {
+                            <i class="bi bi-caret-@(SortDirection == "asc" ? "up" : "down")-fill ms-1"></i>
+                        }
+                    </th>
+                    <th scope="col" class="sortable" @onclick="() => OnSort.InvokeAsync(nameof(AdminUserDto.SceneName).ToLower())">
+                        Scene Name
+                        @if (SortBy == "sceneName")
+                        {
+                            <i class="bi bi-caret-@(SortDirection == "asc" ? "up" : "down")-fill ms-1"></i>
+                        }
+                    </th>
+                    <th scope="col" class="sortable" @onclick="() => OnSort.InvokeAsync(nameof(AdminUserDto.LastName).ToLower())">
+                        Last Name
+                        @if (SortBy == "lastName")
+                        {
+                            <i class="bi bi-caret-@(SortDirection == "asc" ? "up" : "down")-fill ms-1"></i>
+                        }
+                    </th>
+                    <th scope="col" class="sortable" @onclick="() => OnSort.InvokeAsync(nameof(AdminUserDto.Email).ToLower())">
+                        Email
+                        @if (SortBy == "email")
+                        {
+                            <i class="bi bi-caret-@(SortDirection == "asc" ? "up" : "down")-fill ms-1"></i>
+                        }
+                    </th>
+                    <th scope="col">Status</th>
+                    <th scope="col" class="sortable" @onclick="() => OnSort.InvokeAsync(nameof(AdminUserDto.Role).ToLower())">
+                        Role
+                        @if (SortBy == "role")
+                        {
+                            <i class="bi bi-caret-@(SortDirection == "asc" ? "up" : "down")-fill ms-1"></i>
+                        }
+                    </th>
+                    <th scope="col" class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Users)
+                {
+                    <tr class="user-row" @onclick="() => OnRowClick.InvokeAsync(user)">
+                        <td>
+                            <strong>@user.FirstName</strong>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                @if (user.IsLockedOut)
+                                {
+                                    <i class="bi bi-lock-fill text-danger me-2" title="Locked Out"></i>
+                                }
+                                else if (!user.IsActive)
+                                {
+                                    <i class="bi bi-person-slash text-warning me-2" title="Inactive"></i>
+                                }
+                                else if (user.IsVetted)
+                                {
+                                    <i class="bi bi-shield-check text-success me-2" title="Vetted"></i>
+                                }
+                                <div>
+                                    <strong>@user.SceneName</strong>
+                                    @if (!string.IsNullOrEmpty(user.PronouncedName) && user.PronouncedName != user.SceneName)
+                                    {
+                                        <br><small class="text-muted">(@user.PronouncedName)</small>
+                                    }
+                                    @if (!string.IsNullOrEmpty(user.Pronouns))
+                                    {
+                                        <br><small class="text-muted">@user.Pronouns</small>
+                                    }
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <strong>@user.LastName</strong>
+                        </td>
+                        <td>
+                            <div>
+                                @user.Email
+                                @if (!user.EmailConfirmed)
+                                {
+                                    <br><small class="text-danger"><i class="bi bi-exclamation-triangle"></i> Unconfirmed</small>
+                                }
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge status-badge @GetStatusBadgeClass(user)">
+                                @user.StatusDisplay
+                            </span>
+                            @if (user.AccessFailedCount > 0)
+                            {
+                                <br><small class="text-warning">Failed: @user.AccessFailedCount</small>
+                            }
+                        </td>
+                        <td>
+                            <span class="badge role-badge role-@user.Role.ToString().ToLower()">
+                                @user.Role
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-primary btn-sm" 
+                                        @onclick:stopPropagation="true"
+                                        @onclick="() => OnQuickAction.InvokeAsync(GetEditAction(user))"
+                                        title="Edit User">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" 
+                                            data-bs-toggle="dropdown" 
+                                            @onclick:stopPropagation="true"
+                                            title="More Actions">
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <button class="dropdown-item" 
+                                                    @onclick="() => OnQuickAction.InvokeAsync(GetResetPasswordAction(user))">
+                                                <i class="bi bi-key me-2"></i>Reset Password
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button class="dropdown-item" 
+                                                    @onclick="() => OnQuickAction.InvokeAsync(GetLockoutAction(user))">
+                                                <i class="bi bi-@(user.IsLockedOut ? "unlock" : "lock") me-2"></i>
+                                                @(user.IsLockedOut ? "Unlock" : "Lock Out")
+                                            </button>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <button class="dropdown-item" 
+                                                    @onclick="() => OnQuickAction.InvokeAsync(GetToggleActiveAction(user))">
+                                                <i class="bi bi-@(user.IsActive ? "person-slash" : "person-check") me-2"></i>
+                                                @(user.IsActive ? "Deactivate" : "Activate")
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button class="dropdown-item" 
+                                                    @onclick="() => OnQuickAction.InvokeAsync(GetToggleVettedAction(user))">
+                                                <i class="bi bi-@(user.IsVetted ? "shield-slash" : "shield-check") me-2"></i>
+                                                @(user.IsVetted ? "Remove Vetting" : "Mark Vetted")
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    @if (TotalCount > PageSize)
+    {
+        <nav aria-label="User pagination">
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(CurrentPage == 1 ? "disabled" : "")">
+                    <button class="page-link" @onclick="() => OnPageChange.InvokeAsync(CurrentPage - 1)" disabled="@(CurrentPage == 1)">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                </li>
+                
+                @for (int pageNum = Math.Max(1, CurrentPage - 2); pageNum <= Math.Min(TotalPages, CurrentPage + 2); pageNum++)
+                {
+                    var currentPageNum = pageNum; // Capture for lambda
+                    <li class="page-item @(CurrentPage == currentPageNum ? "active" : "")">
+                        <button class="page-link" @onclick="() => OnPageChange.InvokeAsync(currentPageNum)">@currentPageNum</button>
+                    </li>
+                }
+                
+                <li class="page-item @(CurrentPage == TotalPages ? "disabled" : "")">
+                    <button class="page-link" @onclick="() => OnPageChange.InvokeAsync(CurrentPage + 1)" disabled="@(CurrentPage == TotalPages)">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+        
+        <div class="text-center text-muted">
+            Showing @((CurrentPage - 1) * PageSize + 1) to @Math.Min(CurrentPage * PageSize, TotalCount) of @TotalCount users
+        </div>
+    }
+</div>
+
+<style>
+    .user-row {
+        cursor: pointer;
+    }
+    
+    .user-row:hover {
+        background-color: rgba(0, 123, 255, 0.1) !important;
+    }
+    
+    .sortable {
+        cursor: pointer;
+        user-select: none;
+    }
+    
+    .sortable:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .role-badge {
+        font-size: 0.75rem;
+    }
+    
+    .role-attendee { background-color: #6c757d; }
+    .role-member { background-color: #0d6efd; }
+    .role-organizer { background-color: #198754; }
+    .role-moderator { background-color: #fd7e14; }
+    .role-administrator { background-color: #dc3545; }
+    
+    .status-badge {
+        font-size: 0.75rem;
+    }
+    
+    .status-active { background-color: #198754; }
+    .status-inactive { background-color: #6c757d; }
+    .status-locked { background-color: #dc3545; }
+    .status-unconfirmed { background-color: #ffc107; color: #000; }
+</style>
+
+@code {
+    [Parameter] public List<AdminUserDto> Users { get; set; } = new();
+    [Parameter] public int TotalCount { get; set; }
+    [Parameter] public int CurrentPage { get; set; } = 1;
+    [Parameter] public int PageSize { get; set; } = 50;
+    [Parameter] public string SortBy { get; set; } = "firstName";
+    [Parameter] public string SortDirection { get; set; } = "asc";
+    
+    [Parameter] public EventCallback<string> OnSort { get; set; }
+    [Parameter] public EventCallback<int> OnPageChange { get; set; }
+    [Parameter] public EventCallback<AdminUserDto> OnRowClick { get; set; }
+    [Parameter] public EventCallback<(string action, AdminUserDto user)> OnQuickAction { get; set; }
+
+    private int TotalPages => PageSize > 0 ? (int)Math.Ceiling(TotalCount / (double)PageSize) : 0;
+
+    private string GetStatusBadgeClass(AdminUserDto user)
+    {
+        if (!user.IsActive) return "status-inactive";
+        if (user.IsLockedOut) return "status-locked";
+        if (!user.EmailConfirmed) return "status-unconfirmed";
+        return "status-active";
+    }
+
+    // Helper methods for action tuples
+    private (string action, AdminUserDto user) GetEditAction(AdminUserDto user) => ("edit", user);
+    private (string action, AdminUserDto user) GetResetPasswordAction(AdminUserDto user) => ("reset-password", user);
+    private (string action, AdminUserDto user) GetLockoutAction(AdminUserDto user) => (user.IsLockedOut ? "unlock" : "lockout", user);
+    private (string action, AdminUserDto user) GetToggleActiveAction(AdminUserDto user) => ("toggle-active", user);
+    private (string action, AdminUserDto user) GetToggleVettedAction(AdminUserDto user) => ("toggle-vetted", user);
+}

@@ -49,7 +49,7 @@ public class ConcurrencyAndEdgeCaseTests_Fixed : IDisposable
             AccessibilityNeeds: null,
             EmergencyContactName: "Contact",
             EmergencyContactPhone: "555-0100",
-            PaymentMethod: WitchCityRope.Core.Enums.PaymentMethod.None,
+            PaymentMethod: WitchCityRope.Api.Features.Events.Models.PaymentMethod.Cash,
             PaymentToken: null
         );
 
@@ -58,7 +58,7 @@ public class ConcurrencyAndEdgeCaseTests_Fixed : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result.Status.Should().Be(WitchCityRope.Core.Enums.RegistrationStatus.Confirmed);
+        result.Status.Should().Be(WitchCityRope.Api.Features.Events.Models.RegistrationStatus.Confirmed);
     }
 
     public void Dispose()

@@ -42,7 +42,7 @@ Welcome to the WitchCityRope documentation. This guide helps you find exactly wh
 #### 🗄️ Database Developers
 - **Lessons Learned**: [lessons-learned/database-developers.md](lessons-learned/database-developers.md)
 - **PostgreSQL Config**: [functional-areas/database/POSTGRESQL_CONFIGURATION.md](functional-areas/database/POSTGRESQL_CONFIGURATION.md)
-- **Migration Guide**: [functional-areas/database/postgresql-migration.md](functional-areas/database/postgresql-migration.md)
+
 
 #### 🚀 DevOps Engineers
 - **Lessons Learned**: [lessons-learned/devops-engineers.md](lessons-learned/devops-engineers.md)

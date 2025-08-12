@@ -98,6 +98,24 @@ namespace WitchCityRope.Api.Features.Auth
         }
 
         /// <summary>
+        /// Authenticates a web service user (already authenticated in Web service) and returns JWT token
+        /// </summary>
+        [HttpPost("web-service-login")]
+        [AllowAnonymous]
+        public async Task<ActionResult<LoginResponse>> WebServiceLogin([FromBody] WebServiceLoginRequest request)
+        {
+            try
+            {
+                var response = await _authService.WebServiceLoginAsync(request);
+                return Ok(response);
+            }
+            catch (Services.UnauthorizedException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Logs out the current user
         /// </summary>
         [HttpPost("logout")]

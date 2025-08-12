@@ -1,0 +1,88 @@
+@page "/admin/users"
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@using WitchCityRope.Core.DTOs
+@using WitchCityRope.Core.Enums
+@using WitchCityRope.Web.Components.Admin.Users
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Administrator")]
+
+<PageTitle>User Management - WitchCityRope Admin</PageTitle>
+
+<div class="admin-page">
+    <div class="page-header">
+        <h1><i class="bi bi-people-fill me-2"></i>User Management</h1>
+        <p class="text-muted">Manage user accounts, roles, and permissions</p>
+    </div>
+    
+    <UserStats Stats="@Stats" IsLoading="@IsLoadingStats" />
+    
+    <div class="filters-section card shadow-sm mb-4">
+        <div class="card-body">
+            <UserFilters @bind-Role="@SelectedRole"
+                        @bind-IsActive="@IsActiveFilter"
+                        @bind-IsVetted="@IsVettedFilter"
+                        @bind-EmailConfirmed="@EmailConfirmedFilter"
+                        @bind-IsLockedOut="@IsLockedOutFilter"
+                        @bind-SearchTerm="@SearchTerm"
+                        @bind-PageSize="@PageSize"
+                        OnFilterChanged="@ApplyFilters" />
+        </div>
+    </div>
+    
+    <div class="grid-section">
+        @if (IsLoadingUsers)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading users...</span>
+                </div>
+                <p class="mt-2">Loading users...</p>
+            </div>
+        }
+        else if (!Users.Any())
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-people fs-1 text-muted"></i>
+                <p class="mt-2">No users found matching your criteria</p>
+            </div>
+        }
+        else
+        {
+            <UserDataGrid Users="@Users"
+                         TotalCount="@TotalCount"
+                         CurrentPage="@CurrentPage"
+                         PageSize="@PageSize"
+                         SortBy="@SortBy"
+                         SortDirection="@SortDirection"
+                         OnSort="@HandleSort"
+                         OnPageChange="@HandlePageChange"
+                         OnRowClick="@NavigateToUser"
+                         OnQuickAction="@HandleQuickAction" />
+        }
+    </div>
+</div>
+
+@if (ShowUserModal)
+{
+    <UserEditModal User="@SelectedUser"
+                   Roles="@AvailableRoles"
+                   IsVisible="@ShowUserModal"
+                   OnSave="@HandleUserSave"
+                   OnCancel="@CloseUserModal" />
+}
+
+@if (ShowPasswordResetModal)
+{
+    <PasswordResetModal User="@SelectedUser"
+                       IsVisible="@ShowPasswordResetModal"
+                       OnSave="@HandlePasswordReset"
+                       OnCancel="@ClosePasswordResetModal" />
+}
+
+@if (ShowLockoutModal)
+{
+    <LockoutModal User="@SelectedUser"
+                  IsVisible="@ShowLockoutModal"
+                  OnSave="@HandleLockout"
+                  OnCancel="@CloseLockoutModal" />
+}

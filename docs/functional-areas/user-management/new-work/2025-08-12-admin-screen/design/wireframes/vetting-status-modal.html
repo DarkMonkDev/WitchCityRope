@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vetting Status Change Modal - Wireframe</title>
+    <link href="https://cdn.syncfusion.com/ej2/bootstrap5.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --wcr-burgundy: #880124;
+            --wcr-burgundy-dark: #660018;
+            --wcr-plum: #614b79;
+            --wcr-amber: #ffbf00;
+            --wcr-midnight: #1a1a2e;
+            --wcr-charcoal: #2b2b2b;
+            --wcr-smoke: #4a4a4a;
+            --wcr-stone: #8b8680;
+            --wcr-taupe: #b8b0a8;
+            --wcr-ivory: #fff8f0;
+            --wcr-cream: #faf6f2;
+            --wcr-success: #228b22;
+            --wcr-warning: #daa520;
+            --wcr-error: #dc143c;
+            --wcr-info: #4169e1;
+            --wcr-space-sm: 16px;
+            --wcr-space-md: 24px;
+            --wcr-space-lg: 32px;
+            --wcr-radius-md: 8px;
+            --wcr-radius-lg: 12px;
+            --wcr-shadow-md: 0 4px 8px rgba(0,0,0,.1);
+            --wcr-shadow-lg: 0 8px 16px rgba(0,0,0,.12);
+            --wcr-shadow-xl: 0 12px 24px rgba(0,0,0,.15);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--wcr-cream);
+            margin: 0;
+            padding: 0;
+            color: var(--wcr-charcoal);
+        }
+
+        .page-backdrop {
+            background: var(--wcr-cream);
+            min-height: 100vh;
+            padding: var(--wcr-space-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .context-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--wcr-ivory);
+            border-radius: var(--wcr-radius-lg);
+            padding: var(--wcr-space-lg);
+            box-shadow: var(--wcr-shadow-md);
+        }
+
+        .context-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0 0 var(--wcr-space-md) 0;
+            color: var(--wcr-charcoal);
+            text-align: center;
+        }
+
+        .trigger-button {
+            background: var(--wcr-burgundy);
+            color: white;
+            border: none;
+            padding: var(--wcr-space-sm) var(--wcr-space-lg);
+            border-radius: var(--wcr-radius-md);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: block;
+            margin: 0 auto var(--wcr-space-lg) auto;
+        }
+
+        .trigger-button:hover {
+            background: var(--wcr-burgundy-dark);
+            transform: translateY(-1px);
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Modal Dialog */
+        .modal-dialog {
+            background: var(--wcr-ivory);
+            border-radius: var(--wcr-radius-lg);
+            box-shadow: var(--wcr-shadow-xl);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            transform: scale(0.9) translateY(-20px);
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.show .modal-dialog {
+            transform: scale(1) translateY(0);
+        }
+
+        /* Modal Header */
+        .modal-header {
+            background: var(--wcr-burgundy);
+            color: var(--wcr-ivory);
+            padding: var(--wcr-space-md) var(--wcr-space-lg);
+            border-radius: var(--wcr-radius-lg) var(--wcr-radius-lg) 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: var(--wcr-space-sm);
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--wcr-ivory);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Modal Body */
+        .modal-body {
+            padding: var(--wcr-space-lg);
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .user-context {
+            background: var(--wcr-cream);
+            padding: var(--wcr-space-md);
+            border-radius: var(--wcr-radius-md);
+            margin-bottom: var(--wcr-space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--wcr-space-md);
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--wcr-burgundy), var(--wcr-plum));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .user-info h3 {
+            margin: 0 0 4px 0;
+            color: var(--wcr-charcoal);
+            font-size: 1.2rem;
+        }
+
+        .user-info p {
+            margin: 0;
+            color: var(--wcr-smoke);
+            font-size: 14px;
+        }
+
+        /* Current Status Display */
+        .current-status {
+            background: var(--wcr-cream);
+            border: 1px solid var(--wcr-taupe);
+            border-radius: var(--wcr-radius-md);
+            padding: var(--wcr-space-md);
+            margin-bottom: var(--wcr-space-lg);
+        }
+
+        .status-header {
+            font-weight: 600;
+            margin-bottom: var(--wcr-space-sm);
+            color: var(--wcr-charcoal);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: var(--wcr-radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: var(--wcr-space-sm);
+        }
+
+        .badge-vetted { background: var(--wcr-success); color: white; }
+        .badge-unvetted { background: var(--wcr-warning); color: var(--wcr-midnight); }
+        .badge-pending { background: var(--wcr-info); color: white; }
+        .badge-rejected { background: var(--wcr-error); color: white; }
+
+        .status-details {
+            font-size: 14px;
+            color: var(--wcr-smoke);
+            line-height: 1.4;
+        }
+
+        .status-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--wcr-space-md);
+            margin-top: var(--wcr-space-sm);
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: var(--wcr-space-md);
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--wcr-charcoal);
+        }
+
+        .required {
+            color: var(--wcr-error);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: var(--wcr-space-sm);
+            border: 2px solid var(--wcr-taupe);
+            border-radius: var(--wcr-radius-md);
+            background: var(--wcr-cream);
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--wcr-burgundy);
+            background: var(--wcr-ivory);
+            box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.1);
+        }
+
+        .form-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: var(--wcr-space-sm);
+            border: 2px solid var(--wcr-taupe);
+            border-radius: var(--wcr-radius-md);
+            background: var(--wcr-cream);
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--wcr-burgundy);
+            background: var(--wcr-ivory);
+            box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.1);
+        }
+
+        .form-textarea.required {
+            border-color: var(--wcr-error);
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: var(--wcr-smoke);
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+
+        .form-error {
+            font-size: 12px;
+            color: var(--wcr-error);
+            margin-top: 4px;
+            display: none;
+        }
+
+        .form-error.show {
+            display: block;
+        }
+
+        /* Email Preview */
+        .email-preview {
+            background: var(--wcr-cream);
+            border: 1px solid var(--wcr-taupe);
+            border-radius: var(--wcr-radius-md);
+            padding: var(--wcr-space-md);
+            margin-bottom: var(--wcr-space-lg);
+        }
+
+        .email-header {
+            font-weight: 600;
+            margin-bottom: var(--wcr-space-sm);
+            color: var(--wcr-charcoal);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .email-meta {
+            font-size: 12px;
+            color: var(--wcr-smoke);
+            margin-bottom: var(--wcr-space-sm);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--wcr-space-sm);
+        }
+
+        .email-content {
+            background: white;
+            border: 1px solid var(--wcr-taupe);
+            border-radius: 4px;
+            padding: var(--wcr-space-sm);
+            font-size: 14px;
+            line-height: 1.5;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        /* Modal Footer */
+        .modal-footer {
+            padding: var(--wcr-space-md) var(--wcr-space-lg);
+            background: var(--wcr-cream);
+            border-radius: 0 0 var(--wcr-radius-lg) var(--wcr-radius-lg);
+            border-top: 1px solid var(--wcr-taupe);
+            display: flex;
+            gap: var(--wcr-space-sm);
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: var(--wcr-space-sm) var(--wcr-space-lg);
+            border: none;
+            border-radius: var(--wcr-radius-md);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--wcr-burgundy);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--wcr-burgundy-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            background: var(--wcr-stone);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--wcr-smoke);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: var(--wcr-charcoal);
+        }
+
+        /* Warning Alert */
+        .warning-alert {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: var(--wcr-space-sm);
+            border-radius: var(--wcr-radius-md);
+            margin-bottom: var(--wcr-space-md);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .wireframe-notes {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: var(--wcr-radius-md);
+            padding: var(--wcr-space-md);
+            margin-top: var(--wcr-space-lg);
+        }
+
+        .notes-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0 0 var(--wcr-space-sm) 0;
+            color: var(--wcr-charcoal);
+        }
+
+        .notes-section {
+            margin-bottom: var(--wcr-space-sm);
+        }
+
+        .notes-section h4 {
+            margin: 0 0 8px 0;
+            color: var(--wcr-burgundy);
+        }
+
+        .notes-section ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .notes-section li {
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-backdrop">
+        <div class="context-content">
+            <h2 class="context-title">Vetting Status Change Modal - Interactive Wireframe</h2>
+            <p style="text-align: center; color: var(--wcr-smoke); margin-bottom: var(--wcr-space-lg);">
+                This demonstrates the modal interface for changing a user's vetting status with admin notes and email preview.
+            </p>
+            <button class="trigger-button" onclick="showModal()">
+                <i class="fas fa-shield-alt"></i> Change Vetting Status
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="vettingModal">
+        <div class="modal-dialog">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-shield-alt"></i>
+                    Change Vetting Status
+                </h3>
+                <button class="modal-close" onclick="hideModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <!-- User Context -->
+                <div class="user-context">
+                    <div class="user-avatar">RJ</div>
+                    <div class="user-info">
+                        <h3>rope_jamie</h3>
+                        <p>Teacher • jamie@example.com • Member since March 2023</p>
+                    </div>
+                </div>
+
+                <!-- Current Status -->
+                <div class="current-status">
+                    <div class="status-header">Current Vetting Status</div>
+                    <span class="status-badge badge-vetted">Vetted</span>
+                    <div class="status-details">
+                        User has completed the vetting process and is approved for full community access.
+                    </div>
+                    <div class="status-meta">
+                        <div><strong>Vetted By:</strong> admin_sarah</div>
+                        <div><strong>Date:</strong> April 12, 2023</div>
+                        <div><strong>Method:</strong> In-person interview</div>
+                        <div><strong>Valid Until:</strong> April 12, 2025</div>
+                    </div>
+                </div>
+
+                <!-- Warning for status changes -->
+                <div class="warning-alert">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        Changing vetting status will affect the user's access to events and community features. 
+                        This action will be logged and the user will be notified via email.
+                    </div>
+                </div>
+
+                <!-- Status Change Form -->
+                <div class="form-group">
+                    <label class="form-label">New Vetting Status: <span class="required">*</span></label>
+                    <select class="form-select" id="newStatus" onchange="updatePreview()">
+                        <option value="">Select new status...</option>
+                        <option value="vetted">Vetted</option>
+                        <option value="unvetted">Unvetted</option>
+                        <option value="pending">Pending Review</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="expired">Expired</option>
+                    </select>
+                    <div class="form-help">
+                        Select the new vetting status. This will determine the user's access level.
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Reason for Change: <span class="required">*</span></label>
+                    <textarea 
+                        class="form-textarea" 
+                        id="reasonText"
+                        placeholder="Explain the reason for this vetting status change. This will be included in the admin notes and may be shared with the user..."
+                        oninput="validateForm()"
+                    ></textarea>
+                    <div class="form-help">
+                        Required explanation that will be logged in admin notes and may be included in user communication.
+                    </div>
+                    <div class="form-error" id="reasonError">
+                        Please provide a reason for the status change.
+                    </div>
+                </div>
+
+                <!-- Email Preview -->
+                <div class="email-preview" id="emailPreview" style="display: none;">
+                    <div class="email-header">
+                        <i class="fas fa-envelope"></i>
+                        Email Preview - What the user will receive:
+                    </div>
+                    <div class="email-meta">
+                        <div><strong>To:</strong> jamie@example.com</div>
+                        <div><strong>From:</strong> admin@witchcityrope.com</div>
+                        <div><strong>Subject:</strong> <span id="emailSubject">Vetting Status Update</span></div>
+                        <div><strong>Template:</strong> <span id="emailTemplate">Standard Status Change</span></div>
+                    </div>
+                    <div class="email-content" id="emailContent">
+                        Select a new status to preview the email content...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideModal()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button class="btn btn-primary" id="updateBtn" disabled onclick="confirmUpdate()">
+                    <i class="fas fa-save"></i> Update Status
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wireframe Notes -->
+    <div class="context-content" style="margin-top: var(--wcr-space-lg);">
+        <div class="wireframe-notes">
+            <h3 class="notes-title">🎨 Vetting Status Change Modal - Design Notes</h3>
+            
+            <div class="notes-section">
+                <h4>Key Features</h4>
+                <ul>
+                    <li><strong>Current Status Display:</strong> Clear indication of user's current vetting status and history</li>
+                    <li><strong>Status Transitions:</strong> Dropdown only shows valid status transitions (business rules)</li>
+                    <li><strong>Required Documentation:</strong> Admin must provide reason for any status change</li>
+                    <li><strong>Email Preview:</strong> Shows exactly what email the user will receive</li>
+                    <li><strong>Audit Integration:</strong> All changes automatically logged to audit trail</li>
+                </ul>
+            </div>
+
+            <div class="notes-section">
+                <h4>Syncfusion Components Used</h4>
+                <ul>
+                    <li><strong>SfDialog:</strong> Main modal with overlay and animations</li>
+                    <li><strong>SfDropDownList:</strong> Status selection with validation</li>
+                    <li><strong>SfTextArea:</strong> Reason input with validation</li>
+                    <li><strong>SfButton:</strong> Action buttons with state management</li>
+                    <li><strong>SfToast:</strong> Success/error notifications (not shown)</li>
+                </ul>
+            </div>
+
+            <div class="notes-section">
+                <h4>Business Logic</h4>
+                <ul>
+                    <li><strong>Valid Transitions:</strong> Not all status changes are allowed (e.g., rejected → vetted requires special approval)</li>
+                    <li><strong>Access Impact:</strong> Status changes immediately affect user's event access and permissions</li>
+                    <li><strong>Notification Logic:</strong> Different email templates based on new status</li>
+                    <li><strong>Audit Requirements:</strong> All status changes must have documented reasons</li>
+                </ul>
+            </div>
+
+            <div class="notes-section">
+                <h4>User Experience</h4>
+                <ul>
+                    <li><strong>Progressive Disclosure:</strong> Email preview only shows when status is selected</li>
+                    <li><strong>Form Validation:</strong> Real-time validation with clear error messages</li>
+                    <li><strong>Confirmation Flow:</strong> Clear preview before making irreversible changes</li>
+                    <li><strong>Context Preservation:</strong> All user information remains visible during process</li>
+                </ul>
+            </div>
+
+            <div class="notes-section">
+                <h4>Admin Safety</h4>
+                <ul>
+                    <li><strong>Warning Alerts:</strong> Clear indication of the impact of status changes</li>
+                    <li><strong>Undo Protection:</strong> Status changes create audit trail but may not be easily reversible</li>
+                    <li><strong>Email Preview:</strong> Admin sees exactly what communication user receives</li>
+                    <li><strong>Required Documentation:</strong> Forces admin to document decision reasoning</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const emailTemplates = {
+            vetted: {
+                subject: "Welcome! Your vetting has been approved",
+                template: "Vetting Approval",
+                content: `Dear rope_jamie,
+
+Congratulations! Your vetting application has been approved. You now have full access to all WitchCityRope community events and activities.
+
+Your new status: Vetted Member
+Effective Date: ${new Date().toLocaleDateString()}
+
+You can now:
+• Register for advanced workshops and private events
+• Access the members-only areas of our website
+• Participate in community discussions and planning
+
+If you have any questions, please don't hesitate to contact our admin team.
+
+Welcome to the full WitchCityRope experience!
+
+Best regards,
+The WitchCityRope Admin Team`
+            },
+            unvetted: {
+                subject: "Vetting Status Change Notification",
+                template: "Status Change - Unvetted", 
+                content: `Dear rope_jamie,
+
+We are writing to inform you that your vetting status has been changed to "Unvetted."
+
+Your new status: Unvetted Member
+Effective Date: ${new Date().toLocaleDateString()}
+
+This change affects your access to certain community features:
+• You may attend public workshops and events
+• Private events and advanced workshops require separate approval
+• Some community features may have limited access
+
+If you have questions about this change or would like to discuss re-vetting, please contact our admin team.
+
+Best regards,
+The WitchCityRope Admin Team`
+            },
+            pending: {
+                subject: "Your vetting application is under review",
+                template: "Pending Review",
+                content: `Dear rope_jamie,
+
+Your vetting status has been updated to "Pending Review."
+
+Your current status: Pending Review
+Review Date: ${new Date().toLocaleDateString()}
+
+What this means:
+• Your application is being actively reviewed by our admin team
+• You may continue attending public events during this time
+• We will contact you within 5-7 business days with updates
+
+Thank you for your patience during this process.
+
+Best regards,
+The WitchCityRope Admin Team`
+            },
+            rejected: {
+                subject: "Vetting Application Decision",
+                template: "Application Rejected",
+                content: `Dear rope_jamie,
+
+After careful consideration, we regret to inform you that your vetting application has not been approved at this time.
+
+Your status: Application Rejected
+Decision Date: ${new Date().toLocaleDateString()}
+
+You are welcome to:
+• Continue attending public workshops and events
+• Reapply for vetting after 6 months
+• Contact our admin team if you have questions about this decision
+
+We appreciate your interest in being part of the WitchCityRope community.
+
+Best regards,
+The WitchCityRope Admin Team`
+            },
+            expired: {
+                subject: "Vetting Status Expiration Notice",
+                template: "Status Expired",
+                content: `Dear rope_jamie,
+
+Your vetting status has expired and requires renewal.
+
+Previous Status: Vetted Member (Expired)
+Expiration Date: ${new Date().toLocaleDateString()}
+
+To maintain your vetted status:
+• Contact the admin team to schedule a renewal interview
+• Complete any required updates to your information
+• Participate in a brief check-in process
+
+Until renewal, your access will be limited to public events.
+
+Best regards,
+The WitchCityRope Admin Team`
+            }
+        };
+
+        function showModal() {
+            document.getElementById('vettingModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideModal() {
+            document.getElementById('vettingModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+
+        function updatePreview() {
+            const status = document.getElementById('newStatus').value;
+            const emailPreview = document.getElementById('emailPreview');
+            const emailSubject = document.getElementById('emailSubject');
+            const emailTemplate = document.getElementById('emailTemplate');
+            const emailContent = document.getElementById('emailContent');
+            
+            if (status && emailTemplates[status]) {
+                emailPreview.style.display = 'block';
+                emailSubject.textContent = emailTemplates[status].subject;
+                emailTemplate.textContent = emailTemplates[status].template;
+                emailContent.textContent = emailTemplates[status].content;
+            } else {
+                emailPreview.style.display = 'none';
+            }
+            
+            validateForm();
+        }
+
+        function validateForm() {
+            const newStatus = document.getElementById('newStatus').value;
+            const reason = document.getElementById('reasonText').value.trim();
+            const updateBtn = document.getElementById('updateBtn');
+            const reasonError = document.getElementById('reasonError');
+            const reasonTextarea = document.getElementById('reasonText');
+            
+            const isValid = newStatus && reason.length > 0;
+            
+            updateBtn.disabled = !isValid;
+            
+            if (reason.length === 0 && reasonTextarea === document.activeElement) {
+                reasonError.classList.add('show');
+                reasonTextarea.classList.add('required');
+            } else {
+                reasonError.classList.remove('show');
+                reasonTextarea.classList.remove('required');
+            }
+        }
+
+        function confirmUpdate() {
+            const status = document.getElementById('newStatus').value;
+            const reason = document.getElementById('reasonText').value.trim();
+            
+            if (status && reason) {
+                // In real implementation, this would make an API call
+                alert(`Status would be updated to: ${status}\nReason: ${reason}\n\nEmail would be sent to user.`);
+                hideModal();
+            }
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                hideModal();
+            }
+        });
+
+        // Close modal on backdrop click
+        document.getElementById('vettingModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                hideModal();
+            }
+        });
+
+        // Prevent modal from closing when clicking inside dialog
+        document.querySelector('.modal-dialog').addEventListener('click', function(event) {
+            event.stopPropagation();
+        });
+
+        // Initialize form validation
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('reasonText').addEventListener('blur', validateForm);
+        });
+    </script>
+</body>
+</html>
