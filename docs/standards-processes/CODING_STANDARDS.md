@@ -768,9 +768,9 @@ public class UsersController : ControllerBase
 
 ### Service Layer Requirements
 1. **Result Pattern**: All operations return `Result<T>` for consistent error handling
-2. **Validation**: Use FluentValidation for input validation
+2. **Validation**: Use FluentValidation for input validation (see [Validation Standards](/docs/standards-processes/validation-standardization/VALIDATION_STANDARDS.md))
 3. **Logging**: Structured logging with appropriate log levels
-4. **Transactions**: Database transactions for multi-operation business logic
+4. **Transactions**: Database transactions for multi-operation business logic (see [Entity Framework Patterns](/docs/standards-processes/development-standards/entity-framework-patterns.md))
 5. **Caching**: Cache invalidation strategies for data freshness
 6. **Async/Await**: All operations must be asynchronous
 7. **Cancellation Tokens**: Support cancellation for long-running operations
@@ -873,6 +873,105 @@ public static class TestDataBuilder
 ```
 
 ## Performance Considerations
+
+### Performance Benchmarks and Thresholds
+
+The following performance standards must be met for all production code:
+
+#### API Response Time Targets
+- **GET endpoints**: < 200ms for simple queries, < 500ms for complex queries
+- **POST/PUT endpoints**: < 1000ms for data creation/updates
+- **Authentication endpoints**: < 300ms for login/logout operations
+- **Search endpoints**: < 800ms for filtered/paginated results
+- **File upload endpoints**: < 2000ms for files up to 10MB
+
+#### Database Query Performance
+- **Simple SELECT queries**: < 50ms execution time
+- **Complex JOIN queries**: < 200ms execution time
+- **Bulk operations**: < 1000ms for up to 1000 records
+- **Report generation**: < 5000ms for standard reports
+- **Database connection pooling**: Maintain 10-50 active connections
+- **Query result caching**: Cache frequently accessed data for 5-15 minutes
+
+#### Memory Usage Guidelines
+- **Service memory footprint**: < 100MB per service instance at idle
+- **Peak memory usage**: < 500MB per service during high load
+- **Memory leak prevention**: No more than 5% memory growth per hour under load
+- **Garbage collection**: < 10ms pause times for Gen 0/1, < 100ms for Gen 2
+- **Object allocation**: Minimize large object heap allocations (> 85KB)
+
+#### Blazor Server Performance Targets
+- **Initial page load**: < 2000ms for first page render
+- **Navigation between pages**: < 500ms for subsequent page loads
+- **Component re-rendering**: < 100ms for interactive components
+- **Form submission**: < 800ms for validation and processing
+- **Real-time updates**: < 100ms latency for SignalR notifications
+- **Circuit lifecycle**: Maintain < 10MB memory per active circuit
+
+#### SignalR Connection Limits
+- **Concurrent connections**: Support up to 1000 simultaneous connections per server
+- **Message throughput**: Handle 10,000 messages per second
+- **Connection establishment**: < 500ms for new connections
+- **Reconnection time**: < 2000ms for automatic reconnections
+- **Heartbeat interval**: 30 seconds with 60-second timeout
+- **Group management**: < 50ms for adding/removing users from groups
+
+#### Concurrent User Handling
+- **Simultaneous users**: Support 200+ concurrent active users
+- **Session management**: Handle 500+ concurrent authenticated sessions
+- **Resource contention**: No deadlocks or blocking operations > 5 seconds
+- **Rate limiting**: 100 requests per minute per user for API endpoints
+- **Load balancing**: Scale horizontally to handle traffic spikes
+
+#### Cache Performance Standards
+- **Cache hit ratio**: > 80% for frequently accessed data
+- **Cache lookup time**: < 5ms for in-memory cache operations
+- **Cache invalidation**: < 100ms for distributed cache updates
+- **Cache storage**: Limit cache size to 20% of available memory
+- **Cache expiration**: Set appropriate TTL based on data change frequency
+
+#### Performance Monitoring Requirements
+```csharp
+/// <summary>
+/// Example of performance monitoring implementation with metrics collection
+/// All services should include similar monitoring for performance tracking
+/// </summary>
+public class EventService : IEventService
+{
+    private readonly IMetrics _metrics;
+    private readonly ILogger<EventService> _logger;
+    
+    public async Task<Result<EventDto>> GetEventAsync(int eventId)
+    {
+        using var activity = Activity.StartActivity("EventService.GetEvent");
+        var stopwatch = Stopwatch.StartNew();
+        
+        try
+        {
+            var result = await GetEventFromDatabaseAsync(eventId);
+            
+            // Log performance metrics
+            stopwatch.Stop();
+            _metrics.Counter("event_queries_total").Increment();
+            _metrics.Histogram("event_query_duration_ms").Record(stopwatch.ElapsedMilliseconds);
+            
+            // Warn if query exceeds performance threshold
+            if (stopwatch.ElapsedMilliseconds > 200)
+            {
+                _logger.LogWarning("Event query exceeded threshold: {ElapsedMs}ms for EventId {EventId}", 
+                    stopwatch.ElapsedMilliseconds, eventId);
+            }
+            
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _metrics.Counter("event_query_errors_total").Increment();
+            throw;
+        }
+    }
+}
+```
 
 ### Database Query Optimization
 ```csharp
@@ -1049,10 +1148,14 @@ When reviewing code, ensure the following standards are met:
 - [ ] No secrets or credentials in code
 
 ### Performance
-- [ ] Database queries are optimized
-- [ ] Caching is used appropriately
+- [ ] Database queries are optimized and meet timing thresholds (< 50ms simple, < 200ms complex)
+- [ ] API endpoints respond within target times (< 200ms GET, < 1000ms POST/PUT)
+- [ ] Caching is used appropriately with proper TTL and hit ratio targets
 - [ ] Async/await is used for I/O operations
-- [ ] Memory usage is reasonable
+- [ ] Memory usage is reasonable (< 100MB idle, < 500MB peak)
+- [ ] Performance monitoring and metrics collection is implemented
+- [ ] No blocking operations > 5 seconds
+- [ ] SignalR operations meet latency requirements (< 100ms for notifications)
 
 ### Testing
 - [ ] Unit tests cover key scenarios
@@ -1071,3 +1174,19 @@ When reviewing code, ensure the following standards are met:
 These coding standards ensure that the WitchCityRope codebase remains maintainable, secure, and performant as it evolves. By following SOLID principles where appropriate, maintaining comprehensive documentation, and adhering to consistent conventions, we create code that is easy to understand, modify, and extend.
 
 Remember: The goal is not to follow these principles blindly, but to use them as tools to create better, more maintainable software that serves the community effectively.
+
+## Related Documentation
+
+### Development Standards
+- [Blazor Server Patterns](/docs/standards-processes/development-standards/blazor-server-patterns.md) - Blazor component development patterns
+- [Entity Framework Patterns](/docs/standards-processes/development-standards/entity-framework-patterns.md) - Database access patterns and EF Core best practices
+- [Authentication Patterns](/docs/standards-processes/development-standards/authentication-patterns.md) - Authentication service implementation patterns
+
+### Validation Standards
+- [Validation Standards](/docs/standards-processes/validation-standardization/VALIDATION_STANDARDS.md) - Validation architecture and principles
+- [Form Fields and Validation Standards](/docs/standards-processes/form-fields-and-validation-standards.md) - Form validation patterns
+- [Validation Component Library](/docs/standards-processes/validation-standardization/VALIDATION_COMPONENT_LIBRARY.md) - Validation component API reference
+
+### Testing and Quality
+- [Testing Guide](/docs/standards-processes/testing/TESTING_GUIDE.md) - Testing patterns and standards
+- [E2E Testing Patterns](/docs/standards-processes/testing/E2E_TESTING_PATTERNS.md) - End-to-end testing with Playwright

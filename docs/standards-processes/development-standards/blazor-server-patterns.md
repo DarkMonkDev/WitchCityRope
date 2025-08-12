@@ -162,6 +162,11 @@ All forms MUST use WCR validation components for consistency:
 </EditForm>
 ```
 
+**See Also:**
+- [Form Fields and Validation Standards](/docs/standards-processes/form-fields-and-validation-standards.md) - When and how to use validation components
+- [Validation Standards](/docs/standards-processes/validation-standardization/VALIDATION_STANDARDS.md) - Architecture and validation principles
+- [Validation Component Library](/docs/standards-processes/validation-standardization/VALIDATION_COMPONENT_LIBRARY.md) - Complete component reference
+
 ## Antiforgery Token Handling
 
 **❌ NEVER manually add `<AntiforgeryToken />` to EditForm components**
@@ -235,8 +240,15 @@ Run the architecture validation script to check for common issues:
 ./scripts/validate-blazor-architecture.sh
 ```
 
-## Additional Resources
+## Related Documentation
 
+### WitchCityRope Standards
+- [Authentication Patterns](/docs/standards-processes/development-standards/authentication-patterns.md) - Authentication implementation patterns
+- [Entity Framework Patterns](/docs/standards-processes/development-standards/entity-framework-patterns.md) - Database access patterns
+- [Coding Standards](/docs/standards-processes/CODING_STANDARDS.md) - General coding principles and patterns
+- [Form Fields and Validation Standards](/docs/standards-processes/form-fields-and-validation-standards.md) - Form implementation standards
+
+### Microsoft Documentation
 - [Microsoft Blazor Server Documentation](https://docs.microsoft.com/blazor)
 - [.NET 9 Blazor Updates](https://docs.microsoft.com/dotnet/core/whats-new/dotnet-9)
 - [ASP.NET Core Authentication](https://docs.microsoft.com/aspnet/core/security/authentication)

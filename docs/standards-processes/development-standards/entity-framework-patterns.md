@@ -335,6 +335,8 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 - UUID vs GUID mappings
 - Reserved word handling
 
+**See Also**: [Coding Standards](/docs/standards-processes/CODING_STANDARDS.md) for service layer implementation patterns that work with EF Core.
+
 ### Value Object Storage Strategies
 
 #### Option 1: Owned Type Configuration
@@ -393,8 +395,15 @@ var events = await _context.Events
     .ToListAsync();
 ```
 
-## Additional Resources
+## Related Documentation
 
+### WitchCityRope Standards
+- [Coding Standards](/docs/standards-processes/CODING_STANDARDS.md) - Service layer patterns and implementation standards
+- [Blazor Server Patterns](/docs/standards-processes/development-standards/blazor-server-patterns.md) - Web service to API communication patterns
+- [Authentication Patterns](/docs/standards-processes/development-standards/authentication-patterns.md) - Identity and authentication database patterns
+- [Database Developer Lessons](/docs/lessons-learned/database-developers.md) - PostgreSQL-specific patterns and pitfalls
+
+### External Resources
 - [EF Core PostgreSQL Provider](https://www.npgsql.org/efcore/)
 - [EF Core Testing Documentation](https://docs.microsoft.com/ef/core/testing/)
 - [Testcontainers for .NET](https://dotnet.testcontainers.org/)

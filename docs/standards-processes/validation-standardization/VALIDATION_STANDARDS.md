@@ -89,7 +89,9 @@ public class LoginModel
 
 Always use the custom WCR validation components instead of standard HTML inputs.
 
-**Reference**: See `/docs/standards-processes/validation-standardization/VALIDATION_COMPONENT_LIBRARY.md` for complete component documentation and usage examples.
+**Reference**: See [Validation Component Library](/docs/standards-processes/validation-standardization/VALIDATION_COMPONENT_LIBRARY.md) for complete component documentation and usage examples.
+
+**Also See**: [Form Fields and Validation Standards](/docs/standards-processes/form-fields-and-validation-standards.md) for when and how to use validation components in forms.
 
 ### 4. Async Validation
 
@@ -340,10 +342,24 @@ See `/src/WitchCityRope.Web/Features/Auth/Pages/Register.razor` for a complete e
 - Custom validation logic
 - Server-side error handling
 
+## Related Documentation
+
+### WitchCityRope Standards
+- [Validation Component Library](/docs/standards-processes/validation-standardization/VALIDATION_COMPONENT_LIBRARY.md) - Complete component API reference and usage examples
+- [Form Fields and Validation Standards](/docs/standards-processes/form-fields-and-validation-standards.md) - When and how to use validation components
+- [Blazor Server Patterns](/docs/standards-processes/development-standards/blazor-server-patterns.md) - Blazor-specific implementation patterns
+- [Coding Standards](/docs/standards-processes/CODING_STANDARDS.md) - General coding principles and service patterns
+
+### Implementation Examples
+- `/src/WitchCityRope.Web/Features/Auth/Pages/Login.razor`
+- `/src/WitchCityRope.Web/Features/Auth/Pages/Register.razor`
+- `/src/WitchCityRope.Web/Features/Vetting/Pages/VettingApplicationStandardized.razor`
+- `/src/WitchCityRope.Web/Features/Test/Pages/ValidationTest.razor`
+
 ## Support
 
 For questions about validation implementation:
-1. Check existing implementations in `/src/WitchCityRope.Web/Features/Auth/Pages/`
+1. Check existing implementations listed above
 2. Review the validation components source code
 3. Consult the Blazor documentation for EditForm
 4. Ask the development team for guidance

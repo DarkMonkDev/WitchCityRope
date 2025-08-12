@@ -4,8 +4,9 @@
 The WitchCityRope Validation Component Library provides a complete set of Blazor components for consistent form validation across the application. All components follow ASP.NET Core validation patterns while providing enhanced user experience and consistent branding.
 
 **This is the definitive reference for all WCR validation components.** For usage patterns and standards, also see:
-- `/docs/standards-processes/form-fields-and-validation-standards.md` - When/how to use components
-- `/docs/standards-processes/validation-standardization/VALIDATION_STANDARDS.md` - Architecture and principles
+- [Form Fields and Validation Standards](/docs/standards-processes/form-fields-and-validation-standards.md) - When/how to use components
+- [Validation Standards](/docs/standards-processes/validation-standardization/VALIDATION_STANDARDS.md) - Architecture and principles
+- [Blazor Server Patterns](/docs/standards-processes/development-standards/blazor-server-patterns.md) - Blazor-specific implementation patterns
 
 ## Component Library (100% Complete)
 
@@ -314,3 +315,21 @@ The WCR Validation Component Library provides a complete, consistent, and user-f
 - Reduced development time for new forms
 
 The library is production-ready and has been successfully implemented across 80% of the application's forms.
+
+## Related Documentation
+
+### Usage and Implementation Guides
+- [Form Fields and Validation Standards](/docs/standards-processes/form-fields-and-validation-standards.md) - When and how to use validation components
+- [Validation Standards](/docs/standards-processes/validation-standardization/VALIDATION_STANDARDS.md) - Architecture, principles, and implementation guidelines
+- [Blazor Server Patterns](/docs/standards-processes/development-standards/blazor-server-patterns.md) - Blazor-specific patterns and render modes
+
+### Development Standards
+- [Coding Standards](/docs/standards-processes/CODING_STANDARDS.md) - General coding principles and service patterns
+- [Authentication Patterns](/docs/standards-processes/development-standards/authentication-patterns.md) - Authentication-specific form patterns
+
+### Implementation Examples
+For real-world usage examples, see:
+- `/src/WitchCityRope.Web/Features/Auth/Pages/Login.razor` - Basic login form
+- `/src/WitchCityRope.Web/Features/Auth/Pages/Register.razor` - Complex registration form with async validation
+- `/src/WitchCityRope.Web/Features/Vetting/Pages/VettingApplicationStandardized.razor` - Multi-section form with conditional validation
+- `/src/WitchCityRope.Web/Features/Test/Pages/ValidationTest.razor` - Component testing and demonstration

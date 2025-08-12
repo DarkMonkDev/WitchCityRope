@@ -349,8 +349,15 @@ test('user can login with valid credentials', async ({ page }) => {
 });
 ```
 
-## Additional Resources
+## Related Documentation
 
+### WitchCityRope Standards
+- [Blazor Server Patterns](/docs/standards-processes/development-standards/blazor-server-patterns.md) - Blazor component patterns and authentication state management
+- [Coding Standards](/docs/standards-processes/CODING_STANDARDS.md) - Service layer implementation patterns for authentication services
+- [Entity Framework Patterns](/docs/standards-processes/development-standards/entity-framework-patterns.md) - Database patterns for Identity and user management
+- [Form Fields and Validation Standards](/docs/standards-processes/form-fields-and-validation-standards.md) - Login and registration form patterns
+
+### Microsoft Documentation
 - [ASP.NET Core Identity Documentation](https://docs.microsoft.com/aspnet/core/security/authentication/identity)
 - [Blazor Server Authentication](https://docs.microsoft.com/aspnet/core/blazor/security/server)
 - [Cookie Authentication in ASP.NET Core](https://docs.microsoft.com/aspnet/core/security/authentication/cookie)
@@ -429,6 +436,8 @@ private async Task Logout()
 ```
 
 This should follow the API endpoint pattern described above for consistency.
+
+**Note**: See [Blazor Server Patterns](/docs/standards-processes/development-standards/blazor-server-patterns.md) for proper component authentication state handling patterns.
 
 ### User Menu Requirements Summary
 

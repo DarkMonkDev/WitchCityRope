@@ -28,6 +28,7 @@ You are a functional specification expert for the WitchCityRope Blazor Server ap
 - RESTful API design
 - Authentication and authorization flows
 - Vertical slice architecture
+- **Microservices Web+API Architecture**
 
 ## Your Process
 
@@ -68,6 +69,13 @@ Save to: `/docs/functional-areas/[feature]/new-work/[date]/requirements/function
 
 ## Architecture
 
+### Microservices Architecture
+**CRITICAL**: This is a Web+API microservices architecture:
+- **Web Service** (Blazor Server): UI/Auth at http://localhost:5651
+- **API Service** (Minimal API): Business logic at http://localhost:5653
+- **Database** (PostgreSQL): localhost:5433
+- **Pattern**: Web → HTTP → API → Database (NEVER Web → Database directly)
+
 ### Component Structure
 ```
 /Features/[Feature]/
@@ -85,7 +93,9 @@ Save to: `/docs/functional-areas/[feature]/new-work/[date]/requirements/function
 ```
 
 ### Service Architecture
-[Service layer design and patterns]
+- **Web Service**: UI components make HTTP calls to API
+- **API Service**: Business logic with EF Core database access
+- **No Direct Database Access**: Web service NEVER directly accesses database
 
 ## Data Models
 
@@ -128,7 +138,7 @@ public class [Feature]Dto
 - Event callbacks
 
 ## Integration Points
-- Authentication system
+- Authentication system (via API endpoints)
 - Email notifications
 - Payment processing
 - Event management
@@ -177,16 +187,18 @@ Technical criteria for completion:
 - ✅ Syncfusion (NOT MudBlazor)
 - ✅ Direct service injection (NOT MediatR)
 - ✅ Vertical slice architecture
+- ✅ **Web+API Microservices Pattern**
 
 ### MUST NOT Use
 - ❌ Razor Pages (.cshtml files)
 - ❌ Complex abstractions
 - ❌ Repository pattern over EF Core
 - ❌ Unnecessary middleware
+- ❌ **Direct database access from Web service**
 
 ## Common Patterns
 
-### Service Pattern
+### Service Pattern (API Service)
 ```csharp
 public interface I[Feature]Service
 {
@@ -196,18 +208,33 @@ public interface I[Feature]Service
 
 public class [Feature]Service : I[Feature]Service
 {
-    private readonly WitchCityRopeDbContext _db;
-    // Direct EF Core usage
+    private readonly WitchCityRopeIdentityDbContext _db;
+    // Direct EF Core usage (API service only)
 }
 ```
 
-### Component Pattern
+### Component Pattern (Web Service)
 ```razor
 @page "/[route]"
-@rendermode InteractiveServer
-@inject I[Feature]Service Service
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@inject IApiClient ApiClient
 
-<!-- Component implementation -->
+<!-- Component implementation - makes HTTP calls to API -->
+```
+
+### Web Service HTTP Pattern
+```csharp
+// Web service makes HTTP calls to API service
+public class ApiClient
+{
+    private readonly HttpClient _httpClient;
+    
+    public async Task<T> GetAsync<T>(string endpoint)
+    {
+        // HTTP call to API service
+        return await _httpClient.GetFromJsonAsync<T>(endpoint);
+    }
+}
 ```
 
 ## Quality Checklist
@@ -219,5 +246,6 @@ public class [Feature]Service : I[Feature]Service
 - [ ] Testing approach defined
 - [ ] Integration points clear
 - [ ] Migration path defined
+- [ ] **Respects Web+API architecture boundaries**
 
-Remember: Transform business needs into concrete technical specifications that developers can implement directly.
+Remember: Transform business needs into concrete technical specifications that developers can implement directly while respecting the microservices architecture where Web service handles UI and API service handles business logic.
