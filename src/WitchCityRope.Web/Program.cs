@@ -274,7 +274,10 @@ builder.Services.AddAuthorization(options =>
 // Add data protection for secure cookie handling
 builder.Services.AddDataProtection()
     .SetApplicationName("WitchCityRope")
-    .PersistKeysToFileSystem(new DirectoryInfo("/app/shared/keys")); // Shared volume for consistent encryption
+    .PersistKeysToFileSystem(new DirectoryInfo(
+        builder.Environment.IsDevelopment() 
+            ? Path.Combine(Directory.GetCurrentDirectory(), "temp", "keys")
+            : "/app/shared/keys")); // Use temp directory in dev, shared volume in production
 
 // Configure session (for temporary data and state management)
 builder.Services.AddSession(options =>

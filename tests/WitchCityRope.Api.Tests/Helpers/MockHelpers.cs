@@ -180,7 +180,7 @@ public static class MockHelpers
         Guid? id = null,
         Guid? eventId = null,
         Guid? userId = null,
-        ApiEnums.RegistrationStatus status = ApiEnums.RegistrationStatus.Confirmed)
+        CoreEnums.RegistrationStatus status = CoreEnums.RegistrationStatus.Confirmed)
     {
         var user = userId.HasValue 
             ? CreateTestUser(id: userId.Value) 
@@ -352,7 +352,7 @@ public class TestDataBuilder
     public async Task<Registration> CreateRegistrationAsync(
         Guid eventId,
         Guid userId,
-        ApiEnums.RegistrationStatus status = ApiEnums.RegistrationStatus.Confirmed)
+        CoreEnums.RegistrationStatus status = CoreEnums.RegistrationStatus.Confirmed)
     {
         var registration = MockHelpers.CreateTestRegistration(
             eventId: eventId,

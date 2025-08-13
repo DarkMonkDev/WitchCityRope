@@ -77,7 +77,7 @@ namespace WitchCityRope.Core.Entities
         /// <summary>
         /// Maximum number of attendees allowed
         /// </summary>
-        public int Capacity { get; private set; }
+        public int Capacity { get; set; }
         
         public EventType EventType { get; private set; }
         

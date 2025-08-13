@@ -27,5 +27,10 @@ namespace WitchCityRope.Api.Features.Auth.Models
         /// User information
         /// </summary>
         public UserDto User { get; set; } = new();
+
+        /// <summary>
+        /// User ID for compatibility with tests
+        /// </summary>
+        public Guid UserId { get; set; }
     }
 }

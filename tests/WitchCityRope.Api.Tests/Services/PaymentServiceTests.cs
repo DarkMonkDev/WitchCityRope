@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
@@ -6,8 +7,7 @@ using Xunit;
 using WitchCityRope.Api.Services;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Core.DTOs;
-using CoreEnums = WitchCityRope.Core.Enums;
-using ApiEnums = WitchCityRope.Api.Features.Events.Models;
+using WitchCityRope.Core.Enums;
 using WitchCityRope.Core.Interfaces;
 
 namespace WitchCityRope.Api.Tests.Services;

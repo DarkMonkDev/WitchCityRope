@@ -48,6 +48,8 @@
 | 2025-01-25 | /docs/lessons-learned/lessons-learned-troubleshooting/TEST_SUITE_SUMMARY_JAN2025.md | CREATED | Test suite migration summary and lessons | Test migration lessons | PERMANENT | N/A |
 | 2025-08-04 | /docs/lessons-learned/lessons-learned-troubleshooting/postgresql-lessons.md | CREATED | PostgreSQL specific lessons and troubleshooting | PostgreSQL lessons | PERMANENT | N/A |
 | 2025-08-12 | /docs/architecture/file-registry.md | MODIFIED | Added missing lessons-learned files to registry | Documentation synchronization | PERMANENT | N/A |
+| 2025-08-13 | /docs/lessons-learned/orchestration-failures/CRITICAL-TEST-DELEGATION-VIOLATION.md | CREATED | Critical violation documentation for orchestrator test delegation failure (7+ user reports) | Fix repeated orchestrator violation | PERMANENT | N/A |
+| 2025-08-13 | /.claude/agents/orchestration/orchestrator.md | MODIFIED | Added critical warning header to prevent test delegation violations | Fix repeated orchestrator violation | PERMANENT | N/A |
 | 2025-08-12 | /docs/_archive/authentication-identity-legacy-2025-08-12/ | MOVED | Archived entire authentication-identity directory - contains outdated migration history | Authentication documentation cleanup | ARCHIVED | N/A |
 | 2025-08-12 | /docs/standards-processes/development-standards/authentication-patterns.md | MODIFIED | Added current user menu implementation patterns and legacy route issues | Authentication documentation cleanup | PERMANENT | N/A |
 | 2025-08-12 | /docs/lessons-learned/backend-developers.md | MODIFIED | Removed DateTime and PostgreSQL duplicates, added references to standards | Documentation consolidation | PERMANENT | N/A |
@@ -73,6 +75,11 @@
 | 2025-08-12 | /docs/functional-areas/authentication-identity/README-DEPRECATED.md | CREATED | Deprecation notice for legacy authentication functional area | Documentation consolidation | PERMANENT | N/A |
 | 2025-08-12 | /session-work/2025-08-12/LIBRARIAN_DOCUMENTATION_REVIEW_REPORT.md | CREATED | Comprehensive review report of documentation management status | Librarian review session | TEMPORARY | 2025-09-12 |
 | 2025-08-12 | /docs/architecture/file-registry.md | MODIFIED | Updated with 15+ new file entries and consolidation actions | Documentation synchronization | PERMANENT | N/A |
+| 2025-08-12 | /docs/lessons-learned/orchestration-failures/ | CREATED | Directory for orchestration failure lessons learned | AI workflow orchestration failures | PERMANENT | N/A |
+| 2025-08-12 | /docs/lessons-learned/orchestration-failures/2025-08-12-orchestrator-not-invoked.md | CREATED | Critical lesson learned about orchestrator auto-invocation failures | AI workflow orchestration failures | PERMANENT | N/A |
+| 2025-08-12 | /docs/lessons-learned/orchestration-failures/2025-08-12-test-coordinator-delegation-failure.md | CREATED | Critical lesson learned about test delegation failures in orchestrator | AI workflow orchestration failures | PERMANENT | N/A |
+| 2025-08-12 | /docs/architecture/file-registry.md | MODIFIED | Added orchestration failure lesson learned files to registry | Documentation synchronization | PERMANENT | N/A |
+| 2025-08-12 | /docs/lessons-learned/orchestration-failures/README.md | CREATED | Index and overview for critical orchestration failure lessons learned | AI workflow orchestration failures | PERMANENT | N/A |
 
 ## End of Session Checklist
 

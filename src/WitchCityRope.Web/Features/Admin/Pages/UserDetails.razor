@@ -1,165 +1,330 @@
 @page "/admin/users/{userId:guid}"
-@attribute [Authorize(Policy = "RequireAdmin")]
-@using WitchCityRope.Web.Components.Admin.Users
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
 @using WitchCityRope.Core.DTOs
+@using WitchCityRope.Core.Enums
+@using WitchCityRope.Web.Components.Admin.Users
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Administrator")]
+@inject HttpClient HttpClient
+@inject NavigationManager Navigation
+@inject ILogger<UserDetails> Logger
+@inject IJSRuntime JSRuntime
 
-<PageTitle>User Details - Admin</PageTitle>
+<PageTitle>@(_user?.FirstName ?? "Loading") @(_user?.LastName ?? "") - User Details</PageTitle>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2>User Details</h2>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item">
-                                <a href="/admin">Admin</a>
-                            </li>
-                            <li class="breadcrumb-item">
-                                <a href="/admin/users">Users</a>
-                            </li>
-                            <li class="breadcrumb-item active">Details</li>
-                        </ol>
-                    </nav>
+<div class="user-detail-page">
+    <!-- Page Header with Prominent Name Display -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-start">
+            <div class="header-content">
+                @if (_user != null)
+                {
+                    <h1 class="user-name">@_user.FirstName @_user.LastName</h1>
+                    <p class="user-scene-name text-muted mb-1">@_user.SceneName</p>
+                    <div class="user-badges">
+                        <span class="badge bg-primary me-2">@_user.Role</span>
+                        <span class="badge @GetStatusBadgeClass(_user.Status)">@GetStatusDisplayText(_user.Status)</span>
+                        @if (!_user.IsActive)
+                        {
+                            <span class="badge bg-warning text-dark">Inactive</span>
+                        }
+                        @if (_user.IsLockedOut)
+                        {
+                            <span class="badge bg-danger">Locked Out</span>
+                        }
+                        @if (!_user.EmailConfirmed)
+                        {
+                            <span class="badge bg-secondary">Email Unconfirmed</span>
+                        }
+                    </div>
+                }
+                else if (_isLoading)
+                {
+                    <div class="placeholder-glow">
+                        <h1 class="placeholder col-6"></h1>
+                        <p class="placeholder col-4"></p>
+                    </div>
+                }
+                else
+                {
+                    <h1>User Not Found</h1>
+                }
+                
+                <nav aria-label="breadcrumb" class="mt-2">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="/admin">Admin</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="/admin/users">User Management</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">User Details</li>
+                    </ol>
+                </nav>
+            </div>
+            
+            <!-- Quick Actions (Top Right Corner) -->
+            <div class="quick-actions">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary" @onclick="OpenEditUserModal" disabled="@(_user == null)">
+                        <i class="fas fa-edit me-1"></i>Edit User
+                    </button>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" disabled="@(_user == null)">
+                            Change Status
+                        </button>
+                        <ul class="dropdown-menu">
+                            @if (_user != null)
+                            {
+                                @foreach (var status in Enum.GetValues<UserStatus>())
+                                {
+                                    @if (status != _user.Status)
+                                    {
+                                        <li>
+                                            <button class="dropdown-item" @onclick="() => ChangeUserStatus(status)">
+                                                <span class="badge @GetStatusBadgeClass(status) me-2">@GetStatusDisplayText(status)</span>
+                                            </button>
+                                        </li>
+                                    }
+                                }
+                            }
+                        </ul>
+                    </div>
+                    <button type="button" class="btn btn-outline-info" @onclick="ViewUserEvents" disabled="@(_user == null)">
+                        <i class="fas fa-calendar me-1"></i>View Events
+                    </button>
+                    <button type="button" class="btn btn-outline-success" @onclick="OpenAddNoteModal" disabled="@(_user == null)">
+                        <i class="fas fa-plus me-1"></i>Add Note
+                    </button>
                 </div>
-                <div>
-                    <a href="/admin/users" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>Back to Users
-                    </a>
-                </div>
+                <button type="button" class="btn btn-outline-secondary ms-2" @onclick="NavigateBack">
+                    <i class="fas fa-arrow-left me-1"></i>Back
+                </button>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-xl-8 col-lg-7">
-            <!-- User Information Panel -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-user me-2"></i>User Information
-                    </h5>
-                </div>
-                <div class="card-body">
-                    @if (_user != null)
-                    {
+    @if (_isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading user details...</span>
+            </div>
+            <p class="mt-2">Loading user details...</p>
+        </div>
+    }
+    else if (_user == null)
+    {
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            User not found or you don't have permission to view this user.
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <!-- Main Content Area -->
+            <div class="col-lg-8">
+                <!-- Overview Section (Always Visible, Not in Tabs) -->
+                <div class="overview-section card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-user me-2"></i>Overview
+                        </h5>
+                    </div>
+                    <div class="card-body">
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Scene Name</label>
-                                <p class="form-control-plaintext">@_user.SceneName</p>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Email</label>
-                                <p class="form-control-plaintext">@_user.Email</p>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Role</label>
-                                <span class="badge bg-primary">@_user.Role</span>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Status</label>
-                                <div>
-                                    @if (_user.IsActive)
-                                    {
-                                        <span class="badge bg-success me-2">Active</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-danger me-2">Inactive</span>
-                                    }
-                                    
-                                    @if (_user.IsVetted)
-                                    {
-                                        <span class="badge bg-info">Vetted</span>
-                                    }
+                            <div class="col-md-6">
+                                <div class="info-group">
+                                    <label class="info-label">Scene Name</label>
+                                    <p class="info-value">@_user.SceneName</p>
+                                </div>
+                                <div class="info-group">
+                                    <label class="info-label">Email</label>
+                                    <p class="info-value">
+                                        @_user.Email
+                                        @if (!_user.EmailConfirmed)
+                                        {
+                                            <small class="text-warning ms-2">
+                                                <i class="fas fa-exclamation-triangle"></i> Unconfirmed
+                                            </small>
+                                        }
+                                    </p>
+                                </div>
+                                <div class="info-group">
+                                    <label class="info-label">Pronouns</label>
+                                    <p class="info-value">@(_user.Pronouns ?? "Not specified")</p>
                                 </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Created</label>
-                                <p class="form-control-plaintext">@_user.CreatedAt.ToString("MMM d, yyyy")</p>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Last Login</label>
-                                <p class="form-control-plaintext">
-                                    @(_user.LastLoginAt?.ToString("MMM d, yyyy") ?? "Never")
-                                </p>
+                            <div class="col-md-6">
+                                <div class="info-group">
+                                    <label class="info-label">Pronounced Name</label>
+                                    <p class="info-value">@(_user.PronouncedName ?? "Not specified")</p>
+                                </div>
+                                <div class="info-group">
+                                    <label class="info-label">Member Since</label>
+                                    <p class="info-value">@_user.CreatedAt.ToString("MMMM d, yyyy")</p>
+                                </div>
+                                <div class="info-group">
+                                    <label class="info-label">Last Login</label>
+                                    <p class="info-value">
+                                        @if (_user.LastLoginAt.HasValue)
+                                        {
+                                            @_user.LastLoginAt.Value.ToString("MMMM d, yyyy 'at' h:mm tt")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Never</span>
+                                        }
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                    }
-                    else if (_isLoading)
-                    {
-                        <div class="text-center py-4">
-                            <div class="spinner-border" role="status">
-                                <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+
+                <!-- Tabbed Interface -->
+                <div class="detail-tabs">
+                    <ul class="nav nav-tabs" id="userDetailTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="events-tab" data-bs-toggle="tab" data-bs-target="#events" type="button" role="tab">
+                                <i class="fas fa-calendar me-1"></i>Events (@_eventCount)
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="vetting-tab" data-bs-toggle="tab" data-bs-target="#vetting" type="button" role="tab">
+                                <i class="fas fa-clipboard-check me-1"></i>Vetting
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="audit-tab" data-bs-toggle="tab" data-bs-target="#audit" type="button" role="tab">
+                                <i class="fas fa-history me-1"></i>Audit Trail
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="userDetailTabContent">
+                        <div class="tab-pane fade show active" id="events" role="tabpanel">
+                            <div class="p-3">
+                                <UserEventsTab UserId="@UserId" />
                             </div>
                         </div>
-                    }
-                    else
-                    {
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            User not found or access denied.
+                        <div class="tab-pane fade" id="vetting" role="tabpanel">
+                            <div class="p-3">
+                                <UserVettingTab UserId="@UserId" CurrentStatus="@_user.Status" OnStatusChanged="@HandleStatusChanged" />
+                            </div>
                         </div>
-                    }
+                        <div class="tab-pane fade" id="audit" role="tabpanel">
+                            <div class="p-3">
+                                <UserAuditTrailTab UserId="@UserId" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Always-Visible Admin Notes Panel (Right Side) -->
+            <div class="col-lg-4">
+                <div class="notes-panel-container">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-sticky-note me-2"></i>Admin Notes
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <AdminNotesPanel UserId="@UserId" OnNotesChanged="@HandleNotesChanged" />
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+    }
+</div>
 
-        <div class="col-xl-4 col-lg-5">
-            <!-- Admin Notes Panel -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-sticky-note me-2"></i>Admin Notes
-                    </h5>
+<!-- Edit User Modal -->
+@if (_showEditModal && _user != null)
+{
+    <EditUserModal User="@_user"
+                   IsVisible="@_showEditModal"
+                   OnSave="@HandleUserUpdated"
+                   OnCancel="@CloseEditModal" />
+}
+
+<!-- Status Change Confirmation Modal -->
+@if (_showStatusModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Change User Status</h5>
+                    <button type="button" class="btn-close" @onclick="CloseStatusModal"></button>
                 </div>
-                <div class="card-body">
-                    @if (_user != null)
-                    {
-                        <AdminNotesPanel UserId="@UserId" OnNotesChanged="@HandleNotesChanged" />
-                    }
+                <div class="modal-body">
+                    <p>Change user status from <strong>@GetStatusDisplayText(_user?.Status ?? UserStatus.PendingReview)</strong> to <strong>@GetStatusDisplayText(_pendingStatus)</strong>?</p>
+                    <div class="mb-3">
+                        <label for="statusReason" class="form-label">Reason (required)</label>
+                        <textarea id="statusReason" @bind="_statusChangeReason" class="form-control" rows="3" 
+                                  placeholder="Please provide a reason for this status change..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseStatusModal">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="ConfirmStatusChange" disabled="@(string.IsNullOrWhiteSpace(_statusChangeReason) || _isSaving)">
+                        @if (_isSaving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        Change Status
+                    </button>
                 </div>
             </div>
         </div>
     </div>
-</div>
+}
 
 @code {
     [Parameter] public Guid UserId { get; set; }
 
-    private AdminUserDto? _user;
+    private UserDetailDto? _user;
     private bool _isLoading = true;
+    private bool _showEditModal = false;
+    private bool _showStatusModal = false;
+    private bool _isSaving = false;
+    private UserStatus _pendingStatus = UserStatus.PendingReview;
+    private string _statusChangeReason = "";
+    private int _eventCount = 0;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadUser();
+        await LoadUserDetails();
     }
 
-    private async Task LoadUser()
+    private async Task LoadUserDetails()
     {
         try
         {
             _isLoading = true;
-            // This would typically call the API to get user details
-            // For now, we'll create a mock user for demonstration
-            await Task.Delay(500); // Simulate API call
             
-            _user = new AdminUserDto
+            // Load user details from API
+            var response = await HttpClient.GetFromJsonAsync<UserDetailDto>($"api/admin/users/{UserId}");
+            _user = response;
+            
+            // Load event count
+            if (_user != null)
             {
-                Id = UserId,
-                SceneName = "MockUser",
-                Email = "mock@example.com",
-                Role = WitchCityRope.Core.Enums.UserRole.Member,
-                IsActive = true,
-                IsVetted = false,
-                CreatedAt = DateTime.Now.AddMonths(-6),
-                LastLoginAt = DateTime.Now.AddDays(-2)
-            };
+                _eventCount = _user.EventsAttended + _user.EventsCreated;
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            Logger.LogError(ex, "Error loading user details for {UserId}", UserId);
+            _user = null;
         }
         catch (Exception ex)
         {
-            // Log error
+            Logger.LogError(ex, "Unexpected error loading user details for {UserId}", UserId);
             _user = null;
         }
         finally
@@ -169,9 +334,243 @@
         }
     }
 
-    private async Task HandleNotesChanged()
+    private void OpenEditUserModal()
     {
-        // This could trigger a refresh of user statistics or other related data
+        _showEditModal = true;
+    }
+
+    private void CloseEditModal()
+    {
+        _showEditModal = false;
+    }
+
+    private async Task HandleUserUpdated(UserDetailDto updatedUser)
+    {
+        _user = updatedUser;
+        _showEditModal = false;
+        StateHasChanged();
+    }
+
+    private void ChangeUserStatus(UserStatus newStatus)
+    {
+        _pendingStatus = newStatus;
+        _statusChangeReason = "";
+        _showStatusModal = true;
+    }
+
+    private void CloseStatusModal()
+    {
+        _showStatusModal = false;
+        _statusChangeReason = "";
+    }
+
+    private async Task ConfirmStatusChange()
+    {
+        if (_user == null || string.IsNullOrWhiteSpace(_statusChangeReason))
+            return;
+
+        try
+        {
+            _isSaving = true;
+            
+            var updateDto = new UpdateUserStatusDto
+            {
+                Status = _pendingStatus,
+                Reason = _statusChangeReason
+            };
+
+            var response = await HttpClient.PutAsJsonAsync($"api/admin/users/{UserId}/status", updateDto);
+            response.EnsureSuccessStatusCode();
+
+            // Update local user object
+            _user.Status = _pendingStatus;
+            
+            _showStatusModal = false;
+            _statusChangeReason = "";
+            
+            // Refresh user details to get updated audit trail
+            await LoadUserDetails();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error updating user status for {UserId}", UserId);
+            // TODO: Show error message to user
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private async Task HandleStatusChanged(UserStatus newStatus)
+    {
+        if (_user != null)
+        {
+            _user.Status = newStatus;
+            StateHasChanged();
+        }
+    }
+
+    private void ViewUserEvents()
+    {
+        // Navigate to events tab
+        _ = JSRuntime.InvokeVoidAsync("eval", "new bootstrap.Tab(document.querySelector('#events-tab')).show()");
+    }
+
+    private async Task OpenAddNoteModal()
+    {
+        // This will be handled by the AdminNotesPanel component
         await Task.CompletedTask;
     }
+
+    private async Task HandleNotesChanged()
+    {
+        // Optionally refresh user data or update counters
+        await Task.CompletedTask;
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/admin/users");
+    }
+
+    private string GetStatusBadgeClass(UserStatus status)
+    {
+        return status switch
+        {
+            UserStatus.Vetted => "bg-success",
+            UserStatus.PendingReview => "bg-warning text-dark",
+            UserStatus.NoApplication => "bg-secondary",
+            UserStatus.OnHold => "bg-info",
+            UserStatus.Banned => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetStatusDisplayText(UserStatus status)
+    {
+        return status switch
+        {
+            UserStatus.PendingReview => "Pending Review",
+            UserStatus.Vetted => "Vetted",
+            UserStatus.NoApplication => "No Application",
+            UserStatus.OnHold => "On Hold",
+            UserStatus.Banned => "Banned",
+            _ => "Unknown"
+        };
+    }
 }
+
+<style>
+    .user-detail-page {
+        padding: 1rem;
+    }
+
+    .page-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .user-name {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #212529;
+    }
+
+    .user-scene-name {
+        font-size: 1.1rem;
+        font-style: italic;
+    }
+
+    .user-badges .badge {
+        font-size: 0.8rem;
+    }
+
+    .quick-actions {
+        flex-shrink: 0;
+    }
+
+    .overview-section .info-group {
+        margin-bottom: 1rem;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #6c757d;
+        font-size: 0.875rem;
+        margin-bottom: 0.25rem;
+        display: block;
+    }
+
+    .info-value {
+        margin-bottom: 0;
+        color: #212529;
+    }
+
+    .detail-tabs .nav-tabs {
+        border-bottom: 2px solid #dee2e6;
+        margin-bottom: 0;
+    }
+
+    .detail-tabs .nav-link {
+        border: none;
+        color: #6c757d;
+        font-weight: 500;
+        padding: 1rem 1.5rem;
+    }
+
+    .detail-tabs .nav-link.active {
+        color: #0d6efd;
+        background-color: transparent;
+        border-bottom: 2px solid #0d6efd;
+    }
+
+    .detail-tabs .tab-content {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-top: none;
+    }
+
+    .notes-panel-container {
+        position: sticky;
+        top: 1rem;
+    }
+
+    .notes-panel-container .card {
+        min-height: 600px;
+    }
+
+    @@media (max-width: 991.98px) {
+        .quick-actions {
+            margin-top: 1rem;
+        }
+        
+        .notes-panel-container {
+            position: static;
+            margin-top: 2rem;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .page-header {
+            text-align: center;
+        }
+        
+        .page-header .d-flex {
+            flex-direction: column;
+            align-items: center !important;
+        }
+        
+        .quick-actions {
+            margin-top: 1rem;
+        }
+        
+        .quick-actions .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+    }
+</style>

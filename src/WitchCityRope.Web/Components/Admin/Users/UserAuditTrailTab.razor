@@ -1,0 +1,427 @@
+@using WitchCityRope.Core.DTOs
+@inject HttpClient HttpClient
+@inject ILogger<UserAuditTrailTab> Logger
+
+<div class="user-audit-trail-tab">
+    @if (_isLoading)
+    {
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading audit trail...</span>
+            </div>
+            <p class="mt-2">Loading audit trail...</p>
+        </div>
+    }
+    else if (_auditLogs.Any())
+    {
+        <div class="audit-controls mb-3">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="filter-controls">
+                        <label for="categoryFilter" class="form-label">Filter by Category:</label>
+                        <select id="categoryFilter" @bind="_selectedCategory" @bind:event="onchange" class="form-select form-select-sm">
+                            <option value="">All Categories</option>
+                            @foreach (var category in _availableCategories)
+                            {
+                                <option value="@category">@category</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <small class="text-muted">Showing @FilteredAuditLogs.Count() of @_auditLogs.Count records</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="audit-timeline">
+            @foreach (var logGroup in FilteredAuditLogs.GroupBy(l => l.PerformedAt.Date).OrderByDescending(g => g.Key))
+            {
+                <div class="timeline-day mb-4">
+                    <div class="day-header">
+                        <span class="day-date">@logGroup.Key.ToString("MMMM d, yyyy")</span>
+                        <span class="day-count badge bg-secondary ms-2">@logGroup.Count() actions</span>
+                    </div>
+                    
+                    @foreach (var log in logGroup.OrderByDescending(l => l.PerformedAt))
+                    {
+                        <div class="audit-entry card mb-2">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="entry-content">
+                                        <div class="entry-header">
+                                            <span class="action-badge badge @GetCategoryBadgeClass(log.Category) me-2">
+                                                @GetCategoryIcon(log.Category) @log.Category
+                                            </span>
+                                            <span class="action-name">@log.Action</span>
+                                        </div>
+                                        
+                                        @if (!string.IsNullOrEmpty(log.Details))
+                                        {
+                                            <div class="entry-details text-muted mt-1">
+                                                @log.Details
+                                            </div>
+                                        }
+                                        
+                                        @if (!string.IsNullOrEmpty(log.OldValue) || !string.IsNullOrEmpty(log.NewValue))
+                                        {
+                                            <div class="value-changes mt-2">
+                                                @if (!string.IsNullOrEmpty(log.OldValue))
+                                                {
+                                                    <div class="old-value">
+                                                        <small class="text-muted">From:</small> <code>@log.OldValue</code>
+                                                    </div>
+                                                }
+                                                @if (!string.IsNullOrEmpty(log.NewValue))
+                                                {
+                                                    <div class="new-value">
+                                                        <small class="text-muted">To:</small> <code>@log.NewValue</code>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                        
+                                        <div class="entry-meta mt-1">
+                                            <small class="text-muted">
+                                                <i class="fas fa-user me-1"></i>@log.PerformedByName
+                                                <i class="fas fa-clock ms-2 me-1"></i>@log.PerformedAt.ToString("h:mm tt")
+                                            </small>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="entry-time">
+                                        <small class="text-muted">@GetRelativeTime(log.PerformedAt)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        @if (_hasMore)
+        {
+            <div class="text-center mt-4">
+                <button type="button" class="btn btn-outline-secondary" @onclick="LoadMoreAuditLogs" disabled="@_isLoadingMore">
+                    @if (_isLoadingMore)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                    }
+                    Load More
+                </button>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-history fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No Audit Trail</h5>
+            <p class="text-muted">No administrative actions have been recorded for this user yet.</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Guid UserId { get; set; }
+
+    private List<UserAuditLogDto> _auditLogs = new();
+    private bool _isLoading = true;
+    private bool _isLoadingMore = false;
+    private bool _hasMore = false;
+    private int _currentPage = 1;
+    private const int PageSize = 20;
+    
+    private string _selectedCategory = "";
+    private List<string> _availableCategories = new();
+
+    private IEnumerable<UserAuditLogDto> FilteredAuditLogs =>
+        string.IsNullOrEmpty(_selectedCategory) 
+            ? _auditLogs 
+            : _auditLogs.Where(l => l.Category == _selectedCategory);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAuditTrail();
+    }
+
+    private async Task LoadAuditTrail()
+    {
+        try
+        {
+            _isLoading = true;
+            
+            // Load audit trail from API
+            var request = new ActivityLogSearchRequest
+            {
+                UserId = UserId,
+                Page = 1,
+                PageSize = PageSize
+            };
+            
+            var response = await HttpClient.PostAsJsonAsync("api/admin/users/audit-search", request);
+            var result = await response.Content.ReadFromJsonAsync<PagedActivityLogResult>();
+            
+            if (result != null)
+            {
+                _auditLogs = result.Activities.Select(a => new UserAuditLogDto
+                {
+                    Id = a.Id,
+                    UserId = a.UserId,
+                    Action = a.Action,
+                    Details = a.Details,
+                    PerformedByName = a.PerformedByName,
+                    PerformedAt = a.PerformedAt,
+                    Category = a.Category
+                }).ToList();
+                
+                _hasMore = result.CurrentPage < result.TotalPages;
+                _currentPage = result.CurrentPage;
+                
+                // Extract unique categories for filtering
+                _availableCategories = _auditLogs.Select(l => l.Category)
+                    .Distinct()
+                    .OrderBy(c => c)
+                    .ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading audit trail for user {UserId}", UserId);
+            _auditLogs = new List<UserAuditLogDto>();
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadMoreAuditLogs()
+    {
+        try
+        {
+            _isLoadingMore = true;
+            
+            var request = new ActivityLogSearchRequest
+            {
+                UserId = UserId,
+                Page = _currentPage + 1,
+                PageSize = PageSize
+            };
+            
+            var response = await HttpClient.PostAsJsonAsync("api/admin/users/audit-search", request);
+            var result = await response.Content.ReadFromJsonAsync<PagedActivityLogResult>();
+            
+            if (result != null && result.Activities.Any())
+            {
+                var additionalLogs = result.Activities.Select(a => new UserAuditLogDto
+                {
+                    Id = a.Id,
+                    UserId = a.UserId,
+                    Action = a.Action,
+                    Details = a.Details,
+                    PerformedByName = a.PerformedByName,
+                    PerformedAt = a.PerformedAt,
+                    Category = a.Category
+                }).ToList();
+                
+                _auditLogs.AddRange(additionalLogs);
+                _hasMore = result.CurrentPage < result.TotalPages;
+                _currentPage = result.CurrentPage;
+                
+                // Update available categories
+                _availableCategories = _auditLogs.Select(l => l.Category)
+                    .Distinct()
+                    .OrderBy(c => c)
+                    .ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading more audit logs for user {UserId}", UserId);
+        }
+        finally
+        {
+            _isLoadingMore = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetCategoryBadgeClass(string category)
+    {
+        return category switch
+        {
+            "Account" => "bg-primary",
+            "Role" => "bg-info",
+            "Security" => "bg-warning text-dark",
+            "Status" => "bg-success",
+            "Profile" => "bg-secondary",
+            "Vetting" => "bg-info",
+            _ => "bg-light text-dark"
+        };
+    }
+
+    private string GetCategoryIcon(string category)
+    {
+        return category switch
+        {
+            "Account" => "👤",
+            "Role" => "🏷️",
+            "Security" => "🔒",
+            "Status" => "📊",
+            "Profile" => "📝",
+            "Vetting" => "✅",
+            _ => "📋"
+        };
+    }
+
+    private string GetRelativeTime(DateTime dateTime)
+    {
+        var timeSpan = DateTime.UtcNow - dateTime;
+        
+        if (timeSpan.TotalMinutes < 1) return "just now";
+        if (timeSpan.TotalMinutes < 60) return $"{(int)timeSpan.TotalMinutes}m ago";
+        if (timeSpan.TotalHours < 24) return $"{(int)timeSpan.TotalHours}h ago";
+        if (timeSpan.TotalDays < 7) return $"{(int)timeSpan.TotalDays}d ago";
+        if (timeSpan.TotalDays < 30) return $"{(int)(timeSpan.TotalDays / 7)}w ago";
+        if (timeSpan.TotalDays < 365) return $"{(int)(timeSpan.TotalDays / 30)}mo ago";
+        
+        return $"{(int)(timeSpan.TotalDays / 365)}y ago";
+    }
+}
+
+<style>
+    .day-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .day-date {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .audit-entry {
+        border-left: 4px solid #e9ecef;
+        margin-left: 1rem;
+        position: relative;
+        transition: all 0.2s ease;
+    }
+
+    .audit-entry:hover {
+        border-left-color: #0d6efd;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .audit-entry::before {
+        content: '';
+        position: absolute;
+        left: -8px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 12px;
+        height: 12px;
+        background-color: #6c757d;
+        border-radius: 50%;
+        border: 2px solid white;
+    }
+
+    .audit-entry:hover::before {
+        background-color: #0d6efd;
+    }
+
+    .entry-header {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .action-name {
+        font-weight: 500;
+        color: #495057;
+    }
+
+    .entry-details {
+        font-size: 0.9rem;
+        margin-top: 0.25rem;
+    }
+
+    .value-changes {
+        font-size: 0.85rem;
+        background-color: #f8f9fa;
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+        border: 1px solid #e9ecef;
+    }
+
+    .value-changes code {
+        background-color: #e9ecef;
+        padding: 0.1rem 0.3rem;
+        border-radius: 0.2rem;
+        font-size: 0.8rem;
+    }
+
+    .entry-meta {
+        font-size: 0.8rem;
+    }
+
+    .entry-time {
+        flex-shrink: 0;
+        text-align: right;
+    }
+
+    .filter-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .filter-controls .form-label {
+        margin-bottom: 0;
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
+    .filter-controls .form-select {
+        width: auto;
+        min-width: 150px;
+    }
+
+    @@media (max-width: 767.98px) {
+        .audit-entry {
+            margin-left: 0.5rem;
+        }
+        
+        .audit-entry::before {
+            left: -6px;
+            width: 8px;
+            height: 8px;
+        }
+        
+        .entry-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .filter-controls {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .filter-controls .form-select {
+            width: 100%;
+            min-width: unset;
+        }
+        
+        .audit-controls .text-md-end {
+            text-align: left !important;
+            margin-top: 1rem;
+        }
+    }
+</style>

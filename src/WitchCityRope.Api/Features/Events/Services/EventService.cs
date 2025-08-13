@@ -9,6 +9,7 @@ using WitchCityRope.Infrastructure.Data;
 using WitchCityRope.Core.Entities;
 using WitchCityRope.Core;
 using WitchCityRope.Core.DTOs;
+using WitchCityRope.Core.Enums;
 using WitchCityRope.Core.Exceptions;
 using WitchCityRope.Core.Interfaces;
 using WitchCityRope.Core.Models;
@@ -354,13 +355,13 @@ public class EventService : IEventService
             var vettingRegistration = await CreateRegistrationAsync(
                 request,
                 @event,
-                RegistrationStatus.RequiresVetting,
+                RegistrationStatus.Pending,
                 null
             );
 
             return new RegisterForEventResponse(
                 RegistrationId: vettingRegistration.Id,
-                Status: RegistrationStatus.RequiresVetting,
+                Status: RegistrationStatus.Pending,
                 WaitlistPosition: null,
                 AmountCharged: 0,
                 ConfirmationCode: GenerateConfirmationCode()

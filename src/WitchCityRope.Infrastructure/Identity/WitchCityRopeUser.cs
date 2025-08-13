@@ -53,6 +53,7 @@ namespace WitchCityRope.Infrastructure.Identity
             UpdatedAt = DateTime.UtcNow;
             IsActive = true;
             IsVetted = false;
+            VettingStatus = VettingStatus.NotStarted;
             PronouncedName = sceneName.Value;
             Pronouns = string.Empty;
             EmailVerificationToken = string.Empty; // Initialize to empty string to prevent null constraint violation
@@ -110,11 +111,11 @@ namespace WitchCityRope.Infrastructure.Identity
 
         public UserRole Role { get; private set; }
 
-        public bool IsActive { get; internal set; }
+        public bool IsActive { get; set; }
 
-        public DateTime CreatedAt { get; internal set; }
+        public DateTime CreatedAt { get; set; }
 
-        public DateTime UpdatedAt { get; internal set; }
+        public DateTime UpdatedAt { get; set; }
 
         /// <summary>
         /// Display name derived from scene name
@@ -124,17 +125,27 @@ namespace WitchCityRope.Infrastructure.Identity
         /// <summary>
         /// Phonetic pronunciation of the user's name
         /// </summary>
-        public string PronouncedName { get; internal set; }
+        public string PronouncedName { get; set; }
 
         /// <summary>
         /// User's preferred pronouns
         /// </summary>
-        public string Pronouns { get; internal set; }
+        public string Pronouns { get; set; }
 
         /// <summary>
         /// Indicates if the user has been vetted
         /// </summary>
-        public bool IsVetted { get; internal set; }
+        public bool IsVetted { get; set; }
+
+        /// <summary>
+        /// Vetting status for the user
+        /// </summary>
+        public VettingStatus VettingStatus { get; set; } = VettingStatus.NotStarted;
+
+        /// <summary>
+        /// Extended user information (self-reference for compatibility)
+        /// </summary>
+        public WitchCityRopeUser UserExtended => this;
 
         /// <summary>
         /// Last login timestamp
@@ -270,6 +281,7 @@ namespace WitchCityRope.Infrastructure.Identity
         public void MarkAsVetted()
         {
             IsVetted = true;
+            VettingStatus = VettingStatus.Approved;
             UpdatedAt = DateTime.UtcNow;
         }
 

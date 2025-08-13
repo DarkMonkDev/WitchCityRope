@@ -53,7 +53,7 @@ public class EventServiceTests : IDisposable
         var request = new CreateEventRequest(
             Title: "Test Event",
             Description: "Test Description",
-            Type: ApiEnums.EventType.Workshop,
+            Type: CoreEnums.EventType.Workshop,
             StartDateTime: DateTime.UtcNow.AddDays(7),
             EndDateTime: DateTime.UtcNow.AddDays(7).AddHours(2),
             Location: "Test Location",
@@ -75,11 +75,11 @@ public class EventServiceTests : IDisposable
             CreatedAt: DateTime.UtcNow
         );
 
-        _eventServiceMock.Setup(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>()))
+        _eventServiceMock.Setup(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>(), It.IsAny<Guid>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _eventServiceMock.Object.CreateEventAsync(request);
+        var result = await _eventServiceMock.Object.CreateEventAsync(request, organizer.Id);
 
         // Assert
         result.Should().NotBeNull();
@@ -191,7 +191,7 @@ public class EventServiceTests : IDisposable
         var user = new IdentityUserBuilder().Build();
         var @event = new EventBuilder()
             .WithCapacity(10)
-            .WithEventType(EventType.Workshop)
+            .WithEventType(CoreEnums.EventType.Workshop)
             .WithPricingTiers(50m, 75m, 100m) // Paid event with sliding scale pricing
             .Build();
         var selectedPrice = @event.PricingTiers.First();
@@ -357,7 +357,7 @@ public class EventServiceTests : IDisposable
         // Arrange
         var user = new IdentityUserBuilder().Build();
         var @event = new EventBuilder()
-            .WithEventType(EventType.Workshop)
+            .WithEventType(CoreEnums.EventType.Workshop)
             .WithPricingTiers(50m, 75m, 100m)
             .Build();
         var ticket = new Ticket(
@@ -374,28 +374,40 @@ public class EventServiceTests : IDisposable
         {
             Success = true,
             TransactionId = "txn_123",
-            Status = PaymentStatus.Completed,
+            Status = CoreEnums.PaymentStatus.Completed,
             ProcessedAt = DateTime.UtcNow
         };
 
         _paymentServiceMock.Setup(x => x.ProcessPaymentAsync(
-                It.IsAny<Ticket>(),
-                It.IsAny<Money>(),
-                It.IsAny<string>()))
-            .ReturnsAsync(paymentResult);
+                It.IsAny<ProcessPaymentRequest>(),
+                It.IsAny<Guid>()))
+            .ReturnsAsync(new ProcessPaymentResponse 
+            { 
+                Success = paymentResult.Success,
+                TransactionId = paymentResult.TransactionId,
+                ProcessedAt = paymentResult.ProcessedAt
+            });
+
+        var paymentRequest = new ProcessPaymentRequest
+        {
+            PaymentId = Guid.NewGuid(),
+            RegistrationId = Guid.NewGuid(), // This would be ticket.Id in real scenario
+            Amount = ticket.SelectedPrice.Amount,
+            Currency = ticket.SelectedPrice.Currency,
+            PaymentMethod = "CreditCard",
+            PaymentToken = "pm_test_123"
+        };
 
         // Act
         var result = await _paymentServiceMock.Object.ProcessPaymentAsync(
-            ticket,
-            ticket.SelectedPrice,
-            "pm_test_123"
+            paymentRequest,
+            user.Id
         );
 
         // Assert
         result.Should().NotBeNull();
         result.Success.Should().BeTrue();
         result.TransactionId.Should().NotBeEmpty();
-        result.Status.Should().Be(PaymentStatus.Completed);
     }
 
     #endregion

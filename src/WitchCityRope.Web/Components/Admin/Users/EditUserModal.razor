@@ -1,0 +1,376 @@
+@using WitchCityRope.Core.DTOs
+@using WitchCityRope.Core.Enums
+@using System.ComponentModel.DataAnnotations
+@inject HttpClient HttpClient
+@inject ILogger<EditUserModal> Logger
+
+<!-- Edit User Modal -->
+<div class="modal fade @(IsVisible ? "show d-block" : "")" tabindex="-1" style="@(IsVisible ? "background-color: rgba(0,0,0,0.5);" : "display: none;")">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-edit me-2"></i>Edit User: @(User?.FirstName ?? "") @(User?.LastName ?? "")
+                </h5>
+                <button type="button" class="btn-close" @onclick="HandleCancel" aria-label="Close"></button>
+            </div>
+            
+            <EditForm Model="@_formModel" OnValidSubmit="HandleSave">
+                <DataAnnotationsValidator />
+                
+                <div class="modal-body">
+                    @if (_hasError)
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            @_errorMessage
+                        </div>
+                    }
+                    
+                    <div class="row">
+                        <!-- Personal Information -->
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Personal Information</h6>
+                            
+                            <div class="mb-3">
+                                <label for="firstName" class="form-label">First Name <span class="text-danger">*</span></label>
+                                <InputText id="firstName" @bind-Value="_formModel.FirstName" class="form-control" />
+                                <ValidationMessage For="() => _formModel.FirstName" />
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="lastName" class="form-label">Last Name <span class="text-danger">*</span></label>
+                                <InputText id="lastName" @bind-Value="_formModel.LastName" class="form-control" />
+                                <ValidationMessage For="() => _formModel.LastName" />
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="sceneName" class="form-label">Scene Name <span class="text-danger">*</span></label>
+                                <InputText id="sceneName" @bind-Value="_formModel.SceneName" class="form-control" />
+                                <ValidationMessage For="() => _formModel.SceneName" />
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                <InputText id="email" @bind-Value="_formModel.Email" class="form-control" type="email" />
+                                <ValidationMessage For="() => _formModel.Email" />
+                            </div>
+                        </div>
+                        
+                        <!-- Account Settings -->
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Account Settings</h6>
+                            
+                            <div class="mb-3">
+                                <label for="role" class="form-label">Role <span class="text-danger">*</span></label>
+                                <InputSelect id="role" @bind-Value="_formModel.Role" class="form-select">
+                                    <option value="">Select Role...</option>
+                                    @foreach (var role in Enum.GetValues<UserRole>())
+                                    {
+                                        <option value="@role">@role</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="() => _formModel.Role" />
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                                <InputSelect id="status" @bind-Value="_formModel.Status" class="form-select">
+                                    <option value="">Select Status...</option>
+                                    @foreach (var status in Enum.GetValues<UserStatus>())
+                                    {
+                                        <option value="@status">@GetStatusDisplayText(status)</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="() => _formModel.Status" />
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="pronouns" class="form-label">Pronouns</label>
+                                <InputText id="pronouns" @bind-Value="_formModel.Pronouns" class="form-control" placeholder="e.g., they/them, she/her, he/him" />
+                                <ValidationMessage For="() => _formModel.Pronouns" />
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="pronouncedName" class="form-label">Pronounced Name</label>
+                                <InputText id="pronouncedName" @bind-Value="_formModel.PronouncedName" class="form-control" placeholder="How to pronounce their name" />
+                                <ValidationMessage For="() => _formModel.PronouncedName" />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Account Status Toggles -->
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6 class="text-muted mb-3">Account Status</h6>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <InputCheckbox id="isActive" @bind-Value="_formModel.IsActive" class="form-check-input" />
+                                        <label class="form-check-label" for="isActive">
+                                            Account Active
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <InputCheckbox id="emailConfirmed" @bind-Value="_formModel.EmailConfirmed" class="form-check-input" />
+                                        <label class="form-check-label" for="emailConfirmed">
+                                            Email Confirmed
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <InputCheckbox id="lockoutEnabled" @bind-Value="_formModel.LockoutEnabled" class="form-check-input" />
+                                        <label class="form-check-label" for="lockoutEnabled">
+                                            Lockout Enabled
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Admin Notes Section -->
+                    @if (!string.IsNullOrEmpty(_formModel.AdminNote))
+                    {
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6 class="text-muted mb-3">Admin Note (Optional)</h6>
+                                <div class="mb-3">
+                                    <label for="adminNote" class="form-label">Note about this update</label>
+                                    <InputTextArea id="adminNote" @bind-Value="_formModel.AdminNote" class="form-control" rows="3" 
+                                                   placeholder="Enter any notes about the changes being made..." />
+                                    <div class="form-text">This note will be added to the user's audit trail.</div>
+                                    <ValidationMessage For="() => _formModel.AdminNote" />
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="HandleCancel" disabled="@_isSaving">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" disabled="@_isSaving">
+                        @if (_isSaving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        }
+                        <i class="fas fa-save me-1"></i>Save Changes
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public UserDetailDto? User { get; set; }
+    [Parameter, EditorRequired] public bool IsVisible { get; set; }
+    [Parameter, EditorRequired] public EventCallback<UserDetailDto> OnSave { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnCancel { get; set; }
+
+    private EditUserFormModel _formModel = new();
+    private bool _isSaving = false;
+    private bool _hasError = false;
+    private string _errorMessage = "";
+
+    protected override void OnParametersSet()
+    {
+        if (User != null && IsVisible)
+        {
+            // Initialize form model with user data
+            _formModel = new EditUserFormModel
+            {
+                FirstName = User.FirstName,
+                LastName = User.LastName,
+                SceneName = User.SceneName,
+                Email = User.Email,
+                Role = User.Role,
+                Status = User.Status,
+                Pronouns = User.Pronouns,
+                PronouncedName = User.PronouncedName,
+                IsActive = User.IsActive,
+                EmailConfirmed = User.EmailConfirmed,
+                LockoutEnabled = User.LockoutEnabled,
+                AdminNote = ""
+            };
+            
+            _hasError = false;
+            _errorMessage = "";
+        }
+    }
+
+    private async Task HandleSave()
+    {
+        if (User == null) return;
+
+        try
+        {
+            _isSaving = true;
+            _hasError = false;
+            _errorMessage = "";
+
+            var updateDto = new UpdateUserDto
+            {
+                FirstName = _formModel.FirstName,
+                LastName = _formModel.LastName,
+                SceneName = _formModel.SceneName,
+                Email = _formModel.Email,
+                Role = _formModel.Role,
+                Status = _formModel.Status,
+                Pronouns = _formModel.Pronouns,
+                PronouncedName = _formModel.PronouncedName,
+                IsActive = _formModel.IsActive,
+                EmailConfirmed = _formModel.EmailConfirmed,
+                LockoutEnabled = _formModel.LockoutEnabled,
+                AdminNote = _formModel.AdminNote
+            };
+
+            var response = await HttpClient.PutAsJsonAsync($"api/admin/users/{User.Id}", updateDto);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var updatedUser = await response.Content.ReadFromJsonAsync<UserDetailDto>();
+                if (updatedUser != null)
+                {
+                    await OnSave.InvokeAsync(updatedUser);
+                }
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _hasError = true;
+                _errorMessage = $"Failed to update user: {response.StatusCode}";
+                Logger.LogError("Error updating user {UserId}: {StatusCode} - {Content}", User.Id, response.StatusCode, errorContent);
+            }
+        }
+        catch (Exception ex)
+        {
+            _hasError = true;
+            _errorMessage = "An unexpected error occurred while saving the user.";
+            Logger.LogError(ex, "Unexpected error updating user {UserId}", User?.Id);
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private async Task HandleCancel()
+    {
+        await OnCancel.InvokeAsync();
+    }
+
+    private string GetStatusDisplayText(UserStatus status)
+    {
+        return status switch
+        {
+            UserStatus.PendingReview => "Pending Review",
+            UserStatus.Vetted => "Vetted",
+            UserStatus.NoApplication => "No Application",
+            UserStatus.OnHold => "On Hold",
+            UserStatus.Banned => "Banned",
+            _ => "Unknown"
+        };
+    }
+
+    public class EditUserFormModel
+    {
+        [Required(ErrorMessage = "First name is required")]
+        [StringLength(50, ErrorMessage = "First name cannot exceed 50 characters")]
+        public string FirstName { get; set; } = "";
+
+        [Required(ErrorMessage = "Last name is required")]
+        [StringLength(50, ErrorMessage = "Last name cannot exceed 50 characters")]
+        public string LastName { get; set; } = "";
+
+        [Required(ErrorMessage = "Scene name is required")]
+        [StringLength(50, ErrorMessage = "Scene name cannot exceed 50 characters")]
+        public string SceneName { get; set; } = "";
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Please enter a valid email address")]
+        [StringLength(255, ErrorMessage = "Email cannot exceed 255 characters")]
+        public string Email { get; set; } = "";
+
+        [Required(ErrorMessage = "Role is required")]
+        public UserRole? Role { get; set; }
+
+        [Required(ErrorMessage = "Status is required")]
+        public UserStatus? Status { get; set; }
+
+        [StringLength(20, ErrorMessage = "Pronouns cannot exceed 20 characters")]
+        public string? Pronouns { get; set; }
+
+        [StringLength(100, ErrorMessage = "Pronounced name cannot exceed 100 characters")]
+        public string? PronouncedName { get; set; }
+
+        public bool IsActive { get; set; } = true;
+        public bool EmailConfirmed { get; set; }
+        public bool LockoutEnabled { get; set; }
+
+        [StringLength(1000, ErrorMessage = "Admin note cannot exceed 1000 characters")]
+        public string? AdminNote { get; set; }
+    }
+}
+
+<style>
+    .modal.show {
+        display: block !important;
+    }
+
+    .form-check-label {
+        font-weight: 500;
+        color: #495057;
+    }
+
+    .form-switch .form-check-input {
+        width: 2.5em;
+    }
+
+    .text-muted {
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 0.5rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+    }
+
+    .text-danger {
+        font-weight: bold;
+    }
+
+    .modal-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .modal-footer {
+        background-color: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .alert {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-text {
+        font-size: 0.8rem;
+        color: #6c757d;
+        font-style: italic;
+    }
+</style>

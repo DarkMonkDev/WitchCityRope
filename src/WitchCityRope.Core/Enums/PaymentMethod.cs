@@ -6,6 +6,11 @@ namespace WitchCityRope.Core.Enums
     public enum PaymentMethod
     {
         /// <summary>
+        /// No payment method (for free events)
+        /// </summary>
+        None,
+
+        /// <summary>
         /// Credit card payment
         /// </summary>
         CreditCard,
@@ -28,6 +33,11 @@ namespace WitchCityRope.Core.Enums
         /// <summary>
         /// Cash payment for in-person events
         /// </summary>
-        Cash
+        Cash,
+
+        /// <summary>
+        /// Stripe payment processing
+        /// </summary>
+        Stripe
     }
 }

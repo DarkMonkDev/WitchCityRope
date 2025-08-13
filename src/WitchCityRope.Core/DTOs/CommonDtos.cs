@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using WitchCityRope.Core.Enums;
 
 namespace WitchCityRope.Core.DTOs
 {
@@ -139,9 +140,13 @@ namespace WitchCityRope.Core.DTOs
         public Guid Id { get; set; }
         public Guid ApplicantId { get; set; }
         public string ApplicantName { get; set; } = string.Empty;
-        public string Status { get; set; } = string.Empty;
+        public VettingStatus Status { get; set; }
         public DateTime SubmittedAt { get; set; }
         public string? ReviewerNotes { get; set; }
+        public DateTime? ReviewedAt { get; set; }
+        public string? ReviewerName { get; set; }
+        public string ApplicationText { get; set; } = string.Empty;
+        public string? ReviewNotes { get; set; }
     }
 
     public class ReviewApplicationRequest
@@ -177,10 +182,13 @@ namespace WitchCityRope.Core.DTOs
     // Payment DTOs
     public class ProcessPaymentRequest
     {
+        public Guid PaymentId { get; set; }
         public Guid RegistrationId { get; set; }
         public decimal Amount { get; set; }
+        public string Currency { get; set; } = "USD";
         public string PaymentMethod { get; set; } = string.Empty;
         public string? PaymentToken { get; set; }
+        public string? Description { get; set; }
         public Dictionary<string, string>? Metadata { get; set; }
     }
 

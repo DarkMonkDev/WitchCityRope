@@ -8,6 +8,24 @@
 **ANY development request automatically triggers the orchestrator agent.**
 You don't need to mention it - just describe what you want built.
 
+### 🚨 TRIGGER WORD DETECTION - CHECK FIRST! 🚨
+**BEFORE ANY ACTION, check for these triggers:**
+- **continue** (ANY work/development context) → ORCHESTRATOR → MUST USE TASK TOOL
+- **test/testing/debug/fix** → ORCHESTRATOR → test-fix-coordinator (AUTOMATIC)
+- **implement/create/build/develop** → ORCHESTRATOR → MUST USE TASK TOOL
+- **complete/finish/finalize** → ORCHESTRATOR → MUST USE TASK TOOL
+- **Multi-step tasks** → ORCHESTRATOR → MUST USE TASK TOOL
+
+**See /.claude/ORCHESTRATOR-TRIGGERS.md for full list**
+**VIOLATION = User frustration (justified)**
+
+### ⚠️ CRITICAL: ACTUAL TASK TOOL INVOCATION REQUIRED ⚠️
+**When invoking orchestrator or ANY agent:**
+1. **DO NOT** just say "I'm invoking the orchestrator"
+2. **DO NOT** just say "I'm delegating to test-fix-coordinator"
+3. **YOU MUST** actually use the Task tool with proper parameters
+4. **IF NO TASK TOOL VISIBLE** = YOU FAILED
+
 ### Quick Start for New Sessions
 1. **Development tasks auto-trigger orchestrator** (implement, create, fix, etc.)
 2. Say "Status" to check workflow progress

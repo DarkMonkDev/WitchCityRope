@@ -1,14 +1,7 @@
 namespace WitchCityRope.Api.Features.Events.Models;
 
-public enum EventType
-{
-    Class,
-    Workshop,
-    Party,
-    Performance,
-    Meetup,
-    Other
-}
+// NOTE: EventType, PaymentMethod, and RegistrationStatus are defined in WitchCityRope.Core.Enums
+// Use those instead of local duplicates to avoid namespace conflicts
 
 public enum EventSortBy
 {
@@ -22,23 +15,6 @@ public enum SortDirection
 {
     Ascending,
     Descending
-}
-
-public enum PaymentMethod
-{
-    CreditCard,
-    DebitCard,
-    PayPal,
-    Venmo,
-    Cash // For in-person events
-}
-
-public enum RegistrationStatus
-{
-    Confirmed,
-    Waitlisted,
-    PaymentPending,
-    RequiresVetting
 }
 
 public enum EventStatus

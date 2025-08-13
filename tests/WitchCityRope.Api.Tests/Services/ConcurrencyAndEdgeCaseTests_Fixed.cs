@@ -9,6 +9,7 @@ using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Tests.Helpers;
 using WitchCityRope.Core.Entities;
+using WitchCityRope.Core.Enums;
 using WitchCityRope.Core.Exceptions;
 using WitchCityRope.Infrastructure.Data;
 using Moq;
@@ -38,7 +39,7 @@ public class ConcurrencyAndEdgeCaseTests_Fixed : IDisposable
     public async Task RegisterForEvent_SimpleTest_ShouldWork()
     {
         // Arrange
-        var organizer = await _testDataBuilder.CreateUserAsync(role: WitchCityRope.Core.Enums.UserRole.Organizer);
+        var organizer = await _testDataBuilder.CreateUserAsync(role: UserRole.Organizer);
         var user = await _testDataBuilder.CreateUserAsync();
         var @event = await _testDataBuilder.CreateEventAsync(organizerId: organizer.Id);
 
@@ -49,7 +50,7 @@ public class ConcurrencyAndEdgeCaseTests_Fixed : IDisposable
             AccessibilityNeeds: null,
             EmergencyContactName: "Contact",
             EmergencyContactPhone: "555-0100",
-            PaymentMethod: WitchCityRope.Api.Features.Events.Models.PaymentMethod.Cash,
+            PaymentMethod: PaymentMethod.Cash,
             PaymentToken: null
         );
 
@@ -58,7 +59,7 @@ public class ConcurrencyAndEdgeCaseTests_Fixed : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result.Status.Should().Be(WitchCityRope.Api.Features.Events.Models.RegistrationStatus.Confirmed);
+        result.Status.Should().Be(RegistrationStatus.Confirmed);
     }
 
     public void Dispose()

@@ -261,16 +261,7 @@ namespace WitchCityRope.Api.Features.Auth.Services
             // since the user is already authenticated in the Web service
 
             // Generate JWT token
-            var userWithAuth = new UserWithAuth
-            {
-                User = user,
-                PasswordHash = user.PasswordHash ?? string.Empty,
-                EmailVerified = user.EmailConfirmed,
-                PronouncedName = user.PronouncedName,
-                Pronouns = user.Pronouns,
-                LastLoginAt = user.LastLoginAt
-            };
-            var token = _jwtService.GenerateToken(userWithAuth);
+            var token = _jwtService.GenerateToken(user);
             var refreshToken = _jwtService.GenerateRefreshToken();
             
             // Store refresh token
@@ -286,11 +277,11 @@ namespace WitchCityRope.Api.Features.Auth.Services
                 ExpiresAt = token.ExpiresAt,
                 User = new UserDto
                 {
-                    Id = userWithAuth.Id,
-                    Email = userWithAuth.Email.Value,
-                    SceneName = userWithAuth.SceneName.Value,
-                    Role = userWithAuth.Role,
-                    IsActive = userWithAuth.IsActive
+                    Id = user.Id,
+                    Email = user.Email ?? string.Empty,
+                    SceneName = user.SceneName.Value,
+                    Role = user.Role,
+                    IsActive = user.IsActive
                 }
             };
         }

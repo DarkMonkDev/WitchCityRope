@@ -16,6 +16,11 @@ namespace WitchCityRope.Core.Enums
         Social,
 
         /// <summary>
+        /// Social event (alternative name for Social)
+        /// </summary>
+        SocialEvent = Social,
+
+        /// <summary>
         /// Play party or dungeon event
         /// </summary>
         PlayParty,

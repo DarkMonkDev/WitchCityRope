@@ -9,6 +9,8 @@ namespace WitchCityRope.Core.Enums
         Submitted,
         UnderReview,
         MoreInfoRequested,
+        PendingVetting,
+        OnHold,
         Approved,
         Rejected
     }

@@ -1,0 +1,348 @@
+@using WitchCityRope.Core.DTOs
+@using WitchCityRope.Core.Enums
+@inject HttpClient HttpClient
+@inject ILogger<UserVettingTab> Logger
+
+<div class="user-vetting-tab">
+    @if (_isLoading)
+    {
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading vetting information...</span>
+            </div>
+            <p class="mt-2">Loading vetting information...</p>
+        </div>
+    }
+    else
+    {
+        <!-- Current Status Section -->
+        <div class="current-status card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Current Vetting Status</h6>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="status-display">
+                            <span class="badge @GetStatusBadgeClass(CurrentStatus) fs-6 me-2">
+                                @GetStatusDisplayText(CurrentStatus)
+                            </span>
+                            @if (CurrentStatus == UserStatus.OnHold || CurrentStatus == UserStatus.Banned)
+                            {
+                                <small class="text-muted">Action required</small>
+                            }
+                            else if (CurrentStatus == UserStatus.PendingReview)
+                            {
+                                <small class="text-muted">Awaiting review</small>
+                            }
+                            else if (CurrentStatus == UserStatus.Vetted)
+                            {
+                                <small class="text-success">Approved member</small>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <button type="button" class="btn btn-outline-primary" @onclick="ShowStatusChangeModal">
+                            <i class="fas fa-edit me-1"></i>Change Status
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vetting Applications -->
+        <div class="vetting-applications">
+            <h6 class="mb-3">Vetting Applications</h6>
+            
+            @if (_applications.Any())
+            {
+                @foreach (var application in _applications.OrderByDescending(a => a.SubmittedAt))
+                {
+                    <div class="application-item card mb-3">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge @GetVettingStatusBadgeClass(application.Status)">
+                                        @application.Status
+                                    </span>
+                                    <span class="ms-2 text-muted">
+                                        Submitted @application.SubmittedAt.ToString("MMM d, yyyy")
+                                    </span>
+                                </div>
+                                @if (application.ReviewedAt.HasValue)
+                                {
+                                    <small class="text-muted">
+                                        Reviewed by @application.ReviewerName on @application.ReviewedAt.Value.ToString("MMM d, yyyy")
+                                    </small>
+                                }
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="application-content">
+                                <h6>Application Text:</h6>
+                                <p class="application-text">@application.ApplicationText</p>
+                                
+                                @if (!string.IsNullOrEmpty(application.ReviewNotes))
+                                {
+                                    <div class="review-notes mt-3">
+                                        <h6>Review Notes:</h6>
+                                        <p class="text-muted">@application.ReviewNotes</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <i class="fas fa-clipboard fa-2x text-muted mb-3"></i>
+                    <p class="text-muted">No vetting applications submitted.</p>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Status Change Modal -->
+@if (_showStatusModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Change Vetting Status</h5>
+                    <button type="button" class="btn-close" @onclick="CloseStatusModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="newStatus" class="form-label">New Status</label>
+                        <select id="newStatus" @bind="_selectedStatus" class="form-select">
+                            @foreach (var status in Enum.GetValues<UserStatus>())
+                            {
+                                @if (status != CurrentStatus)
+                                {
+                                    <option value="@status">@GetStatusDisplayText(status)</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="statusReason" class="form-label">Reason (required)</label>
+                        <textarea id="statusReason" @bind="_statusReason" class="form-control" rows="3" 
+                                  placeholder="Please provide a reason for this status change..."></textarea>
+                    </div>
+                    
+                    @if (_selectedStatus == UserStatus.Vetted)
+                    {
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            This user will be granted full member access.
+                        </div>
+                    }
+                    else if (_selectedStatus == UserStatus.OnHold)
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-pause-circle me-2"></i>
+                            This user's access will be temporarily restricted.
+                        </div>
+                    }
+                    else if (_selectedStatus == UserStatus.Banned)
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fas fa-ban me-2"></i>
+                            This user will be permanently banned from the platform.
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseStatusModal">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="ConfirmStatusChange" 
+                            disabled="@(string.IsNullOrWhiteSpace(_statusReason) || _isSaving)">
+                        @if (_isSaving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        Change Status
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public Guid UserId { get; set; }
+    [Parameter, EditorRequired] public UserStatus CurrentStatus { get; set; }
+    [Parameter] public EventCallback<UserStatus> OnStatusChanged { get; set; }
+
+    private List<VettingApplicationDto> _applications = new();
+    private bool _isLoading = true;
+    private bool _showStatusModal = false;
+    private bool _isSaving = false;
+    private UserStatus _selectedStatus = UserStatus.PendingReview;
+    private string _statusReason = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadVettingData();
+    }
+
+    private async Task LoadVettingData()
+    {
+        try
+        {
+            _isLoading = true;
+            
+            // Load vetting applications from API
+            var response = await HttpClient.GetFromJsonAsync<List<VettingApplicationDto>>($"api/admin/users/{UserId}/vetting");
+            _applications = response ?? new List<VettingApplicationDto>();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading vetting data for user {UserId}", UserId);
+            _applications = new List<VettingApplicationDto>();
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ShowStatusChangeModal()
+    {
+        _selectedStatus = CurrentStatus == UserStatus.PendingReview ? UserStatus.Vetted : UserStatus.PendingReview;
+        _statusReason = "";
+        _showStatusModal = true;
+    }
+
+    private void CloseStatusModal()
+    {
+        _showStatusModal = false;
+        _statusReason = "";
+    }
+
+    private async Task ConfirmStatusChange()
+    {
+        if (string.IsNullOrWhiteSpace(_statusReason))
+            return;
+
+        try
+        {
+            _isSaving = true;
+            
+            var updateDto = new UpdateUserStatusDto
+            {
+                Status = _selectedStatus,
+                Reason = _statusReason
+            };
+
+            var response = await HttpClient.PutAsJsonAsync($"api/admin/users/{UserId}/status", updateDto);
+            response.EnsureSuccessStatusCode();
+
+            // Notify parent component
+            await OnStatusChanged.InvokeAsync(_selectedStatus);
+            
+            _showStatusModal = false;
+            _statusReason = "";
+            
+            // Refresh vetting data
+            await LoadVettingData();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error updating status for user {UserId}", UserId);
+            // TODO: Show error message to user
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private string GetStatusBadgeClass(UserStatus status)
+    {
+        return status switch
+        {
+            UserStatus.Vetted => "bg-success",
+            UserStatus.PendingReview => "bg-warning text-dark",
+            UserStatus.NoApplication => "bg-secondary",
+            UserStatus.OnHold => "bg-info",
+            UserStatus.Banned => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetStatusDisplayText(UserStatus status)
+    {
+        return status switch
+        {
+            UserStatus.PendingReview => "Pending Review",
+            UserStatus.Vetted => "Vetted",
+            UserStatus.NoApplication => "No Application",
+            UserStatus.OnHold => "On Hold",
+            UserStatus.Banned => "Banned",
+            _ => "Unknown"
+        };
+    }
+
+    private string GetVettingStatusBadgeClass(WitchCityRope.Core.Enums.VettingStatus status)
+    {
+        return status switch
+        {
+            WitchCityRope.Core.Enums.VettingStatus.Approved => "bg-success",
+            WitchCityRope.Core.Enums.VettingStatus.Rejected => "bg-danger",
+            WitchCityRope.Core.Enums.VettingStatus.UnderReview => "bg-warning text-dark",
+            WitchCityRope.Core.Enums.VettingStatus.MoreInfoRequested => "bg-info",
+            WitchCityRope.Core.Enums.VettingStatus.Submitted => "bg-primary",
+            _ => "bg-secondary"
+        };
+    }
+}
+
+<style>
+    .status-display {
+        display: flex;
+        align-items: center;
+    }
+
+    .application-item {
+        border-left: 4px solid #0d6efd;
+    }
+
+    .application-text {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.375rem;
+        border: 1px solid #e9ecef;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    .review-notes {
+        border-top: 1px solid #e9ecef;
+        padding-top: 1rem;
+    }
+
+    .modal.show {
+        display: block !important;
+    }
+
+    .fs-6 {
+        font-size: 1rem !important;
+    }
+
+    @@media (max-width: 767.98px) {
+        .current-status .row {
+            text-align: center;
+        }
+        
+        .current-status .text-md-end {
+            text-align: center !important;
+            margin-top: 1rem;
+        }
+    }
+</style>

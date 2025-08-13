@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using WitchCityRope.Core.Interfaces;
 using WitchCityRope.Core.ValueObjects;
 
@@ -29,6 +30,13 @@ namespace WitchCityRope.Api.Features.Auth.Services
 
             var emailAddress = EmailAddress.Create(email);
             await _emailService.SendEmailAsync(emailAddress, subject, body);
+            return true;
+        }
+
+        public async Task<bool> SendAsync(EmailMessage message)
+        {
+            var emailAddress = EmailAddress.Create(message.To);
+            await _emailService.SendEmailAsync(emailAddress, message.Subject, message.Body);
             return true;
         }
     }

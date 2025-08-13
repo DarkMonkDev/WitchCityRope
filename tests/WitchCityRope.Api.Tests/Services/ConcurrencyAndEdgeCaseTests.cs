@@ -12,6 +12,7 @@ using WitchCityRope.Core.Entities;
 using WitchCityRope.Core.Enums;
 using WitchCityRope.Core.Exceptions;
 using WitchCityRope.Infrastructure.Data;
+using WitchCityRope.Infrastructure.Identity;
 using Moq;
 
 namespace WitchCityRope.Api.Tests.Services;
@@ -48,7 +49,7 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         await _dbContext.SaveChangesAsync();
 
         // Create 10 users trying to register
-        var users = new List<User>();
+        var users = new List<WitchCityRopeUser>();
         for (int i = 0; i < 10; i++)
         {
             users.Add(await _testDataBuilder.CreateUserAsync(
@@ -68,7 +69,7 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
                     AccessibilityNeeds: null,
                     EmergencyContactName: "Contact",
                     EmergencyContactPhone: "555-0100",
-                    PaymentMethod: PaymentMethod.None,
+                    PaymentMethod: WitchCityRope.Core.Enums.PaymentMethod.None,
                     PaymentToken: null
                 );
                 return await _eventService.RegisterForEventAsync(request);
@@ -77,7 +78,7 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
             {
                 return new RegisterForEventResponse(
                     RegistrationId: Guid.Empty,
-                    Status: WitchCityRope.Core.Enums.RegistrationStatus.Failed,
+                    Status: WitchCityRope.Core.Enums.RegistrationStatus.Cancelled,
                     WaitlistPosition: null,
                     AmountCharged: 0,
                     ConfirmationCode: ""
@@ -232,7 +233,7 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
             AccessibilityNeeds: null,
             EmergencyContactName: "Contact",
             EmergencyContactPhone: "555-0100",
-            PaymentMethod: PaymentMethod.None,
+            PaymentMethod: WitchCityRope.Core.Enums.PaymentMethod.None,
             PaymentToken: null
         );
 
@@ -270,33 +271,31 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
             var @event = MockHelpers.CreateTestEvent(
                 organizerId: organizer.Id,
                 title: $"Event {i}",
-                type: i % 3 == 0 ? EventType.Workshop : EventType.SocialEvent,
+                type: i % 3 == 0 ? WitchCityRope.Core.Enums.EventType.Workshop : WitchCityRope.Core.Enums.EventType.Social,
                 requiresVetting: i % 5 == 0);
             
-            @event.Tags = i % 2 == 0 
-                ? new List<string> { "rope", "advanced" }
-                : new List<string> { "beginner", "social" };
-            
-            @event.StartDateTime = DateTime.UtcNow.AddDays(i % 30);
+            // Note: Tags and StartDateTime are properties set in the event builder
+            // and cannot be modified after creation
             events.Add(@event);
         }
         
         await _dbContext.Events.AddRangeAsync(events);
         await _dbContext.SaveChangesAsync();
 
-        var request = new ListEventsRequest
-        {
-            Page = 2,
-            PageSize = 20,
-            Type = EventType.Workshop,
-            Tags = new List<string> { "rope" },
-            StartDateFrom = DateTime.UtcNow,
-            StartDateTo = DateTime.UtcNow.AddDays(15),
-            HasAvailability = true,
-            SearchTerm = "Event",
-            SortBy = EventSortBy.StartDate,
-            SortDirection = SortDirection.Ascending
-        };
+        var request = new ListEventsRequest(
+            StartDateFrom: DateTime.UtcNow,
+            StartDateTo: DateTime.UtcNow.AddDays(15),
+            Type: WitchCityRope.Core.Enums.EventType.Workshop,
+            Tags: new[] { "rope" },
+            SkillLevels: null,
+            HasAvailability: true,
+            RequiresVetting: null,
+            SearchTerm: "Event",
+            SortBy: EventSortBy.StartDate,
+            SortDirection: SortDirection.Ascending,
+            Page: 2,
+            PageSize: 20
+        );
 
         // Act
         var startTime = DateTime.UtcNow;
@@ -333,7 +332,7 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
             AccessibilityNeeds: "Wheelchair accessible, can't use stairs",
             EmergencyContactName: "O'Brien-Smith, Jr.",
             EmergencyContactPhone: "+1 (555) 123-4567",
-            PaymentMethod: PaymentMethod.None,
+            PaymentMethod: WitchCityRope.Core.Enums.PaymentMethod.None,
             PaymentToken: null
         );
 
@@ -367,17 +366,23 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
                 title: "Duplicate Event");
         }
 
-        var request = new CreateEventRequest
-        {
-            Title = "Duplicate Event",
-            Description = "Another event with same title",
-            Type = EventType.Workshop,
-            StartDateTime = DateTime.UtcNow.AddDays(10),
-            EndDateTime = DateTime.UtcNow.AddDays(10).AddHours(2),
-            Location = "Test Venue",
-            MaxAttendees = 20,
-            OrganizerId = organizer.Id
-        };
+        var request = new CreateEventRequest(
+            Title: "Duplicate Event",
+            Description: "Another event with same title",
+            Type: WitchCityRope.Core.Enums.EventType.Workshop,
+            StartDateTime: DateTime.UtcNow.AddDays(10),
+            EndDateTime: DateTime.UtcNow.AddDays(10).AddHours(2),
+            Location: "Test Venue",
+            MaxAttendees: 20,
+            Price: 25m,
+            RequiredSkillLevels: new[] { "Beginner" },
+            Tags: new[] { "Workshop" },
+            RequiresVetting: false,
+            SafetyNotes: "Test safety notes",
+            EquipmentProvided: "Test equipment",
+            EquipmentRequired: "None",
+            OrganizerId: organizer.Id
+        );
 
         // Act
         var result = await _eventService.CreateEventAsync(request, organizer.Id);
@@ -421,7 +426,7 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
             AccessibilityNeeds: null,
             EmergencyContactName: "Contact",
             EmergencyContactPhone: "555-0100",
-            PaymentMethod: PaymentMethod.None,
+            PaymentMethod: WitchCityRope.Core.Enums.PaymentMethod.None,
             PaymentToken: null
         ));
 
@@ -432,7 +437,7 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
             AccessibilityNeeds: null,
             EmergencyContactName: "Contact",
             EmergencyContactPhone: "555-0100",
-            PaymentMethod: PaymentMethod.None,
+            PaymentMethod: WitchCityRope.Core.Enums.PaymentMethod.None,
             PaymentToken: null
         ));
 

@@ -19,6 +19,14 @@ namespace WitchCityRope.Api.Features.Auth.Models
             ErrorMessage = "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character")]
         public string Password { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Password confirmation is required")]
+        [DataType(DataType.Password)]
+        [Compare("Password", ErrorMessage = "Passwords do not match")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+
+        [StringLength(50, ErrorMessage = "Username cannot exceed 50 characters")]
+        public string? Username { get; set; }
+
         [Required(ErrorMessage = "Scene name is required")]
         [StringLength(50, MinimumLength = 3, ErrorMessage = "Scene name must be between 3 and 50 characters")]
         public string SceneName { get; set; } = string.Empty;

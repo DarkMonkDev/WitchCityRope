@@ -1,0 +1,344 @@
+<testsuites id="" name="" tests="21" failures="21" skipped="0" errors="0" time="1.422128">
+<testsuite name="admin/admin-access.spec.ts" timestamp="2025-08-13T02:18:37.564Z" hostname="chromium" tests="7" failures="7" skipped="0" time="0.016" errors="0">
+<testcase name="Admin Access and Authorization › should login as admin and access admin dashboard" classname="admin/admin-access.spec.ts" time="0.002">
+<failure message="admin-access.spec.ts:30:7 should login as admin and access admin dashboard" type="FAILURE">
+<![CDATA[  [chromium] › admin/admin-access.spec.ts:30:7 › Admin Access and Authorization › should login as admin and access admin dashboard 
+
+    Error: browserType.launch: Executable doesn't exist at /home/chad/.cache/ms-playwright/chromium_headless_shell-1181/chrome-linux/headless_shell
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Access and Authorization › should access admin events page after login" classname="admin/admin-access.spec.ts" time="0.002">
+<failure message="admin-access.spec.ts:94:7 should access admin events page after login" type="FAILURE">
+<![CDATA[  [chromium] › admin/admin-access.spec.ts:94:7 › Admin Access and Authorization › should access admin events page after login 
+
+    Error: browserType.launch: Executable doesn't exist at /home/chad/.cache/ms-playwright/chromium_headless_shell-1181/chrome-linux/headless_shell
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Access and Authorization › should redirect non-admin users to login" classname="admin/admin-access.spec.ts" time="0.002">
+<failure message="admin-access.spec.ts:143:7 should redirect non-admin users to login" type="FAILURE">
+<![CDATA[  [chromium] › admin/admin-access.spec.ts:143:7 › Admin Access and Authorization › should redirect non-admin users to login 
+
+    Error: browserType.launch: Executable doesn't exist at /home/chad/.cache/ms-playwright/chromium_headless_shell-1181/chrome-linux/headless_shell
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Access and Authorization › should show all admin navigation links after login" classname="admin/admin-access.spec.ts" time="0.003">
+<failure message="admin-access.spec.ts:159:7 should show all admin navigation links after login" type="FAILURE">
+<![CDATA[  [chromium] › admin/admin-access.spec.ts:159:7 › Admin Access and Authorization › should show all admin navigation links after login 
+
+    Error: browserType.launch: Executable doesn't exist at /home/chad/.cache/ms-playwright/chromium_headless_shell-1181/chrome-linux/headless_shell
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Access and Authorization › should navigate between admin sections" classname="admin/admin-access.spec.ts" time="0.002">
+<failure message="admin-access.spec.ts:185:7 should navigate between admin sections" type="FAILURE">
+<![CDATA[  [chromium] › admin/admin-access.spec.ts:185:7 › Admin Access and Authorization › should navigate between admin sections 
+
+    Error: browserType.launch: Executable doesn't exist at /home/chad/.cache/ms-playwright/chromium_headless_shell-1181/chrome-linux/headless_shell
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Access and Authorization › should maintain admin session across page refreshes" classname="admin/admin-access.spec.ts" time="0.003">
+<failure message="admin-access.spec.ts:213:7 should maintain admin session across page refreshes" type="FAILURE">
+<![CDATA[  [chromium] › admin/admin-access.spec.ts:213:7 › Admin Access and Authorization › should maintain admin session across page refreshes 
+
+    Error: browserType.launch: Executable doesn't exist at /home/chad/.cache/ms-playwright/chromium_headless_shell-1181/chrome-linux/headless_shell
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Role Verification › should verify member cannot access admin pages" classname="admin/admin-access.spec.ts" time="0.002">
+<failure message="admin-access.spec.ts:242:7 should verify member cannot access admin pages" type="FAILURE">
+<![CDATA[  [chromium] › admin/admin-access.spec.ts:242:7 › Admin Role Verification › should verify member cannot access admin pages 
+
+    Error: browserType.launch: Executable doesn't exist at /home/chad/.cache/ms-playwright/chromium_headless_shell-1181/chrome-linux/headless_shell
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="admin/admin-access.spec.ts" timestamp="2025-08-13T02:18:37.564Z" hostname="firefox" tests="7" failures="7" skipped="0" time="0.017" errors="0">
+<testcase name="Admin Access and Authorization › should login as admin and access admin dashboard" classname="admin/admin-access.spec.ts" time="0.002">
+<failure message="admin-access.spec.ts:30:7 should login as admin and access admin dashboard" type="FAILURE">
+<![CDATA[  [firefox] › admin/admin-access.spec.ts:30:7 › Admin Access and Authorization › should login as admin and access admin dashboard 
+
+    Error: browserType.launch: Executable doesn't exist at /home/chad/.cache/ms-playwright/firefox-1489/firefox/firefox
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Access and Authorization › should access admin events page after login" classname="admin/admin-access.spec.ts" time="0.003">
+<failure message="admin-access.spec.ts:94:7 should access admin events page after login" type="FAILURE">
+<![CDATA[  [firefox] › admin/admin-access.spec.ts:94:7 › Admin Access and Authorization › should access admin events page after login 
+
+    Error: browserType.launch: Executable doesn't exist at /home/chad/.cache/ms-playwright/firefox-1489/firefox/firefox
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Access and Authorization › should redirect non-admin users to login" classname="admin/admin-access.spec.ts" time="0.003">
+<failure message="admin-access.spec.ts:143:7 should redirect non-admin users to login" type="FAILURE">
+<![CDATA[  [firefox] › admin/admin-access.spec.ts:143:7 › Admin Access and Authorization › should redirect non-admin users to login 
+
+    Error: browserType.launch: Executable doesn't exist at /home/chad/.cache/ms-playwright/firefox-1489/firefox/firefox
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Access and Authorization › should show all admin navigation links after login" classname="admin/admin-access.spec.ts" time="0.002">
+<failure message="admin-access.spec.ts:159:7 should show all admin navigation links after login" type="FAILURE">
+<![CDATA[  [firefox] › admin/admin-access.spec.ts:159:7 › Admin Access and Authorization › should show all admin navigation links after login 
+
+    Error: browserType.launch: Executable doesn't exist at /home/chad/.cache/ms-playwright/firefox-1489/firefox/firefox
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Access and Authorization › should navigate between admin sections" classname="admin/admin-access.spec.ts" time="0.003">
+<failure message="admin-access.spec.ts:185:7 should navigate between admin sections" type="FAILURE">
+<![CDATA[  [firefox] › admin/admin-access.spec.ts:185:7 › Admin Access and Authorization › should navigate between admin sections 
+
+    Error: browserType.launch: Executable doesn't exist at /home/chad/.cache/ms-playwright/firefox-1489/firefox/firefox
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Access and Authorization › should maintain admin session across page refreshes" classname="admin/admin-access.spec.ts" time="0.002">
+<failure message="admin-access.spec.ts:213:7 should maintain admin session across page refreshes" type="FAILURE">
+<![CDATA[  [firefox] › admin/admin-access.spec.ts:213:7 › Admin Access and Authorization › should maintain admin session across page refreshes 
+
+    Error: browserType.launch: Executable doesn't exist at /home/chad/.cache/ms-playwright/firefox-1489/firefox/firefox
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Role Verification › should verify member cannot access admin pages" classname="admin/admin-access.spec.ts" time="0.002">
+<failure message="admin-access.spec.ts:242:7 should verify member cannot access admin pages" type="FAILURE">
+<![CDATA[  [firefox] › admin/admin-access.spec.ts:242:7 › Admin Role Verification › should verify member cannot access admin pages 
+
+    Error: browserType.launch: Executable doesn't exist at /home/chad/.cache/ms-playwright/firefox-1489/firefox/firefox
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="admin/admin-access.spec.ts" timestamp="2025-08-13T02:18:37.564Z" hostname="webkit" tests="7" failures="7" skipped="0" time="0.014" errors="0">
+<testcase name="Admin Access and Authorization › should login as admin and access admin dashboard" classname="admin/admin-access.spec.ts" time="0.002">
+<failure message="admin-access.spec.ts:30:7 should login as admin and access admin dashboard" type="FAILURE">
+<![CDATA[  [webkit] › admin/admin-access.spec.ts:30:7 › Admin Access and Authorization › should login as admin and access admin dashboard 
+
+    Error: browserType.launch: Executable doesn't exist at /home/chad/.cache/ms-playwright/webkit-2191/pw_run.sh
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Access and Authorization › should access admin events page after login" classname="admin/admin-access.spec.ts" time="0.002">
+<failure message="admin-access.spec.ts:94:7 should access admin events page after login" type="FAILURE">
+<![CDATA[  [webkit] › admin/admin-access.spec.ts:94:7 › Admin Access and Authorization › should access admin events page after login 
+
+    Error: browserType.launch: Executable doesn't exist at /home/chad/.cache/ms-playwright/webkit-2191/pw_run.sh
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Access and Authorization › should redirect non-admin users to login" classname="admin/admin-access.spec.ts" time="0.002">
+<failure message="admin-access.spec.ts:143:7 should redirect non-admin users to login" type="FAILURE">
+<![CDATA[  [webkit] › admin/admin-access.spec.ts:143:7 › Admin Access and Authorization › should redirect non-admin users to login 
+
+    Error: browserType.launch: Executable doesn't exist at /home/chad/.cache/ms-playwright/webkit-2191/pw_run.sh
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Access and Authorization › should show all admin navigation links after login" classname="admin/admin-access.spec.ts" time="0.002">
+<failure message="admin-access.spec.ts:159:7 should show all admin navigation links after login" type="FAILURE">
+<![CDATA[  [webkit] › admin/admin-access.spec.ts:159:7 › Admin Access and Authorization › should show all admin navigation links after login 
+
+    Error: browserType.launch: Executable doesn't exist at /home/chad/.cache/ms-playwright/webkit-2191/pw_run.sh
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Access and Authorization › should navigate between admin sections" classname="admin/admin-access.spec.ts" time="0.002">
+<failure message="admin-access.spec.ts:185:7 should navigate between admin sections" type="FAILURE">
+<![CDATA[  [webkit] › admin/admin-access.spec.ts:185:7 › Admin Access and Authorization › should navigate between admin sections 
+
+    Error: browserType.launch: Executable doesn't exist at /home/chad/.cache/ms-playwright/webkit-2191/pw_run.sh
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Access and Authorization › should maintain admin session across page refreshes" classname="admin/admin-access.spec.ts" time="0.002">
+<failure message="admin-access.spec.ts:213:7 should maintain admin session across page refreshes" type="FAILURE">
+<![CDATA[  [webkit] › admin/admin-access.spec.ts:213:7 › Admin Access and Authorization › should maintain admin session across page refreshes 
+
+    Error: browserType.launch: Executable doesn't exist at /home/chad/.cache/ms-playwright/webkit-2191/pw_run.sh
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Role Verification › should verify member cannot access admin pages" classname="admin/admin-access.spec.ts" time="0.002">
+<failure message="admin-access.spec.ts:242:7 should verify member cannot access admin pages" type="FAILURE">
+<![CDATA[  [webkit] › admin/admin-access.spec.ts:242:7 › Admin Role Verification › should verify member cannot access admin pages 
+
+    Error: browserType.launch: Executable doesn't exist at /home/chad/.cache/ms-playwright/webkit-2191/pw_run.sh
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+</testsuite>
+</testsuites>

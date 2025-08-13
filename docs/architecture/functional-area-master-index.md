@@ -1,5 +1,5 @@
 # Functional Area Master Index
-<!-- Last Updated: 2025-08-12 13:20 -->
+<!-- Last Updated: 2025-08-12 15:30 -->
 <!-- Version: 1.0 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
@@ -54,6 +54,7 @@ Pattern: `{base_path}/wireframes/`
 | Area | Base Path | Description | Owner | Status |
 |------|-----------|-------------|-------|--------|
 | **Lessons Learned** | `/docs/lessons-learned/` | Role-specific lessons by UI developers, backend developers, test writers, etc. | All Teams | Active |
+| **Orchestration Failures** | `/docs/lessons-learned/orchestration-failures/` | Critical lessons about AI workflow orchestration failures and solutions | AI Teams | Active |
 | **Standards & Processes** | `/docs/standards-processes/` | Development standards, coding patterns, testing guidelines | All Teams | Active |
 | **Guides & Setup** | `/docs/guides-setup/` | Installation guides, Docker setup, environment configuration | DevOps/Setup | Active |
 | **Architecture** | `/docs/architecture/` | System design, ADRs, this master index, file registry | Architect/Librarian | Active |

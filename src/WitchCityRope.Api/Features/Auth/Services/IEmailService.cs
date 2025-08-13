@@ -8,6 +8,7 @@ namespace WitchCityRope.Api.Features.Auth.Services
     public interface IEmailService
     {
         Task<bool> SendVerificationEmailAsync(string email, string displayName, string token);
+        Task<bool> SendAsync(EmailMessage message);
     }
 
     /// <summary>

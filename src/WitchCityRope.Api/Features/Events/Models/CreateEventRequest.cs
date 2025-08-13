@@ -1,4 +1,5 @@
 using System;
+using WitchCityRope.Core.Enums;
 
 namespace WitchCityRope.Api.Features.Events.Models;
 

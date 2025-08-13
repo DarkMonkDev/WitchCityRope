@@ -7,8 +7,7 @@ using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Interfaces;
 using WitchCityRope.Core.Entities;
-using CoreEnums = WitchCityRope.Core.Enums;
-using ApiEnums = WitchCityRope.Api.Features.Events.Models;
+using WitchCityRope.Core.Enums;
 using WitchCityRope.Infrastructure.Data;
 using WitchCityRope.Tests.Common.Builders;
 using WitchCityRope.Tests.Common.Identity;
@@ -43,7 +42,7 @@ namespace WitchCityRope.Api.Tests.Features.Events
             var request = new CreateEventRequest(
                 Title: "Beginner's Bondage Workshop",
                 Description: "Learn the basics of rope bondage in a safe, inclusive environment",
-                Type: ApiEnums.EventType.Workshop,
+                Type: EventType.Workshop,
                 StartDateTime: DateTime.UtcNow.AddDays(7),
                 EndDateTime: DateTime.UtcNow.AddDays(7).AddHours(2),
                 Location: "Salem Community Center",
@@ -80,7 +79,7 @@ namespace WitchCityRope.Api.Tests.Features.Events
             result.Title.Should().Be(request.Title);
             result.Slug.Should().NotBeNullOrEmpty();
 
-            _eventServiceMock.Verify(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>()), Times.Once);
+            _eventServiceMock.Verify(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>(), It.IsAny<Guid>()), Times.Once);
         }
 
         [Fact]
@@ -94,7 +93,7 @@ namespace WitchCityRope.Api.Tests.Features.Events
             var request = new CreateEventRequest(
                 Title: "Invalid Event",
                 Description: "This event has invalid dates",
-                Type: ApiEnums.EventType.Workshop,
+                Type: EventType.Workshop,
                 StartDateTime: DateTime.UtcNow.AddDays(7),
                 EndDateTime: DateTime.UtcNow.AddDays(6), // End before start
                 Location: "Salem Community Center",
@@ -109,14 +108,14 @@ namespace WitchCityRope.Api.Tests.Features.Events
                 OrganizerId: organizer.Id
             );
 
-            _eventServiceMock.Setup(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>()))
+            _eventServiceMock.Setup(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>(), It.IsAny<Guid>()))
                 .ThrowsAsync(new ValidationException("Start date must be before end date"));
 
             var service = _eventServiceMock.Object;
 
             // Act & Assert
             await Assert.ThrowsAsync<ValidationException>(() => 
-                service.CreateEventAsync(request));
+                service.CreateEventAsync(request, organizer.Id));
         }
 
         [Fact]
@@ -130,7 +129,7 @@ namespace WitchCityRope.Api.Tests.Features.Events
             var request = new CreateEventRequest(
                 Title: "Past Event",
                 Description: "This event is in the past",
-                Type: ApiEnums.EventType.Workshop,
+                Type: EventType.Workshop,
                 StartDateTime: DateTime.UtcNow.AddDays(-1),
                 EndDateTime: DateTime.UtcNow.AddDays(-1).AddHours(2),
                 Location: "Salem Community Center",
@@ -145,14 +144,14 @@ namespace WitchCityRope.Api.Tests.Features.Events
                 OrganizerId: organizer.Id
             );
 
-            _eventServiceMock.Setup(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>()))
+            _eventServiceMock.Setup(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>(), It.IsAny<Guid>()))
                 .ThrowsAsync(new ValidationException("Start date cannot be in the past"));
 
             var service = _eventServiceMock.Object;
 
             // Act & Assert
             await Assert.ThrowsAsync<ValidationException>(() => 
-                service.CreateEventAsync(request));
+                service.CreateEventAsync(request, organizer.Id));
         }
 
         [Fact]
@@ -166,7 +165,7 @@ namespace WitchCityRope.Api.Tests.Features.Events
             var request = new CreateEventRequest(
                 Title: "Invalid Attendees Event",
                 Description: "This event has invalid max attendees",
-                Type: ApiEnums.EventType.Workshop,
+                Type: EventType.Workshop,
                 StartDateTime: DateTime.UtcNow.AddDays(7),
                 EndDateTime: DateTime.UtcNow.AddDays(7).AddHours(2),
                 Location: "Salem Community Center",
@@ -181,14 +180,14 @@ namespace WitchCityRope.Api.Tests.Features.Events
                 OrganizerId: organizer.Id
             );
 
-            _eventServiceMock.Setup(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>()))
+            _eventServiceMock.Setup(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>(), It.IsAny<Guid>()))
                 .ThrowsAsync(new ValidationException("Capacity must be greater than zero"));
 
             var service = _eventServiceMock.Object;
 
             // Act & Assert
             await Assert.ThrowsAsync<ValidationException>(() => 
-                service.CreateEventAsync(request));
+                service.CreateEventAsync(request, organizer.Id));
         }
 
         public void Dispose()
