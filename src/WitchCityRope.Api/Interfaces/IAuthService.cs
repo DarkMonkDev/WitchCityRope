@@ -32,5 +32,10 @@ namespace WitchCityRope.Api.Interfaces
         /// Authenticates a web service user and returns JWT token
         /// </summary>
         Task<LoginResponse> WebServiceLoginAsync(WebServiceLoginRequest request);
+
+        /// <summary>
+        /// Gets a JWT token for a user on behalf of the Web service
+        /// </summary>
+        Task<LoginResponse> GetServiceTokenAsync(string userId, string email);
     }
 }

@@ -151,6 +151,133 @@ private bool isOpen = false;
 [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
 ```
 
+## Blazor Circuit Errors and Unhandled Exceptions
+
+### Problem: "An error has occurred. This application may no longer respond until reloaded"
+
+**Root Cause**: Unhandled exceptions in Blazor Server components break the SignalR circuit
+
+**Common Causes**:
+- Null reference exceptions during component initialization
+- Missing dependency injection services (especially ILogger)
+- Unsafe property access on API responses
+- Missing try-catch blocks in lifecycle methods
+
+**Solution**: Comprehensive defensive coding patterns
+
+```csharp
+@inject ILogger<ComponentName> Logger
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Logger?.LogInformation("Component initializing...");
+            
+            // Always check for authentication before API calls
+            await EnsureAuthenticationAsync();
+            
+            // Load data with error handling
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            Logger?.LogError(ex, "Error during component initialization");
+            errorMessage = "Failed to initialize component. Please refresh the page.";
+            StateHasChanged(); // Ensure UI updates
+        }
+    }
+}
+```
+
+**Critical Patterns**:
+- Always inject ILogger and use null-conditional operator: `Logger?.LogError(...)`
+- Wrap all async operations in try-catch blocks
+- Use null-conditional operators on all property access: `user?.SceneName ?? "Unknown"`
+- Call `StateHasChanged()` after setting error messages
+- Implement IDisposable for cleanup
+
+### JWT Authentication 401 Errors
+
+**Problem**: API calls return 401 Unauthorized even when user is logged in
+
+**Root Cause**: JWT tokens not being acquired or attached to API requests
+
+**Solution**: Simplified AuthenticationDelegatingHandler that only checks for existing tokens
+
+```csharp
+// FIXED: Simplified handler that prevents Blazor circuit breaks
+public class AuthenticationDelegatingHandler : DelegatingHandler
+{
+    // Only checks for existing JWT tokens - no service resolution or token acquisition
+    // Token acquisition happens during login via AuthenticationEventHandler
+}
+```
+
+### AuthenticationDelegatingHandler Circuit Breaking
+
+**Problem**: Complex service resolution and token acquisition in DelegatingHandler causing Blazor circuits to break
+
+**Root Cause**: 
+- Excessive logging in hot path (every HTTP request)
+- Service resolution using IServiceProvider.CreateScope() in transient handler
+- UserManager resolution and usage in DelegatingHandler
+- Complex token acquisition logic in the wrong place
+
+**Solution**: Simplified handler with single responsibility
+```csharp
+// ❌ WRONG - Complex handler that breaks circuits
+public class AuthenticationDelegatingHandler : DelegatingHandler
+{
+    // Excessive logging
+    // Service resolution with CreateScope()
+    // UserManager access
+    // Token acquisition logic
+}
+
+// ✅ CORRECT - Simple handler that won't break circuits
+public class AuthenticationDelegatingHandler : DelegatingHandler
+{
+    // Only checks authentication status
+    // Gets existing token from IJwtTokenService
+    // Adds Authorization header if token exists
+    // Minimal logging with null-conditional operators
+}
+```
+
+**Key Fixes**:
+- Remove IServiceProvider dependency and service resolution
+- Remove UserManager access
+- Move token acquisition to AuthenticationEventHandler (during login)
+- Use null-conditional operators on ILogger: `_logger?.LogDebug(...)` in ALL services
+- Wrap token retrieval in try-catch to prevent circuit breaks
+- Minimal logging only for debugging purposes
+- NEVER try to acquire tokens in Blazor components - causes circuit breaks
+- Components should only check for existing tokens and show friendly error messages
+
+**Component Pattern**:
+```csharp
+private async Task LoadData()
+{
+    try
+    {
+        // Ensure authentication before API calls
+        await EnsureAuthenticationAsync();
+        
+        var result = await ApiClient.GetDataAsync();
+        // Handle result safely...
+    }
+    catch (HttpRequestException ex) when (ex.Message.Contains("401"))
+    {
+        // Refresh authentication and retry once
+        await RefreshAuthenticationAsync();
+        var retryResult = await ApiClient.GetDataAsync();
+        // Handle retry result...
+    }
+}
+```
+
 ## Key Learnings Summary
 
 1. **Pure Blazor Server only** - No Razor Pages allowed
@@ -158,6 +285,10 @@ private bool isOpen = false;
 3. **Restart containers for UI changes** - Hot reload is unreliable in Docker
 4. **Know when to use interactive mode** - Not all pages need it
 5. **State management matters** - Use proper component patterns
+6. **Always inject ILogger** - Essential for debugging Blazor circuit errors
+7. **Use defensive coding** - Null checks, try-catch blocks, StateHasChanged() calls
+8. **Simplified DelegatingHandler** - No service resolution or complex logic to prevent circuit breaks
+9. **JWT token acquisition** - Happens during login via AuthenticationEventHandler, not in DelegatingHandler
 
 **For complete patterns and syntax, see:**
 - **Blazor patterns**: `/docs/standards-processes/development-standards/blazor-server-patterns.md`

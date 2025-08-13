@@ -27,27 +27,34 @@ public class AuthenticationEventHandler : CookieAuthenticationEvents
     {
         try
         {
-            _logger.LogInformation("User signing in, getting JWT token for API access");
+            _logger?.LogInformation("User signing in, getting JWT token for API access");
 
             // Get the user
             var user = await _userManager.GetUserAsync(context.Principal);
             if (user != null)
             {
+                _logger?.LogDebug("Found user for JWT token acquisition: {UserId} {Email}", user.Id, user.Email);
+                
                 // Get JWT token for API calls
                 var jwtToken = await _apiAuthService.GetJwtTokenForUserAsync(user);
                 if (!string.IsNullOrEmpty(jwtToken))
                 {
-                    _logger.LogInformation("Successfully obtained JWT token for user: {Email}", user.Email);
+                    _logger?.LogInformation("Successfully obtained JWT token for user: {Email}", user.Email);
                 }
                 else
                 {
-                    _logger.LogWarning("Failed to obtain JWT token for user: {Email}", user.Email);
+                    _logger?.LogWarning("Failed to obtain JWT token for user: {Email}", user.Email);
                 }
+            }
+            else
+            {
+                _logger?.LogWarning("Could not find user for JWT token acquisition during sign-in");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during JWT token acquisition on sign in");
+            // Use null-conditional operator to prevent circuit breaks
+            _logger?.LogError(ex, "Error during JWT token acquisition on sign in");
         }
 
         await base.SigningIn(context);
@@ -62,7 +69,8 @@ public class AuthenticationEventHandler : CookieAuthenticationEvents
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during JWT token invalidation on sign out");
+            // Use null-conditional operator to prevent circuit breaks
+            _logger?.LogError(ex, "Error during JWT token invalidation on sign out");
         }
 
         await base.SigningOut(context);

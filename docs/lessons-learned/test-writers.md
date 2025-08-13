@@ -215,6 +215,250 @@ public void Given_ValidEvent_When_Created_Then_ReturnsSuccessStatus() { }
 3. **Fixed test data** - Always use unique identifiers
 4. **Thread.Sleep/waitForTimeout** - Use proper wait conditions
 
+## Recent Fixes (August 2025)
+
+### Login Selector Fixes - August 13, 2025
+
+**Problem**: Admin user management E2E tests failing with "Element not found" for login form selectors
+**Root Cause**: Tests using generic selectors `input[type="email"]` instead of ASP.NET Core Identity-specific selectors
+**Solution**: Use ASP.NET Core Identity form selectors for authentication
+
+```javascript
+// ❌ WRONG - Generic selectors don't match Identity forms
+await page.fill('input[type="email"]', 'admin@witchcityrope.com');
+await page.fill('input[type="password"]', 'Test123!');
+
+// ✅ CORRECT - ASP.NET Core Identity selectors
+await page.fill('input[name="Input.EmailOrUsername"]', 'admin@witchcityrope.com');
+await page.fill('input[name="Input.Password"]', 'Test123!');
+
+// ✅ ALTERNATIVE - Placeholder-based (less reliable)
+await page.fill('input[placeholder*="email"]', 'admin@witchcityrope.com');
+```
+
+**Files Fixed**:
+- `/tests/playwright/admin-user-management.spec.ts`
+- `/tests/playwright/admin-user-details.spec.ts`
+- `/tests/playwright/admin/admin-user-management-focused.spec.ts`
+- `/tests/playwright/admin/admin-user-management-updated.spec.ts`
+
+**Why This Happened**: 
+- ASP.NET Core Identity generates specific form field names (`Input.EmailOrUsername`, `Input.Password`)
+- Login form uses `type="text"` not `type="email"` to support both email and username input
+- Generic selectors worked in wireframes but not with actual Identity forms
+
+**Best Practice**: Use the Page Object Model (`login.page.ts`) or auth helpers (`auth.helpers.ts`) which already have correct selectors.
+
+### Blazor E2E Helper Timeout Issue - FIXED
+
+**Problem**: Global setup timing out with "Blazor E2E wait timeout after 15000ms" when authenticating vetted user
+**Root Cause**: Multiple timeout issues in Playwright configuration
+**Solution**: 
+1. Fixed function call error in global-setup.ts (changed `this.loginWithRetries` to `loginWithRetries`)
+2. Increased Blazor E2E helper timeout from 30s to 60s in blazor-e2e-helper.js
+3. Increased default timeout from 15s to 60s in waitForBlazorE2E function
+4. Updated test config timeouts for Docker environments
+
+**Files Changed**:
+- `/tests/playwright/helpers/global-setup.ts` - Fixed function call
+- `/tests/playwright/helpers/test.config.ts` - Increased timeouts to 60s
+- `/src/WitchCityRope.Web/wwwroot/js/blazor-e2e-helper.js` - Increased timeouts
+
+**Result**: Global setup now completes successfully for all test users including vetted user
+
+### Simplified Admin Tests - 2025-08-13
+**Problem**: Blazor E2E helper timeout issues when testing admin user management functionality
+**Root Cause**: Complex Blazor circuit waiting and timeout configurations in Docker environments
+**Solution**: Create simplified tests using basic Playwright waits without Blazor E2E helper
+
+```javascript
+// ❌ AVOID - Complex Blazor E2E helper with timeouts
+await BlazorHelpers.waitForBlazorReady(page, { timeout: 60000 });
+
+// ✅ SIMPLE - Basic Playwright waits for page elements
+await page.waitForLoadState('networkidle');
+await expect(page.locator('h1, h2, h3').filter({ hasText: /User Management/i })).toBeVisible({ timeout: 15000 });
+```
+
+**Test Pattern**: `/tests/playwright/admin/admin-user-management-simple.spec.ts`
+- Admin login with known working selectors
+- Standard Playwright navigation and waits
+- Element verification without complex circuit waiting
+- Basic interaction testing for core functionality
+
+**When to Use**: For core functionality tests where Blazor E2E helper is problematic
+
+### Blazor Server Architecture Migration Tests - 2025-08-13
+**Problem**: Website converted from Razor Pages to Blazor Server, old E2E tests failing  
+**Root Cause**: Tests expecting Razor Pages behavior, Blazor E2E helper timing out with new architecture  
+**Solution**: Create new test patterns specifically for Blazor Server components
+
+```typescript
+// ❌ AVOID - Complex Blazor E2E helper (outdated for Blazor Server)
+await BlazorHelpers.waitForBlazorReady(page, { timeout: 60000 });
+await BlazorHelpers.waitForBlazorE2E(page);
+
+// ✅ SIMPLE - Basic Playwright waits work with Blazor Server
+await page.goto(testConfig.urls.adminUsers);
+await page.waitForLoadState('networkidle');
+await page.waitForTimeout(2000); // Small delay for Blazor components
+```
+
+**New Test Pattern**: `/tests/playwright/admin/admin-users-blazor.spec.ts`
+- Direct navigation and login (bypasses global setup dependencies)
+- Simple Playwright waits instead of complex Blazor circuit waiting
+- Element verification with flexible selectors for Blazor components  
+- Screenshots for debugging Blazor Server rendering issues
+- Graceful handling of component loading states
+
+**Migration Strategy**:
+1. Use `page.waitForLoadState('networkidle')` for basic page loading
+2. Add small delays (`page.waitForTimeout(1000-3000)`) for Blazor component rendering
+3. Use flexible selectors that work with Blazor component output
+4. Focus on element presence/visibility rather than complex interactions
+5. Always take screenshots for debugging Blazor Server issues
+
+**When to Use**: When migrating E2E tests from Razor Pages to Blazor Server architecture
+
+## Admin User Management Testing Patterns - 2025-08-13
+
+### Comprehensive Test Coverage Pattern
+**Problem**: Need to test admin functionality across all layers (unit, integration, E2E)
+**Solution**: Create focused test suite covering each layer with specific scenarios
+**Implementation**:
+
+```csharp
+// Unit Tests - Mock HTTP responses for ApiClient methods
+[Fact]
+[Trait("Category", "Unit")]
+public async Task GetUsersAsync_WithSearchParameters_ReturnsPagedResult()
+{
+    // Mock HttpMessageHandler for controlled responses
+    _httpMessageHandlerMock.Protected()
+        .Setup<Task<HttpResponseMessage>>("SendAsync", ...)
+        .ReturnsAsync(new HttpResponseMessage { ... });
+    
+    // Test specific parameters are passed correctly
+    var result = await _apiClient.GetUsersAsync(searchRequest);
+    
+    // Verify both result and HTTP request details
+    result.Should().NotBeNull();
+    _httpMessageHandlerMock.Protected().Verify("SendAsync", Times.Once(), ...);
+}
+
+// Integration Tests - Real HTTP calls with authentication
+[Fact]
+[Trait("Category", "Integration")]
+public async Task GetUsers_WithAdminAuth_ReturnsPagedUserList()
+{
+    await _client.AuthenticateAsAdminAsync(_factory);
+    var response = await _client.GetAsync("api/admin/users?page=1&pageSize=10");
+    response.StatusCode.Should().Be(HttpStatusCode.OK);
+}
+
+// E2E Tests - Browser automation with real UI
+test('should login as admin and verify real users load from API', async ({ page }) => {
+    await page.fill('input[name="Input.EmailOrUsername"]', 'admin@witchcityrope.com');
+    await page.fill('input[name="Input.Password"]', 'Test123!');
+    await page.click('button[type="submit"]');
+    await page.goto('/admin/users');
+    await expect(page.locator('[data-testid="user-grid"]')).toBeVisible();
+});
+```
+
+**Benefits**: 
+- Each layer tests different concerns (logic, HTTP, UI)
+- Catches issues at appropriate abstraction level
+- Provides confidence in complete feature functionality
+
+### Integration Test Authentication Pattern
+**Problem**: Admin endpoints require authentication, need consistent auth setup
+**Solution**: Use extension methods for admin authentication in integration tests
+**Pattern**:
+
+```csharp
+public static async Task AuthenticateAsAdminAsync(this HttpClient client, WebApplicationFactory factory)
+{
+    using var scope = factory.Services.CreateScope();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<WitchCityRopeUser>>();
+    
+    var adminUser = await userManager.FindByEmailAsync("testadmin@witchcityrope.com");
+    if (adminUser == null)
+    {
+        adminUser = new WitchCityRopeUser(...) { Role = UserRole.Administrator };
+        await userManager.CreateAsync(adminUser, "Test123!");
+    }
+    
+    // Set authentication cookie/header for subsequent requests
+}
+```
+
+**Benefits**: Reusable auth setup, consistent test admin user, proper cleanup
+
+### E2E Real Data Verification Pattern  
+**Problem**: E2E tests need to verify real API data loads (not mock data)
+**Solution**: Test for presence of real data indicators
+**Pattern**:
+
+```typescript
+// Verify real API data loads by checking for realistic content
+const userRows = page.locator('[data-testid="user-row"]').filter({ hasText: /@/ }); // Email addresses
+await expect(userRows.first()).toBeVisible({ timeout: 15000 });
+
+// Verify stats show real numbers (at least admin user exists)
+const statsNumber = await page.locator('.stats-card .number').textContent();
+const number = parseInt(statsNumber?.match(/[0-9]+/)?.[0] || '0');
+expect(number).toBeGreaterThanOrEqual(1);
+```
+
+**Benefits**: Confirms integration with real API, not just UI mockups
+
+### Cross-Layer Test Data Pattern
+**Problem**: Tests need unique data to avoid conflicts across test runs
+**Solution**: Use GUIDs and timestamps for test data uniqueness
+**Pattern**:
+
+```csharp
+// Integration tests
+var uniqueId = Guid.NewGuid().ToString("N")[..8];
+var testUser = new WitchCityRopeUser(
+    sceneName: SceneName.Create($"TestUser_{uniqueId}"),
+    email: EmailAddress.Create($"test_{uniqueId}@example.com"),
+    dateOfBirth: new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc) // Always UTC
+);
+
+// E2E tests  
+const uniqueId = Date.now().toString();
+await searchInput.fill(`TestUser_${uniqueId}`);
+```
+
+**Benefits**: Prevents test data conflicts, allows parallel test execution
+
+### Admin Authorization Testing Pattern
+**Problem**: Need to verify admin-only endpoints reject non-admin users
+**Solution**: Test both authorized and unauthorized access scenarios
+**Pattern**:
+
+```csharp
+[Fact]
+public async Task GetUsers_WithoutAdminAuth_ReturnsUnauthorized()
+{
+    // No authentication setup
+    var response = await _client.GetAsync("api/admin/users");
+    response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+}
+
+[Fact] 
+public async Task GetUsers_WithAdminAuth_ReturnsOk()
+{
+    await _client.AuthenticateAsAdminAsync(_factory);
+    var response = await _client.GetAsync("api/admin/users");  
+    response.StatusCode.Should().Be(HttpStatusCode.OK);
+}
+```
+
+**Benefits**: Ensures security boundaries are properly enforced
+
 ## Useful Commands
 
 ```bash

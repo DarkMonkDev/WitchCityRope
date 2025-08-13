@@ -49,6 +49,9 @@ services:
       - Jwt__Audience=WitchCityRopeUsers
       - Jwt__ExpiresInMinutes=60
       
+      # Service-to-Service Authentication
+      - ServiceAuth__Secret=${SERVICE_AUTH_SECRET:-DevSecret-WitchCityRope-ServiceToService-Auth-2024!}
+      
       # Email Configuration (SendGrid)
       - Email__SendGrid__ApiKey=${SENDGRID_API_KEY}
       - Email__FromEmail=noreply@witchcityrope.com
@@ -119,6 +122,9 @@ services:
       
       # Syncfusion License
       - Syncfusion__LicenseKey=${SYNCFUSION_LICENSE_KEY}
+      
+      # Service-to-Service Authentication
+      - ServiceAuth__Secret=${SERVICE_AUTH_SECRET:-DevSecret-WitchCityRope-ServiceToService-Auth-2024!}
       
       # Session Configuration
       - Session__IdleTimeout=20

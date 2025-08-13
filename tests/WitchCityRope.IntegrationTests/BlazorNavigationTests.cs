@@ -1,3 +1,6 @@
+extern alias WitchCityRopeWeb;
+extern alias WitchCityRopeApi;
+
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -12,13 +15,13 @@ namespace WitchCityRope.IntegrationTests;
 /// <summary>
 /// Integration tests specifically for Blazor navigation components and client-side routing
 /// </summary>
-public class BlazorNavigationTests : IClassFixture<WebApplicationFactory<WitchCityRope.Web.Program>>
+public class BlazorNavigationTests : IClassFixture<WebApplicationFactory<WitchCityRopeWeb::Program>>
 {
-    private readonly WebApplicationFactory<WitchCityRope.Web.Program> _factory;
+    private readonly WebApplicationFactory<WitchCityRopeWeb::Program> _factory;
     private readonly HttpClient _client;
     private readonly ITestOutputHelper _output;
 
-    public BlazorNavigationTests(WebApplicationFactory<WitchCityRope.Web.Program> factory, ITestOutputHelper output)
+    public BlazorNavigationTests(WebApplicationFactory<WitchCityRopeWeb::Program> factory, ITestOutputHelper output)
     {
         _factory = factory;
         _output = output;
@@ -322,7 +325,7 @@ public class BlazorNavigationTests : IClassFixture<WebApplicationFactory<WitchCi
 /// <summary>
 /// Custom WebApplicationFactory for Blazor integration tests
 /// </summary>
-public class BlazorWebApplicationFactory : WebApplicationFactory<WitchCityRope.Web.Program>
+public class BlazorWebApplicationFactory : WebApplicationFactory<WitchCityRopeWeb::Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {

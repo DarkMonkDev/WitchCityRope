@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WitchCityRope.Core.DTOs;
 using WitchCityRope.Core.Models;
+using WitchCityRope.Core.Enums;
 using WitchCityRope.Web.Models;
 using WitchCityRope.Web.Services;
 using Xunit;
@@ -376,6 +377,458 @@ public class ApiClientTests
         result!.Title.Should().Be(request.Title);
         result.Description.Should().Be(request.Description);
     }
+
+    #region User Management Tests
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task GetUsersAsync_WithSearchParameters_ReturnsPagedResult()
+    {
+        // Arrange
+        var users = new List<AdminUserDto>
+        {
+            new AdminUserDto
+            {
+                Id = Guid.NewGuid(),
+                SceneName = "TestUser1",
+                Email = "test1@example.com",
+                Role = Core.Enums.UserRole.Member,
+                IsActive = true,
+                IsVetted = true,
+                EmailConfirmed = true,
+                CreatedAt = DateTime.UtcNow.AddMonths(-6)
+            },
+            new AdminUserDto
+            {
+                Id = Guid.NewGuid(),
+                SceneName = "TestUser2",
+                Email = "test2@example.com",
+                Role = Core.Enums.UserRole.Member,
+                IsActive = true,
+                IsVetted = false,
+                EmailConfirmed = true,
+                CreatedAt = DateTime.UtcNow.AddMonths(-3)
+            }
+        };
+        
+        var pagedResult = new PagedUserResult
+        {
+            Users = users,
+            TotalCount = 2,
+            CurrentPage = 1,
+            PageSize = 50
+        };
+        
+        var jsonResponse = JsonSerializer.Serialize(pagedResult);
+        
+        _httpMessageHandlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString().Contains("api/admin/users") &&
+                    req.RequestUri.ToString().Contains("searchTerm=test") &&
+                    req.RequestUri.ToString().Contains("page=1")),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(jsonResponse)
+            });
+
+        var searchRequest = new UserSearchRequest
+        {
+            SearchTerm = "test",
+            Page = 1,
+            PageSize = 50,
+            SortBy = "sceneName",
+            SortDirection = "asc"
+        };
+
+        // Act
+        var result = await _apiClient.GetUsersAsync(searchRequest);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Users.Should().HaveCount(2);
+        result.TotalCount.Should().Be(2);
+        result.CurrentPage.Should().Be(1);
+        result.Users.First().SceneName.Should().Be("TestUser1");
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task GetUsersAsync_WithRoleFilter_BuildsCorrectQuery()
+    {
+        // Arrange
+        var pagedResult = new PagedUserResult
+        {
+            Users = new List<AdminUserDto>(),
+            TotalCount = 0,
+            CurrentPage = 1,
+            PageSize = 50
+        };
+        
+        var jsonResponse = JsonSerializer.Serialize(pagedResult);
+        
+        _httpMessageHandlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString().Contains("api/admin/users") &&
+                    req.RequestUri.ToString().Contains("role=2") && // Member = 2
+                    req.RequestUri.ToString().Contains("isVetted=true")),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(jsonResponse)
+            });
+
+        var searchRequest = new UserSearchRequest
+        {
+            Role = Core.Enums.UserRole.Member,
+            IsVetted = true,
+            Page = 1,
+            PageSize = 50
+        };
+
+        // Act
+        var result = await _apiClient.GetUsersAsync(searchRequest);
+
+        // Assert
+        result.Should().NotBeNull();
+        
+        // Verify the HTTP request was made with correct parameters
+        _httpMessageHandlerMock.Protected().Verify(
+            "SendAsync",
+            Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req =>
+                req.RequestUri!.ToString().Contains("role=2") &&
+                req.RequestUri.ToString().Contains("isVetted=true")),
+            ItExpr.IsAny<CancellationToken>()
+        );
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task GetUsersAsync_WithHttpError_ThrowsException()
+    {
+        // Arrange
+        _httpMessageHandlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.InternalServerError,
+                Content = new StringContent("Server error")
+            });
+
+        var searchRequest = new UserSearchRequest
+        {
+            Page = 1,
+            PageSize = 50
+        };
+
+        // Act & Assert
+        await _apiClient.Invoking(x => x.GetUsersAsync(searchRequest))
+            .Should().ThrowAsync<HttpRequestException>();
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task GetUserByIdAsync_WithValidId_ReturnsUser()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var user = new AdminUserDto
+        {
+            Id = userId,
+            SceneName = "TestUser",
+            Email = "test@example.com",
+            Role = Core.Enums.UserRole.Member,
+            IsActive = true,
+            IsVetted = true,
+            EmailConfirmed = true,
+            CreatedAt = DateTime.UtcNow.AddMonths(-6),
+            Pronouns = "they/them",
+            PronouncedName = "Test User"
+        };
+        
+        var jsonResponse = JsonSerializer.Serialize(user);
+        
+        _httpMessageHandlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString().Contains($"api/admin/users/{userId}")),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(jsonResponse)
+            });
+
+        // Act
+        var result = await _apiClient.GetUserByIdAsync(userId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(userId);
+        result.SceneName.Should().Be("TestUser");
+        result.Email.Should().Be("test@example.com");
+        result.Role.Should().Be(Core.Enums.UserRole.Member);
+        result.Pronouns.Should().Be("they/them");
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task GetUserByIdAsync_WithNotFoundId_ReturnsNull()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        
+        _httpMessageHandlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString().Contains($"api/admin/users/{userId}")),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Content = new StringContent("User not found")
+            });
+
+        // Act & Assert
+        await _apiClient.Invoking(x => x.GetUserByIdAsync(userId))
+            .Should().ThrowAsync<HttpRequestException>();
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task UpdateUserAsync_WithValidData_ReturnsTrue()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var updateDto = new UpdateUserDto
+        {
+            SceneName = "UpdatedUser",
+            Role = Core.Enums.UserRole.Organizer,
+            IsActive = true,
+            IsVetted = true,
+            Pronouns = "she/her",
+            AdminNote = "Updated user role due to event organizer application"
+        };
+        
+        _httpMessageHandlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Put &&
+                    req.RequestUri!.ToString().Contains($"api/admin/users/{userId}")),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.NoContent
+            });
+
+        // Act
+        var result = await _apiClient.UpdateUserAsync(userId, updateDto);
+
+        // Assert
+        result.Should().BeTrue();
+        
+        // Verify the HTTP request was made
+        _httpMessageHandlerMock.Protected().Verify(
+            "SendAsync",
+            Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req =>
+                req.Method == HttpMethod.Put &&
+                req.RequestUri!.ToString().Contains($"api/admin/users/{userId}")),
+            ItExpr.IsAny<CancellationToken>()
+        );
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task UpdateUserAsync_WithServerError_ReturnsFalse()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var updateDto = new UpdateUserDto
+        {
+            SceneName = "UpdatedUser"
+        };
+        
+        _httpMessageHandlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Content = new StringContent("Validation failed")
+            });
+
+        // Act
+        var result = await _apiClient.UpdateUserAsync(userId, updateDto);
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task ResetUserPasswordAsync_WithValidData_ReturnsTrue()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var resetDto = new ResetUserPasswordDto
+        {
+            NewPassword = "NewSecurePassword123!",
+            RequirePasswordChangeOnLogin = true,
+            AdminNote = "Password reset requested due to account compromise"
+        };
+        
+        _httpMessageHandlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Post &&
+                    req.RequestUri!.ToString().Contains($"api/admin/users/{userId}/reset-password")),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.NoContent
+            });
+
+        // Act
+        var result = await _apiClient.ResetUserPasswordAsync(userId, resetDto);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task ManageUserLockoutAsync_LockUser_ReturnsTrue()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var lockoutDto = new UserLockoutDto
+        {
+            IsLocked = true,
+            LockoutEnd = DateTime.UtcNow.AddDays(30),
+            Reason = "Violation of community guidelines"
+        };
+        
+        _httpMessageHandlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Post &&
+                    req.RequestUri!.ToString().Contains($"api/admin/users/{userId}/lockout")),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.NoContent
+            });
+
+        // Act
+        var result = await _apiClient.ManageUserLockoutAsync(userId, lockoutDto);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task GetUserStatsAsync_WithValidResponse_ReturnsStats()
+    {
+        // Arrange
+        var stats = new UserStatsDto
+        {
+            TotalUsers = 150,
+            PendingVetting = 12,
+            OnHold = 3,
+            CalculatedAt = DateTime.UtcNow,
+            UsersByRole = new Dictionary<string, int>
+            {
+                { "Member", 120 },
+                { "Organizer", 20 },
+                { "Administrator", 5 },
+                { "Attendee", 5 }
+            }
+        };
+        
+        var jsonResponse = JsonSerializer.Serialize(stats);
+        
+        _httpMessageHandlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString().Contains("api/admin/users/stats")),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(jsonResponse)
+            });
+
+        // Act
+        var result = await _apiClient.GetUserStatsAsync();
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.TotalUsers.Should().Be(150);
+        result.PendingVetting.Should().Be(12);
+        result.OnHold.Should().Be(3);
+        result.UsersByRole.Should().ContainKey("Member");
+        result.UsersByRole["Member"].Should().Be(120);
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task GetAvailableRolesAsync_WithValidResponse_ReturnsRoles()
+    {
+        // Arrange
+        var roles = new List<RoleDto>
+        {
+            new RoleDto { Name = "Attendee", DisplayName = "Attendee", Description = "Standard event attendee", Priority = 1 },
+            new RoleDto { Name = "Member", DisplayName = "Member", Description = "Verified community member", Priority = 2 },
+            new RoleDto { Name = "Organizer", DisplayName = "Organizer", Description = "Event organizer", Priority = 3 },
+            new RoleDto { Name = "Administrator", DisplayName = "Administrator", Description = "System administrator", Priority = 4 }
+        };
+        
+        var jsonResponse = JsonSerializer.Serialize(roles);
+        
+        _httpMessageHandlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString().Contains("api/admin/users/roles")),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(jsonResponse)
+            });
+
+        // Act
+        var result = await _apiClient.GetAvailableRolesAsync();
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Should().HaveCount(4);
+        result.Should().Contain(r => r.Name == "Member");
+        result.Should().Contain(r => r.Name == "Administrator");
+        result.First(r => r.Name == "Member").Description.Should().Be("Verified community member");
+    }
+
+    #endregion
 
 
 }

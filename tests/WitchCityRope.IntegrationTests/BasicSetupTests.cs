@@ -1,3 +1,6 @@
+extern alias WitchCityRopeWeb;
+extern alias WitchCityRopeApi;
+
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Hosting;
@@ -10,12 +13,12 @@ namespace WitchCityRope.IntegrationTests;
 /// <summary>
 /// Very basic tests to verify the application starts correctly
 /// </summary>
-public class BasicSetupTests : IClassFixture<WebApplicationFactory<WitchCityRope.Web.Program>>
+public class BasicSetupTests : IClassFixture<WebApplicationFactory<WitchCityRopeWeb::Program>>
 {
     private readonly HttpClient _client;
     private readonly ITestOutputHelper _output;
 
-    public BasicSetupTests(WebApplicationFactory<WitchCityRope.Web.Program> factory, ITestOutputHelper output)
+    public BasicSetupTests(WebApplicationFactory<WitchCityRopeWeb::Program> factory, ITestOutputHelper output)
     {
         _output = output;
         _client = factory.WithWebHostBuilder(builder =>

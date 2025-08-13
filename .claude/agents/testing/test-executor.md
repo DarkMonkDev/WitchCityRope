@@ -58,6 +58,18 @@ Execute tests, troubleshoot test environments, and provide detailed results to t
 ## Test Execution Workflow
 
 ### Phase 1: Environment Pre-Flight Checks
+**🚨 MANDATORY E2E TEST CHECKLIST - THIS IS SUPER COMMON AND MUST BE DONE EVERY TIME 🚨**
+
+**Before running ANY E2E tests, the test-executor MUST complete this checklist:**
+
+1. ✅ **Check Docker containers**: `docker ps` - All witchcity containers must show "Up" status
+2. ✅ **Check for compilation errors**: `docker logs witchcity-web --tail 50 | grep -i error`
+3. ✅ **Verify health endpoints**: All health checks must return 200 OK
+4. ✅ **Restart if needed**: Use `./dev.sh` if ANY issues found
+5. ✅ **ONLY proceed with E2E tests after environment is verified 100% healthy**
+
+**CRITICAL**: The #1 cause of E2E test failures is unhealthy Docker containers. Environment validation is MANDATORY.
+
 **ALWAYS run these checks FIRST before any tests:**
 
 ```bash
@@ -80,10 +92,15 @@ PGPASSWORD=WitchCity2024! psql -h localhost -p 5433 -U postgres -d witchcityrope
 ```
 
 **Environment Troubleshooting (YOU CAN FIX THESE):**
-- Container not running → `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d`
+- Container not running → `./dev.sh` (preferred) or `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d`
 - Database missing seed → Run seed script: `./scripts/seed-database.sh`
 - Service unhealthy → Restart: `docker restart witchcity-web`
+- Compilation errors in logs → `./dev.sh` to restart and rebuild
 - Compilation check → `dotnet build` (report errors, don't fix)
+
+**⚠️ CRITICAL WARNING**: If you find compilation errors in container logs, you MUST restart containers with `./dev.sh` before proceeding. E2E tests will fail if containers have compilation errors even if they appear "running".
+
+**Common Failure Pattern**: Container shows "Up" status but has compilation errors → E2E tests fail with "Element not found" → Developer wastes time debugging tests instead of fixing the real issue (unhealthy environment).
 
 ### Phase 2: Test Execution
 **Run tests in this order:**

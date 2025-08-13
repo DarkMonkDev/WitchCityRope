@@ -4,8 +4,8 @@ test.describe('Admin User Details & Notes Panel', () => {
   test.beforeEach(async ({ page }) => {
     // Login as admin and navigate to users page
     await page.goto('http://localhost:5651/login');
-    await page.fill('input[type="email"]', 'admin@witchcityrope.com');
-    await page.fill('input[type="password"]', 'Test123!');
+    await page.fill('input[name="Input.EmailOrUsername"]', 'admin@witchcityrope.com');
+    await page.fill('input[name="Input.Password"]', 'Test123!');
     await page.click('button[type="submit"]');
     
     // Wait for authentication

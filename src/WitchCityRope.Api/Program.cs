@@ -120,3 +120,6 @@ using (var scope = app.Services.CreateScope())
 app.ConfigureApiPipeline();
 
 app.Run();
+
+// Make Program class internal but visible to tests via InternalsVisibleTo
+internal partial class Program { }

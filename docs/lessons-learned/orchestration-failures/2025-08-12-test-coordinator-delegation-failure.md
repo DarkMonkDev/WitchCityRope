@@ -1,9 +1,9 @@
-# Orchestrator Test-Fix-Coordinator Delegation Failure
+# Orchestrator Test-Executor Delegation Failure
 
 ## Date: 2025-08-12
 
 ## Problem
-The orchestrator repeatedly failed to delegate testing work to the test-fix-coordinator agent, instead attempting to:
+The orchestrator repeatedly failed to delegate testing work to the test-executor agent, instead attempting to:
 1. Run tests directly using `dotnet test` or `npm test`
 2. Fix code issues itself
 3. Bypass the established test/fix delegation pattern
@@ -11,20 +11,20 @@ The orchestrator repeatedly failed to delegate testing work to the test-fix-coor
 This violates the core orchestration principle of delegation-only operation.
 
 ## Root Cause
-1. **Primary Issue**: The test-fix-coordinator had Read, Grep, and Glob tools in its tool list, enabling it to read and search code directly instead of just running tests and delegating fixes.
+1. **Primary Issue**: The test-executor was being asked to coordinate fixes when it should only execute tests and report results.
 2. **Secondary Issue**: The orchestrator.md file lacked sufficiently explicit and prominent warnings about test delegation. The instructions were buried in Phase 4 without clear violation detection mechanisms.
 
 **CRITICAL FINDING**: Even with perfect delegation instructions, if an agent has tools that allow direct implementation, it WILL use them instead of delegating.
 
 ## Solution Applied
 
-### 1. REMOVED TOOLS FROM TEST-FIX-COORDINATOR
-**MOST CRITICAL FIX**: Changed test-fix-coordinator tools from:
+### 1. RENAMED AND REFOCUSED AGENT
+**MOST CRITICAL FIX**: Renamed test-fix-coordinator to test-executor and changed tools from:
 - `tools: TodoWrite, Task, Read, Bash, Grep, Glob`
 To:
-- `tools: TodoWrite, Task, Bash`
+- `tools: Bash, Read, Write, Glob` (removed Task tool - no coordination, only execution)
 
-This physically prevents the coordinator from reading or modifying code.
+This ensures the executor can run tests and manage test environment but cannot coordinate fixes - that's the orchestrator's job.
 
 ### 2. Added Tool Restriction Enforcement Section
 Added explicit list of tools the coordinator DOES NOT HAVE to make it clear it cannot read/edit code.
@@ -36,14 +36,14 @@ Added a prominent warning section in Phase 4 that explicitly lists forbidden com
 Added a critical rule immediately after invocation triggers that catches testing-related requests early in the process.
 
 ### 5. Provided Explicit Delegation Pattern
-Added a complete, copy-paste ready delegation pattern for test-fix-coordinator invocation.
+Added a complete, copy-paste ready delegation pattern for test-executor invocation.
 
 ## Key Changes to orchestrator.md
 
 ```markdown
 ## 🚨 CRITICAL TEST DELEGATION RULE 🚨
 **When user mentions "testing", "debugging", or "fixing":**
-1. You MUST immediately delegate to `test-fix-coordinator`
+1. You MUST immediately delegate to `test-executor`
 2. You MUST NOT run any `dotnet test` or `npm test` commands yourself
 3. You MUST NOT attempt to fix any code yourself
 4. VIOLATION = ORCHESTRATION FAILURE

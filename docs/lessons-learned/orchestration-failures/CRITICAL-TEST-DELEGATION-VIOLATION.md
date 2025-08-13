@@ -5,7 +5,7 @@
 ## USER IMPACT: EXTREME FRUSTRATION (7+ occurrences)
 
 ## THE VIOLATION
-The orchestrator repeatedly RUNS TESTS DIRECTLY instead of delegating to test-fix-coordinator.
+The orchestrator repeatedly RUNS TESTS DIRECTLY instead of delegating to test-executor.
 
 ## WHAT HAPPENED (PATTERN OF FAILURE)
 1. User says "continue testing" or similar
@@ -20,7 +20,7 @@ When orchestrator receives ANY testing/debugging/fixing request:
 ```python
 # IMMEDIATE ACTION - NO OTHER STEPS FIRST
 Task(
-    subagent_type="test-fix-coordinator",
+    subagent_type="test-executor",
     description="Execute test-fix cycle",
     prompt="[Full context about what to test]"
 )
@@ -38,15 +38,15 @@ Task(
 ❌ "Understand" the test situation first
 
 ## WHAT ORCHESTRATOR MUST ALWAYS DO
-✅ IMMEDIATELY delegate to test-fix-coordinator
-✅ Pass ALL context to test-fix-coordinator
-✅ Let test-fix-coordinator handle EVERYTHING
-✅ WAIT for test-fix-coordinator to report back
+✅ IMMEDIATELY delegate to test-executor
+✅ Pass ALL context to test-executor
+✅ Let test-executor run tests and report results
+✅ WAIT for test-executor to report back, then coordinate fixes
 
 ## VERIFICATION CHECKLIST
 Before responding to ANY testing request:
 - [ ] Did I check for words: test, testing, debug, fix, continue testing?
-- [ ] Is my FIRST action invoking test-fix-coordinator?
+- [ ] Is my FIRST action invoking test-executor?
 - [ ] Am I delegating WITHOUT running any commands first?
 - [ ] Can I see the Task tool invocation in my response?
 
@@ -71,5 +71,5 @@ VIOLATION = ORCHESTRATION FAILURE
 READ THIS FIRST before processing ANY request.
 If the request mentions testing/debugging/fixing:
 STOP.
-DELEGATE TO TEST-FIX-COORDINATOR.
+DELEGATE TO TEST-EXECUTOR.
 DO NOTHING ELSE FIRST.

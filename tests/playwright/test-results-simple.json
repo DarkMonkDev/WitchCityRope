@@ -1,0 +1,309 @@
+{
+  "config": {
+    "configFile": "/home/chad/repos/witchcityrope/tests/playwright/playwright.config.simple.ts",
+    "rootDir": "/home/chad/repos/witchcityrope/tests/playwright",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report-simple"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results-simple.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/home/chad/repos/witchcityrope/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/chad/repos/witchcityrope/tests/playwright",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*simple*.spec.ts"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.54.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "admin/admin-user-management-simple.spec.ts",
+      "file": "admin/admin-user-management-simple.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Admin User Management - Simple",
+          "file": "admin/admin-user-management-simple.spec.ts",
+          "line": 29,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should login as admin and verify user management page loads",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "test-id",
+                      "description": "admin-user-management-basic"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3608,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "🔐 Step 1: Login as admin...\n"
+                        },
+                        {
+                          "text": "✅ Login successful, redirected to: http://localhost:5651/\n"
+                        },
+                        {
+                          "text": "🏠 Step 2: Navigate to admin users page...\n"
+                        },
+                        {
+                          "text": "✅ Successfully navigated to admin users page\n"
+                        },
+                        {
+                          "text": "📋 Step 3: Verify page title loads...\n"
+                        },
+                        {
+                          "text": "✅ Page title found: User Management\n"
+                        },
+                        {
+                          "text": "📊 Step 4: Verify statistics cards...\n"
+                        },
+                        {
+                          "text": "Found 8 statistics card(s)\n"
+                        },
+                        {
+                          "text": "✅ Statistics cards verified\n"
+                        },
+                        {
+                          "text": "📝 Step 5: Verify user grid/table...\n"
+                        },
+                        {
+                          "text": "Found 3 user-related row(s)\n"
+                        },
+                        {
+                          "text": "✅ User grid verified\n"
+                        },
+                        {
+                          "text": "🖱️ Step 6: Test basic user interaction...\n"
+                        },
+                        {
+                          "text": "ℹ️ No data rows found to test interaction\n"
+                        },
+                        {
+                          "text": "📸 Step 7: Take verification screenshot...\n"
+                        },
+                        {
+                          "text": "🎉 All basic admin user management functionality verified!\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-13T06:56:05.803Z",
+                      "annotations": [
+                        {
+                          "type": "test-id",
+                          "description": "admin-user-management-basic"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3dc65b83e5488d9a58ff-352e2c0e5ae35268cdc8",
+              "file": "admin/admin-user-management-simple.spec.ts",
+              "line": 36,
+              "column": 7
+            },
+            {
+              "title": "should verify admin can access user details",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "test-id",
+                      "description": "admin-user-details-access"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1437,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "🔐 Login as admin...\n"
+                        },
+                        {
+                          "text": "📋 Navigate to users page...\n"
+                        },
+                        {
+                          "text": "🔍 Look for actionable user elements...\n"
+                        },
+                        {
+                          "text": "Found 0 potentially clickable user-related element(s)\n"
+                        },
+                        {
+                          "text": "ℹ️ No obviously clickable user elements found\n"
+                        },
+                        {
+                          "text": "✅ User details access test completed\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-13T06:56:09.492Z",
+                      "annotations": [
+                        {
+                          "type": "test-id",
+                          "description": "admin-user-details-access"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3dc65b83e5488d9a58ff-660f076caa9cf63d0ffc",
+              "file": "admin/admin-user-management-simple.spec.ts",
+              "line": 168,
+              "column": 7
+            },
+            {
+              "title": "should verify page elements are responsive",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "test-id",
+                      "description": "admin-user-management-responsive"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3469,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "📱 Testing responsive behavior...\n"
+                        },
+                        {
+                          "text": "Desktop view test...\n"
+                        },
+                        {
+                          "text": "Tablet view test...\n"
+                        },
+                        {
+                          "text": "Mobile view test...\n"
+                        },
+                        {
+                          "text": "✅ Responsive behavior verified\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-13T06:56:10.934Z",
+                      "annotations": [
+                        {
+                          "type": "test-id",
+                          "description": "admin-user-management-responsive"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3dc65b83e5488d9a58ff-28eb536df285fb349935",
+              "file": "admin/admin-user-management-simple.spec.ts",
+              "line": 231,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-08-13T06:56:05.316Z",
+    "duration": 9131.990999999998,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

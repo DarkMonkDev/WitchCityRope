@@ -458,6 +458,71 @@ namespace WitchCityRope.Api.Features.Auth.Services
             }
         }
 
+        /// <summary>
+        /// Gets a JWT token for a user on behalf of the Web service
+        /// This is used for service-to-service authentication where the Web service
+        /// needs to get a JWT token for an already authenticated user
+        /// </summary>
+        public async Task<LoginResponse> GetServiceTokenAsync(string userId, string email)
+        {
+            try
+            {
+                _logger.LogInformation("Service token requested for user {UserId} with email {Email}", userId, email);
+
+                // Find user by ID
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    _logger.LogWarning("Service token request failed: User not found for {UserId}", userId);
+                    throw new Services.UnauthorizedException("User not found or email mismatch");
+                }
+                
+                if (!string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning("Service token request failed: Email mismatch. Expected: {Expected}, Got: {Got}", user.Email, email);
+                    throw new Services.UnauthorizedException("User not found or email mismatch");
+                }
+
+                // Check if account is active
+                if (!user.IsActive)
+                {
+                    _logger.LogWarning("Service token request failed: Account inactive for user {UserId}", userId);
+                    throw new Services.UnauthorizedException("Account is deactivated");
+                }
+
+                // Check if email is verified
+                if (!user.EmailConfirmed)
+                {
+                    _logger.LogWarning("Service token request failed: Email not verified for user {UserId}", userId);
+                    throw new Services.UnauthorizedException("Email not verified");
+                }
+
+                // Generate JWT token and refresh token
+                var userWithAuth = await MapToUserWithAuth(user);
+                var token = _jwtService.GenerateToken(userWithAuth);
+                var refreshToken = _jwtService.GenerateRefreshToken();
+
+                _logger.LogInformation("Service token generated successfully for user {UserId}", userId);
+
+                return new LoginResponse
+                {
+                    Token = token.Token,
+                    RefreshToken = refreshToken,
+                    ExpiresAt = token.ExpiresAt,
+                    User = MapToUserDto(user)
+                };
+            }
+            catch (Services.UnauthorizedException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error generating service token for user {UserId}", userId);
+                throw new Services.UnauthorizedException("Failed to generate service token");
+            }
+        }
+
         private Task<UserWithAuth> MapToUserWithAuth(WitchCityRopeUser identityUser)
         {
             var userWithAuth = new UserWithAuth

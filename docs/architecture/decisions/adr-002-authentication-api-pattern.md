@@ -87,6 +87,10 @@ public async Task<bool> LoginAsync(string email, string password, bool rememberM
 ## Why This Is Required
 Microsoft's official guidance states that SignInManager operations MUST happen outside Blazor's rendering context. This is a fundamental limitation of how Blazor Server works with SignalR circuits.
 
+## Related Documentation
+- [JWT Service-to-Service Authentication](/docs/functional-areas/authentication/jwt-service-to-service-auth.md) - Complete implementation of Web→API authentication flow
+- [Authentication API Pattern](/docs/standards-processes/development-standards/authentication-patterns.md) - Development patterns and standards
+
 ## References
 - [Microsoft Blazor Server Authentication Documentation](https://docs.microsoft.com/aspnet/core/blazor/security/server)
 - [SignInManager and Blazor Server Issues](https://github.com/dotnet/aspnetcore/issues)

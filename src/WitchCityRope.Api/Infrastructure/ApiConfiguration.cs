@@ -115,22 +115,32 @@ public static class ApiConfiguration
     /// </summary>
     public static IServiceCollection AddApiAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        var jwtSettings = configuration.GetSection("JwtSettings");
-        var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT secret key not configured");
+        var secretKey = configuration["Jwt:Secret"] ?? throw new InvalidOperationException("JWT secret key not configured");
 
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
         .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
         {
+            // Clear the default claim type mappings to preserve original claim names
+            options.MapInboundClaims = false;
+            
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = jwtSettings["Issuer"],
-                ValidAudience = jwtSettings["Audience"],
+                ValidIssuer = configuration["Jwt:Issuer"],
+                ValidAudience = configuration["Jwt:Audience"],
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
-                ClockSkew = TimeSpan.Zero
+                ClockSkew = TimeSpan.Zero,
+                // Map JWT claim names to expected ASP.NET Core claim types
+                RoleClaimType = "role",
+                NameClaimType = "unique_name"
             };
 
             options.Events = new JwtBearerEvents
@@ -277,7 +287,7 @@ public static class ApiConfiguration
         services.AddScoped<Features.Auth.Services.IEncryptionService, Features.Auth.Services.EncryptionServiceAdapter>();
         
         // Add direct service implementations
-        services.AddScoped<IAuthService, Features.Auth.Services.AuthService>();
+        services.AddScoped<IAuthService, Features.Auth.Services.IdentityAuthService>();
         services.AddScoped<Services.IUserService, Services.UserService>();
         services.AddScoped<IEventService, Features.Events.Services.EventService>();
         services.AddScoped<IRegistrationService, Services.RegistrationService>();

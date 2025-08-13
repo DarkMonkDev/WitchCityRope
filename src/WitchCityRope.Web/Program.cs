@@ -144,16 +144,58 @@ builder.Services.ConfigureApplicationCookie(options =>
     // Add JWT token management events
     options.Events.OnSigningIn = async context =>
     {
-        var serviceProvider = context.HttpContext.RequestServices;
-        var eventHandler = serviceProvider.GetRequiredService<AuthenticationEventHandler>();
-        await eventHandler.SigningIn(context);
+        try
+        {
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogInformation("Cookie SigningIn event triggered - acquiring JWT token for user");
+            
+            var apiAuthService = context.HttpContext.RequestServices.GetRequiredService<IApiAuthenticationService>();
+            var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<WitchCityRopeUser>>();
+            
+            // Get the user from the signed-in principal
+            var user = await userManager.GetUserAsync(context.Principal);
+            if (user != null)
+            {
+                logger.LogInformation("Found user for JWT token acquisition: {UserId} {Email}", user.Id, user.Email);
+                
+                // Get JWT token for API calls
+                var jwtToken = await apiAuthService.GetJwtTokenForUserAsync(user);
+                if (!string.IsNullOrEmpty(jwtToken))
+                {
+                    logger.LogInformation("Successfully obtained JWT token during cookie sign-in for user: {Email}", user.Email);
+                }
+                else
+                {
+                    logger.LogWarning("Failed to obtain JWT token during cookie sign-in for user: {Email}", user.Email);
+                }
+            }
+            else
+            {
+                logger.LogWarning("Could not find user for JWT token acquisition during cookie sign-in");
+            }
+        }
+        catch (Exception ex)
+        {
+            var logger = context.HttpContext.RequestServices.GetService<ILogger<Program>>();
+            logger?.LogError(ex, "Error during JWT token acquisition in cookie sign-in event");
+        }
     };
     
     options.Events.OnSigningOut = async context =>
     {
-        var serviceProvider = context.HttpContext.RequestServices;
-        var eventHandler = serviceProvider.GetRequiredService<AuthenticationEventHandler>();
-        await eventHandler.SigningOut(context);
+        try
+        {
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogInformation("Cookie SigningOut event triggered - invalidating JWT token");
+            
+            var apiAuthService = context.HttpContext.RequestServices.GetRequiredService<IApiAuthenticationService>();
+            await apiAuthService.InvalidateTokenAsync();
+        }
+        catch (Exception ex)
+        {
+            var logger = context.HttpContext.RequestServices.GetService<ILogger<Program>>();
+            logger?.LogError(ex, "Error during JWT token invalidation in cookie sign-out event");
+        }
     };
 });
 
@@ -176,7 +218,8 @@ builder.Services.AddTransient<AuthenticationDelegatingHandler>();
 builder.Services.AddHttpClient<ApiClient>(client =>
 {
     // Use configuration to get the API URL
-    var apiUrl = builder.Configuration["ApiUrl"] ?? "https://localhost:8181";
+    // Default to external API port for local development
+    var apiUrl = builder.Configuration["ApiUrl"] ?? "http://localhost:5653";
     client.BaseAddress = new Uri(apiUrl);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
     client.Timeout = TimeSpan.FromSeconds(30);
@@ -200,13 +243,23 @@ builder.Services.AddHttpClient("LocalApi", (serviceProvider, client) =>
     client.BaseAddress = new Uri("http://localhost:8080");
 });
 
-// Configure HttpClient for API service authentication (JWT tokens)
+// Configure HttpClient for API service authentication (JWT tokens)  
+// This client is used by ApiAuthenticationService and doesn't need the auth handler
+// since it's used to GET tokens, not to send them
 builder.Services.AddHttpClient("ApiClient", (serviceProvider, client) =>
 {
     var apiUrl = builder.Configuration["ApiUrl"] ?? "http://localhost:5653";
     client.BaseAddress = new Uri(apiUrl);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
     client.Timeout = TimeSpan.FromSeconds(30);
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
+{
+    ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => 
+    {
+        // Accept all certificates in development
+        return builder.Environment.IsDevelopment();
+    }
 });
 
 // Add HttpClient for external services
@@ -225,6 +278,12 @@ if (!string.IsNullOrEmpty(sendGridApiKey))
     });
 
     // SendGrid client is registered by AddSendGrid above
+}
+else
+{
+    // Add a null SendGrid client registration for development when API key is not configured
+    builder.Services.AddScoped<SendGrid.ISendGridClient>(provider => null!);
+    Console.WriteLine("[Web] SendGrid API key not configured - using mock email service for development");
 }
 
 // Add cascading auth state provider (using default server-side auth state provider)
@@ -272,12 +331,22 @@ builder.Services.AddAuthorization(options =>
 });
 
 // Add data protection for secure cookie handling
-builder.Services.AddDataProtection()
-    .SetApplicationName("WitchCityRope")
-    .PersistKeysToFileSystem(new DirectoryInfo(
-        builder.Environment.IsDevelopment() 
-            ? Path.Combine(Directory.GetCurrentDirectory(), "temp", "keys")
-            : "/app/shared/keys")); // Use temp directory in dev, shared volume in production
+if (builder.Environment.EnvironmentName == "Testing")
+{
+    // Use ephemeral data protection for tests to avoid file system permission issues
+    builder.Services.AddDataProtection()
+        .SetApplicationName("WitchCityRope")
+        .UseEphemeralDataProtectionProvider();
+}
+else
+{
+    builder.Services.AddDataProtection()
+        .SetApplicationName("WitchCityRope")
+        .PersistKeysToFileSystem(new DirectoryInfo(
+            builder.Environment.IsDevelopment() 
+                ? Path.Combine(Directory.GetCurrentDirectory(), "temp", "keys")
+                : "/app/shared/keys")); // Use temp directory in dev, shared volume in production
+}
 
 // Configure session (for temporary data and state management)
 builder.Services.AddSession(options =>
@@ -385,3 +454,6 @@ if (app.Environment.IsDevelopment())
 
 // Run the application
 app.Run();
+
+// Make Program class public for integration tests
+public partial class Program { }

@@ -12,6 +12,7 @@ namespace WitchCityRope.Api.Features.Auth.Services
 {
     /// <summary>
     /// Service responsible for authentication and user registration
+    /// NOTE: This class appears to be unused - IdentityAuthService is the actual implementation
     /// </summary>
     public class AuthService : IAuthService
     {
@@ -278,12 +279,21 @@ namespace WitchCityRope.Api.Features.Auth.Services
                 User = new UserDto
                 {
                     Id = user.Id,
-                    Email = user.Email ?? string.Empty,
+                    Email = user.Email.Value,
                     SceneName = user.SceneName.Value,
                     Role = user.Role,
                     IsActive = user.IsActive
                 }
             };
+        }
+
+        /// <summary>
+        /// Gets a JWT token for a user on behalf of the Web service (stub implementation)
+        /// </summary>
+        public async Task<LoginResponse> GetServiceTokenAsync(string userId, string email)
+        {
+            // Note: This class appears to be unused - IdentityAuthService is the actual implementation
+            throw new NotImplementedException("This method is implemented in IdentityAuthService");
         }
 
         private string GenerateVerificationToken()

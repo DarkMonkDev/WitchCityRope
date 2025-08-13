@@ -22,7 +22,7 @@ tools: TodoWrite, Task
 ```
 
 Without these tools, the orchestrator:
-- **CANNOT** run tests → MUST delegate to test-fix-coordinator
+- **CANNOT** run tests → MUST delegate to test-executor
 - **CANNOT** read code → MUST delegate to specialized agents
 - **CANNOT** search files → MUST delegate to specialized agents
 - **CANNOT** write code → MUST delegate to developers
@@ -36,7 +36,7 @@ Without these tools, the orchestrator:
 
 ### Key Pattern:
 ```yaml
-# Coordinator Pattern (orchestrator, test-fix-coordinator):
+# Coordinator Pattern (orchestrator):
 tools: TodoWrite, Task  # ONLY delegation tools
 
 # Implementation Pattern (developers, designers):
@@ -101,7 +101,7 @@ If you need to do ANYTHING else, delegate to appropriate agent.
 
 ### Phase 4: Update Related Agents
 
-**Verify test-fix-coordinator** (already correct):
+**Verify test-executor** (already correct):
 ```yaml
 tools: TodoWrite, Task, Bash  # Correct - can run tests, must delegate fixes
 ```
@@ -115,13 +115,13 @@ tools: TodoWrite, Task, Bash  # Correct - can run tests, must delegate fixes
 ### Test Case 1: "Continue testing"
 **Expected Behavior**:
 1. Main assistant → Invokes orchestrator
-2. Orchestrator → IMMEDIATELY invokes test-fix-coordinator (no Bash commands)
-3. Test-fix-coordinator → Runs tests, delegates fixes
+2. Orchestrator → IMMEDIATELY invokes test-executor (no Bash commands)
+3. Test-executor → Runs tests, reports results back to orchestrator
 
 ### Test Case 2: "Fix compilation errors"
 **Expected Behavior**:
 1. Orchestrator → Cannot read error files (no Read tool)
-2. Orchestrator → MUST delegate to test-fix-coordinator or developer
+2. Orchestrator → MUST delegate to test-executor or developer
 
 ### Test Case 3: "Implement new feature"
 **Expected Behavior**:

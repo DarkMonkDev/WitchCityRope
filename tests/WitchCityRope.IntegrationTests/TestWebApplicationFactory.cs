@@ -1,5 +1,9 @@
+extern alias WitchCityRopeWeb;
+extern alias WitchCityRopeApi;
+
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -11,7 +15,7 @@ using Npgsql;
 
 namespace WitchCityRope.IntegrationTests;
 
-public class TestWebApplicationFactory : WebApplicationFactory<WitchCityRope.Web.Program>
+public class TestWebApplicationFactory : WebApplicationFactory<WitchCityRopeWeb::Program>
 {
     private readonly PostgreSqlContainer _postgresContainer;
 

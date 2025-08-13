@@ -8,6 +8,7 @@
     <DockerfileContext>.</DockerfileContext>
   </PropertyGroup>
 
+
   <ItemGroup>
     <!-- Blazor and ASP.NET Core -->
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.6" />

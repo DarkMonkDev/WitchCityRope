@@ -19,9 +19,9 @@ This directory contains CRITICAL lessons learned from AI workflow orchestration 
 
 ### 2. Test Delegation Failures  
 - **File**: `2025-08-12-test-coordinator-delegation-failure.md`
-- **Issue**: Orchestrator bypasses test-fix-coordinator and attempts direct testing
+- **Issue**: Orchestrator bypasses test-executor and attempts direct testing
 - **Impact**: Improper agent usage, repeated failures
-- **Status**: RESOLVED - tools removed, delegation rules strengthened
+- **Status**: RESOLVED - agent renamed to test-executor, coordination removed, delegation rules strengthened
 
 ## Critical Action Items
 

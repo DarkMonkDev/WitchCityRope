@@ -34,7 +34,7 @@ public class EventService : IEventService
         _slugGenerator = slugGenerator;
     }
 
-    public async Task<Core.DTOs.CreateEventResponse> CreateEventAsync(Features.Events.Models.CreateEventRequest request, Guid organizerId)
+    public async Task<Core.DTOs.CreateEventResponse> CreateEventAsync(Core.DTOs.CreateEventRequest request, Guid organizerId)
     {
         // Verify organizer exists and has permission to create events
         var organizer = await _dbContext.Users
@@ -75,7 +75,7 @@ public class EventService : IEventService
         }
 
         // Generate unique slug for the event
-        var slug = _slugGenerator.GenerateSlug(request.Title);
+        var slug = _slugGenerator.GenerateSlug(request.Name);
         var uniqueSlug = await EnsureUniqueSlugAsync(slug);
 
         // Create the event using the constructor
@@ -85,12 +85,12 @@ public class EventService : IEventService
         };
         
         var @event = new Event(
-            title: request.Title,
+            title: request.Name,
             description: request.Description,
             startDate: request.StartDateTime,
             endDate: request.EndDateTime,
             capacity: request.MaxAttendees,
-            eventType: (Core.Enums.EventType)request.Type,
+            eventType: Core.Enums.EventType.Workshop, // Default type since Core DTO doesn't have Type
             location: request.Location,
             primaryOrganizer: organizer,
             pricingTiers: pricingTiers

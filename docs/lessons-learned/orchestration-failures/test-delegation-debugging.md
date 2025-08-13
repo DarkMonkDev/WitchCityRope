@@ -1,7 +1,7 @@
 # Test Delegation Debugging Log
 
 ## Problem Analysis
-User reports orchestrator runs tests directly instead of delegating to test-fix-coordinator (7+ times).
+User reports orchestrator runs tests directly instead of delegating to test-executor (7+ times).
 
 ## What Main Assistant Passes to Orchestrator
 
@@ -29,10 +29,10 @@ The problem is NOT with what's being passed, but with the orchestrator ignoring 
 ```
 CRITICAL TEST DELEGATION RULE
 When user mentions "testing", "debugging", or "fixing":
-1. You MUST immediately delegate to test-fix-coordinator
+1. You MUST immediately delegate to test-executor
 2. You MUST NOT run any dotnet test or npm test commands yourself
 3. You MUST NOT attempt to fix any code yourself
-4. NO HUMAN REVIEW REQUIRED - delegate directly to test-fix-coordinator
+4. NO HUMAN REVIEW REQUIRED - delegate directly to test-executor
 5. VIOLATION = ORCHESTRATION FAILURE
 ```
 
@@ -51,7 +51,7 @@ The orchestrator agent is NOT following its own instructions despite:
 ## Solution Required
 The orchestrator needs to:
 1. **DETECT** the keywords (testing/debugging/fixing)
-2. **IMMEDIATELY** invoke Task tool with test-fix-coordinator
+2. **IMMEDIATELY** invoke Task tool with test-executor
 3. **NOT** run any commands first
 4. **NOT** check anything first
 5. **NOT** understand the situation first
@@ -62,7 +62,7 @@ When orchestrator receives ANY prompt containing "test", "testing", "debug", or 
 # FIRST ACTION - NO OTHER STEPS
 if "test" in prompt or "debug" in prompt or "fix" in prompt:
     Task(
-        subagent_type="test-fix-coordinator",
+        subagent_type="test-executor",
         description="Execute test-fix cycle",
         prompt=original_prompt  # Pass ENTIRE context
     )

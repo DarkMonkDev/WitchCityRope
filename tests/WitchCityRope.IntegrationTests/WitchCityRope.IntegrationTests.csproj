@@ -32,10 +32,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\WitchCityRope.Api\WitchCityRope.Api.csproj" />
+    <ProjectReference Include="..\..\src\WitchCityRope.Api\WitchCityRope.Api.csproj">
+      <Aliases>WitchCityRopeApi</Aliases>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\WitchCityRope.Core\WitchCityRope.Core.csproj" />
     <ProjectReference Include="..\..\src\WitchCityRope.Infrastructure\WitchCityRope.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\src\WitchCityRope.Web\WitchCityRope.Web.csproj" />
+    <ProjectReference Include="..\..\src\WitchCityRope.Web\WitchCityRope.Web.csproj">
+      <Aliases>WitchCityRopeWeb</Aliases>
+    </ProjectReference>
   </ItemGroup>
 
 </Project>

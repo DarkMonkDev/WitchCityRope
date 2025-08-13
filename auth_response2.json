@@ -1,0 +1,26 @@
+Testing auth with secret length: 51
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIzNGI0M2Y4OC0zZjcxLTQxYzAtYjg0ZC1hYWY1Nzc2MzdiNWMiLCJlbWFpbCI6ImFkbWluQHdpdGNoY2l0eXJvcGUuY29tIiwidW5pcXVlX25hbWUiOiJBZG1pbiIsInJvbGUiOiJBZG1pbmlzdHJhdG9yIiwiVXNlcklkIjoiMzRiNDNmODgtM2Y3MS00MWMwLWI4NGQtYWFmNTc3NjM3YjVjIiwiU2NlbmVOYW1lIjoiQWRtaW4iLCJuYmYiOjE3NTUxMjA2NzQsImV4cCI6MTc1NTEyNDI3NCwiaWF0IjoxNzU1MTIwNjc0LCJpc3MiOiJXaXRjaENpdHlSb3BlIiwiYXVkIjoiV2l0Y2hDaXR5Um9wZVVzZXJzIn0.LU7-gUDjCTCZ2Mu8pnVtly_F_fG_7mH-T9c6hGD-rCw",
+  "refreshToken": "OWdtd33S9FwUTXvx3AAoRqYNIndXt11lH3E+45Cyiqc=",
+  "expiresAt": "2025-08-13T22:31:14.726834Z",
+  "user": {
+    "id": "34b43f88-3f71-41c0-b84d-aaf577637b5c",
+    "email": "admin@witchcityrope.com",
+    "displayName": "",
+    "sceneName": "Admin",
+    "pronouncedName": "",
+    "pronouns": "",
+    "isVetted": false,
+    "isAdmin": false,
+    "isActive": true,
+    "emailVerified": false,
+    "twoFactorEnabled": false,
+    "isEmailConfirmed": false,
+    "roles": [],
+    "role": 4,
+    "vettingStatus": 0,
+    "createdAt": "0001-01-01T00:00:00",
+    "lastLoginAt": null
+  },
+  "userId": "00000000-0000-0000-0000-000000000000"
+}

@@ -27,63 +27,34 @@ public class AuthenticationDelegatingHandler : DelegatingHandler
         HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
-        var httpContext = _httpContextAccessor.HttpContext;
-        
-        _logger.LogInformation("=== AuthenticationDelegatingHandler SendAsync ===");
-        _logger.LogInformation("Request URL: {Url}", request.RequestUri);
-        _logger.LogInformation("HttpContext null: {IsNull}", httpContext == null);
-        
-        if (httpContext != null)
+        // Skip authentication for service-token endpoint to avoid infinite loop
+        if (request.RequestUri?.AbsolutePath?.Contains("/api/auth/service-token") == true)
         {
-            _logger.LogInformation("User authenticated: {IsAuthenticated}", httpContext.User?.Identity?.IsAuthenticated);
-            _logger.LogInformation("User name: {UserName}", httpContext.User?.Identity?.Name ?? "null");
-            _logger.LogInformation("Authentication type: {AuthType}", httpContext.User?.Identity?.AuthenticationType ?? "null");
+            return await base.SendAsync(request, cancellationToken);
         }
+        
+        var httpContext = _httpContextAccessor.HttpContext;
         
         if (httpContext?.User?.Identity?.IsAuthenticated == true)
         {
-            _logger.LogInformation("User is authenticated, adding JWT token to API request");
-            
-            // Get JWT token from storage
-            var token = await _jwtTokenService.GetTokenAsync();
-            if (!string.IsNullOrEmpty(token))
+            try
             {
-                _logger.LogInformation("Found JWT token, adding to Authorization header");
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                // Get JWT token from storage
+                var token = await _jwtTokenService.GetTokenAsync();
+                if (!string.IsNullOrEmpty(token))
+                {
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                }
+                // Note: Token acquisition should happen during login via AuthenticationEventHandler
+                // If no token exists, the API call will fail with 401 and the UI should handle it
             }
-            else
+            catch (Exception ex)
             {
-                _logger.LogWarning("User is authenticated but no JWT token found in storage");
+                // Use null-conditional operator to prevent circuit breaks
+                _logger?.LogError(ex, "Error retrieving JWT token");
             }
-            
-            // Log all request headers
-            _logger.LogDebug("Request headers being sent:");
-            foreach (var header in request.Headers)
-            {
-                _logger.LogDebug("  {HeaderName}: {HeaderValue}", header.Key, string.Join(", ", header.Value));
-            }
-        }
-        else
-        {
-            _logger.LogDebug("User is not authenticated, no JWT token added");
         }
 
-        var response = await base.SendAsync(request, cancellationToken);
-        
-        _logger.LogInformation("Response status: {StatusCode} {ReasonPhrase}", response.StatusCode, response.ReasonPhrase);
-        
-        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-        {
-            _logger.LogWarning("Received 401 Unauthorized from API");
-            
-            // Log response headers for debugging
-            _logger.LogDebug("Response headers:");
-            foreach (var header in response.Headers)
-            {
-                _logger.LogDebug("  {HeaderName}: {HeaderValue}", header.Key, string.Join(", ", header.Value));
-            }
-        }
-        
-        return response;
+        return await base.SendAsync(request, cancellationToken);
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.ComponentModel.DataAnnotations;
 using WitchCityRope.Infrastructure.Identity;
+using WitchCityRope.Web.Services;
 
 namespace WitchCityRope.Web.Areas.Identity.Pages.Account
 {
@@ -12,15 +13,18 @@ namespace WitchCityRope.Web.Areas.Identity.Pages.Account
         private readonly SignInManager<WitchCityRopeUser> _signInManager;
         private readonly UserManager<WitchCityRopeUser> _userManager;
         private readonly ILogger<LoginModel> _logger;
+        private readonly IApiAuthenticationService _apiAuthenticationService;
 
         public LoginModel(
             SignInManager<WitchCityRopeUser> signInManager,
             UserManager<WitchCityRopeUser> userManager,
-            ILogger<LoginModel> logger)
+            ILogger<LoginModel> logger,
+            IApiAuthenticationService apiAuthenticationService)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _logger = logger;
+            _apiAuthenticationService = apiAuthenticationService;
         }
 
         [BindProperty]
@@ -107,6 +111,28 @@ namespace WitchCityRope.Web.Areas.Identity.Pages.Account
                     // Update last login
                     user.LastLoginAt = DateTime.UtcNow;
                     await _userManager.UpdateAsync(user);
+                    
+                    // CRITICAL: Get JWT token for API authentication after successful login
+                    try
+                    {
+                        _logger.LogInformation("Getting JWT token for user: {UserId}", user.Id);
+                        var jwtToken = await _apiAuthenticationService.GetJwtTokenForUserAsync(user);
+                        
+                        if (!string.IsNullOrEmpty(jwtToken))
+                        {
+                            _logger.LogInformation("Successfully obtained JWT token for API access");
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Failed to obtain JWT token for user: {UserId}", user.Id);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error getting JWT token for user: {UserId}", user.Id);
+                        // Don't fail login if JWT token generation fails
+                        // The user can still use Web functionality
+                    }
                     
                     // Force a full page reload to ensure Blazor gets the updated authentication state
                     // This is necessary because authentication happened outside of Blazor's context

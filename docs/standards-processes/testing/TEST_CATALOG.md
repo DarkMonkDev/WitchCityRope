@@ -1,5 +1,5 @@
 # WitchCityRope Test Catalog
-<!-- Last Updated: 2025-08-04 -->
+<!-- Last Updated: 2025-08-13 -->
 <!-- Version: 1.0 -->
 <!-- Owner: Testing Team -->
 <!-- Status: Active -->
@@ -8,10 +8,148 @@
 This catalog provides a comprehensive inventory of all tests in the WitchCityRope project, organized by type and location. This is the single source of truth for understanding our test coverage.
 
 ## Quick Reference
-- **Unit Tests**: 203 tests (99.5% passing)
-- **API Tests**: 123 tests (95% passing)
-- **Integration Tests**: 133 tests (86% passing)
-- **E2E Tests**: 180 tests (Migrated to Playwright, 83% passing)
+- **Unit Tests**: ~75 tests files across Core/API/Web projects
+- **Integration Tests**: 133 tests (PostgreSQL with TestContainers)
+- **E2E Tests**: 45 Playwright test spec files (Migrated from Puppeteer)
+- **Performance Tests**: Basic load testing infrastructure
+
+**Status**: Major migration completed January 2025 - All Puppeteer tests migrated to Playwright
+
+## Recent Fixes (August 2025)
+
+### Login Selector Fixes - 2025-08-13
+**Issue**: Admin user management E2E tests failing due to incorrect login selectors  
+**Root Cause**: Tests using `input[type="email"]` instead of correct `input[name="Input.EmailOrUsername"]`  
+**Solution**: Updated all admin login tests to use ASP.NET Core Identity form selectors  
+
+**Fixed Files**:
+- ✅ `/tests/playwright/admin-user-management.spec.ts`
+- ✅ `/tests/playwright/admin-user-details.spec.ts`  
+- ✅ `/tests/playwright/admin/admin-user-management-focused.spec.ts`
+- ✅ `/tests/playwright/admin/admin-user-management-updated.spec.ts`
+
+**Correct Selectors**:
+- Email: `input[name="Input.EmailOrUsername"]` (supports both email and username)
+- Password: `input[name="Input.Password"]`
+- Alternative: `input[placeholder*="email"]` (matches "your@email.com or username")
+
+**Note**: Login page object (`/tests/playwright/pages/login.page.ts`) and auth helpers (`/tests/playwright/helpers/auth.helpers.ts`) already use correct selectors.
+
+### Simple Admin User Management Test - 2025-08-13
+**Added**: `/tests/playwright/admin/admin-user-management-simple.spec.ts`  
+**Purpose**: Simplified admin user management test that avoids Blazor E2E helper timeouts  
+**Features**:
+- Basic admin login with known working selectors
+- Navigation to `/admin/users` page
+- Verification of key page elements (title, stats cards, user grid)
+- Simple interaction testing (click user row, check for details panel)
+- Responsive design testing
+- Standard Playwright waits only (no complex Blazor circuit waiting)
+
+**Test Cases**:
+1. `should login as admin and verify user management page loads` - Core functionality
+2. `should verify admin can access user details` - Basic interaction testing  
+3. `should verify page elements are responsive` - Cross-device compatibility
+
+### Admin User Management API Integration Tests - 2025-08-13
+**Added**: Complete test suite for admin user management functionality
+**Location**: Multiple test files
+
+#### Unit Tests
+**File**: `/tests/WitchCityRope.Web.Tests/Services/ApiClientTests.cs` (extended)
+**Purpose**: Unit tests for ApiClient user management methods with proper mocking
+**New Test Methods**:
+- `GetUsersAsync_WithSearchParameters_ReturnsPagedResult()` - Tests search functionality
+- `GetUsersAsync_WithRoleFilter_BuildsCorrectQuery()` - Tests role filtering
+- `GetUsersAsync_WithHttpError_ThrowsException()` - Tests error handling
+- `GetUserByIdAsync_WithValidId_ReturnsUser()` - Tests user detail retrieval
+- `GetUserByIdAsync_WithNotFoundId_ReturnsNull()` - Tests not found scenarios
+- `UpdateUserAsync_WithValidData_ReturnsTrue()` - Tests user updates
+- `UpdateUserAsync_WithServerError_ReturnsFalse()` - Tests update error handling
+- `ResetUserPasswordAsync_WithValidData_ReturnsTrue()` - Tests password reset
+- `ManageUserLockoutAsync_LockUser_ReturnsTrue()` - Tests user lockout
+- `GetUserStatsAsync_WithValidResponse_ReturnsStats()` - Tests statistics
+- `GetAvailableRolesAsync_WithValidResponse_ReturnsRoles()` - Tests role dropdown
+
+#### Integration Tests
+**File**: `/tests/WitchCityRope.IntegrationTests/Admin/AdminUsersControllerTests.cs` (new)
+**Purpose**: Tests real HTTP calls to admin/users API endpoints with authentication
+**Test Methods**:
+- `GetUsers_WithAdminAuth_ReturnsPagedUserList()` - Tests user listing
+- `GetUsers_WithSearchFilter_ReturnsFilteredResults()` - Tests search functionality
+- `GetUsers_WithRoleFilter_ReturnsUsersOfSpecificRole()` - Tests role filtering
+- `GetUsers_WithoutAdminAuth_ReturnsUnauthorized()` - Tests authorization
+- `GetUserById_WithValidId_ReturnsUserDetails()` - Tests user details
+- `GetUserById_WithInvalidId_ReturnsNotFound()` - Tests not found handling
+- `UpdateUser_WithValidData_UpdatesUserSuccessfully()` - Tests user updates
+- `UpdateUser_WithInvalidData_ReturnsBadRequest()` - Tests validation
+- `ResetUserPassword_WithValidData_ResetsPasswordSuccessfully()` - Tests password reset
+- `ManageUserLockout_LockUser_LocksUserSuccessfully()` - Tests user locking
+- `ManageUserLockout_UnlockUser_UnlocksUserSuccessfully()` - Tests user unlocking
+- `GetUserStats_WithAdminAuth_ReturnsStatistics()` - Tests statistics endpoint
+- `GetRoles_WithAdminAuth_ReturnsAvailableRoles()` - Tests role endpoint
+- `CompleteUserManagementWorkflow_CreateSearchUpdateDelete_WorksEndToEnd()` - End-to-end workflow
+
+#### E2E Tests
+**File**: `/tests/playwright/admin-user-management-api-integration.spec.ts` (new)
+**Purpose**: E2E tests for admin user management with real API integration
+**Test Cases**:
+1. `should login as admin and verify real users load from API` - Core API integration
+2. `should test search functionality with real API calls` - Search testing
+3. `should test user details functionality` - User details modal/page
+4. `should test role filter functionality` - Role filtering
+5. `should verify pagination works with real data` - Pagination testing
+6. `should verify stats cards display real data from API` - Statistics verification
+7. `should handle responsive design for user management` - Cross-device testing
+
+**Features**:
+- Uses correct ASP.NET Core Identity login selectors (fixed 2025-08-13)
+- Tests real API data loading (not mock data)
+- Verifies search, filter, and pagination functionality
+- Tests user details modal/panel interaction
+- Validates statistics cards show real numbers
+- Includes responsive design testing
+- Simple Playwright waits without complex Blazor E2E helper
+- Comprehensive screenshots for debugging
+
+### Blazor Server Migration Test - 2025-08-13
+**Added**: `/tests/playwright/admin/admin-users-blazor.spec.ts`  
+**Purpose**: New E2E test specifically for Blazor Server architecture (migrated from Razor Pages)  
+**Context**: Website converted from Razor Pages to Blazor Server, old tests failing  
+**Features**:
+- Works with Blazor Server components (not old Razor Pages architecture)
+- Avoids broken Blazor E2E helper (timing out)
+- Uses simple Playwright waits like `page.waitForLoadState('networkidle')`
+- Direct navigation and login (bypasses global setup)
+- Comprehensive debugging with screenshots
+- Graceful handling of loading states
+
+**Test Cases**:
+1. `should login as admin and access user management with Blazor Server` - Main functionality test
+2. `should handle page loading states gracefully` - Loading state verification
+3. `should capture page structure for debugging` - Debugging aid
+
+## Important Migration Notes
+
+### Blazor Server Architecture Change
+**CRITICAL**: The website has been converted from Razor Pages to Blazor Server. This affects E2E testing:
+
+**Issues**:
+- Old E2E tests expecting Razor Pages behavior are failing
+- Blazor E2E helper timing out (probably outdated for new architecture)
+- Need new test patterns for Blazor Server components
+
+**Solutions**:
+- ✅ New test: `/tests/playwright/admin/admin-users-blazor.spec.ts` - Works with current Blazor Server architecture
+- ✅ Use simple Playwright waits instead of complex Blazor E2E helper
+- ✅ Direct navigation and element verification patterns
+- ✅ Known working login selectors from recent fixes
+
+**Test Update Status**:
+- ❌ **NEEDS UPDATE**: Most existing E2E tests need updating for Blazor Server
+- ✅ **WORKING**: New Blazor Server-specific tests created
+- ✅ **WORKING**: Admin login selectors fixed (2025-08-13)
+- 🔄 **ONGOING**: Migrate remaining tests to work with Blazor Server architecture
 
 ## Test Organization
 
@@ -19,8 +157,7 @@ This catalog provides a comprehensive inventory of all tests in the WitchCityRop
 
 #### Core Domain Tests
 **Location**: `/tests/WitchCityRope.Core.Tests/`  
-**Count**: 203 tests  
-**Status**: 202 passing, 1 skipped
+**Status**: Domain logic and entity validation tests
 
 Key test files:
 - `Entities/EventTests.cs` - Event entity validation and business rules
@@ -33,8 +170,8 @@ Key test files:
 
 #### API Unit Tests
 **Location**: `/tests/WitchCityRope.Api.Tests/`  
-**Count**: 123 tests  
-**Status**: 117 passing, 6 failing
+**Count**: Multiple test files for API services and features
+**Status**: Service layer and feature command testing
 
 Key test files:
 - `Services/AuthServiceTests.cs` - Authentication logic
@@ -46,20 +183,21 @@ Key test files:
 - `Features/Events/CreateEventCommandTests.cs` - Event creation
 
 #### Web Component Tests
-**Location**: `/tests/WitchCityRope.Web.Tests/`  
-**Status**: Multiple test projects need consolidation
+**Location**: Multiple web test projects (consolidation needed)
+**Status**: Blazor component testing with bUnit
 
 Test projects found:
 - `WitchCityRope.Web.Tests/` - Main web tests
-- `WitchCityRope.Web.Tests.Login/` - Login-specific tests
+- `WitchCityRope.Web.Tests.Login/` - Login-specific tests  
 - `WitchCityRope.Web.Tests.New/` - New test structure
+- `WitchCityRope.Tests.Common/` - Shared test utilities
 
 ### 2. Integration Tests
 
 #### Database Integration Tests
 **Location**: `/tests/WitchCityRope.IntegrationTests/`  
-**Count**: 133 tests  
-**Status**: 115 passing, 18 failing (navigation issues)
+**Count**: Multiple integration test files
+**Status**: Uses PostgreSQL with TestContainers (real database testing)
 
 Key features:
 - Uses PostgreSQL with TestContainers
@@ -74,7 +212,7 @@ Key test files:
 
 #### Infrastructure Tests
 **Location**: `/tests/WitchCityRope.Infrastructure.Tests/`  
-**Status**: Compilation issues due to architectural changes
+**Status**: Data access layer and repository testing
 
 Test categories:
 - Database configuration tests
@@ -85,29 +223,40 @@ Test categories:
 ### 3. E2E Tests (Playwright)
 
 #### Main E2E Test Suite
-**Location**: `/tests/playwright/tests/`  
-**Count**: 180 tests (migrated from Puppeteer)  
-**Status**: 83% passing
+**Location**: `/tests/playwright/`  
+**Count**: 44 Playwright test spec files (migrated from Puppeteer in January 2025)  
+**Status**: Comprehensive browser automation with Page Object Models
 
 Test categories:
 ```
-├── auth/
-│   ├── login.spec.ts - Login flows
-│   ├── registration.spec.ts - Registration flows
-│   ├── profile.spec.ts - Profile management
-│   └── authorization.spec.ts - Role-based access
-├── events/
-│   ├── event-list.spec.ts - Event browsing
-│   ├── event-detail.spec.ts - Event details
-│   ├── event-rsvp.spec.ts - RSVP functionality
-│   └── event-admin.spec.ts - Admin management
-├── admin/
-│   ├── dashboard.spec.ts - Admin dashboard
-│   ├── user-management.spec.ts - User admin
-│   └── vetting.spec.ts - Vetting workflow
-└── user/
-    ├── dashboard.spec.ts - Member dashboard
-    └── tickets.spec.ts - Ticket management
+├── admin/ (9 spec files) - Login selectors fixed 2025-08-13
+│   ├── admin-user-management-updated.spec.ts ✅ Fixed
+│   ├── admin-user-management-focused.spec.ts ✅ Fixed
+│   ├── admin-user-management-simple.spec.ts ✅ Simple test without Blazor E2E helper
+│   ├── admin-users-blazor.spec.ts ✅ NEW - Blazor Server architecture test
+│   ├── admin-events-management.spec.ts
+│   ├── admin-event-creation.spec.ts
+│   ├── admin-login-success.spec.ts
+│   ├── admin-dashboard.spec.ts
+│   └── admin-access.spec.ts
+├── auth/ (Authentication flows)
+├── events/ (3 spec files)
+│   ├── event-display.spec.ts
+│   ├── event-edit.spec.ts  
+│   └── event-creation.spec.ts
+├── infrastructure/ (5 spec files)
+│   ├── layout-system.spec.ts
+│   ├── error-timing.spec.ts
+│   ├── css-loading.spec.ts
+│   ├── page-status.spec.ts
+│   └── styling.spec.ts
+├── ui/ (3 spec files)
+│   ├── user-dropdown.spec.ts
+│   ├── button-interactivity.spec.ts
+│   └── navigation.spec.ts
+├── rsvp/ (RSVP functionality)
+├── validation/ (Form validation)
+└── specs/visual/ (Visual regression)
 ```
 
 #### Page Objects
@@ -130,19 +279,19 @@ Test categories:
 ### 4. Performance Tests
 
 **Location**: `/tests/WitchCityRope.PerformanceTests/`  
-**Status**: Basic load testing implemented
+**Status**: Basic load testing infrastructure
 
-Key tests:
-- `AuthenticationLoadTests.cs` - Login performance
-- `EventsLoadTests.cs` - Event listing performance
-- `SystemStressTests.cs` - Overall system stress
+Subdirectories:
+- `LoadTests/` - Load testing scenarios
+- `StressTests/` - System stress testing
 
 ### 5. Deprecated Test Locations
 
-#### Old Puppeteer Tests (DO NOT USE)
-- `/tests/e2e/` - Old Puppeteer tests
+#### Migrated E2E Tests (DO NOT USE)
+- `/tests/WitchCityRope.E2E.Tests/` - Old Puppeteer tests (migrated)
+- `/tests/e2e/` - Old Puppeteer tests (if exists)
 - `/ToBeDeleted/` - Deprecated tests
-- All Puppeteer tests migrated to Playwright
+- **CRITICAL**: All Puppeteer tests migrated to Playwright in January 2025
 
 ## Running Tests
 
@@ -229,41 +378,52 @@ organizer@witchcityrope.com / Test123! - Event Organizer
 ## Coverage Goals
 
 ### Current Coverage
-- **Unit Tests**: ~95% of business logic
-- **Integration Tests**: ~80% of data access
-- **E2E Tests**: ~70% of user workflows
+- **Unit Tests**: Business logic and API service layer coverage
+- **Integration Tests**: Real PostgreSQL database testing
+- **E2E Tests**: 44 Playwright spec files covering critical user workflows
 
 ### Target Coverage
-- Unit Tests: 95%+ 
-- Integration Tests: 85%+
-- E2E Tests: 80%+
+- Unit Tests: Core domain logic and API services
+- Integration Tests: Full database integration patterns
+- E2E Tests: Critical user journeys with cross-browser support
 
-## Known Issues
+## Known Issues & Recent Fixes
+
+### Global Setup Issue Fixed (August 2025)
+- **FIXED**: Global setup timeout for vetted user authentication
+- **FIXED**: Blazor E2E helper timeout increased from 30s to 60s  
+- **FIXED**: Function call error in global-setup.ts
 
 ### Integration Tests
-- 18 tests failing due to missing navigation routes
-- Some concurrency issues with parallel execution
+- Uses real PostgreSQL with TestContainers (migrated from in-memory)
+- **CRITICAL**: Always run health checks first before integration tests
 
 ### E2E Tests  
-- Flaky tests in event RSVP flow
-- Visual regression tests need baseline updates
+- Successfully migrated 180 Puppeteer tests to 44 Playwright spec files
+- Improved stability with better timeout configurations
+- Cross-browser testing support (Chrome, Firefox, Safari)
 
 ### Performance Tests
-- Need more realistic load scenarios
-- Missing API performance tests
+- Basic infrastructure in place
+- Expansion needed for comprehensive load testing
 
 ## Maintenance
 
 ### Adding New Tests
-1. Follow existing patterns in respective test folders
-2. Use descriptive test names: `Given_When_Then` format
-3. Keep tests isolated and independent
-4. Update this catalog when adding new test categories
+1. **Playwright E2E**: Add to appropriate category folder in `/tests/playwright/`
+2. **Unit Tests**: Follow patterns in Core.Tests, Api.Tests, Web.Tests projects  
+3. **Integration Tests**: Use PostgreSQL TestContainers pattern
+4. **Update this catalog** when adding new test categories or major changes
 
-### Updating Test Data
-- Modify seed data in `DbInitializer.cs`
-- Use unique identifiers to avoid conflicts
-- Document any new test users here
+### Test Data Management
+- Seeded test users in DbInitializer.cs
+- Use unique identifiers (GUIDs) to avoid conflicts
+- **CRITICAL**: All DateTime values must be UTC for PostgreSQL
+
+### Recent Major Changes
+- **January 2025**: All Puppeteer tests migrated to Playwright
+- **July 2025**: Integration tests migrated to real PostgreSQL
+- **August 2025**: Fixed Blazor E2E timeout issues
 
 ---
 

@@ -1,3 +1,6 @@
+extern alias WitchCityRopeWeb;
+extern alias WitchCityRopeApi;
+
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using System.Collections.Concurrent;
@@ -11,13 +14,13 @@ namespace WitchCityRope.IntegrationTests;
 /// <summary>
 /// Comprehensive deep link validation to ensure all navigation paths work correctly
 /// </summary>
-public class DeepLinkValidationTests : IClassFixture<WebApplicationFactory<WitchCityRope.Web.Program>>
+public class DeepLinkValidationTests : IClassFixture<WebApplicationFactory<WitchCityRopeWeb::Program>>
 {
-    private readonly WebApplicationFactory<WitchCityRope.Web.Program> _factory;
+    private readonly WebApplicationFactory<WitchCityRopeWeb::Program> _factory;
     private readonly HttpClient _client;
     private readonly ITestOutputHelper _output;
 
-    public DeepLinkValidationTests(WebApplicationFactory<WitchCityRope.Web.Program> factory, ITestOutputHelper output)
+    public DeepLinkValidationTests(WebApplicationFactory<WitchCityRopeWeb::Program> factory, ITestOutputHelper output)
     {
         _factory = factory;
         _output = output;

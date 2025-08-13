@@ -1,3 +1,6 @@
+extern alias WitchCityRopeWeb;
+extern alias WitchCityRopeApi;
+
 using System;
 using System.Net;
 using System.Net.Http;
@@ -10,18 +13,17 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using WitchCityRope.Api;
 using WitchCityRope.Core.DTOs;
 using WitchCityRope.Infrastructure.Data;
 
 namespace WitchCityRope.IntegrationTests
 {
-    public class AuthenticationTests : IClassFixture<WebApplicationFactory<WitchCityRope.Web.Program>>
+    public class AuthenticationTests : IClassFixture<WebApplicationFactory<WitchCityRopeWeb::Program>>
     {
-        private readonly WebApplicationFactory<WitchCityRope.Web.Program> _factory;
+        private readonly WebApplicationFactory<WitchCityRopeWeb::Program> _factory;
         private readonly HttpClient _client;
 
-        public AuthenticationTests(WebApplicationFactory<WitchCityRope.Web.Program> factory)
+        public AuthenticationTests(WebApplicationFactory<WitchCityRopeWeb::Program> factory)
         {
             _factory = factory.WithWebHostBuilder(builder =>
             {

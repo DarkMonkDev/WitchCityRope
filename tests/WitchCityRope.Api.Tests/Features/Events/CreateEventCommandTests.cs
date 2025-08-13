@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using WitchCityRope.Api.Features.Events.Models;
+using WitchCityRope.Core.DTOs;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Interfaces;
 using WitchCityRope.Core.Entities;
@@ -39,30 +39,25 @@ namespace WitchCityRope.Api.Tests.Features.Events
             await _context.Users.AddAsync(organizer);
             await _context.SaveChangesAsync();
 
-            var request = new CreateEventRequest(
-                Title: "Beginner's Bondage Workshop",
-                Description: "Learn the basics of rope bondage in a safe, inclusive environment",
-                Type: EventType.Workshop,
-                StartDateTime: DateTime.UtcNow.AddDays(7),
-                EndDateTime: DateTime.UtcNow.AddDays(7).AddHours(2),
-                Location: "Salem Community Center",
-                MaxAttendees: 20,
-                Price: 25m,
-                RequiredSkillLevels: new[] { "Beginner" },
-                Tags: new[] { "Rope", "Workshop" },
-                RequiresVetting: false,
-                SafetyNotes: "Safe words will be discussed",
-                EquipmentProvided: "Rope will be provided",
-                EquipmentRequired: "None",
-                OrganizerId: organizer.Id
-            );
+            var request = new CreateEventRequest
+            {
+                Name = "Beginner's Bondage Workshop",
+                Description = "Learn the basics of rope bondage in a safe, inclusive environment",
+                StartDateTime = DateTime.UtcNow.AddDays(7),
+                EndDateTime = DateTime.UtcNow.AddDays(7).AddHours(2),
+                Location = "Salem Community Center",
+                MaxAttendees = 20,
+                Price = 25m,
+                RequiredSkillLevels = new() { "Beginner" },
+                Tags = new() { "Rope", "Workshop" },
+                RequiresVetting = false
+            };
 
-            var response = new CreateEventResponse(
-                EventId: Guid.NewGuid(),
-                Title: request.Title,
-                Slug: "beginners-bondage-workshop",
-                CreatedAt: DateTime.UtcNow
-            );
+            var response = new CreateEventResponse
+            {
+                EventId = Guid.NewGuid(),
+                Message = "Event created successfully"
+            };
 
             var organizerId = Guid.NewGuid();
             _eventServiceMock.Setup(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>(), It.IsAny<Guid>()))
@@ -76,8 +71,7 @@ namespace WitchCityRope.Api.Tests.Features.Events
             // Assert
             result.Should().NotBeNull();
             result.EventId.Should().NotBeEmpty();
-            result.Title.Should().Be(request.Title);
-            result.Slug.Should().NotBeNullOrEmpty();
+            result.Message.Should().NotBeNullOrEmpty();
 
             _eventServiceMock.Verify(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>(), It.IsAny<Guid>()), Times.Once);
         }
@@ -90,23 +84,19 @@ namespace WitchCityRope.Api.Tests.Features.Events
             await _context.Users.AddAsync(organizer);
             await _context.SaveChangesAsync();
 
-            var request = new CreateEventRequest(
-                Title: "Invalid Event",
-                Description: "This event has invalid dates",
-                Type: EventType.Workshop,
-                StartDateTime: DateTime.UtcNow.AddDays(7),
-                EndDateTime: DateTime.UtcNow.AddDays(6), // End before start
-                Location: "Salem Community Center",
-                MaxAttendees: 20,
-                Price: 25m,
-                RequiredSkillLevels: new[] { "Beginner" },
-                Tags: new[] { "Rope", "Workshop" },
-                RequiresVetting: false,
-                SafetyNotes: "Safe words will be discussed",
-                EquipmentProvided: "Rope will be provided",
-                EquipmentRequired: "None",
-                OrganizerId: organizer.Id
-            );
+            var request = new CreateEventRequest
+            {
+                Name = "Invalid Event",
+                Description = "This event has invalid dates",
+                StartDateTime = DateTime.UtcNow.AddDays(7),
+                EndDateTime = DateTime.UtcNow.AddDays(6), // End before start
+                Location = "Salem Community Center",
+                MaxAttendees = 20,
+                Price = 25m,
+                RequiredSkillLevels = new() { "Beginner" },
+                Tags = new() { "Rope", "Workshop" },
+                RequiresVetting = false
+            };
 
             _eventServiceMock.Setup(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>(), It.IsAny<Guid>()))
                 .ThrowsAsync(new ValidationException("Start date must be before end date"));
@@ -126,23 +116,19 @@ namespace WitchCityRope.Api.Tests.Features.Events
             await _context.Users.AddAsync(organizer);
             await _context.SaveChangesAsync();
 
-            var request = new CreateEventRequest(
-                Title: "Past Event",
-                Description: "This event is in the past",
-                Type: EventType.Workshop,
-                StartDateTime: DateTime.UtcNow.AddDays(-1),
-                EndDateTime: DateTime.UtcNow.AddDays(-1).AddHours(2),
-                Location: "Salem Community Center",
-                MaxAttendees: 20,
-                Price: 25m,
-                RequiredSkillLevels: new[] { "Beginner" },
-                Tags: new[] { "Rope", "Workshop" },
-                RequiresVetting: false,
-                SafetyNotes: "Safe words will be discussed",
-                EquipmentProvided: "Rope will be provided",
-                EquipmentRequired: "None",
-                OrganizerId: organizer.Id
-            );
+            var request = new CreateEventRequest
+            {
+                Name = "Past Event",
+                Description = "This event is in the past",
+                StartDateTime = DateTime.UtcNow.AddDays(-1),
+                EndDateTime = DateTime.UtcNow.AddDays(-1).AddHours(2),
+                Location = "Salem Community Center",
+                MaxAttendees = 20,
+                Price = 25m,
+                RequiredSkillLevels = new() { "Beginner" },
+                Tags = new() { "Rope", "Workshop" },
+                RequiresVetting = false
+            };
 
             _eventServiceMock.Setup(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>(), It.IsAny<Guid>()))
                 .ThrowsAsync(new ValidationException("Start date cannot be in the past"));
@@ -162,23 +148,19 @@ namespace WitchCityRope.Api.Tests.Features.Events
             await _context.Users.AddAsync(organizer);
             await _context.SaveChangesAsync();
 
-            var request = new CreateEventRequest(
-                Title: "Invalid Attendees Event",
-                Description: "This event has invalid max attendees",
-                Type: EventType.Workshop,
-                StartDateTime: DateTime.UtcNow.AddDays(7),
-                EndDateTime: DateTime.UtcNow.AddDays(7).AddHours(2),
-                Location: "Salem Community Center",
-                MaxAttendees: 0, // Invalid
-                Price: 25m,
-                RequiredSkillLevels: new[] { "Beginner" },
-                Tags: new[] { "Rope", "Workshop" },
-                RequiresVetting: false,
-                SafetyNotes: "Safe words will be discussed",
-                EquipmentProvided: "Rope will be provided",
-                EquipmentRequired: "None",
-                OrganizerId: organizer.Id
-            );
+            var request = new CreateEventRequest
+            {
+                Name = "Invalid Attendees Event",
+                Description = "This event has invalid max attendees",
+                StartDateTime = DateTime.UtcNow.AddDays(7),
+                EndDateTime = DateTime.UtcNow.AddDays(7).AddHours(2),
+                Location = "Salem Community Center",
+                MaxAttendees = 0, // Invalid
+                Price = 25m,
+                RequiredSkillLevels = new() { "Beginner" },
+                Tags = new() { "Rope", "Workshop" },
+                RequiresVetting = false
+            };
 
             _eventServiceMock.Setup(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>(), It.IsAny<Guid>()))
                 .ThrowsAsync(new ValidationException("Capacity must be greater than zero"));

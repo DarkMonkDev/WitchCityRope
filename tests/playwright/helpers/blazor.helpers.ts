@@ -29,7 +29,7 @@ export class BlazorHelpers {
       if (hasE2EHelper) {
         console.log('Using Blazor E2E helper for initialization check');
         try {
-          const blazorState = await page.evaluate(() => (window as any).waitForBlazorE2E(15000));
+          const blazorState = await page.evaluate((timeout) => (window as any).waitForBlazorE2E(timeout), testConfig.timeouts.blazorE2EHelper);
           console.log('Blazor state from E2E helper:', blazorState);
           const blazorReady = blazorState.status === 'ready';
           if (blazorReady) {
@@ -41,34 +41,13 @@ export class BlazorHelpers {
         }
       }
       
-      // Fallback: Use custom event or polling
+      // Fallback: Use custom event or polling with configurable timeouts
       const blazorReady = await Promise.race([
         // Wait for custom initialization event
-        page.waitForEvent('blazor:initialized', { timeout: 15000 }).then(() => true),
+        page.waitForEvent('blazor:initialized', { timeout: testConfig.timeouts.blazorReady }).then(() => true),
         
-        // Fallback: Wait for Blazor object and internal state
-        page.waitForFunction(
-          () => {
-            const blazor = (window as any).Blazor;
-            if (!blazor) return false;
-            
-            // Check multiple indicators of Blazor readiness
-            const hasInternal = !!blazor._internal;
-            const hasNavigationManager = hasInternal && !!blazor._internal.navigationManager;
-            const hasCircuitManager = hasInternal && !!blazor._internal.circuitManager;
-            const isStarted = blazor._started || hasNavigationManager;
-            
-            // Also check the global helper function if available
-            const isReady = (window as any).isBlazorReady ? (window as any).isBlazorReady() : false;
-            
-            // Check E2E state if available
-            const e2eState = (window as any).__blazorE2EState;
-            const e2eInitialized = e2eState && e2eState.initialized;
-            
-            return isStarted || isReady || e2eInitialized || (hasInternal && hasNavigationManager);
-          },
-          { timeout: 15000 }
-        ).then(() => true).catch(() => false)
+        // Fallback: Wait for Blazor object and internal state with retry logic
+        this.waitForBlazorWithRetries(page, testConfig.timeouts.blazorReady)
       ]);
 
       if (!blazorReady) {
@@ -96,6 +75,55 @@ export class BlazorHelpers {
       console.warn('Error waiting for Blazor initialization:', error);
       // Don't throw - allow tests to continue
     }
+  }
+
+  /**
+   * Wait for Blazor readiness with retry logic
+   * Internal method with multiple fallback strategies
+   */
+  private static async waitForBlazorWithRetries(page: Page, timeout: number): Promise<boolean> {
+    const retryInterval = 500;
+    const maxRetries = Math.floor(timeout / retryInterval);
+    let retries = 0;
+    
+    while (retries < maxRetries) {
+      try {
+        const isReady = await page.waitForFunction(
+          () => {
+            const blazor = (window as any).Blazor;
+            if (!blazor) return false;
+            
+            // Check multiple indicators of Blazor readiness
+            const hasInternal = !!blazor._internal;
+            const hasNavigationManager = hasInternal && !!blazor._internal.navigationManager;
+            const hasCircuitManager = hasInternal && !!blazor._internal.circuitManager;
+            const isStarted = blazor._started || hasNavigationManager;
+            
+            // Also check the global helper function if available
+            const isReady = (window as any).isBlazorReady ? (window as any).isBlazorReady() : false;
+            
+            // Check E2E state if available
+            const e2eState = (window as any).__blazorE2EState;
+            const e2eInitialized = e2eState && e2eState.initialized;
+            
+            return isStarted || isReady || e2eInitialized || (hasInternal && hasNavigationManager);
+          },
+          { timeout: retryInterval }
+        );
+        
+        if (isReady) {
+          return true;
+        }
+      } catch (error) {
+        retries++;
+        console.log(`Blazor readiness check attempt ${retries}/${maxRetries}...`);
+        
+        // Add a small delay between retries
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
+    
+    return false;
   }
 
   /**

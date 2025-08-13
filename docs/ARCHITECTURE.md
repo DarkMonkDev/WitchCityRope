@@ -140,19 +140,25 @@ api:
 
 ## 🔐 Authentication Flow
 
-### Architecture Pattern: Dual Authentication
+### Architecture Pattern: JWT Service-to-Service Authentication
 
-The application uses **dual authentication** where both services can authenticate users:
+The application uses a **hybrid authentication approach** with JWT service-to-service communication:
 
 1. **Web Service Authentication**
-   - Uses ASP.NET Core Identity with cookies
+   - Uses ASP.NET Core Identity with cookies for user sessions
    - Direct database access to Identity tables
    - Handles login/logout UI interactions
 
-2. **API Service Authentication**  
-   - Uses JWT tokens for API access
+2. **Service-to-Service JWT Authentication**
+   - Web service obtains JWT tokens from API service via shared secret
+   - All Web→API calls use JWT Bearer tokens
+   - Enables authenticated API access on behalf of logged-in users
+   - **📖 See detailed implementation**: `/docs/functional-areas/authentication/jwt-service-to-service-auth.md`
+
+3. **API Service Authentication**  
+   - Validates JWT tokens for all protected endpoints
    - Can also access Identity tables for user validation
-   - Provides authentication endpoints for external clients
+   - Provides service token endpoints for internal communication
 
 ### Authentication Components
 
@@ -456,7 +462,8 @@ docker ps --format "table {{.Names}}\t{{.Ports}}"
 
 - **Clean Architecture Guide**: `/docs/architecture/CURRENT-ARCHITECTURE-SUMMARY.md`
 - **Docker Development Guide**: `/DOCKER_DEV_GUIDE.md`
-- **Authentication Documentation**: `/docs/architecture/AUTHENTICATION-ARCHITECTURE.md`
+- **JWT Service-to-Service Authentication**: `/docs/functional-areas/authentication/jwt-service-to-service-auth.md`
+- **Legacy Authentication Documentation**: `/docs/architecture/AUTHENTICATION-ARCHITECTURE.md`
 - **API Documentation**: Auto-generated Swagger at http://localhost:5653/swagger
 - **Testing Guide**: `/TESTING_GUIDE.md`
 

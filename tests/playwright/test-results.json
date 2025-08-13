@@ -48,7 +48,7 @@
         "testMatch": [
           "**/*.spec.ts"
         ],
-        "timeout": 30000
+        "timeout": 15000
       },
       {
         "outputDir": "/home/chad/repos/witchcityrope/test-results",
@@ -62,7 +62,7 @@
         "testMatch": [
           "**/*.spec.ts"
         ],
-        "timeout": 30000
+        "timeout": 15000
       },
       {
         "outputDir": "/home/chad/repos/witchcityrope/test-results",
@@ -76,7 +76,7 @@
         "testMatch": [
           "**/*.spec.ts"
         ],
-        "timeout": 30000
+        "timeout": 15000
       },
       {
         "outputDir": "/home/chad/repos/witchcityrope/test-results",
@@ -90,7 +90,7 @@
         "testMatch": [
           "**/*.spec.ts"
         ],
-        "timeout": 30000
+        "timeout": 15000
       },
       {
         "outputDir": "/home/chad/repos/witchcityrope/test-results",
@@ -104,7 +104,7 @@
         "testMatch": [
           "**/*.spec.ts"
         ],
-        "timeout": 30000
+        "timeout": 15000
       }
     ],
     "shard": null,
@@ -122,19 +122,19 @@
   "suites": [],
   "errors": [
     {
-      "message": "Error: Application at http://localhost:5651 is not ready after 30 attempts",
-      "stack": "Error: Application at http://localhost:5651 is not ready after 30 attempts\n    at waitForApplicationReady (/home/chad/repos/witchcityrope/tests/playwright/helpers/global-setup.ts:59:11)\n    at globalSetup (/home/chad/repos/witchcityrope/tests/playwright/helpers/global-setup.ts:19:3)",
+      "message": "Error: Failed to login admin after 3 attempts: Error: page.goto: Target page, context or browser has been closed",
+      "stack": "Error: Failed to login admin after 3 attempts: Error: page.goto: Target page, context or browser has been closed\n    at loginWithRetries (/home/chad/repos/witchcityrope/tests/playwright/helpers/global-setup.ts:148:15)\n    at setupAuthenticationStates (/home/chad/repos/witchcityrope/tests/playwright/helpers/global-setup.ts:106:9)\n    at globalSetup (/home/chad/repos/witchcityrope/tests/playwright/helpers/global-setup.ts:23:3)",
       "location": {
         "file": "/home/chad/repos/witchcityrope/tests/playwright/helpers/global-setup.ts",
-        "column": 11,
-        "line": 59
+        "column": 15,
+        "line": 148
       },
-      "snippet": "\u001b[90m   at \u001b[39mhelpers/global-setup.ts:59\n\n  57 |   } catch (error) {\n  58 |     console.error('❌ Application not responding:', error);\n> 59 |     throw new Error(`Application at ${baseURL} is not ready after ${maxAttempts} attempts`);\n     |           ^\n  60 |   }\n  61 | }\n  62 |"
+      "snippet": "\u001b[90m   at \u001b[39mhelpers/global-setup.ts:148\n\n  146 |       \n  147 |       if (attempt === maxRetries) {\n> 148 |         throw new Error(`Failed to login ${accountType} after ${maxRetries} attempts: ${error}`);\n      |               ^\n  149 |       }\n  150 |       \n  151 |       // Wait before retry"
     }
   ],
   "stats": {
-    "startTime": "2025-08-12T19:10:58.164Z",
-    "duration": 60193.975,
+    "startTime": "2025-08-13T16:07:32.920Z",
+    "duration": 45408.473999999995,
     "expected": 0,
     "skipped": 0,
     "unexpected": 0,

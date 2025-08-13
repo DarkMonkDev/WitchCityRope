@@ -65,10 +65,13 @@ export class AuthHelpers {
       credentials = emailOrCredentials;
     }
 
-    // Navigate to login page - Playwright will prepend baseURL from config
-    await page.goto(testConfig.urls.login);
+    // Navigate to login page with timeout - Playwright will prepend baseURL from config
+    await page.goto(testConfig.urls.login, { timeout: testConfig.timeouts.navigation });
     // No need to wait for Blazor - Identity pages are Razor Pages, not Blazor components
 
+    // Wait for login form to be ready
+    await page.waitForSelector('input[name="Input.EmailOrUsername"]', { timeout: testConfig.timeouts.action });
+    
     // Fill login form using Identity page selectors
     await page.locator('input[name="Input.EmailOrUsername"]').fill(credentials.email);
     await page.locator('input[name="Input.Password"]').fill(credentials.password);
@@ -81,12 +84,19 @@ export class AuthHelpers {
     // Submit form using button selector
     await page.locator('button[type="submit"]').click();
 
-    // Wait for successful login (redirect with ReturnUrl or away from login form)
-    await page.waitForTimeout(3000); // Give time for redirect
+    // Wait for successful login with configurable timeout
+    console.log(`⏳ Waiting for login redirect for ${credentials.email}...`);
+    await page.waitForTimeout(5000); // Increased timeout for redirect
     const currentUrl = page.url();
+    console.log(`🔗 Post-login URL: ${currentUrl}`);
     
     // Check for successful login indicators
-    if (!currentUrl.includes('ReturnUrl=') && currentUrl.includes('/login')) {
+    if (currentUrl.includes('/login') && !currentUrl.includes('ReturnUrl=')) {
+      // Check for error messages on the login page
+      const errorMessages = await page.locator('.validation-summary-errors, .alert-danger').allTextContents();
+      if (errorMessages.length > 0) {
+        throw new Error(`Login failed with validation errors: ${errorMessages.join(', ')}`);
+      }
       throw new Error(`Login failed - still on login page: ${currentUrl}`);
     }
 

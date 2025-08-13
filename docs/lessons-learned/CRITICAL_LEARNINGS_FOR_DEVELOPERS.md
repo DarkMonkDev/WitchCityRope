@@ -36,6 +36,12 @@ This document contains the most critical architectural issues, debugging victori
 - **Key Issue**: PostgreSQL duplicate key violations
 - **Solution**: Initialize Id = Guid.NewGuid() in entity constructors
 
+### 6. Integration Test Data Protection Configuration
+**CRITICAL**: Tests fail with "Access to the path '/app' is denied" CryptographicException
+- **Reference**: [Backend Developers Lessons](/docs/lessons-learned/backend-developers.md#data-protection-configuration)
+- **Key Issue**: Data protection tries to persist keys to restricted directories in test environments
+- **Solution**: Use ephemeral data protection provider for Testing environment
+
 ## 🔧 Development Environment Issues
 
 ### Web + API Separation
@@ -59,6 +65,7 @@ This document contains the most critical architectural issues, debugging victori
 ### Core Development Standards
 - [Coding Standards](/docs/standards-processes/CODING_STANDARDS.md) - Service patterns, documentation, testing
 - [Authentication Patterns](/docs/standards-processes/development-standards/authentication-patterns.md) - Blazor auth architecture
+- [JWT Service-to-Service Auth](/docs/functional-areas/authentication/jwt-service-to-service-auth.md) - CRITICAL: Web→API authentication flow
 - [Entity Framework Patterns](/docs/standards-processes/development-standards/entity-framework-patterns.md) - EF Core best practices
 - [Docker Development](/docs/standards-processes/development-standards/docker-development.md) - Container development
 - [Blazor Server Patterns](/docs/standards-processes/development-standards/blazor-server-patterns.md) - UI patterns

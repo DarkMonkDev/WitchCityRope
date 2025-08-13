@@ -4,10 +4,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SendGrid.Extensions.DependencyInjection;
 using WitchCityRope.Core.Interfaces;
+using WitchCityRope.Core.Repositories;
+using WitchCityRope.Core.Services;
 using WitchCityRope.Infrastructure.Data;
 using WitchCityRope.Infrastructure.Email;
 using WitchCityRope.Infrastructure.Identity;
 using WitchCityRope.Infrastructure.PayPal;
+using WitchCityRope.Infrastructure.Repositories;
 using WitchCityRope.Infrastructure.Security;
 using WitchCityRope.Infrastructure.Services;
 using WitchCityRope.Infrastructure.Mapping;
@@ -56,6 +59,13 @@ namespace WitchCityRope.Infrastructure
             services.AddScoped<IEncryptionService, EncryptionService>();
             services.AddScoped<IAuthorizationService, AuthorizationService>();
             services.AddScoped<JwtTokenService>();
+
+            // Register repositories
+            services.AddScoped<IUserNoteRepository, UserNoteRepository>();
+            services.AddScoped<IMemberRepository, MemberRepository>();
+            
+            // Register member management service
+            services.AddScoped<IMemberManagementService, MemberManagementService>();
 
             // Add AutoMapper with all profiles
             services.AddAutoMapper(typeof(EventProfile).Assembly);

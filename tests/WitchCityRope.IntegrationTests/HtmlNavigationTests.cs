@@ -1,3 +1,6 @@
+extern alias WitchCityRopeWeb;
+extern alias WitchCityRopeApi;
+
 using FluentAssertions;
 using HtmlAgilityPack;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -10,13 +13,13 @@ namespace WitchCityRope.IntegrationTests;
 /// <summary>
 /// Enhanced navigation tests using HtmlAgilityPack for precise HTML parsing
 /// </summary>
-public class HtmlNavigationTests : IClassFixture<WebApplicationFactory<WitchCityRope.Web.Program>>
+public class HtmlNavigationTests : IClassFixture<WebApplicationFactory<WitchCityRopeWeb::Program>>
 {
-    private readonly WebApplicationFactory<WitchCityRope.Web.Program> _factory;
+    private readonly WebApplicationFactory<WitchCityRopeWeb::Program> _factory;
     private readonly HttpClient _client;
     private readonly ITestOutputHelper _output;
 
-    public HtmlNavigationTests(WebApplicationFactory<WitchCityRope.Web.Program> factory, ITestOutputHelper output)
+    public HtmlNavigationTests(WebApplicationFactory<WitchCityRopeWeb::Program> factory, ITestOutputHelper output)
     {
         _factory = factory;
         _output = output;

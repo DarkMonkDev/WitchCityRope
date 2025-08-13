@@ -48,34 +48,39 @@ public class ApiAuthenticationService : IApiAuthenticationService
     {
         try
         {
-            _logger.LogInformation("Getting JWT token for user: {UserId}", user.Id);
+            _logger?.LogInformation("Getting JWT token for user: {UserId}", user.Id);
 
             // Check if we already have a valid token
             var existingToken = await _jwtTokenService.GetTokenAsync();
             if (!string.IsNullOrEmpty(existingToken))
             {
                 // TODO: Add token validation/expiry check
-                _logger.LogDebug("Found existing JWT token for user");
+                _logger?.LogDebug("Found existing JWT token for user");
                 return existingToken;
             }
 
-            // Prepare login request for API
-            var loginRequest = new
+            // Prepare service token request
+            var tokenRequest = new
             {
-                email = user.Email,
-                // For API authentication, we need to generate a temporary authentication token
-                // or use a different approach since we don't have the user's password
-                authenticationType = "web-service",
-                userId = user.Id.ToString()
+                UserId = user.Id.ToString(),
+                Email = user.Email
             };
 
-            var json = JsonSerializer.Serialize(loginRequest);
+            var json = JsonSerializer.Serialize(tokenRequest);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            _logger.LogDebug("Sending authentication request to API for user: {Email}", user.Email);
+            // Add service secret header for authentication
+            var serviceSecret = _configuration["ServiceAuth:Secret"];
+            if (!string.IsNullOrEmpty(serviceSecret))
+            {
+                _httpClient.DefaultRequestHeaders.Remove("X-Service-Secret");
+                _httpClient.DefaultRequestHeaders.Add("X-Service-Secret", serviceSecret);
+            }
 
-            // Call the API authentication endpoint
-            var response = await _httpClient.PostAsync("/auth/web-service-login", content);
+            _logger?.LogDebug("Sending service token request to API for user: {Email}", user.Email);
+
+            // Call the API service token endpoint
+            var response = await _httpClient.PostAsync("/api/auth/service-token", content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -87,27 +92,27 @@ public class ApiAuthenticationService : IApiAuthenticationService
 
                 if (authResponse?.Success == true && !string.IsNullOrEmpty(authResponse.Token))
                 {
-                    _logger.LogInformation("Successfully obtained JWT token from API");
+                    _logger?.LogInformation("Successfully obtained JWT token from API");
                     await _jwtTokenService.SetTokenAsync(authResponse.Token);
                     return authResponse.Token;
                 }
                 else
                 {
-                    _logger.LogError("API authentication failed: {Error}", authResponse?.Error ?? "Unknown error");
+                    _logger?.LogError("API authentication failed: {Error}", authResponse?.Error ?? "Unknown error");
                 }
             }
             else
             {
-                _logger.LogError("API authentication request failed with status: {StatusCode}", response.StatusCode);
+                _logger?.LogError("API authentication request failed with status: {StatusCode}", response.StatusCode);
                 var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError("API error response: {ErrorContent}", errorContent);
+                _logger?.LogError("API error response: {ErrorContent}", errorContent);
             }
 
             return null;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting JWT token for user: {UserId}", user.Id);
+            _logger?.LogError(ex, "Error getting JWT token for user: {UserId}", user.Id);
             return null;
         }
     }
@@ -116,12 +121,12 @@ public class ApiAuthenticationService : IApiAuthenticationService
     {
         try
         {
-            _logger.LogInformation("Invalidating JWT token");
+            _logger?.LogInformation("Invalidating JWT token");
             await _jwtTokenService.RemoveTokenAsync();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error invalidating JWT token");
+            _logger?.LogError(ex, "Error invalidating JWT token");
         }
     }
 

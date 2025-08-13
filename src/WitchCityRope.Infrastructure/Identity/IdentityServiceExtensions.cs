@@ -165,21 +165,8 @@ namespace WitchCityRope.Infrastructure.Identity
             services.AddScoped<WitchCityRopeUserStore>();
             services.AddScoped<IdentityMigrationHelper>();
 
-            // Configure for API usage (no cookies)
-            services.ConfigureApplicationCookie(options =>
-            {
-                options.Events.OnRedirectToLogin = context =>
-                {
-                    context.Response.StatusCode = 401;
-                    return System.Threading.Tasks.Task.CompletedTask;
-                };
-
-                options.Events.OnRedirectToAccessDenied = context =>
-                {
-                    context.Response.StatusCode = 403;
-                    return System.Threading.Tasks.Task.CompletedTask;
-                };
-            });
+            // API services don't use cookies - JWT Bearer authentication is configured separately
+            // Remove cookie authentication to avoid conflicts with JWT Bearer middleware
 
             // Note: Authorization policies will be added by AddApiAuthentication
             // to avoid conflicts with service registration

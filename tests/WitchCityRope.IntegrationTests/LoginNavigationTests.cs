@@ -1,21 +1,25 @@
+extern alias WitchCityRopeWeb;
+extern alias WitchCityRopeApi;
+
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using HtmlAgilityPack;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using WitchCityRope.Api.Features.Auth.Models;
 using WitchCityRope.Infrastructure.Data;
 using Xunit;
 
+using LoginRequest = WitchCityRopeApi::WitchCityRope.Api.Features.Auth.Models.LoginRequest;
+
 namespace WitchCityRope.IntegrationTests;
 
-public class LoginNavigationTests : IClassFixture<WebApplicationFactory<Program>>
+public class LoginNavigationTests : IClassFixture<WebApplicationFactory<WitchCityRopeWeb::Program>>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly WebApplicationFactory<WitchCityRopeWeb::Program> _factory;
     private readonly HttpClient _client;
 
-    public LoginNavigationTests(WebApplicationFactory<Program> factory)
+    public LoginNavigationTests(WebApplicationFactory<WitchCityRopeWeb::Program> factory)
     {
         _factory = factory;
         _client = _factory.WithWebHostBuilder(builder =>

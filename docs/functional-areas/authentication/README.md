@@ -1,5 +1,5 @@
 # Authentication System Documentation
-<!-- Last Updated: 2025-08-04 -->
+<!-- Last Updated: 2025-08-13 -->
 <!-- Version: 2.0 -->
 <!-- Owner: Authentication Team -->
 <!-- Status: Active -->
@@ -10,12 +10,14 @@ The WitchCityRope authentication system manages user identity, access control, a
 ## Quick Links
 - **Current Requirements**: [current-state/business-requirements.md](current-state/business-requirements.md)
 - **Technical Design**: [current-state/functional-design.md](current-state/functional-design.md)
+- **JWT Service-to-Service Auth**: [jwt-service-to-service-auth.md](jwt-service-to-service-auth.md)
 - **User Flows**: [current-state/user-flows.md](current-state/user-flows.md)
 - **Test Coverage**: [current-state/test-coverage.md](current-state/test-coverage.md)
 - **Active Work**: [new-work/status.md](new-work/status.md)
 
 ## Key Concepts
 - **Hybrid Authentication**: Cookies for web, JWT for API
+- **Service-to-Service Auth**: Web service obtains JWT tokens for API calls on behalf of users
 - **Role-Based Access**: Administrator, Member, EventOrganizer, etc.
 - **Vetting System**: Members must be vetted for social event access
 - **Age Verification**: 21+ requirement enforced
@@ -28,6 +30,15 @@ The WitchCityRope authentication system manages user identity, access control, a
 - Blazor components redirect to Razor Pages for authentication operations
 - `/Identity/Account/Login` handles actual sign-in
 - See [functional-design.md](current-state/functional-design.md) for details
+
+### 🔐 JWT Service-to-Service Authentication
+The Web service obtains JWT tokens to make authenticated API calls on behalf of cookie-authenticated users:
+- **Service-to-service authentication** using shared secret (`X-Service-Secret` header)
+- **Dual token storage**: Server-side memory cache + browser session storage
+- **Automatic token injection** via `AuthenticationDelegatingHandler` for all API calls
+- **User-specific tokens**: Prevents cross-user token leakage
+- **Critical for Blazor developers**: All Web→API communication requires this pattern
+- **Complete implementation guide**: [jwt-service-to-service-auth.md](jwt-service-to-service-auth.md)
 
 ### Current Features
 ✅ Email/password login (Web and API)  

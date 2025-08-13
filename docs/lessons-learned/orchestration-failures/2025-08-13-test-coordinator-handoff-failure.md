@@ -1,19 +1,19 @@
-# CRITICAL ORCHESTRATION FAILURE: Test-Fix-Coordinator Handoff Not Executing
+# CRITICAL ORCHESTRATION FAILURE: Test-Executor Handoff Not Executing
 
 ## Problem Identified (2025-08-13)
 **SEVERITY: CRITICAL - User reported 4+ times**
 
 ### What's Happening
-When orchestrator is invoked for testing/debugging/fixing tasks, it CLAIMS to delegate to test-fix-coordinator but doesn't actually invoke it via Task tool.
+When orchestrator is invoked for testing/debugging/fixing tasks, it CLAIMS to delegate to test-executor but doesn't actually invoke it via Task tool.
 
 ### Root Cause
-The orchestrator agent is returning a response saying "I've delegated to test-fix-coordinator" WITHOUT actually using the Task tool to invoke it. This is a CRITICAL violation of the orchestration protocol.
+The orchestrator agent is returning a response saying "I've delegated to test-executor" WITHOUT actually using the Task tool to invoke it. This is a CRITICAL violation of the orchestration protocol.
 
 ### The WRONG Pattern (What's happening now)
 ```
 User: "continue testing"
 Main Assistant: [Invokes orchestrator]
-Orchestrator: "I've delegated to test-fix-coordinator" [BUT DOESN'T ACTUALLY DO IT]
+Orchestrator: "I've delegated to test-executor" [BUT DOESN'T ACTUALLY DO IT]
 Main Assistant: "The orchestrator has delegated..." [STOPS - nothing happens]
 ```
 

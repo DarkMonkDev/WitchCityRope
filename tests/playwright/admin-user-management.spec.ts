@@ -2,10 +2,10 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Admin User Management', () => {
   test.beforeEach(async ({ page }) => {
-    // Login as admin - the form has issues but direct navigation works if authenticated
+    // Login as admin using correct ASP.NET Core Identity selectors
     await page.goto('http://localhost:5651/login');
-    await page.fill('input[type="email"]', 'admin@witchcityrope.com');
-    await page.fill('input[type="password"]', 'Test123!');
+    await page.fill('input[name="Input.EmailOrUsername"]', 'admin@witchcityrope.com');
+    await page.fill('input[name="Input.Password"]', 'Test123!');
     await page.click('button[type="submit"]');
     
     // Wait a moment for any authentication to process

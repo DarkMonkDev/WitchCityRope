@@ -665,6 +665,168 @@ public class ApiClient
     
     #endregion
 
+    #region User Management
+
+    /// <summary>
+    /// Gets a paginated list of users with filtering and sorting for admin interface
+    /// </summary>
+    /// <param name="request">Search and filter criteria</param>
+    /// <returns>Paginated list of users</returns>
+    public async Task<PagedUserResult?> GetUsersAsync(UserSearchRequest request)
+    {
+        try
+        {
+            var queryParams = new List<string>();
+            
+            if (!string.IsNullOrEmpty(request.SearchTerm))
+                queryParams.Add($"searchTerm={Uri.EscapeDataString(request.SearchTerm)}");
+            
+            if (request.Role.HasValue)
+                queryParams.Add($"role={request.Role.Value}");
+            
+            if (request.IsActive.HasValue)
+                queryParams.Add($"isActive={request.IsActive.Value}");
+            
+            if (request.IsVetted.HasValue)
+                queryParams.Add($"isVetted={request.IsVetted.Value}");
+            
+            if (request.EmailConfirmed.HasValue)
+                queryParams.Add($"emailConfirmed={request.EmailConfirmed.Value}");
+            
+            if (request.IsLockedOut.HasValue)
+                queryParams.Add($"isLockedOut={request.IsLockedOut.Value}");
+            
+            queryParams.Add($"page={request.Page}");
+            queryParams.Add($"pageSize={request.PageSize}");
+            queryParams.Add($"sortBy={Uri.EscapeDataString(request.SortBy)}");
+            queryParams.Add($"sortDirection={Uri.EscapeDataString(request.SortDirection)}");
+            
+            var queryString = string.Join("&", queryParams);
+            var endpoint = $"api/admin/users?{queryString}";
+            
+            return await GetAdminAsync<PagedUserResult>(endpoint);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching users with search criteria");
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Gets detailed information about a specific user
+    /// </summary>
+    /// <param name="id">User ID</param>
+    /// <returns>User detail information or null if not found</returns>
+    public async Task<AdminUserDto?> GetUserByIdAsync(Guid id)
+    {
+        try
+        {
+            return await GetAdminAsync<AdminUserDto>($"api/admin/users/{id}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching user details for ID: {UserId}", id);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Updates user information
+    /// </summary>
+    /// <param name="id">User ID</param>
+    /// <param name="dto">Updated user information</param>
+    /// <returns>True if successful</returns>
+    public async Task<bool> UpdateUserAsync(Guid id, UpdateUserDto dto)
+    {
+        try
+        {
+            await PutAdminAsync($"api/admin/users/{id}", dto);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating user {UserId}", id);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Resets a user's password
+    /// </summary>
+    /// <param name="id">User ID</param>
+    /// <param name="dto">Password reset information</param>
+    /// <returns>True if successful</returns>
+    public async Task<bool> ResetUserPasswordAsync(Guid id, ResetUserPasswordDto dto)
+    {
+        try
+        {
+            await PostAdminAsync($"api/admin/users/{id}/reset-password", dto);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resetting password for user {UserId}", id);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Manages user lockout status (lock or unlock account)
+    /// </summary>
+    /// <param name="id">User ID</param>
+    /// <param name="dto">Lockout management information</param>
+    /// <returns>True if successful</returns>
+    public async Task<bool> ManageUserLockoutAsync(Guid id, UserLockoutDto dto)
+    {
+        try
+        {
+            await PostAdminAsync($"api/admin/users/{id}/lockout", dto);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error managing lockout for user {UserId}", id);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Gets user management statistics for admin dashboard
+    /// </summary>
+    /// <returns>User statistics including totals by role and status</returns>
+    public async Task<UserStatsDto?> GetUserStatsAsync()
+    {
+        try
+        {
+            return await GetAdminAsync<UserStatsDto>("api/admin/users/stats");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching user statistics");
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Gets available roles for dropdown selection
+    /// </summary>
+    /// <returns>List of available roles with descriptions</returns>
+    public async Task<List<RoleDto>?> GetAvailableRolesAsync()
+    {
+        try
+        {
+            return await GetAdminAsync<List<RoleDto>>("api/admin/users/roles");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching available roles");
+            throw;
+        }
+    }
+
+    #endregion
+
     #region Check-In
 
     public async Task<CheckInResponse> CheckInAttendeeAsync(Guid eventId, CheckInRequest request)

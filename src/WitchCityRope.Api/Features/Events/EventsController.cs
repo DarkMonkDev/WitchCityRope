@@ -23,13 +23,36 @@ public class EventsController : ControllerBase
     /// Create a new event
     /// </summary>
     [HttpPost]
-    [Authorize(Roles = "Organizer,Admin")]
+    [Authorize(Roles = "Organizer,Administrator")]
     public async Task<ActionResult<CreateEventResponse>> CreateEvent([FromBody] CreateEventRequest request)
     {
         // TODO: Get current user ID from claims
         var organizerId = request.OrganizerId; // Temporary - should get from authenticated user
-        var response = await _eventService.CreateEventAsync(request, organizerId);
-        return Created($"/api/events/{response.EventId}", response);
+        
+        // Convert API model to Core DTO
+        var coreRequest = new Core.DTOs.CreateEventRequest
+        {
+            Name = request.Title,
+            Description = request.Description,
+            Location = request.Location,
+            StartDateTime = request.StartDateTime,
+            EndDateTime = request.EndDateTime,
+            MaxAttendees = request.MaxAttendees,
+            Price = request.Price,
+            RequiresVetting = request.RequiresVetting
+        };
+        
+        var response = await _eventService.CreateEventAsync(coreRequest, organizerId);
+        
+        // Convert Core DTO response back to API response
+        var apiResponse = new CreateEventResponse(
+            response.EventId,
+            coreRequest.Name,
+            "event-slug", // TODO: Generate or get actual slug
+            DateTime.UtcNow
+        );
+        
+        return Created($"/api/events/{response.EventId}", apiResponse);
     }
 
     /// <summary>

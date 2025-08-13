@@ -1,11 +1,14 @@
-@* @page "/admin/users" *@
-@* TEMPORARILY DISABLED - ROUTE CONFLICT WITH /Pages/Admin/Users/Index.razor *@
-@page "/admin/users-old"
+@page "/admin/users"
 @using WitchCityRope.Web.Services
+@using WitchCityRope.Core.DTOs
 @using System.Linq
+@using WitchCityRope.Web.Shared.Components.UI
 @inject ApiClient ApiClient
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject ILogger<UserManagement> Logger
+@inject IJwtTokenService JwtTokenService
+@inject IApiAuthenticationService ApiAuthService
 @attribute [Authorize(Roles = "Administrator,Admin")]
 @rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
 
@@ -13,8 +16,8 @@
 
 <div class="page-container">
     <div class="page-header">
-        <h1 class="page-title">User Management (Old Version)</h1>
-        <p class="page-subtitle">Manage system users, roles, and permissions - THIS IS THE OLD VERSION</p>
+        <h1 class="page-title">User Management</h1>
+        <p class="page-subtitle">Manage system users, roles, and permissions</p>
     </div>
 
     <div class="user-stats">
@@ -38,31 +41,35 @@
 
     <div class="admin-controls">
         <div class="admin-filters">
-            <input type="text" @bind="searchTerm" @bind:event="oninput" 
+            <input type="text" @bind="searchTerm" @bind:event="oninput" @onchange="OnFilterChangedAsync"
                    class="filter-input" placeholder="Search by name, email, or username..." />
 
-            <select @bind="filterRole" @bind:event="oninput" class="filter-select">
+            <select @bind="filterRole" @bind:event="oninput" class="filter-select" @onchange="OnFilterChangedAsync">
                 <option value="">All Roles</option>
-                <option value="Admin">Admin</option>
-                <option value="Staff">Staff</option>
-                <option value="Member">Member</option>
-                <option value="Guest">Guest</option>
+                @if (availableRoles != null)
+                {
+                    @foreach (var role in availableRoles)
+                    {
+                        <option value="@role.Name">@role.DisplayName</option>
+                    }
+                }
             </select>
 
-            <select @bind="filterStatus" @bind:event="oninput" class="filter-select">
+            <select @bind="filterStatus" @bind:event="oninput" class="filter-select" @onchange="OnFilterChangedAsync">
                 <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="suspended">Suspended</option>
-                <option value="pending">Pending Verification</option>
+                <option value="0">Pending Review</option>
+                <option value="1">Vetted</option>
+                <option value="2">No Application</option>
+                <option value="3">On Hold</option>
+                <option value="4">Banned</option>
             </select>
 
-            <select @bind="sortBy" @bind:event="oninput" class="filter-select">
-                <option value="name-asc">Name (A-Z)</option>
-                <option value="name-desc">Name (Z-A)</option>
-                <option value="date-desc">Newest First</option>
-                <option value="date-asc">Oldest First</option>
-                <option value="last-active">Last Active</option>
+            <select @bind="sortBy" @bind:event="oninput" class="filter-select" @onchange="OnFilterChangedAsync">
+                <option value="sceneName">Name (A-Z)</option>
+                <option value="sceneName-desc">Name (Z-A)</option>
+                <option value="createdAt-desc">Newest First</option>
+                <option value="createdAt">Oldest First</option>
+                <option value="lastLoginAt-desc">Last Active</option>
             </select>
         </div>
 
@@ -85,6 +92,14 @@
     @if (isLoading)
     {
         <LoadingSpinner />
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">
+            <h4>Error Loading Users</h4>
+            <p>@errorMessage</p>
+            <button class="btn btn-primary" @onclick="ReloadUsers">Try Again</button>
+        </div>
     }
     else if (filteredUsers?.Any() == true)
     {
@@ -114,18 +129,18 @@
                                 }
                                 else
                                 {
-                                    <div class="avatar-placeholder">@user.SceneName.FirstOrDefault()</div>
+                                    <div class="avatar-placeholder">@(user.SceneName?.FirstOrDefault() ?? '?')</div>
                                 }
                             </div>
                             <div class="user-status-indicator @user.Status"></div>
                         </div>
                         
                         <div class="user-info">
-                            <h3>@user.SceneName</h3>
-                            <p class="user-email">@user.Email</p>
-                            <p class="user-legal-name">@user.LegalName</p>
+                            <h3>@(user.SceneName ?? "Unknown")</h3>
+                            <p class="user-email">@(user.Email ?? "No Email")</p>
+                            <p class="user-legal-name">@(user.LegalName ?? "No Name")</p>
                             <div class="user-meta">
-                                <span class="badge badge-@user.Role.ToLower()">@user.Role</span>
+                                <span class="badge badge-@((user.Role ?? "unknown").ToLower())">@(user.Role ?? "Unknown")</span>
                                 <span class="join-date">Joined @user.JoinDate.ToString("MMM yyyy")</span>
                             </div>
                             @if (user.LastActiveDate != null)
@@ -145,7 +160,7 @@
                                     @onclick="() => ToggleUserStatus(user)">
                                 <i class="fas fa-@(user.Status == "active" ? "ban" : "check-circle")"></i>
                             </button>
-                            <button class="btn-icon" title="Reset Password" @onclick="() => ResetUserPassword(user)">
+                            <button class="btn-icon" title="Reset Password" @onclick="() => ShowResetPasswordModal(user)">
                                 <i class="fas fa-key"></i>
                             </button>
                             <button class="btn-icon" title="Send Email" @onclick="() => ShowSendEmailModal(user)">
@@ -190,15 +205,15 @@
                                             }
                                             else
                                             {
-                                                <div class="avatar-placeholder">@user.SceneName.FirstOrDefault()</div>
+                                                <div class="avatar-placeholder">@(user.SceneName?.FirstOrDefault() ?? '?')</div>
                                             }
                                         </div>
-                                        <span>@user.SceneName</span>
+                                        <span>@(user.SceneName ?? "Unknown")</span>
                                     </div>
                                 </td>
-                                <td>@user.Email</td>
-                                <td><span class="badge badge-@user.Role.ToLower()">@user.Role</span></td>
-                                <td><span class="status-badge status-@user.Status">@user.Status</span></td>
+                                <td>@(user.Email ?? "No Email")</td>
+                                <td><span class="badge badge-@((user.Role ?? "unknown").ToLower())">@(user.Role ?? "Unknown")</span></td>
+                                <td><span class="status-badge status-@(user.Status ?? "unknown")">@(user.Status ?? "Unknown")</span></td>
                                 <td>@user.JoinDate.ToString("MMM d, yyyy")</td>
                                 <td>@(user.LastActiveDate?.ToString("MMM d, yyyy") ?? "Never")</td>
                                 <td>
@@ -223,7 +238,7 @@
                                                         <i class="fas fa-@(user.Status == "active" ? "ban" : "check-circle")"></i>
                                                         @(user.Status == "active" ? "Suspend" : "Activate")
                                                     </a>
-                                                    <a class="dropdown-item" @onclick="() => ResetUserPassword(user)">
+                                                    <a class="dropdown-item" @onclick="() => ShowResetPasswordModal(user)">
                                                         <i class="fas fa-key"></i> Reset Password
                                                     </a>
                                                     <a class="dropdown-item" @onclick="() => ShowSendEmailModal(user)">
@@ -281,8 +296,13 @@
                 <ValidationSummary />
 
                 <div class="form-group">
-                    <label for="legalName">Legal Name</label>
-                    <InputText id="legalName" @bind-Value="userForm.LegalName" class="form-input" />
+                    <label for="firstName">First Name</label>
+                    <InputText id="firstName" @bind-Value="userForm.FirstName" class="form-input" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="lastName">Last Name</label>
+                    <InputText id="lastName" @bind-Value="userForm.LastName" class="form-input" />
                 </div>
                 
                 <div class="form-group">
@@ -296,27 +316,26 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="username">Username</label>
-                    <InputText id="username" @bind-Value="userForm.Username" class="form-input" />
-                </div>
-
-                <div class="form-group">
                     <label for="role">Role</label>
                     <InputSelect id="role" @bind-Value="userForm.Role" class="form-input">
-                        <option value="Guest">Guest</option>
-                        <option value="Member">Member</option>
-                        <option value="Staff">Staff</option>
-                        <option value="Admin">Admin</option>
+                        @if (availableRoles != null)
+                        {
+                            @foreach (var role in availableRoles)
+                            {
+                                <option value="@role.Name">@role.DisplayName</option>
+                            }
+                        }
                     </InputSelect>
                 </div>
 
                 <div class="form-group">
                     <label for="status">Status</label>
                     <InputSelect id="status" @bind-Value="userForm.Status" class="form-input">
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="suspended">Suspended</option>
-                        <option value="pending">Pending Verification</option>
+                        <option value="PendingReview">Pending Review</option>
+                        <option value="Vetted">Vetted</option>
+                        <option value="NoApplication">No Application</option>
+                        <option value="OnHold">On Hold</option>
+                        <option value="Banned">Banned</option>
                     </InputSelect>
                 </div>
 
@@ -371,10 +390,13 @@
                 <div class="form-group">
                     <label for="newRole">New Role</label>
                     <select id="newRole" @bind="newRole" class="form-input">
-                        <option value="Guest">Guest</option>
-                        <option value="Member">Member</option>
-                        <option value="Staff">Staff</option>
-                        <option value="Admin">Admin</option>
+                        @if (availableRoles != null)
+                        {
+                            @foreach (var role in availableRoles)
+                            {
+                                <option value="@role.Name">@role.DisplayName</option>
+                            }
+                        }
                     </select>
                 </div>
 
@@ -454,6 +476,51 @@
     </div>
 }
 
+@* Reset Password Modal *@
+@if (showResetPasswordModal)
+{
+    <div class="modal modal-visible" @onclick="CloseResetPasswordModal">
+        <div class="modal-content modal-small" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2 class="modal-title">Reset Password: @passwordResetUser?.SceneName</h2>
+                <button type="button" class="modal-close" @onclick="CloseResetPasswordModal">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input id="newPassword" @bind="newPassword" class="form-input" type="password" 
+                           placeholder="Enter new password" minlength="8" required />
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" @bind="requirePasswordChange" />
+                        Require password change on next login
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-primary" @onclick="ResetUserPasswordAsync" 
+                        disabled="@(isProcessing || string.IsNullOrEmpty(newPassword))">
+                    @if (isProcessing)
+                    {
+                        <span>Resetting...</span>
+                    }
+                    else
+                    {
+                        <span>Reset Password</span>
+                    }
+                </button>
+                <button class="btn btn-secondary" @onclick="CloseResetPasswordModal">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+@implements IDisposable
+
 @code {
     private UserStatsViewModel stats = new();
     private List<UserViewModel> users = new();
@@ -464,6 +531,7 @@
     private bool isLoadingMore = false;
     private bool hasMore = false;
     private bool isProcessing = false;
+    private string? errorMessage = null;
     
     private string filterRole = "";
     private string filterStatus = "";
@@ -479,9 +547,11 @@
     private bool showUserModal = false;
     private bool showRoleModal = false;
     private bool showEmailModal = false;
+    private bool showResetPasswordModal = false;
     
     private UserViewModel? editingUser = null;
     private UserViewModel? roleEditUser = null;
+    private UserViewModel? passwordResetUser = null;
     private List<UserViewModel> emailRecipients = new();
     
     private UserFormModel userForm = new();
@@ -489,10 +559,42 @@
     private string emailSubject = "";
     private string emailTemplate = "";
     private string emailBody = "";
+    private string newPassword = "";
+    private bool requirePasswordChange = true;
+    
+    // Available roles for dropdowns
+    private List<RoleViewModel> availableRoles = new()
+    {
+        new RoleViewModel { Name = "Admin", DisplayName = "Administrator" },
+        new RoleViewModel { Name = "Staff", DisplayName = "Staff Member" },
+        new RoleViewModel { Name = "Member", DisplayName = "Member" },
+        new RoleViewModel { Name = "Guest", DisplayName = "Guest" }
+    };
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadStats();
+        try
+        {
+            Logger?.LogInformation("UserManagement: Component initializing...");
+            
+            // Ensure authentication state is ready
+            await EnsureAuthenticationAsync();
+            
+            // Load component data
+            await LoadStats();
+            await LoadUsers();
+        }
+        catch (Exception ex)
+        {
+            Logger?.LogError(ex, "Error during component initialization");
+            errorMessage = "Failed to initialize user management component. Please refresh the page.";
+            StateHasChanged();
+        }
+    }
+
+    private async Task ReloadUsers()
+    {
+        errorMessage = null;
         await LoadUsers();
     }
 
@@ -513,16 +615,145 @@
         try
         {
             isLoading = true;
+            errorMessage = null; // Clear any previous errors
             
-            // Mock users for testing
-            users = GenerateMockUsers(50);
+            Logger?.LogInformation("UserManagement: Starting API call to get users...");
             
-            ApplyFilters();
-            hasMore = users.Count == PageSize;
+            // Ensure we have a valid JWT token before making API calls
+            await EnsureAuthenticationAsync();
+            
+            try
+            {
+                // Create a search request with default parameters
+                var searchRequest = new UserSearchRequest
+                {
+                    Page = 1,
+                    PageSize = 50,
+                    SortBy = "SceneName",
+                    SortDirection = "asc"
+                };
+                
+                Logger?.LogDebug("UserManagement: Calling API endpoint: /api/admin/users");
+                var result = await ApiClient.GetUsersAsync(searchRequest);
+                
+                if (result?.Users != null)
+                {
+                    Logger?.LogInformation("UserManagement: Successfully got {Count} users from API", result.Users.Count);
+                    
+                    // Convert API DTOs to ViewModels with proper null checks
+                    users = result.Users.Select(dto => new UserViewModel
+                    {
+                        Id = (int)dto.Id.GetHashCode(), // Convert Guid to int for compatibility
+                        LegalName = $"{dto.FirstName ?? ""} {dto.LastName ?? ""}".Trim(),
+                        SceneName = dto.SceneName ?? "Unknown",
+                        Email = dto.Email ?? "No Email",
+                        Username = dto.Email ?? "No Username",
+                        Role = dto.RoleDisplayName ?? "Unknown",
+                        Status = dto.IsActive ? "active" : "inactive",
+                        JoinDate = dto.CreatedAt,
+                        LastActiveDate = dto.LastLoginAt,
+                        AvatarUrl = null // Not in DTO
+                    }).ToList();
+                    
+                    Logger?.LogDebug("UserManagement: Converted {Count} users to ViewModels", users.Count);
+                }
+                else
+                {
+                    Logger?.LogWarning("UserManagement: API returned null or no users");
+                    users = new List<UserViewModel>();
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                Logger?.LogError(ex, "UserManagement: HTTP error calling API");
+                
+                // Check if it's a 401 (authentication) error
+                if (ex.Message.Contains("401") || ex.Message.Contains("Unauthorized"))
+                {
+                    Logger?.LogWarning("UserManagement: Received 401 - JWT authentication failed, attempting to re-authenticate");
+                    
+                    // Try to refresh authentication and retry once
+                    try
+                    {
+                        await RefreshAuthenticationAsync();
+                        Logger?.LogInformation("UserManagement: Re-authentication completed, retrying API call");
+                        
+                        // Retry the API call once
+                        var searchRequest = new UserSearchRequest
+                        {
+                            Page = 1,
+                            PageSize = 50,
+                            SortBy = "SceneName",
+                            SortDirection = "asc"
+                        };
+                        
+                        var retryResult = await ApiClient.GetUsersAsync(searchRequest);
+                        if (retryResult?.Users != null)
+                        {
+                            users = retryResult.Users.Select(dto => new UserViewModel
+                            {
+                                Id = (int)dto.Id.GetHashCode(),
+                                LegalName = $"{dto.FirstName ?? ""} {dto.LastName ?? ""}".Trim(),
+                                SceneName = dto.SceneName ?? "Unknown",
+                                Email = dto.Email ?? "No Email",
+                                Username = dto.Email ?? "No Username",
+                                Role = dto.RoleDisplayName ?? "Unknown",
+                                Status = dto.IsActive ? "active" : "inactive",
+                                JoinDate = dto.CreatedAt,
+                                LastActiveDate = dto.LastLoginAt,
+                                AvatarUrl = null
+                            }).ToList();
+                            Logger?.LogInformation("UserManagement: Retry successful, loaded {Count} users", users.Count);
+                        }
+                        else
+                        {
+                            users = new List<UserViewModel>();
+                        }
+                    }
+                    catch (Exception retryEx)
+                    {
+                        Logger?.LogError(retryEx, "UserManagement: Retry after re-authentication also failed");
+                        errorMessage = "Authentication failed. Please log out and log back in.";
+                        users = new List<UserViewModel>();
+                    }
+                }
+                else
+                {
+                    errorMessage = $"API call failed: {ex.Message}";
+                    users = new List<UserViewModel>();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger?.LogError(ex, "UserManagement: Unexpected error calling API");
+                errorMessage = $"Unexpected error: {ex.Message}";
+                users = new List<UserViewModel>();
+            }
+            
+            // Apply filters safely
+            try
+            {
+                ApplyFilters();
+                hasMore = users?.Count == PageSize;
+            }
+            catch (Exception filterEx)
+            {
+                Logger?.LogError(filterEx, "Error applying filters to user list");
+                // Don't set errorMessage here as we may have partial data
+                filteredUsers = users ?? new List<UserViewModel>();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger?.LogError(ex, "Fatal error in LoadUsers");
+            errorMessage = "A critical error occurred while loading users. Please refresh the page.";
+            users = new List<UserViewModel>();
+            filteredUsers = new List<UserViewModel>();
         }
         finally
         {
             isLoading = false;
+            StateHasChanged(); // Ensure UI updates
         }
     }
 
@@ -560,37 +791,52 @@
 
     private void ApplyFilters()
     {
-        var filtered = users.AsEnumerable();
-
-        if (!string.IsNullOrEmpty(filterRole))
+        try
         {
-            filtered = filtered.Where(u => u.Role == filterRole);
+            // Safely handle null users list
+            if (users == null)
+            {
+                filteredUsers = new List<UserViewModel>();
+                return;
+            }
+
+            var filtered = users.AsEnumerable();
+
+            if (!string.IsNullOrEmpty(filterRole))
+            {
+                filtered = filtered.Where(u => u?.Role == filterRole);
+            }
+
+            if (!string.IsNullOrEmpty(filterStatus))
+            {
+                filtered = filtered.Where(u => u?.Status == filterStatus);
+            }
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                filtered = filtered.Where(u => u != null &&
+                    (u.LegalName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+                     u.SceneName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+                     u.Email?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+                     u.Username?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true));
+            }
+
+            filtered = sortBy switch
+            {
+                "name-desc" => filtered.OrderByDescending(u => u?.SceneName ?? ""),
+                "date-desc" => filtered.OrderByDescending(u => u?.JoinDate ?? DateTime.MinValue),
+                "date-asc" => filtered.OrderBy(u => u?.JoinDate ?? DateTime.MinValue),
+                "last-active" => filtered.OrderByDescending(u => u?.LastActiveDate ?? DateTime.MinValue),
+                _ => filtered.OrderBy(u => u?.SceneName ?? "")
+            };
+
+            filteredUsers = filtered?.Take(currentPage * PageSize)?.ToList() ?? new List<UserViewModel>();
         }
-
-        if (!string.IsNullOrEmpty(filterStatus))
+        catch (Exception ex)
         {
-            filtered = filtered.Where(u => u.Status == filterStatus);
+            Logger?.LogError(ex, "Error in ApplyFilters");
+            filteredUsers = new List<UserViewModel>();
         }
-
-        if (!string.IsNullOrEmpty(searchTerm))
-        {
-            filtered = filtered.Where(u => 
-                u.LegalName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                u.SceneName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                u.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                u.Username.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
-        }
-
-        filtered = sortBy switch
-        {
-            "name-desc" => filtered.OrderByDescending(u => u.SceneName),
-            "date-desc" => filtered.OrderByDescending(u => u.JoinDate),
-            "date-asc" => filtered.OrderBy(u => u.JoinDate),
-            "last-active" => filtered.OrderByDescending(u => u.LastActiveDate ?? DateTime.MinValue),
-            _ => filtered.OrderBy(u => u.SceneName)
-        };
-
-        filteredUsers = filtered.Take(currentPage * PageSize).ToList();
     }
 
     private async Task LoadMore()
@@ -642,8 +888,13 @@
     private void ShowEditUserModal(UserViewModel user)
     {
         editingUser = user;
+        // Extract first and last name from LegalName for editing
+        var nameParts = user.LegalName?.Split(' ', 2) ?? new[] { "", "" };
+        
         userForm = new UserFormModel
         {
+            FirstName = nameParts.Length > 0 ? nameParts[0] : "",
+            LastName = nameParts.Length > 1 ? nameParts[1] : "",
             LegalName = user.LegalName,
             SceneName = user.SceneName,
             Email = user.Email,
@@ -667,6 +918,12 @@
         try
         {
             isProcessing = true;
+            
+            // Update LegalName from FirstName and LastName
+            if (!string.IsNullOrEmpty(userForm.FirstName) && !string.IsNullOrEmpty(userForm.LastName))
+            {
+                userForm.LegalName = $"{userForm.FirstName} {userForm.LastName}";
+            }
             
             // TODO: Call API to save user
             await Task.Delay(1000); // Simulate API call
@@ -766,10 +1023,46 @@
         openDropdownId = null;
     }
 
+    private void ShowResetPasswordModal(UserViewModel user)
+    {
+        passwordResetUser = user;
+        newPassword = "";
+        requirePasswordChange = true;
+        showResetPasswordModal = true;
+        openDropdownId = null;
+    }
+
+    private void CloseResetPasswordModal()
+    {
+        showResetPasswordModal = false;
+        passwordResetUser = null;
+        newPassword = "";
+        requirePasswordChange = true;
+    }
+
+    private async Task ResetUserPasswordAsync()
+    {
+        if (passwordResetUser == null || string.IsNullOrEmpty(newPassword))
+            return;
+
+        try
+        {
+            isProcessing = true;
+            
+            // TODO: Call API to reset password
+            await Task.Delay(1000); // Simulate API call
+            
+            CloseResetPasswordModal();
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
     private async Task ResetUserPassword(UserViewModel user)
     {
-        // TODO: Call API to reset password
-        openDropdownId = null;
+        ShowResetPasswordModal(user);
     }
 
     private void ViewUserProfile(int userId)
@@ -794,6 +1087,20 @@
         if (timeSpan.TotalDays < 365) return $"{(int)(timeSpan.TotalDays / 30)} months ago";
         
         return date.ToString("MMM d, yyyy");
+    }
+
+    private async Task OnFilterChangedAsync()
+    {
+        try
+        {
+            currentPage = 1;
+            ApplyFilters();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Logger?.LogError(ex, "Error in OnFilterChangedAsync");
+        }
     }
 
     private List<string> GetRolePermissions(string role)
@@ -832,6 +1139,90 @@
         };
     }
 
+    /// <summary>
+    /// Ensures the user has valid authentication for API calls
+    /// Simple check - if no token exists, user should re-login
+    /// </summary>
+    private async Task EnsureAuthenticationAsync()
+    {
+        try
+        {
+            Logger?.LogDebug("UserManagement: Checking authentication state...");
+            
+            // Simple check for existing JWT token
+            var token = await JwtTokenService.GetTokenAsync();
+            if (!string.IsNullOrEmpty(token))
+            {
+                Logger?.LogDebug("UserManagement: Found existing JWT token");
+                return; // We have a token
+            }
+            
+            Logger?.LogWarning("UserManagement: No JWT token found - user may need to log out and log back in");
+            
+            // Don't try to acquire tokens in components - this should happen during login
+            // Just set a helpful error message
+            errorMessage = "Authentication required. Please log out and log back in to access this page.";
+        }
+        catch (Exception ex)
+        {
+            Logger?.LogError(ex, "Error checking authentication state");
+            errorMessage = "Authentication check failed. Please refresh the page or log out and log back in.";
+        }
+    }
+    
+    /// <summary>
+    /// Handle 401 authentication errors by redirecting to login
+    /// Don't try to refresh tokens in components - this can break Blazor circuits
+    /// </summary>
+    private async Task RefreshAuthenticationAsync()
+    {
+        try
+        {
+            Logger?.LogWarning("UserManagement: Received 401 - JWT authentication failed. User may need to log out and log back in.");
+            
+            // Simply clear any stale token - don't try to refresh in component
+            await JwtTokenService.RemoveTokenAsync();
+            
+            // Set user-friendly error message suggesting re-login
+            errorMessage = "Authentication expired. Please log out and log back in to refresh your session.";
+            
+            Logger?.LogDebug("UserManagement: Authentication error handled");
+        }
+        catch (Exception ex)
+        {
+            Logger?.LogError(ex, "Error handling authentication failure");
+            // Don't throw here - we want to show a user-friendly error
+            errorMessage = "Authentication error occurred. Please refresh the page or log out and log back in.";
+        }
+    }
+
+    /// <summary>
+    /// Dispose resources and cleanup
+    /// </summary>
+    public void Dispose()
+    {
+        try
+        {
+            Logger?.LogDebug("UserManagement: Component disposing");
+            
+            // Clear collections to help with garbage collection
+            users?.Clear();
+            filteredUsers?.Clear();
+            selectedUsers?.Clear();
+            emailRecipients?.Clear();
+            
+            // Clear any sensitive data
+            newPassword = "";
+            emailBody = "";
+            emailSubject = "";
+        }
+        catch (Exception ex)
+        {
+            // Don't let dispose throw exceptions
+            Logger?.LogError(ex, "Error during UserManagement component disposal");
+        }
+    }
+
     // View Models
     public class UserStatsViewModel
     {
@@ -857,6 +1248,8 @@
 
     public class UserFormModel
     {
+        public string FirstName { get; set; } = "";
+        public string LastName { get; set; } = "";
         public string LegalName { get; set; } = "";
         public string SceneName { get; set; } = "";
         public string Email { get; set; } = "";
@@ -865,5 +1258,11 @@
         public string Status { get; set; } = "active";
         public string? Password { get; set; }
         public bool SendWelcomeEmail { get; set; } = true;
+    }
+
+    public class RoleViewModel
+    {
+        public string Name { get; set; } = "";
+        public string DisplayName { get; set; } = "";
     }
 }

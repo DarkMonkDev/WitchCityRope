@@ -51,15 +51,31 @@ Assistant: [IMMEDIATELY, no other text or actions first]
   prompt: [Full user request]
 </Task>
 
-Orchestrator then: [IMMEDIATELY delegates to test-fix-coordinator WITHOUT PAUSE]
+Orchestrator then: [IMMEDIATELY delegates to test-executor WITHOUT PAUSE]
 ```
 
-### SPECIAL RULE: TEST-FIX-COORDINATOR HANDOFF
+### SPECIAL RULE: TEST-EXECUTOR HANDOFF
 **When orchestrator needs to delegate testing work:**
 - ✅ **NO HUMAN REVIEW REQUIRED**
-- ✅ **PASS DIRECTLY TO test-fix-coordinator**
+- ✅ **PASS DIRECTLY TO test-executor**
 - ✅ **NO PAUSE OR APPROVAL NEEDED**
 - ✅ **AUTOMATIC DELEGATION**
+
+### SPECIAL RULE: TEST FILE MODIFICATION DETECTION
+**When orchestrator needs to delegate fixes involving test files:**
+- 🚨 **VALIDATE FILE PATHS FIRST**
+- 🚨 **TEST FILES → test-developer ONLY**
+- 🚨 **SOURCE FILES → backend-developer/blazor-developer**
+- 🚨 **NEVER let backend-developer touch test files**
+
+**FORBIDDEN PATH PATTERNS for backend-developer:**
+```
+/tests/**, **/*.Tests/**, **/e2e/**, **/*.spec.*, **/*.test.*
+**/playwright/**, **/cypress/**, **/*Test*.cs, **/*Tests.cs
+```
+
+**AUTO-REDIRECT RULE:**
+If delegation to backend-developer includes ANY test file paths → delegate to test-developer instead
 
 ### WRONG PATTERN (What keeps happening)
 ```

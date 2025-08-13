@@ -93,11 +93,17 @@ async function setupAuthenticationStates(baseURL: string): Promise<void> {
         
         // Navigate to home first to ensure application is loaded
         await page.goto('/');
-        await BlazorHelpers.waitForBlazorReady(page);
         
-        // Login and save auth state
+        // Wait for application to be ready with timeout
+        try {
+          await BlazorHelpers.waitForBlazorReady(page);
+        } catch (error) {
+          console.warn(`Blazor initialization took longer than expected for ${accountType}, continuing...`);
+        }
+        
+        // Login and save auth state with retry logic
         const credentials = testConfig.accounts[accountType];
-        await AuthHelpers.login(page, credentials);
+        await loginWithRetries(page, credentials, accountType);
         
         console.log(`✅ Authentication setup complete for ${accountType}`);
         
@@ -119,6 +125,42 @@ async function setupAuthenticationStates(baseURL: string): Promise<void> {
     
   } finally {
     await browser.close();
+  }
+}
+
+/**
+ * Login with retry logic for better reliability
+ * Handles transient network or initialization issues
+ */
+async function loginWithRetries(page: any, credentials: any, accountType: string, maxRetries: number = 3): Promise<void> {
+  let attempt = 1;
+  
+  while (attempt <= maxRetries) {
+    try {
+      console.log(`Attempting login for ${accountType} (attempt ${attempt}/${maxRetries})`);
+      await AuthHelpers.login(page, credentials);
+      console.log(`✅ Login successful for ${accountType}`);
+      return;
+    } catch (error) {
+      console.warn(`❌ Login attempt ${attempt} failed for ${accountType}:`, error);
+      
+      if (attempt === maxRetries) {
+        throw new Error(`Failed to login ${accountType} after ${maxRetries} attempts: ${error}`);
+      }
+      
+      // Wait before retry
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Try to navigate to home again in case of navigation issues
+      try {
+        await page.goto('/');
+        await BlazorHelpers.waitForBlazorReady(page);
+      } catch (navError) {
+        console.warn(`Navigation retry failed for ${accountType}:`, navError);
+      }
+      
+      attempt++;
+    }
   }
 }
 

@@ -23,10 +23,10 @@ namespace WitchCityRope.Infrastructure.Security
         public JwtTokenService(IConfiguration configuration)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _issuer = configuration["JwtSettings:Issuer"] ?? "WitchCityRope";
-            _audience = configuration["JwtSettings:Audience"] ?? "WitchCityRope";
-            _secretKey = configuration["JwtSettings:SecretKey"];
-            _expirationMinutes = configuration.GetValue<int>("JwtSettings:ExpirationMinutes", 60);
+            _issuer = configuration["Jwt:Issuer"] ?? configuration["JwtSettings:Issuer"] ?? "WitchCityRope";
+            _audience = configuration["Jwt:Audience"] ?? configuration["JwtSettings:Audience"] ?? "WitchCityRopeUsers";
+            _secretKey = configuration["Jwt:Secret"] ?? configuration["JwtSettings:SecretKey"];
+            _expirationMinutes = configuration.GetValue<int>("Jwt:ExpiresInMinutes", configuration.GetValue<int>("JwtSettings:ExpirationMinutes", 60));
 
             if (string.IsNullOrEmpty(_secretKey))
             {
@@ -49,8 +49,8 @@ namespace WitchCityRope.Infrastructure.Security
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
-                new Claim(ClaimTypes.Name, user.SceneNameValue ?? string.Empty),
-                new Claim(ClaimTypes.Role, user.Role.ToString()),
+                new Claim("unique_name", user.SceneNameValue ?? string.Empty), // Use JWT standard claim name
+                new Claim("role", user.Role.ToString()), // Use simple role claim name for JWT
                 new Claim("UserId", user.Id.ToString()),
                 new Claim("SceneName", user.SceneNameValue ?? string.Empty)
             };

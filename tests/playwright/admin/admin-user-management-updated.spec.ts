@@ -6,8 +6,8 @@ test.describe('Admin User Management - Updated Requirements', () => {
   test.beforeEach(async ({ page }) => {
     // Login as admin
     await page.goto(testConfig.urls.login);
-    await page.fill('input[type="email"]', testConfig.accounts.admin.email);
-    await page.fill('input[type="password"]', testConfig.accounts.admin.password);
+    await page.fill('input[name="Input.EmailOrUsername"]', testConfig.accounts.admin.email);
+    await page.fill('input[name="Input.Password"]', testConfig.accounts.admin.password);
     await page.click('button[type="submit"]');
     
     // Wait for authentication to complete

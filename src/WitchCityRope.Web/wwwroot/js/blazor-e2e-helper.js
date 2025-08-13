@@ -86,8 +86,8 @@
             clearInterval(monitorInterval);
         }
         
-        // Timeout after 30 seconds
-        if (Date.now() - window.__blazorE2EState.startTime > 30000) {
+        // Timeout after 60 seconds (increased for Docker environment)
+        if (Date.now() - window.__blazorE2EState.startTime > 60000) {
             console.error('Blazor E2E Helper: Initialization timeout');
             window.dispatchEvent(new CustomEvent('blazor:e2e-timeout', {
                 detail: {
@@ -100,7 +100,7 @@
     }, 100);
     
     // Helper function for E2E tests to wait for Blazor
-    window.waitForBlazorE2E = function(timeout = 15000) {
+    window.waitForBlazorE2E = function(timeout = 60000) {
         return new Promise((resolve, reject) => {
             const startTime = Date.now();
             

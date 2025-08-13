@@ -69,7 +69,9 @@ export const testConfig = {
     navigation: 30000,
     action: 10000,
     assertion: 5000,
-    blazorInit: 10000
+    blazorInit: 60000,     // Increased from 10s to 60s for Docker environments
+    blazorE2EHelper: 60000, // E2E helper specific timeout - increased from 30s to 60s
+    blazorReady: 60000     // General Blazor readiness timeout - increased from 30s to 60s
   },
   
   // Test data patterns

@@ -1,21 +1,26 @@
+extern alias WitchCityRopeWeb;
+extern alias WitchCityRopeApi;
+
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
 using WitchCityRope.Core.Entities;
 using WitchCityRope.Core.Enums;
 using WitchCityRope.Infrastructure.Identity;
+using Microsoft.AspNetCore.Mvc.Testing;
+using WitchCityRope.IntegrationTests.Extensions;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace WitchCityRope.IntegrationTests.Admin;
 
-public class AdminNotesControllerTests : IClassFixture<WitchCityRopeWebApplicationFactory>, IDisposable
+public class AdminNotesControllerTests : IClassFixture<WebApplicationFactory<WitchCityRopeWeb::Program>>, IDisposable
 {
-    private readonly WitchCityRopeWebApplicationFactory _factory;
+    private readonly WebApplicationFactory<WitchCityRopeWeb::Program> _factory;
     private readonly HttpClient _client;
     private readonly ITestOutputHelper _output;
 
-    public AdminNotesControllerTests(WitchCityRopeWebApplicationFactory factory, ITestOutputHelper output)
+    public AdminNotesControllerTests(WebApplicationFactory<WitchCityRopeWeb::Program> factory, ITestOutputHelper output)
     {
         _factory = factory;
         _client = _factory.CreateClient();
@@ -31,12 +36,17 @@ public class AdminNotesControllerTests : IClassFixture<WitchCityRopeWebApplicati
         var userManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<WitchCityRopeUser>>();
         
         // Create a test user
-        var testUser = new WitchCityRopeUser("testnotes@example.com", "TestNotes");
-        testUser.PromoteToRole(UserRole.Member);
+        var testUser = new WitchCityRopeUser(
+            encryptedLegalName: "ENCRYPTED_TestNotes",
+            sceneName: WitchCityRope.Core.ValueObjects.SceneName.Create("TestNotes"),
+            email: WitchCityRope.Core.ValueObjects.EmailAddress.Create("testnotes@example.com"),
+            dateOfBirth: new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            role: UserRole.Member
+        );
         await userManager.CreateAsync(testUser, "Test123!");
 
         // Authenticate as admin
-        await _client.AuthenticateAsAdminAsync();
+        await _client.AuthenticateAsAdminAsync(_factory);
 
         // Act
         var response = await _client.GetAsync($"/api/admin/users/{testUser.Id}/notes");
@@ -59,12 +69,17 @@ public class AdminNotesControllerTests : IClassFixture<WitchCityRopeWebApplicati
         var userManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<WitchCityRopeUser>>();
         
         // Create a test user
-        var testUser = new WitchCityRopeUser("testnotes2@example.com", "TestNotes2");
-        testUser.PromoteToRole(UserRole.Member);
+        var testUser = new WitchCityRopeUser(
+            encryptedLegalName: "ENCRYPTED_TestNotes2",
+            sceneName: WitchCityRope.Core.ValueObjects.SceneName.Create("TestNotes2"),
+            email: WitchCityRope.Core.ValueObjects.EmailAddress.Create("testnotes2@example.com"),
+            dateOfBirth: new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            role: UserRole.Member
+        );
         await userManager.CreateAsync(testUser, "Test123!");
 
         // Authenticate as admin
-        await _client.AuthenticateAsAdminAsync();
+        await _client.AuthenticateAsAdminAsync(_factory);
 
         var createDto = new
         {
@@ -99,7 +114,7 @@ public class AdminNotesControllerTests : IClassFixture<WitchCityRopeWebApplicati
     public async Task GetUserNotes_WithInvalidUser_ReturnsNotFound()
     {
         // Arrange
-        await _client.AuthenticateAsAdminAsync();
+        await _client.AuthenticateAsAdminAsync(_factory);
         var invalidUserId = Guid.NewGuid();
 
         // Act
@@ -137,7 +152,7 @@ public class AdminNotesControllerTests : IClassFixture<WitchCityRopeWebApplicati
     public async Task GetNotesStats_AsAdmin_ReturnsStatistics()
     {
         // Arrange
-        await _client.AuthenticateAsAdminAsync();
+        await _client.AuthenticateAsAdminAsync(_factory);
 
         // Act
         var response = await _client.GetAsync("/api/admin/users/notes/stats");

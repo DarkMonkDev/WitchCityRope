@@ -1,3 +1,6 @@
+extern alias WitchCityRopeWeb;
+extern alias WitchCityRopeApi;
+
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Hosting;
@@ -9,11 +12,11 @@ namespace WitchCityRope.IntegrationTests;
 /// <summary>
 /// Simplified navigation tests that just check if endpoints exist
 /// </summary>
-public class SimpleNavigationTests : IClassFixture<WebApplicationFactory<WitchCityRope.Web.Program>>
+public class SimpleNavigationTests : IClassFixture<WebApplicationFactory<WitchCityRopeWeb::Program>>
 {
     private readonly HttpClient _client;
 
-    public SimpleNavigationTests(WebApplicationFactory<WitchCityRope.Web.Program> factory)
+    public SimpleNavigationTests(WebApplicationFactory<WitchCityRopeWeb::Program> factory)
     {
         _client = factory.WithWebHostBuilder(builder =>
         {

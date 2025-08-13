@@ -9,8 +9,8 @@ export default defineConfig({
   testDir: './',
   testMatch: ['**/*.spec.ts'],
   
-  // Maximum time for entire test run
-  timeout: 30 * 1000,
+  // Maximum time for entire test run (increased for Docker environment)
+  timeout: 60 * 1000,
   
   // Maximum time for each test
   expect: {

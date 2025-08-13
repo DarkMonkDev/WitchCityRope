@@ -6,11 +6,11 @@ using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Xunit;
-using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Interfaces;
 using WitchCityRope.Core;
 using WitchCityRope.Core.DTOs;
+using ApiModels = WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Core.Entities;
 using CoreEnums = WitchCityRope.Core.Enums;
 using ApiEnums = WitchCityRope.Api.Features.Events.Models;
@@ -50,30 +50,25 @@ public class EventServiceTests : IDisposable
         await _dbContext.Users.AddAsync(organizer);
         await _dbContext.SaveChangesAsync();
 
-        var request = new CreateEventRequest(
-            Title: "Test Event",
-            Description: "Test Description",
-            Type: CoreEnums.EventType.Workshop,
-            StartDateTime: DateTime.UtcNow.AddDays(7),
-            EndDateTime: DateTime.UtcNow.AddDays(7).AddHours(2),
-            Location: "Test Location",
-            MaxAttendees: 20,
-            Price: 50.00m,
-            RequiredSkillLevels: new[] { "Beginner" },
-            Tags: new[] { "rope", "beginner" },
-            RequiresVetting: false,
-            SafetyNotes: "Be safe",
-            EquipmentProvided: "Rope provided",
-            EquipmentRequired: "Comfortable clothes",
-            OrganizerId: organizer.Id
-        );
+        var request = new CreateEventRequest
+        {
+            Name = "Test Event",
+            Description = "Test Description",
+            StartDateTime = DateTime.UtcNow.AddDays(7),
+            EndDateTime = DateTime.UtcNow.AddDays(7).AddHours(2),
+            Location = "Test Location",
+            MaxAttendees = 20,
+            Price = 50.00m,
+            RequiredSkillLevels = new() { "Beginner" },
+            Tags = new() { "rope", "beginner" },
+            RequiresVetting = false
+        };
 
-        var expectedResponse = new CreateEventResponse(
-            EventId: Guid.NewGuid(),
-            Title: request.Title,
-            Slug: "test-event",
-            CreatedAt: DateTime.UtcNow
-        );
+        var expectedResponse = new CreateEventResponse
+        {
+            EventId = Guid.NewGuid(),
+            Message = "Event created successfully"
+        };
 
         _eventServiceMock.Setup(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>(), It.IsAny<Guid>()))
             .ReturnsAsync(expectedResponse);
@@ -83,9 +78,9 @@ public class EventServiceTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result.Title.Should().Be(request.Title);
-        result.Slug.Should().NotBeNullOrEmpty();
-        _eventServiceMock.Verify(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>()), Times.Once);
+        result.EventId.Should().NotBeEmpty();
+        result.Message.Should().NotBeNullOrEmpty();
+        _eventServiceMock.Verify(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>(), It.IsAny<Guid>()), Times.Once);
     }
 
     [Fact]
@@ -203,19 +198,19 @@ public class EventServiceTests : IDisposable
         // Act
         var ticket = new Ticket(
             userId: user.Id,
-            @event: @event,
+            eventToRegister: @event,
             selectedPrice: selectedPrice,
             dietaryRestrictions: "Vegetarian",
             accessibilityNeeds: "None",
-            emergencyContact: "Emergency Contact",
-            emergencyPhone: "555-0911"
+            emergencyContactName: "Emergency Contact",
+            emergencyContactPhone: "555-0911"
         );
 
         // Assert
         ticket.Should().NotBeNull();
         ticket.UserId.Should().Be(user.Id);
         ticket.EventId.Should().Be(@event.Id);
-        ticket.Status.Should().Be(TicketStatus.Pending);
+        ticket.Status.Should().Be(CoreEnums.TicketStatus.Pending);
         ticket.SelectedPrice.Should().Be(selectedPrice);
     }
 
@@ -228,12 +223,12 @@ public class EventServiceTests : IDisposable
         // Act
         var action = () => new Ticket(
             userId: user.Id,
-            @event: null!,
+            eventToRegister: null!,
             selectedPrice: Money.Create(50m),
             dietaryRestrictions: null,
             accessibilityNeeds: null,
-            emergencyContact: "Emergency Contact",
-            emergencyPhone: "555-0911"
+            emergencyContactName: "Emergency Contact",
+            emergencyContactPhone: "555-0911"
         );
 
         // Assert
@@ -252,7 +247,7 @@ public class EventServiceTests : IDisposable
         var user = new IdentityUserBuilder().Build();
         var @event = new EventBuilder()
             .WithCapacity(50)
-            .WithEventType(EventType.Social)
+            .WithEventType(CoreEnums.EventType.Social)
             .WithPricingTiers(0m) // Free event
             .Build();
 
@@ -267,7 +262,7 @@ public class EventServiceTests : IDisposable
         rsvp.Should().NotBeNull();
         rsvp.UserId.Should().Be(user.Id);
         rsvp.EventId.Should().Be(@event.Id);
-        rsvp.Status.Should().Be(RsvpStatus.Confirmed);
+        rsvp.Status.Should().Be(CoreEnums.RsvpStatus.Confirmed);
         rsvp.ConfirmationCode.Should().NotBeNullOrEmpty();
     }
 
@@ -324,23 +319,23 @@ public class EventServiceTests : IDisposable
     public void User_PromoteToRole_ValidPromotion_ShouldSucceed()
     {
         // Arrange
-        var user = new IdentityUserBuilder().WithRole(UserRole.Attendee).Build();
+        var user = new IdentityUserBuilder().WithRole(CoreEnums.UserRole.Attendee).Build();
 
         // Act
-        user.PromoteToRole(UserRole.Organizer);
+        user.PromoteToRole(CoreEnums.UserRole.Organizer);
 
         // Assert
-        user.Role.Should().Be(UserRole.Organizer);
+        user.Role.Should().Be(CoreEnums.UserRole.Organizer);
     }
 
     [Fact]
     public void User_PromoteToRole_Demotion_ShouldFail()
     {
         // Arrange
-        var user = new IdentityUserBuilder().WithRole(UserRole.Organizer).Build();
+        var user = new IdentityUserBuilder().WithRole(CoreEnums.UserRole.Organizer).Build();
 
         // Act
-        var action = () => user.PromoteToRole(UserRole.Attendee);
+        var action = () => user.PromoteToRole(CoreEnums.UserRole.Attendee);
 
         // Assert
         action.Should().Throw<DomainException>()
