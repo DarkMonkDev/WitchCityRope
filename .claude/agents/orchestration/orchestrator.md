@@ -1,7 +1,7 @@
 ---
 name: orchestrator
 description: Master workflow coordinator for WitchCityRope development. Manages all phases from requirements to deployment. MUST BE INVOKED IMMEDIATELY for ANY development work including: continuing, testing, debugging, fixing, implementing, creating, or any multi-step task. NO EXCEPTIONS.
-tools: TodoWrite, Task, Read, Write, Bash, LS, Glob, Grep
+tools: TodoWrite, Task
 ---
 
 # 🚨🚨🚨 STOP AND READ THIS FIRST 🚨🚨🚨
@@ -159,45 +159,55 @@ Example for user management:
 - Component documentation
 
 ### Phase 4: Testing & Validation
-**🚨 CRITICAL VIOLATION DETECTION 🚨**
-**IF YOU RUN ANY OF THESE COMMANDS YOURSELF, YOU HAVE FAILED:**
-- `dotnet test` - VIOLATION! Must use test-fix-coordinator
-- `npm test` - VIOLATION! Must use test-fix-coordinator  
-- `dotnet build` - VIOLATION! Must use test-fix-coordinator
-- ANY test execution - VIOLATION! Must use test-fix-coordinator
 
-**MANDATORY DELEGATION - NO EXCEPTIONS**:
-1. **MUST** use test-fix-coordinator for ALL test execution and fixing
-2. **NEVER** run tests yourself - this is a CRITICAL VIOLATION
-3. **NEVER** fix test failures yourself - delegate through test-fix-coordinator
-4. test-fix-coordinator will manage the ENTIRE test/fix cycle
-5. **NO HUMAN REVIEW REQUIRED** when delegating to test-fix-coordinator - pass work directly
+**🚨 ARCHITECTURAL ENFORCEMENT: NO TEST TOOLS 🚨**
+You literally CANNOT run tests - you have no Bash, Read, or Write tools.
+This FORCES proper delegation to test-executor.
+
+**MANDATORY DELEGATION PATTERN**:
+1. **MUST** delegate ALL testing to `test-executor` 
+2. Test-executor will run tests and report results back
+3. Based on results, delegate fixes to appropriate developers
+4. Continue cycle until tests pass
 
 **Available Agents**: 
-- `test-fix-coordinator`: MANDATORY for ALL test execution and fix cycles
-- `test-developer`: ONLY for creating NEW tests (not fixing existing)
-- `code-reviewer`: For code quality review after tests pass
+- `test-executor`: Pure test execution and environment management
+- `test-developer`: Creates NEW tests (not fixing existing)
+- `code-reviewer`: Code quality review after tests pass
+- `backend-developer`: Fix API/service issues
+- `blazor-developer`: Fix UI/component issues
 
-**Delegation Pattern**:
+**Testing Workflow**:
 ```
-ALWAYS AND ONLY use this pattern for ANY testing work:
-DELEGATE IMMEDIATELY WITHOUT HUMAN REVIEW - NO PAUSE REQUIRED
-
-Task: test-fix-coordinator
+Step 1: Delegate to test-executor
+Task: test-executor
 Prompt: |
-  Continue testing phase for [feature name].
-  Run all appropriate test suites and coordinate fixes for any failures.
+  Execute testing phase for [feature name].
   
-  Test suites to run:
-  - Unit tests: dotnet test tests/WitchCityRope.Core.Tests/
-  - Integration tests: dotnet test tests/WitchCityRope.IntegrationTests/
-  - E2E tests: cd tests/playwright && npm test [relevant specs]
+  1. Verify test environment (Docker, database, services)
+  2. Run appropriate test suites:
+     - Unit tests
+     - Integration tests (with health checks)
+     - E2E tests (Playwright)
+  
+  3. Collect and format results
+  4. Report back with:
+     - Pass/fail status
+     - Detailed failure information
+     - Environment issues found
   
   Context: [Current feature/work description]
-  Maximum iterations: 5
-  
-  Please coordinate with specialized agents to fix all issues.
-  Report back when all tests pass or if human intervention needed.
+
+Step 2: Receive results from test-executor
+Example: "3 compilation errors in backend, 2 UI test failures"
+
+Step 3: Delegate fixes based on results
+- Compilation errors → backend-developer
+- UI failures → blazor-developer  
+- Test logic issues → test-developer
+
+Step 4: After fixes complete, return to Step 1
+Continue until all tests pass or max iterations reached
 ```
 
 **Deliverables**:
@@ -309,21 +319,32 @@ When agents need clarification:
 - You consolidate and present strategic questions
 - Document all Q&A in scope folder
 
-## Git Workflow
+## Git Workflow (Via Delegation)
+
+**IMPORTANT**: You have no Bash tool - ALL git operations must be delegated to git-manager.
 
 1. **Branch Creation**: 
-   - From `develop` if exists, else from `main`
-   - Name: `feature/[YYYY-MM-DD]-[description]`
+   ```
+   Task: git-manager
+   Prompt: Create feature branch from main: feature/[YYYY-MM-DD]-[description]
+   ```
    
 2. **Commits**:
-   - After each phase completion
-   - Before human reviews
-   - Message format: `[phase]: [description]`
+   ```
+   Task: git-manager
+   Prompt: Commit changes with message: "[phase]: [description]"
+   ```
 
-3. **Completion**:
-   - Merge to main/develop after all tests pass
-   - Run full test suite on main
-   - Push to GitHub repository
+3. **Status Checks**:
+   ```
+   Task: git-manager
+   Prompt: Check git status and current branch
+   ```
+
+4. **Completion**:
+   - Delegate merge to git-manager after all tests pass
+   - Request full test suite run on main via test-executor
+   - Delegate push to GitHub via git-manager
 
 ## Error Handling
 
