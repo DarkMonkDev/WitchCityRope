@@ -1,0 +1,139 @@
+@page "/admin/events/edit-fixed/{EventId:guid}"
+@page "/admin/events/new-fixed"
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
+@using WitchCityRope.Web.Services
+@using WitchCityRope.Core.Enums
+@using Microsoft.AspNetCore.Components.Forms
+@inject ApiClient ApiClient
+@inject NavigationManager Navigation
+@inject ILogger<EventEditFixed> Logger
+@attribute [Authorize(Roles = "Administrator,Organizer")]
+
+<PageTitle>Event Edit Fixed</PageTitle>
+
+<div class="page-container">
+    <h1>Event Editor (Fixed)</h1>
+    
+    @if (isLoading)
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <div class="event-editor-container">
+            <!-- Tab Navigation -->
+            <div class="tab-nav">
+                <button type="button" class="tab-button @(activeTab == "basic" ? "active" : "")" @onclick="@(() => activeTab = "basic")">
+                    Basic Info
+                </button>
+                <button type="button" class="tab-button @(activeTab == "tickets" ? "active" : "")" @onclick="@(() => activeTab = "tickets")">
+                    Tickets
+                </button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                @if (activeTab == "basic")
+                {
+                    <div class="form-section">
+                        <h2>Basic Information</h2>
+                        <EditForm Model="@model" OnValidSubmit="@HandleSubmit">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+                            
+                            <div class="form-group">
+                                <label>Title:</label>
+                                <InputText @bind-Value="model.Title" class="form-control" />
+                                <ValidationMessage For="@(() => model.Title)" />
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </EditForm>
+                    </div>
+                }
+                else if (activeTab == "tickets")
+                {
+                    <div class="form-section">
+                        <h2>Ticket Information</h2>
+                        <p>Ticket configuration would go here.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .tab-nav {
+        display: flex;
+        background: #f5f5f5;
+        border-bottom: 2px solid #e0e0e0;
+    }
+    
+    .tab-button {
+        padding: 16px 24px;
+        background: none;
+        border: none;
+        font-weight: 600;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .tab-button:hover {
+        color: #8B4513;
+        background: rgba(139, 69, 19, 0.05);
+    }
+    
+    .tab-button.active {
+        color: #8B4513;
+        background: white;
+        border-bottom: 2px solid #8B4513;
+    }
+    
+    .tab-content {
+        padding: 32px;
+        background: white;
+    }
+    
+    .form-section {
+        max-width: 600px;
+    }
+</style>
+
+@code {
+    [Parameter] public Guid? EventId { get; set; }
+    
+    private EventModel model = new();
+    private bool isLoading = false;
+    private string activeTab = "basic";
+    
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        try
+        {
+            // Don't load anything for now - just initialize
+            if (EventId.HasValue)
+            {
+                model.Title = "Test Event";
+            }
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+    
+    private async Task HandleSubmit()
+    {
+        Logger.LogInformation("Form submitted with title: {Title}", model.Title);
+        // Don't actually save - just log
+    }
+    
+    public class EventModel
+    {
+        [Required(ErrorMessage = "Title is required")]
+        public string Title { get; set; } = "";
+    }
+}

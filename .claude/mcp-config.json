@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "description": "Context7 provides up-to-date, version-specific documentation for libraries and frameworks",
+      "autoApprove": ["resolve-library-id", "get-library-docs"],
+      "timeout": 60
+    }
+  }
+}
