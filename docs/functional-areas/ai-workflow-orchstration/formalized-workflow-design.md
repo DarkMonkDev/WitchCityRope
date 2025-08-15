@@ -80,21 +80,25 @@ This document presents a formalized AI workflow orchestration system specificall
 - Unit Test Agent
 - Integration Test Agent
 - E2E Test Agent (Playwright)
+- Lint Validator Agent (code quality validation)
 - Code Review Agent
 
 **Deliverables:**
 - Test results
 - Coverage reports
+- Linting validation reports
 - Review feedback
 - Performance metrics
 
 #### Phase 5: Finalization (Gate: Product Manager Approval)
 **Agents Involved:**
+- Prettier Formatter Agent (code formatting before review)
 - Documentation Agent
 - Deployment Preparation Agent
 - Progress Update Agent
 
 **Deliverables:**
+- Properly formatted code
 - Updated documentation
 - Deployment artifacts
 - Progress report
@@ -232,6 +236,67 @@ tools: Read, Grep, Glob
 You are a senior code reviewer...
 ```
 
+### Quality Assurance Agents
+
+#### 13. Lint Validator Agent
+```yaml
+---
+name: lint-validator
+description: Validates code quality through linting tools. Runs ESLint, TSLint, and other linting tools to ensure code standards compliance. MUST BE USED during testing phase.
+tools: Bash, Read, Grep
+---
+You are a code quality validator specializing in linting and static analysis...
+```
+
+#### 14. Prettier Formatter Agent
+```yaml
+---
+name: prettier-formatter
+description: Formats code using Prettier and other formatting tools to ensure consistent code style. MUST BE USED before code review in finalization phase.
+tools: Bash, Read, Edit, MultiEdit
+---
+You are a code formatting specialist using Prettier and other formatting tools...
+```
+
+## Quality Agent Delegation Rules
+
+### Lint Validator Agent Usage
+**When to Use:**
+- During Phase 4 (Testing & Validation) - MANDATORY for all code changes
+- Before any code review process
+- After implementation phase completion
+- When code quality issues are suspected
+
+**Delegation Pattern:**
+```
+Task(
+    subagent_type="lint-validator",
+    description="Validate code quality for [specific files/modules]",
+    prompt="Run linting tools on [file paths] and report any violations. Fix critical issues and report warnings."
+)
+```
+
+### Prettier Formatter Agent Usage
+**When to Use:**
+- During Phase 5 (Finalization) - MANDATORY before code review
+- Before any pull request creation
+- After all development work is complete
+- When code style consistency is needed
+
+**Delegation Pattern:**
+```
+Task(
+    subagent_type="prettier-formatter",
+    description="Format code for [specific files/modules]",
+    prompt="Apply Prettier formatting to [file paths]. Ensure consistent style across all files."
+)
+```
+
+### Quality Gate Integration
+- **Phase 4**: Lint validation must pass with zero critical errors before proceeding
+- **Phase 5**: Code formatting must be applied before final review
+- **Code Review**: Both linting and formatting must be complete before reviewer agent delegation
+
 ## Communication & Coordination Model
 
 ### Document-Based Communication
@@ -298,6 +363,8 @@ The orchestrator maintains a master progress document:
 | Design | All | Design Docs | Design Docs | None | /docs/functional-areas/ |
 | Developers | All | Code, Tests | Code, Tests | None | /src/, /tests/ |
 | Testers | All | Tests, Results | Tests, Results | None | /tests/, /docs/ |
+| Lint Validator | All | Lint Reports | Lint Reports | None | /src/, /tests/, /docs/ |
+| Prettier Formatter | All | Code (formatting only) | None | None | /src/, /tests/ |
 | Reviewers | All | Review Docs | Review Docs | None | /docs/ |
 
 ## Quality Gates & Thresholds

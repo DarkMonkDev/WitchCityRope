@@ -75,24 +75,37 @@ Before delegating to backend-developer, must validate file paths:
 **Sub-Agents Used:**
 - `test-executor`: **MANDATORY** for ALL test execution - reports results back
 - `test-developer`: **EXCLUSIVE OWNERSHIP** of ALL test files
-- `code-reviewer`: Code quality review after tests pass
+- `lint-validator`: **MANDATORY** code quality validation after implementation
+- `code-reviewer`: Code quality review after tests and linting pass
 - `backend-developer`: Fix API/service issues ONLY (forbidden from test files)
 - `react-developer`: Fix UI/component issues ONLY (forbidden from test files)
 
 **Testing Workflow:**
 1. Delegate to test-executor
 2. Receive results from test-executor
-3. Delegate fixes based on results (with path validation)
-4. After fixes complete, return to step 1
-5. Continue until all tests pass
+3. Delegate to lint-validator for code quality validation
+4. Delegate fixes based on results (with path validation)
+5. After fixes complete, return to step 1
+6. Continue until all tests pass and linting validates
 
 **Deliverables:**
 - All tests passing (verified by test-executor)
+- Code quality validated (verified by lint-validator)
 - Code review complete
 - Performance validated
 
 ### Phase 5: Finalization
+**Sub-Agents Used:**
+- `prettier-formatter`: **MANDATORY** code formatting before final review
+- `librarian`: Documentation updates and cleanup
+
+**Finalization Workflow:**
+1. Delegate to prettier-formatter for code formatting
+2. Delegate to librarian for documentation updates
+3. Final progress update and lessons learned capture
+
 **Deliverables:**
+- Code properly formatted (verified by prettier-formatter)
 - Updated PROGRESS.md
 - Feature documentation complete
 - Lessons learned captured
@@ -268,8 +281,10 @@ The orchestrator consolidates all lessons learned into:
 ### Utility
 - `librarian`: Documentation management and file organization
 - `git-manager`: Version control and branch operations
-- `lint-validator`: Code linting and validation
-- `prettier-formatter`: Code formatting and style enforcement
+
+### Quality Assurance
+- `lint-validator`: **MANDATORY** code linting and validation during Phase 4
+- `prettier-formatter`: **MANDATORY** code formatting and style enforcement during Phase 5
 
 ## Success Metrics
 

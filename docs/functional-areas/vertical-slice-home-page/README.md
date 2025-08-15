@@ -27,7 +27,8 @@ Test the complete workflow process and technology stack by implementing a minima
 - [ ] Unit tests (test-developer)
 - [ ] Integration tests (test-executor)
 - [ ] E2E tests with Playwright
-- [ ] Linting and formatting validation
+- [ ] Code quality validation (lint-validator)
+- [ ] Code formatting (prettier-formatter)
 
 ### Phase 5: Finalization
 - [ ] Document lessons learned
@@ -40,6 +41,8 @@ Test the complete workflow process and technology stack by implementing a minima
 - backend-developer
 - test-developer
 - test-executor
+- lint-validator (code quality)
+- prettier-formatter (code formatting)
 - librarian (for cleanup)
 
 ## Success Criteria
