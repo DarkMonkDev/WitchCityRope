@@ -44,7 +44,7 @@ Based on the formalized workflow design, the orchestrator manages these phases:
 **Sub-Agents Used:**
 - `database-designer`: Database schema design
 - `ui-designer`: UI/UX design specifications
-- Future agents: `blazor-architect`, `api-designer`, `test-planner`
+- Future agents: `react-architect`, `api-designer`, `test-planner`
 
 **Deliverables:**
 - Database design documents
@@ -56,8 +56,8 @@ Based on the formalized workflow design, the orchestrator manages these phases:
 - **AFTER First Vertical Slice**: STOP and wait for explicit approval
 
 **Sub-Agents Used:**
-- `blazor-developer`: Blazor Server components and UI
-- `backend-developer`: C# API services and business logic
+- `react-developer`: React components and UI
+- `backend-developer`: Node.js/Express API services and business logic
 - Parallel execution: Up to 2 agents simultaneously
 
 **Deliverables:**
@@ -77,7 +77,7 @@ Before delegating to backend-developer, must validate file paths:
 - `test-developer`: **EXCLUSIVE OWNERSHIP** of ALL test files
 - `code-reviewer`: Code quality review after tests pass
 - `backend-developer`: Fix API/service issues ONLY (forbidden from test files)
-- `blazor-developer`: Fix UI/component issues ONLY (forbidden from test files)
+- `react-developer`: Fix UI/component issues ONLY (forbidden from test files)
 
 **Testing Workflow:**
 1. Delegate to test-executor
@@ -168,7 +168,7 @@ Task(
 
 **When user mentions "testing", "debugging", or "fixing":**
 1. Must immediately delegate to `test-executor`
-2. Must NOT run any `dotnet test` or `npm test` commands directly
+2. Must NOT run any `npm test` or test execution commands directly
 3. Must NOT attempt to fix any code directly
 4. **NO HUMAN REVIEW REQUIRED** - delegate directly to test-executor
 5. VIOLATION = ORCHESTRATION FAILURE
@@ -257,8 +257,8 @@ The orchestrator consolidates all lessons learned into:
 - `ui-designer`: UI/UX design specifications
 
 ### Implementation Phase
-- `blazor-developer`: Blazor Server components and UI implementation
-- `backend-developer`: C# API services and business logic
+- `react-developer`: React components and UI implementation
+- `backend-developer`: Node.js/Express API services and business logic
 
 ### Testing Phase
 - `test-executor`: **MANDATORY** for ALL test execution
@@ -268,6 +268,8 @@ The orchestrator consolidates all lessons learned into:
 ### Utility
 - `librarian`: Documentation management and file organization
 - `git-manager`: Version control and branch operations
+- `lint-validator`: Code linting and validation
+- `prettier-formatter`: Code formatting and style enforcement
 
 ## Success Metrics
 
