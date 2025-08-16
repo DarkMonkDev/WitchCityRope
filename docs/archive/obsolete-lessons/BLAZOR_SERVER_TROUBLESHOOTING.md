@@ -1,5 +1,12 @@
 # Blazor Server Troubleshooting Guide
 
+> **⚠️ ARCHIVED**: This Blazor-specific troubleshooting guide has been consolidated into `/docs/lessons-learned/frontend-lessons-learned.md` with React equivalents.
+> 
+> **Archive Date**: 2025-08-16  
+> **Reason**: Migrated to React - Blazor Server troubleshooting no longer applicable
+> 
+> This file is kept for historical reference during the migration period.
+
 ## Overview
 
 This document contains hard-won lessons from debugging Blazor Server issues in the WitchCityRope application. These issues took hours to resolve and understanding them will save future developers significant time.

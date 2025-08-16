@@ -13,17 +13,14 @@ This folder contains role-specific lessons learned from the WitchCityRope projec
 ### 🎨 [UI Developers](ui-developers.md)
 Blazor components, Syncfusion, render modes, Docker hot reload issues
 
-### 🔧 [Backend Developers](backend-developers.md)
-C# patterns, Entity Framework, API design, authentication
+### 🔧 [Backend Developers](backend-lessons-learned.md)
+REST API patterns, service architecture, database integration, authentication, deployment
 
 ### 🧪 [Test Writers](test-writers.md)
 E2E with Playwright, integration testing, unit testing patterns
 
 ### 🎯 [Wireframe Designers](wireframe-designers.md)
 Design standards, responsive patterns, handoff to developers
-
-### 🗄️ [Database Developers](database-developers.md)
-PostgreSQL specifics, migrations, performance tuning
 
 ### 🚀 [DevOps Engineers](devops-engineers.md)
 Docker, CI/CD, deployment, monitoring, troubleshooting

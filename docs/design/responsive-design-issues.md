@@ -1,5 +1,12 @@
 # Responsive Design Issues & Fixes
 
+> **⚠️ ARCHIVED**: This Blazor/CSS-specific document has been consolidated into `/docs/lessons-learned/frontend-lessons-learned.md` with React/Tailwind equivalents.
+> 
+> **Archive Date**: 2025-08-16  
+> **Reason**: Migrated to React with Tailwind CSS - Blazor CSS patterns no longer applicable
+> 
+> This file is kept for historical reference during the migration period.
+
 This document outlines all responsive design issues found across the Witch City Rope wireframes and provides specific fixes for each issue.
 
 ## Critical Issues Summary

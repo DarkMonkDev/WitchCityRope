@@ -1,5 +1,12 @@
 # Lessons Learned: UI Developers
 
+> **⚠️ ARCHIVED**: This Blazor-specific document has been consolidated into `/docs/lessons-learned/frontend-lessons-learned.md` with React equivalents. 
+> 
+> **Archive Date**: 2025-08-16  
+> **Reason**: Migrated to React - Blazor patterns no longer applicable
+> 
+> This file is kept for historical reference during the migration period.
+
 This document contains critical lessons learned from the WitchCityRope project that UI/Blazor developers need to know to avoid hours or days of debugging.
 
 ## 🚨 CRITICAL: Pure Blazor Server Architecture

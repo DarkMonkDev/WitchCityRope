@@ -32,13 +32,13 @@ This document contains the most critical architectural issues, debugging victori
 
 ### 5. Entity ID Initialization
 **CRITICAL**: Default Guid.Empty causes duplicate key violations
-- **Reference**: [Backend Developers Lessons](/docs/lessons-learned/backend-developers.md#entity-id-initialization)
+- **Reference**: [Backend Lessons Learned](/docs/lessons-learned/backend-lessons-learned.md#entity-framework-migration-patterns)
 - **Key Issue**: PostgreSQL duplicate key violations
 - **Solution**: Initialize Id = Guid.NewGuid() in entity constructors
 
 ### 6. Integration Test Data Protection Configuration
 **CRITICAL**: Tests fail with "Access to the path '/app' is denied" CryptographicException
-- **Reference**: [Backend Developers Lessons](/docs/lessons-learned/backend-developers.md#data-protection-configuration)
+- **Reference**: [Backend Lessons Learned](/docs/lessons-learned/backend-lessons-learned.md#integration-testing-environment-setup)
 - **Key Issue**: Data protection tries to persist keys to restricted directories in test environments
 - **Solution**: Use ephemeral data protection provider for Testing environment
 
@@ -46,7 +46,7 @@ This document contains the most critical architectural issues, debugging victori
 
 ### Web + API Separation
 **Architecture**: Web project must call API for all business operations
-- **Reference**: [Backend Developers Lessons](/docs/lessons-learned/backend-developers.md#web--api-separation)
+- **Reference**: [Backend Lessons Learned](/docs/lessons-learned/backend-lessons-learned.md#api-layer-architecture)
 - **Never**: Direct database access from Web project
 - **Always**: HTTP calls to API endpoints
 
@@ -71,10 +71,9 @@ This document contains the most critical architectural issues, debugging victori
 - [Blazor Server Patterns](/docs/standards-processes/development-standards/blazor-server-patterns.md) - UI patterns
 
 ### Role-Specific Lessons
-- [Backend Developers](/docs/lessons-learned/backend-developers.md) - C#, API, EF Core patterns
+- [Backend Developers](/docs/lessons-learned/backend-lessons-learned.md) - REST APIs, service architecture, database integration
 - [UI Developers](/docs/lessons-learned/ui-developers.md) - Blazor, Syncfusion, responsive design
 - [Test Writers](/docs/lessons-learned/test-writers.md) - Playwright, integration testing
-- [Database Developers](/docs/lessons-learned/database-developers.md) - PostgreSQL, migrations, performance
 - [DevOps Engineers](/docs/lessons-learned/devops-engineers.md) - Docker, deployment, monitoring
 
 ## 🚀 Quick Recovery Commands

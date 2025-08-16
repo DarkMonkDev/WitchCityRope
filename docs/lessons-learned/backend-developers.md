@@ -1,3 +1,7 @@
+# ARCHIVE: Consolidated into backend-lessons-learned.md
+
+**This file has been consolidated into [backend-lessons-learned.md](./backend-lessons-learned.md) and should be archived.**
+
 # Lessons Learned - Backend Developers (C#)
 <!-- Last Updated: 2025-08-12 -->
 <!-- Next Review: 2025-09-12 -->

@@ -2,6 +2,13 @@
 <!-- Last Updated: 2025-08-04 -->
 <!-- Next Review: 2025-09-04 -->
 
+> **⚠️ ARCHIVED**: Wireframe-specific patterns have been consolidated into `/docs/lessons-learned/frontend-lessons-learned.md` with React/modern CSS equivalents.
+> 
+> **Archive Date**: 2025-08-16  
+> **Reason**: Migrated to React - wireframe patterns updated for React components
+> 
+> This file is kept for historical reference during the migration period.
+
 ## Wireframe Standards
 
 ### File Organization
