@@ -577,6 +577,107 @@ describe('EventCard', () => {
 9. **Performance**: Leverage React optimization patterns (memo, useMemo, useCallback)
 10. **Development**: Enjoy faster hot reload and better debugging with Vite
 
+### Legacy Blazor Server UI Patterns (Consolidated) - 2025-08-16
+
+**Context**: Historical UI development lessons from the previous Blazor Server implementation, now transformed into React equivalents. Critical Blazor Server patterns preserved for migration reference.
+
+**What We Learned from Blazor Server Era**: 
+- Pure Blazor Server architecture eliminated Razor Pages conflicts
+- AuthorizeView patterns needed single source of truth to prevent state conflicts
+- Blazor circuit errors required comprehensive defensive coding with null checks
+- Native HTML elements (details/summary) were more reliable than complex Blazor event handling
+- Hot reload in Docker was unreliable requiring container restarts
+
+**Key Blazor Server Lessons Transformed to React**:
+
+```typescript
+// ❌ Blazor Server Pattern (OLD)
+<AuthorizeView>
+    <Authorized>
+        <span>Welcome, @context.User.Identity?.Name</span>
+    </Authorized>
+    <NotAuthorized>
+        <a href="/login">Login</a>
+    </NotAuthorized>
+</AuthorizeView>
+
+// ✅ React Pattern (NEW)
+const UserWelcome: React.FC = () => {
+  const { user, isAuthenticated } = useAuth();
+  
+  return isAuthenticated ? (
+    <span>Welcome, {user?.name}</span>
+  ) : (
+    <Link to="/login">Login</Link>
+  );
+};
+
+// ❌ Blazor Circuit Error Pattern (OLD)
+@inject ILogger<ComponentName> Logger
+@code {
+    try 
+    {
+        Logger?.LogInformation("Component initializing...");
+        await LoadData();
+    }
+    catch (Exception ex)
+    {
+        Logger?.LogError(ex, "Error during component initialization");
+        errorMessage = "Failed to initialize component. Please refresh the page.";
+        StateHasChanged();
+    }
+}
+
+// ✅ React Error Boundary Pattern (NEW)
+const EventsPage: React.FC = () => {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const loadEvents = async () => {
+      try {
+        const data = await apiClient.getEvents();
+        setEvents(data);
+      } catch (err) {
+        setError('Failed to load events. Please refresh the page.');
+        console.error('Error loading events:', err);
+      }
+    };
+    
+    loadEvents();
+  }, []);
+  
+  if (error) return <div className="error">{error}</div>;
+  return <EventsList events={events} />;
+};
+```
+
+**Action Items**: 
+- [x] Replaced AuthorizeView with useAuth hook patterns
+- [x] Converted Blazor component lifecycle to React useEffect
+- [x] Transformed Blazor event handlers to React event patterns
+- [x] Replaced ILogger injection with console logging and error boundaries
+- [x] Converted CSS-in-Razor to Tailwind CSS classes
+- [x] Replaced EditForm with React Hook Form + Zod validation
+
+**Impact**: 
+- Eliminated Blazor Server circuit errors and timeout issues
+- Improved development experience with reliable hot reload
+- Simplified authentication state management
+- Better error handling with React error boundaries
+- More predictable component lifecycle management
+
+**Migration Notes**: Content from `ui-developers.md` transformed to React equivalents. Blazor Server defensive coding patterns adapted to React error handling best practices.
+
+**References**:
+- Legacy Blazor Server documentation in archive
+- React error boundary documentation
+- Authentication pattern migration guide
+
+**Tags**: #blazor-legacy #react-migration #authentication #error-handling #component-lifecycle
+
+---
+
 **For complete implementation patterns, see:**
 - React migration architecture documentation
 - Component library migration guide

@@ -491,4 +491,46 @@ npm test -- --coverage
 
 ---
 
+### Legacy Blazor Testing Patterns (Consolidated) - 2025-08-16
+
+**Context**: Previous testing patterns from Blazor Server application now consolidated into React equivalents. Historical lessons from Blazor circuit testing and ASP.NET Core Identity integration preserved for reference.
+
+**What We Learned**: 
+- Blazor Server circuit errors required different debugging approaches than React
+- ASP.NET Core Identity form selectors were specific to server-side rendering
+- Blazor E2E helpers had timeout issues that don't apply to React SPAs
+- PostgreSQL health checks are still critical regardless of frontend framework
+- Test isolation patterns remain important across both Blazor and React
+
+**Consolidated Lessons from Blazor Era**:
+- **Health Checks**: Always run database health checks before integration tests
+- **Test Data Uniqueness**: Use GUIDs and timestamps to prevent test conflicts
+- **DateTime Handling**: UTC timestamps required for PostgreSQL (applies to both frontend frameworks)
+- **Entity ID Initialization**: Always initialize entity IDs to prevent duplicate key violations
+- **Authentication Testing**: Mock authentication consistently across test layers
+
+**Action Items**: 
+- [x] Migrated from Puppeteer to Playwright for E2E testing
+- [x] Replaced Blazor-specific selectors with React data-testid patterns
+- [x] Simplified timeout handling from Blazor circuit waits to standard React waits
+- [x] Maintained PostgreSQL TestContainers pattern for database integration
+- [x] Preserved multi-layer testing approach (unit, integration, E2E)
+
+**Impact**: 
+- Maintained testing reliability during React migration
+- Preserved critical database and authentication testing patterns
+- Eliminated Blazor Server-specific timeout and circuit issues
+- Improved test execution speed with React's faster development cycle
+
+**Migration Notes**: Content from `test-writers.md` consolidated here with React equivalents. Blazor-specific patterns archived but core testing principles preserved.
+
+**References**:
+- Legacy testing documentation in archive
+- React Testing Library migration guide
+- Playwright Blazor to React selector guide
+
+**Tags**: #migration #blazor-legacy #consolidation #test-patterns #react-testing
+
+---
+
 *Remember: Good tests are deterministic, isolated, and fast. If a test is flaky, fix it immediately. With React applications, pay special attention to async state updates and component rendering timing.*

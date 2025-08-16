@@ -51,9 +51,9 @@ The application consists of three main services:
 - **Depends on**: PostgreSQL
 - **Environment**: Development/Staging/Production
 
-### 3. Web Service (`web`) - Blazor Server
+### 3. Web Service (`web`) - React Application
 - **Port**: 5651 (HTTP), 5652 (HTTPS)
-- **Depends on**: API and PostgreSQL
+- **Depends on**: API for backend services
 - **Default URL**: https://localhost:5652
 
 ### 4. pgAdmin (Optional)

@@ -278,6 +278,133 @@ This document captures backend development lessons learned across service archit
 
 ---
 
+### Service Layer Architecture and API Patterns - 2025-08-12
+
+**Context**: Originally implemented with web application directly accessing database, leading to tight coupling and difficult testing. Needed clear separation between presentation and business logic layers.
+
+**What We Learned**: 
+- Web + API separation is essential for maintainable architecture
+- Controllers should be thin - business logic belongs in services
+- Service layer pattern enables better testability and isolation
+- Proper HTTP status codes improve API usability
+- Dependency injection configuration affects application stability
+
+**Action Items**: 
+- [ ] Keep controllers limited to request/response handling only
+- [ ] Move all business logic to service layer
+- [ ] Use appropriate HTTP status codes for different scenarios
+- [ ] Configure dependency injection with proper lifetimes (Scoped for DbContext)
+- [ ] Implement interface segregation for focused service contracts
+
+**Impact**: 
+- Improved separation of concerns and testability
+- Better error handling and API consistency
+- Easier maintenance and future mobile app development
+
+**Code Examples**:
+```csharp
+// ❌ WRONG - Logic in controller
+[HttpPost]
+public async Task<IActionResult> CreateEvent(EventDto model)
+{
+    if (model.StartTime < DateTime.UtcNow)
+        return BadRequest();
+    // More logic...
+}
+
+// ✅ CORRECT - Logic in service
+[HttpPost]
+public async Task<IActionResult> CreateEvent(EventDto model)
+{
+    var result = await _eventService.CreateEventAsync(model);
+    return result.Success ? Ok(result) : BadRequest(result);
+}
+
+// ✅ CORRECT - Proper status codes
+return result switch
+{
+    not null => Ok(result),           // 200
+    null => NotFound(),               // 404
+    _ when !ModelState.IsValid => BadRequest(ModelState), // 400
+    _ => StatusCode(500)              // 500
+};
+```
+
+**References**:
+- Service layer pattern documentation
+- REST API design patterns
+- Entity Framework Patterns documentation
+
+**Tags**: #architecture #api-design #service-layer #controllers #separation-of-concerns
+
+---
+
+### PostgreSQL Database Optimization and Management - 2025-08-12
+
+**Context**: Experiencing production database issues including "too many connections" errors, slow queries, and migration failures. Needed to establish proper PostgreSQL patterns and optimization strategies.
+
+**What We Learned**: 
+- PostgreSQL requires specific configuration patterns different from SQL Server
+- Connection pooling is critical for production stability
+- Case sensitivity and JSON support require special handling
+- Safe migration patterns are essential for production deployments
+- Database constraints beyond EF Core improve data integrity
+
+**Action Items**: 
+- [ ] Configure connection pooling with appropriate limits (max 100 connections)
+- [ ] Use CITEXT extension or proper collation for case-insensitive searches
+- [ ] Implement JSONB columns with GIN indexes for flexible schema needs
+- [ ] Always make migrations reversible with proper Down() methods
+- [ ] Add database-level constraints for critical business rules
+- [ ] Use EXPLAIN ANALYZE for query optimization on slow operations
+
+**Impact**: 
+- Eliminated connection pool exhaustion in production
+- Improved query performance with proper indexing
+- Safer database deployments with reversible migrations
+- Better data integrity with database-level constraints
+
+**Code Examples**:
+```sql
+-- Connection string with pooling
+Host=localhost;Database=witchcityrope_db;Username=postgres;Password=xxx;
+Pooling=true;Minimum Pool Size=0;Maximum Pool Size=100;Connection Lifetime=0;
+
+-- Case insensitive email lookups
+CREATE EXTENSION IF NOT EXISTS citext;
+ALTER TABLE "Users" ALTER COLUMN "Email" TYPE citext;
+
+-- JSONB with indexes for performance
+metadata JSONB NOT NULL DEFAULT '{}'
+CREATE INDEX idx_events_metadata ON "Events" USING GIN (metadata);
+SELECT * FROM "Events" WHERE metadata @> '{"type": "workshop"}';
+
+-- Safe migration patterns
+protected override void Up(MigrationBuilder migrationBuilder)
+{
+    // Add nullable column first
+    migrationBuilder.AddColumn<string>("NewColumn", "Events", nullable: true);
+    // Populate data
+    migrationBuilder.Sql("UPDATE \"Events\" SET \"NewColumn\" = 'default'");
+    // Then make non-nullable
+    migrationBuilder.AlterColumn<string>("NewColumn", "Events", nullable: false);
+}
+
+// Business rule constraints
+ALTER TABLE "Events" 
+ADD CONSTRAINT chk_event_dates 
+CHECK ("EndTime" > "StartTime");
+```
+
+**References**:
+- PostgreSQL performance tuning documentation
+- Entity Framework Core PostgreSQL provider guide
+- Database indexing strategy patterns
+
+**Tags**: #postgresql #database #performance #migrations #connection-pooling #indexing
+
+---
+
 ## Template Usage Instructions
 
 ### When to Use This Template

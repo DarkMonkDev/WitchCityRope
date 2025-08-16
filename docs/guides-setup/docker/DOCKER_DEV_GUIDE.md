@@ -26,7 +26,7 @@
    ```
 
 3. **Access the Applications**
-   - Web (Blazor): http://localhost:5651
+   - Web (React): http://localhost:5651
    - Web (HTTPS): https://localhost:5652
    - API: http://localhost:5653
    - API (HTTPS): https://localhost:5654
@@ -36,9 +36,9 @@
 The Docker setup consists of:
 
 - **API Service**: ASP.NET Core Web API running on ports 5653/5654
-- **Web Service**: Blazor Server application running on ports 5651/5652
-- **SQLite Database**: Persistent volume for data storage
-- **Development Tools** (optional): Mailcatcher, SQLite viewer
+- **Web Service**: React application (Vite) running on ports 5651/5652
+- **PostgreSQL Database**: Persistent volume for data storage
+- **Development Tools** (optional): Mailcatcher, pgAdmin
 
 ## Development Workflow
 
@@ -58,10 +58,15 @@ The Docker setup consists of:
 
 Both the API and Web projects support hot reload in development mode:
 
-1. Edit any C# file in the `src/` directory
+**API (C#)**:
+1. Edit any C# file in the `apps/api/` directory
 2. Save the file
 3. The application will automatically recompile and restart
-4. Refresh your browser to see changes
+
+**Web (React)**:
+1. Edit any file in the `apps/web/` directory
+2. Save the file
+3. Vite will automatically update the browser (no refresh needed)
 
 ### Database Management
 
@@ -70,8 +75,8 @@ Both the API and Web projects support hot reload in development mode:
 ./docker-dev.sh
 # Select option 5
 
-# Access SQLite database (when debug profile is active)
-docker-compose exec sqlite-viewer sqlite3 /data/witchcityrope-dev.db
+# Access PostgreSQL database
+docker-compose exec postgres psql -U postgres -d witchcityrope_db
 ```
 
 ### Viewing Logs
@@ -189,12 +194,13 @@ When running with dev tools profile:
 - SMTP Server: localhost:1025
 - Web Interface: http://localhost:1080
 
-### SQLite Viewer
+### pgAdmin (PostgreSQL Management)
 
-Available with debug profile:
+Available with tools profile:
 ```bash
-COMPOSE_PROFILES=debug docker-compose up -d
-docker-compose exec sqlite-viewer sqlite3 /data/witchcityrope-dev.db
+COMPOSE_PROFILES=tools docker-compose up -d
+# Access pgAdmin at http://localhost:5050
+# Login with credentials from .env file
 ```
 
 ## Next Steps

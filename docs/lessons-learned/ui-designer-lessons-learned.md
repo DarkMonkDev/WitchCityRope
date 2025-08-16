@@ -1,13 +1,9 @@
-# Lessons Learned - Wireframe Designers
-<!-- Last Updated: 2025-08-04 -->
-<!-- Next Review: 2025-09-04 -->
+# UI Designer Lessons Learned
+<!-- Last Updated: 2025-08-16 -->
+<!-- Next Review: 2025-09-16 -->
 
-> **⚠️ ARCHIVED**: Wireframe-specific patterns have been consolidated into `/docs/lessons-learned/frontend-lessons-learned.md` with React/modern CSS equivalents.
-> 
-> **Archive Date**: 2025-08-16  
-> **Reason**: Migrated to React - wireframe patterns updated for React components
-> 
-> This file is kept for historical reference during the migration period.
+## Overview
+This document captures UI design lessons learned for the UI Designer agent role, including wireframe standards, design patterns, component specifications, and accessibility considerations. These lessons apply to design work that supports React component development and modern web applications.
 
 ## Wireframe Standards
 
