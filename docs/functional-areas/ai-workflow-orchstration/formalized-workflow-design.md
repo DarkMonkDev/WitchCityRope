@@ -51,7 +51,7 @@ This document presents a formalized AI workflow orchestration system specificall
 
 #### Phase 2: Design & Architecture (Gate: 90% Approval)
 **Agents Involved:**
-- Blazor Architecture Agent
+- React Architecture Agent
 - Database Design Agent
 - API Design Agent
 - Test Planning Agent
@@ -64,10 +64,10 @@ This document presents a formalized AI workflow orchestration system specificall
 
 #### Phase 3: Implementation (Gate: 85% Test Coverage)
 **Agents Involved:**
-- Blazor Component Developer
+- React Component Developer
 - C# Backend Developer
 - Database Implementation Agent
-- Syncfusion UI Specialist
+- UI Component Specialist
 
 **Deliverables:**
 - Working code
@@ -154,44 +154,44 @@ You are a business analyst specializing in community event management platforms.
 ```yaml
 ---
 name: functional-spec
-description: Transforms business requirements into detailed functional specifications for Blazor Server applications.
+description: Transforms business requirements into detailed functional specifications for React applications.
 tools: Read, Write, Task
 ---
-You are a functional specification expert for Blazor Server applications...
+You are a functional specification expert for React applications...
 ```
 
 ### Design Phase Agents
 
-#### 6. Blazor Architecture Agent
+#### 6. React Architecture Agent
 ```yaml
 ---
-name: blazor-architect
-description: Designs Blazor Server component architecture following vertical slice patterns. Expert in .NET 9 and Entity Framework Core.
+name: react-architect
+description: Designs React component architecture following modern patterns. Expert in React 18, TypeScript, and state management.
 tools: Read, Write, Grep, Glob
 ---
-You are a Blazor Server architecture specialist...
+You are a React architecture specialist...
 ```
 
 #### 7. UI/UX Design Agent
 ```yaml
 ---
 name: ui-designer
-description: Creates UI designs and wireframes using Syncfusion components for Blazor applications.
+description: Creates UI designs and wireframes using modern component libraries for React applications.
 tools: Read, Write, WebFetch
 ---
-You are a UI/UX designer specializing in Syncfusion Blazor components...
+You are a UI/UX designer specializing in modern React component libraries...
 ```
 
 ### Implementation Phase Agents
 
-#### 8. Blazor Component Developer
+#### 8. React Component Developer
 ```yaml
 ---
-name: blazor-developer
-description: Implements Blazor Server components and pages. Expert in C#, Razor syntax, and Syncfusion controls.
+name: react-developer
+description: Implements React components and pages. Expert in React, TypeScript, modern CSS, and component libraries.
 tools: Read, Write, Edit, MultiEdit, Grep, Glob, Bash
 ---
-You are a senior Blazor Server developer...
+You are a senior React developer...
 ```
 
 #### 9. Backend API Developer
@@ -472,7 +472,7 @@ Upon approval of this design:
    - Create quality gate checking
 
 3. **Phase 3: Development Agents** (Week 3)
-   - Implement Blazor/C# development agents
+   - Implement React/TypeScript development agents
    - Implement testing agents
    - Create progress tracking
 
