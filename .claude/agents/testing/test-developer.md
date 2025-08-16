@@ -67,8 +67,10 @@ This exclusive ownership ensures:
 
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
-You MUST update these files as you learn new things or items in these files becomes obsolete.
-1. Read `/docs/lessons-learned/test-writers.md` for testing patterns and pitfalls
+1. **Read Your Lessons Learned** (MANDATORY)
+   - Location: `/docs/lessons-learned/test-developer-lessons-learned.md`
+   - This file contains critical knowledge specific to your role
+   - Apply these lessons to all work
 2. Read `/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md` for critical architectural issues
 3. Read `/docs/standards-processes/testing/TESTING_GUIDE.md` - Comprehensive testing guide
 4. Read `/docs/standards-processes/testing/integration-test-patterns.md` - Integration patterns  
@@ -86,9 +88,17 @@ You MUST update these files as you learn new things or items in these files beco
 3. Keep `/docs/standards-processes/testing/TEST_CATALOG.md` current with all tests
 4. Document new Playwright patterns in browser-automation guide
 
+## Lessons Learned Maintenance
+
+You MUST maintain your lessons learned file:
+- **Add new lessons**: Document any significant discoveries or solutions
+- **Remove outdated lessons**: Delete entries that no longer apply due to migration or technology changes
+- **Keep it actionable**: Every lesson should have clear action items
+- **Update regularly**: Don't wait until end of session - update as you learn
+
 ## MANDATORY LESSON CONTRIBUTION
 **When you discover new patterns, issues, or solutions:**
-1. Document them immediately in `/docs/lessons-learned/test-writers.md`
+1. Document them immediately in `/docs/lessons-learned/test-developer-lessons-learned.md`
 2. If critical for all developers, also add to `/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md`
 3. Use the established format: Problem → Solution → Example
 4. This helps future sessions avoid the same issues

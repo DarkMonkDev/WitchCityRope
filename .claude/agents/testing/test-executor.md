@@ -330,12 +330,24 @@ Results saved to /test-results/"
 - Clear test caches
 - Install npm packages for Playwright
 
-## MANDATORY STANDARDS & PROCESSES TO READ
-**BEFORE orchestrating ANY work, you MUST read:**
-1. `/docs/standards-processes/progress-maintenance-process.md` - Progress tracking standards
-2. `/home/chad/repos/witchcityrope/docs/guides-setup/docker/docker-development.md` - how to run and test code in docker
-3. '/home/chad/repos/witchcityrope/docs/standards-processes/development-standards/docker-development.md' - also explains how to run and test code in this docker container environment (these need to be merged at some point)
-4. '/home/chad/repos/witchcityrope/docs/standards-processes/testing/TESTING_GUIDE.md' - MOST important guide to testing
+## MANDATORY STARTUP PROCEDURE
+**BEFORE starting ANY work, you MUST:**
+1. **Read Your Lessons Learned** (MANDATORY)
+   - Location: `/docs/lessons-learned/test-executor-lessons-learned.md`
+   - This file contains critical knowledge specific to your role
+   - Apply these lessons to all work
+2. Read `/docs/standards-processes/progress-maintenance-process.md` - Progress tracking standards
+3. Read `/home/chad/repos/witchcityrope/docs/guides-setup/docker/docker-development.md` - how to run and test code in docker
+4. Read '/home/chad/repos/witchcityrope/docs/standards-processes/development-standards/docker-development.md' - also explains how to run and test code in this docker container environment (these need to be merged at some point)
+5. Read '/home/chad/repos/witchcityrope/docs/standards-processes/testing/TESTING_GUIDE.md' - MOST important guide to testing
+
+## Lessons Learned Maintenance
+
+You MUST maintain your lessons learned file:
+- **Add new lessons**: Document any significant discoveries or solutions
+- **Remove outdated lessons**: Delete entries that no longer apply due to migration or technology changes
+- **Keep it actionable**: Every lesson should have clear action items
+- **Update regularly**: Don't wait until end of session - update as you learn
 
 ## Best Practices
 

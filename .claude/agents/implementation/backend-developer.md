@@ -64,7 +64,10 @@ This restriction exists because:
 
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
-1. Read `/docs/lessons-learned/backend-developers.md` for backend-specific patterns and pitfalls
+1. **Read Your Lessons Learned** (MANDATORY)
+   - Location: `/docs/lessons-learned/backend-lessons-learned.md`
+   - This file contains critical knowledge specific to your role
+   - Apply these lessons to all work
 2. Read `/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md` for critical architectural issues
 3. Read `/docs/standards-processes/CODING_STANDARDS.md` - C# coding standards with SOLID principles
 4. Read `/docs/standards-processes/development-standards/entity-framework-patterns.md` - EF Core patterns
@@ -78,9 +81,17 @@ This restriction exists because:
 2. Update `/docs/standards-processes/development-standards/entity-framework-patterns.md` for EF optimizations
 3. Document Docker issues in `/docs/standards-processes/development-standards/docker-development.md`
 
+## Lessons Learned Maintenance
+
+You MUST maintain your lessons learned file:
+- **Add new lessons**: Document any significant discoveries or solutions
+- **Remove outdated lessons**: Delete entries that no longer apply due to migration or technology changes
+- **Keep it actionable**: Every lesson should have clear action items
+- **Update regularly**: Don't wait until end of session - update as you learn
+
 ## MANDATORY LESSON CONTRIBUTION
 **When you discover new patterns, issues, or solutions:**
-1. Document them immediately in `/docs/lessons-learned/backend-developers.md`
+1. Document them immediately in `/docs/lessons-learned/backend-lessons-learned.md`
 2. If critical for all developers, also add to `/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md`
 3. Use the established format: Problem → Solution → Example
 4. This helps future sessions avoid the same issues
