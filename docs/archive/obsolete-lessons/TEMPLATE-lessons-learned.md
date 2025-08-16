@@ -71,13 +71,11 @@ Brief description of the domain and purpose of this document. Explain what types
 ### Domain Examples
 - Backend Lessons Learned
 - Frontend Lessons Learned
-- Testing Lessons Learned
-- Database Lessons Learned
+- Test execution Lessons Learned
 - DevOps Lessons Learned
 - Security Lessons Learned
 - Performance Lessons Learned
-- Integration Lessons Learned
-- UI/UX Lessons Learned
+- UI/UX design Lessons Learned
 - Architecture Lessons Learned
 
 ### Writing Guidelines
