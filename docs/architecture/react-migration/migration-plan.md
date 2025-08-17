@@ -150,36 +150,34 @@ apiClient.interceptors.request.use((config) => {
 
 #### **Week 3: Authentication Foundation**
 
-**Day 1-2: NextAuth.js Setup**
-```typescript
-// NextAuth configuration
-export default NextAuth({
-  providers: [
-    CredentialsProvider({
-      async authorize(credentials) {
-        const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          body: JSON.stringify(credentials),
-          headers: { 'Content-Type': 'application/json' }
-        });
-        
-        if (response.ok) {
-          return await response.json();
-        }
-        return null;
-      }
-    })
-  ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.accessToken = user.accessToken;
-        token.roles = user.roles;
-      }
-      return token;
-    }
-  }
+**UPDATED AUTHENTICATION STRATEGY - August 16, 2025**
+
+**Decision**: Hybrid JWT + HttpOnly Cookies with ASP.NET Core Identity
+- **Rationale**: Service-to-service authentication requirement discovered during vertical slice testing
+- **Reference**: `/docs/functional-areas/vertical-slice-home-page/authentication-decision-report.md`
+
+**Day 1-2: ASP.NET Core Identity + JWT Setup**
+```csharp
+// ASP.NET Core Identity Configuration
+builder.Services.AddDefaultIdentity<WitchCityRopeUser>(options => {
+    options.Password.RequiredLength = 8;
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.User.RequireUniqueEmail = true;
+})
+.AddRoles<IdentityRole>()
+.AddEntityFrameworkStores<AuthDbContext>();
+
+// Cookie Configuration
+builder.Services.ConfigureApplicationCookie(options => {
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.ExpireTimeSpan = TimeSpan.FromDays(30);
+    options.SlidingExpiration = true;
 });
+
+// JWT Service for API calls
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 ```
 
 **Day 3-4: Authentication Components**

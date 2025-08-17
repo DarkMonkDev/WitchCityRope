@@ -1,0 +1,275 @@
+# docker-compose.dev.yml - Development Environment Overrides
+# WitchCityRope Development Configuration
+# Extends base configuration with development-specific settings
+
+version: '3.8'
+
+# ============================================================================
+# DEVELOPMENT-SPECIFIC VOLUMES
+# ============================================================================
+volumes:
+  # Test output volumes for development
+  test_reports:
+    driver: local
+  test_screenshots:
+    driver: local
+
+# ============================================================================
+# DEVELOPMENT SERVICE OVERRIDES
+# ============================================================================
+services:
+  
+  # ==========================================================================
+  # PostgreSQL - Development Overrides
+  # ==========================================================================
+  postgres:
+    # External access for database tools and debugging
+    ports:
+      - "5433:5432"
+    
+    environment:
+      # Development-friendly password
+      POSTGRES_PASSWORD: devpass123
+      
+      # Development database configuration
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    
+    volumes:
+      # Add development seed data
+      - postgres_data:/var/lib/postgresql/data
+      - ./apps/api/Data/Init:/docker-entrypoint-initdb.d:ro
+      
+    # Development-optimized PostgreSQL settings
+    command: [
+      "postgres",
+      "-c", "log_statement=all",           # Log all statements for debugging
+      "-c", "log_min_duration_statement=0", # Log query duration
+      "-c", "max_connections=100",         # Lower for development
+      "-c", "shared_buffers=128MB",        # Smaller for local development
+      "-c", "fsync=off",                   # Faster for development (unsafe for prod)
+      "-c", "synchronous_commit=off"       # Faster for development (unsafe for prod)
+    ]
+
+  # ==========================================================================
+  # API Service - Development Overrides
+  # ==========================================================================
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+      target: development  # Multi-stage development target
+    
+    # External access for API testing and debugging
+    ports:
+      - "5655:8080"      # API access
+      - "40000:40000"    # .NET debugger port
+    
+    environment:
+      # Development environment
+      ASPNETCORE_ENVIRONMENT: Development
+      
+      # Development database connection
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=witchcityrope_dev;Username=postgres;Password=devpass123;Include Error Detail=true"
+      
+      # Development authentication settings
+      Authentication__JwtSecret: dev-jwt-secret-for-local-testing-make-it-long-enough
+      Authentication__RequireHttps: "false"
+      Authentication__ExpiryMinutes: 480  # 8 hours for development convenience
+      
+      # Development CORS - allow multiple origins
+      CORS__AllowedOrigins: "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://web:5173"
+      
+      # Development logging
+      Logging__LogLevel__Default: Debug
+      Logging__LogLevel__Microsoft.EntityFrameworkCore: Information
+      Logging__LogLevel__WitchCityRope: Debug
+      
+      # Development features
+      ASPNETCORE_DETAILEDERRORS: "true"
+      ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS: "false"
+      
+      # Hot reload configuration
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+      DOTNET_WATCH_RESTART_ON_RUDE_EDIT: "true"
+    
+    volumes:
+      # Source code mounting for hot reload
+      - ./apps/api:/app:cached
+      
+      # Package cache for faster builds
+      - nuget_cache:/root/.nuget/packages
+      
+      # Exclude build artifacts from host
+      - /app/bin
+      - /app/obj
+    
+    # Development command with hot reload
+    command: ["dotnet", "watch", "run", "--project", "/app/WitchCityRope.Api.csproj", "--urls", "http://0.0.0.0:8080"]
+    
+    # Override health check for development (more frequent)
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ==========================================================================
+  # React Web - Development Overrides
+  # ==========================================================================
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+      target: development  # Multi-stage development target
+    
+    # External access for development and HMR WebSocket
+    ports:
+      - "5173:5173"      # Vite dev server
+      - "24678:24678"    # Vite HMR WebSocket
+    
+    environment:
+      # Development environment
+      NODE_ENV: development
+      
+      # Container environment detection
+      DOCKER_ENV: "true"
+      
+      # API connection (external for browser access)
+      VITE_API_BASE_URL: http://localhost:5655
+      
+      # Development features
+      VITE_ENABLE_DEBUG: "true"
+      VITE_ENABLE_MOCK_DATA: "true"
+      VITE_ENABLE_ANALYTICS: "false"
+      
+      # Hot reload configuration - Enhanced for Docker
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: 1000
+      VITE_HMR_PORT: 24678
+      VITE_HMR_HOST: 0.0.0.0
+      VITE_HMR_CLIENT_PORT: 24678
+      
+      # File watching optimization for containers
+      WATCHPACK_POLLING: "true"
+      FAST_REFRESH: "true"
+      
+      # Development authentication
+      VITE_AUTH_COOKIE_DOMAIN: localhost
+      VITE_AUTH_COOKIE_SECURE: "false"
+    
+    volumes:
+      # Source code mounting for hot reload
+      - ./apps/web:/app:cached
+      
+      # Preserve node_modules for better performance
+      - node_modules_cache:/app/node_modules
+      
+      # Exclude cache directories
+      - /app/.vite
+      - /app/dist
+    
+    # Development command with hot reload and HMR
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
+    
+    # Override health check for development
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:5173 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  # ==========================================================================
+  # Test Server - Development Only Service
+  # ==========================================================================
+  test-server:
+    image: python:3.11-alpine
+    container_name: witchcity-test-server
+    networks:
+      - witchcity-net
+    
+    # External access for test runner UI
+    ports:
+      - "8080:3000"
+    
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    
+    environment:
+      # Test server configuration
+      NODE_ENV: test
+      API_BASE_URL: http://api:8080
+      WEB_BASE_URL: http://web:5173
+      
+      # Test configuration
+      PYTHONUNBUFFERED: 1
+      PYTHONDONTWRITEBYTECODE: 1
+    
+    volumes:
+      # Test files and outputs
+      - ./tests:/app/tests:ro
+      - test_reports:/app/reports
+      - test_screenshots:/app/screenshots
+    
+    working_dir: /app
+    
+    # Simple HTTP server for testing
+    command: ["python", "-m", "http.server", "3000"]
+    
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+# ============================================================================
+# DEVELOPMENT USAGE INSTRUCTIONS
+# ============================================================================
+# 
+# Start Development Environment:
+#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# 
+# Monitor Logs:
+#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs -f
+# 
+# Restart Specific Service:
+#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml restart api
+# 
+# Rebuild Service:
+#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml build api
+# 
+# Stop Environment:
+#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+# 
+# Clean Rebuild:
+#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v
+#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --no-cache
+#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# 
+# Service Access URLs:
+#   React App:    http://localhost:5173
+#   API:          http://localhost:5655
+#   Database:     localhost:5433 (postgres/devpass123)
+#   Test Server:  http://localhost:8080
+# 
+# Hot Reload Features:
+#   - React: Instant HMR for component changes
+#   - API: dotnet watch restarts within 3-5 seconds
+#   - Database: Automatic migration application
+# 
+# Development Authentication:
+#   - HTTP allowed (no HTTPS requirement)
+#   - Extended JWT lifetime (8 hours)
+#   - Relaxed CORS policy
+#   - Detailed error messages
+# 
+# Debugging:
+#   - API debug port: 40000
+#   - Detailed logging enabled
+#   - Entity Framework query logging
+#   - Development exception pages

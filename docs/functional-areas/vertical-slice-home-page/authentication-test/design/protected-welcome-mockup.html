@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WitchCityRope - Welcome</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #1a1a2e;
+            color: white;
+        }
+        .header {
+            background-color: #16213e;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #6B46C1;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .welcome-container {
+            background-color: #16213e;
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid #6B46C1;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #6B46C1;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .welcome-message {
+            font-size: 24px;
+            color: #6B46C1;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .user-info {
+            background-color: #2d3748;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+        }
+        .user-info h3 {
+            color: #e2e8f0;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #4a5568;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            color: #a0aec0;
+            font-weight: bold;
+        }
+        .info-value {
+            color: #e2e8f0;
+        }
+        .protected-indicator {
+            background-color: #38a169;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        .action-button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            min-width: 120px;
+        }
+        .primary-button {
+            background-color: #6B46C1;
+            color: white;
+        }
+        .primary-button:hover {
+            background-color: #553C9A;
+        }
+        .secondary-button {
+            background-color: #4a5568;
+            color: white;
+        }
+        .secondary-button:hover {
+            background-color: #2d3748;
+        }
+        .logout-button {
+            background-color: #e53e3e;
+            color: white;
+        }
+        .logout-button:hover {
+            background-color: #c53030;
+        }
+        .server-time {
+            text-align: center;
+            color: #a0aec0;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        @media (max-width: 480px) {
+            .actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            .action-button {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="protected-indicator" data-testid="protected-indicator">
+            🔒 Protected Page - Authentication Required
+        </div>
+    </div>
+
+    <div class="welcome-container">
+        <h1>WitchCityRope Community</h1>
+        
+        <div class="welcome-message" data-testid="welcome-message">
+            Welcome TestUser!
+        </div>
+        
+        <div class="user-info">
+            <h3>Your Account Information</h3>
+            <div class="info-row">
+                <span class="info-label">Scene Name:</span>
+                <span class="info-value" data-testid="user-scene-name">TestUser</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Email:</span>
+                <span class="info-value" data-testid="user-email">test@example.com</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Member Since:</span>
+                <span class="info-value" data-testid="member-since">August 16, 2025</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Last Login:</span>
+                <span class="info-value" data-testid="last-login">Just now</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Account Status:</span>
+                <span class="info-value" data-testid="account-status">Active</span>
+            </div>
+        </div>
+
+        <div class="actions">
+            <a href="#" class="action-button primary-button" data-testid="events-link">
+                View Public Events
+            </a>
+            <a href="#" class="action-button secondary-button" data-testid="profile-link">
+                Edit Profile
+            </a>
+            <button class="action-button logout-button" data-testid="logout-button">
+                Logout
+            </button>
+        </div>
+
+        <div class="server-time" data-testid="server-time">
+            Server Time: <span id="current-time"></span>
+        </div>
+    </div>
+
+    <script>
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleString();
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // Mock logout functionality
+        document.querySelector('[data-testid="logout-button"]').addEventListener('click', function() {
+            if (confirm('Are you sure you want to logout?')) {
+                alert('Logged out successfully. Redirecting to login page...');
+                window.location.href = 'login-page-mockup.html';
+            }
+        });
+
+        // Mock events link
+        document.querySelector('[data-testid="events-link"]').addEventListener('click', function(e) {
+            e.preventDefault();
+            alert('Redirecting to public events page... (This would be accessible without authentication)');
+        });
+
+        // Mock profile link
+        document.querySelector('[data-testid="profile-link"]').addEventListener('click', function(e) {
+            e.preventDefault();
+            alert('Profile editing would be implemented in a future phase');
+        });
+
+        // Simulate authentication check
+        window.addEventListener('load', function() {
+            // In real implementation, this would check for valid authentication
+            console.log('Protected page loaded - authentication verified via HttpOnly cookie');
+        });
+    </script>
+</body>
+</html>

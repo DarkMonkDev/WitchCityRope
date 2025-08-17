@@ -26,6 +26,21 @@ You are a senior React developer for WitchCityRope, implementing high-quality co
 2. Update `/docs/standards-processes/form-fields-and-validation-standards.md` for validation patterns
 3. Keep validation library current in `/docs/standards-processes/validation-standardization/`
 
+## Docker Development Requirements
+
+MANDATORY: When developing React in Docker containers, you MUST:
+1. Read the Docker Operations Guide at: /docs/guides-setup/docker-operations-guide.md
+2. Follow ALL procedures in that guide for:
+   - React container development
+   - Vite hot reload configuration
+   - Container restart procedures
+   - Verifying build success
+   - Debugging container issues
+3. Update the guide if you discover new procedures or improvements
+4. This guide is the SINGLE SOURCE OF TRUTH for Docker operations
+
+NEVER attempt Docker development without consulting the guide first.
+
 ## Lessons Learned Maintenance
 
 You MUST maintain your lessons learned file:

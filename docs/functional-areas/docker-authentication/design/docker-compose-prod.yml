@@ -1,0 +1,505 @@
+# docker-compose.prod.yml - Production Environment Overrides
+# WitchCityRope Production Configuration
+# Extends base configuration with production-specific security, performance, and monitoring
+
+version: '3.8'
+
+# ============================================================================
+# PRODUCTION-SPECIFIC VOLUMES
+# ============================================================================
+volumes:
+  # SSL certificate storage
+  ssl_certificates:
+    driver: local
+  
+  # Nginx configuration and logs
+  nginx_config:
+    driver: local
+  nginx_logs:
+    driver: local
+  
+  # Application logs
+  app_logs:
+    driver: local
+  
+  # Backup storage
+  db_backups:
+    driver: local
+
+# ============================================================================
+# PRODUCTION SECRETS
+# ============================================================================
+secrets:
+  # Database credentials
+  postgres_password:
+    external: true
+    name: witchcityrope_postgres_password_v1
+  
+  # JWT authentication secret
+  jwt_secret:
+    external: true
+    name: witchcityrope_jwt_secret_v1
+  
+  # SSL certificates
+  ssl_cert:
+    external: true
+    name: witchcityrope_ssl_cert_v1
+  ssl_key:
+    external: true
+    name: witchcityrope_ssl_key_v1
+
+# ============================================================================
+# PRODUCTION SERVICE OVERRIDES
+# ============================================================================
+services:
+  
+  # ==========================================================================
+  # PostgreSQL - Production Overrides
+  # ==========================================================================
+  postgres-db:
+    restart: unless-stopped
+    
+    environment:
+      # Production database configuration
+      POSTGRES_DB: witchcityrope
+      POSTGRES_USER: witchcity_prod
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      
+      # Production optimization
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8"
+    
+    volumes:
+      # Persistent production data
+      - postgres_data:/var/lib/postgresql/data
+      
+      # Backup mount point
+      - db_backups:/backups
+      
+      # Configuration files
+      - ./config/postgres/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ./config/postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+    
+    secrets:
+      - postgres_password
+    
+    # NO EXTERNAL PORTS - Internal access only
+    # ports: []
+    
+    # Production PostgreSQL configuration
+    command: [
+      "postgres",
+      "-c", "config_file=/etc/postgresql/postgresql.conf"
+    ]
+    
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+    user: "999:999"  # postgres user
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+    
+    # Enhanced health check
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U witchcity_prod -d witchcityrope"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ==========================================================================
+  # API Service - Production Overrides
+  # ==========================================================================
+  api-service:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+      target: production  # Multi-stage production target
+    
+    restart: unless-stopped
+    
+    # External API access
+    ports:
+      - "8080:8080"
+    
+    environment:
+      # Production environment
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: https://+:8080;http://+:8081
+      
+      # Database connection (using secrets)
+      ConnectionStrings__DefaultConnection_FILE: /run/secrets/postgres_connection
+      
+      # Authentication configuration (using secrets)
+      Authentication__JwtSecret_FILE: /run/secrets/jwt_secret
+      Authentication__Issuer: https://api.witchcityrope.com
+      Authentication__Audience: https://witchcityrope.com
+      Authentication__ExpiryMinutes: 15
+      Authentication__RequireHttps: true
+      
+      # Production CORS - strict policy
+      CORS__AllowedOrigins: https://witchcityrope.com
+      CORS__AllowCredentials: true
+      
+      # Production logging
+      Logging__LogLevel__Default: Warning
+      Logging__LogLevel__Microsoft: Error
+      Logging__LogLevel__WitchCityRope: Information
+      
+      # Security headers
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: true
+      ASPNETCORE_HTTPS_PORT: 443
+      
+      # Performance optimization
+      DOTNET_GCServer: 1
+      DOTNET_gcConcurrent: 1
+      DOTNET_ReadyToRun: 1
+      
+      # Monitoring
+      ASPNETCORE_HOSTINGSTARTUP__KEYVAULT__CONFIGURATIONENABLED: false
+    
+    volumes:
+      # SSL certificates
+      - ssl_certificates:/https:ro
+      
+      # Application logs
+      - app_logs:/app/logs
+      
+      # Configuration files
+      - ./config/api/appsettings.Production.json:/app/appsettings.Production.json:ro
+    
+    secrets:
+      - jwt_secret
+      - postgres_password
+      - ssl_cert
+      - ssl_key
+    
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+    user: "1001:1001"  # Non-root user
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=256m
+      - /app/logs:rw,noexec,nosuid,size=512m
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+    
+    # Production health check
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f https://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ==========================================================================
+  # React Web - Production Overrides
+  # ==========================================================================
+  react-web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+      target: production  # Multi-stage production target with Nginx
+    
+    restart: unless-stopped
+    
+    environment:
+      # Production environment
+      NODE_ENV: production
+      
+      # Production API URL
+      VITE_API_BASE_URL: https://api.witchcityrope.com
+      
+      # Production application configuration
+      VITE_APP_ENVIRONMENT: production
+      VITE_ENABLE_DEBUG: false
+      VITE_ENABLE_ANALYTICS: true
+      
+      # Production authentication
+      VITE_AUTH_COOKIE_DOMAIN: .witchcityrope.com
+      VITE_AUTH_COOKIE_SECURE: true
+    
+    volumes:
+      # SSL certificates
+      - ssl_certificates:/etc/nginx/ssl:ro
+      
+      # Nginx configuration
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/nginx/conf.d:/etc/nginx/conf.d:ro
+      
+      # Nginx logs
+      - nginx_logs:/var/log/nginx
+    
+    secrets:
+      - ssl_cert
+      - ssl_key
+    
+    # NO EXTERNAL PORTS - Behind proxy
+    # ports: []
+    
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+    user: "101:101"  # nginx user
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    
+    # Production health check
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ==========================================================================
+  # Nginx Reverse Proxy - Production Service
+  # ==========================================================================
+  nginx-proxy:
+    image: nginx:1.25-alpine
+    container_name: witchcity-nginx-proxy
+    restart: unless-stopped
+    
+    networks:
+      - witchcity-net
+    
+    # External HTTPS access
+    ports:
+      - "80:80"      # HTTP (redirect to HTTPS)
+      - "443:443"    # HTTPS
+    
+    depends_on:
+      - react-web
+      - api-service
+    
+    environment:
+      # Nginx configuration
+      NGINX_ENVSUBST_TEMPLATE_DIR: /etc/nginx/templates
+      NGINX_ENVSUBST_TEMPLATE_SUFFIX: .template
+      
+      # SSL configuration
+      SSL_PROTOCOLS: "TLSv1.2 TLSv1.3"
+      SSL_CIPHERS: "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384"
+      
+      # Security headers
+      HSTS_MAX_AGE: 31536000
+      CSP_POLICY: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+    
+    volumes:
+      # SSL certificates
+      - ssl_certificates:/etc/nginx/ssl:ro
+      
+      # Nginx configuration
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./config/nginx/templates:/etc/nginx/templates:ro
+      
+      # Logs
+      - nginx_logs:/var/log/nginx
+      
+      # Let's Encrypt certificates (if using)
+      - ./ssl/letsencrypt:/etc/letsencrypt:ro
+    
+    secrets:
+      - ssl_cert
+      - ssl_key
+    
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+    user: "101:101"  # nginx user
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    
+    # Nginx health check
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ==========================================================================
+  # Database Backup Service - Production Service
+  # ==========================================================================
+  db-backup:
+    image: postgres:16-alpine
+    container_name: witchcity-db-backup
+    restart: unless-stopped
+    
+    networks:
+      - witchcity-net
+    
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    
+    environment:
+      # Database connection for backups
+      PGHOST: postgres-db
+      PGPORT: 5432
+      PGDATABASE: witchcityrope
+      PGUSER: witchcity_prod
+      PGPASSWORD_FILE: /run/secrets/postgres_password
+      
+      # Backup configuration
+      BACKUP_SCHEDULE: "0 2 * * *"  # Daily at 2 AM
+      BACKUP_RETENTION_DAYS: 30
+      BACKUP_COMPRESSION: gzip
+    
+    volumes:
+      # Backup storage
+      - db_backups:/backups
+      
+      # Backup scripts
+      - ./scripts/backup:/scripts:ro
+    
+    secrets:
+      - postgres_password
+    
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+    user: "999:999"  # postgres user
+    
+    # Backup command
+    command: ["sh", "-c", "
+      echo 'Starting backup service';
+      crond -f -l 2 -L /dev/stdout
+    "]
+    
+    # Backup health check
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h postgres-db -U witchcity_prod -d witchcityrope"]
+      interval: 5m
+      timeout: 10s
+      retries: 3
+
+  # ==========================================================================
+  # Log Aggregator - Production Service
+  # ==========================================================================
+  log-aggregator:
+    image: fluent/fluent-bit:2.2
+    container_name: witchcity-logs
+    restart: unless-stopped
+    
+    networks:
+      - witchcity-net
+    
+    volumes:
+      # Application logs
+      - app_logs:/var/log/app:ro
+      - nginx_logs:/var/log/nginx:ro
+      
+      # Fluent Bit configuration
+      - ./config/fluent-bit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
+      - ./config/fluent-bit/parsers.conf:/fluent-bit/etc/parsers.conf:ro
+    
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+    user: "1000:1000"
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+
+# ============================================================================
+# PRODUCTION USAGE INSTRUCTIONS
+# ============================================================================
+# 
+# Deploy to Production:
+#   docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# 
+# Rolling Update:
+#   docker-compose -f docker-compose.yml -f docker-compose.prod.yml build api-service
+#   docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --no-deps api-service
+# 
+# View Production Status:
+#   docker-compose -f docker-compose.yml -f docker-compose.prod.yml ps
+# 
+# Monitor Logs:
+#   docker-compose -f docker-compose.yml -f docker-compose.prod.yml logs -f nginx-proxy
+#   docker-compose -f docker-compose.yml -f docker-compose.prod.yml logs -f api-service
+# 
+# Backup Database:
+#   docker-compose -f docker-compose.yml -f docker-compose.prod.yml exec db-backup /scripts/backup.sh
+# 
+# SSL Certificate Renewal:
+#   docker-compose -f docker-compose.yml -f docker-compose.prod.yml exec nginx-proxy /scripts/renew-ssl.sh
+# 
+# Production Health Check:
+#   curl -f https://witchcityrope.com/health
+#   curl -f https://api.witchcityrope.com/health
+# 
+# Secret Management:
+#   docker secret create witchcityrope_postgres_password_v1 postgres_password.txt
+#   docker secret create witchcityrope_jwt_secret_v1 jwt_secret.txt
+#   docker secret create witchcityrope_ssl_cert_v1 ssl_certificate.pem
+#   docker secret create witchcityrope_ssl_key_v1 ssl_private_key.pem
+# 
+# Production Features:
+#   - HTTPS enforced with TLS 1.2/1.3
+#   - Secrets management for sensitive data
+#   - Resource limits and security hardening
+#   - Automatic database backups
+#   - Log aggregation and monitoring
+#   - Non-root container execution
+#   - Read-only filesystems where possible
+#   - Reverse proxy with security headers
+# 
+# Production Authentication:
+#   - HTTPS required for all authentication
+#   - Short JWT token lifetime (15 minutes)
+#   - Strict CORS policy
+#   - Secure cookie configuration
+#   - Audit logging enabled
+# 
+# Monitoring Endpoints:
+#   - https://witchcityrope.com/health
+#   - https://api.witchcityrope.com/health
+#   - Nginx status page
+#   - Database connection monitoring
+# 
+# Security Considerations:
+#   - All secrets managed via Docker secrets
+#   - No external database access
+#   - Security headers enforced
+#   - Regular security updates required
+#   - SSL/TLS termination at proxy
+#   - Container privilege dropping

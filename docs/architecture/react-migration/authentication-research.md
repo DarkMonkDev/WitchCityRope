@@ -2,6 +2,25 @@
 
 *Generated on August 13, 2025*
 
+## ⚠️ DECISION UPDATE - August 16, 2025 ⚠️
+
+### FINAL DECISION: Hybrid JWT + HttpOnly Cookies with ASP.NET Core Identity
+
+**After vertical slice testing and service-to-service authentication analysis, the final decision is:**
+- **Hybrid JWT + HttpOnly Cookies** approach using ASP.NET Core Identity
+- **Key Factor**: Service-to-service authentication requirement discovered during implementation
+- **Cost**: $0 (completely free solution)
+- **Implementation Speed**: Fastest to production-ready state
+- **Reference**: See `/docs/functional-areas/vertical-slice-home-page/authentication-decision-report.md` for complete analysis
+
+**This decision supersedes the original NextAuth.js recommendation below.**
+
+---
+
+## Initial Research - Superseded by Final Decision Above
+
+*The research below represents initial analysis. The final implementation uses the Hybrid JWT + HttpOnly Cookies approach documented in the authentication decision report.*
+
 ## Overview
 This document researches modern React authentication patterns, security best practices, and implementation strategies for the WitchCityRope migration from Blazor Server to React.
 

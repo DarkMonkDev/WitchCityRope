@@ -1,0 +1,84 @@
+# .dockerignore for WitchCityRope .NET API
+# Excludes unnecessary files from Docker build context for faster builds
+
+# Build output directories
+bin/
+obj/
+
+# .NET temporary files
+*.tmp
+*.log
+*.cache
+
+# Visual Studio
+.vs/
+.vscode/
+*.user
+*.suo
+*.sln.docstates
+
+# Package directories
+packages/
+node_modules/
+
+# Git
+.git/
+.gitignore
+
+# Docker files (avoid recursion)
+Dockerfile*
+.dockerignore
+
+# Documentation
+README.md
+*.md
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# NuGet packages directory (restored during build)
+!packages/repositories.config
+
+# MSTest test adapter
+*.testsettings
+
+# Local database files
+*.sdf
+*.mdf
+*.ldf
+
+# SQL Server files
+*.ndf
+
+# Backup files
+*.bak
+
+# Windows image file caches
+Thumbs.db
+
+# Folder config file
+Desktop.ini

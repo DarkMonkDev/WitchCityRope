@@ -29,33 +29,25 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 ## Docker Development
 
-### Hot Reload Issues - CRITICAL UPDATE
-**Issue**: Code changes not reflected in running containers  
-**Root Cause**: .NET 9 Blazor Server hot reload in Docker is notoriously unreliable
+### Hot Reload Experience - React vs Previous Stack
+**Issue**: Development environment reliability and hot reload performance
+**Current Solution**: React with Vite provides excellent hot reload reliability
 
-**Solution**: Use helper scripts for reliable restarts
+**React Development Environment**:
 ```bash
-# Quick restart when hot reload fails:
-./restart-web.sh
-
-# Full rebuild when needed:
-./dev.sh  # Select option 7
-
-# Manual commands:
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml restart web
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+# React development server with reliable hot reload
+npm run dev
+# Changes reflect immediately
+# TypeScript compilation errors shown instantly
+# Component state preserved during development
 ```
 
-**Container Restart Triggers** - ALWAYS restart after:
-- Authentication/authorization changes
-- Layout component modifications
-- Render mode changes
-- Dependency injection modifications
-- Route configuration changes
-- CSS changes in layout files
-- Program.cs changes
-- Package additions/updates
-- _Imports.razor modifications
+**Benefits of React + Vite**:
+- Hot reload works reliably in development
+- Fast refresh preserves component state
+- TypeScript errors caught immediately
+- No container restarts needed for UI changes
+- Consistent development experience across environments
 
 ### Container Communication - CRITICAL
 **Issue**: Services can't reach each other  

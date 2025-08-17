@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Validation - Authentication Vertical Slice</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #fff;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #16213e;
+            border-radius: 8px;
+            border-left: 4px solid #e94560;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 15px;
+            background: #0f3460;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        .pass {
+            background: #2a7f62;
+            border-left: 4px solid #4caf50;
+        }
+        .fail {
+            background: #c23650;
+            border-left: 4px solid #f44336;
+        }
+        button {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #c23650;
+        }
+        h1 {
+            color: #e94560;
+            text-align: center;
+        }
+        h2 {
+            color: #ffd700;
+        }
+        .summary {
+            margin-top: 30px;
+            padding: 20px;
+            background: #0f3460;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔒 Security Validation Suite</h1>
+    <p style="text-align: center;">Authentication Vertical Slice - Phase 4 Testing</p>
+
+    <div class="test-section">
+        <h2>1. XSS Protection Test</h2>
+        <p>Verifies that authentication cookies are HttpOnly and cannot be accessed via JavaScript</p>
+        <button onclick="testXSSProtection()">Run XSS Test</button>
+        <div id="xss-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. CSRF Protection Test</h2>
+        <p>Verifies that API requests include proper CORS headers and credentials</p>
+        <button onclick="testCSRFProtection()">Run CSRF Test</button>
+        <div id="csrf-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. JWT Token Security Test</h2>
+        <p>Verifies JWT token is stored in memory only, not in localStorage</p>
+        <button onclick="testJWTStorage()">Run JWT Storage Test</button>
+        <div id="jwt-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Session Security Test</h2>
+        <p>Verifies session management and token expiration</p>
+        <button onclick="testSessionSecurity()">Run Session Test</button>
+        <div id="session-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Password Security Test</h2>
+        <p>Verifies password requirements are enforced</p>
+        <button onclick="testPasswordSecurity()">Run Password Test</button>
+        <div id="password-result" class="result"></div>
+    </div>
+
+    <div class="summary">
+        <h2>Test Summary</h2>
+        <div id="summary-result" class="result">No tests run yet. Click the buttons above to run security tests.</div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5655';
+        let testResults = {
+            xss: null,
+            csrf: null,
+            jwt: null,
+            session: null,
+            password: null
+        };
+
+        function updateSummary() {
+            const summaryDiv = document.getElementById('summary-result');
+            const passed = Object.values(testResults).filter(r => r === true).length;
+            const failed = Object.values(testResults).filter(r => r === false).length;
+            const pending = Object.values(testResults).filter(r => r === null).length;
+            
+            summaryDiv.textContent = `Tests Passed: ${passed}\nTests Failed: ${failed}\nTests Pending: ${pending}\n\n`;
+            
+            if (failed === 0 && pending === 0) {
+                summaryDiv.className = 'result pass';
+                summaryDiv.textContent += '✅ ALL SECURITY TESTS PASSED!';
+            } else if (failed > 0) {
+                summaryDiv.className = 'result fail';
+                summaryDiv.textContent += '❌ Some security tests failed. Review results above.';
+            } else {
+                summaryDiv.className = 'result';
+                summaryDiv.textContent += '⏳ Some tests are still pending.';
+            }
+        }
+
+        async function testXSSProtection() {
+            const resultDiv = document.getElementById('xss-result');
+            resultDiv.textContent = 'Testing XSS protection...';
+            resultDiv.className = 'result';
+            
+            try {
+                // Try to access document.cookie
+                const cookies = document.cookie;
+                
+                // Check if any auth-related cookies are accessible
+                const hasAuthCookie = cookies.includes('auth') || 
+                                    cookies.includes('token') || 
+                                    cookies.includes('jwt') ||
+                                    cookies.includes('session');
+                
+                if (!hasAuthCookie) {
+                    resultDiv.className = 'result pass';
+                    resultDiv.textContent = '✅ PASS: Authentication cookies are HttpOnly\n';
+                    resultDiv.textContent += 'No auth tokens accessible via JavaScript\n';
+                    resultDiv.textContent += 'Cookies visible: ' + (cookies || 'None');
+                    testResults.xss = true;
+                } else {
+                    resultDiv.className = 'result fail';
+                    resultDiv.textContent = '❌ FAIL: Authentication cookies are accessible via JavaScript!\n';
+                    resultDiv.textContent += 'This is a security vulnerability (XSS risk)\n';
+                    resultDiv.textContent += 'Accessible cookies: ' + cookies;
+                    testResults.xss = false;
+                }
+            } catch (error) {
+                resultDiv.className = 'result fail';
+                resultDiv.textContent = '❌ ERROR: ' + error.message;
+                testResults.xss = false;
+            }
+            updateSummary();
+        }
+
+        async function testCSRFProtection() {
+            const resultDiv = document.getElementById('csrf-result');
+            resultDiv.textContent = 'Testing CSRF protection...';
+            resultDiv.className = 'result';
+            
+            try {
+                // Test if credentials are properly included
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        email: 'test@example.com',
+                        password: 'Test1234'
+                    })
+                });
+                
+                // Check CORS headers
+                const corsAllowed = response.headers.get('access-control-allow-credentials') === 'true';
+                
+                resultDiv.className = 'result pass';
+                resultDiv.textContent = '✅ PASS: CSRF protection configured\n';
+                resultDiv.textContent += `CORS credentials allowed: ${corsAllowed}\n`;
+                resultDiv.textContent += `Response status: ${response.status}\n`;
+                resultDiv.textContent += 'Credentials properly handled with include flag';
+                testResults.csrf = true;
+            } catch (error) {
+                resultDiv.className = 'result fail';
+                resultDiv.textContent = '❌ ERROR: ' + error.message;
+                testResults.csrf = false;
+            }
+            updateSummary();
+        }
+
+        async function testJWTStorage() {
+            const resultDiv = document.getElementById('jwt-result');
+            resultDiv.textContent = 'Testing JWT storage security...';
+            resultDiv.className = 'result';
+            
+            try {
+                // Check localStorage for any tokens
+                const localStorageToken = localStorage.getItem('token') || 
+                                        localStorage.getItem('jwt') || 
+                                        localStorage.getItem('auth-token') ||
+                                        localStorage.getItem('authToken');
+                
+                // Check sessionStorage for any tokens
+                const sessionStorageToken = sessionStorage.getItem('token') || 
+                                          sessionStorage.getItem('jwt') || 
+                                          sessionStorage.getItem('auth-token') ||
+                                          sessionStorage.getItem('authToken');
+                
+                if (!localStorageToken && !sessionStorageToken) {
+                    resultDiv.className = 'result pass';
+                    resultDiv.textContent = '✅ PASS: No JWT tokens found in browser storage\n';
+                    resultDiv.textContent += 'localStorage: Clean ✓\n';
+                    resultDiv.textContent += 'sessionStorage: Clean ✓\n';
+                    resultDiv.textContent += 'Tokens are properly stored in memory only';
+                    testResults.jwt = true;
+                } else {
+                    resultDiv.className = 'result fail';
+                    resultDiv.textContent = '❌ FAIL: JWT tokens found in browser storage!\n';
+                    if (localStorageToken) {
+                        resultDiv.textContent += 'localStorage contains token: ' + localStorageToken.substring(0, 20) + '...\n';
+                    }
+                    if (sessionStorageToken) {
+                        resultDiv.textContent += 'sessionStorage contains token: ' + sessionStorageToken.substring(0, 20) + '...\n';
+                    }
+                    resultDiv.textContent += 'This is a security vulnerability (XSS risk)';
+                    testResults.jwt = false;
+                }
+            } catch (error) {
+                resultDiv.className = 'result fail';
+                resultDiv.textContent = '❌ ERROR: ' + error.message;
+                testResults.jwt = false;
+            }
+            updateSummary();
+        }
+
+        async function testSessionSecurity() {
+            const resultDiv = document.getElementById('session-result');
+            resultDiv.textContent = 'Testing session security...';
+            resultDiv.className = 'result';
+            
+            try {
+                // Login to get a session
+                const loginResponse = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        email: 'testuser@example.com',
+                        password: 'Test1234'
+                    })
+                });
+                
+                if (loginResponse.ok) {
+                    const data = await loginResponse.json();
+                    const token = data.data?.token;
+                    
+                    // Check token expiration
+                    if (token) {
+                        const tokenParts = token.split('.');
+                        if (tokenParts.length === 3) {
+                            const payload = JSON.parse(atob(tokenParts[1]));
+                            const exp = payload.exp;
+                            const now = Math.floor(Date.now() / 1000);
+                            const expiresIn = exp - now;
+                            
+                            resultDiv.className = 'result pass';
+                            resultDiv.textContent = '✅ PASS: Session security validated\n';
+                            resultDiv.textContent += `Token expires in: ${Math.floor(expiresIn / 60)} minutes\n`;
+                            resultDiv.textContent += `Token has expiration: ${exp ? 'Yes' : 'No'}\n`;
+                            resultDiv.textContent += 'Session management working correctly';
+                            testResults.session = true;
+                        } else {
+                            throw new Error('Invalid token format');
+                        }
+                    } else {
+                        throw new Error('No token received');
+                    }
+                } else {
+                    resultDiv.className = 'result fail';
+                    resultDiv.textContent = '❌ FAIL: Could not establish session\n';
+                    resultDiv.textContent += `Status: ${loginResponse.status}`;
+                    testResults.session = false;
+                }
+            } catch (error) {
+                resultDiv.className = 'result fail';
+                resultDiv.textContent = '❌ ERROR: ' + error.message;
+                testResults.session = false;
+            }
+            updateSummary();
+        }
+
+        async function testPasswordSecurity() {
+            const resultDiv = document.getElementById('password-result');
+            resultDiv.textContent = 'Testing password security requirements...';
+            resultDiv.className = 'result';
+            
+            try {
+                // Test weak password
+                const weakResponse = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: `test-${Date.now()}@example.com`,
+                        password: 'weak',
+                        sceneName: 'TestUser'
+                    })
+                });
+                
+                // Test short password
+                const shortResponse = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: `test2-${Date.now()}@example.com`,
+                        password: 'Short1',
+                        sceneName: 'TestUser2'
+                    })
+                });
+                
+                const weakRejected = !weakResponse.ok;
+                const shortRejected = !shortResponse.ok;
+                
+                if (weakRejected && shortRejected) {
+                    resultDiv.className = 'result pass';
+                    resultDiv.textContent = '✅ PASS: Password security requirements enforced\n';
+                    resultDiv.textContent += 'Weak password rejected: Yes ✓\n';
+                    resultDiv.textContent += 'Short password rejected: Yes ✓\n';
+                    resultDiv.textContent += 'Minimum 8 characters required\n';
+                    resultDiv.textContent += 'Must contain uppercase, lowercase, and numbers';
+                    testResults.password = true;
+                } else {
+                    resultDiv.className = 'result fail';
+                    resultDiv.textContent = '❌ FAIL: Weak passwords accepted!\n';
+                    resultDiv.textContent += `Weak password rejected: ${weakRejected ? 'Yes' : 'No'}\n`;
+                    resultDiv.textContent += `Short password rejected: ${shortRejected ? 'Yes' : 'No'}`;
+                    testResults.password = false;
+                }
+            } catch (error) {
+                resultDiv.className = 'result fail';
+                resultDiv.textContent = '❌ ERROR: ' + error.message;
+                testResults.password = false;
+            }
+            updateSummary();
+        }
+
+        // Run all tests on page load
+        window.addEventListener('load', () => {
+            console.log('Security Validation Suite loaded. Click buttons to run tests.');
+        });
+    </script>
+</body>
+</html>

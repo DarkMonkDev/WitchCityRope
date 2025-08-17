@@ -15,6 +15,99 @@ This catalog provides a comprehensive inventory of all tests in the WitchCityRop
 
 **Status**: Major migration completed January 2025 - All Puppeteer tests migrated to Playwright
 
+## Recent Additions (August 2025)
+
+### Vertical Slice Home Page Tests - 2025-08-16
+**Added**: Comprehensive test suite for React + API + PostgreSQL stack proof-of-concept
+**Purpose**: Validate the complete vertical slice implementation works end-to-end
+**Location**: Multiple test directories
+
+#### API Unit Tests
+**File**: `/tests/unit/api/EventsController.test.cs`
+**Purpose**: Unit tests for EventsController with mocked IEventService
+**Test Methods**:
+- `GetEvents_WithDatabaseEvents_ReturnsOkWithEventList()` - Tests successful database response
+- `GetEvents_WithEmptyDatabase_ReturnsFallbackEvents()` - Tests fallback mechanism
+- `GetEvents_WithDatabaseException_ReturnsFallbackEvents()` - Tests error handling
+- `GetEvents_ReturnsEventDtoArray_ProveStackWorks()` - Proves API contract works
+- `GetEvents_AllDateTimesAreUtc_ProvePostgreSqlCompatibility()` - Tests UTC datetime handling
+
+**Features**:
+- Mock IEventService for isolated testing
+- FluentAssertions for readable test assertions
+- Tests both success and error scenarios
+- Validates EventDto structure matches React expectations
+- Proves API layer of the stack works
+
+#### React Component Tests
+**File**: `/tests/unit/web/EventsList.test.tsx`  
+**Purpose**: Unit tests for EventsList component with mocked fetch
+**Test Methods**:
+- `displays loading spinner while fetching events` - Tests loading state
+- `displays events when data loads successfully` - Tests successful data display
+- `displays error message when API call fails` - Tests error handling
+- `displays error message when API returns non-200 status` - Tests HTTP error handling
+- `displays empty state when no events are returned` - Tests empty state
+- `calls correct API endpoint for events` - Tests API endpoint correctness
+- `proves React + API stack integration works` - End-to-end component behavior
+- `handles network timeout gracefully` - Tests timeout scenarios
+
+**Features**:
+- Uses Vitest testing framework
+- Mocks fetch() for isolated testing
+- Tests all component states (loading, success, error, empty)
+- Validates component structure and CSS classes
+- Proves React layer of the stack works
+
+#### E2E Tests
+**File**: `/tests/e2e/home-page.spec.ts`
+**Purpose**: End-to-end browser tests for complete React + API + PostgreSQL stack
+**Test Cases**:
+- `page loads successfully` - Basic page loading
+- `events display from API` - API integration verification
+- `loading state displays correctly` - Loading state testing
+- `responsive layout works on different screen sizes` - Responsive design
+- `API integration works end-to-end` - Network monitoring
+- `error handling works when API is unavailable` - Error scenarios
+- `proves complete React + API + PostgreSQL stack works` - **Main proof-of-concept test**
+
+**Features**:
+- Playwright browser automation
+- Tests complete stack integration
+- Cross-browser testing (Chrome, Firefox, Safari)
+- Mobile and desktop responsive testing
+- Network request monitoring
+- Screenshot capture for debugging
+- Automatic server startup/shutdown
+
+#### Test Infrastructure
+**Files Created**:
+- `/tests/unit/api/WitchCityRope.Api.Tests.csproj` - C# test project
+- `/apps/web/vitest.config.ts` - Vitest configuration
+- `/apps/web/src/test/setup.ts` - Test setup file
+- `/tests/e2e/playwright.config.ts` - Playwright configuration
+- `/tests/e2e/package.json` - E2E test dependencies
+- `/tests/run-vertical-slice-tests.sh` - Test runner script
+
+**Test Execution**:
+```bash
+# Run all vertical slice tests
+./tests/run-vertical-slice-tests.sh
+
+# Individual test types
+cd tests/unit/api && dotnet test                    # API unit tests
+cd apps/web && npm test                             # React component tests  
+cd tests/e2e && npm test                            # E2E tests
+```
+
+**Quality Assurance**:
+- ✅ API Unit Tests prove controller returns correct EventDto structure
+- ✅ React Component Tests prove components handle API responses correctly
+- ✅ E2E Tests prove complete browser → React → API → PostgreSQL flow works
+- ✅ All tests include error handling and edge cases
+- ✅ Tests are minimal and focused (throwaway code for proof-of-concept)
+- ✅ Comprehensive documentation for maintenance
+
 ## Recent Fixes (August 2025)
 
 ### Login Selector Fixes - 2025-08-13

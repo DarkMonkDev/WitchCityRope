@@ -214,111 +214,38 @@ public void Given_ValidEvent_When_Created_Then_ReturnsSuccessStatus() { }
 2. **In-memory database** - Use PostgreSQL TestContainers
 3. **Fixed test data** - Always use unique identifiers
 4. **Thread.Sleep/waitForTimeout** - Use proper wait conditions
+5. **Generic selectors** - Use data-testid attributes for reliable element selection
 
 ## Recent Fixes (August 2025)
 
-### Login Selector Fixes - August 13, 2025
+### Login Selector Best Practices - August 13, 2025
 
-**Problem**: Admin user management E2E tests failing with "Element not found" for login form selectors
-**Root Cause**: Tests using generic selectors `input[type="email"]` instead of ASP.NET Core Identity-specific selectors
-**Solution**: Use ASP.NET Core Identity form selectors for authentication
+**Problem**: E2E tests failing with "Element not found" for login form selectors
+**Root Cause**: Tests using generic selectors instead of specific form field identifiers
+**Solution**: Use specific form selectors or data-testid attributes
 
 ```javascript
-// ❌ WRONG - Generic selectors don't match Identity forms
+// ❌ WRONG - Generic selectors may not match specific forms
 await page.fill('input[type="email"]', 'admin@witchcityrope.com');
 await page.fill('input[type="password"]', 'Test123!');
 
-// ✅ CORRECT - ASP.NET Core Identity selectors
-await page.fill('input[name="Input.EmailOrUsername"]', 'admin@witchcityrope.com');
-await page.fill('input[name="Input.Password"]', 'Test123!');
+// ✅ CORRECT - Specific form field selectors
+await page.fill('input[name="email"]', 'admin@witchcityrope.com');
+await page.fill('input[name="password"]', 'Test123!');
 
-// ✅ ALTERNATIVE - Placeholder-based (less reliable)
-await page.fill('input[placeholder*="email"]', 'admin@witchcityrope.com');
+// ✅ BEST - Data-testid for reliable testing
+await page.fill('[data-testid="email-input"]', 'admin@witchcityrope.com');
+await page.fill('[data-testid="password-input"]', 'Test123!');
 ```
 
-**Files Fixed**:
-- `/tests/playwright/admin-user-management.spec.ts`
-- `/tests/playwright/admin-user-details.spec.ts`
-- `/tests/playwright/admin/admin-user-management-focused.spec.ts`
-- `/tests/playwright/admin/admin-user-management-updated.spec.ts`
+**Best Practices**:
+- Use data-testid attributes for reliable element selection
+- Use Page Object Model pattern for reusable selectors
+- Test form field names match frontend implementation
+- Avoid generic selectors that may match multiple elements
 
-**Why This Happened**: 
-- ASP.NET Core Identity generates specific form field names (`Input.EmailOrUsername`, `Input.Password`)
-- Login form uses `type="text"` not `type="email"` to support both email and username input
-- Generic selectors worked in wireframes but not with actual Identity forms
 
-**Best Practice**: Use the Page Object Model (`login.page.ts`) or auth helpers (`auth.helpers.ts`) which already have correct selectors.
 
-### Blazor E2E Helper Timeout Issue - FIXED
-
-**Problem**: Global setup timing out with "Blazor E2E wait timeout after 15000ms" when authenticating vetted user
-**Root Cause**: Multiple timeout issues in Playwright configuration
-**Solution**: 
-1. Fixed function call error in global-setup.ts (changed `this.loginWithRetries` to `loginWithRetries`)
-2. Increased Blazor E2E helper timeout from 30s to 60s in blazor-e2e-helper.js
-3. Increased default timeout from 15s to 60s in waitForBlazorE2E function
-4. Updated test config timeouts for Docker environments
-
-**Files Changed**:
-- `/tests/playwright/helpers/global-setup.ts` - Fixed function call
-- `/tests/playwright/helpers/test.config.ts` - Increased timeouts to 60s
-- `/src/WitchCityRope.Web/wwwroot/js/blazor-e2e-helper.js` - Increased timeouts
-
-**Result**: Global setup now completes successfully for all test users including vetted user
-
-### Simplified Admin Tests - 2025-08-13
-**Problem**: Blazor E2E helper timeout issues when testing admin user management functionality
-**Root Cause**: Complex Blazor circuit waiting and timeout configurations in Docker environments
-**Solution**: Create simplified tests using basic Playwright waits without Blazor E2E helper
-
-```javascript
-// ❌ AVOID - Complex Blazor E2E helper with timeouts
-await BlazorHelpers.waitForBlazorReady(page, { timeout: 60000 });
-
-// ✅ SIMPLE - Basic Playwright waits for page elements
-await page.waitForLoadState('networkidle');
-await expect(page.locator('h1, h2, h3').filter({ hasText: /User Management/i })).toBeVisible({ timeout: 15000 });
-```
-
-**Test Pattern**: `/tests/playwright/admin/admin-user-management-simple.spec.ts`
-- Admin login with known working selectors
-- Standard Playwright navigation and waits
-- Element verification without complex circuit waiting
-- Basic interaction testing for core functionality
-
-**When to Use**: For core functionality tests where Blazor E2E helper is problematic
-
-### Blazor Server Architecture Migration Tests - 2025-08-13
-**Problem**: Website converted from Razor Pages to Blazor Server, old E2E tests failing  
-**Root Cause**: Tests expecting Razor Pages behavior, Blazor E2E helper timing out with new architecture  
-**Solution**: Create new test patterns specifically for Blazor Server components
-
-```typescript
-// ❌ AVOID - Complex Blazor E2E helper (outdated for Blazor Server)
-await BlazorHelpers.waitForBlazorReady(page, { timeout: 60000 });
-await BlazorHelpers.waitForBlazorE2E(page);
-
-// ✅ SIMPLE - Basic Playwright waits work with Blazor Server
-await page.goto(testConfig.urls.adminUsers);
-await page.waitForLoadState('networkidle');
-await page.waitForTimeout(2000); // Small delay for Blazor components
-```
-
-**New Test Pattern**: `/tests/playwright/admin/admin-users-blazor.spec.ts`
-- Direct navigation and login (bypasses global setup dependencies)
-- Simple Playwright waits instead of complex Blazor circuit waiting
-- Element verification with flexible selectors for Blazor components  
-- Screenshots for debugging Blazor Server rendering issues
-- Graceful handling of component loading states
-
-**Migration Strategy**:
-1. Use `page.waitForLoadState('networkidle')` for basic page loading
-2. Add small delays (`page.waitForTimeout(1000-3000)`) for Blazor component rendering
-3. Use flexible selectors that work with Blazor component output
-4. Focus on element presence/visibility rather than complex interactions
-5. Always take screenshots for debugging Blazor Server issues
-
-**When to Use**: When migrating E2E tests from Razor Pages to Blazor Server architecture
 
 ## Admin User Management Testing Patterns - 2025-08-13
 

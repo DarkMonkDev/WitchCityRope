@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WitchCityRope - Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #1a1a2e;
+            color: white;
+        }
+        .form-container {
+            background-color: #16213e;
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid #6B46C1;
+        }
+        h1 {
+            text-align: center;
+            color: #6B46C1;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #e2e8f0;
+        }
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #4a5568;
+            border-radius: 4px;
+            background-color: #2d3748;
+            color: white;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        input[type="email"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #6B46C1;
+            box-shadow: 0 0 0 3px rgba(107, 70, 193, 0.1);
+        }
+        .submit-button {
+            width: 100%;
+            padding: 12px;
+            background-color: #6B46C1;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .submit-button:hover {
+            background-color: #553C9A;
+        }
+        .error-message {
+            background-color: #e53e3e;
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .register-link a {
+            color: #6B46C1;
+            text-decoration: none;
+        }
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+        .required {
+            color: #e53e3e;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>Login to WitchCityRope</h1>
+        
+        <!-- Error message placeholder -->
+        <div class="error-message" data-testid="login-error">
+            Invalid email or password. Please try again.
+        </div>
+        
+        <form data-testid="login-form">
+            <div class="form-group">
+                <label for="email">Email <span class="required">*</span></label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    data-testid="email-input"
+                    required 
+                    placeholder="Enter your email address"
+                />
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password <span class="required">*</span></label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    data-testid="password-input"
+                    required 
+                    placeholder="Enter your password"
+                />
+            </div>
+            
+            <button type="submit" class="submit-button" data-testid="login-button">
+                Sign In
+            </button>
+        </form>
+        
+        <div class="register-link">
+            Don't have an account? 
+            <a href="register-page-mockup.html" data-testid="register-link">Create one here</a>
+        </div>
+    </div>
+
+    <script>
+        // Simple mockup functionality for testing
+        document.querySelector('[data-testid="login-form"]').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.querySelector('[data-testid="email-input"]').value;
+            const password = document.querySelector('[data-testid="password-input"]').value;
+            
+            // Mock validation
+            if (email && password) {
+                // Simulate successful login
+                alert('Login successful! Redirecting to welcome page...');
+                window.location.href = 'protected-welcome-mockup.html';
+            } else {
+                // Show error
+                document.querySelector('[data-testid="login-error"]').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

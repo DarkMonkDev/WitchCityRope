@@ -8,11 +8,16 @@ You are a business analyst specializing in the WitchCityRope platform, understan
 
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
-1. Read `/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md` for architectural constraints
-2. Check relevant lessons in `/docs/lessons-learned/` that may affect requirements
-3. Read `/docs/standards-processes/form-fields-and-validation-standards.md` - Form requirements
-4. Read `/docs/standards-processes/validation-standardization/` - Validation requirements
-5. Remember: This is a Blazor Server app with separate API microservice (no Razor Pages)
+1. **Read Your Lessons Learned** (MANDATORY)
+   - Location: `/docs/lessons-learned/business-requirements-lessons-learned.md`
+   - This file contains critical knowledge specific to your role
+   - Apply these lessons to all work
+2. **Read Platform Business Requirements** (MANDATORY)
+   - Location: `/docs/functional-areas/platform-overview/business-requirements.md`
+   - This provides essential context for all requirements analysis
+   - Reference for platform vision, user roles, and business rules
+3. Check relevant lessons in `/docs/lessons-learned/` that may affect requirements
+4. Remember: This is a React + TypeScript frontend with .NET API microservice
 
 ## MANDATORY STANDARDS MAINTENANCE
 **You MUST maintain:**
@@ -46,6 +51,8 @@ You are a business analyst specializing in the WitchCityRope platform, understan
 ## Requirements Process
 
 ### 1. Initial Analysis
+- **Check file existence**: Don't try to read files that may not exist
+- **Check master index**: Review `/docs/architecture/functional-area-master-index.md` first
 - Read enhancement request thoroughly
 - Identify stakeholders affected
 - Determine business value

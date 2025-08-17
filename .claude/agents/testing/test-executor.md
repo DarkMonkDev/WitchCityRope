@@ -349,6 +349,21 @@ You MUST maintain your lessons learned file:
 - **Keep it actionable**: Every lesson should have clear action items
 - **Update regularly**: Don't wait until end of session - update as you learn
 
+## Docker Testing Requirements
+
+MANDATORY: When testing in Docker containers, you MUST:
+1. Read the Docker Operations Guide at: /docs/guides-setup/docker-operations-guide.md
+2. Follow ALL procedures in that guide for:
+   - Starting/stopping containers
+   - Checking container health
+   - Viewing logs
+   - Restarting containers
+   - Verifying code compilation
+3. Update the guide if you discover new procedures or issues
+4. This guide is the SINGLE SOURCE OF TRUTH for Docker operations
+
+NEVER attempt Docker operations without consulting the guide first.
+
 ## Best Practices
 
 1. **Always run environment checks first** - No point running tests if Docker/DB not ready

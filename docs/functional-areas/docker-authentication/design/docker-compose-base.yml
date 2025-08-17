@@ -1,0 +1,207 @@
+# docker-compose.yml - Base Configuration
+# WitchCityRope Multi-Environment Docker Compose
+# Base layer shared across all environments (development, test, production)
+
+version: '3.8'
+
+# ============================================================================
+# NETWORKS
+# ============================================================================
+networks:
+  witchcity-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ============================================================================
+# VOLUMES
+# ============================================================================
+volumes:
+  # Persistent database storage
+  postgres_data:
+    driver: local
+  
+  # Development cache volumes (overridden in production)
+  node_modules_cache:
+    driver: local
+  
+  nuget_cache:
+    driver: local
+
+# ============================================================================
+# SERVICES
+# ============================================================================
+services:
+  
+  # ==========================================================================
+  # PostgreSQL Database Service
+  # ==========================================================================
+  postgres-db:
+    image: postgres:16-alpine
+    container_name: witchcity-postgres
+    networks:
+      - witchcity-net
+    
+    environment:
+      # Database configuration
+      POSTGRES_DB: witchcityrope
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpass123}
+      
+      # PostgreSQL optimization
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      
+    # Health check for dependency management
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d witchcityrope"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    
+    # PostgreSQL configuration for performance
+    command: [
+      "postgres",
+      "-c", "max_connections=200",
+      "-c", "shared_buffers=256MB",
+      "-c", "effective_cache_size=1GB",
+      "-c", "maintenance_work_mem=64MB",
+      "-c", "checkpoint_completion_target=0.9",
+      "-c", "wal_buffers=16MB",
+      "-c", "default_statistics_target=100"
+    ]
+
+  # ==========================================================================
+  # .NET API Service
+  # ==========================================================================
+  api-service:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: witchcity-api
+    networks:
+      - witchcity-net
+    
+    # Service dependencies
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    
+    environment:
+      # ASP.NET Core configuration
+      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      
+      # Database connection
+      ConnectionStrings__DefaultConnection: "Host=postgres-db;Port=5432;Database=witchcityrope;Username=postgres;Password=${POSTGRES_PASSWORD:-devpass123}"
+      
+      # Authentication configuration
+      Authentication__JwtSecret: ${JWT_SECRET:-dev-jwt-secret-for-local-testing}
+      Authentication__Issuer: ${JWT_ISSUER:-witchcityrope-api}
+      Authentication__Audience: ${JWT_AUDIENCE:-witchcityrope-web}
+      Authentication__ExpiryMinutes: ${JWT_EXPIRY_MINUTES:-60}
+      Authentication__RequireHttps: ${AUTH_REQUIRE_HTTPS:-false}
+      
+      # CORS configuration
+      CORS__AllowedOrigins: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
+      CORS__AllowCredentials: true
+      
+      # Logging configuration
+      Logging__LogLevel__Default: ${LOG_LEVEL:-Information}
+      Logging__LogLevel__Microsoft: Warning
+      Logging__LogLevel__Microsoft.Hosting.Lifetime: Information
+    
+    # Health check for service availability
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ==========================================================================
+  # React Web Application Service
+  # ==========================================================================
+  react-web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: witchcity-web
+    networks:
+      - witchcity-net
+    
+    # Service dependencies
+    depends_on:
+      - api-service
+    
+    environment:
+      # Vite configuration
+      NODE_ENV: ${NODE_ENV:-development}
+      
+      # API communication
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:5655}
+      
+      # Application configuration
+      VITE_APP_NAME: ${VITE_APP_NAME:-WitchCityRope}
+      VITE_APP_VERSION: ${VITE_APP_VERSION:-1.0.0}
+      VITE_APP_ENVIRONMENT: ${VITE_APP_ENVIRONMENT:-development}
+      
+      # Authentication configuration
+      VITE_AUTH_COOKIE_NAME: ${VITE_AUTH_COOKIE_NAME:-WitchCityRope.Auth}
+      VITE_AUTH_COOKIE_DOMAIN: ${VITE_AUTH_COOKIE_DOMAIN:-localhost}
+      
+      # Feature flags
+      VITE_ENABLE_DEBUG: ${VITE_ENABLE_DEBUG:-true}
+      VITE_ENABLE_ANALYTICS: ${VITE_ENABLE_ANALYTICS:-false}
+    
+    # Health check for service availability
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5173 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+# ============================================================================
+# SHARED CONFIGURATION NOTES
+# ============================================================================
+# This base configuration provides:
+# 
+# 1. Network Architecture:
+#    - Custom bridge network for service isolation
+#    - Service discovery via container names
+#    - Defined subnet for predictable IP allocation
+# 
+# 2. Volume Management:
+#    - Persistent database storage
+#    - Package cache volumes for development
+#    - Flexible volume strategy for different environments
+# 
+# 3. Service Health Checks:
+#    - Database readiness validation
+#    - API health endpoint monitoring
+#    - React application availability
+# 
+# 4. Environment Variable Strategy:
+#    - Default values for development
+#    - Environment-specific overrides
+#    - Secure authentication configuration
+# 
+# 5. Authentication Integration:
+#    - JWT service-to-service communication
+#    - HttpOnly cookie configuration
+#    - CORS policy management
+# 
+# Environment-specific overrides extend this base configuration:
+# - docker-compose.dev.yml: Development with hot reload
+# - docker-compose.test.yml: Testing with isolation
+# - docker-compose.prod.yml: Production with security
+# 
+# Usage:
+#   Development: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+#   Testing:     docker-compose -f docker-compose.yml -f docker-compose.test.yml up
+#   Production:  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up

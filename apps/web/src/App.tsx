@@ -1,31 +1,105 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import React from 'react'
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { ProtectedRoute } from './components/ProtectedRoute'
+import { HomePage } from './pages/HomePage'
+import { LoginPage } from './pages/LoginPage'
+import { RegisterPage } from './pages/RegisterPage'
+import { ProtectedWelcomePage } from './pages/ProtectedWelcomePage'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+const Navigation: React.FC = () => {
+  const { isAuthenticated, user, logout } = useAuth()
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } catch (err) {
+      console.error('Logout failed:', err)
+    }
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <nav className="bg-slate-800 shadow-lg mb-8">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="flex justify-between items-center h-16">
+          <div className="flex items-center space-x-4">
+            <Link
+              to="/"
+              className="text-purple-400 hover:text-purple-300 font-bold text-xl transition-colors"
+            >
+              WitchCityRope
+            </Link>
+            <Link to="/" className="text-slate-300 hover:text-white transition-colors">
+              Events
+            </Link>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            {isAuthenticated ? (
+              <>
+                <Link to="/welcome" className="text-slate-300 hover:text-white transition-colors">
+                  Welcome, {user?.sceneName}
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="text-slate-300 hover:text-white transition-colors">
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                >
+                  Register
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>count is {count}</button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+    </nav>
+  )
+}
+
+const AppContent: React.FC = () => {
+  return (
+    <div className="min-h-screen bg-slate-900">
+      <Navigation />
+      <div className="max-w-6xl mx-auto px-4">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route
+            path="/welcome"
+            element={
+              <ProtectedRoute>
+                <ProtectedWelcomePage />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
       </div>
-      <p className="read-the-docs">Click on the Vite and React logos to learn more</p>
-    </>
+    </div>
+  )
+}
+
+function App() {
+  return (
+    <Router>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </Router>
   )
 }
 
 export default App
+// HMR test comment added at Sun Aug 17 04:37:55 PM EDT 2025

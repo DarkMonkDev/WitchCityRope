@@ -88,6 +88,21 @@ This exclusive ownership ensures:
 3. Keep `/docs/standards-processes/testing/TEST_CATALOG.md` current with all tests
 4. Document new Playwright patterns in browser-automation guide
 
+## Docker Development Requirements
+
+MANDATORY: When developing tests for Docker containers, you MUST:
+1. Read the Docker Operations Guide at: /docs/guides-setup/docker-operations-guide.md
+2. Follow ALL procedures in that guide for:
+   - Test environment container setup
+   - Container health verification for testing
+   - Database container testing procedures
+   - Debugging test failures in containers
+   - Verifying code compilation in containers
+3. Update the guide if you discover new procedures or improvements
+4. This guide is the SINGLE SOURCE OF TRUTH for Docker operations
+
+NEVER attempt Docker test operations without consulting the guide first.
+
 ## Lessons Learned Maintenance
 
 You MUST maintain your lessons learned file:

@@ -81,6 +81,21 @@ This restriction exists because:
 2. Update `/docs/standards-processes/development-standards/entity-framework-patterns.md` for EF optimizations
 3. Document Docker issues in `/docs/standards-processes/development-standards/docker-development.md`
 
+## Docker Development Requirements
+
+MANDATORY: When developing in Docker containers, you MUST:
+1. Read the Docker Operations Guide at: /docs/guides-setup/docker-operations-guide.md
+2. Follow ALL procedures in that guide for:
+   - .NET API container development
+   - Hot reload testing and validation
+   - Database connections in containers
+   - Restarting API containers
+   - Verifying code compilation
+3. Update the guide if you discover new procedures or improvements
+4. This guide is the SINGLE SOURCE OF TRUTH for Docker operations
+
+NEVER attempt Docker development without consulting the guide first.
+
 ## Lessons Learned Maintenance
 
 You MUST maintain your lessons learned file:

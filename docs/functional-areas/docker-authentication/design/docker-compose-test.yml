@@ -1,0 +1,311 @@
+# docker-compose.test.yml - Test Environment Overrides
+# WitchCityRope Test Configuration
+# Extends base configuration with testing-specific settings for CI/CD
+
+version: '3.8'
+
+# ============================================================================
+# TEST-SPECIFIC VOLUMES
+# ============================================================================
+volumes:
+  # Ephemeral test database (recreated each run)
+  postgres_test_data:
+    driver: local
+  
+  # Test output volumes
+  test_reports:
+    driver: local
+  test_coverage:
+    driver: local
+  playwright_screenshots:
+    driver: local
+
+# ============================================================================
+# TEST SERVICE OVERRIDES
+# ============================================================================
+services:
+  
+  # ==========================================================================
+  # PostgreSQL - Test Overrides
+  # ==========================================================================
+  postgres-db:
+    environment:
+      # Separate test database
+      POSTGRES_DB: witchcityrope_test
+      POSTGRES_PASSWORD: testpass123
+      
+      # Fast test database configuration
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    
+    volumes:
+      # Ephemeral test data
+      - postgres_test_data:/var/lib/postgresql/data
+      
+      # Test fixtures and seed data
+      - ./tests/fixtures/sql:/docker-entrypoint-initdb.d:ro
+    
+    # NO EXTERNAL PORTS - Test isolation
+    # ports: []
+    
+    # Test-optimized PostgreSQL settings
+    command: [
+      "postgres",
+      "-c", "fsync=off",                   # Fast testing (unsafe for production)
+      "-c", "synchronous_commit=off",      # Fast testing (unsafe for production)
+      "-c", "max_connections=50",          # Lower for test containers
+      "-c", "shared_buffers=64MB",         # Minimal for testing
+      "-c", "log_min_messages=warning",    # Reduce log noise
+      "-c", "log_statement=none"           # No query logging for speed
+    ]
+
+  # ==========================================================================
+  # API Service - Test Overrides
+  # ==========================================================================
+  api-service:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+      target: test  # Multi-stage test target
+    
+    # NO EXTERNAL PORTS - Test isolation
+    # ports: []
+    
+    environment:
+      # Test environment
+      ASPNETCORE_ENVIRONMENT: Test
+      
+      # Test database connection
+      ConnectionStrings__DefaultConnection: "Host=postgres-db;Port=5432;Database=witchcityrope_test;Username=postgres;Password=testpass123"
+      
+      # Test authentication settings
+      Authentication__JwtSecret: test-jwt-secret-for-ci-make-it-predictable-and-long-enough
+      Authentication__RequireHttps: false
+      Authentication__ExpiryMinutes: 60
+      
+      # Test CORS - internal container communication only
+      CORS__AllowedOrigins: "http://react-web:5173"
+      
+      # Test logging - reduced verbosity
+      Logging__LogLevel__Default: Warning
+      Logging__LogLevel__Microsoft: Error
+      Logging__LogLevel__WitchCityRope: Information
+      
+      # Test features
+      ASPNETCORE_DETAILEDERRORS: false
+      
+      # CI optimization
+      CI: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+    
+    # NO VOLUME MOUNTS - Use built containers for consistency
+    # volumes: []
+    
+    # Test health check - more aggressive
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 15s
+
+  # ==========================================================================
+  # React Web - Test Overrides
+  # ==========================================================================
+  react-web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+      target: test  # Multi-stage test target
+    
+    # NO EXTERNAL PORTS - Test isolation
+    # ports: []
+    
+    environment:
+      # Test environment
+      NODE_ENV: test
+      
+      # API connection (internal container communication)
+      VITE_API_BASE_URL: http://api-service:8080
+      
+      # Test features
+      VITE_ENABLE_DEBUG: false
+      VITE_ENABLE_MOCK_DATA: false
+      VITE_ENABLE_ANALYTICS: false
+      
+      # CI optimization
+      CI: true
+      NPM_CONFIG_CACHE: /app/.npm
+      NODE_OPTIONS: "--max-old-space-size=2048"
+    
+    # NO VOLUME MOUNTS - Use built containers for consistency
+    # volumes: []
+    
+    # Test health check
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5173 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  # ==========================================================================
+  # Test Runner - Test Environment Service
+  # ==========================================================================
+  test-runner:
+    build:
+      context: ./tests
+      dockerfile: Dockerfile.test
+    container_name: witchcity-test-runner
+    networks:
+      - witchcity-net
+    
+    # NO EXTERNAL PORTS - Test isolation
+    # ports: []
+    
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      api-service:
+        condition: service_healthy
+      react-web:
+        condition: service_healthy
+    
+    environment:
+      # Test configuration
+      NODE_ENV: test
+      CI: true
+      
+      # Service URLs (internal container communication)
+      API_BASE_URL: http://api-service:8080
+      WEB_BASE_URL: http://react-web:5173
+      DB_CONNECTION_STRING: "Host=postgres-db;Port=5432;Database=witchcityrope_test;Username=postgres;Password=testpass123"
+      
+      # Playwright configuration
+      PLAYWRIGHT_WORKERS: 2
+      PLAYWRIGHT_HEADED: false
+      PLAYWRIGHT_BROWSER: chromium
+      PLAYWRIGHT_TIMEOUT: 30000
+      
+      # Test output configuration
+      PLAYWRIGHT_REPORT_DIR: /app/reports
+      PLAYWRIGHT_SCREENSHOT_DIR: /app/screenshots
+      
+      # Authentication test configuration
+      TEST_USER_EMAIL: test@witchcityrope.com
+      TEST_USER_PASSWORD: TestPass123!
+      TEST_USER_SCENE_NAME: TestUser
+      
+      # Performance optimization
+      NODE_OPTIONS: "--max-old-space-size=2048"
+      NPM_CONFIG_CACHE: /app/.npm
+    
+    volumes:
+      # Test output volumes
+      - test_reports:/app/reports
+      - test_coverage:/app/coverage
+      - playwright_screenshots:/app/screenshots
+    
+    working_dir: /app
+    
+    # CI-optimized test command
+    command: ["npm", "run", "test:ci"]
+    
+    # Test health check
+    healthcheck:
+      test: ["CMD-SHELL", "node --version && npm --version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  # ==========================================================================
+  # Database Test Helper - Test Environment Service
+  # ==========================================================================
+  db-test-helper:
+    image: postgres:16-alpine
+    container_name: witchcity-db-test-helper
+    networks:
+      - witchcity-net
+    
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    
+    environment:
+      # Database connection for test operations
+      PGHOST: postgres-db
+      PGPORT: 5432
+      PGDATABASE: witchcityrope_test
+      PGUSER: postgres
+      PGPASSWORD: testpass123
+    
+    volumes:
+      # Test data management scripts
+      - ./tests/fixtures/sql:/fixtures:ro
+      - ./tests/scripts:/scripts:ro
+      - test_reports:/reports
+    
+    # Test data setup and cleanup commands
+    command: ["sh", "-c", "
+      echo 'Database test helper ready';
+      echo 'Available commands:';
+      echo '  - psql: Connect to test database';
+      echo '  - /scripts/setup-test-data.sh: Load test fixtures';
+      echo '  - /scripts/cleanup-test-data.sh: Clean test data';
+      tail -f /dev/null
+    "]
+
+# ============================================================================
+# TEST USAGE INSTRUCTIONS
+# ============================================================================
+# 
+# Run Full Test Suite:
+#   docker-compose -f docker-compose.yml -f docker-compose.test.yml up --build --abort-on-container-exit
+# 
+# Run Specific Test Type:
+#   docker-compose -f docker-compose.yml -f docker-compose.test.yml run test-runner npm run test:unit
+#   docker-compose -f docker-compose.yml -f docker-compose.test.yml run test-runner npm run test:integration
+#   docker-compose -f docker-compose.yml -f docker-compose.test.yml run test-runner npm run test:e2e
+# 
+# Run with Coverage:
+#   docker-compose -f docker-compose.yml -f docker-compose.test.yml run test-runner npm run test:coverage
+# 
+# Clean Test Environment:
+#   docker-compose -f docker-compose.yml -f docker-compose.test.yml down -v
+# 
+# Test Data Management:
+#   docker-compose -f docker-compose.yml -f docker-compose.test.yml exec db-test-helper /scripts/setup-test-data.sh
+#   docker-compose -f docker-compose.yml -f docker-compose.test.yml exec db-test-helper psql
+# 
+# View Test Reports:
+#   docker-compose -f docker-compose.yml -f docker-compose.test.yml run test-runner cat /app/reports/junit.xml
+# 
+# Debugging Failed Tests:
+#   docker-compose -f docker-compose.yml -f docker-compose.test.yml run test-runner npm run test:debug
+#   docker-compose -f docker-compose.yml -f docker-compose.test.yml exec test-runner bash
+# 
+# CI/CD Integration:
+#   # The test runner exits with appropriate exit codes for CI systems
+#   docker-compose -f docker-compose.yml -f docker-compose.test.yml up --build --abort-on-container-exit --exit-code-from test-runner
+# 
+# Test Environment Features:
+#   - Isolated test database with fresh data each run
+#   - Internal-only networking (no external access)
+#   - Built containers for consistency
+#   - Optimized for CI/CD performance
+#   - Comprehensive test coverage reporting
+#   - Authentication flow testing
+#   - Database fixture management
+# 
+# Test Authentication:
+#   - Separate test database with predictable test users
+#   - JWT tokens with test-specific secrets
+#   - HTTP-only (no HTTPS requirement)
+#   - Automated test user creation/cleanup
+# 
+# Performance Optimizations:
+#   - Reduced database durability for speed
+#   - Parallel test execution where possible
+#   - Optimized container resource usage
+#   - Minimal logging for performance
