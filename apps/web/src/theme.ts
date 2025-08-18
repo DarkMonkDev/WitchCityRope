@@ -33,6 +33,110 @@ export const wcrTheme = createTheme({
           paddingRight: '32px',
         }
       }
+    },
+    TextInput: {
+      styles: {
+        input: {
+          borderColor: 'var(--mantine-color-gray-4)',
+          transition: 'border-color 0.2s ease-in-out',
+          '&:focus': {
+            outline: 'none !important',
+            outlineWidth: '0 !important',
+            outlineStyle: 'none !important',
+            outlineColor: 'transparent !important',
+            outlineOffset: '0 !important',
+            borderColor: 'var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important',
+            boxShadow: 'none !important'
+          },
+          '&:focus-visible': {
+            outline: 'none !important',
+            outlineWidth: '0 !important',
+            outlineStyle: 'none !important',
+            outlineColor: 'transparent !important',
+            outlineOffset: '0 !important',
+            borderColor: 'var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important',
+            boxShadow: 'none !important'
+          }
+        }
+      }
+    },
+    PasswordInput: {
+      styles: {
+        input: {
+          borderColor: 'var(--mantine-color-gray-4)',
+          transition: 'border-color 0.2s ease-in-out',
+          '&:focus': {
+            outline: 'none !important',
+            outlineWidth: '0 !important',
+            outlineStyle: 'none !important',
+            outlineColor: 'transparent !important',
+            outlineOffset: '0 !important',
+            borderColor: 'var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important',
+            boxShadow: 'none !important'
+          },
+          '&:focus-visible': {
+            outline: 'none !important',
+            outlineWidth: '0 !important',
+            outlineStyle: 'none !important',
+            outlineColor: 'transparent !important',
+            outlineOffset: '0 !important',
+            borderColor: 'var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important',
+            boxShadow: 'none !important'
+          }
+        }
+      }
+    },
+    Textarea: {
+      styles: {
+        input: {
+          borderColor: 'var(--mantine-color-gray-4)',
+          transition: 'border-color 0.2s ease-in-out',
+          '&:focus': {
+            outline: 'none !important',
+            outlineWidth: '0 !important',
+            outlineStyle: 'none !important',
+            outlineColor: 'transparent !important',
+            outlineOffset: '0 !important',
+            borderColor: 'var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important',
+            boxShadow: 'none !important'
+          },
+          '&:focus-visible': {
+            outline: 'none !important',
+            outlineWidth: '0 !important',
+            outlineStyle: 'none !important',
+            outlineColor: 'transparent !important',
+            outlineOffset: '0 !important',
+            borderColor: 'var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important',
+            boxShadow: 'none !important'
+          }
+        }
+      }
+    },
+    Select: {
+      styles: {
+        input: {
+          borderColor: 'var(--mantine-color-gray-4)',
+          transition: 'border-color 0.2s ease-in-out',
+          '&:focus': {
+            outline: 'none !important',
+            outlineWidth: '0 !important',
+            outlineStyle: 'none !important',
+            outlineColor: 'transparent !important',
+            outlineOffset: '0 !important',
+            borderColor: 'var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important',
+            boxShadow: 'none !important'
+          },
+          '&:focus-visible': {
+            outline: 'none !important',
+            outlineWidth: '0 !important',
+            outlineStyle: 'none !important',
+            outlineColor: 'transparent !important',
+            outlineOffset: '0 !important',
+            borderColor: 'var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important',
+            boxShadow: 'none !important'
+          }
+        }
+      }
     }
   }
 });

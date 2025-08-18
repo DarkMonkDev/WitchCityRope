@@ -10,7 +10,7 @@
 /* Position floating label relative to the input wrapper specifically, not the entire form group */
 .formGroup .floatingLabel {
   position: absolute;
-  left: var(--mantine-spacing-sm);
+  left: 12px;
   transition: all 0.2s ease-in-out;
   pointer-events: none;
   color: var(--mantine-color-gray-6);
@@ -40,6 +40,7 @@
 /* Position label relative to the input container (wrapper + label only), not the form group */
 .inputContainer .floatingLabel {
   /* Position relative to input wrapper only - consistent regardless of helper text */
+  left: 12px;
   top: 50%;
   transform: translateY(-50%);
 }
@@ -48,6 +49,7 @@
 .inputContainer .floatingLabel.hasValue,
 .inputContainer .floatingLabel.isFocused {
   /* Position at top of input border - 10px higher */
+  left: 12px;
   top: -10px;
   transform: translateY(-50%) scale(0.85);
   font-size: var(--mantine-font-size-xs);
@@ -56,6 +58,7 @@
 
 .inputContainer .floatingLabel.isEmpty {
   /* Position in center of input */
+  left: 12px;
   top: 50%;
   transform: translateY(-50%) scale(1);
   font-size: var(--mantine-font-size-sm);
@@ -245,6 +248,22 @@
   transition: all 0.2s ease-in-out;
 }
 
+/* CRITICAL: Restore border color change on focus */
+.enhancedInput :global(.mantine-TextInput-input),
+.enhancedInput :global(.mantine-PasswordInput-input),
+.enhancedInput :global(.mantine-Textarea-input),
+.enhancedInput :global(.mantine-Select-input) {
+  border: 1px solid var(--mantine-color-gray-4);
+  transition: border-color 0.2s ease-in-out;
+}
+
+.enhancedInput :global(.mantine-TextInput-input:focus),
+.enhancedInput :global(.mantine-PasswordInput-input:focus),
+.enhancedInput :global(.mantine-Textarea-input:focus),
+.enhancedInput :global(.mantine-Select-input:focus) {
+  border-color: var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important;
+}
+
 /* Fix orange outline bug on Mantine input root and all nested elements */
 .enhancedInput :global(.mantine-TextInput-root),
 .enhancedInput :global(.mantine-PasswordInput-root),
@@ -311,6 +330,26 @@
   box-shadow: none !important;
 }
 
+/* Extremely aggressive orange outline removal - covers all possible cases */
+:global(input),
+:global(textarea),
+:global(select),
+:global(input:focus),
+:global(textarea:focus),
+:global(select:focus),
+:global(input:focus-visible),
+:global(textarea:focus-visible),
+:global(select:focus-visible),
+:global(input:focus-within),
+:global(textarea:focus-within),
+:global(select:focus-within) {
+  outline: none !important;
+  outline-width: 0 !important;
+  outline-style: none !important;
+  outline-color: transparent !important;
+  outline-offset: 0 !important;
+}
+
 /* Suppress any webkit focus rings that might appear */
 :global(.mantine-TextInput-input::-webkit-focus-ring-color),
 :global(.mantine-PasswordInput-input::-webkit-focus-ring-color),
@@ -352,13 +391,69 @@
   border-color: inherit !important;
 }
 
-.enhancedInput:focus,
+/* Nuclear option - remove any outline that could be orange/peach colored */
+:global(*:focus),
+:global(*:focus-visible),
+:global(*:focus-within) {
+  outline: none !important;
+  outline-width: 0 !important;
+  outline-style: none !important;
+  outline-color: transparent !important;
+  outline-offset: 0 !important;
+}
+
+/* CRITICAL: Remove peach/orange focus ring from all possible sources */
+:global(input):focus,
+:global(textarea):focus,
+:global(select):focus,
+:global([data-focus-visible]),
+:global([data-focus-visible] *),
+:global(.mantine-focus-auto),
+:global(.mantine-focus-auto *),
+:global(.mantine-focus-never),
+:global(.mantine-focus-never *) {
+  outline: none !important;
+  outline-width: 0 !important;
+  outline-style: none !important;
+  outline-color: transparent !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Remove any webkit appearance that might cause peach outline */
+:global(input),
+:global(textarea),
+:global(select) {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+}
+
+/* Override any browser default focus styles specifically for form elements */
+:global(input[type="text"]:focus),
+:global(input[type="email"]:focus),
+:global(input[type="password"]:focus),
+:global(input[type="tel"]:focus),
+:global(input[type="url"]:focus),
+:global(input[type="search"]:focus),
+:global(textarea:focus),
+:global(select:focus) {
+  outline: none !important;
+  outline-width: 0 !important;
+  outline-style: none !important;
+  outline-color: transparent !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Remove this old focus style as it's not targeting the right elements */
+/* .enhancedInput:focus,
 .enhancedInput:focus-within {
   border-color: var(--mantine-color-wcr-6, var(--mantine-color-blue-6));
   box-shadow: 
     0 0 0 2px var(--mantine-color-wcr-1, var(--mantine-color-blue-1)),
     0 2px 8px rgba(0, 0, 0, 0.1);
-}
+} */
 
 .enhancedInput.error {
   border-color: var(--mantine-color-red-6);
@@ -374,12 +469,19 @@
 }
 
 /* Dark mode enhanced input */
-[data-mantine-color-scheme="dark"] .enhancedInput:focus,
-[data-mantine-color-scheme="dark"] .enhancedInput:focus-within {
-  border-color: var(--mantine-color-wcr-4, var(--mantine-color-blue-4));
-  box-shadow: 
-    0 0 0 2px var(--mantine-color-wcr-9, var(--mantine-color-blue-9)),
-    0 2px 8px rgba(0, 0, 0, 0.3);
+/* Dark mode focus border styles */
+[data-mantine-color-scheme="dark"] .enhancedInput :global(.mantine-TextInput-input),
+[data-mantine-color-scheme="dark"] .enhancedInput :global(.mantine-PasswordInput-input),
+[data-mantine-color-scheme="dark"] .enhancedInput :global(.mantine-Textarea-input),
+[data-mantine-color-scheme="dark"] .enhancedInput :global(.mantine-Select-input) {
+  border-color: var(--mantine-color-dark-4);
+}
+
+[data-mantine-color-scheme="dark"] .enhancedInput :global(.mantine-TextInput-input:focus),
+[data-mantine-color-scheme="dark"] .enhancedInput :global(.mantine-PasswordInput-input:focus),
+[data-mantine-color-scheme="dark"] .enhancedInput :global(.mantine-Textarea-input:focus),
+[data-mantine-color-scheme="dark"] .enhancedInput :global(.mantine-Select-input:focus) {
+  border-color: var(--mantine-color-wcr-4, var(--mantine-color-blue-4)) !important;
 }
 
 [data-mantine-color-scheme="dark"] .enhancedInput.error {
