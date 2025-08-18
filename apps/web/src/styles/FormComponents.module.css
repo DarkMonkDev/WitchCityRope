@@ -14,7 +14,7 @@
   transition: all 0.2s ease-in-out;
   pointer-events: none;
   color: var(--mantine-color-gray-6);
-  background: var(--mantine-color-white);
+  background: transparent;
   padding: 0 var(--mantine-spacing-xs);
   z-index: 1;
   font-size: var(--mantine-font-size-sm);
@@ -47,8 +47,8 @@
 /* Light mode floating label states - consistent positioning regardless of description */
 .inputContainer .floatingLabel.hasValue,
 .inputContainer .floatingLabel.isFocused {
-  /* Position at top of input border */
-  top: 0;
+  /* Position at top of input border - 10px higher */
+  top: -10px;
   transform: translateY(-50%) scale(0.85);
   font-size: var(--mantine-font-size-xs);
   color: var(--mantine-color-blue-6);
@@ -74,13 +74,13 @@
 /* Dark mode support using Mantine's data-mantine-color-scheme */
 [data-mantine-color-scheme="dark"] .inputContainer .floatingLabel {
   color: var(--mantine-color-dark-2);
-  background: var(--mantine-color-dark-7);
+  background: transparent;
 }
 
 /* Legacy dark mode support */
 [data-mantine-color-scheme="dark"] .formGroup .floatingLabel {
   color: var(--mantine-color-dark-2);
-  background: var(--mantine-color-dark-7);
+  background: transparent;
 }
 
 [data-mantine-color-scheme="dark"] .inputContainer .floatingLabel.hasValue,
@@ -292,6 +292,64 @@
 .floatingLabelContainer :global([class*="mantine-"]:focus-within) {
   outline: none !important;
   box-shadow: none !important;
+}
+
+/* Global orange outline suppression for ALL Mantine input elements */
+:global(.mantine-TextInput-input),
+:global(.mantine-PasswordInput-input),
+:global(.mantine-Textarea-input),
+:global(.mantine-Select-input),
+:global(.mantine-TextInput-input:focus),
+:global(.mantine-PasswordInput-input:focus),
+:global(.mantine-Textarea-input:focus),
+:global(.mantine-Select-input:focus),
+:global(.mantine-TextInput-input:focus-visible),
+:global(.mantine-PasswordInput-input:focus-visible),
+:global(.mantine-Textarea-input:focus-visible),
+:global(.mantine-Select-input:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Suppress any webkit focus rings that might appear */
+:global(.mantine-TextInput-input::-webkit-focus-ring-color),
+:global(.mantine-PasswordInput-input::-webkit-focus-ring-color),
+:global(.mantine-Textarea-input::-webkit-focus-ring-color),
+:global(.mantine-Select-input::-webkit-focus-ring-color) {
+  outline: none !important;
+}
+
+/* Ensure no browser default focus styles on input elements */
+:global(input[class*="mantine-"]),
+:global(textarea[class*="mantine-"]),
+:global(select[class*="mantine-"]) {
+  outline: none !important;
+}
+
+:global(input[class*="mantine-"]:focus),
+:global(textarea[class*="mantine-"]:focus),
+:global(select[class*="mantine-"]:focus),
+:global(input[class*="mantine-"]:focus-visible),
+:global(textarea[class*="mantine-"]:focus-visible),
+:global(select[class*="mantine-"]:focus-visible),
+:global(input[class*="mantine-"]:focus-within),
+:global(textarea[class*="mantine-"]:focus-within),
+:global(select[class*="mantine-"]:focus-within) {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: inherit !important;
+}
+
+/* More aggressive orange outline suppression */
+:global([data-focus-visible] input[class*="mantine-"]),
+:global([data-focus-visible] textarea[class*="mantine-"]),
+:global([data-focus-visible] select[class*="mantine-"]),
+:global(.mantine-focus-auto input),
+:global(.mantine-focus-auto textarea),
+:global(.mantine-focus-auto select) {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: inherit !important;
 }
 
 .enhancedInput:focus,
