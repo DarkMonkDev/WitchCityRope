@@ -55,11 +55,9 @@ const EXPERIENCE_OPTIONS = [
 
 export const MantineFormTest: React.FC = () => {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
-  const [taperedUnderlines, setTaperedUnderlines] = useState(false);
   const [showPasswordStrength, setShowPasswordStrength] = useState(true);
   const [simulateLoading, setSimulateLoading] = useState(false);
   const [simulateErrors, setSimulateErrors] = useState(false);
-  const [showPlaceholders, setShowPlaceholders] = useState(true);
 
   const form = useForm<FormData>({
     initialValues: {
@@ -149,12 +147,6 @@ export const MantineFormTest: React.FC = () => {
           </Title>
           <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="md">
             <Switch
-              label="Tapered Underlines"
-              checked={taperedUnderlines}
-              onChange={(event) => setTaperedUnderlines(event.currentTarget.checked)}
-              data-testid="tapered-underlines-switch"
-            />
-            <Switch
               label="Password Strength"
               checked={showPasswordStrength}
               onChange={(event) => setShowPasswordStrength(event.currentTarget.checked)}
@@ -179,12 +171,6 @@ export const MantineFormTest: React.FC = () => {
             </Stack>
           </SimpleGrid>
           <Group mt="md" gap="md">
-            <Switch
-              label="Show Placeholders (per-field on focus)"
-              checked={showPlaceholders}
-              onChange={(event) => setShowPlaceholders(event.currentTarget.checked)}
-              data-testid="show-placeholders-switch"
-            />
             <Switch
               label="Simulate Errors"
               checked={simulateErrors}
@@ -231,8 +217,8 @@ export const MantineFormTest: React.FC = () => {
               <Group grow align="flex-start">
                 <MantineTextInput
                   label="First Name"
-                  placeholder={showPlaceholders ? "Enter your first name" : undefined}
-                  taperedUnderline={taperedUnderlines}
+                  placeholder="Enter your first name"
+                  taperedUnderline={true}
                   loading={simulateLoading}
                   error={getError('firstName')}
                   data-testid="first-name-input"
@@ -240,8 +226,8 @@ export const MantineFormTest: React.FC = () => {
                 />
                 <MantineTextInput
                   label="Last Name"
-                  placeholder={showPlaceholders ? "Enter your last name" : undefined}
-                  taperedUnderline={taperedUnderlines}
+                  placeholder="Enter your last name"
+                  taperedUnderline={true}
                   loading={simulateLoading}
                   error={getError('lastName')}
                   data-testid="last-name-input"
@@ -252,7 +238,7 @@ export const MantineFormTest: React.FC = () => {
               {/* Email Input */}
               <MantineTextInput
                 label="Email Address"
-                placeholder={showPlaceholders ? "Enter your email" : undefined}
+                placeholder="Enter your email"
                 type="email"
                 taperedUnderline={taperedUnderlines}
                 loading={simulateLoading}
@@ -267,8 +253,8 @@ export const MantineFormTest: React.FC = () => {
               <Group grow align="flex-start">
                 <MantinePasswordInput
                   label="Password"
-                  placeholder={showPlaceholders ? "Create a secure password" : undefined}
-                  taperedUnderline={taperedUnderlines}
+                  placeholder="Create a secure password"
+                  taperedUnderline={true}
                   showStrengthMeter={showPasswordStrength}
                   error={getError('password')}
                   data-testid="password-input"
@@ -277,8 +263,8 @@ export const MantineFormTest: React.FC = () => {
                 />
                 <MantinePasswordInput
                   label="Confirm Password"
-                  placeholder={showPlaceholders ? "Confirm your password" : undefined}
-                  taperedUnderline={taperedUnderlines}
+                  placeholder="Confirm your password"
+                  taperedUnderline={true}
                   showStrengthMeter={false}
                   error={getError('confirmPassword')}
                   data-testid="confirm-password-input"
@@ -289,7 +275,7 @@ export const MantineFormTest: React.FC = () => {
               {/* Textarea */}
               <MantineTextarea
                 label="Bio"
-                placeholder={showPlaceholders ? "Tell us about yourself and your interests" : undefined}
+                placeholder="Tell us about yourself and your interests"
                 taperedUnderline={taperedUnderlines}
                 loading={simulateLoading}
                 error={getError('bio')}
@@ -304,9 +290,9 @@ export const MantineFormTest: React.FC = () => {
               <Group grow align="flex-start">
                 <MantineSelect
                   label="Country"
-                  placeholder={showPlaceholders ? "Select your country" : undefined}
+                  placeholder="Select your country"
                   data={COUNTRY_OPTIONS}
-                  taperedUnderline={taperedUnderlines}
+                  taperedUnderline={true}
                   loading={simulateLoading}
                   error={getError('country')}
                   searchable
@@ -315,9 +301,9 @@ export const MantineFormTest: React.FC = () => {
                 />
                 <MantineSelect
                   label="Experience Level"
-                  placeholder={showPlaceholders ? "Select your experience" : undefined}
+                  placeholder="Select your experience"
                   data={EXPERIENCE_OPTIONS}
-                  taperedUnderline={taperedUnderlines}
+                  taperedUnderline={true}
                   loading={simulateLoading}
                   error={getError('experienceLevel')}
                   data-testid="experience-select"
@@ -365,7 +351,7 @@ export const MantineFormTest: React.FC = () => {
                   • Enhanced validation states with improved error styling<br />
                   • Properly positioned helper text and error messages<br />
                   • Professional error state design with background colors<br />
-                  • Per-field placeholder visibility on focus (not global)
+                  • Placeholder visibility on focus when field is empty
                 </Text>
               </Box>
 

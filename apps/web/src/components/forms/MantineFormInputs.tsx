@@ -149,8 +149,18 @@ export const EnhancedTextInput = forwardRef<HTMLInputElement, EnhancedTextInputP
                 },
                 input: {
                   '&::placeholder': {
-                    opacity: (focused && !hasValue) ? 1 : 0,
-                    transition: 'opacity 0.2s ease-in-out'
+                    opacity: `${(focused && !hasValue) ? 1 : 0} !important`,
+                    visibility: (focused && !hasValue) ? 'visible' : 'hidden',
+                    transition: 'opacity 0.2s ease-in-out, visibility 0.2s ease-in-out'
+                  },
+                  // Remove any conflicting focus styles
+                  '&:focus': {
+                    outline: 'none !important',
+                    boxShadow: 'none !important'
+                  },
+                  '&:focus-visible': {
+                    outline: 'none !important',
+                    boxShadow: 'none !important'
                   }
                 }
               }}
@@ -223,8 +233,18 @@ export const EnhancedTextInput = forwardRef<HTMLInputElement, EnhancedTextInputP
             },
             input: {
               '&::placeholder': {
-                opacity: (focused && !hasValue) ? 1 : 0,
-                transition: 'opacity 0.2s ease-in-out'
+                opacity: `${(focused && !hasValue) ? 1 : 0} !important`,
+                visibility: (focused && !hasValue) ? 'visible' : 'hidden',
+                transition: 'opacity 0.2s ease-in-out, visibility 0.2s ease-in-out'
+              },
+              // Remove any conflicting focus styles
+              '&:focus': {
+                outline: 'none !important',
+                boxShadow: 'none !important'
+              },
+              '&:focus-visible': {
+                outline: 'none !important',
+                boxShadow: 'none !important'
               }
             },
             description: {
@@ -345,8 +365,18 @@ export const EnhancedPasswordInput = forwardRef<HTMLInputElement, EnhancedPasswo
             },
             input: {
               '&::placeholder': {
-                opacity: (focused && !hasValue) ? 1 : 0,
-                transition: 'opacity 0.2s ease-in-out'
+                opacity: `${(focused && !hasValue) ? 1 : 0} !important`,
+                visibility: (focused && !hasValue) ? 'visible' : 'hidden',
+                transition: 'opacity 0.2s ease-in-out, visibility 0.2s ease-in-out'
+              },
+              // Remove any conflicting focus styles
+              '&:focus': {
+                outline: 'none !important',
+                boxShadow: 'none !important'
+              },
+              '&:focus-visible': {
+                outline: 'none !important',
+                boxShadow: 'none !important'
               }
             }
           }}
@@ -393,6 +423,15 @@ export const EnhancedPasswordInput = forwardRef<HTMLInputElement, EnhancedPasswo
             '&::placeholder': {
               opacity: (focused && !hasValue) ? 1 : 0,
               transition: 'opacity 0.2s ease-in-out'
+            },
+            // Remove any conflicting focus styles
+            '&:focus': {
+              outline: 'none !important',
+              boxShadow: 'none !important'
+            },
+            '&:focus-visible': {
+              outline: 'none !important',
+              boxShadow: 'none !important'
             }
           },
           description: {
@@ -590,8 +629,18 @@ export const EnhancedTextarea = forwardRef<HTMLTextAreaElement, EnhancedTextarea
                 },
                 input: {
                   '&::placeholder': {
-                    opacity: (focused && !hasValue) ? 1 : 0,
-                    transition: 'opacity 0.2s ease-in-out'
+                    opacity: `${(focused && !hasValue) ? 1 : 0} !important`,
+                    visibility: (focused && !hasValue) ? 'visible' : 'hidden',
+                    transition: 'opacity 0.2s ease-in-out, visibility 0.2s ease-in-out'
+                  },
+                  // Remove any conflicting focus styles
+                  '&:focus': {
+                    outline: 'none !important',
+                    boxShadow: 'none !important'
+                  },
+                  '&:focus-visible': {
+                    outline: 'none !important',
+                    boxShadow: 'none !important'
                   }
                 }
               }}
@@ -662,8 +711,18 @@ export const EnhancedTextarea = forwardRef<HTMLTextAreaElement, EnhancedTextarea
             },
             input: {
               '&::placeholder': {
-                opacity: (focused && !hasValue) ? 1 : 0,
-                transition: 'opacity 0.2s ease-in-out'
+                opacity: `${(focused && !hasValue) ? 1 : 0} !important`,
+                visibility: (focused && !hasValue) ? 'visible' : 'hidden',
+                transition: 'opacity 0.2s ease-in-out, visibility 0.2s ease-in-out'
+              },
+              // Remove any conflicting focus styles
+              '&:focus': {
+                outline: 'none !important',
+                boxShadow: 'none !important'
+              },
+              '&:focus-visible': {
+                outline: 'none !important',
+                boxShadow: 'none !important'
               }
             },
             description: {
@@ -775,8 +834,18 @@ export const EnhancedSelect = forwardRef<HTMLInputElement, EnhancedSelectProps>(
                 },
                 input: {
                   '&::placeholder': {
-                    opacity: (focused && !hasValue) ? 1 : 0,
-                    transition: 'opacity 0.2s ease-in-out'
+                    opacity: `${(focused && !hasValue) ? 1 : 0} !important`,
+                    visibility: (focused && !hasValue) ? 'visible' : 'hidden',
+                    transition: 'opacity 0.2s ease-in-out, visibility 0.2s ease-in-out'
+                  },
+                  // Remove any conflicting focus styles
+                  '&:focus': {
+                    outline: 'none !important',
+                    boxShadow: 'none !important'
+                  },
+                  '&:focus-visible': {
+                    outline: 'none !important',
+                    boxShadow: 'none !important'
                   }
                 }
               }}
@@ -848,8 +917,18 @@ export const EnhancedSelect = forwardRef<HTMLInputElement, EnhancedSelectProps>(
             },
             input: {
               '&::placeholder': {
-                opacity: (focused && !hasValue) ? 1 : 0,
-                transition: 'opacity 0.2s ease-in-out'
+                opacity: `${(focused && !hasValue) ? 1 : 0} !important`,
+                visibility: (focused && !hasValue) ? 'visible' : 'hidden',
+                transition: 'opacity 0.2s ease-in-out, visibility 0.2s ease-in-out'
+              },
+              // Remove any conflicting focus styles
+              '&:focus': {
+                outline: 'none !important',
+                boxShadow: 'none !important'
+              },
+              '&:focus-visible': {
+                outline: 'none !important',
+                boxShadow: 'none !important'
               }
             },
             description: {
