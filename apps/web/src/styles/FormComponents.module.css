@@ -1,0 +1,516 @@
+/* FormComponents.module.css - Centralized Form Styling for Mantine Components */
+
+/* Use Mantine CSS variables for consistent theming */
+.floatingLabelContainer {
+  position: relative;
+  /* Ensure the container can hold the underline */
+  z-index: 0;
+}
+
+/* Position floating label relative to the form group, targeting the input wrapper specifically */
+.formGroup .floatingLabel {
+  position: absolute;
+  left: var(--mantine-spacing-sm);
+  transition: all 0.2s ease-in-out;
+  pointer-events: none;
+  color: var(--mantine-color-gray-6);
+  background: var(--mantine-color-white);
+  padding: 0 var(--mantine-spacing-xs);
+  z-index: 1;
+  font-size: var(--mantine-font-size-sm);
+  transform-origin: left center;
+  /* Position relative to the input wrapper - find wrapper and position accordingly */
+  top: var(--mantine-spacing-xs); /* Account for label space */
+}
+
+/* Target the wrapper specifically by finding Mantine component wrapper classes */
+.formGroup :global(.mantine-TextInput-wrapper),
+.formGroup :global(.mantine-PasswordInput-wrapper),
+.formGroup :global(.mantine-Textarea-wrapper),
+.formGroup :global(.mantine-Select-wrapper) {
+  position: relative;
+}
+
+/* Position label relative to the wrapper, not the root */
+.formGroup :global(.mantine-TextInput-wrapper) ~ .floatingLabel,
+.formGroup :global(.mantine-PasswordInput-wrapper) ~ .floatingLabel,
+.formGroup :global(.mantine-Textarea-wrapper) ~ .floatingLabel,
+.formGroup :global(.mantine-Select-wrapper) ~ .floatingLabel {
+  /* Reset position to be relative to wrapper */
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Light mode floating label states - consistent positioning regardless of description */
+.formGroup .floatingLabel.hasValue,
+.formGroup .floatingLabel.isFocused {
+  /* Position at top of input border */
+  top: calc(var(--mantine-spacing-xs) * -1);
+  transform: translateY(0) scale(0.85);
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-blue-6);
+}
+
+.formGroup .floatingLabel.isEmpty {
+  /* Position in center of input */
+  top: 50%;
+  transform: translateY(-50%) scale(1);
+  font-size: var(--mantine-font-size-sm);
+}
+
+/* Enhanced positioning for labels next to wrapper elements */
+.formGroup :global(.mantine-TextInput-wrapper) ~ .floatingLabel.hasValue,
+.formGroup :global(.mantine-PasswordInput-wrapper) ~ .floatingLabel.hasValue,
+.formGroup :global(.mantine-Textarea-wrapper) ~ .floatingLabel.hasValue,
+.formGroup :global(.mantine-Select-wrapper) ~ .floatingLabel.hasValue,
+.formGroup :global(.mantine-TextInput-wrapper) ~ .floatingLabel.isFocused,
+.formGroup :global(.mantine-PasswordInput-wrapper) ~ .floatingLabel.isFocused,
+.formGroup :global(.mantine-Textarea-wrapper) ~ .floatingLabel.isFocused,
+.formGroup :global(.mantine-Select-wrapper) ~ .floatingLabel.isFocused {
+  /* Position at top border of input */
+  top: 0;
+  transform: translateY(-50%) scale(0.85);
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-blue-6);
+}
+
+.formGroup :global(.mantine-TextInput-wrapper) ~ .floatingLabel.isEmpty,
+.formGroup :global(.mantine-PasswordInput-wrapper) ~ .floatingLabel.isEmpty,
+.formGroup :global(.mantine-Textarea-wrapper) ~ .floatingLabel.isEmpty,
+.formGroup :global(.mantine-Select-wrapper) ~ .floatingLabel.isEmpty {
+  /* Position in center of input */
+  top: 50%;
+  transform: translateY(-50%) scale(1);
+  font-size: var(--mantine-font-size-sm);
+}
+
+.formGroup .floatingLabel.hasError,
+.formGroup :global(.mantine-TextInput-wrapper) ~ .floatingLabel.hasError,
+.formGroup :global(.mantine-PasswordInput-wrapper) ~ .floatingLabel.hasError,
+.formGroup :global(.mantine-Textarea-wrapper) ~ .floatingLabel.hasError,
+.formGroup :global(.mantine-Select-wrapper) ~ .floatingLabel.hasError {
+  color: var(--mantine-color-red-6);
+}
+
+/* Dark mode support using Mantine's data-mantine-color-scheme */
+[data-mantine-color-scheme="dark"] .formGroup .floatingLabel,
+[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-TextInput-wrapper) ~ .floatingLabel,
+[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-PasswordInput-wrapper) ~ .floatingLabel,
+[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-Textarea-wrapper) ~ .floatingLabel,
+[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-Select-wrapper) ~ .floatingLabel {
+  color: var(--mantine-color-dark-2);
+  background: var(--mantine-color-dark-7);
+}
+
+[data-mantine-color-scheme="dark"] .formGroup .floatingLabel.hasValue,
+[data-mantine-color-scheme="dark"] .formGroup .floatingLabel.isFocused,
+[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-TextInput-wrapper) ~ .floatingLabel.hasValue,
+[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-PasswordInput-wrapper) ~ .floatingLabel.hasValue,
+[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-Textarea-wrapper) ~ .floatingLabel.hasValue,
+[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-Select-wrapper) ~ .floatingLabel.hasValue,
+[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-TextInput-wrapper) ~ .floatingLabel.isFocused,
+[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-PasswordInput-wrapper) ~ .floatingLabel.isFocused,
+[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-Textarea-wrapper) ~ .floatingLabel.isFocused,
+[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-Select-wrapper) ~ .floatingLabel.isFocused {
+  color: var(--mantine-color-blue-4);
+}
+
+[data-mantine-color-scheme="dark"] .formGroup .floatingLabel.hasError,
+[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-TextInput-wrapper) ~ .floatingLabel.hasError,
+[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-PasswordInput-wrapper) ~ .floatingLabel.hasError,
+[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-Textarea-wrapper) ~ .floatingLabel.hasError,
+[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-Select-wrapper) ~ .floatingLabel.hasError {
+  color: var(--mantine-color-red-4);
+}
+
+/* Tapered underline effect as reusable class */
+.taperedUnderline {
+  position: relative;
+}
+
+/* Position underline on the input wrapper, not the root container */
+.taperedUnderline :global(.mantine-TextInput-wrapper)::after,
+.taperedUnderline :global(.mantine-PasswordInput-wrapper)::after,
+.taperedUnderline :global(.mantine-Textarea-wrapper)::after,
+.taperedUnderline :global(.mantine-Select-wrapper)::after,
+.taperedUnderline > :global(.mantine-TextInput-root)::after,
+.taperedUnderline > :global(.mantine-PasswordInput-root)::after,
+.taperedUnderline > :global(.mantine-Textarea-root)::after,
+.taperedUnderline > :global(.mantine-Select-root)::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--mantine-color-gray-4),
+    transparent
+  );
+  transition: all 0.3s ease-in-out;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+/* Legacy fallback for components without floating labels */
+.taperedUnderline:not(:has(.floatingLabelContainer)):not(:has([class*="mantine-"]))::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--mantine-color-gray-4),
+    transparent
+  );
+  transition: all 0.3s ease-in-out;
+  transform: translateX(-50%);
+}
+
+.taperedUnderline.focused :global(.mantine-TextInput-wrapper)::after,
+.taperedUnderline.focused :global(.mantine-PasswordInput-wrapper)::after,
+.taperedUnderline.focused :global(.mantine-Textarea-wrapper)::after,
+.taperedUnderline.focused :global(.mantine-Select-wrapper)::after,
+.taperedUnderline.focused > :global(.mantine-TextInput-root)::after,
+.taperedUnderline.focused > :global(.mantine-PasswordInput-root)::after,
+.taperedUnderline.focused > :global(.mantine-Textarea-root)::after,
+.taperedUnderline.focused > :global(.mantine-Select-root)::after,
+.taperedUnderline.focused:not(:has(.floatingLabelContainer)):not(:has([class*="mantine-"]))::after {
+  width: 100%;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--mantine-color-wcr-6, var(--mantine-color-blue-6)),
+    transparent
+  );
+}
+
+.taperedUnderline.error :global(.mantine-TextInput-wrapper)::after,
+.taperedUnderline.error :global(.mantine-PasswordInput-wrapper)::after,
+.taperedUnderline.error :global(.mantine-Textarea-wrapper)::after,
+.taperedUnderline.error :global(.mantine-Select-wrapper)::after,
+.taperedUnderline.error > :global(.mantine-TextInput-root)::after,
+.taperedUnderline.error > :global(.mantine-PasswordInput-root)::after,
+.taperedUnderline.error > :global(.mantine-Textarea-root)::after,
+.taperedUnderline.error > :global(.mantine-Select-root)::after,
+.taperedUnderline.error:not(:has(.floatingLabelContainer)):not(:has([class*="mantine-"]))::after {
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--mantine-color-red-6),
+    transparent
+  );
+  width: 100%;
+}
+
+/* Dark mode tapered underline */
+[data-mantine-color-scheme="dark"] .taperedUnderline :global(.mantine-TextInput-wrapper)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline :global(.mantine-PasswordInput-wrapper)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline :global(.mantine-Textarea-wrapper)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline :global(.mantine-Select-wrapper)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline > :global(.mantine-TextInput-root)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline > :global(.mantine-PasswordInput-root)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline > :global(.mantine-Textarea-root)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline > :global(.mantine-Select-root)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline:not(:has(.floatingLabelContainer)):not(:has([class*="mantine-"]))::after {
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--mantine-color-dark-4),
+    transparent
+  );
+}
+
+[data-mantine-color-scheme="dark"] .taperedUnderline.focused :global(.mantine-TextInput-wrapper)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline.focused :global(.mantine-PasswordInput-wrapper)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline.focused :global(.mantine-Textarea-wrapper)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline.focused :global(.mantine-Select-wrapper)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline.focused > :global(.mantine-TextInput-root)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline.focused > :global(.mantine-PasswordInput-root)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline.focused > :global(.mantine-Textarea-root)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline.focused > :global(.mantine-Select-root)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline.focused:not(:has(.floatingLabelContainer)):not(:has([class*="mantine-"]))::after {
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--mantine-color-wcr-4, var(--mantine-color-blue-4)),
+    transparent
+  );
+}
+
+[data-mantine-color-scheme="dark"] .taperedUnderline.error :global(.mantine-TextInput-wrapper)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline.error :global(.mantine-PasswordInput-wrapper)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline.error :global(.mantine-Textarea-wrapper)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline.error :global(.mantine-Select-wrapper)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline.error > :global(.mantine-TextInput-root)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline.error > :global(.mantine-PasswordInput-root)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline.error > :global(.mantine-Textarea-root)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline.error > :global(.mantine-Select-root)::after,
+[data-mantine-color-scheme="dark"] .taperedUnderline.error:not(:has(.floatingLabelContainer)):not(:has([class*="mantine-"]))::after {
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--mantine-color-red-4),
+    transparent
+  );
+}
+
+/* Enhanced input focus styles */
+.enhancedInput {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Fix orange outline bug on Mantine input root and all nested elements */
+.enhancedInput :global(.mantine-TextInput-root),
+.enhancedInput :global(.mantine-PasswordInput-root),
+.enhancedInput :global(.mantine-Textarea-root),
+.enhancedInput :global(.mantine-Select-root),
+.enhancedInput :global(.mantine-TextInput-wrapper),
+.enhancedInput :global(.mantine-PasswordInput-wrapper),
+.enhancedInput :global(.mantine-Textarea-wrapper),
+.enhancedInput :global(.mantine-Select-wrapper),
+.enhancedInput :global(.mantine-TextInput-input),
+.enhancedInput :global(.mantine-PasswordInput-input),
+.enhancedInput :global(.mantine-Textarea-input),
+.enhancedInput :global(.mantine-Select-input) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.enhancedInput :global(.mantine-TextInput-root):focus,
+.enhancedInput :global(.mantine-PasswordInput-root):focus,
+.enhancedInput :global(.mantine-Textarea-root):focus,
+.enhancedInput :global(.mantine-Select-root):focus,
+.enhancedInput :global(.mantine-TextInput-wrapper):focus,
+.enhancedInput :global(.mantine-PasswordInput-wrapper):focus,
+.enhancedInput :global(.mantine-Textarea-wrapper):focus,
+.enhancedInput :global(.mantine-Select-wrapper):focus,
+.enhancedInput :global(.mantine-TextInput-input):focus,
+.enhancedInput :global(.mantine-PasswordInput-input):focus,
+.enhancedInput :global(.mantine-Textarea-input):focus,
+.enhancedInput :global(.mantine-Select-input):focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Ensure no orange focus styles on any mantine components */
+.enhancedInput :global([class*="mantine-"]:focus-visible),
+.enhancedInput :global([class*="mantine-"]:focus),
+.enhancedInput :global([class*="mantine-"]:focus-within) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Apply to floating label containers as well */
+.floatingLabelContainer :global([class*="mantine-"]:focus-visible),
+.floatingLabelContainer :global([class*="mantine-"]:focus),
+.floatingLabelContainer :global([class*="mantine-"]:focus-within) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.enhancedInput:focus,
+.enhancedInput:focus-within {
+  border-color: var(--mantine-color-wcr-6, var(--mantine-color-blue-6));
+  box-shadow: 
+    0 0 0 2px var(--mantine-color-wcr-1, var(--mantine-color-blue-1)),
+    0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.enhancedInput.error {
+  border-color: var(--mantine-color-red-6);
+  background-color: var(--mantine-color-red-0);
+}
+
+.enhancedInput.error:focus {
+  border-color: var(--mantine-color-red-6);
+  box-shadow: 
+    0 0 0 2px var(--mantine-color-red-1),
+    0 2px 8px rgba(248, 81, 73, 0.15);
+  background-color: var(--mantine-color-red-0);
+}
+
+/* Dark mode enhanced input */
+[data-mantine-color-scheme="dark"] .enhancedInput:focus,
+[data-mantine-color-scheme="dark"] .enhancedInput:focus-within {
+  border-color: var(--mantine-color-wcr-4, var(--mantine-color-blue-4));
+  box-shadow: 
+    0 0 0 2px var(--mantine-color-wcr-9, var(--mantine-color-blue-9)),
+    0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-mantine-color-scheme="dark"] .enhancedInput.error {
+  border-color: var(--mantine-color-red-4);
+  background-color: var(--mantine-color-red-9);
+}
+
+[data-mantine-color-scheme="dark"] .enhancedInput.error:focus {
+  border-color: var(--mantine-color-red-4);
+  box-shadow: 
+    0 0 0 2px var(--mantine-color-red-9),
+    0 2px 8px rgba(248, 81, 73, 0.25);
+  background-color: var(--mantine-color-red-9);
+}
+
+/* Animated validation states */
+.validationContainer {
+  min-height: var(--mantine-spacing-xl);
+  transition: all 0.2s ease-in-out;
+}
+
+.validationMessage {
+  animation: slideIn 0.2s ease-in-out;
+  font-size: var(--mantine-font-size-xs);
+  margin-top: var(--mantine-spacing-xs);
+  text-align: left;
+}
+
+.validationMessage.success {
+  color: var(--mantine-color-green-6);
+}
+
+.validationMessage.error {
+  color: var(--mantine-color-red-6);
+}
+
+.validationMessage.warning {
+  color: var(--mantine-color-yellow-6);
+}
+
+/* Helper text styles (for Mantine description prop) */
+.helperText {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-gray-6);
+  text-align: left;
+  margin-top: var(--mantine-spacing-xs);
+  transition: color 0.2s ease-in-out;
+}
+
+[data-mantine-color-scheme="dark"] .helperText {
+  color: var(--mantine-color-dark-2);
+}
+
+/* Enhanced error styling for better visual feedback */
+.errorInput {
+  border-color: var(--mantine-color-red-6) !important;
+  background-color: var(--mantine-color-red-0);
+  transition: all 0.2s ease-in-out;
+}
+
+.errorInput:focus {
+  box-shadow: 
+    0 0 0 2px var(--mantine-color-red-1),
+    0 2px 8px rgba(248, 81, 73, 0.15) !important;
+}
+
+[data-mantine-color-scheme="dark"] .errorInput {
+  border-color: var(--mantine-color-red-4) !important;
+  background-color: var(--mantine-color-red-9);
+}
+
+[data-mantine-color-scheme="dark"] .errorInput:focus {
+  box-shadow: 
+    0 0 0 2px var(--mantine-color-red-9),
+    0 2px 8px rgba(248, 81, 73, 0.25) !important;
+}
+
+/* Dark mode validation messages */
+[data-mantine-color-scheme="dark"] .validationMessage.success {
+  color: var(--mantine-color-green-4);
+}
+
+[data-mantine-color-scheme="dark"] .validationMessage.error {
+  color: var(--mantine-color-red-4);
+}
+
+[data-mantine-color-scheme="dark"] .validationMessage.warning {
+  color: var(--mantine-color-yellow-4);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Loading state styles */
+.loadingOverlay {
+  position: relative;
+}
+
+.loadingOverlay::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: var(--mantine-radius-sm);
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.loadingOverlay.loading::before {
+  opacity: 1;
+}
+
+/* Dark mode loading overlay */
+[data-mantine-color-scheme="dark"] .loadingOverlay::before {
+  background: rgba(37, 38, 43, 0.8);
+}
+
+/* Form group spacing */
+.formGroup {
+  margin-bottom: var(--mantine-spacing-md);
+}
+
+.formGroup.compact {
+  margin-bottom: var(--mantine-spacing-sm);
+}
+
+.formGroup.spacious {
+  margin-bottom: var(--mantine-spacing-xl);
+}
+
+/* Custom WitchCityRope branding colors integration */
+.wcrPrimary {
+  color: var(--mantine-color-wcr-6, var(--mantine-color-blue-6));
+}
+
+.wcrBorder {
+  border-color: var(--mantine-color-wcr-3, var(--mantine-color-blue-3));
+}
+
+.wcrFocus:focus {
+  border-color: var(--mantine-color-wcr-6, var(--mantine-color-blue-6));
+  box-shadow: 
+    0 0 0 2px var(--mantine-color-wcr-1, var(--mantine-color-blue-1)),
+    0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .formGroup {
+    margin-bottom: var(--mantine-spacing-sm);
+  }
+  
+  .floatingLabel {
+    font-size: var(--mantine-font-size-xs);
+  }
+  
+  .floatingLabel.isEmpty {
+    font-size: var(--mantine-font-size-sm);
+  }
+}
