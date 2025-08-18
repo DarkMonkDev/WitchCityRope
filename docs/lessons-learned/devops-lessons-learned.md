@@ -1,6 +1,6 @@
 # DevOps Lessons Learned
-<!-- Last Updated: 2025-08-04 -->
-<!-- Next Review: 2025-09-04 -->
+<!-- Last Updated: 2025-08-18 -->
+<!-- Next Review: 2025-09-18 -->
 
 ## 🚨 CRITICAL: Docker Build Configuration
 
@@ -26,6 +26,42 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 - Production build tries to run `dotnet watch` on compiled DLLs → FAILS
 - Development build mounts source code and enables hot reload → WORKS
 - This has caused repeated failures across multiple sessions
+
+## Git Operations
+
+### Form Design Implementation Commit Pattern
+
+**Success Pattern**: Large feature commits with comprehensive file staging
+```bash
+# Stage files in logical groups
+git add apps/web/src/pages/FormDesign*.tsx apps/web/src/pages/FormComponentsTest.tsx
+git add apps/web/src/components/forms/
+git add apps/web/src/theme.ts apps/web/src/App.tsx apps/web/src/main.tsx
+git add apps/web/src/schemas/ apps/web/src/types/forms.ts apps/web/src/hooks/ apps/web/src/utils/
+
+# Use HEREDOC for multi-line commit messages
+git commit -m "$(cat <<'EOF'
+feat: Implement form design system with Design B (Floating Label with Underline) as chosen style
+
+- Created 4 form design variations for evaluation
+- Design B chosen for clean aesthetic with floating labels
+- Fixed TypeScript configuration for Docker compatibility
+- Enhanced helper text readability and proper spacing
+- Added comprehensive form component test page
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+```
+
+**Result**: Clean commit with 28 files changed, 4498 insertions, proper attribution
+
+### Branch Management
+**Current**: Working on `master` branch (legacy naming)
+**Note**: Repository uses `master` not `main` as primary branch
+**Strategy**: Solo development with direct commits to master, feature branches for complex work
 
 ## Docker Development
 

@@ -23,6 +23,44 @@ This document outlines a comprehensive, phased migration plan for transitioning 
 
 ## Detailed Phase Breakdown
 
+**Note**: Updated to include Phase 0 for technology research and evaluation, ensuring proper technology selection before development begins.
+
+### **Phase 0: Technology Research & Planning (Week 0)**
+
+#### **Objectives**
+- Technology stack evaluation and selection
+- Architecture decision documentation
+- Risk assessment and mitigation planning
+- Tool and library selection
+
+#### **Technology Research Phase**
+
+**Day 1-2: Core Framework Research**
+- React ecosystem evaluation (Create React App vs Vite vs Next.js)
+- State management options (Zustand vs Redux Toolkit vs React Query)
+- Component library assessment (Chakra UI vs Material-UI vs Ant Design vs Mantine)
+- Build tool comparison and selection
+
+**Day 3-4: Supporting Technology Selection**
+- Authentication strategy research (NextAuth vs Auth0 vs ASP.NET Core Identity)
+- Testing framework evaluation (Vitest vs Jest, React Testing Library)
+- Development tooling assessment (TypeScript configuration, ESLint, Prettier)
+- Performance monitoring and analytics tools
+
+**Day 5: Documentation and Decision Finalization**
+- Technology decision matrix creation
+- Architecture decision records (ADRs)
+- Implementation roadmap based on selected technologies
+- Risk mitigation strategies for chosen stack
+
+#### **Week 0 Deliverables**
+- ✅ Complete technology evaluation report
+- ✅ Architecture decision records for all major technology choices
+- ✅ Detailed implementation plan based on selected technologies
+- ✅ Risk assessment and mitigation strategies
+- ✅ Tool and library compatibility matrix
+- ✅ **UI Framework Decision**: Mantine v7 selected (Score: 89/100) - ADR-004
+
 ### **Phase 1: Foundation Setup (Weeks 1-2)**
 
 #### **Objectives**
@@ -41,9 +79,9 @@ cd witchcityrope-react
 
 # Install core dependencies
 npm install @tanstack/react-query zustand react-router-dom
-npm install @chakra-ui/react @emotion/react @emotion/styled
-npm install framer-motion axios react-hook-form @hookform/resolvers
-npm install zod next-auth tailwindcss
+npm install @mantine/core @mantine/hooks @mantine/form @mantine/notifications
+npm install axios react-hook-form @hookform/resolvers
+npm install zod next-auth
 
 # Development tools
 npm install -D @types/node prettier eslint @typescript-eslint/parser
@@ -72,37 +110,41 @@ src/
 
 **Day 5: Configuration Setup**
 - Vite configuration with proxy to existing API
-- Tailwind CSS configuration with WCR color scheme
 - TypeScript configuration (strict mode)
 - ESLint and Prettier setup
-- Chakra UI theme with WCR branding
+- Mantine theme configuration with WCR branding
+- PostCSS setup for Mantine styles
 
 #### **Week 2: Core Foundation**
 
 **Day 1-2: Design System**
 ```typescript
-// WCR Theme implementation
-const wcrTheme = extendTheme({
+// WCR Theme implementation with Mantine
+const wcrTheme = createTheme({
   colors: {
-    wcr: {
-      burgundy: '#880124',
-      plum: '#9b4a75',
-      dustyRose: '#d4a5a5',
-      ivory: '#f8f4e6',
-      charcoal: '#2c2c2c'
-    }
+    wcr: [
+      '#f8f4e6', // ivory (lightest)
+      '#e8ddd4',
+      '#d4a5a5', // dustyRose
+      '#c48b8b',
+      '#b47171',
+      '#a45757',
+      '#9b4a75', // plum
+      '#880124', // burgundy
+      '#6b0119', // darker
+      '#2c2c2c'  // charcoal (darkest)
+    ]
   },
-  fonts: {
-    heading: 'Bodoni Moda, serif',
-    body: 'Source Sans 3, sans-serif'
+  primaryColor: 'wcr',
+  fontFamily: 'Source Sans 3, sans-serif',
+  headings: {
+    fontFamily: 'Bodoni Moda, serif'
   },
   components: {
     Button: {
-      variants: {
-        wcr: {
-          bg: 'wcr.burgundy',
-          color: 'white',
-          _hover: { bg: 'wcr.plum' }
+      styles: {
+        root: {
+          fontWeight: 500
         }
       }
     }

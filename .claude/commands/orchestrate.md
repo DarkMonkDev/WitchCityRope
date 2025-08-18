@@ -7,6 +7,24 @@
 
 The `/orchestrate` command implements the complete AI workflow orchestration system for WitchCityRope development. This command manages the entire development lifecycle through phases with quality gates, specialized sub-agent coordination, and comprehensive documentation.
 
+## CRITICAL: MANDATORY STARTUP PROCEDURE
+**BEFORE orchestrating ANY work, the orchestrator MUST:**
+
+1. **Read Orchestrator Lessons Learned** (MANDATORY)
+   - Location: `/home/chad/repos/witchcityrope-react/docs/lessons-learned/orchestrator-lessons-learned.md`
+   - Contains critical knowledge specific to orchestrator role
+   - Apply these lessons to all workflow coordination
+
+2. **Reference Workflow Process** (SINGLE SOURCE OF TRUTH)
+   - Location: `/home/chad/repos/witchcityrope-react/docs/standards-processes/workflow-orchestration-process.md`
+   - THE authoritative source for all workflow procedures
+   - Contains 5-phase workflow definition, quality gates, human review points
+
+3. **Clickable File Links** (REQUIRED)
+   - ALL file links in documentation must use full absolute paths
+   - Format: `/home/chad/repos/witchcityrope-react/...`
+   - Enables clickable navigation for stakeholders
+
 ## Usage
 
 ```
@@ -17,6 +35,11 @@ Examples:
 - `/orchestrate Implement user management admin screen`
 - `/orchestrate Fix login authentication bug`
 - `/orchestrate Add event scheduling feature`
+- `/orchestrate Create user profile management screen`
+- `/orchestrate Fix authentication cookie expiration bug`
+- `/orchestrate Add event RSVP notification system`
+- `/orchestrate Refactor payment processing module`
+- `/orchestrate Docker containerization of authentication system`
 
 ## Key Workflow Phases
 
@@ -32,6 +55,7 @@ Based on the formalized workflow design, the orchestrator manages these phases:
 - `business-requirements`: Create business requirements document
 - `functional-spec`: Create functional specifications (only after BR approval)
 - `ui-designer`: Create UI wireframes if applicable
+- `technology-researcher`: Technology evaluation and research for architecture decisions
 
 **Deliverables:**
 - Business requirements document
@@ -41,9 +65,22 @@ Based on the formalized workflow design, the orchestrator manages these phases:
 - Phase 1 review document
 
 ### Phase 2: Design & Architecture (Quality Gate: 90%)
+**CRITICAL: Design Phase Sequencing (MANDATORY ORDER)**:
+1. **UI Design FIRST** (ui-designer agent)
+   - Create visual design and wireframes
+   - **MANDATORY HUMAN REVIEW CHECKPOINT** - MUST PAUSE
+2. **Post-UI Approval Only**:
+   - Functional Specification updates (if UI changes require them)
+   - Database design (database-designer agent)
+   - API design (planned)
+   - Technical architecture (planned)
+
+**Critical Rule**: UI design happens FIRST because design changes can influence technical requirements and architecture decisions.
+
 **Sub-Agents Used:**
 - `database-designer`: Database schema design
 - `ui-designer`: UI/UX design specifications
+- `technology-researcher`: Technology evaluation and selection for implementation needs
 - Future agents: `react-architect`, `api-designer`, `test-planner`
 
 **Deliverables:**
@@ -142,6 +179,12 @@ When `/orchestrate` is invoked:
 - Executing ANY implementation commands
 - Making ANY file edits
 
+**TECHNOLOGY-RESEARCHER DELEGATION RESTRICTIONS:**
+- Only orchestrator can invoke technology-researcher (other agents cannot)
+- Technology-researcher provides structured output: date, project, topic, requirements, findings, decision matrices, recommendations. This should be written in a mark up file that can be passed to other sub-agents during the current or in future workflows. These files should be created and logged by the librarian is standard locations based on the type of research it is (ex. scope of work specific, entire project architecture, temporary). 
+- Use during Planning Phase for technology selection decisions
+- Use during Design Phase for implementation technology evaluation
+
 **MUST DELEGATE ALL WORK via Task tool:**
 ```python
 Task(
@@ -159,6 +202,13 @@ Task(
 - **Hotfixes/Emergency**: Requirements(70%) → Design(60%) → Implementation(70%) → Testing(100%)
 - **Documentation Updates**: Requirements(85%) → Design(N/A) → Implementation(N/A) → Review(90%)
 - **Refactoring**: Requirements(90%) → Design(85%) → Implementation(80%) → Testing(100%)
+
+## Quality Gate Standards Summary
+- **Feature Development**: R:95% → D:90% → I:85% → T:100%
+- **Bug Fixes**: R:80% → D:70% → I:75% → T:100%
+- **Hotfixes**: R:70% → D:60% → I:70% → T:100%
+- **Documentation**: R:85% → D:N/A → I:N/A → T:90%
+- **Refactoring**: R:90% → D:85% → I:80% → T:100%
 
 ### Progress Tracking
 
@@ -189,7 +239,37 @@ Task(
 ### File Path Protocol
 1. **ALWAYS** get paths from librarian's master index first
 2. **NEVER** let agents search for files themselves
-3. **PASS** exact paths in the prompt to each agent
+3. **PASS** exact paths in delegation prompts
+4. **UPDATE** master index when functional areas change
+
+### Agent Delegation Requirements
+
+#### File Path Protocol
+1. **ALWAYS** get paths from librarian's master index first
+2. **NEVER** let agents search for files themselves
+3. **PASS** exact paths in delegation prompts
+4. **UPDATE** master index when functional areas change
+
+#### Delegation Template
+```
+Task: [agent-name]
+Prompt: [specific instructions]
+
+Required Reading:
+- Agent lessons learned: /docs/lessons-learned/[agent]-lessons-learned.md
+- [Relevant process documents]
+
+File Paths:
+- [Exact path 1]: Purpose
+- [Exact path 2]: Purpose
+
+Context: [Current project phase and feature description]
+```
+
+#### Critical Agent Knowledge
+- **Sub-agents don't read CLAUDE.md** - Include essential constraints in delegation prompts
+- **Mandatory lessons learned reading** - Each agent must read their specific lessons file and should update that file with lessons learned as these lessons are discovered. 
+- **Docker operations** - Include Docker guide references for any containerization work
 
 ### Git Workflow (Via Delegation)
 All git operations must be delegated to git-manager:
@@ -264,10 +344,12 @@ The orchestrator consolidates all lessons learned into:
 - `business-requirements`: Requirements analysis and business documentation
 - `functional-spec`: Technical specifications and detailed requirements
 - `ui-designer`: UI/UX design and wireframes
+- `technology-researcher`: Technology evaluation and research for architecture decisions (orchestrator-only access)
 
 ### Design Phase
 - `database-designer`: Database schema design and migrations
-- `ui-designer`: UI/UX design specifications
+- `ui-designer`: UI/UX design specifications (MUST BE FIRST in Phase 2)
+- `technology-researcher`: Technology evaluation and selection for implementation needs (orchestrator-only access)
 
 ### Implementation Phase
 - `react-developer`: React components and UI implementation
@@ -281,6 +363,7 @@ The orchestrator consolidates all lessons learned into:
 ### Utility
 - `librarian`: Documentation management and file organization
 - `git-manager`: Version control and branch operations
+- `technology-researcher`: Technology evaluation and research (orchestrator-only access)
 
 ### Quality Assurance
 - `lint-validator`: **MANDATORY** code linting and validation during Phase 4
@@ -309,6 +392,14 @@ The orchestrator tracks and reports:
 9. **ALWAYS** validate file paths before delegating
 10. **ALWAYS** maintain progress tracking throughout workflow
 
+## References
+- **Single Source Process**: [Workflow Orchestration Process](/home/chad/repos/witchcityrope-react/docs/standards-processes/workflow-orchestration-process.md)
+- **Orchestrator Lessons**: [Orchestrator Lessons Learned](/home/chad/repos/witchcityrope-react/docs/lessons-learned/orchestrator-lessons-learned.md)
+- **Master Index**: [Functional Area Master Index](/home/chad/repos/witchcityrope-react/docs/architecture/functional-area-master-index.md)
+- **File Registry**: [File Registry](/home/chad/repos/witchcityrope-react/docs/architecture/file-registry.md)
+
 ---
+
+*This command documentation works in conjunction with the workflow orchestration process document as the single source of truth for all procedures. Update both documents when workflow changes occur.*
 
 This command ensures high-quality software delivery through systematic orchestration while maintaining development velocity and comprehensive documentation.

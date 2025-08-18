@@ -29,3 +29,17 @@ export type { PhoneInputProps } from './PhoneInput';
 
 export { EmergencyContactGroup } from './EmergencyContactGroup';
 export type { EmergencyContactGroupProps, EmergencyContactData } from './EmergencyContactGroup';
+
+// Enhanced Mantine form components with CSS modules
+export { 
+  MantineTextInput, 
+  MantinePasswordInput, 
+  MantineTextarea, 
+  MantineSelect 
+} from './MantineFormInputs';
+export type { 
+  EnhancedTextInputProps, 
+  EnhancedPasswordInputProps, 
+  EnhancedTextareaProps, 
+  EnhancedSelectProps 
+} from './MantineFormInputs';

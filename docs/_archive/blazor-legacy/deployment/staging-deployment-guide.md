@@ -1,4 +1,13 @@
-# Staging Deployment Guide
+# Staging Deployment Guide - BLAZOR LEGACY
+<!-- ARCHIVED: 2025-08-17 - This document is for Blazor Server deployment -->
+<!-- STATUS: OBSOLETE - Use React deployment guides for current project -->
+<!-- REPLACEMENT: /docs/guides-setup/docker-production-deployment.md -->
+
+> **⚠️ ARCHIVED CONTENT**  
+> This document contains Blazor Server deployment procedures.  
+> For current React + Docker deployment, see: `/docs/guides-setup/docker-production-deployment.md`
+
+# Original Staging Deployment Guide
 
 ## Overview
 

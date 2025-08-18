@@ -7,6 +7,7 @@ import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { ProtectedWelcomePage } from './pages/ProtectedWelcomePage'
 import { FormComponentsTest } from './pages/FormComponentsTest'
+import MantineFormTest from './pages/MantineFormTest'
 import FormDesignShowcase from './pages/FormDesignShowcase'
 import FormDesignA from './pages/FormDesignA'
 import FormDesignB from './pages/FormDesignB'
@@ -41,6 +42,9 @@ const Navigation: React.FC = () => {
             </Link>
             <Link to="/form-test" className="text-slate-300 hover:text-white transition-colors">
               Form Test
+            </Link>
+            <Link to="/mantine-forms" className="text-slate-300 hover:text-white transition-colors">
+              Mantine Forms
             </Link>
             <Link to="/form-designs" className="text-slate-300 hover:text-white transition-colors">
               Form Designs
@@ -90,6 +94,7 @@ const AppContent: React.FC = () => {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/form-test" element={<FormComponentsTest />} />
+          <Route path="/mantine-forms" element={<MantineFormTest />} />
           <Route path="/form-designs" element={<FormDesignShowcase />} />
           <Route path="/form-designs/a" element={<FormDesignA />} />
           <Route path="/form-designs/b" element={<FormDesignB />} />

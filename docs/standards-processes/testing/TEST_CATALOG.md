@@ -17,6 +17,85 @@ This catalog provides a comprehensive inventory of all tests in the WitchCityRop
 
 ## Recent Additions (August 2025)
 
+### Form Design Showcase Content Verification Test - 2025-08-18
+**Added**: `/tests/e2e/form-designs-check.spec.ts`
+**Purpose**: Verify form design showcase pages actually display content beyond HTTP 200 responses
+**Context**: User reported form design pages at /form-designs/* return 200 but don't actually load content
+
+**Test Results - CRITICAL FINDINGS**:
+- ✅ All pages return HTTP 200 OK (routes configured correctly)
+- ❌ **Body content is completely empty on all pages**
+- ❌ **No form elements, buttons, or interactive content rendered**
+- ❌ **React components are not being rendered despite React root existing**
+- ✅ No console errors or network failures detected
+
+**Root Cause Identified**: Form design showcase components are **NOT IMPLEMENTED** in React
+- Routes exist but point to empty/missing components
+- Requires React developer to implement actual form design showcase components
+- This is a **development issue, not a testing issue**
+
+**Test Cases**:
+1. `Form Design A (Floating Labels) page loads and displays content` - **FAILED: No content**
+2. `Form Design showcase main page loads and displays content` - **FAILED: No navigation links**
+3. `All form design pages return successful HTTP responses` - **PASSED: All return 200**
+4. `Form Design A - Detailed content inspection` - **FAILED: No form elements**
+
+**Diagnostic Features**:
+- Comprehensive content inspection with element counting
+- Cross-browser testing (Chrome, Firefox, Safari, Mobile)
+- Screenshots captured for visual verification
+- Console and network error monitoring
+- HTML structure analysis to confirm React mounting
+
+**Value for Development Team**:
+- ✅ Proves issue is React component implementation, not routing
+- ✅ Confirms HTTP layer works correctly
+- ✅ Provides visual evidence via screenshots
+- ✅ Eliminates network/server issues as root cause
+- 🎯 **Action Required**: React developer needs to implement form design showcase components
+
+### Form Components Test Page E2E Test - 2025-08-18
+**Added**: `/tests/e2e/form-components.spec.ts`
+**Purpose**: Comprehensive E2E test for Mantine v7 form components validation page
+**Context**: Created to verify Form Components Test Page (http://localhost:5173/form-test) loads correctly and all components are functional
+
+**Test Cases**:
+1. `should load the form test page successfully` - Basic page loading and title verification
+2. `should display all test control buttons` - Verify test control buttons are visible and labeled correctly
+3. `should display all form input components` - Check all form fields and components are visible
+4. `should fill test data when Fill Test Data button is clicked` - Test data population functionality
+5. `should show validation errors when Toggle Errors button is clicked` - Validation error display
+6. `should disable all fields when Disable All button is clicked` - Field disable/enable functionality
+7. `should test conflict data and validation responses` - Conflict data and async validation testing
+8. `should display form state information` - Form state badges and accordions
+9. `should handle form submission` - Form submission and notification testing
+10. `should verify responsive layout on mobile viewport` - Mobile responsiveness testing
+11. `should capture network requests and errors` - Network monitoring and debugging
+12. `should verify all component sections are present` - Complete page structure verification
+
+**Components Tested**:
+- BaseInput, BaseSelect, BaseTextarea (basic components)
+- EmailInput, SceneNameInput, PasswordInput, PhoneInput (specialized components)
+- EmergencyContactGroup (composite component)
+- Form state display, validation errors, submission handling
+- Test control buttons and interactions
+
+**Testing Features**:
+- Comprehensive console and network error capture
+- Screenshots at each test step for debugging
+- Cross-browser testing (Chrome, Firefox, Safari, Mobile)
+- Proper Playwright waits and timeouts
+- Data-testid attribute targeting for stable selectors
+- Responsive design verification
+
+**Quality Assurance**:
+- ✅ Tests all interactive elements with data-testid attributes
+- ✅ Captures screenshots for debugging failed tests
+- ✅ Monitors console errors and network failures
+- ✅ Tests mobile viewport responsiveness
+- ✅ Verifies async validation and form submission flows
+- ✅ Comprehensive error handling and logging
+
 ### Vertical Slice Home Page Tests - 2025-08-16
 **Added**: Comprehensive test suite for React + API + PostgreSQL stack proof-of-concept
 **Purpose**: Validate the complete vertical slice implementation works end-to-end

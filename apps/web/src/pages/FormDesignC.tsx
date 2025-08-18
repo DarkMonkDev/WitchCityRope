@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Container, Box, Text, Stack, Button, Group } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import { IconArrowLeft } from '@tabler/icons-react';
-import { EmailInput, PasswordInput, SceneNameInput, PhoneInput } from '../components/forms';
+// Custom 3D elevation form components defined inline
 
 // Custom 3D Elevation Input Component
 interface ElevationInputProps {

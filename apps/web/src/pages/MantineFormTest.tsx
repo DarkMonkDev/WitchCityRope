@@ -240,7 +240,7 @@ export const MantineFormTest: React.FC = () => {
                 label="Email Address"
                 placeholder="Enter your email"
                 type="email"
-                taperedUnderline={taperedUnderlines}
+                taperedUnderline={true}
                 loading={simulateLoading}
                 asyncValidation={simulateLoading}
                 error={getError('email')}
@@ -276,7 +276,7 @@ export const MantineFormTest: React.FC = () => {
               <MantineTextarea
                 label="Bio"
                 placeholder="Tell us about yourself and your interests"
-                taperedUnderline={taperedUnderlines}
+                taperedUnderline={true}
                 loading={simulateLoading}
                 error={getError('bio')}
                 rows={4}

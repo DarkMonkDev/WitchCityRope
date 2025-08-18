@@ -68,13 +68,9 @@ const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
           border: '1px solid',
           transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
           outline: 'none',
-          // Force dark background for all states
+          // Force dark background for all states and autocomplete
           WebkitBoxShadow: 'inset 0 0 0 1000px var(--mantine-color-dark-7)',
-          // Ensure autocomplete doesn't override
-          '&:-webkit-autofill': {
-            WebkitBoxShadow: 'inset 0 0 0 1000px var(--mantine-color-dark-7) !important',
-            WebkitTextFillColor: '#f8f4e6 !important'
-          },
+          WebkitTextFillColor: '#f8f4e6',
           ...(isFocused && !error && {
             borderColor: '#9b4a75',
             boxShadow: '0 0 0 2px rgba(155, 74, 117, 0.2), 0 4px 12px rgba(155, 74, 117, 0.1), inset 0 0 0 1000px var(--mantine-color-dark-7)',

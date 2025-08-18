@@ -230,6 +230,33 @@ Regular maintenance prevents accumulation of file organization issues.
 ### Tags
 #medium #maintenance #proactive #schedule
 
+## Agent Definition Creation Patterns (HIGH)
+**Date**: 2025-08-17
+**Category**: Process
+**Severity**: High
+
+### Context
+Creating new sub-agent definitions following established patterns and maintaining consistency across agent capabilities.
+
+### What We Learned
+- Follow AGENT-DESIGN-PRINCIPLES.md for tool restriction guidelines
+- Research agents should have discovery tools but not implementation tools
+- Agent definitions must include mandatory startup procedures and lessons learned references
+- Categorize agents by function (research/, planning/, development/, etc.)
+- Create corresponding lessons learned files for each new agent
+- Follow established YAML frontmatter format with name, description, and tools
+
+### Action Items
+- [x] FOLLOW agent design principles for tool assignment
+- [x] CREATE agents in appropriate category folders (research/, planning/, etc.)
+- [x] INCLUDE mandatory startup procedure and lessons learned references
+- [x] CREATE corresponding lessons learned file for each new agent
+- [x] UPDATE file registry for both agent definition and lessons learned files
+- [x] VALIDATE tool assignment matches agent's intended role
+
+### Tags
+#high #agent-creation #patterns #consistency
+
 ## Document Revision Management (HIGH)
 **Date**: 2025-08-17
 **Category**: Documentation
@@ -246,14 +273,41 @@ Managing document revisions while preserving original content and maintaining cl
 - Clear revision status prevents stakeholder confusion
 
 ### Action Items
-- [ ] PRESERVE original content when making revisions
-- [ ] DOCUMENT rationale for all changes with clear explanations
-- [ ] UPDATE metadata to reflect revision state
-- [ ] CASCADE updates to related files for consistency
-- [ ] COMMUNICATE revision status clearly to stakeholders
+- [x] PRESERVE original content when making revisions
+- [x] DOCUMENT rationale for all changes with clear explanations
+- [x] UPDATE metadata to reflect revision state
+- [x] CASCADE updates to related files for consistency
+- [x] COMMUNICATE revision status clearly to stakeholders
 
 ### Tags
 #high #revisions #preservation #metadata
+
+## Architecture Documentation Update Patterns (HIGH)
+**Date**: 2025-08-17
+**Category**: Documentation
+**Severity**: High
+
+### Context
+Updating comprehensive architecture documentation to reflect major technology decisions and migration plans.
+
+### What We Learned
+- Architecture documentation requires coordinated updates across multiple files
+- Technology decisions (like UI framework selection) cascade through migration plans and ADRs
+- Comprehensive documentation updates prevent confusion during technology transitions
+- File registry tracking essential for major documentation overhauls
+- Code examples in architecture docs must reflect current technology stack
+
+### Action Items
+- [x] CREATE ADRs for major technology decisions with scoring matrices
+- [x] UPDATE migration plans to reflect technology selections
+- [x] REVISE architecture documentation for technology stack changes
+- [x] CASCADE updates through related documentation files
+- [x] TRACK all changes in file registry with detailed rationale
+- [ ] VALIDATE documentation consistency across all affected files
+- [ ] REVIEW architecture documentation quarterly for currency
+
+### Tags
+#high #architecture #documentation #technology-decisions #cascade-updates
 
 ## Phase Review Documentation Standards (HIGH)
 **Date**: 2025-08-17
@@ -331,6 +385,217 @@ Maintaining main progress documentation and cleaning up completed project docume
 ### Tags
 #high #progress #documentation #completion #stakeholders
 
+## Orchestrator Command Documentation Maintenance (HIGH)
+**Date**: 2025-08-17
+**Category**: Documentation
+**Severity**: High
+
+### Context
+Updating orchestrator command documentation to reflect new sub-agent capabilities and integration requirements.
+
+### What We Learned
+- Command documentation serves as reference for workflow orchestration
+- New sub-agents require integration into appropriate workflow phases
+- Agent restrictions and delegation rules must be clearly documented
+- Structured output requirements help orchestrator use agents effectively
+- Technology research phase adds value early in development lifecycle
+
+### Action Items
+- [x] ADD technology-researcher to Phase 1 Planning and Phase 2 Design
+- [x] DOCUMENT orchestrator-only access restrictions for technology-researcher
+- [x] SPECIFY structured output format requirements (date, project, topic, findings, etc.)
+- [x] UPDATE utility agents list with new capabilities
+- [x] MAINTAIN consistency with agent design principles
+
+### Tags
+#high #orchestrator #commands #documentation #integration
+
+## Forms and Validation Documentation Migration Excellence (HIGH)
+**Date**: 2025-08-17
+**Category**: Process
+**Severity**: High
+
+### Context
+Successfully migrated complex Blazor forms and validation documentation for React migration, preserving all business requirements while archiving technology-specific implementations.
+
+### What We Learned
+- Business validation rules are technology-independent and must be preserved exactly
+- Error message text and accessibility standards carry forward across technology stacks
+- Technical implementation details (Blazor components, CSS classes) should be archived separately
+- Consolidated requirements documents prevent rule loss during technology migrations
+- Complete archival with clear replacement references maintains historical context
+
+### Action Items
+- [x] EXTRACT all business validation rules from Blazor-specific documentation
+- [x] PRESERVE error message standards, accessibility requirements, and field conventions
+- [x] ARCHIVE complete Blazor validation system to /docs/_archive/blazor-legacy/forms-validation/
+- [x] CREATE consolidated React-ready requirements document at /docs/standards-processes/forms-validation-requirements.md
+- [x] REMOVE Blazor-specific documents from active standards-processes location
+- [x] DOCUMENT complete migration in file registry with detailed rationale
+- [x] MAINTAIN clear cross-references between archived and active documentation
+
+### Tags
+#high #forms #validation #migration #business-requirements #archival
+
+## Documentation Consolidation Excellence (HIGH)
+**Date**: 2025-08-17
+**Category**: Process
+**Severity**: High
+
+### Context
+Successfully consolidated duplicate documentation while preserving all important information and establishing single sources of truth.
+
+### What We Learned
+- Archive obsolete technology content (Blazor) with clear headers and replacement references
+- Establish single sources of truth to eliminate confusion
+- Fix root directory violations by relocating files to proper standards locations
+- Create comprehensive guides that consolidate scattered knowledge
+- Maintain complete file registry tracking for all consolidation activities
+
+### Action Items
+- [x] ARCHIVE obsolete technology content with proper headers and replacement references
+- [x] CREATE single authoritative sources for each major topic (deployment, CI/CD)
+- [x] RELOCATE files from root directory violations to proper standards structure
+- [x] DOCUMENT all consolidation activities in file registry with rationale
+- [x] ESTABLISH clear cross-reference patterns for future consolidation efforts
+- [x] COMPLETE forms and validation documentation migration
+- [ ] CONTINUE consolidation with testing documentation (Phase 2)
+- [ ] PLAN architecture documentation consolidation (Phase 3)
+
+### Tags
+#high #consolidation #single-source-of-truth #archival #root-directory
+
+## Agent Architecture Alignment Excellence (HIGH)
+**Date**: 2025-08-17
+**Category**: Agent Management
+**Severity**: High
+
+### Context
+Successfully updated agent definitions to reflect current architecture decisions, ensuring agents use correct UI framework and check ADRs before starting work.
+
+### What We Learned
+- Agent definitions must stay synchronized with architecture decisions
+- ADR-004 mandated Mantine v7 as UI framework, but agents were still referencing Chakra UI
+- Mandatory architecture checking prevents agents from using outdated frameworks
+- Code examples in agent definitions need updating when technology decisions change
+- Component patterns and styling approaches need complete revision for new UI frameworks
+
+### Action Items
+- [x] UPDATE agent descriptions to reference correct UI framework (Mantine v7)
+- [x] ADD mandatory architecture documentation checking to agent startup procedures
+- [x] REVISE all code examples to use Mantine components instead of Chakra UI
+- [x] UPDATE component patterns, styling approaches, and theming examples
+- [x] DOCUMENT changes in file registry with rationale
+- [ ] MONITOR agent implementations to ensure they follow updated patterns
+- [ ] CREATE checklist for agent definition updates when architecture changes
+
+### Tags
+#high #agents #architecture #ui-framework #synchronization
+
+## Orchestrate Command Consolidation (HIGH)
+**Date**: 2025-08-17
+**Category**: Root Directory Management
+**Severity**: High
+
+### Context
+Duplicate orchestrate command documentation found with root file (/.claude/orchestrate-command.md) containing newer content than proper location (/.claude/commands/orchestrate.md).
+
+### What We Learned
+- Root directory violations require immediate attention even for command documentation
+- Newer content in wrong location must be merged, not simply deleted
+- Single source of truth principle applies to command documentation
+- Agent delegation templates and startup procedures are critical content
+- Technology references (like technology-researcher) must be preserved during merges
+
+### Action Items
+- [x] MERGE unique content from root violation into proper commands location
+- [x] PRESERVE mandatory startup procedure requirements
+- [x] MAINTAIN clickable file links and UI-first sequencing updates
+- [x] DELETE root directory violation after successful merge
+- [x] UPDATE file registry with consolidation rationale
+- [ ] MONITOR for future command documentation duplicates
+
+### Tags
+#high #root-directory #commands #consolidation #single-source
+
+## Session Handoff Documentation Excellence (HIGH)
+**Date**: 2025-08-17
+**Category**: Documentation
+**Severity**: High
+
+### Context
+Creating comprehensive session handoff documentation that captures all work completed and sets clear direction for next session.
+
+### What We Learned
+- Session handoff documents should comprehensively document ALL achievements, not just major milestones
+- Technology decisions require detailed documentation including scoring matrices and rationale
+- Migration plan status should clearly indicate what phase is complete and what's next
+- Action plans should be copy/paste ready for immediate execution
+- Risk mitigation and success criteria provide valuable context for next session
+
+### Action Items
+- [x] CREATE comprehensive session summaries with technology stack confirmations
+- [x] DOCUMENT all architecture decisions with ADR references
+- [x] PROVIDE clear migration plan status with phase completions
+- [x] INCLUDE copy/paste ready commands for next session actions
+- [x] DETAIL success criteria and risk mitigation strategies
+- [x] UPDATE master index to reflect current development status
+
+### Tags
+#high #session-handoffs #documentation #technology-decisions #migration-planning
+
+## Progress Documentation Update Excellence (HIGH)
+**Date**: 2025-08-17
+**Category**: Documentation
+**Severity**: High
+
+### Context
+Updating main progress documentation to reflect completed technology research phase and shift focus to infrastructure testing.
+
+### What We Learned
+- Main PROGRESS.md should always reflect most current session achievements prominently
+- Technology stack confirmations require detailed documentation of decisions made
+- Phase transitions need clear marking (Technology Research → Infrastructure Testing)
+- Next phase actions should be specific and actionable with concrete commands
+- Migration plan status provides stakeholder clarity on overall progress
+
+### Action Items
+- [x] UPDATE main PROGRESS.md with August 17 technology research achievements
+- [x] DOCUMENT technology stack confirmations with specific framework decisions
+- [x] MARK phase transitions clearly (Technology Research COMPLETE → Infrastructure Testing NEXT)
+- [x] PROVIDE specific next phase actions with orchestrate commands
+- [x] MAINTAIN consistency between PROGRESS.md and session handoff documents
+
+### Tags
+#high #progress #documentation #technology-stack #phase-transitions
+
+## React Developer Lessons Learned Verification Excellence (HIGH)
+**Date**: 2025-08-18
+**Category**: Documentation
+**Severity**: High
+
+### Context
+Successfully reviewed and enhanced react-developer's lessons learned file to ensure all critical lessons from today's Mantine dependency resolution work are properly documented.
+
+### What We Learned
+- React developers create critical implementation lessons during troubleshooting sessions
+- Docker dependency resolution patterns are essential for container-based development
+- TypeScript configuration for containers requires specific documentation
+- Mantine v7 migration patterns need comprehensive component prop fix documentation
+- Testing verification patterns must be documented to prevent regression
+- Frontend lessons learned file is the appropriate location for react-developer knowledge
+
+### Action Items
+- [x] VERIFY all critical lessons from daily work are documented in appropriate lessons learned files
+- [x] ENHANCE existing lessons with missing testing verification patterns
+- [x] ADD container rebuild prevention strategies to Docker dependency lessons
+- [x] DOCUMENT Mantine component migration testing patterns
+- [x] UPDATE file registry with lessons learned verification activities
+- [ ] ESTABLISH regular review process for agent-specific lessons learned files
+
+### Tags
+#high #lessons-learned #react-developer #documentation-verification #docker #mantine
+
 ---
 *This file is maintained by the librarian agent. Add new lessons immediately when discovered, remove outdated entries as needed.*
-*Last updated: 2025-08-17 - Added progress documentation maintenance and project completion patterns*
+*Last updated: 2025-08-18 - Added react developer lessons learned verification excellence pattern*

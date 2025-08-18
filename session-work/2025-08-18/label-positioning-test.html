@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Label Positioning Fix Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin-bottom: 40px; }
+        .comparison { display: flex; gap: 20px; }
+        .before, .after { flex: 1; }
+        .before h3 { color: red; }
+        .after h3 { color: green; }
+        
+        /* Simulate the old behavior (before fix) */
+        .old-structure {
+            position: relative;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .old-label {
+            position: absolute;
+            left: 10px;
+            top: 50%; /* This calculates from entire container including helper text */
+            transform: translateY(-50%);
+            background: white;
+            padding: 0 5px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .old-input {
+            height: 40px;
+            width: 100%;
+            border: 1px solid #ddd;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+        
+        .old-helper {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        /* Simulate the new behavior (after fix) */
+        .new-structure {
+            margin-bottom: 20px;
+        }
+        
+        .input-container {
+            position: relative;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        
+        .new-label {
+            position: absolute;
+            left: 10px;
+            top: 50%; /* This calculates from input container only */
+            transform: translateY(-50%);
+            background: white;
+            padding: 0 5px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .new-input {
+            height: 40px;
+            width: 100%;
+            border: 1px solid #ddd;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+        
+        .new-helper {
+            font-size: 12px;
+            color: #888;
+            margin-top: 10px;
+        }
+        
+        .highlight {
+            background: yellow;
+            padding: 2px 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Label Positioning Fix Demonstration</h1>
+    
+    <div class="test-section">
+        <h2>The Problem: Inconsistent Label Heights</h2>
+        <div class="comparison">
+            <div class="before">
+                <h3>BEFORE (Broken): Labels at Different Heights</h3>
+                
+                <!-- Input without helper text -->
+                <div class="old-structure" style="height: 60px;">
+                    <input class="old-input" placeholder=" "/>
+                    <label class="old-label">Input without helper text</label>
+                </div>
+                
+                <!-- Input with helper text - label appears lower -->
+                <div class="old-structure" style="height: 85px;">
+                    <input class="old-input" placeholder=" "/>
+                    <label class="old-label" style="color: red;">Input with helper text (LOWER!)</label>
+                    <div class="old-helper">This helper text makes the container taller, pushing the label down</div>
+                </div>
+                
+                <p><span class="highlight">Problem:</span> Labels are at different vertical positions because they're positioned relative to containers of different heights.</p>
+            </div>
+            
+            <div class="after">
+                <h3>AFTER (Fixed): Labels at Consistent Heights</h3>
+                
+                <!-- Input without helper text -->
+                <div class="new-structure">
+                    <div class="input-container" style="height: 60px;">
+                        <input class="new-input" placeholder=" "/>
+                        <label class="new-label">Input without helper text</label>
+                    </div>
+                </div>
+                
+                <!-- Input with helper text - label stays same height -->
+                <div class="new-structure">
+                    <div class="input-container" style="height: 60px;">
+                        <input class="new-input" placeholder=" "/>
+                        <label class="new-label" style="color: green;">Input with helper text (SAME HEIGHT!)</label>
+                    </div>
+                    <div class="new-helper">This helper text is outside the input container, so it doesn't affect label position</div>
+                </div>
+                
+                <p><span class="highlight">Solution:</span> Labels are positioned relative to input containers that exclude helper text, ensuring consistent positioning.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Technical Fix Summary</h2>
+        <h3>DOM Structure Changes:</h3>
+        <pre>
+BEFORE:
+&lt;Box className="formGroup"&gt;  &lt;!-- Container includes everything --&gt;
+  &lt;MantineInput /&gt;           &lt;!-- Input + built-in description --&gt;
+  &lt;Text className="floatingLabel" /&gt;  &lt;!-- Positioned relative to entire formGroup --&gt;
+&lt;/Box&gt;
+
+AFTER:
+&lt;Box className="formGroup"&gt;       &lt;!-- Outer container --&gt;
+  &lt;Box className="inputContainer"&gt;  &lt;!-- Input + label only --&gt;
+    &lt;MantineInput /&gt;              &lt;!-- Input only, no description --&gt;
+    &lt;Text className="floatingLabel" /&gt;  &lt;!-- Positioned relative to inputContainer --&gt;
+  &lt;/Box&gt;
+  {description && &lt;Text&gt;...&lt;/Text&gt;}    &lt;!-- Description outside input container --&gt;
+  {error && &lt;Text&gt;...&lt;/Text&gt;}          &lt;!-- Error outside input container --&gt;
+&lt;/Box&gt;
+        </pre>
+        
+        <h3>CSS Changes:</h3>
+        <ul>
+            <li>Created <code>.inputContainer</code> class for input + label isolation</li>
+            <li>Updated <code>.floatingLabel</code> positioning to use <code>.inputContainer</code> as reference</li>
+            <li>Removed dependency on Mantine's ordering system for positioning</li>
+            <li>Moved description and error text outside the positioning container</li>
+        </ul>
+    </div>
+</body>
+</html>

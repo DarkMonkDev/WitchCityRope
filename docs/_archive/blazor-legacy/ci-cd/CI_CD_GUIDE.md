@@ -1,6 +1,15 @@
-# CI/CD Setup Guide
+# CI/CD Setup Guide - BLAZOR LEGACY
+<!-- ARCHIVED: 2025-08-17 - This document is for Blazor Server CI/CD -->
+<!-- STATUS: OBSOLETE - Use React CI/CD guides for current project -->
+<!-- REPLACEMENT: /docs/standards-processes/ci-cd/CI_CD_COMPREHENSIVE_GUIDE.md -->
 
-This guide provides detailed information about the CI/CD setup for the WitchCityRope project.
+> **⚠️ ARCHIVED CONTENT**  
+> This document contains Blazor Server CI/CD procedures.  
+> For current React + Docker CI/CD, see: `/docs/standards-processes/ci-cd/`
+
+# Original CI/CD Setup Guide
+
+This guide provides detailed information about the CI/CD setup for the WitchCityRope project (Blazor version).
 
 ## Overview
 

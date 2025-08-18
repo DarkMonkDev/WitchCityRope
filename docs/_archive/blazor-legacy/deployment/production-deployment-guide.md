@@ -1,4 +1,13 @@
-# WitchCityRope Production Deployment Guide
+# Production Deployment Guide - BLAZOR LEGACY
+<!-- ARCHIVED: 2025-08-17 - This document is for Blazor Server deployment -->
+<!-- STATUS: OBSOLETE - Use React deployment guides for current project -->
+<!-- REPLACEMENT: /docs/guides-setup/docker-production-deployment.md -->
+
+> **⚠️ ARCHIVED CONTENT**  
+> This document contains Blazor Server deployment procedures.  
+> For current React + Docker deployment, see: `/docs/guides-setup/docker-production-deployment.md`
+
+# Original WitchCityRope Production Deployment Guide
 
 ## Table of Contents
 1. [Production Server Requirements](#production-server-requirements)

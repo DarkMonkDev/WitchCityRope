@@ -137,7 +137,6 @@ export const EnhancedTextInput = forwardRef<HTMLInputElement, EnhancedTextInputP
               onBlur={handleBlur}
               rightSection={getRightSection()}
               rightSectionProps={{ style: { pointerEvents: 'none' } }}
-              error={false} // Error styling handled by outer container
               className={inputClasses}
               placeholder={placeholder}
               styles={{
@@ -149,7 +148,7 @@ export const EnhancedTextInput = forwardRef<HTMLInputElement, EnhancedTextInputP
                 },
                 input: {
                   '&::placeholder': {
-                    opacity: `${(focused && !hasValue) ? 1 : 0} !important`,
+                    opacity: (focused && !hasValue) ? 1 : 0,
                     visibility: (focused && !hasValue) ? 'visible' : 'hidden',
                     transition: 'opacity 0.2s ease-in-out, visibility 0.2s ease-in-out'
                   },
@@ -233,7 +232,7 @@ export const EnhancedTextInput = forwardRef<HTMLInputElement, EnhancedTextInputP
             },
             input: {
               '&::placeholder': {
-                opacity: `${(focused && !hasValue) ? 1 : 0} !important`,
+                opacity: (focused && !hasValue) ? 1 : 0,
                 visibility: (focused && !hasValue) ? 'visible' : 'hidden',
                 transition: 'opacity 0.2s ease-in-out, visibility 0.2s ease-in-out'
               },
@@ -353,7 +352,6 @@ export const EnhancedPasswordInput = forwardRef<HTMLInputElement, EnhancedPasswo
           value={value}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          error={false} // Error styling handled by outer container
           className={inputClasses}
           placeholder={placeholder}
           styles={{
@@ -365,7 +363,7 @@ export const EnhancedPasswordInput = forwardRef<HTMLInputElement, EnhancedPasswo
             },
             input: {
               '&::placeholder': {
-                opacity: `${(focused && !hasValue) ? 1 : 0} !important`,
+                opacity: (focused && !hasValue) ? 1 : 0,
                 visibility: (focused && !hasValue) ? 'visible' : 'hidden',
                 transition: 'opacity 0.2s ease-in-out, visibility 0.2s ease-in-out'
               },
@@ -617,7 +615,6 @@ export const EnhancedTextarea = forwardRef<HTMLTextAreaElement, EnhancedTextarea
               value={value}
               onFocus={handleFocus}
               onBlur={handleBlur}
-              error={false} // Error styling handled by outer container
               className={inputClasses}
               placeholder={placeholder}
               styles={{
@@ -629,7 +626,7 @@ export const EnhancedTextarea = forwardRef<HTMLTextAreaElement, EnhancedTextarea
                 },
                 input: {
                   '&::placeholder': {
-                    opacity: `${(focused && !hasValue) ? 1 : 0} !important`,
+                    opacity: (focused && !hasValue) ? 1 : 0,
                     visibility: (focused && !hasValue) ? 'visible' : 'hidden',
                     transition: 'opacity 0.2s ease-in-out, visibility 0.2s ease-in-out'
                   },
@@ -711,7 +708,7 @@ export const EnhancedTextarea = forwardRef<HTMLTextAreaElement, EnhancedTextarea
             },
             input: {
               '&::placeholder': {
-                opacity: `${(focused && !hasValue) ? 1 : 0} !important`,
+                opacity: (focused && !hasValue) ? 1 : 0,
                 visibility: (focused && !hasValue) ? 'visible' : 'hidden',
                 transition: 'opacity 0.2s ease-in-out, visibility 0.2s ease-in-out'
               },
@@ -822,7 +819,6 @@ export const EnhancedSelect = forwardRef<HTMLInputElement, EnhancedSelectProps>(
               onFocus={handleFocus}
               onBlur={handleBlur}
               rightSection={getRightSection()}
-              error={false} // Error styling handled by outer container
               className={inputClasses}
               placeholder={placeholder}
               styles={{
@@ -834,7 +830,7 @@ export const EnhancedSelect = forwardRef<HTMLInputElement, EnhancedSelectProps>(
                 },
                 input: {
                   '&::placeholder': {
-                    opacity: `${(focused && !hasValue) ? 1 : 0} !important`,
+                    opacity: (focused && !hasValue) ? 1 : 0,
                     visibility: (focused && !hasValue) ? 'visible' : 'hidden',
                     transition: 'opacity 0.2s ease-in-out, visibility 0.2s ease-in-out'
                   },
@@ -917,7 +913,7 @@ export const EnhancedSelect = forwardRef<HTMLInputElement, EnhancedSelectProps>(
             },
             input: {
               '&::placeholder': {
-                opacity: `${(focused && !hasValue) ? 1 : 0} !important`,
+                opacity: (focused && !hasValue) ? 1 : 0,
                 visibility: (focused && !hasValue) ? 'visible' : 'hidden',
                 transition: 'opacity 0.2s ease-in-out, visibility 0.2s ease-in-out'
               },

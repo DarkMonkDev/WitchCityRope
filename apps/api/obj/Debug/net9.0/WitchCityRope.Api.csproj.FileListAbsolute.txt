@@ -142,3 +142,4 @@
 /home/chad/repos/witchcityrope-react/apps/api/bin/Debug/net9.0/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
 /home/chad/repos/witchcityrope-react/apps/api/bin/Debug/net9.0/Microsoft.IdentityModel.Tokens.dll
 /home/chad/repos/witchcityrope-react/apps/api/bin/Debug/net9.0/System.IdentityModel.Tokens.Jwt.dll
+/home/chad/repos/witchcityrope-react/apps/api/obj/Debug/net9.0/WitchCityRope.Api.sourcelink.json

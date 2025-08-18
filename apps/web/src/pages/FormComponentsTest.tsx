@@ -17,9 +17,7 @@ import {
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconInfoCircle, IconCheck, IconX } from '@tabler/icons-react';
-import {
-  EmergencyContactGroup
-} from '../components/forms';
+// Emergency contact form handled inline
 import { mockSubmitForm } from '../utils/mockApi';
 
 // Custom Floating Label Input Component with Underline Effect
@@ -648,13 +646,15 @@ export const FormComponentsTest: React.FC = () => {
       },
       select: (value) => !value ? 'Please select an option' : null,
       textarea: (value) => value.length > 500 ? 'Textarea must not exceed 500 characters' : null,
-      'emergencyContact.name': (value) => !value ? 'Emergency contact name is required' : null,
-      'emergencyContact.phone': (value) => {
-        if (!value) return 'Emergency contact phone is required';
-        const phoneRegex = /^\(\d{3}\)\s\d{3}-\d{4}$/;
-        return !phoneRegex.test(value) ? 'Please enter a valid phone number' : null;
-      },
-      'emergencyContact.relationship': (value) => !value ? 'Relationship is required' : null
+      emergencyContact: {
+        name: (value: string) => !value ? 'Emergency contact name is required' : null,
+        phone: (value: string) => {
+          if (!value) return 'Emergency contact phone is required';
+          const phoneRegex = /^\(\d{3}\)\s\d{3}-\d{4}$/;
+          return !phoneRegex.test(value) ? 'Please enter a valid phone number' : null;
+        },
+        relationship: (value: string) => !value ? 'Relationship is required' : null
+      }
     }
   });
 
@@ -844,7 +844,7 @@ export const FormComponentsTest: React.FC = () => {
             backdropFilter: 'blur(10px)',
             boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)'
           }}>
-            <form onSubmit={form.onSubmit(handleSubmit)}>
+            <form onSubmit={form.onSubmit((values) => handleSubmit(values as FormData))}>
               <Stack gap="xl">
                 
                 {/* Basic Components */}

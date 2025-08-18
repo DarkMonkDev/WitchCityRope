@@ -2,7 +2,7 @@
 
 > **⚠️ CRITICAL FOR ALL DEVELOPERS: READ THIS FIRST!**
 > 
-> This document describes the Web+API architecture pattern used by WitchCityRope. Understanding this is essential to avoid architectural mistakes that could break the entire application.
+> This document describes the Web+API architecture pattern used by WitchCityRope. WitchCityRope is **migrating from Blazor Server to React** while maintaining the proven API backend architecture. Understanding this is essential to avoid architectural mistakes that could break the entire application.
 
 ---
 
@@ -27,33 +27,34 @@ WitchCityRope uses a **Web+API microservices architecture** with the following s
 ```
 ┌─────────────────┐    HTTP Calls    ┌─────────────────┐
 │                 │ ───────────────► │                 │
-│  Web Service    │                  │  API Service    │
-│  (Blazor Server)│ ◄─────────────── │  (Minimal API)  │
+│ React Frontend  │                  │  API Service    │
+│ (Mantine UI)    │ ◄─────────────── │  (Minimal API)  │
 │                 │   JSON Responses │                 │
 └─────────────────┘                  └─────────────────┘
         │                                      │
-        │ Direct DB Access                     │ Direct DB Access
-        │ (Identity & Auth)                    │ (Business Logic)
+        │ No Direct DB Access                  │ Full DB Access
+        │ (API-only communication)             │ (All Operations)
         ▼                                      ▼
-┌─────────────────────────────────────────────────────────┐
-│             PostgreSQL Database                         │
-│         (Shared between services)                       │
-└─────────────────────────────────────────────────────────┘
+                ┌─────────────────────────────────────┐
+                │        PostgreSQL Database          │
+                │     (Single source of truth)       │
+                └─────────────────────────────────────┘
 ```
 
 ### Services Explained
 
-1. **Web Service (WitchCityRope.Web)**
-   - **Technology**: Blazor Server (.NET 9)
-   - **Purpose**: User interface, authentication, session management
-   - **Database Access**: Direct access for Identity operations only
-   - **Port**: 5651 (HTTP)
+1. **React Frontend (apps/web)**
+   - **Technology**: React + TypeScript + Vite + Mantine UI Framework
+   - **Purpose**: Modern single-page application, responsive user interface
+   - **Database Access**: None (calls API for all data)
+   - **Port**: 5173 (HTTP) - Development, 5651 (HTTP) - Docker
+   - **UI Framework**: Mantine v7 (ADR-004) - TypeScript-first, WCAG compliant
 
-2. **API Service (WitchCityRope.Api)**  
+2. **API Service (apps/api)**  
    - **Technology**: ASP.NET Core Minimal API (.NET 9)
-   - **Purpose**: Business logic, data operations, external integrations
-   - **Database Access**: Full access to all business entities
-   - **Port**: 5653 (HTTP)
+   - **Purpose**: Business logic, data operations, authentication endpoints
+   - **Database Access**: Full access to all business entities and Identity
+   - **Port**: 5655 (HTTP) - Development, 5653 (HTTP) - Docker
 
 3. **Database Service**
    - **Technology**: PostgreSQL 16
@@ -105,14 +106,14 @@ The API service exposes RESTful endpoints under `/api/v1/`:
 
 ## 🔌 Port Configuration
 
-### Development Ports (Docker)
+### Development Ports
 
-| Service | Internal Port | External Port | URL |
-|---------|---------------|---------------|-----|
-| Web | 8080 | 5651 | http://localhost:5651 |
-| API | 8080 | 5653 | http://localhost:5653 |
-| Database | 5432 | 5433 | localhost:5433 |
-| pgAdmin | 80 | 5050 | http://localhost:5050 |
+| Service | Development | Docker External | Docker Internal | URL |
+|---------|-------------|-----------------|-----------------|-----|
+| React | 5173 | 5651 | 3000 | http://localhost:5173 (dev) / http://localhost:5651 (docker) |
+| API | 5655 | 5653 | 8080 | http://localhost:5655 (dev) / http://localhost:5653 (docker) |
+| Database | - | 5433 | 5432 | localhost:5433 |
+| pgAdmin | - | 5050 | 80 | http://localhost:5050 |
 
 ### Configuration Files
 
@@ -144,37 +145,39 @@ api:
 
 The application uses a **hybrid authentication approach** with JWT service-to-service communication:
 
-1. **Web Service Authentication**
-   - Uses ASP.NET Core Identity with cookies for user sessions
-   - Direct database access to Identity tables
-   - Handles login/logout UI interactions
+1. **React Frontend Authentication**
+   - Uses httpOnly cookies with ASP.NET Core Identity backend
+   - HttpOnly cookies prevent XSS attacks while maintaining security
+   - React handles login/logout UI interactions
+   - **Frontend**: React + TypeScript + Mantine UI Framework
 
 2. **Service-to-Service JWT Authentication**
-   - Web service obtains JWT tokens from API service via shared secret
-   - All Web→API calls use JWT Bearer tokens
-   - Enables authenticated API access on behalf of logged-in users
+   - React app calls authentication endpoints that return httpOnly cookies
+   - All React→API calls use cookie-based authentication
+   - JWT tokens used for service-to-service communication (future microservices)
    - **📖 See detailed implementation**: `/docs/functional-areas/authentication/jwt-service-to-service-auth.md`
 
 3. **API Service Authentication**  
-   - Validates JWT tokens for all protected endpoints
-   - Can also access Identity tables for user validation
-   - Provides service token endpoints for internal communication
+   - Validates authentication cookies for all protected endpoints
+   - ASP.NET Core Identity manages user sessions and roles
+   - JWT capability maintained for future service expansion
 
 ### Authentication Components
 
-**Web Service (Cookie-based):**
-```csharp
-// Program.cs (lines 78-119)
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultScheme = "Cookies";
-    options.DefaultChallengeScheme = "Cookies";
-})
-.AddCookie("Cookies", options =>
-{
-    options.LoginPath = "/auth/login";
-    // ... cookie configuration
-});
+**React Frontend (API-based authentication):**
+```typescript
+// src/services/authService.ts
+export const authService = {
+  async login(email: string, password: string) {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      credentials: 'include', // Include cookies
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    return response.ok;
+  }
+};
 ```
 
 **API Service (JWT-based):**
@@ -189,10 +192,10 @@ builder.Services.AddAuthentication(options =>
 ### User Information Flow
 
 ```
-1. User logs in via Web UI → Saves cookie in Web service
-2. Web service needs data → Calls API service with user context  
-3. API validates request → Returns data to Web service
-4. Web service displays data → User sees result
+1. User logs in via React UI → Calls /api/auth/login → API sets httpOnly cookie
+2. React needs data → Calls API with cookie authentication
+3. API validates cookie → Returns data to React
+4. React displays data → User sees result
 ```
 
 **Evidence in Code:**
@@ -247,31 +250,32 @@ builder.Services.AddDbContext<WitchCityRopeIdentityDbContext>(options =>
 
 ## 📁 Key Files and Their Purposes
 
-### Web Service Key Files
+### React Frontend Key Files
 
 | File | Purpose | Critical Details |
 |------|---------|------------------|
-| `/src/WitchCityRope.Web/Program.cs` | Web service configuration | Blazor Server setup, Identity, HTTP clients |
-| `/src/WitchCityRope.Web/Services/ApiClient.cs` | HTTP communication with API | Web→API communication wrapper |
-| `/src/WitchCityRope.Web/Services/AuthService.cs` | Authentication proxy | Bridges Web auth with API calls |
-| `/src/WitchCityRope.Web/App.razor` | Root Blazor component | Entry point for all Blazor UI |
+| `/apps/web/src/main.tsx` | React application entry point | React root, Mantine provider setup |
+| `/apps/web/src/services/authService.ts` | Authentication service | HTTP calls to API auth endpoints |
+| `/apps/web/src/contexts/AuthContext.tsx` | React authentication context | Global auth state management |
+| `/apps/web/src/App.tsx` | Root React component | Router setup, layout, Mantine theme |
+| `/apps/web/vite.config.ts` | Vite configuration | Dev server, API proxy, build settings |
 
 ### API Service Key Files
 
 | File | Purpose | Critical Details |
 |------|---------|------------------|
-| `/src/WitchCityRope.Api/Program.cs` | API service configuration | Minimal API setup, endpoints, JWT |
-| `/src/WitchCityRope.Api/Controllers/` | API controllers | Business logic endpoints |
-| `/src/WitchCityRope.Api/Services/` | Business services | Core application services |
-| `/src/WitchCityRope.Api/Features/` | Feature modules | Organized by domain (Auth, Events, etc.) |
+| `/apps/api/Program.cs` | API service configuration | Minimal API setup, CORS, Identity, endpoints |
+| `/apps/api/Controllers/` | API controllers | Business logic endpoints |
+| `/apps/api/Services/` | Business services | Authentication, business logic services |
+| `/apps/api/Models/` | Data models and DTOs | Request/response models for API |
 
 ### Shared Infrastructure Files
 
 | File | Purpose | Critical Details |
 |------|---------|------------------|
-| `/src/WitchCityRope.Infrastructure/Data/WitchCityRopeIdentityDbContext.cs` | Database context | Shared by both services |
-| `/src/WitchCityRope.Infrastructure/Data/Migrations/` | Database migrations | Applied by both services |
-| `/src/WitchCityRope.Core/` | Domain entities | Shared business objects |
+| `/apps/api/Data/ApplicationDbContext.cs` | Database context | EF Core context for all data operations |
+| `/apps/api/Migrations/` | Database migrations | EF Core migrations |
+| `/apps/api/Models/` | Domain entities | Business objects and DTOs |
 
 ### Configuration Files
 
@@ -287,25 +291,32 @@ builder.Services.AddDbContext<WitchCityRopeIdentityDbContext>(options =>
 
 ### Starting the Application
 
-**⚠️ CRITICAL**: Always use development builds for hot reload:
-
+**Local Development (Recommended)**:
 ```bash
-# CORRECT: Use development build
+# Terminal 1: Start API
+cd apps/api
+dotnet run
+
+# Terminal 2: Start React
+cd apps/web  
+npm run dev
+```
+
+**Docker Development**:
+```bash
+# Use development build for hot reload
 ./dev.sh
 # OR
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-
-# WRONG: This will fail with hot reload issues
-docker-compose up
 ```
 
 ### Development Workflow
 
-1. **Start Services**: `./dev.sh` → Option 1
-2. **Access Application**: http://localhost:5651 (Web)
-3. **Access API**: http://localhost:5653 (API) 
-4. **View Logs**: `./dev.sh` → Options 4-6
-5. **Hot Reload**: Automatic when files change
+1. **Start Services**: Local (above) or `./dev.sh` → Option 1
+2. **Access Application**: http://localhost:5173 (React) or http://localhost:5651 (Docker)
+3. **Access API**: http://localhost:5655 (Local) or http://localhost:5653 (Docker)
+4. **View Logs**: `./dev.sh` → Options 4-6 (Docker only)
+5. **Hot Reload**: Automatic when files change (Vite HMR)
 
 ### Development Tools
 
@@ -335,55 +346,74 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ```
 
 ### 2. Incorrect API Communication
-```csharp
-// ❌ WRONG - Bypassing the API service
-var user = await _dbContext.Users.FindAsync(userId);
+```typescript
+// ❌ WRONG - No direct database access from React
+// React cannot access database directly
 
-// ✅ CORRECT - Using API service  
-var user = await _apiClient.GetAsync<UserDto>($"api/v1/users/{userId}");
+// ✅ CORRECT - Using API service from React
+const user = await authService.getCurrentUser();
+// OR
+const user = await fetch('/api/users/profile').then(r => r.json());
 ```
 
-### 3. Wrong Database Context Usage
-```csharp
-// ❌ WRONG - Web service accessing business entities directly
-var events = await _dbContext.Events.ToListAsync();
+### 3. Wrong Authentication Pattern
+```typescript
+// ❌ WRONG - Storing tokens in localStorage (XSS risk)
+localStorage.setItem('token', token);
 
-// ✅ CORRECT - Web service calling API for business data
-var events = await _apiClient.GetAsync<List<EventDto>>("api/v1/events");
+// ✅ CORRECT - Using httpOnly cookies via API endpoints
+const response = await fetch('/api/auth/login', {
+  method: 'POST',
+  credentials: 'include', // Important for cookies
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email, password })
+});
 ```
 
-### 4. Architecture Pattern Violations
-```csharp
-// ❌ WRONG - Adding Razor Pages to pure Blazor Server
-builder.Services.AddRazorPages(); // Don't do this!
+### 4. UI Framework Violations
+```typescript
+// ❌ WRONG - Mixing UI frameworks
+import { ChakraProvider } from '@chakra-ui/react';
+import { Button } from '@mui/material';
 
-// ✅ CORRECT - Pure Blazor Server pattern
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+// ✅ CORRECT - Consistent Mantine usage (ADR-004)
+import { MantineProvider, Button } from '@mantine/core';
 ```
 
-### 5. Port Configuration Errors
-```yaml
-# ❌ WRONG - Port conflicts or incorrect mapping
-api:
-  ports:
-    - "5651:8080"  # This conflicts with web service!
+### 5. Vite Proxy Configuration Errors
+```typescript
+// ❌ WRONG - Missing API proxy in vite.config.ts
+export default defineConfig({
+  plugins: [react()]
+});
 
-# ✅ CORRECT - Unique external ports
-api:
-  ports:
-    - "5653:8080"  # API gets its own port
+// ✅ CORRECT - Proper API proxy configuration
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5655', // Local API
+        changeOrigin: true
+      }
+    }
+  }
+});
 ```
 
 ---
 
 ## 🔧 Troubleshooting
 
-### Hot Reload Not Working
+### React Hot Reload Not Working
 
 **Symptoms**: Changes not reflected, build errors
 **Solution**:
 ```bash
+# Local development
+Ctrl+C and restart: npm run dev
+
+# Docker development
 ./dev.sh → Option 7 (Rebuild and restart)
 ```
 
@@ -460,13 +490,14 @@ docker ps --format "table {{.Names}}\t{{.Ports}}"
 
 ## 📚 Additional Resources
 
-- **Clean Architecture Guide**: `/docs/architecture/CURRENT-ARCHITECTURE-SUMMARY.md`
-- **Docker Development Guide**: `/DOCKER_DEV_GUIDE.md`
+- **React Migration Plan**: `/docs/architecture/react-migration/migration-plan.md`
+- **UI Framework Decision (Mantine)**: `/docs/architecture/decisions/adr-004-ui-framework-mantine.md`
+- **Mantine Documentation**: https://mantine.dev/
 - **JWT Service-to-Service Authentication**: `/docs/functional-areas/authentication/jwt-service-to-service-auth.md`
-- **Legacy Authentication Documentation**: `/docs/architecture/AUTHENTICATION-ARCHITECTURE.md`
-- **API Documentation**: Auto-generated Swagger at http://localhost:5653/swagger
-- **Testing Guide**: `/TESTING_GUIDE.md`
+- **Docker Development Guide**: `/docs/guides-setup/docker-operations-guide.md`
+- **API Documentation**: Auto-generated Swagger at http://localhost:5655/swagger (local) or http://localhost:5653/swagger (docker)
+- **React Testing Guide**: `/tests/README.md`
 
 ---
 
-> **🚨 Remember**: This is a microservices architecture. Always respect service boundaries and use proper communication patterns. When in doubt, check this document first!
+> **🚨 Remember**: This is a React + API architecture with Mantine UI framework. React communicates with API via HTTP calls with httpOnly cookie authentication. Always use Mantine components for UI consistency (ADR-004). When in doubt, check this document first!
