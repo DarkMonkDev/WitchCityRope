@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Container,
   Title,
@@ -11,22 +11,197 @@ import {
   Badge,
   Accordion,
   Code,
-  Alert
+  Alert,
+  Box
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconInfoCircle, IconCheck, IconX } from '@tabler/icons-react';
 import {
-  BaseInput,
   BaseSelect,
   BaseTextarea,
-  EmailInput,
-  PasswordInput,
-  SceneNameInput,
-  PhoneInput,
   EmergencyContactGroup
 } from '../components/forms';
 import { mockCheckEmailUnique, mockCheckSceneNameUnique, mockSubmitForm } from '../utils/mockApi';
+
+// Custom Floating Label Input Component with Underline Effect
+interface FloatingLabelInputProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  error?: string;
+  required?: boolean;
+  type?: string;
+  placeholder?: string;
+  description?: string;
+  disabled?: boolean;
+  'data-testid'?: string;
+}
+
+// Helper text mapping for each field
+const getHelperText = (label: string): string => {
+  switch (label) {
+    case 'Email Address':
+    case 'Email':
+      return "We'll never share your email";
+    case 'Password':
+      return 'Minimum 8 characters with special character';
+    case 'Scene Name':
+      return 'Your unique identifier in the community';
+    case 'Phone Number':
+    case 'Phone':
+      return 'For emergency contact only';
+    case 'Basic Input':
+      return 'This is a basic text input with validation';
+    default:
+      return '';
+  }
+};
+
+const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({ 
+  label, 
+  value, 
+  onChange, 
+  error, 
+  required,
+  type = 'text',
+  placeholder = ' ', // Space for floating effect
+  description,
+  disabled,
+  'data-testid': dataTestId
+}) => {
+  const [isFocused, setIsFocused] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  
+  const isActive = isFocused || value.length > 0;
+  
+  return (
+    <Box style={{ position: 'relative', marginBottom: '24px' }}>
+      {/* Input field container with underline */}
+      <Box style={{ position: 'relative' }}>
+        <input
+          ref={inputRef}
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder={placeholder}
+          disabled={disabled}
+          data-testid={dataTestId}
+          style={{
+            width: '100%',
+            backgroundColor: 'var(--mantine-color-dark-7) !important',
+            borderColor: error ? '#d63031' : isActive ? '#9b4a75' : 'rgba(212, 165, 165, 0.3)',
+            color: '#f8f4e6 !important',
+            fontSize: '16px',
+            padding: '16px 12px 8px 12px',
+            height: '56px',
+            borderRadius: '8px',
+            border: '1px solid',
+            transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            outline: 'none',
+            opacity: disabled ? 0.6 : 1,
+            cursor: disabled ? 'not-allowed' : 'text',
+            // Force dark background for all states
+            WebkitBoxShadow: 'inset 0 0 0 1000px var(--mantine-color-dark-7)',
+            // Ensure autocomplete doesn't override
+            '&:-webkit-autofill': {
+              WebkitBoxShadow: 'inset 0 0 0 1000px var(--mantine-color-dark-7) !important',
+              WebkitTextFillColor: '#f8f4e6 !important'
+            }
+          }}
+        />
+        
+        {/* Underline animation on focus - positioned under the input box with tapering effect */}
+        <Box
+          style={{
+            position: 'absolute',
+            bottom: '-1px',
+            left: '16px',
+            right: '16px',
+            height: '2px',
+            background: error ? '#d63031' : '#9b4a75',
+            opacity: isFocused ? 1 : 0,
+            transform: isFocused ? 'scaleX(1)' : 'scaleX(0)',
+            transformOrigin: 'center',
+            transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            borderRadius: '1px',
+            // Create tapering effect - last 15% on each side tapers from 2px to 1px
+            clipPath: 'polygon(0% 25%, 15% 0%, 85% 0%, 100% 25%, 100% 75%, 85% 100%, 15% 100%, 0% 75%)'
+          }}
+        />
+        
+        <Text
+          component="label"
+          onClick={() => inputRef.current?.focus()}
+          style={{
+            position: 'absolute',
+            left: '12px',
+            top: isActive ? '4px' : '18px',
+            fontSize: isActive ? '12px' : '16px',
+            color: error ? '#d63031' : isActive ? '#9b4a75' : 'rgba(248, 244, 230, 0.7)',
+            pointerEvents: 'none',
+            transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            transformOrigin: 'left center',
+            background: isActive ? 'var(--mantine-color-dark-7)' : 'transparent',
+            padding: isActive ? '0 4px' : '0',
+            zIndex: 1,
+            fontWeight: isActive ? 500 : 400
+          }}
+        >
+          {label}
+          {required && <span style={{ color: '#d63031', marginLeft: '2px' }}>*</span>}
+        </Text>
+      </Box>
+      
+      {error && (
+        <Text size="sm" c="red" mt="xs" style={{
+          animation: 'shake 0.5s ease-in-out'
+        }}>
+          {error}
+        </Text>
+      )}
+      
+      {/* Helper text */}
+      {!error && (description || getHelperText(label)) && (
+        <Text size="sm" c="dimmed" mt="xs" style={{
+          marginLeft: '12px',
+          opacity: 0.85,
+          fontSize: '1.1rem',
+          lineHeight: '1.6'
+        }}>
+          {description || getHelperText(label)}
+        </Text>
+      )}
+
+      <style>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-4px); }
+          75% { transform: translateX(4px); }
+        }
+        
+        /* Force dark backgrounds on all input states */
+        input[type="text"], input[type="email"], input[type="password"], input[type="tel"] {
+          background-color: var(--mantine-color-dark-7) !important;
+          color: #f8f4e6 !important;
+        }
+        
+        /* Override autofill styles */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+          -webkit-box-shadow: inset 0 0 0 1000px var(--mantine-color-dark-7) !important;
+          -webkit-text-fill-color: #f8f4e6 !important;
+          background-color: var(--mantine-color-dark-7) !important;
+          color: #f8f4e6 !important;
+        }
+      `}</style>
+    </Box>
+  );
+};
 
 interface FormData {
   basicInput: string;
@@ -183,263 +358,349 @@ export const FormComponentsTest: React.FC = () => {
   ];
 
   return (
-    <Container size="lg" py="xl">
-      <Stack gap="xl">
-        {/* Header */}
-        <div>
-          <Title order={1} mb="md">Mantine v7 Form Components Test</Title>
-          <Text c="dimmed" size="lg">
-            Comprehensive testing page for all WitchCityRope form components with various states and interactions.
-          </Text>
-        </div>
-
-        {/* Test Controls */}
-        <Paper p="md" withBorder>
-          <Title order={2} size="h3" mb="md">Test Controls</Title>
-          <Group>
-            <Button 
-              onClick={fillTestData} 
-              variant="light"
-              data-testid="fill-test-data"
+    <Box style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%)',
+      paddingTop: '40px',
+      paddingBottom: '40px'
+    }}>
+      <Container size="lg">
+        <Stack gap="xl">
+          {/* Header */}
+          <Box style={{ textAlign: 'center' }}>
+            <Text
+              size="xl"
+              fw={700}
+              mb="md"
+              style={{
+                background: 'linear-gradient(135deg, #d4a5a5 0%, #c48b8b 50%, #b47171 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                fontSize: '42px',
+                fontFamily: 'Bodoni Moda, serif',
+                letterSpacing: '1px'
+              }}
             >
-              Fill Test Data
-            </Button>
-            <Button 
-              onClick={fillConflictData} 
-              variant="light" 
-              color="orange"
-              data-testid="fill-conflict-data"
-            >
-              Fill Conflict Data
-            </Button>
-            <Button 
-              onClick={toggleErrors} 
-              variant="light" 
-              color={formStates.showErrors ? 'red' : 'blue'}
-              data-testid="toggle-errors"
-            >
-              {formStates.showErrors ? 'Hide' : 'Show'} Validation Errors
-            </Button>
-            <Button 
-              onClick={toggleDisabled} 
-              variant="light" 
-              color={formStates.disableAll ? 'red' : 'gray'}
-              data-testid="toggle-disabled"
-            >
-              {formStates.disableAll ? 'Enable' : 'Disable'} All Fields
-            </Button>
-          </Group>
-        </Paper>
+              Form Components Test
+            </Text>
+            <Text size="lg" c="dimmed" mb="xs">
+              Floating Label Design with Dark Theme
+            </Text>
+            <Text c="dimmed" maw={800} mx="auto">
+              Comprehensive testing page for all WitchCityRope form components with floating labels, underline effects, and dark theme styling.
+            </Text>
+          </Box>
 
-        {/* Instructions */}
-        <Alert icon={<IconInfoCircle size={16} />} title="Testing Instructions" color="blue">
-          <Stack gap="xs">
-            <Text size="sm">• Use "Fill Test Data" to populate all fields with valid data</Text>
-            <Text size="sm">• Use "Fill Conflict Data" to test validation errors and async uniqueness checks</Text>
-            <Text size="sm">• Try typing "taken@example.com" in email field to see async validation</Text>
-            <Text size="sm">• Try typing "admin" in scene name field to see async validation</Text>
-            <Text size="sm">• Password field shows real-time strength meter and requirements</Text>
-            <Text size="sm">• Phone field auto-formats as you type (US format)</Text>
-          </Stack>
-        </Alert>
-
-        {/* Main Form */}
-        <form onSubmit={form.onSubmit(handleSubmit)}>
-          <Stack gap="xl">
-            
-            {/* Basic Components */}
-            <Paper p="md" withBorder>
-              <Title order={2} size="h3" mb="md">Basic Form Components</Title>
-              <Grid>
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                  <BaseInput
-                    label="Basic Input"
-                    placeholder="Enter some text"
-                    description="This is a basic text input with validation"
-                    withAsterisk
-                    disabled={formStates.disableAll}
-                    data-testid="basic-input"
-                    {...form.getInputProps('basicInput')}
-                  />
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                  <BaseSelect
-                    label="Basic Select"
-                    placeholder="Choose an option"
-                    description="This is a basic select dropdown"
-                    data={selectOptions}
-                    withAsterisk
-                    disabled={formStates.disableAll}
-                    data-testid="basic-select"
-                    {...form.getInputProps('select')}
-                  />
-                </Grid.Col>
-                <Grid.Col span={12}>
-                  <BaseTextarea
-                    label="Basic Textarea"
-                    placeholder="Enter your message here..."
-                    description="This is a basic textarea (max 500 characters)"
-                    rows={4}
-                    maxLength={500}
-                    disabled={formStates.disableAll}
-                    data-testid="basic-textarea"
-                    {...form.getInputProps('textarea')}
-                  />
-                </Grid.Col>
-              </Grid>
-            </Paper>
-
-            {/* Specialized Components */}
-            <Paper p="md" withBorder>
-              <Title order={2} size="h3" mb="md">Specialized WitchCityRope Components</Title>
-              <Grid>
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                  <EmailInput
-                    withAsterisk
-                    description="Checks email uniqueness (try 'taken@example.com')"
-                    checkUniqueness
-                    onUniquenessCheck={mockCheckEmailUnique}
-                    disabled={formStates.disableAll}
-                    data-testid="email-input"
-                    {...form.getInputProps('email')}
-                  />
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                  <SceneNameInput
-                    label="Scene Name"
-                    description="Checks scene name uniqueness (try 'admin')"
-                    withAsterisk
-                    checkUniqueness
-                    onUniquenessCheck={mockCheckSceneNameUnique}
-                    disabled={formStates.disableAll}
-                    data-testid="scene-name-input"
-                    {...form.getInputProps('sceneName')}
-                  />
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                  <PasswordInput
-                    label="Password"
-                    description="Shows real-time strength meter and requirements"
-                    withAsterisk
-                    showStrengthMeter
-                    disabled={formStates.disableAll}
-                    data-testid="password-input"
-                    {...form.getInputProps('password')}
-                  />
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                  <PhoneInput
-                    label="Phone Number"
-                    description="Auto-formats US phone numbers as you type"
-                    disabled={formStates.disableAll}
-                    data-testid="phone-input"
-                    {...form.getInputProps('phone')}
-                  />
-                </Grid.Col>
-              </Grid>
-            </Paper>
-
-            {/* Emergency Contact Group */}
-            <Paper p="md" withBorder>
-              <Title order={2} size="h3" mb="md">Emergency Contact Group</Title>
-              <EmergencyContactGroup
-                form={form}
-                basePath="emergencyContact"
-                relationshipOptions={relationshipOptions}
-                disabled={formStates.disableAll}
-                data-testid="emergency-contact"
-              />
-            </Paper>
-
-            {/* Form State Display */}
-            <Paper p="md" withBorder>
-              <Title order={2} size="h3" mb="md">Form State</Title>
-              <Grid>
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                  <Stack gap="xs">
-                    <Group>
-                      <Badge color={form.isValid() ? 'green' : 'red'}>
-                        {form.isValid() ? 'Valid' : 'Invalid'}
-                      </Badge>
-                      <Badge color={form.isDirty() ? 'blue' : 'gray'}>
-                        {form.isDirty() ? 'Dirty' : 'Pristine'}
-                      </Badge>
-                      <Badge color={formStates.isSubmitting ? 'yellow' : 'gray'}>
-                        {formStates.isSubmitting ? 'Submitting' : 'Ready'}
-                      </Badge>
-                    </Group>
-                  </Stack>
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                  <Accordion variant="contained">
-                    <Accordion.Item value="form-values">
-                      <Accordion.Control>View Form Values</Accordion.Control>
-                      <Accordion.Panel>
-                        <Code block>
-                          {JSON.stringify(form.values, null, 2)}
-                        </Code>
-                      </Accordion.Panel>
-                    </Accordion.Item>
-                    <Accordion.Item value="form-errors">
-                      <Accordion.Control>View Form Errors</Accordion.Control>
-                      <Accordion.Panel>
-                        <Code block>
-                          {JSON.stringify(form.errors, null, 2)}
-                        </Code>
-                      </Accordion.Panel>
-                    </Accordion.Item>
-                  </Accordion>
-                </Grid.Col>
-              </Grid>
-            </Paper>
-
-            {/* Submit Button */}
-            <Group justify="center">
-              <Button
-                type="submit"
-                size="lg"
-                loading={formStates.isSubmitting}
-                disabled={formStates.disableAll}
-                data-testid="submit-button"
+          {/* Test Controls */}
+          <Paper p="md" style={{
+            background: 'rgba(44, 44, 44, 0.8)',
+            border: '1px solid rgba(212, 165, 165, 0.1)',
+            borderRadius: '12px',
+            backdropFilter: 'blur(10px)'
+          }}>
+            <Title order={2} size="h3" mb="md" c="white">Test Controls</Title>
+            <Group>
+              <Button 
+                onClick={fillTestData} 
+                variant="light"
+                data-testid="fill-test-data"
               >
-                {formStates.isSubmitting ? 'Submitting...' : 'Submit Form'}
+                Fill Test Data
+              </Button>
+              <Button 
+                onClick={fillConflictData} 
+                variant="light" 
+                color="orange"
+                data-testid="fill-conflict-data"
+              >
+                Fill Conflict Data
+              </Button>
+              <Button 
+                onClick={toggleErrors} 
+                variant="light" 
+                color={formStates.showErrors ? 'red' : 'blue'}
+                data-testid="toggle-errors"
+              >
+                {formStates.showErrors ? 'Hide' : 'Show'} Validation Errors
+              </Button>
+              <Button 
+                onClick={toggleDisabled} 
+                variant="light" 
+                color={formStates.disableAll ? 'red' : 'gray'}
+                data-testid="toggle-disabled"
+              >
+                {formStates.disableAll ? 'Enable' : 'Disable'} All Fields
               </Button>
             </Group>
+          </Paper>
 
-          </Stack>
-        </form>
+          {/* Instructions */}
+          <Alert icon={<IconInfoCircle size={16} />} title="Testing Instructions" color="blue" style={{
+            background: 'rgba(59, 130, 246, 0.1)',
+            border: '1px solid rgba(59, 130, 246, 0.3)'
+          }}>
+            <Stack gap="xs">
+              <Text size="sm">• Use "Fill Test Data" to populate all fields with valid data</Text>
+              <Text size="sm">• Use "Fill Conflict Data" to test validation errors and async uniqueness checks</Text>
+              <Text size="sm">• Click in and out of fields to see floating label animations</Text>
+              <Text size="sm">• Focus on fields to see elegant underline animation</Text>
+              <Text size="sm">• All fields use floating labels with clean focus indicators</Text>
+              <Text size="sm">• Dark theme with sophisticated color transitions</Text>
+            </Stack>
+          </Alert>
 
-        {/* Component Documentation */}
-        <Paper p="md" withBorder>
-          <Title order={2} size="h3" mb="md">Component Features Demonstrated</Title>
-          <Grid>
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <Stack gap="xs">
-                <Text fw={700}>Interaction States:</Text>
-                <Text size="sm">• Default/empty state</Text>
-                <Text size="sm">• Hover effects (CSS)</Text>
-                <Text size="sm">• Focus states</Text>
-                <Text size="sm">• Filled states</Text>
-                <Text size="sm">• Loading states (async validation)</Text>
-                <Text size="sm">• Disabled states</Text>
+          {/* Main Form */}
+          <Box style={{
+            background: 'linear-gradient(135deg, rgba(44, 44, 44, 0.8) 0%, rgba(26, 26, 26, 0.9) 100%)',
+            padding: '40px',
+            borderRadius: '12px',
+            border: '1px solid rgba(212, 165, 165, 0.1)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)'
+          }}>
+            <form onSubmit={form.onSubmit(handleSubmit)}>
+              <Stack gap="xl">
+                
+                {/* Basic Components */}
+                <Box>
+                  <Title order={2} size="h3" mb="md" c="white">Basic Form Components</Title>
+                  <Grid>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <FloatingLabelInput
+                        label="Basic Input"
+                        value={form.values.basicInput}
+                        onChange={(value) => form.setFieldValue('basicInput', value)}
+                        error={form.errors.basicInput}
+                        required
+                        disabled={formStates.disableAll}
+                        data-testid="basic-input"
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <BaseSelect
+                        label="Basic Select"
+                        placeholder="Choose an option"
+                        description="This is a basic select dropdown"
+                        data={selectOptions}
+                        withAsterisk
+                        disabled={formStates.disableAll}
+                        data-testid="basic-select"
+                        {...form.getInputProps('select')}
+                        styles={{
+                          input: {
+                            backgroundColor: 'var(--mantine-color-dark-7)',
+                            borderColor: 'rgba(212, 165, 165, 0.3)',
+                            color: '#f8f4e6'
+                          },
+                          label: {
+                            color: '#f8f4e6'
+                          }
+                        }}
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={12}>
+                      <BaseTextarea
+                        label="Basic Textarea"
+                        placeholder="Enter your message here..."
+                        description="This is a basic textarea (max 500 characters)"
+                        rows={4}
+                        maxLength={500}
+                        disabled={formStates.disableAll}
+                        data-testid="basic-textarea"
+                        {...form.getInputProps('textarea')}
+                        styles={{
+                          input: {
+                            backgroundColor: 'var(--mantine-color-dark-7)',
+                            borderColor: 'rgba(212, 165, 165, 0.3)',
+                            color: '#f8f4e6'
+                          },
+                          label: {
+                            color: '#f8f4e6'
+                          }
+                        }}
+                      />
+                    </Grid.Col>
+                  </Grid>
+                </Box>
+
+                {/* Specialized Components */}
+                <Box>
+                  <Title order={2} size="h3" mb="md" c="white">Floating Label Inputs</Title>
+                  <Grid>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <FloatingLabelInput
+                        label="Email Address"
+                        type="email"
+                        value={form.values.email}
+                        onChange={(value) => form.setFieldValue('email', value)}
+                        error={form.errors.email}
+                        required
+                        description="Checks email uniqueness (try 'taken@example.com')"
+                        disabled={formStates.disableAll}
+                        data-testid="email-input"
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <FloatingLabelInput
+                        label="Scene Name"
+                        value={form.values.sceneName}
+                        onChange={(value) => form.setFieldValue('sceneName', value)}
+                        error={form.errors.sceneName}
+                        required
+                        description="Checks scene name uniqueness (try 'admin')"
+                        disabled={formStates.disableAll}
+                        data-testid="scene-name-input"
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <FloatingLabelInput
+                        label="Password"
+                        type="password"
+                        value={form.values.password}
+                        onChange={(value) => form.setFieldValue('password', value)}
+                        error={form.errors.password}
+                        required
+                        description="Shows real-time strength meter and requirements"
+                        disabled={formStates.disableAll}
+                        data-testid="password-input"
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <FloatingLabelInput
+                        label="Phone Number"
+                        type="tel"
+                        value={form.values.phone}
+                        onChange={(value) => form.setFieldValue('phone', value)}
+                        error={form.errors.phone}
+                        description="Auto-formats US phone numbers as you type"
+                        disabled={formStates.disableAll}
+                        data-testid="phone-input"
+                      />
+                    </Grid.Col>
+                  </Grid>
+                </Box>
+
+                {/* Emergency Contact Group */}
+                <Box>
+                  <Title order={2} size="h3" mb="md" c="white">Emergency Contact Group</Title>
+                  <EmergencyContactGroup
+                    form={form}
+                    basePath="emergencyContact"
+                    relationshipOptions={relationshipOptions}
+                    disabled={formStates.disableAll}
+                    data-testid="emergency-contact"
+                  />
+                </Box>
+
+                {/* Submit Button */}
+                <Group justify="center" mt="xl">
+                  <Button
+                    type="submit"
+                    size="lg"
+                    variant="gradient"
+                    gradient={{ from: 'grape.6', to: 'grape.7', deg: 45 }}
+                    loading={formStates.isSubmitting}
+                    disabled={formStates.disableAll}
+                    data-testid="submit-button"
+                    style={{
+                      height: '56px',
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}
+                  >
+                    {formStates.isSubmitting ? 'Submitting...' : 'Submit Form'}
+                  </Button>
+                </Group>
+
               </Stack>
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <Stack gap="xs">
-                <Text fw={700}>Validation Features:</Text>
-                <Text size="sm">• Required field validation</Text>
-                <Text size="sm">• Format validation (email, phone)</Text>
-                <Text size="sm">• Async uniqueness validation</Text>
-                <Text size="sm">• Password strength meter</Text>
-                <Text size="sm">• Real-time feedback</Text>
-                <Text size="sm">• Error message display</Text>
-              </Stack>
-            </Grid.Col>
-          </Grid>
-        </Paper>
+            </form>
+          </Box>
 
-      </Stack>
-    </Container>
+          {/* Form State Display */}
+          <Paper p="md" style={{
+            background: 'rgba(44, 44, 44, 0.8)',
+            border: '1px solid rgba(212, 165, 165, 0.1)',
+            borderRadius: '12px',
+            backdropFilter: 'blur(10px)'
+          }}>
+            <Title order={2} size="h3" mb="md" c="white">Form State</Title>
+            <Grid>
+              <Grid.Col span={{ base: 12, md: 6 }}>
+                <Stack gap="xs">
+                  <Group>
+                    <Badge color={form.isValid() ? 'green' : 'red'}>
+                      {form.isValid() ? 'Valid' : 'Invalid'}
+                    </Badge>
+                    <Badge color={form.isDirty() ? 'blue' : 'gray'}>
+                      {form.isDirty() ? 'Dirty' : 'Pristine'}
+                    </Badge>
+                    <Badge color={formStates.isSubmitting ? 'yellow' : 'gray'}>
+                      {formStates.isSubmitting ? 'Submitting' : 'Ready'}
+                    </Badge>
+                  </Group>
+                </Stack>
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, md: 6 }}>
+                <Accordion variant="contained">
+                  <Accordion.Item value="form-values">
+                    <Accordion.Control>View Form Values</Accordion.Control>
+                    <Accordion.Panel>
+                      <Code block>
+                        {JSON.stringify(form.values, null, 2)}
+                      </Code>
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                  <Accordion.Item value="form-errors">
+                    <Accordion.Control>View Form Errors</Accordion.Control>
+                    <Accordion.Panel>
+                      <Code block>
+                        {JSON.stringify(form.errors, null, 2)}
+                      </Code>
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                </Accordion>
+              </Grid.Col>
+            </Grid>
+          </Paper>
+
+          {/* Component Documentation */}
+          <Paper p="md" style={{
+            background: 'rgba(44, 44, 44, 0.8)',
+            border: '1px solid rgba(212, 165, 165, 0.1)',
+            borderRadius: '12px',
+            backdropFilter: 'blur(10px)'
+          }}>
+            <Title order={2} size="h3" mb="md" c="white">Design Features Demonstrated</Title>
+            <Grid>
+              <Grid.Col span={{ base: 12, md: 6 }}>
+                <Stack gap="xs">
+                  <Text fw={700} c="white">Floating Label Features:</Text>
+                  <Text size="sm" c="dimmed">• Labels smoothly animate up when focused or filled</Text>
+                  <Text size="sm" c="dimmed">• Clean underline animation on focus</Text>
+                  <Text size="sm" c="dimmed">• Elegant transitions with cubic-bezier easing</Text>
+                  <Text size="sm" c="dimmed">• Dark theme with sophisticated colors</Text>
+                  <Text size="sm" c="dimmed">• Helper text with 1.1rem for readability</Text>
+                  <Text size="sm" c="dimmed">• Error states with shake animation</Text>
+                </Stack>
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, md: 6 }}>
+                <Stack gap="xs">
+                  <Text fw={700} c="white">Interaction States:</Text>
+                  <Text size="sm" c="dimmed">• Default/empty with subtle borders</Text>
+                  <Text size="sm" c="dimmed">• Focus with brand color underline</Text>
+                  <Text size="sm" c="dimmed">• Filled with elevated label position</Text>
+                  <Text size="sm" c="dimmed">• Error with red color and animation</Text>
+                  <Text size="sm" c="dimmed">• Disabled with reduced opacity</Text>
+                  <Text size="sm" c="dimmed">• All test controls still functional</Text>
+                </Stack>
+              </Grid.Col>
+            </Grid>
+          </Paper>
+
+        </Stack>
+      </Container>
+    </Box>
   );
 };
 
