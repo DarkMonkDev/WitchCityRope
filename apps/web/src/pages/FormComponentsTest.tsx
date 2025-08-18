@@ -149,11 +149,11 @@ const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
           }}
         />
         
-        {/* Underline animation on focus - positioned under the input box with tapering effect */}
+        {/* Underline animation on focus - positioned just below the bottom border */}
         <Box
           style={{
             position: 'absolute',
-            bottom: '-1px',
+            bottom: '-2px',
             left: '16px',
             right: '16px',
             height: '2px',
@@ -393,11 +393,11 @@ const FloatingLabelTextarea: React.FC<FloatingLabelTextareaProps> = ({
           }}
         />
         
-        {/* Underline animation on focus - positioned under the textarea box with tapering effect */}
+        {/* Underline animation on focus - positioned to overlap the bottom border of textarea */}
         <Box
           style={{
             position: 'absolute',
-            bottom: '-1px',
+            bottom: '0px',
             left: '16px',
             right: '16px',
             height: '2px',
