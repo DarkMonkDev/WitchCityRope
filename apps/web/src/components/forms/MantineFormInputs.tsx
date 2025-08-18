@@ -127,7 +127,8 @@ export const EnhancedTextInput = forwardRef<HTMLInputElement, EnhancedTextInputP
     if (label) {
       return (
         <Box className={containerClasses}>
-          <Box style={{ position: 'relative' }}>
+          {/* Input container isolates input + label from helper text */}
+          <Box className={styles.inputContainer}>
             <TextInput
               ref={ref}
               data-testid={testId}
@@ -136,42 +137,27 @@ export const EnhancedTextInput = forwardRef<HTMLInputElement, EnhancedTextInputP
               onBlur={handleBlur}
               rightSection={getRightSection()}
               rightSectionProps={{ style: { pointerEvents: 'none' } }}
-              error={error}
+              error={false} // Error styling handled by outer container
               className={inputClasses}
               placeholder={placeholder}
               styles={{
                 root: {
-                  display: 'flex',
-                  flexDirection: 'column'
-                },
-                label: {
-                  order: 1,
-                  marginBottom: 'var(--mantine-spacing-xs)'
+                  position: 'relative'
                 },
                 wrapper: {
-                  order: 2
+                  position: 'relative'
                 },
                 input: {
                   '&::placeholder': {
                     opacity: (focused && !hasValue) ? 1 : 0,
                     transition: 'opacity 0.2s ease-in-out'
                   }
-                },
-                description: {
-                  order: 3,
-                  textAlign: 'left',
-                  marginTop: 'var(--mantine-spacing-xs)',
-                  fontSize: 'var(--mantine-font-size-xs)',
-                  color: 'var(--mantine-color-gray-6)'
-                },
-                error: {
-                  order: 4,
-                  textAlign: 'left',
-                  marginTop: 'var(--mantine-spacing-xs)',
-                  fontSize: 'var(--mantine-font-size-xs)'
                 }
               }}
               {...props}
+              // Remove description and error from here - they go outside
+              description={undefined}
+              error={undefined}
             />
             <Text
               className={clsx(styles.floatingLabel, {
@@ -185,6 +171,27 @@ export const EnhancedTextInput = forwardRef<HTMLInputElement, EnhancedTextInputP
               {label}
             </Text>
           </Box>
+          {/* Description and error outside the input container */}
+          {props.description && (
+            <Text
+              size="xs"
+              c="dimmed"
+              mt="xs"
+              style={{ textAlign: 'left' }}
+            >
+              {props.description}
+            </Text>
+          )}
+          {error && (
+            <Text
+              size="xs"
+              c="red"
+              mt="xs"
+              style={{ textAlign: 'left' }}
+            >
+              {error}
+            </Text>
+          )}
         </Box>
       );
     }
@@ -319,49 +326,34 @@ export const EnhancedPasswordInput = forwardRef<HTMLInputElement, EnhancedPasswo
     );
 
     const passwordInput = label ? (
-      <Box style={{ position: 'relative' }}>
+      <Box className={styles.inputContainer}>
         <MantinePasswordInput
           ref={ref}
           data-testid={testId}
           value={value}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          error={error}
+          error={false} // Error styling handled by outer container
           className={inputClasses}
           placeholder={placeholder}
           styles={{
             root: {
-              display: 'flex',
-              flexDirection: 'column'
-            },
-            label: {
-              order: 1,
-              marginBottom: 'var(--mantine-spacing-xs)'
+              position: 'relative'
             },
             wrapper: {
-              order: 2
+              position: 'relative'
             },
             input: {
               '&::placeholder': {
                 opacity: (focused && !hasValue) ? 1 : 0,
                 transition: 'opacity 0.2s ease-in-out'
               }
-            },
-            description: {
-              order: 3,
-              textAlign: 'left',
-              marginTop: 'var(--mantine-spacing-xs)',
-              fontSize: 'var(--mantine-font-size-xs)',
-              color: 'var(--mantine-color-gray-6)'
-            },
-            error: {
-              order: 4,
-              textAlign: 'left',
-              marginTop: 'var(--mantine-spacing-xs)',
-              fontSize: 'var(--mantine-font-size-xs)'
             }
           }}
           {...props}
+          // Remove description and error from here - they go outside
+          description={undefined}
+          error={undefined}
         />
         <Text
           className={clsx(styles.floatingLabel, {
@@ -426,6 +418,27 @@ export const EnhancedPasswordInput = forwardRef<HTMLInputElement, EnhancedPasswo
       return (
         <Box className={containerClasses}>
           {passwordInput}
+          {/* Description and error outside the input container */}
+          {props.description && (
+            <Text
+              size="xs"
+              c="dimmed"
+              mt="xs"
+              style={{ textAlign: 'left' }}
+            >
+              {props.description}
+            </Text>
+          )}
+          {error && (
+            <Text
+              size="xs"
+              c="red"
+              mt="xs"
+              style={{ textAlign: 'left' }}
+            >
+              {error}
+            </Text>
+          )}
         </Box>
       );
     }
@@ -434,6 +447,26 @@ export const EnhancedPasswordInput = forwardRef<HTMLInputElement, EnhancedPasswo
       <Box className={containerClasses}>
         <Stack gap="xs">
           {passwordInput}
+          
+          {/* Description and error outside the input container */}
+          {props.description && (
+            <Text
+              size="xs"
+              c="dimmed"
+              style={{ textAlign: 'left' }}
+            >
+              {props.description}
+            </Text>
+          )}
+          {error && (
+            <Text
+              size="xs"
+              c="red"
+              style={{ textAlign: 'left' }}
+            >
+              {error}
+            </Text>
+          )}
           
           {/* Password Strength Progress Bar */}
           <Box>
@@ -537,49 +570,35 @@ export const EnhancedTextarea = forwardRef<HTMLTextAreaElement, EnhancedTextarea
     if (label) {
       return (
         <Box className={containerClasses}>
-          <Box style={{ position: 'relative' }}>
+          {/* Input container isolates input + label from helper text */}
+          <Box className={styles.inputContainer}>
             <Textarea
               ref={ref}
               data-testid={testId}
               value={value}
               onFocus={handleFocus}
               onBlur={handleBlur}
-              error={error}
+              error={false} // Error styling handled by outer container
               className={inputClasses}
               placeholder={placeholder}
               styles={{
                 root: {
-                  display: 'flex',
-                  flexDirection: 'column'
-                },
-                label: {
-                  order: 1,
-                  marginBottom: 'var(--mantine-spacing-xs)'
+                  position: 'relative'
                 },
                 wrapper: {
-                  order: 2
+                  position: 'relative'
                 },
                 input: {
                   '&::placeholder': {
                     opacity: (focused && !hasValue) ? 1 : 0,
                     transition: 'opacity 0.2s ease-in-out'
                   }
-                },
-                description: {
-                  order: 3,
-                  textAlign: 'left',
-                  marginTop: 'var(--mantine-spacing-xs)',
-                  fontSize: 'var(--mantine-font-size-xs)',
-                  color: 'var(--mantine-color-gray-6)'
-                },
-                error: {
-                  order: 4,
-                  textAlign: 'left',
-                  marginTop: 'var(--mantine-spacing-xs)',
-                  fontSize: 'var(--mantine-font-size-xs)'
                 }
               }}
               {...props}
+              // Remove description and error from here - they go outside
+              description={undefined}
+              error={undefined}
             />
             <Text
               className={clsx(styles.floatingLabel, {
@@ -593,6 +612,27 @@ export const EnhancedTextarea = forwardRef<HTMLTextAreaElement, EnhancedTextarea
               {label}
             </Text>
           </Box>
+          {/* Description and error outside the input container */}
+          {props.description && (
+            <Text
+              size="xs"
+              c="dimmed"
+              mt="xs"
+              style={{ textAlign: 'left' }}
+            >
+              {props.description}
+            </Text>
+          )}
+          {error && (
+            <Text
+              size="xs"
+              c="red"
+              mt="xs"
+              style={{ textAlign: 'left' }}
+            >
+              {error}
+            </Text>
+          )}
         </Box>
       );
     }
@@ -714,7 +754,8 @@ export const EnhancedSelect = forwardRef<HTMLInputElement, EnhancedSelectProps>(
     if (label) {
       return (
         <Box className={containerClasses}>
-          <Box style={{ position: 'relative' }}>
+          {/* Input container isolates input + label from helper text */}
+          <Box className={styles.inputContainer}>
             <Select
               ref={ref}
               data-testid={testId}
@@ -722,42 +763,27 @@ export const EnhancedSelect = forwardRef<HTMLInputElement, EnhancedSelectProps>(
               onFocus={handleFocus}
               onBlur={handleBlur}
               rightSection={getRightSection()}
-              error={error}
+              error={false} // Error styling handled by outer container
               className={inputClasses}
               placeholder={placeholder}
               styles={{
                 root: {
-                  display: 'flex',
-                  flexDirection: 'column'
-                },
-                label: {
-                  order: 1,
-                  marginBottom: 'var(--mantine-spacing-xs)'
+                  position: 'relative'
                 },
                 wrapper: {
-                  order: 2
+                  position: 'relative'
                 },
                 input: {
                   '&::placeholder': {
                     opacity: (focused && !hasValue) ? 1 : 0,
                     transition: 'opacity 0.2s ease-in-out'
                   }
-                },
-                description: {
-                  order: 3,
-                  textAlign: 'left',
-                  marginTop: 'var(--mantine-spacing-xs)',
-                  fontSize: 'var(--mantine-font-size-xs)',
-                  color: 'var(--mantine-color-gray-6)'
-                },
-                error: {
-                  order: 4,
-                  textAlign: 'left',
-                  marginTop: 'var(--mantine-spacing-xs)',
-                  fontSize: 'var(--mantine-font-size-xs)'
                 }
               }}
               {...props}
+              // Remove description and error from here - they go outside
+              description={undefined}
+              error={undefined}
             />
             <Text
               className={clsx(styles.floatingLabel, {
@@ -771,6 +797,27 @@ export const EnhancedSelect = forwardRef<HTMLInputElement, EnhancedSelectProps>(
               {label}
             </Text>
           </Box>
+          {/* Description and error outside the input container */}
+          {props.description && (
+            <Text
+              size="xs"
+              c="dimmed"
+              mt="xs"
+              style={{ textAlign: 'left' }}
+            >
+              {props.description}
+            </Text>
+          )}
+          {error && (
+            <Text
+              size="xs"
+              c="red"
+              mt="xs"
+              style={{ textAlign: 'left' }}
+            >
+              {error}
+            </Text>
+          )}
         </Box>
       );
     }

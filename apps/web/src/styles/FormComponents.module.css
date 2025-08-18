@@ -7,7 +7,7 @@
   z-index: 0;
 }
 
-/* Position floating label relative to the form group, targeting the input wrapper specifically */
+/* Position floating label relative to the input wrapper specifically, not the entire form group */
 .formGroup .floatingLabel {
   position: absolute;
   left: var(--mantine-spacing-sm);
@@ -19,107 +19,87 @@
   z-index: 1;
   font-size: var(--mantine-font-size-sm);
   transform-origin: left center;
-  /* Position relative to the input wrapper - find wrapper and position accordingly */
-  top: var(--mantine-spacing-xs); /* Account for label space */
+  /* Default position - will be overridden by wrapper-specific rules */
+  top: 50%;
+  transform: translateY(-50%);
 }
 
-/* Target the wrapper specifically by finding Mantine component wrapper classes */
-.formGroup :global(.mantine-TextInput-wrapper),
-.formGroup :global(.mantine-PasswordInput-wrapper),
-.formGroup :global(.mantine-Textarea-wrapper),
-.formGroup :global(.mantine-Select-wrapper) {
+/* Input wrapper positioning container - this isolates input + label from helper text */
+.inputContainer {
   position: relative;
 }
 
-/* Position label relative to the wrapper, not the root */
-.formGroup :global(.mantine-TextInput-wrapper) ~ .floatingLabel,
-.formGroup :global(.mantine-PasswordInput-wrapper) ~ .floatingLabel,
-.formGroup :global(.mantine-Textarea-wrapper) ~ .floatingLabel,
-.formGroup :global(.mantine-Select-wrapper) ~ .floatingLabel {
-  /* Reset position to be relative to wrapper */
+/* Target the wrapper specifically by finding Mantine component wrapper classes */
+.inputContainer :global(.mantine-TextInput-wrapper),
+.inputContainer :global(.mantine-PasswordInput-wrapper),
+.inputContainer :global(.mantine-Textarea-wrapper),
+.inputContainer :global(.mantine-Select-wrapper) {
+  position: relative;
+}
+
+/* Position label relative to the input container (wrapper + label only), not the form group */
+.inputContainer .floatingLabel {
+  /* Position relative to input wrapper only - consistent regardless of helper text */
   top: 50%;
   transform: translateY(-50%);
 }
 
 /* Light mode floating label states - consistent positioning regardless of description */
-.formGroup .floatingLabel.hasValue,
-.formGroup .floatingLabel.isFocused {
+.inputContainer .floatingLabel.hasValue,
+.inputContainer .floatingLabel.isFocused {
   /* Position at top of input border */
-  top: calc(var(--mantine-spacing-xs) * -1);
-  transform: translateY(0) scale(0.85);
-  font-size: var(--mantine-font-size-xs);
-  color: var(--mantine-color-blue-6);
-}
-
-.formGroup .floatingLabel.isEmpty {
-  /* Position in center of input */
-  top: 50%;
-  transform: translateY(-50%) scale(1);
-  font-size: var(--mantine-font-size-sm);
-}
-
-/* Enhanced positioning for labels next to wrapper elements */
-.formGroup :global(.mantine-TextInput-wrapper) ~ .floatingLabel.hasValue,
-.formGroup :global(.mantine-PasswordInput-wrapper) ~ .floatingLabel.hasValue,
-.formGroup :global(.mantine-Textarea-wrapper) ~ .floatingLabel.hasValue,
-.formGroup :global(.mantine-Select-wrapper) ~ .floatingLabel.hasValue,
-.formGroup :global(.mantine-TextInput-wrapper) ~ .floatingLabel.isFocused,
-.formGroup :global(.mantine-PasswordInput-wrapper) ~ .floatingLabel.isFocused,
-.formGroup :global(.mantine-Textarea-wrapper) ~ .floatingLabel.isFocused,
-.formGroup :global(.mantine-Select-wrapper) ~ .floatingLabel.isFocused {
-  /* Position at top border of input */
   top: 0;
   transform: translateY(-50%) scale(0.85);
   font-size: var(--mantine-font-size-xs);
   color: var(--mantine-color-blue-6);
 }
 
-.formGroup :global(.mantine-TextInput-wrapper) ~ .floatingLabel.isEmpty,
-.formGroup :global(.mantine-PasswordInput-wrapper) ~ .floatingLabel.isEmpty,
-.formGroup :global(.mantine-Textarea-wrapper) ~ .floatingLabel.isEmpty,
-.formGroup :global(.mantine-Select-wrapper) ~ .floatingLabel.isEmpty {
+.inputContainer .floatingLabel.isEmpty {
   /* Position in center of input */
   top: 50%;
   transform: translateY(-50%) scale(1);
   font-size: var(--mantine-font-size-sm);
 }
 
-.formGroup .floatingLabel.hasError,
-.formGroup :global(.mantine-TextInput-wrapper) ~ .floatingLabel.hasError,
-.formGroup :global(.mantine-PasswordInput-wrapper) ~ .floatingLabel.hasError,
-.formGroup :global(.mantine-Textarea-wrapper) ~ .floatingLabel.hasError,
-.formGroup :global(.mantine-Select-wrapper) ~ .floatingLabel.hasError {
+/* Error state styling for input container labels */
+.inputContainer .floatingLabel.hasError {
+  color: var(--mantine-color-red-6);
+}
+
+/* Legacy error styling - kept for backward compatibility */
+.formGroup .floatingLabel.hasError {
   color: var(--mantine-color-red-6);
 }
 
 /* Dark mode support using Mantine's data-mantine-color-scheme */
-[data-mantine-color-scheme="dark"] .formGroup .floatingLabel,
-[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-TextInput-wrapper) ~ .floatingLabel,
-[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-PasswordInput-wrapper) ~ .floatingLabel,
-[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-Textarea-wrapper) ~ .floatingLabel,
-[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-Select-wrapper) ~ .floatingLabel {
+[data-mantine-color-scheme="dark"] .inputContainer .floatingLabel {
   color: var(--mantine-color-dark-2);
   background: var(--mantine-color-dark-7);
 }
 
-[data-mantine-color-scheme="dark"] .formGroup .floatingLabel.hasValue,
-[data-mantine-color-scheme="dark"] .formGroup .floatingLabel.isFocused,
-[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-TextInput-wrapper) ~ .floatingLabel.hasValue,
-[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-PasswordInput-wrapper) ~ .floatingLabel.hasValue,
-[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-Textarea-wrapper) ~ .floatingLabel.hasValue,
-[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-Select-wrapper) ~ .floatingLabel.hasValue,
-[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-TextInput-wrapper) ~ .floatingLabel.isFocused,
-[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-PasswordInput-wrapper) ~ .floatingLabel.isFocused,
-[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-Textarea-wrapper) ~ .floatingLabel.isFocused,
-[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-Select-wrapper) ~ .floatingLabel.isFocused {
+/* Legacy dark mode support */
+[data-mantine-color-scheme="dark"] .formGroup .floatingLabel {
+  color: var(--mantine-color-dark-2);
+  background: var(--mantine-color-dark-7);
+}
+
+[data-mantine-color-scheme="dark"] .inputContainer .floatingLabel.hasValue,
+[data-mantine-color-scheme="dark"] .inputContainer .floatingLabel.isFocused {
   color: var(--mantine-color-blue-4);
 }
 
-[data-mantine-color-scheme="dark"] .formGroup .floatingLabel.hasError,
-[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-TextInput-wrapper) ~ .floatingLabel.hasError,
-[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-PasswordInput-wrapper) ~ .floatingLabel.hasError,
-[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-Textarea-wrapper) ~ .floatingLabel.hasError,
-[data-mantine-color-scheme="dark"] .formGroup :global(.mantine-Select-wrapper) ~ .floatingLabel.hasError {
+/* Legacy dark mode focused states */
+[data-mantine-color-scheme="dark"] .formGroup .floatingLabel.hasValue,
+[data-mantine-color-scheme="dark"] .formGroup .floatingLabel.isFocused {
+  color: var(--mantine-color-blue-4);
+}
+
+[data-mantine-color-scheme="dark"] .inputContainer .floatingLabel.hasError {
+  color: var(--mantine-color-red-4);
+}
+
+/* Legacy dark mode error states */
+[data-mantine-color-scheme="dark"] .formGroup .floatingLabel.hasError {
   color: var(--mantine-color-red-4);
 }
 
