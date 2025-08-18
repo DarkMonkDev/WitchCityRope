@@ -264,6 +264,15 @@
   border-color: var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important;
 }
 
+/* Additional specific targeting for password inputs */
+.enhancedInput :global(.mantine-PasswordInput-input:focus),
+.enhancedInput :global(.mantine-PasswordInput-input:focus-visible),
+.enhancedInput :global(.mantine-PasswordInput-input:focus-within) {
+  border-color: var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 /* Fix orange outline bug on Mantine input root and all nested elements */
 .enhancedInput :global(.mantine-TextInput-root),
 .enhancedInput :global(.mantine-PasswordInput-root),
@@ -484,6 +493,15 @@
   border-color: var(--mantine-color-wcr-4, var(--mantine-color-blue-4)) !important;
 }
 
+/* Additional dark mode specific targeting for password inputs */
+[data-mantine-color-scheme="dark"] .enhancedInput :global(.mantine-PasswordInput-input:focus),
+[data-mantine-color-scheme="dark"] .enhancedInput :global(.mantine-PasswordInput-input:focus-visible),
+[data-mantine-color-scheme="dark"] .enhancedInput :global(.mantine-PasswordInput-input:focus-within) {
+  border-color: var(--mantine-color-wcr-4, var(--mantine-color-blue-4)) !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 [data-mantine-color-scheme="dark"] .enhancedInput.error {
   border-color: var(--mantine-color-red-4);
   background-color: var(--mantine-color-red-9);
@@ -653,4 +671,100 @@
   .floatingLabel.isEmpty {
     font-size: var(--mantine-font-size-sm);
   }
+}
+
+/* PLACEHOLDER VISIBILITY FIX - Target Mantine's specific class names with higher specificity */
+/* Hide placeholders by default to prevent interference with floating labels */
+.inputContainer input.mantine-TextInput-input::placeholder,
+.inputContainer input.mantine-PasswordInput-input::placeholder,
+.inputContainer textarea.mantine-Textarea-input::placeholder,
+.inputContainer input.mantine-Select-input::placeholder {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+}
+
+/* Show placeholder only when focused AND empty */
+.inputContainer input.mantine-TextInput-input:focus::placeholder,
+.inputContainer input.mantine-PasswordInput-input:focus::placeholder,
+.inputContainer textarea.mantine-Textarea-input:focus::placeholder,
+.inputContainer input.mantine-Select-input:focus::placeholder {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Also target the custom classes we're using */
+.floatingLabelInput::placeholder {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+.floatingLabelInput:focus::placeholder {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Global targeting for any remaining cases - use :global() for CSS modules */
+:global(.mantine-TextInput-input::placeholder),
+:global(.mantine-PasswordInput-input::placeholder),
+:global(.mantine-Textarea-input::placeholder),
+:global(.mantine-Select-input::placeholder) {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+}
+
+:global(.mantine-TextInput-input:focus::placeholder),
+:global(.mantine-PasswordInput-input:focus::placeholder),
+:global(.mantine-Textarea-input:focus::placeholder),
+:global(.mantine-Select-input:focus::placeholder) {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* ADDITIONAL TARGETING FOR PASSWORD INPUT - Fixes remaining placeholder visibility issues */
+/* Target by input type attribute as well */
+.inputContainer input[type="password"]::placeholder {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+}
+
+.inputContainer input[type="password"]:focus::placeholder {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Target by Mantine data attributes and inner input classes (PasswordInput may have different structure) */
+.inputContainer :global([data-mantine-password-input]::placeholder),
+.inputContainer :global(.mantine-PasswordInput-innerInput::placeholder),
+.inputContainer :global(.mantine-PasswordInput-wrapper input::placeholder) {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+}
+
+.inputContainer :global([data-mantine-password-input]:focus::placeholder),
+.inputContainer :global(.mantine-PasswordInput-innerInput:focus::placeholder),
+.inputContainer :global(.mantine-PasswordInput-wrapper input:focus::placeholder) {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Global targeting for any remaining PasswordInput cases */
+:global([data-mantine-password-input]::placeholder),
+:global(.mantine-PasswordInput-innerInput::placeholder),
+:global(.mantine-PasswordInput-wrapper input::placeholder),
+:global(input[type="password"].mantine-PasswordInput-input::placeholder) {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+}
+
+:global([data-mantine-password-input]:focus::placeholder),
+:global(.mantine-PasswordInput-innerInput:focus::placeholder),
+:global(.mantine-PasswordInput-wrapper input:focus::placeholder),
+:global(input[type="password"].mantine-PasswordInput-input:focus::placeholder) {
+  opacity: 1 !important;
+  visibility: visible !important;
 }

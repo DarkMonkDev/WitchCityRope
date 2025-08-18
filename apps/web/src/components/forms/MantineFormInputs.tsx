@@ -367,14 +367,16 @@ export const EnhancedPasswordInput = forwardRef<HTMLInputElement, EnhancedPasswo
                 visibility: (focused && !hasValue) ? 'visible' : 'hidden',
                 transition: 'opacity 0.2s ease-in-out, visibility 0.2s ease-in-out'
               },
-              // Remove any conflicting focus styles
+              // Ensure focus border color changes work for password inputs
               '&:focus': {
                 outline: 'none !important',
-                boxShadow: 'none !important'
+                boxShadow: 'none !important',
+                borderColor: 'var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important'
               },
               '&:focus-visible': {
                 outline: 'none !important',
-                boxShadow: 'none !important'
+                boxShadow: 'none !important',
+                borderColor: 'var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important'
               }
             }
           }}
@@ -420,16 +422,19 @@ export const EnhancedPasswordInput = forwardRef<HTMLInputElement, EnhancedPasswo
           input: {
             '&::placeholder': {
               opacity: (focused && !hasValue) ? 1 : 0,
-              transition: 'opacity 0.2s ease-in-out'
+              visibility: (focused && !hasValue) ? 'visible' : 'hidden',
+              transition: 'opacity 0.2s ease-in-out, visibility 0.2s ease-in-out'
             },
-            // Remove any conflicting focus styles
+            // Ensure focus border color changes work for password inputs
             '&:focus': {
               outline: 'none !important',
-              boxShadow: 'none !important'
+              boxShadow: 'none !important',
+              borderColor: 'var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important'
             },
             '&:focus-visible': {
               outline: 'none !important',
-              boxShadow: 'none !important'
+              boxShadow: 'none !important',
+              borderColor: 'var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important'
             }
           },
           description: {
