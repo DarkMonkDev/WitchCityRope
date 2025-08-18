@@ -141,7 +141,11 @@ const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
             opacity: disabled ? 0.6 : 1,
             cursor: disabled ? 'not-allowed' : 'text',
             // Force dark background for all states
-            WebkitBoxShadow: 'inset 0 0 0 1000px var(--mantine-color-dark-7)'
+            WebkitBoxShadow: 'inset 0 0 0 1000px var(--mantine-color-dark-7)',
+            // Ensure consistent underline positioning across all input types
+            margin: '0',
+            boxSizing: 'border-box',
+            display: 'block'
           }}
         />
         
@@ -161,7 +165,10 @@ const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
             borderRadius: '1px',
             // Create tapering effect - last 15% on each side tapers from 2px to 1px
             clipPath: 'polygon(0% 25%, 15% 0%, 85% 0%, 100% 25%, 100% 75%, 85% 100%, 15% 100%, 0% 75%)',
-            WebkitClipPath: 'polygon(0% 25%, 15% 0%, 85% 0%, 100% 25%, 100% 75%, 85% 100%, 15% 100%, 0% 75%)'
+            WebkitClipPath: 'polygon(0% 25%, 15% 0%, 85% 0%, 100% 25%, 100% 75%, 85% 100%, 15% 100%, 0% 75%)',
+            // Ensure consistent positioning across all input types
+            marginTop: '0px',
+            marginBottom: '0px'
           }}
         />
         
@@ -215,11 +222,13 @@ const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
           75% { transform: translateX(4px); }
         }
         
-        /* Force dark backgrounds on all input states */
+        /* Force dark backgrounds on all input states and ensure consistent margins */
         input[type="text"], input[type="email"], input[type="password"], input[type="tel"],
         textarea, select {
           background-color: var(--mantine-color-dark-7) !important;
           color: #f8f4e6 !important;
+          margin: 0 !important;
+          box-sizing: border-box !important;
         }
         
         /* Override autofill styles */
@@ -233,15 +242,41 @@ const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
           color: #f8f4e6 !important;
         }
         
-        /* Dropdown option styling */
+        /* Enhanced dropdown styling for dark theme - comprehensive visual styling */
+        select {
+          border-radius: 8px !important;
+        }
+        
+        select:focus {
+          background-color: var(--mantine-color-dark-7) !important;
+          border-color: #9b4a75 !important;
+          box-shadow: 0 0 0 2px rgba(155, 74, 117, 0.2);
+        }
+        
+        select:hover {
+          border-color: rgba(155, 74, 117, 0.5) !important;
+        }
+        
+        /* Comprehensive dropdown menu styling */
         select option {
           background-color: var(--mantine-color-dark-7) !important;
           color: #f8f4e6 !important;
+          padding: 8px 12px !important;
+          border-radius: 4px !important;
+          margin: 2px !important;
         }
         
-        /* Enhanced dropdown styling for dark theme */
-        select:focus {
-          background-color: var(--mantine-color-dark-7) !important;
+        /* Option hover states for browsers that support it */
+        select option:hover {
+          background-color: rgba(155, 74, 117, 0.3) !important;
+          color: #f8f4e6 !important;
+        }
+        
+        select option:focus,
+        select option:checked,
+        select option:selected {
+          background-color: #9b4a75 !important;
+          color: #f8f4e6 !important;
         }
         
         /* Custom scrollbar for dropdown */
@@ -263,14 +298,39 @@ const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
           background: #b47171;
         }
         
-        /* Option hover states for browsers that support it */
-        select option:hover {
-          background-color: rgba(155, 74, 117, 0.2) !important;
+        /* Dark theme focus states */
+        select:focus-visible {
+          outline: 2px solid rgba(155, 74, 117, 0.4);
+          outline-offset: 2px;
         }
         
-        select option:checked {
-          background-color: #9b4a75 !important;
-          color: #f8f4e6 !important;
+        /* Firefox-specific dropdown styling */
+        @-moz-document url-prefix() {
+          select option {
+            background-color: var(--mantine-color-dark-7) !important;
+            color: #f8f4e6 !important;
+          }
+          
+          select option:hover {
+            background-color: rgba(155, 74, 117, 0.3) !important;
+          }
+          
+          select option:checked {
+            background-color: #9b4a75 !important;
+            color: #f8f4e6 !important;
+          }
+        }
+        
+        /* Safari-specific improvements */
+        @media screen and (-webkit-min-device-pixel-ratio:0) {
+          select {
+            background-color: var(--mantine-color-dark-7) !important;
+          }
+          
+          select option {
+            background: var(--mantine-color-dark-7) !important;
+            color: #f8f4e6 !important;
+          }
         }
       `}</style>
     </Box>
@@ -325,7 +385,11 @@ const FloatingLabelTextarea: React.FC<FloatingLabelTextareaProps> = ({
             opacity: disabled ? 0.6 : 1,
             cursor: disabled ? 'not-allowed' : 'text',
             resize: 'vertical',
-            fontFamily: 'inherit'
+            fontFamily: 'inherit',
+            // Fix textarea browser default margins that cause underline gap
+            margin: '0',
+            boxSizing: 'border-box',
+            display: 'block'
           }}
         />
         
@@ -345,7 +409,10 @@ const FloatingLabelTextarea: React.FC<FloatingLabelTextareaProps> = ({
             borderRadius: '1px',
             // Create tapering effect - last 15% on each side tapers from 2px to 1px
             clipPath: 'polygon(0% 25%, 15% 0%, 85% 0%, 100% 25%, 100% 75%, 85% 100%, 15% 100%, 0% 75%)',
-            WebkitClipPath: 'polygon(0% 25%, 15% 0%, 85% 0%, 100% 25%, 100% 75%, 85% 100%, 15% 100%, 0% 75%)'
+            WebkitClipPath: 'polygon(0% 25%, 15% 0%, 85% 0%, 100% 25%, 100% 75%, 85% 100%, 15% 100%, 0% 75%)',
+            // Ensure tight positioning at bottom of textarea
+            marginTop: '0px',
+            marginBottom: '0px'
           }}
         />
         
@@ -447,7 +514,11 @@ const FloatingLabelSelect: React.FC<FloatingLabelSelectProps> = ({
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'right 12px center',
             backgroundSize: '16px',
-            paddingRight: '40px'
+            paddingRight: '40px',
+            // Ensure consistent positioning with inputs and textarea
+            margin: '0',
+            boxSizing: 'border-box',
+            display: 'block'
           }}
         >
           {!value && <option value="" disabled hidden>{placeholder}</option>}
