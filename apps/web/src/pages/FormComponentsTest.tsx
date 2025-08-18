@@ -18,23 +18,50 @@ import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconInfoCircle, IconCheck, IconX } from '@tabler/icons-react';
 import {
-  BaseSelect,
-  BaseTextarea,
   EmergencyContactGroup
 } from '../components/forms';
-import { mockCheckEmailUnique, mockCheckSceneNameUnique, mockSubmitForm } from '../utils/mockApi';
+import { mockSubmitForm } from '../utils/mockApi';
 
 // Custom Floating Label Input Component with Underline Effect
 interface FloatingLabelInputProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
-  error?: string;
+  error?: React.ReactNode;
   required?: boolean;
   type?: string;
   placeholder?: string;
   description?: string;
   disabled?: boolean;
+  'data-testid'?: string;
+}
+
+// Custom Floating Label Textarea Component with Underline Effect
+interface FloatingLabelTextareaProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  error?: React.ReactNode;
+  required?: boolean;
+  placeholder?: string;
+  description?: string;
+  disabled?: boolean;
+  rows?: number;
+  maxLength?: number;
+  'data-testid'?: string;
+}
+
+// Custom Floating Label Select Component (no underline)
+interface FloatingLabelSelectProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  error?: React.ReactNode;
+  required?: boolean;
+  placeholder?: string;
+  description?: string;
+  disabled?: boolean;
+  data: Array<{ value: string; label: string }>;
   'data-testid'?: string;
 }
 
@@ -53,6 +80,16 @@ const getHelperText = (label: string): string => {
       return 'For emergency contact only';
     case 'Basic Input':
       return 'This is a basic text input with validation';
+    case 'Floating Textarea':
+      return 'This is a floating label textarea with underline effect';
+    case 'Floating Select':
+      return 'This is a floating label select without underline';
+    case 'Emergency Contact Name':
+      return 'Full name of your emergency contact';
+    case 'Emergency Contact Phone':
+      return 'Best phone number to reach your emergency contact';
+    case 'Relationship to Contact':
+      return 'How this person is related to you';
     default:
       return '';
   }
@@ -104,12 +141,7 @@ const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
             opacity: disabled ? 0.6 : 1,
             cursor: disabled ? 'not-allowed' : 'text',
             // Force dark background for all states
-            WebkitBoxShadow: 'inset 0 0 0 1000px var(--mantine-color-dark-7)',
-            // Ensure autocomplete doesn't override
-            '&:-webkit-autofill': {
-              WebkitBoxShadow: 'inset 0 0 0 1000px var(--mantine-color-dark-7) !important',
-              WebkitTextFillColor: '#f8f4e6 !important'
-            }
+            WebkitBoxShadow: 'inset 0 0 0 1000px var(--mantine-color-dark-7)'
           }}
         />
         
@@ -128,7 +160,8 @@ const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
             transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
             borderRadius: '1px',
             // Create tapering effect - last 15% on each side tapers from 2px to 1px
-            clipPath: 'polygon(0% 25%, 15% 0%, 85% 0%, 100% 25%, 100% 75%, 85% 100%, 15% 100%, 0% 75%)'
+            clipPath: 'polygon(0% 25%, 15% 0%, 85% 0%, 100% 25%, 100% 75%, 85% 100%, 15% 100%, 0% 75%)',
+            WebkitClipPath: 'polygon(0% 25%, 15% 0%, 85% 0%, 100% 25%, 100% 75%, 85% 100%, 15% 100%, 0% 75%)'
           }}
         />
         
@@ -183,7 +216,8 @@ const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
         }
         
         /* Force dark backgrounds on all input states */
-        input[type="text"], input[type="email"], input[type="password"], input[type="tel"] {
+        input[type="text"], input[type="email"], input[type="password"], input[type="tel"],
+        textarea, select {
           background-color: var(--mantine-color-dark-7) !important;
           color: #f8f4e6 !important;
         }
@@ -198,7 +232,281 @@ const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
           background-color: var(--mantine-color-dark-7) !important;
           color: #f8f4e6 !important;
         }
+        
+        /* Dropdown option styling */
+        select option {
+          background-color: var(--mantine-color-dark-7) !important;
+          color: #f8f4e6 !important;
+        }
+        
+        /* Enhanced dropdown styling for dark theme */
+        select:focus {
+          background-color: var(--mantine-color-dark-7) !important;
+        }
+        
+        /* Custom scrollbar for dropdown */
+        select::-webkit-scrollbar {
+          width: 8px;
+        }
+        
+        select::-webkit-scrollbar-track {
+          background: var(--mantine-color-dark-8);
+          border-radius: 4px;
+        }
+        
+        select::-webkit-scrollbar-thumb {
+          background: #9b4a75;
+          border-radius: 4px;
+        }
+        
+        select::-webkit-scrollbar-thumb:hover {
+          background: #b47171;
+        }
+        
+        /* Option hover states for browsers that support it */
+        select option:hover {
+          background-color: rgba(155, 74, 117, 0.2) !important;
+        }
+        
+        select option:checked {
+          background-color: #9b4a75 !important;
+          color: #f8f4e6 !important;
+        }
       `}</style>
+    </Box>
+  );
+};
+
+const FloatingLabelTextarea: React.FC<FloatingLabelTextareaProps> = ({ 
+  label, 
+  value, 
+  onChange, 
+  error, 
+  required,
+  placeholder = ' ', // Space for floating effect
+  description,
+  disabled,
+  rows = 4,
+  maxLength,
+  'data-testid': dataTestId
+}) => {
+  const [isFocused, setIsFocused] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  const isActive = isFocused || value.length > 0;
+  
+  return (
+    <Box style={{ position: 'relative', marginBottom: '24px' }}>
+      {/* Textarea field container with underline */}
+      <Box style={{ position: 'relative' }}>
+        <textarea
+          ref={textareaRef}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder={placeholder}
+          disabled={disabled}
+          rows={rows}
+          maxLength={maxLength}
+          data-testid={dataTestId}
+          style={{
+            width: '100%',
+            backgroundColor: 'var(--mantine-color-dark-7) !important',
+            borderColor: error ? '#d63031' : isActive ? '#9b4a75' : 'rgba(212, 165, 165, 0.3)',
+            color: '#f8f4e6 !important',
+            fontSize: '16px',
+            padding: '16px 12px 8px 12px',
+            minHeight: `${rows * 24 + 32}px`,
+            borderRadius: '8px',
+            border: '1px solid',
+            transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            outline: 'none',
+            opacity: disabled ? 0.6 : 1,
+            cursor: disabled ? 'not-allowed' : 'text',
+            resize: 'vertical',
+            fontFamily: 'inherit'
+          }}
+        />
+        
+        {/* Underline animation on focus - positioned under the textarea box with tapering effect */}
+        <Box
+          style={{
+            position: 'absolute',
+            bottom: '-1px',
+            left: '16px',
+            right: '16px',
+            height: '2px',
+            background: error ? '#d63031' : '#9b4a75',
+            opacity: isFocused ? 1 : 0,
+            transform: isFocused ? 'scaleX(1)' : 'scaleX(0)',
+            transformOrigin: 'center',
+            transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            borderRadius: '1px',
+            // Create tapering effect - last 15% on each side tapers from 2px to 1px
+            clipPath: 'polygon(0% 25%, 15% 0%, 85% 0%, 100% 25%, 100% 75%, 85% 100%, 15% 100%, 0% 75%)',
+            WebkitClipPath: 'polygon(0% 25%, 15% 0%, 85% 0%, 100% 25%, 100% 75%, 85% 100%, 15% 100%, 0% 75%)'
+          }}
+        />
+        
+        <Text
+          component="label"
+          onClick={() => textareaRef.current?.focus()}
+          style={{
+            position: 'absolute',
+            left: '12px',
+            top: isActive ? '4px' : '18px',
+            fontSize: isActive ? '12px' : '16px',
+            color: error ? '#d63031' : isActive ? '#9b4a75' : 'rgba(248, 244, 230, 0.7)',
+            pointerEvents: 'none',
+            transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            transformOrigin: 'left center',
+            background: isActive ? 'var(--mantine-color-dark-7)' : 'transparent',
+            padding: isActive ? '0 4px' : '0',
+            zIndex: 1,
+            fontWeight: isActive ? 500 : 400
+          }}
+        >
+          {label}
+          {required && <span style={{ color: '#d63031', marginLeft: '2px' }}>*</span>}
+        </Text>
+      </Box>
+      
+      {error && (
+        <Text size="sm" c="red" mt="xs" style={{
+          animation: 'shake 0.5s ease-in-out'
+        }}>
+          {error}
+        </Text>
+      )}
+      
+      {/* Helper text */}
+      {!error && (description || getHelperText(label)) && (
+        <Text size="sm" c="dimmed" mt="xs" style={{
+          marginLeft: '12px',
+          opacity: 0.85,
+          fontSize: '1.1rem',
+          lineHeight: '1.6'
+        }}>
+          {description || getHelperText(label)}
+        </Text>
+      )}
+    </Box>
+  );
+};
+
+const FloatingLabelSelect: React.FC<FloatingLabelSelectProps> = ({ 
+  label, 
+  value, 
+  onChange, 
+  error, 
+  required,
+  placeholder = ' ', // Space for floating effect
+  description,
+  disabled,
+  data,
+  'data-testid': dataTestId
+}) => {
+  const [isFocused, setIsFocused] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const selectRef = useRef<HTMLSelectElement>(null);
+  
+  const isActive = isFocused || value.length > 0 || isOpen;
+  
+  return (
+    <Box style={{ position: 'relative', marginBottom: '24px' }}>
+      {/* Select field container - no underline */}
+      <Box style={{ position: 'relative' }}>
+        <select
+          ref={selectRef}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => { setIsFocused(true); setIsOpen(true); }}
+          onBlur={() => { setIsFocused(false); setIsOpen(false); }}
+          disabled={disabled}
+          data-testid={dataTestId}
+          style={{
+            width: '100%',
+            backgroundColor: 'var(--mantine-color-dark-7) !important',
+            borderColor: error ? '#d63031' : isActive ? '#9b4a75' : 'rgba(212, 165, 165, 0.3)',
+            color: '#f8f4e6 !important',
+            fontSize: '16px',
+            padding: '16px 12px 8px 12px',
+            height: '56px',
+            borderRadius: '8px',
+            border: '1px solid',
+            transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            outline: 'none',
+            opacity: disabled ? 0.6 : 1,
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            appearance: 'none',
+            WebkitAppearance: 'none',
+            MozAppearance: 'none',
+            // Custom dropdown arrow
+            backgroundImage: `url("data:image/svg+xml;charset=UTF-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f8f4e6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6,9 12,15 18,9'></polyline></svg>")`,
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'right 12px center',
+            backgroundSize: '16px',
+            paddingRight: '40px'
+          }}
+        >
+          {!value && <option value="" disabled hidden>{placeholder}</option>}
+          {data.map((option) => (
+            <option
+              key={option.value}
+              value={option.value}
+              style={{
+                backgroundColor: 'var(--mantine-color-dark-7)',
+                color: '#f8f4e6'
+              }}
+            >
+              {option.label}
+            </option>
+          ))}
+        </select>
+        
+        <Text
+          component="label"
+          onClick={() => selectRef.current?.focus()}
+          style={{
+            position: 'absolute',
+            left: '12px',
+            top: isActive ? '4px' : '18px',
+            fontSize: isActive ? '12px' : '16px',
+            color: error ? '#d63031' : isActive ? '#9b4a75' : 'rgba(248, 244, 230, 0.7)',
+            pointerEvents: 'none',
+            transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            transformOrigin: 'left center',
+            background: isActive ? 'var(--mantine-color-dark-7)' : 'transparent',
+            padding: isActive ? '0 4px' : '0',
+            zIndex: 1,
+            fontWeight: isActive ? 500 : 400
+          }}
+        >
+          {label}
+          {required && <span style={{ color: '#d63031', marginLeft: '2px' }}>*</span>}
+        </Text>
+      </Box>
+      
+      {error && (
+        <Text size="sm" c="red" mt="xs" style={{
+          animation: 'shake 0.5s ease-in-out'
+        }}>
+          {error}
+        </Text>
+      )}
+      
+      {/* Helper text */}
+      {!error && (description || getHelperText(label)) && (
+        <Text size="sm" c="dimmed" mt="xs" style={{
+          marginLeft: '12px',
+          opacity: 0.85,
+          fontSize: '1.1rem',
+          lineHeight: '1.6'
+        }}>
+          {description || getHelperText(label)}
+        </Text>
+      )}
     </Box>
   );
 };
@@ -268,7 +576,14 @@ export const FormComponentsTest: React.FC = () => {
         return null;
       },
       select: (value) => !value ? 'Please select an option' : null,
-      textarea: (value) => value.length > 500 ? 'Textarea must not exceed 500 characters' : null
+      textarea: (value) => value.length > 500 ? 'Textarea must not exceed 500 characters' : null,
+      'emergencyContact.name': (value) => !value ? 'Emergency contact name is required' : null,
+      'emergencyContact.phone': (value) => {
+        if (!value) return 'Emergency contact phone is required';
+        const phoneRegex = /^\(\d{3}\)\s\d{3}-\d{4}$/;
+        return !phoneRegex.test(value) ? 'Please enter a valid phone number' : null;
+      },
+      'emergencyContact.relationship': (value) => !value ? 'Relationship is required' : null
     }
   });
 
@@ -477,47 +792,27 @@ export const FormComponentsTest: React.FC = () => {
                       />
                     </Grid.Col>
                     <Grid.Col span={{ base: 12, md: 6 }}>
-                      <BaseSelect
-                        label="Basic Select"
-                        placeholder="Choose an option"
-                        description="This is a basic select dropdown"
+                      <FloatingLabelSelect
+                        label="Floating Select"
+                        value={form.values.select}
+                        onChange={(value) => form.setFieldValue('select', value)}
+                        error={form.errors.select}
                         data={selectOptions}
-                        withAsterisk
+                        required
                         disabled={formStates.disableAll}
-                        data-testid="basic-select"
-                        {...form.getInputProps('select')}
-                        styles={{
-                          input: {
-                            backgroundColor: 'var(--mantine-color-dark-7)',
-                            borderColor: 'rgba(212, 165, 165, 0.3)',
-                            color: '#f8f4e6'
-                          },
-                          label: {
-                            color: '#f8f4e6'
-                          }
-                        }}
+                        data-testid="floating-select"
                       />
                     </Grid.Col>
                     <Grid.Col span={12}>
-                      <BaseTextarea
-                        label="Basic Textarea"
-                        placeholder="Enter your message here..."
-                        description="This is a basic textarea (max 500 characters)"
+                      <FloatingLabelTextarea
+                        label="Floating Textarea"
+                        value={form.values.textarea}
+                        onChange={(value) => form.setFieldValue('textarea', value)}
+                        error={form.errors.textarea}
                         rows={4}
                         maxLength={500}
                         disabled={formStates.disableAll}
-                        data-testid="basic-textarea"
-                        {...form.getInputProps('textarea')}
-                        styles={{
-                          input: {
-                            backgroundColor: 'var(--mantine-color-dark-7)',
-                            borderColor: 'rgba(212, 165, 165, 0.3)',
-                            color: '#f8f4e6'
-                          },
-                          label: {
-                            color: '#f8f4e6'
-                          }
-                        }}
+                        data-testid="floating-textarea"
                       />
                     </Grid.Col>
                   </Grid>
@@ -583,13 +878,53 @@ export const FormComponentsTest: React.FC = () => {
                 {/* Emergency Contact Group */}
                 <Box>
                   <Title order={2} size="h3" mb="md" c="white">Emergency Contact Group</Title>
-                  <EmergencyContactGroup
-                    form={form}
-                    basePath="emergencyContact"
-                    relationshipOptions={relationshipOptions}
-                    disabled={formStates.disableAll}
-                    data-testid="emergency-contact"
-                  />
+                  
+                  {/* Emergency Contact with Floating Label Components */}
+                  <Box style={{
+                    background: 'rgba(44, 44, 44, 0.6)',
+                    padding: '24px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(212, 165, 165, 0.2)'
+                  }}>
+                    <Text fw={600} size="lg" mb="lg" c="white">Emergency Contact Information</Text>
+                    
+                    <Stack gap="lg">
+                      <FloatingLabelInput
+                        label="Emergency Contact Name"
+                        value={form.values.emergencyContact.name}
+                        onChange={(value) => form.setFieldValue('emergencyContact.name', value)}
+                        error={form.errors['emergencyContact.name']}
+                        required
+                        description="Full name of your emergency contact"
+                        disabled={formStates.disableAll}
+                        data-testid="emergency-contact-name"
+                      />
+                      
+                      <FloatingLabelInput
+                        label="Emergency Contact Phone"
+                        type="tel"
+                        value={form.values.emergencyContact.phone}
+                        onChange={(value) => form.setFieldValue('emergencyContact.phone', value)}
+                        error={form.errors['emergencyContact.phone']}
+                        required
+                        description="Best phone number to reach your emergency contact"
+                        disabled={formStates.disableAll}
+                        data-testid="emergency-contact-phone"
+                      />
+                      
+                      <FloatingLabelSelect
+                        label="Relationship to Contact"
+                        value={form.values.emergencyContact.relationship}
+                        onChange={(value) => form.setFieldValue('emergencyContact.relationship', value)}
+                        error={form.errors['emergencyContact.relationship']}
+                        data={relationshipOptions}
+                        required
+                        description="How this person is related to you"
+                        disabled={formStates.disableAll}
+                        data-testid="emergency-contact-relationship"
+                      />
+                    </Stack>
+                  </Box>
                 </Box>
 
                 {/* Submit Button */}
