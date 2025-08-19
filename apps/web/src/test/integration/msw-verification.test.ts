@@ -18,15 +18,18 @@ describe('MSW Request Interception', () => {
 
     // Verify nested response structure matches API expectations
     expect(response).toHaveProperty('user')
-    expect(response).toHaveProperty('token')
     expect(response.user).toEqual({
       id: '1',
       email: 'admin@witchcityrope.com',
       sceneName: 'TestAdmin',
+      firstName: null,
+      lastName: null,
+      roles: ['Admin'],
+      isActive: true,
       createdAt: '2025-08-19T00:00:00Z',
+      updatedAt: '2025-08-19T10:00:00Z',
       lastLoginAt: '2025-08-19T10:00:00Z'
     })
-    expect(response.token).toBe('fake-jwt-token')
   })
 
   it('should intercept logout requests', async () => {
@@ -48,7 +51,12 @@ describe('MSW Request Interception', () => {
       id: '1',
       email: 'admin@witchcityrope.com',
       sceneName: 'TestAdmin',
+      firstName: null,
+      lastName: null,
+      roles: ['Admin'],
+      isActive: true,
       createdAt: '2025-08-19T00:00:00Z',
+      updatedAt: '2025-08-19T10:00:00Z',
       lastLoginAt: '2025-08-19T10:00:00Z'
     })
   })

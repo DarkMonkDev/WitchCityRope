@@ -17,13 +17,24 @@ import {
 import { IconLogout, IconCalendar, IconUser, IconSettings, IconAlertCircle } from '@tabler/icons-react'
 import { useProtectedWelcome } from '../features/auth/api/queries'
 import { useLogout } from '../features/auth/api/mutations'
+import type { UserDto } from '@witchcityrope/shared-types'
+
+// Type for protected welcome response
+interface ProtectedWelcomeData {
+  message: string
+  user: UserDto
+  serverTime: string
+}
 
 export const ProtectedWelcomePage: React.FC = () => {
   const { data: welcomeData, isLoading, error } = useProtectedWelcome()
   const logoutMutation = useLogout()
+  
+  // Cast to proper type due to TanStack Query v5 TypeScript issues
+  const typedWelcomeData = welcomeData as ProtectedWelcomeData | undefined
 
   const handleLogout = () => {
-    logoutMutation.mutate()
+    logoutMutation.mutate(undefined)
   }
 
   const formatDate = (dateString: string) => {
@@ -84,10 +95,10 @@ export const ProtectedWelcomePage: React.FC = () => {
           >
             {error.message || 'Failed to load welcome data'}
           </Alert>
-        ) : welcomeData ? (
+        ) : typedWelcomeData ? (
           <>
             <Title order={2} mb="lg" data-testid="welcome-message">
-              {welcomeData.message}
+              {typedWelcomeData.message}
             </Title>
 
             <Grid>
@@ -101,26 +112,26 @@ export const ProtectedWelcomePage: React.FC = () => {
                     <Group justify="space-between">
                       <Text c="dimmed">Scene Name:</Text>
                       <Text fw={500} data-testid="user-scene-name">
-                        {welcomeData.user.sceneName}
+                        {typedWelcomeData.user.sceneName}
                       </Text>
                     </Group>
                     <Group justify="space-between">
                       <Text c="dimmed">Email:</Text>
                       <Text data-testid="user-email">
-                        {welcomeData.user.email}
+                        {typedWelcomeData.user.email}
                       </Text>
                     </Group>
                     <Group justify="space-between">
                       <Text c="dimmed">Member Since:</Text>
                       <Text data-testid="member-since">
-                        {formatDate(welcomeData.user.createdAt)}
+                        {formatDate(typedWelcomeData.user.createdAt)}
                       </Text>
                     </Group>
-                    {welcomeData.user.lastLoginAt && (
+                    {typedWelcomeData.user.lastLoginAt && (
                       <Group justify="space-between">
                         <Text c="dimmed">Last Login:</Text>
                         <Text data-testid="last-login">
-                          {formatDate(welcomeData.user.lastLoginAt)}
+                          {formatDate(typedWelcomeData.user.lastLoginAt)}
                         </Text>
                       </Group>
                     )}
@@ -144,7 +155,7 @@ export const ProtectedWelcomePage: React.FC = () => {
                     <Group justify="space-between">
                       <Text c="dimmed">Server Time:</Text>
                       <Text data-testid="server-time">
-                        {formatDate(welcomeData.serverTime)}
+                        {formatDate(typedWelcomeData.serverTime)}
                       </Text>
                     </Group>
                     <Group justify="space-between">

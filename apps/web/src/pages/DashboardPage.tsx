@@ -2,7 +2,7 @@ import { useLoaderData } from 'react-router-dom';
 import { Box, Title, Text, Paper, Group, Button } from '@mantine/core';
 import { useAuth } from '../stores/authStore';
 import { useLogout } from '../features/auth/api/mutations';
-import type { UserDto } from '../stores/authStore';
+import type { UserDto } from '@witchcityrope/shared-types';
 
 /**
  * Dashboard Page - Protected route example
@@ -20,7 +20,7 @@ export const DashboardPage: React.FC = () => {
   const currentUser = user || loaderData.user;
 
   const handleLogout = () => {
-    logoutMutation.mutate();
+    logoutMutation.mutate(undefined);
   };
 
   return (

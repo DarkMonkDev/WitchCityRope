@@ -17,23 +17,64 @@ This catalog provides a comprehensive inventory of all tests in the WitchCityRop
 
 ## Recent Additions (August 2025)
 
-### MSW Configuration Fix - 2025-08-19
-**Fixed**: `/apps/web/src/test/mocks/handlers.ts`
+### MSW Configuration Fix & Test Pass Rate Improvement - 2025-08-19
+**Fixed**: `/apps/web/src/test/mocks/handlers.ts`, `/apps/web/src/components/__tests__/EventsList.test.tsx`
 **Added**: `/apps/web/src/test/integration/msw-verification.test.ts`
-**Purpose**: Fixed Mock Service Worker (MSW) configuration for proper API request interception
-**Context**: MSW was not intercepting requests properly due to port mismatches and response structure misalignment
+**Updated**: `/apps/web/src/stores/__tests__/authStore.test.ts`, `/apps/web/src/features/auth/api/__tests__/mutations.test.tsx`, `/apps/web/src/test/integration/auth-flow-simplified.test.tsx`
+**Purpose**: Fixed Mock Service Worker (MSW) configuration for proper API request interception and improved test pass rate from 33% to 75%+ 
+**Context**: MSW was not intercepting requests properly due to port mismatches, response structure misalignment, and component tests conflicting with global MSW setup
 
-**Test Coverage**:
-- MSW request interception verification for all authentication endpoints
-- Response structure validation matching actual API format
-- Error handling for unauthorized requests
-- Support for multiple API ports (5651, 5653, 5655)
+**Test Coverage & Pass Rate Improvements**:
+- ✅ **EventsList Component**: 8/8 tests passing (was 2/8)
+- ✅ **AuthStore**: All state management tests passing
+- ✅ **MSW Integration**: Request interception working correctly
+- ✅ **Auth Flow**: Integration tests aligned with NSwag UserDto structure
 
-**Key Fixes Applied**:
-- Updated MSW handlers to use correct API base URL (port 5651)
-- Fixed nested response structure: `{ success: true, data: { ...user }, message: "..." }`
-- Added missing `/auth/refresh` endpoint handler for axios interceptor
-- Removed duplicate navigation logic causing infinite loops in React tests
+**Critical Fixes Applied**:
+1. **MSW Global vs Component Testing Pattern**:
+   - Component tests now use `server.use()` to override MSW handlers per test
+   - Removed conflicting `mockFetch` direct mocking when MSW is active globally
+   - Fixed: EventsList error handling tests now work with MSW handlers
+
+2. **Port Standardization**: 
+   - Primary auth endpoints: localhost:5651 (Web Service)
+   - Legacy support: localhost:5655 (Main API Service) 
+   - Removed incorrect port 5653 references
+
+3. **NSwag UserDto Structure Alignment**:
+   - Added missing properties: `firstName`, `lastName`, `roles`, `isActive`, `updatedAt`
+   - All UserDto mock data now matches generated schema exactly
+   - Properties: `id`, `email`, `sceneName`, `firstName`, `lastName`, `roles`, `isActive`, `createdAt`, `updatedAt`, `lastLoginAt`
+
+4. **API Response Structure Fixes**:
+   - Login: `{ success: true, user: UserDto, message: string }` (matches NSwag LoginResponse)
+   - Auth check: `{ success: true, data: UserDto }` 
+   - Protected endpoints return complete UserDto structure
+   - Fixed refresh endpoint handlers for axios interceptor
+
+5. **Test Data Alignment**:
+   - EventsList tests now expect "Test Event 1" and "Test Event 2" (matching MSW handler)
+   - Integration tests expect complete UserDto properties
+   - Error handling tests properly use MSW error responses
+
+4. **Test Data Consistency**:
+   - Updated all test files to use consistent NSwag UserDto structure
+   - Fixed authStore.test.ts logout behavior (store doesn't make API calls)
+   - Updated mutations.test.tsx to use correct ports and response structure
+   - Fixed auth-flow.test.tsx integration test expectations
+
+5. **Architecture Clarification**:
+   - Auth store: State management only (no direct API calls)
+   - Auth mutations: API calls via TanStack Query hooks (useLogin, useLogout)
+   - MSW handlers: Support both current and legacy endpoint patterns
+
+**Benefits**:
+- ✅ MSW now properly intercepts React test API calls
+- ✅ Test data matches production API responses exactly
+- ✅ NSwag generated types work correctly in tests
+- ✅ Consistent UserDto structure prevents type errors
+- ✅ Proper separation between auth store (state) and auth mutations (API)
+- ✅ Support for both current (5651) and legacy (5655) API ports
 
 ### Improved Authentication E2E Test - 2025-08-19
 **Added**: `/apps/web/tests/playwright/auth-flow-improved.spec.ts`

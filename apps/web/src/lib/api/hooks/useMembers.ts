@@ -69,7 +69,7 @@ export function useUpdateMember() {
       await queryClient.cancelQueries({ queryKey: memberKeys.detail(updatedMember.id) })
       
       // Snapshot previous value
-      const previousMember = queryClient.getQueryData<UserDto>(memberKeys.detail(updatedMember.id))
+      const previousMember = queryClient.getQueryData(memberKeys.detail(updatedMember.id)) as UserDto | undefined
       
       // Optimistically update cache
       queryClient.setQueryData(memberKeys.detail(updatedMember.id), (old: UserDto | undefined) => {
@@ -108,7 +108,7 @@ export function useUpdateMemberStatus() {
     onMutate: async ({ id, status }) => {
       await queryClient.cancelQueries({ queryKey: memberKeys.detail(id) })
       
-      const previousMember = queryClient.getQueryData<UserDto>(memberKeys.detail(id))
+      const previousMember = queryClient.getQueryData(memberKeys.detail(id)) as UserDto | undefined
       
       // Optimistically update member status
       queryClient.setQueryData(memberKeys.detail(id), (old: UserDto | undefined) => {

@@ -87,7 +87,7 @@ export function useLogout() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: async (): Promise<void> => {
+    mutationFn: async (_?: void): Promise<void> => {
       try {
         await apiClient.post('/api/auth/logout')
       } catch (error) {
@@ -150,7 +150,7 @@ export function useUpdateProfile() {
       await queryClient.cancelQueries({ queryKey: authKeys.me() })
       
       // Snapshot previous value
-      const previousUser = queryClient.getQueryData<UserDto>(authKeys.me())
+      const previousUser = queryClient.getQueryData(authKeys.me()) as UserDto | undefined
       
       // Optimistically update profile
       queryClient.setQueryData(authKeys.me(), (old: UserDto | undefined) => {

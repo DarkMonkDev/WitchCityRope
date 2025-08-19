@@ -70,6 +70,8 @@ export interface components {
             createdAt?: string;
             /** Format: date-time */
             updatedAt?: string;
+            /** Format: date-time */
+            lastLoginAt?: string | null;
         };
         /** @enum {string} */
         UserRole: "Admin" | "Teacher" | "VettedMember" | "GeneralMember" | "Guest";
@@ -78,7 +80,7 @@ export interface components {
             email: string;
             password: string;
             /** @default false */
-            rememberMe: boolean;
+            rememberMe?: boolean;
         };
         LoginResponse: {
             success?: boolean;

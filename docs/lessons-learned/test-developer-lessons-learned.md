@@ -67,6 +67,68 @@ const mockUser = {
 ### Tags
 #critical #test-data #dto-alignment #contract-testing #integration-tests
 
+### MSW NSwag Type Alignment
+**Date**: 2025-08-19
+**Category**: Testing
+**Severity**: Critical
+
+### Context
+MSW handlers were using incorrect UserDto structure and wrong API ports, causing tests to fail with network errors and type mismatches.
+
+### What We Learned
+- MSW handlers must use exact NSwag generated type structures for UserDto
+- API port configuration matters: 5651 for auth, 5655 for legacy API
+- Auth store vs auth mutations have different responsibilities
+- Response structures must match LoginResponse schema exactly
+
+### Action Items
+```typescript
+// ✅ CORRECT - Use NSwag UserDto structure
+type UserDto = {
+  id?: string;
+  email?: string;
+  sceneName?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  roles?: string[];
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  lastLoginAt?: string | null;
+}
+
+// ✅ CORRECT - MSW handler with proper port and structure
+http.post('http://localhost:5651/api/auth/login', async ({ request }) => {
+  return HttpResponse.json({
+    success: true,
+    user: {
+      id: '1',
+      email: 'admin@witchcityrope.com',
+      sceneName: 'TestAdmin',
+      firstName: null,
+      lastName: null,
+      roles: ['Admin'],
+      isActive: true,
+      createdAt: '2025-08-19T00:00:00Z',
+      updatedAt: '2025-08-19T10:00:00Z',
+      lastLoginAt: '2025-08-19T10:00:00Z'
+    } as UserDto,
+    message: 'Login successful'
+  })
+})
+```
+
+### Architecture Clarification
+- **Auth Store**: State management only, no API calls
+- **Auth Mutations**: API calls via TanStack Query (useLogin, useLogout)
+- **MSW Testing**: Mock both store check calls AND mutation API calls
+
+### Impact
+Fixed MSW request interception and type alignment with NSwag generated schemas.
+
+### Tags
+`msw` `nswag` `userdto` `api-ports` `auth-architecture`
+
 ---
 
 # Test Developer Lessons Learned
@@ -540,6 +602,41 @@ Aligned test responses with actual API structure, enabling proper integration te
 
 ### Tags
 `msw` `api-structure` `response-format`
+
+### MSW Global Handler vs Component Test Mocking
+**Date**: 2025-08-19
+**Category**: Testing
+**Severity**: Critical
+
+### Context
+React component tests using mockFetch directly were failing because MSW was intercepting all requests globally, overriding component-level mocks.
+
+### What We Learned
+When MSW is setup globally, component tests must use MSW handlers instead of mock fetch for consistent behavior.
+
+### Action Items
+```typescript
+// ❌ WRONG - Mock fetch directly when MSW is running globally
+const mockFetch = vi.fn()
+global.fetch = mockFetch
+mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [] })
+
+// ✅ CORRECT - Use MSW server.use() to override handlers per test
+import { server } from '../../test/setup'
+import { http, HttpResponse } from 'msw'
+
+server.use(
+  http.get('http://localhost:5655/api/events', () => {
+    return HttpResponse.json([]) // Empty array for empty state test
+  })
+)
+```
+
+### Impact
+Fixed EventsList tests from 2/8 passing to 8/8 passing by properly integrating with global MSW setup.
+
+### Tags
+`msw` `component-testing` `mock-fetch` `test-isolation`
 
 ### React Component Test Infinite Loop Prevention
 **Date**: 2025-08-19

@@ -25,7 +25,7 @@ export function useOptimisticUpdate<TData, TVariables>({
       await queryClient.cancelQueries({ queryKey })
       
       // Snapshot previous value
-      const previousData = queryClient.getQueryData<TData>(queryKey)
+      const previousData = queryClient.getQueryData(queryKey) as TData | undefined
       
       // Optimistically update cache
       if (previousData) {
@@ -79,8 +79,8 @@ export function useOptimisticListUpdate<TItem extends { id: string }>({
       await queryClient.cancelQueries({ queryKey: listQueryKey })
       
       // Snapshot previous values
-      const previousItem = queryClient.getQueryData<TItem>(itemKey)
-      const previousList = queryClient.getQueryData<TItem[]>(listQueryKey)
+      const previousItem = queryClient.getQueryData(itemKey) as TItem | undefined
+      const previousList = queryClient.getQueryData(listQueryKey) as TItem[] | undefined
       
       // Update individual item cache
       queryClient.setQueryData(itemKey, (old: TItem | undefined) => {
@@ -197,7 +197,7 @@ export function useOptimisticToggle<TData>({
     },
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey })
-      const previousData = queryClient.getQueryData<TData>(queryKey)
+      const previousData = queryClient.getQueryData(queryKey) as TData | undefined
       if (previousData) {
         const currentState = false
         const newState = !currentState

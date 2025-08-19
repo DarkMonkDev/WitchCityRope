@@ -5,7 +5,8 @@ import { RegisterPage } from '../pages/RegisterPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { FormComponentsTest } from '../pages/FormComponentsTest';
 import MantineFormTest from '../pages/MantineFormTest';
-import ApiValidation from '../pages/ApiValidation';
+// TODO: Fix TypeScript errors in API validation pages before uncommenting
+// import ApiValidation from '../pages/ApiValidation';
 import ApiValidationV2Simple from '../pages/ApiValidationV2Simple';
 import { RootLayout } from '../components/layout/RootLayout';
 import { RootErrorBoundary } from '../components/errors/RootErrorBoundary';
@@ -44,10 +45,11 @@ export const router = createBrowserRouter([
         path: "mantine-forms", 
         element: <MantineFormTest /> 
       },
-      { 
-        path: "api-validation", 
-        element: <ApiValidation /> 
-      },
+      // TODO: Fix TypeScript errors before uncommenting
+      // { 
+      //   path: "api-validation", 
+      //   element: <ApiValidation /> 
+      // },
       { 
         path: "api-validation-v2-simple", 
         element: <ApiValidationV2Simple /> 

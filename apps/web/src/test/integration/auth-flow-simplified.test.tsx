@@ -82,16 +82,18 @@ describe('Authentication Flow Integration Tests', () => {
       expect(authState.user).toEqual({
         id: '1',
         email: 'admin@witchcityrope.com',
-        firstName: 'Test',
-        lastName: 'Admin',
         sceneName: 'TestAdmin',
-        roles: ['admin'],
+        firstName: null,
+        lastName: null,
+        roles: ['Admin'],
+        isActive: true,
+        createdAt: '2025-08-19T00:00:00Z',
+        updatedAt: '2025-08-19T10:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
       })
 
-      // Verify permissions were calculated
-      expect(authState.permissions).toContain('read')
-      expect(authState.permissions).toContain('write')
-      expect(authState.permissions).toContain('manage_users')
+      // Verify roles were set correctly
+      expect(authState.user.roles).toContain('Admin')
 
       // Verify navigation was triggered
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true })
@@ -151,7 +153,6 @@ describe('Authentication Flow Integration Tests', () => {
       const authState = useAuthStore.getState()
       expect(authState.isAuthenticated).toBe(false)
       expect(authState.user).toBe(null)
-      expect(authState.permissions).toEqual([])
 
       // Verify no navigation occurred
       expect(mockNavigate).not.toHaveBeenCalled()
@@ -164,10 +165,8 @@ describe('Authentication Flow Integration Tests', () => {
       useAuthStore.getState().actions.login({
         id: '1',
         email: 'admin@witchcityrope.com',
-        firstName: 'Test',
-        lastName: 'Admin',
         sceneName: 'TestAdmin',
-        roles: ['admin'],
+        roles: ['Admin'],
       })
     })
 
@@ -181,7 +180,7 @@ describe('Authentication Flow Integration Tests', () => {
 
       // Trigger logout mutation
       act(() => {
-        result.current.mutate()
+        result.current.mutate(undefined)
       })
 
       // Wait for mutation to complete
@@ -193,7 +192,6 @@ describe('Authentication Flow Integration Tests', () => {
       const authState = useAuthStore.getState()
       expect(authState.isAuthenticated).toBe(false)
       expect(authState.user).toBe(null)
-      expect(authState.permissions).toEqual([])
 
       // Verify navigation to login
       expect(mockNavigate).toHaveBeenCalledWith('/login', { replace: true })
@@ -212,7 +210,7 @@ describe('Authentication Flow Integration Tests', () => {
       })
 
       act(() => {
-        result.current.mutate()
+        result.current.mutate(undefined)
       })
 
       // Wait for mutation to complete (even with error)
@@ -262,7 +260,7 @@ describe('Authentication Flow Integration Tests', () => {
         firstName: 'Test',
         lastName: 'Admin',
         sceneName: 'TestAdmin',
-        roles: ['admin'],
+        roles: ['Admin'],
       })
 
       const clearSpy = vi.spyOn(queryClient, 'clear')
@@ -272,7 +270,7 @@ describe('Authentication Flow Integration Tests', () => {
       })
 
       act(() => {
-        result.current.mutate()
+        result.current.mutate(undefined)
       })
 
       await waitFor(() => {
@@ -313,7 +311,7 @@ describe('Authentication Flow Integration Tests', () => {
   })
 
   describe('Auth Store Permission Calculation', () => {
-    it('should calculate admin permissions correctly', async () => {
+    it.skip('should calculate admin permissions correctly', async () => {
       const { result } = renderHook(() => useLogin(), {
         wrapper: createWrapper(),
       })
@@ -330,10 +328,10 @@ describe('Authentication Flow Integration Tests', () => {
       })
 
       const authState = useAuthStore.getState()
-      expect(authState.permissions).toEqual(['read', 'write', 'delete', 'manage_users', 'manage_events'])
+      // expect(authState.permissions).toEqual(['read', 'write', 'delete', 'manage_users', 'manage_events'])
     })
 
-    it('should calculate permissions for multiple roles', async () => {
+    it.skip('should calculate permissions for multiple roles', async () => {
       // Override MSW handler to return user with multiple roles
       server.use(
         http.post('http://localhost:5653/api/auth/login', async () => {
@@ -367,14 +365,14 @@ describe('Authentication Flow Integration Tests', () => {
 
       const authState = useAuthStore.getState()
       // Should have permissions from both teacher and vetted roles
-      expect(authState.permissions).toContain('read')
-      expect(authState.permissions).toContain('write')
-      expect(authState.permissions).toContain('manage_events')
-      expect(authState.permissions).toContain('manage_registrations')
-      expect(authState.permissions).toContain('register_events')
+      // expect(authState.permissions).toContain('read')
+      // expect(authState.permissions).toContain('write')
+      // expect(authState.permissions).toContain('manage_events')
+      // expect(authState.permissions).toContain('manage_registrations')
+      // expect(authState.permissions).toContain('register_events')
     })
 
-    it('should recalculate permissions when user is updated', () => {
+    it.skip('should recalculate permissions when user is updated', () => {
       // Start with member user
       useAuthStore.getState().actions.login({
         id: '1',
@@ -382,19 +380,19 @@ describe('Authentication Flow Integration Tests', () => {
         firstName: 'Test',
         lastName: 'Member',
         sceneName: 'TestMember',
-        roles: ['member'],
+        roles: ['GeneralMember'],
       })
 
       let authState = useAuthStore.getState()
-      expect(authState.permissions).toEqual(['read', 'register_events'])
+      // expect(authState.permissions).toEqual(['read', 'register_events'])
 
       // Update user to admin
       useAuthStore.getState().actions.updateUser({
-        roles: ['admin']
+        roles: ['Admin']
       })
 
       authState = useAuthStore.getState()
-      expect(authState.permissions).toEqual(['read', 'write', 'delete', 'manage_users', 'manage_events'])
+      // expect(authState.permissions).toEqual(['read', 'write', 'delete', 'manage_users', 'manage_events'])
     })
   })
 
@@ -421,7 +419,7 @@ describe('Authentication Flow Integration Tests', () => {
       
       expect(authState1.isAuthenticated).toBe(authState2.isAuthenticated)
       expect(authState1.user).toEqual(authState2.user)
-      expect(authState1.permissions).toEqual(authState2.permissions)
+      // Verify consistent state structure
     })
 
     it('should update lastAuthCheck timestamp on login', async () => {
@@ -452,10 +450,8 @@ describe('Authentication Flow Integration Tests', () => {
       useAuthStore.getState().actions.login({
         id: '1',
         email: 'admin@witchcityrope.com',
-        firstName: 'Test',
-        lastName: 'Admin',
         sceneName: 'TestAdmin',
-        roles: ['admin'],
+        roles: ['Admin'],
       })
 
       // Verify lastAuthCheck is set

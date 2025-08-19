@@ -1,9 +1,24 @@
 // test/mocks/handlers.ts
 import { http, HttpResponse } from 'msw'
-import type { UserDto, Event, PaginatedResponse } from '../../types/api.types'
+import type { Event, PaginatedResponse } from '../../types/api.types'
+
+// Use NSwag generated UserDto structure - aligned with API
+type UserDto = {
+  id?: string;
+  email?: string;
+  sceneName?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  roles?: string[];
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  lastLoginAt?: string | null;
+}
 
 export const handlers = [
-  // Authentication - Aligned with API DTO structure (support all ports)
+  // Authentication - Aligned with NSwag generated UserDto structure
+  // Primary API port (5651) - Auth endpoints
   http.get('http://localhost:5651/api/auth/me', () => {
     return HttpResponse.json({
       success: true,
@@ -11,25 +26,37 @@ export const handlers = [
         id: '1',
         email: 'admin@witchcityrope.com',
         sceneName: 'TestAdmin',
+        firstName: null,
+        lastName: null,
+        roles: ['Admin'],
+        isActive: true,
         createdAt: '2025-08-19T00:00:00Z',
+        updatedAt: '2025-08-19T10:00:00Z',
         lastLoginAt: '2025-08-19T10:00:00Z'
-      }
+      } as UserDto
     })
   }),
 
-  http.get('http://localhost:5653/api/auth/me', () => {
+  // Auth store is using /api/auth/user - add handler for this endpoint
+  http.get('http://localhost:5651/api/auth/user', () => {
     return HttpResponse.json({
       success: true,
       data: {
         id: '1',
         email: 'admin@witchcityrope.com',
         sceneName: 'TestAdmin',
+        firstName: null,
+        lastName: null,
+        roles: ['Admin'],
+        isActive: true,
         createdAt: '2025-08-19T00:00:00Z',
+        updatedAt: '2025-08-19T10:00:00Z',
         lastLoginAt: '2025-08-19T10:00:00Z'
-      }
+      } as UserDto
     })
   }),
 
+  // Support legacy 5655 port (main API)
   http.get('http://localhost:5655/api/auth/me', () => {
     return HttpResponse.json({
       success: true,
@@ -37,17 +64,19 @@ export const handlers = [
         id: '1',
         email: 'admin@witchcityrope.com',
         sceneName: 'TestAdmin',
+        firstName: null,
+        lastName: null,
+        roles: ['Admin'],
+        isActive: true,
         createdAt: '2025-08-19T00:00:00Z',
+        updatedAt: '2025-08-19T10:00:00Z',
         lastLoginAt: '2025-08-19T10:00:00Z'
-      }
+      } as UserDto
     })
   }),
 
+  // Logout endpoints - align with correct ports
   http.post('http://localhost:5651/api/auth/logout', () => {
-    return new HttpResponse(null, { status: 204 })
-  }),
-
-  http.post('http://localhost:5653/api/auth/logout', () => {
     return new HttpResponse(null, { status: 204 })
   }),
 
@@ -60,39 +89,24 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 })
   }),
 
+  // Login endpoints - align with NSwag LoginResponse structure
   http.post('http://localhost:5651/api/auth/login', async ({ request }) => {
     const body = await request.json() as any
     if (body.email === 'admin@witchcityrope.com') {
       return HttpResponse.json({
         success: true,
-        data: {
+        user: {
           id: '1',
           email: body.email as string,
           sceneName: 'TestAdmin',
+          firstName: null,
+          lastName: null,
+          roles: ['Admin'],
+          isActive: true,
           createdAt: '2025-08-19T00:00:00Z',
+          updatedAt: '2025-08-19T10:00:00Z',
           lastLoginAt: '2025-08-19T10:00:00Z'
-        },
-        message: 'Login successful'
-      })
-    }
-    return new HttpResponse(null, { status: 401 })
-  }),
-
-  http.post('http://localhost:5653/api/auth/login', async ({ request }) => {
-    const body = await request.json() as any
-    if (body.email === 'admin@witchcityrope.com') {
-      return HttpResponse.json({
-        success: true,
-        data: {
-          user: {
-            id: '1',
-            email: body.email as string,
-            sceneName: 'TestAdmin',
-            createdAt: '2025-08-19T00:00:00Z',
-            lastLoginAt: '2025-08-19T10:00:00Z'
-          },
-          token: 'fake-jwt-token'
-        },
+        } as UserDto,
         message: 'Login successful'
       })
     }
@@ -104,16 +118,18 @@ export const handlers = [
     if (body.email === 'admin@witchcityrope.com') {
       return HttpResponse.json({
         success: true,
-        data: {
-          user: {
-            id: '1',
-            email: body.email as string,
-            sceneName: 'TestAdmin',
-            createdAt: '2025-08-19T00:00:00Z',
-            lastLoginAt: '2025-08-19T10:00:00Z'
-          },
-          token: 'fake-jwt-token'
-        },
+        user: {
+          id: '1',
+          email: body.email as string,
+          sceneName: 'TestAdmin',
+          firstName: null,
+          lastName: null,
+          roles: ['Admin'],
+          isActive: true,
+          createdAt: '2025-08-19T00:00:00Z',
+          updatedAt: '2025-08-19T10:00:00Z',
+          lastLoginAt: '2025-08-19T10:00:00Z'
+        } as UserDto,
         message: 'Login successful'
       })
     }
@@ -122,10 +138,6 @@ export const handlers = [
 
   // Auth refresh endpoint for interceptor
   http.post('http://localhost:5651/auth/refresh', () => {
-    return new HttpResponse('Unauthorized', { status: 401 })
-  }),
-
-  http.post('http://localhost:5653/auth/refresh', () => {
     return new HttpResponse('Unauthorized', { status: 401 })
   }),
 
@@ -141,9 +153,14 @@ export const handlers = [
         id: '1',
         email: 'admin@witchcityrope.com',
         sceneName: 'TestAdmin',
+        firstName: null,
+        lastName: null,
+        roles: ['Admin'],
+        isActive: true,
         createdAt: '2025-08-19T00:00:00Z',
+        updatedAt: '2025-08-19T10:00:00Z',
         lastLoginAt: '2025-08-19T10:00:00Z'
-      },
+      } as UserDto,
       serverTime: new Date().toISOString()
     })
   }),
@@ -153,21 +170,23 @@ export const handlers = [
     const body = await request.json() as any
     return HttpResponse.json({
       success: true,
-      data: {
-        user: {
-          id: 'new-user-id',
-          email: body.email as string,
-          sceneName: body.sceneName as string,
-          createdAt: new Date().toISOString(),
-          lastLoginAt: new Date().toISOString()
-        },
-        token: 'fake-jwt-token'
-      },
+      user: {
+        id: 'new-user-id',
+        email: body.email as string,
+        sceneName: body.sceneName as string,
+        firstName: null,
+        lastName: null,
+        roles: ['GeneralMember'],
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString()
+      } as UserDto,
       message: 'Registration successful'
     })
   }),
 
-  // Keep legacy paths for backward compatibility
+  // Keep legacy relative paths for backward compatibility
   http.get('/auth/me', () => {
     return HttpResponse.json({
       success: true,
@@ -175,9 +194,14 @@ export const handlers = [
         id: '1',
         email: 'admin@witchcityrope.com',
         sceneName: 'TestAdmin',
+        firstName: null,
+        lastName: null,
+        roles: ['Admin'],
+        isActive: true,
         createdAt: '2025-08-19T00:00:00Z',
+        updatedAt: '2025-08-19T10:00:00Z',
         lastLoginAt: '2025-08-19T10:00:00Z'
-      }
+      } as UserDto
     })
   }),
 
@@ -190,20 +214,94 @@ export const handlers = [
     if (body.email === 'admin@witchcityrope.com') {
       return HttpResponse.json({
         success: true,
-        data: {
+        user: {
           id: '1',
           email: body.email as string,
           sceneName: 'TestAdmin',
+          firstName: null,
+          lastName: null,
+          roles: ['Admin'],
+          isActive: true,
           createdAt: '2025-08-19T00:00:00Z',
+          updatedAt: '2025-08-19T10:00:00Z',
           lastLoginAt: '2025-08-19T10:00:00Z'
-        },
+        } as UserDto,
         message: 'Login successful'
       })
     }
     return new HttpResponse(null, { status: 401 })
   }),
 
-  // Events
+  // Events - FIXED: Add full URL handlers for port 5655
+  http.get('http://localhost:5655/api/events/:id', ({ params }) => {
+    return HttpResponse.json({
+      id: params.id,
+      title: 'Test Event',
+      description: 'A test event for API validation',
+      startDate: '2025-08-20T19:00:00Z',
+      endDate: '2025-08-20T21:00:00Z',
+      maxAttendees: 20,
+      currentAttendees: 5,
+      isRegistrationOpen: true,
+      instructorId: '1',
+      instructor: {
+        id: '1',
+        sceneName: 'TestInstructor',
+        email: 'instructor@test.com',
+        createdAt: '2025-08-19T00:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
+      },
+      attendees: [],
+    } as Event)
+  }),
+
+  http.get('http://localhost:5655/api/events', ({ request }) => {
+    const url = new URL(request.url)
+    const page = parseInt(url.searchParams.get('page') || '1')
+    const pageSize = parseInt(url.searchParams.get('pageSize') || '20')
+    
+    const events = [
+      {
+        id: '1',
+        title: 'Test Event 1',
+        description: 'First test event',
+        startDate: '2025-08-20T19:00:00Z',
+        endDate: '2025-08-20T21:00:00Z',
+        maxAttendees: 20,
+        currentAttendees: 5,
+        isRegistrationOpen: true,
+        instructorId: '1',
+      },
+      {
+        id: '2',
+        title: 'Test Event 2',
+        description: 'Second test event',
+        startDate: '2025-08-21T19:00:00Z',
+        endDate: '2025-08-21T21:00:00Z',
+        maxAttendees: 15,
+        currentAttendees: 10,
+        isRegistrationOpen: true,
+        instructorId: '1',
+      },
+    ] as Event[]
+
+    // Return paginated or simple response based on request
+    if (url.searchParams.has('page')) {
+      return HttpResponse.json({
+        data: events,
+        page,
+        pageSize,
+        totalCount: 25,
+        totalPages: 2,
+        hasNext: page < 2,
+        hasPrevious: page > 1,
+      } as PaginatedResponse<Event>)
+    }
+
+    return HttpResponse.json(events)
+  }),
+
+  // Events - Keep relative paths for other tests
   http.get('/api/events/:id', ({ params }) => {
     return HttpResponse.json({
       id: params.id,
@@ -329,14 +427,24 @@ export const handlers = [
         id: '1',
         email: 'member1@test.com',
         sceneName: 'TestMember1',
+        firstName: null,
+        lastName: null,
+        roles: ['GeneralMember'],
+        isActive: true,
         createdAt: '2025-08-19T00:00:00Z',
+        updatedAt: '2025-08-19T10:00:00Z',
         lastLoginAt: '2025-08-19T10:00:00Z'
       },
       {
         id: '2',
         email: 'member2@test.com',
         sceneName: 'TestMember2',
+        firstName: null,
+        lastName: null,
+        roles: ['VettedMember'],
+        isActive: true,
         createdAt: '2025-08-19T00:00:00Z',
+        updatedAt: '2025-08-19T10:00:00Z',
         lastLoginAt: '2025-08-19T10:00:00Z'
       },
     ] as UserDto[]
@@ -362,7 +470,12 @@ export const handlers = [
       id: params.id,
       email: 'member@test.com',
       sceneName: 'TestMember',
+      firstName: null,
+      lastName: null,
+      roles: ['GeneralMember'],
+      isActive: true,
       createdAt: '2025-08-19T00:00:00Z',
+      updatedAt: '2025-08-19T10:00:00Z',
       lastLoginAt: '2025-08-19T10:00:00Z'
     } as UserDto)
   }),
@@ -373,7 +486,12 @@ export const handlers = [
       id: params.id,
       email: 'member@test.com',
       sceneName: 'TestMember',
+      firstName: null,
+      lastName: null,
+      roles: ['GeneralMember'],
+      isActive: true,
       createdAt: '2025-08-19T00:00:00Z',
+      updatedAt: new Date().toISOString(),
       lastLoginAt: new Date().toISOString()
     } as UserDto)
   }),
@@ -384,7 +502,12 @@ export const handlers = [
       id: '1',
       email: 'user@test.com',
       sceneName: body.sceneName || 'TestUser',
+      firstName: null,
+      lastName: null,
+      roles: ['GeneralMember'],
+      isActive: true,
       createdAt: '2025-08-19T00:00:00Z',
+      updatedAt: new Date().toISOString(),
       lastLoginAt: new Date().toISOString()
     } as UserDto)
   }),

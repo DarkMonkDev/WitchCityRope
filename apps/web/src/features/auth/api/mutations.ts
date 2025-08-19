@@ -102,7 +102,7 @@ export function useLogout() {
   const navigate = useNavigate()
   
   return useMutation({
-    mutationFn: async (): Promise<void> => {
+    mutationFn: async (_?: void): Promise<void> => {
       await api.post('/api/auth/logout')
     },
     onSuccess: () => {

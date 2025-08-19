@@ -18,14 +18,18 @@ describe('AuthStore', () => {
     useAuthStore.getState().actions.logout();
   });
 
-  // Aligned with generated UserDto from @witchcityrope/shared-types
+  // Aligned with NSwag generated UserDto structure
   const mockUser: UserDto = {
     id: '1',
     email: 'test@witchcityrope.com',
     sceneName: 'TestUser',
+    firstName: null,
+    lastName: null,
+    roles: ['GeneralMember'],
+    isActive: true,
     createdAt: '2025-08-19T10:00:00Z',
-    // Note: UserDto uses updatedAt instead of lastLoginAt
-    updatedAt: '2025-08-19T10:00:00Z'
+    updatedAt: '2025-08-19T10:00:00Z',
+    lastLoginAt: '2025-08-19T10:00:00Z'
   };
 
   describe('login action', () => {
@@ -57,33 +61,27 @@ describe('AuthStore', () => {
   });
 
   describe('logout action', () => {
-    it('should clear state and call API logout', async () => {
+    it('should clear state', () => {
       // Setup authenticated state
       const { actions } = useAuthStore.getState();
       actions.login(mockUser);
       
-      // Mock successful logout
-      mockFetch.mockResolvedValueOnce({
-        ok: true
-      } as Response);
+      // Verify initial authenticated state
+      expect(useAuthStore.getState().isAuthenticated).toBe(true);
+      expect(useAuthStore.getState().user).toEqual(mockUser);
       
       // Call logout
       actions.logout();
       
-      // Verify API call
-      expect(mockFetch).toHaveBeenCalledWith('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include'
-      });
-      
-      // Allow fetch promise to resolve
-      await new Promise(resolve => setTimeout(resolve, 0));
-      
+      // Verify state was cleared immediately (no API call in store)
       const state = useAuthStore.getState();
       expect(state.isAuthenticated).toBe(false);
       expect(state.user).toBeNull();
       expect(state.isLoading).toBe(false);
       expect(state.lastAuthCheck).toBeNull();
+      
+      // Verify no API call was made from the store
+      expect(mockFetch).not.toHaveBeenCalled();
     });
   });
 
@@ -118,15 +116,6 @@ describe('AuthStore', () => {
 
   describe('checkAuth action', () => {
     it('should set loading true and authenticate if API succeeds', async () => {
-      // Mock successful auth check with nested response structure
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ 
-          success: true, 
-          data: mockUser 
-        })
-      } as Response);
-      
       const { actions } = useAuthStore.getState();
       const checkAuthPromise = actions.checkAuth();
       
@@ -135,33 +124,54 @@ describe('AuthStore', () => {
       
       await checkAuthPromise;
       
-      // Should authenticate user
+      // Should authenticate user - MSW will return admin user
       const state = useAuthStore.getState();
       expect(state.isAuthenticated).toBe(true);
-      expect(state.user).toEqual(mockUser);
+      expect(state.user).toEqual({
+        id: '1',
+        email: 'admin@witchcityrope.com',
+        sceneName: 'TestAdmin',
+        firstName: null,
+        lastName: null,
+        roles: ['Admin'],
+        isActive: true,
+        createdAt: '2025-08-19T00:00:00Z',
+        updatedAt: '2025-08-19T10:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
+      });
       expect(state.isLoading).toBe(false);
     });
 
     it('should handle flat response structure', async () => {
-      // Mock successful auth check with flat response structure
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockUser
-      } as Response);
-      
       const { actions } = useAuthStore.getState();
       await actions.checkAuth();
       
       const state = useAuthStore.getState();
       expect(state.isAuthenticated).toBe(true);
-      expect(state.user).toEqual(mockUser);
+      expect(state.user).toEqual({
+        id: '1',
+        email: 'admin@witchcityrope.com',
+        sceneName: 'TestAdmin',
+        firstName: null,
+        lastName: null,
+        roles: ['Admin'],
+        isActive: true,
+        createdAt: '2025-08-19T00:00:00Z',
+        updatedAt: '2025-08-19T10:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
+      });
     });
 
     it('should logout if API fails', async () => {
-      // Mock failed auth check
-      mockFetch.mockResolvedValueOnce({
-        ok: false
-      } as Response);
+      // Override MSW handler to return 401 for this test
+      const { server } = await import('../../test/setup');
+      const { http, HttpResponse } = await import('msw');
+      
+      server.use(
+        http.get('http://localhost:5651/api/auth/user', () => {
+          return new HttpResponse(null, { status: 401 })
+        })
+      );
       
       const { actions } = useAuthStore.getState();
       await actions.checkAuth();
@@ -173,8 +183,15 @@ describe('AuthStore', () => {
     });
 
     it('should handle network errors gracefully', async () => {
-      // Mock network error
-      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+      // Override MSW handler to simulate network error for this test
+      const { server } = await import('../../test/setup');
+      const { http, HttpResponse } = await import('msw');
+      
+      server.use(
+        http.get('http://localhost:5651/api/auth/user', () => {
+          return HttpResponse.error()
+        })
+      );
       
       const { actions } = useAuthStore.getState();
       await actions.checkAuth();
@@ -215,11 +232,13 @@ describe('AuthStore', () => {
   });
 
   describe('selector hooks', () => {
-    it('should provide scene name via useUserSceneName', () => {
+    it('should provide scene name via direct state access', () => {
       const { actions } = useAuthStore.getState();
       actions.login(mockUser);
       
-      const sceneName = useAuthStore((state) => state.user?.sceneName || '');
+      // Test selector function directly with state
+      const state = useAuthStore.getState();
+      const sceneName = state.user?.sceneName || '';
       expect(sceneName).toBe('TestUser');
     });
   });

@@ -22,6 +22,61 @@
 
 ---
 
+## 🚨 CRITICAL: NSwag Type Generation Compilation Fixes (READ FIRST) 🚨
+**Date**: 2025-08-19
+**Category**: NSwag Critical Fixes
+**Severity**: Critical
+
+### Context
+Fixed critical TypeScript compilation errors in NSwag-generated types that were preventing builds and tests from working. Multiple issues discovered in OpenAPI TypeScript generation and TanStack Query v5 integration.
+
+### What We Learned
+- **OpenAPI-TypeScript Bug**: Properties with `default` values but not in `required` array still generate as required types
+- **TanStack Query v5 Change**: All mutations require arguments, even logout operations that don't need data
+- **QueryClient API Change**: `getQueryData<T>()` in v5 doesn't accept generic arguments, use casting instead
+- **QueryErrorResetBoundary Issue**: Render props pattern requires casting to unknown then ReactNode for TypeScript
+- **Manual Fixes Required**: Some issues in generated types need manual correction after generation
+
+### Action Items
+- [ ] ALWAYS manually fix rememberMe to optional after type generation: `rememberMe?: boolean`
+- [ ] ADD lastLoginAt field to UserDto if not present in API schema
+- [ ] USE `mutationFn: async (_?: void)` pattern for mutations that don't need arguments
+- [ ] REPLACE `queryClient.getQueryData<T>()` with `queryClient.getQueryData() as T | undefined`
+- [ ] CAST render props functions: `)) as unknown as React.ReactNode`
+- [ ] UPDATE tests to call `mutate(undefined)` for mutations that don't need data
+
+### Critical Implementation Rules
+```typescript
+// ✅ CORRECT - TanStack Query v5 mutations
+const logoutMutation = useMutation({
+  mutationFn: async (_?: void): Promise<void> => {
+    await api.post('/api/auth/logout')
+  }
+})
+
+// ✅ CORRECT - QueryClient data access
+const userData = queryClient.getQueryData(userKeys.me()) as UserDto | undefined
+
+// ✅ CORRECT - Generated types after manual fix
+interface LoginRequest {
+  email: string;
+  password: string;
+  rememberMe?: boolean; // Manual fix: should be optional
+}
+
+// ❌ WRONG - Old patterns that fail in v5
+useMutation<LoginResponse, Error, LoginRequest>({ ... })
+queryClient.getQueryData<UserDto>(userKeys.me())
+```
+
+### Impact
+Enables TypeScript compilation and test execution. Critical for development workflow and build pipeline.
+
+### Tags
+#critical #nswag #tanstack-query #typescript-compilation #build-fix
+
+---
+
 ## 🚨 CRITICAL: NEVER Create Manual DTO Interfaces (READ FIRST) 🚨
 **Date**: 2025-08-19
 **Category**: NSwag Auto-Generation
@@ -45,6 +100,8 @@ NSwag auto-generation is THE solution for TypeScript types. NEVER manually creat
 - [ ] RUN: npm run generate:types when API changes
 - [ ] REPLACE: All manual DTO interfaces with generated types
 - [ ] IMPORT: Generated types only: import { User } from '@witchcityrope/shared-types'
+- [ ] MANUAL FIX REQUIRED: openapi-typescript doesn't handle optional properties with defaults correctly
+- [ ] MANUAL FIX REQUIRED: TanStack Query v5 requires mutations to accept arguments, use (_?: void) pattern
 
 ### Critical Implementation Rules
 ```typescript

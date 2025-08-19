@@ -46,7 +46,7 @@ export function useUpdateMemberStatus() {
       await queryClient.cancelQueries({ queryKey: queryKeys.user(id) })
       
       // Snapshot previous value
-      const previousUser = queryClient.getQueryData<UserDto>(queryKeys.user(id))
+      const previousUser = queryClient.getQueryData(queryKeys.user(id)) as UserDto | undefined
       
       // Optimistically update user
       if (previousUser) {

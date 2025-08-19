@@ -89,11 +89,16 @@ describe('useLogin', () => {
     expect(result.current.isError).toBe(false)
     expect(result.current.data).toEqual({
       success: true,
-      data: {
+      user: {
         id: '1',
         email: 'admin@witchcityrope.com',
         sceneName: 'TestAdmin',
+        firstName: null,
+        lastName: null,
+        roles: ['Admin'],
+        isActive: true,
         createdAt: '2025-08-19T00:00:00Z',
+        updatedAt: '2025-08-19T10:00:00Z',
         lastLoginAt: '2025-08-19T10:00:00Z'
       },
       message: 'Login successful'
@@ -106,7 +111,12 @@ describe('useLogin', () => {
       id: '1',
       email: 'admin@witchcityrope.com',
       sceneName: 'TestAdmin',
+      firstName: null,
+      lastName: null,
+      roles: ['Admin'],
+      isActive: true,
       createdAt: '2025-08-19T00:00:00Z',
+      updatedAt: '2025-08-19T10:00:00Z',
       lastLoginAt: '2025-08-19T10:00:00Z'
     })
 
@@ -138,9 +148,9 @@ describe('useLogin', () => {
   })
 
   it('should handle login failure', async () => {
-    // Override MSW handler for failed login
+    // Override MSW handler for failed login - use correct port
     server.use(
-      http.post('http://localhost:5653/api/auth/login', () => {
+      http.post('http://localhost:5651/api/auth/login', () => {
         return new HttpResponse('Invalid credentials', { status: 401 })
       })
     )
@@ -184,7 +194,7 @@ describe('useLogin', () => {
     })
     
     server.use(
-      http.post('http://localhost:5653/api/auth/login', loginHandler)
+      http.post('http://localhost:5651/api/auth/login', loginHandler)
     )
 
     const { result } = renderHook(() => useLogin(), {
@@ -243,13 +253,18 @@ describe('useLogin', () => {
 
 describe('useLogout', () => {
   beforeEach(() => {
-    // Set up authenticated state - using UserDto structure
+    // Set up authenticated state - using NSwag UserDto structure
     useAuthStore.getState().actions.login({
       id: '1',
       email: 'admin@witchcityrope.com',
       sceneName: 'TestAdmin',
+      firstName: null,
+      lastName: null,
+      roles: ['Admin'],
+      isActive: true,
       createdAt: '2025-08-19T00:00:00Z',
-      updatedAt: '2025-08-19T10:00:00Z'
+      updatedAt: '2025-08-19T10:00:00Z',
+      lastLoginAt: '2025-08-19T10:00:00Z'
     })
     mockNavigate.mockClear()
     mockFetch.mockClear()
@@ -273,7 +288,7 @@ describe('useLogout', () => {
     expect(useAuthStore.getState().isAuthenticated).toBe(true)
 
     act(() => {
-      result.current.mutate()
+      result.current.mutate(undefined)
     })
 
     // Wait for mutation to start or complete
@@ -301,9 +316,9 @@ describe('useLogout', () => {
   it('should handle logout API failure gracefully', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     
-    // Override MSW handler for failed logout
+    // Override MSW handler for failed logout - use correct port
     server.use(
-      http.post('http://localhost:5653/api/auth/logout', () => {
+      http.post('http://localhost:5651/api/auth/logout', () => {
         return new HttpResponse('Server error', { status: 500 })
       })
     )
@@ -313,7 +328,7 @@ describe('useLogout', () => {
     })
 
     act(() => {
-      result.current.mutate()
+      result.current.mutate(undefined)
     })
 
     await waitFor(() => {
@@ -348,7 +363,7 @@ describe('useLogout', () => {
     const { result } = renderHook(() => useLogout(), { wrapper })
 
     act(() => {
-      result.current.mutate()
+      result.current.mutate(undefined)
     })
 
     await waitFor(() => {
@@ -367,7 +382,7 @@ describe('useLogout', () => {
     })
     
     server.use(
-      http.post('http://localhost:5653/api/auth/logout', logoutHandler)
+      http.post('http://localhost:5651/api/auth/logout', logoutHandler)
     )
 
     const { result } = renderHook(() => useLogout(), {
@@ -375,7 +390,7 @@ describe('useLogout', () => {
     })
 
     act(() => {
-      result.current.mutate()
+      result.current.mutate(undefined)
     })
 
     await waitFor(() => {

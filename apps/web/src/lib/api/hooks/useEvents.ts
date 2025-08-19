@@ -97,7 +97,7 @@ export function useUpdateEvent() {
       await queryClient.cancelQueries({ queryKey: eventKeys.detail(updatedEvent.id) })
       
       // Snapshot previous value
-      const previousEvent = queryClient.getQueryData<EventDto>(eventKeys.detail(updatedEvent.id))
+      const previousEvent = queryClient.getQueryData(eventKeys.detail(updatedEvent.id)) as EventDto | undefined
       
       // Optimistically update cache
       queryClient.setQueryData(eventKeys.detail(updatedEvent.id), (old: EventDto | undefined) => {
@@ -168,7 +168,7 @@ export function useRegisterForEvent() {
       // Optimistically update event registration count
       await queryClient.cancelQueries({ queryKey: eventKeys.detail(eventId) })
       
-      const previousEvent = queryClient.getQueryData<EventDto>(eventKeys.detail(eventId))
+      const previousEvent = queryClient.getQueryData(eventKeys.detail(eventId)) as EventDto | undefined
       
       queryClient.setQueryData(eventKeys.detail(eventId), (old: EventDto | undefined) => {
         if (!old) return old

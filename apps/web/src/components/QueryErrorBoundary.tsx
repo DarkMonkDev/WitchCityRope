@@ -5,7 +5,7 @@ import { ErrorBoundary } from 'react-error-boundary'
 function QueryErrorBoundary({ children }: { children: React.ReactNode }) {
   return (
     <QueryErrorResetBoundary>
-      {({ reset }) => (
+      {(({ reset }) => (
         <ErrorBoundary
           onReset={reset}
           fallbackRender={({ resetErrorBoundary, error }) => (
@@ -27,7 +27,7 @@ function QueryErrorBoundary({ children }: { children: React.ReactNode }) {
         >
           {children}
         </ErrorBoundary>
-      )}
+      )) as unknown as React.ReactNode}
     </QueryErrorResetBoundary>
   )
 }

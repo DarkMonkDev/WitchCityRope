@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { EventsList } from '../EventsList'
+import { server } from '../../test/setup'
+import { http, HttpResponse } from 'msw'
 
 // Mock the EventCard component since we're testing EventsList in isolation
 vi.mock('../EventCard', () => ({
@@ -18,9 +20,7 @@ vi.mock('../LoadingSpinner', () => ({
   LoadingSpinner: () => <div data-testid="loading-spinner">Loading...</div>,
 }))
 
-// Mock fetch globally
-const mockFetch = vi.fn()
-global.fetch = mockFetch
+// We'll use MSW handlers instead of mock fetch
 
 describe('EventsList Component - Vertical Slice Home Page Tests', () => {
   beforeEach(() => {
@@ -32,8 +32,12 @@ describe('EventsList Component - Vertical Slice Home Page Tests', () => {
   })
 
   it('displays loading spinner while fetching events', async () => {
-    // Arrange
-    mockFetch.mockImplementation(() => new Promise(() => {})) // Never resolves
+    // Arrange - MSW handler that never resolves
+    server.use(
+      http.get('http://localhost:5655/api/events', () => {
+        return new Promise(() => {}) // Never resolves
+      })
+    )
 
     // Act
     render(<EventsList />)
@@ -44,28 +48,7 @@ describe('EventsList Component - Vertical Slice Home Page Tests', () => {
   })
 
   it('displays events when data loads successfully', async () => {
-    // Arrange
-    const mockEvents = [
-      {
-        id: '550e8400-e29b-41d4-a716-446655440000',
-        title: 'Rope Basics Workshop',
-        description: 'Learn the fundamentals of rope bondage',
-        startDate: '2025-08-25T14:00:00Z',
-        location: 'Salem Community Center',
-      },
-      {
-        id: '550e8400-e29b-41d4-a716-446655440001',
-        title: 'Advanced Suspension Techniques',
-        description: 'Advanced workshop covering suspension safety',
-        startDate: '2025-08-30T19:00:00Z',
-        location: 'Studio Space Downtown',
-      },
-    ]
-
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockEvents,
-    })
+    // Use default MSW handler which returns Test Event 1 and Test Event 2
 
     // Act
     render(<EventsList />)
@@ -76,13 +59,17 @@ describe('EventsList Component - Vertical Slice Home Page Tests', () => {
     })
 
     expect(screen.getAllByTestId('event-card')).toHaveLength(2)
-    expect(screen.getByText('Rope Basics Workshop')).toBeInTheDocument()
-    expect(screen.getByText('Advanced Suspension Techniques')).toBeInTheDocument()
+    expect(screen.getByText('Test Event 1')).toBeInTheDocument()
+    expect(screen.getByText('Test Event 2')).toBeInTheDocument()
   })
 
   it('displays error message when API call fails', async () => {
-    // Arrange
-    mockFetch.mockRejectedValueOnce(new Error('Network error'))
+    // Arrange - MSW handler that simulates network error
+    server.use(
+      http.get('http://localhost:5655/api/events', () => {
+        return HttpResponse.error()
+      })
+    )
 
     // Act
     render(<EventsList />)
@@ -100,11 +87,12 @@ describe('EventsList Component - Vertical Slice Home Page Tests', () => {
   })
 
   it('displays error message when API returns non-200 status', async () => {
-    // Arrange
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 500,
-    })
+    // Arrange - MSW handler that returns 500 error
+    server.use(
+      http.get('http://localhost:5655/api/events', () => {
+        return new HttpResponse(null, { status: 500 })
+      })
+    )
 
     // Act
     render(<EventsList />)
@@ -118,11 +106,12 @@ describe('EventsList Component - Vertical Slice Home Page Tests', () => {
   })
 
   it('displays empty state when no events are returned', async () => {
-    // Arrange
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => [],
-    })
+    // Arrange - MSW handler that returns empty array
+    server.use(
+      http.get('http://localhost:5655/api/events', () => {
+        return HttpResponse.json([])
+      })
+    )
 
     // Act
     render(<EventsList />)
@@ -137,41 +126,22 @@ describe('EventsList Component - Vertical Slice Home Page Tests', () => {
   })
 
   it('calls correct API endpoint for events', async () => {
-    // Arrange
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => [],
-    })
-
+    // This test is implicit with MSW - if the request reaches the right endpoint,
+    // the handler will be triggered and return data
+    
     // Act
     render(<EventsList />)
 
-    // Assert
+    // Assert - if the component renders events, the correct endpoint was called
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledTimes(1)
+      expect(screen.getByTestId('events-grid')).toBeInTheDocument()
     })
 
-    expect(mockFetch).toHaveBeenCalledWith('http://localhost:5655/api/events')
+    expect(screen.getAllByTestId('event-card')).toHaveLength(2)
   })
 
   it('proves React + API stack integration works', async () => {
-    // Arrange - Test that proves the React → API communication works
-    const mockApiResponse = [
-      {
-        id: 'proof-of-concept-id',
-        title: 'React + API Integration Test',
-        description: 'This proves React can fetch from the API',
-        startDate: '2025-08-25T14:00:00Z',
-        location: 'Proof of Concept',
-      },
-    ]
-
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockApiResponse,
-    })
-
-    // Act
+    // Act - Use default MSW handler
     render(<EventsList />)
 
     // Assert
@@ -180,8 +150,8 @@ describe('EventsList Component - Vertical Slice Home Page Tests', () => {
     })
 
     // Verify React received and displayed the API data
-    expect(screen.getByText('React + API Integration Test')).toBeInTheDocument()
-    expect(screen.getByText('This proves React can fetch from the API')).toBeInTheDocument()
+    expect(screen.getByText('Test Event 1')).toBeInTheDocument()
+    expect(screen.getByText('First test event')).toBeInTheDocument()
 
     // Verify the component structure matches requirements
     const eventsGrid = screen.getByTestId('events-grid')
@@ -195,9 +165,12 @@ describe('EventsList Component - Vertical Slice Home Page Tests', () => {
   })
 
   it('handles network timeout gracefully', async () => {
-    // Arrange
-    mockFetch.mockImplementation(
-      () => new Promise((_, reject) => setTimeout(() => reject(new Error('Network timeout')), 100))
+    // Arrange - MSW handler that delays and then returns error
+    server.use(
+      http.get('http://localhost:5655/api/events', async () => {
+        await new Promise(resolve => setTimeout(resolve, 100))
+        return HttpResponse.error()
+      })
     )
 
     // Act

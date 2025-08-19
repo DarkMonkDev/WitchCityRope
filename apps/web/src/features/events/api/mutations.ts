@@ -76,7 +76,7 @@ export function useEventRegistration() {
       await queryClient.cancelQueries({ queryKey: queryKeys.event(eventId) })
       
       // Snapshot previous value
-      const previousEvent = queryClient.getQueryData<Event>(queryKeys.event(eventId))
+      const previousEvent = queryClient.getQueryData(queryKeys.event(eventId)) as Event | undefined
       
       // Optimistically update event
       if (previousEvent) {
