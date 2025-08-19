@@ -18,13 +18,13 @@ describe('AuthStore', () => {
     useAuthStore.getState().actions.logout();
   });
 
+  // Aligned with API DTO structure - User interface matches backend response
   const mockUser: User = {
     id: '1',
     email: 'test@witchcityrope.com',
-    firstName: 'Test',
-    lastName: 'User',
     sceneName: 'TestUser',
-    roles: ['member']
+    createdAt: '2025-08-19T10:00:00Z',
+    lastLoginAt: '2025-08-19T10:00:00Z'
   };
 
   describe('login action', () => {
@@ -37,43 +37,21 @@ describe('AuthStore', () => {
       expect(state.isAuthenticated).toBe(true);
       expect(state.user).toEqual(mockUser);
       expect(state.isLoading).toBe(false);
-      expect(state.permissions).toContain('read');
-      expect(state.permissions).toContain('register_events');
       expect(state.lastAuthCheck).toBeInstanceOf(Date);
     });
 
-    it('should calculate admin permissions correctly', () => {
-      const adminUser: User = {
+    it('should handle different scene names correctly', () => {
+      const userWithDifferentName: User = {
         ...mockUser,
-        roles: ['admin']
+        sceneName: 'RopeEnthusiast42'
       };
       
       const { actions } = useAuthStore.getState();
-      actions.login(adminUser);
+      actions.login(userWithDifferentName);
       
       const state = useAuthStore.getState();
-      expect(state.permissions).toContain('read');
-      expect(state.permissions).toContain('write');
-      expect(state.permissions).toContain('delete');
-      expect(state.permissions).toContain('manage_users');
-      expect(state.permissions).toContain('manage_events');
-    });
-
-    it('should calculate teacher permissions correctly', () => {
-      const teacherUser: User = {
-        ...mockUser,
-        roles: ['teacher']
-      };
-      
-      const { actions } = useAuthStore.getState();
-      actions.login(teacherUser);
-      
-      const state = useAuthStore.getState();
-      expect(state.permissions).toContain('read');
-      expect(state.permissions).toContain('write');
-      expect(state.permissions).toContain('manage_events');
-      expect(state.permissions).toContain('manage_registrations');
-      expect(state.permissions).not.toContain('manage_users');
+      expect(state.user?.sceneName).toBe('RopeEnthusiast42');
+      expect(state.isAuthenticated).toBe(true);
     });
   });
 
@@ -103,25 +81,23 @@ describe('AuthStore', () => {
       const state = useAuthStore.getState();
       expect(state.isAuthenticated).toBe(false);
       expect(state.user).toBeNull();
-      expect(state.permissions).toEqual([]);
       expect(state.isLoading).toBe(false);
       expect(state.lastAuthCheck).toBeNull();
     });
   });
 
   describe('updateUser action', () => {
-    it('should update user data and recalculate permissions', () => {
+    it('should update user data', () => {
       const { actions } = useAuthStore.getState();
       
       // Setup authenticated state
       actions.login(mockUser);
       
-      // Update user with new role
-      actions.updateUser({ roles: ['teacher'] });
+      // Update user with new scene name
+      actions.updateUser({ sceneName: 'UpdatedSceneName' });
       
       const state = useAuthStore.getState();
-      expect(state.user?.roles).toEqual(['teacher']);
-      expect(state.permissions).toContain('manage_events');
+      expect(state.user?.sceneName).toBe('UpdatedSceneName');
       expect(state.lastAuthCheck).toBeInstanceOf(Date);
     });
 
@@ -132,20 +108,22 @@ describe('AuthStore', () => {
       actions.logout();
       
       // Try to update null user
-      actions.updateUser({ firstName: 'Updated' });
+      actions.updateUser({ sceneName: 'UpdatedName' });
       
       const state = useAuthStore.getState();
       expect(state.user).toBeNull();
-      expect(state.permissions).toEqual([]);
     });
   });
 
   describe('checkAuth action', () => {
     it('should set loading true and authenticate if API succeeds', async () => {
-      // Mock successful auth check
+      // Mock successful auth check with nested response structure
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => mockUser
+        json: async () => ({ 
+          success: true, 
+          data: mockUser 
+        })
       } as Response);
       
       const { actions } = useAuthStore.getState();
@@ -161,6 +139,21 @@ describe('AuthStore', () => {
       expect(state.isAuthenticated).toBe(true);
       expect(state.user).toEqual(mockUser);
       expect(state.isLoading).toBe(false);
+    });
+
+    it('should handle flat response structure', async () => {
+      // Mock successful auth check with flat response structure
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockUser
+      } as Response);
+      
+      const { actions } = useAuthStore.getState();
+      await actions.checkAuth();
+      
+      const state = useAuthStore.getState();
+      expect(state.isAuthenticated).toBe(true);
+      expect(state.user).toEqual(mockUser);
     });
 
     it('should logout if API fails', async () => {
@@ -215,9 +208,18 @@ describe('AuthStore', () => {
       expect(state.user).toEqual(mockUser);
       expect(state.isAuthenticated).toBe(true);
       expect(state.isLoading).toBe(false);
-      expect(state.user?.roles).toEqual(['member']);
-      expect(state.permissions).toContain('read');
-      expect(state.permissions).toContain('register_events');
+      expect(state.user?.sceneName).toBe('TestUser');
+      expect(state.user?.email).toBe('test@witchcityrope.com');
+    });
+  });
+
+  describe('selector hooks', () => {
+    it('should provide scene name via useUserSceneName', () => {
+      const { actions } = useAuthStore.getState();
+      actions.login(mockUser);
+      
+      const sceneName = useAuthStore((state) => state.user?.sceneName || '');
+      expect(sceneName).toBe('TestUser');
     });
   });
 });

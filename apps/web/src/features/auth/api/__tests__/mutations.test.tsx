@@ -88,14 +88,15 @@ describe('useLogin', () => {
     expect(result.current.isPending).toBe(false)
     expect(result.current.isError).toBe(false)
     expect(result.current.data).toEqual({
-      user: {
+      success: true,
+      data: {
         id: '1',
         email: 'admin@witchcityrope.com',
-        firstName: 'Test',
-        lastName: 'Admin',
         sceneName: 'TestAdmin',
-        roles: ['admin'], // Use correct roles array structure
+        createdAt: '2025-08-19T00:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
       },
+      message: 'Login successful'
     })
 
     // Verify auth store was updated
@@ -104,10 +105,9 @@ describe('useLogin', () => {
     expect(authState.user).toEqual({
       id: '1',
       email: 'admin@witchcityrope.com',
-      firstName: 'Test',
-      lastName: 'Admin',
       sceneName: 'TestAdmin',
-      roles: ['admin'], // Use correct roles array structure
+      createdAt: '2025-08-19T00:00:00Z',
+      lastLoginAt: '2025-08-19T10:00:00Z'
     })
 
     // Verify navigation to dashboard
@@ -247,10 +247,9 @@ describe('useLogout', () => {
     useAuthStore.getState().actions.login({
       id: '1',
       email: 'admin@witchcityrope.com',
-      firstName: 'Test',
-      lastName: 'Admin',
       sceneName: 'TestAdmin',
-      roles: ['admin'],
+      createdAt: '2025-08-19T00:00:00Z',
+      lastLoginAt: '2025-08-19T10:00:00Z'
     })
     mockNavigate.mockClear()
     mockFetch.mockClear()

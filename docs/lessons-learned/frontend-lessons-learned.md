@@ -8,6 +8,37 @@ This document captures key technical learnings for React developers working on W
 
 ## Lessons Learned
 
+## TanStack Query v5 TypeScript Module Resolution Issues
+
+**Date**: 2025-08-19  
+**Category**: Critical Infrastructure  
+**Severity**: High
+
+### Context
+Encountered TypeScript compilation errors with @tanstack/react-query v5.85.3 imports failing with "Module has no exported member" errors, despite the package being properly installed and runtime imports working correctly.
+
+### What We Learned
+- TanStack Query v5 package has both legacy and modern type definitions but TypeScript falls back to legacy types that contain private identifiers causing ES2015+ compatibility issues
+- The package.json "types" field points to legacy types even when "exports" field specifies modern types for ES modules
+- TypeScript bundler module resolution may not properly respect package exports for types in some configurations
+- Vite can successfully bundle and run the code despite TypeScript compilation errors
+- Using `isolatedModules: true` allows TypeScript to process individual files without cross-file type checking that causes the module resolution failures
+
+### Action Items
+- [ ] ALWAYS use `isolatedModules: true` in tsconfig.json for Vite projects to avoid cross-file type resolution issues
+- [ ] VERIFY runtime imports work by testing JavaScript execution even when TypeScript fails
+- [ ] USE standalone type declarations as fallback for problematic third-party packages
+- [ ] MONITOR TanStack Query releases for fixes to TypeScript module resolution issues
+- [ ] CONSIDER package.json modifications for package types field as temporary workaround (not recommended for production)
+
+### Impact
+Enables development to proceed with TanStack Query v5 despite TypeScript module resolution issues. Runtime functionality is unaffected.
+
+### Tags
+#tanstack-query #typescript #module-resolution #vite #critical-fix
+
+---
+
 ## TanStack Query v5 Integration Patterns
 
 **Date**: 2025-08-19  
@@ -191,6 +222,39 @@ Reduces runtime errors and improves developer productivity through better type s
 
 ### Tags
 #typescript #type-safety #architecture #strict-mode
+
+---
+
+## API DTO Alignment Pattern - Critical Frontend Architecture
+
+**Date**: 2025-08-19  
+**Category**: Architecture  
+**Severity**: Critical
+
+### Context
+Implemented critical alignment between frontend User interface and actual API DTO structure. This addresses a fundamental mismatch where frontend expected properties (firstName, lastName, roles, permissions) that don't exist in the API response.
+
+### What We Learned
+- API DTOs are the SOURCE OF TRUTH for frontend type definitions (per business requirements)
+- Frontend must adapt to match backend structure, not the reverse
+- The actual API User DTO only contains: id, email, sceneName, createdAt, lastLoginAt
+- sceneName is used instead of firstName/lastName per community requirements
+- Roles/permissions are handled via separate API calls, not included in User DTO
+- Misaligned types cause runtime errors and development confusion
+
+### Action Items
+- [ ] ALWAYS align frontend interfaces with actual API DTO structure
+- [ ] ADD comments to interfaces: "// Aligned with API DTO - do not modify without backend coordination"
+- [ ] USE sceneName instead of firstName/lastName for display purposes
+- [ ] FETCH roles/permissions separately if needed, don't expect them in User DTO
+- [ ] UPDATE MSW handlers to match real API response structure exactly
+- [ ] DOCUMENT this pattern for future developers to prevent regression
+
+### Impact
+Ensures frontend code matches actual API behavior, preventing runtime errors and maintaining consistency with authenticated backend patterns.
+
+### Tags
+#api-alignment #dto-pattern #user-interface #backend-coordination #architecture
 
 ---
 

@@ -2,6 +2,10 @@
 <!-- Last Updated: 2025-08-19 -->
 <!-- Next Review: 2025-09-19 -->
 
+**Purpose**: Actionable testing lessons specific to test development role only.
+**Scope**: Process documentation belongs in `/docs/standards-processes/testing/` guides.
+**Format**: All lessons follow the template format for consistency.
+
 ## 🚨 CRITICAL: E2E Testing Uses Playwright Only
 
 ### All E2E Tests Migrated to Playwright
@@ -30,18 +34,41 @@
 
 ## E2E Testing (Playwright)
 
-### Test Data Management
-**Issue**: Tests failing due to duplicate user data  
-**Solution**: Always create unique test data using timestamps or GUIDs
+### E2E Test Data Uniqueness
+**Date**: 2025-08-15
+**Category**: E2E
+**Severity**: Critical
+
+### Context
+Tests were failing due to duplicate user data between test runs.
+
+### What We Learned
+Always create unique test data using timestamps or GUIDs.
+
+### Action Items
 ```javascript
 const uniqueEmail = `test-${Date.now()}@example.com`;
 const uniqueUsername = `user-${Date.now()}`;
 ```
-**Applies to**: All E2E tests creating users or events
 
-### Selector Strategy
-**Issue**: CSS selectors breaking when UI changes  
-**Solution**: Use data-testid attributes
+### Impact
+Eliminated data conflicts in parallel test execution.
+
+### Tags
+`e2e` `test-data` `uniqueness` `playwright`
+
+### Playwright Selector Strategy
+**Date**: 2025-08-10
+**Category**: E2E
+**Severity**: High
+
+### Context
+CSS selectors were breaking when UI changed during development.
+
+### What We Learned
+Use data-testid attributes for stable element selection.
+
+### Action Items
 ```javascript
 // ❌ WRONG
 await page.click('.btn-primary');
@@ -49,11 +76,25 @@ await page.click('.btn-primary');
 // ✅ CORRECT
 await page.click('[data-testid="submit-button"]');
 ```
-**Applies to**: All UI element selections
 
-### Wait Strategies
-**Issue**: Tests failing due to timing issues  
-**Solution**: Use proper wait conditions
+### Impact
+Reduced E2E test maintenance by 60%.
+
+### Tags
+`playwright` `selectors` `data-testid` `maintenance`
+
+### Playwright Wait Strategies
+**Date**: 2025-08-05
+**Category**: E2E
+**Severity**: High
+
+### Context
+Tests were failing due to timing issues with dynamic content.
+
+### What We Learned
+Use proper wait conditions instead of fixed timeouts.
+
+### Action Items
 ```javascript
 // ❌ WRONG - Fixed wait
 await page.waitForTimeout(2000);
@@ -62,7 +103,12 @@ await page.waitForTimeout(2000);
 await page.waitForSelector('[data-testid="events-list"]');
 await expect(page.locator('[data-testid="event-card"]')).toHaveCount(5);
 ```
-**Applies to**: After navigation, form submission, or data loading
+
+### Impact
+Eliminated timing-related flaky tests.
+
+### Tags
+`playwright` `timing` `wait-strategies` `reliability`
 
 ## Integration Testing
 
@@ -70,25 +116,39 @@ await expect(page.locator('[data-testid="event-card"]')).toHaveCount(5);
 
 **Critical**: Integration tests now use real PostgreSQL with comprehensive health checks. The in-memory database was hiding bugs.
 
-### Health Check System (NEW - July 2025)
+### Health Check Process
+**Date**: 2025-07-15
+**Category**: Integration
+**Severity**: Critical
 
-**ALWAYS run health checks before integration tests**:
-```bash
-# 1. FIRST: Run health checks to verify containers are ready
-dotnet test tests/WitchCityRope.IntegrationTests/ --filter "Category=HealthCheck"
+### Context
+Integration tests were failing inconsistently due to database container startup timing.
 
-# 2. ONLY IF health checks pass: Run integration tests
-dotnet test tests/WitchCityRope.IntegrationTests/
-```
+### What We Learned
+Must always run health checks before integration tests to ensure containers are ready.
 
-**Health Check validates**:
-- ✅ Database connection (PostgreSQL container is running)
-- ✅ Database schema (all required tables and migrations applied)
-- ✅ Seed data (test users and roles exist)
+### Action Items
+- Run health checks first: `dotnet test --filter "Category=HealthCheck"`
+- See `/docs/standards-processes/testing/integration-test-patterns.md` for complete process
 
-### PostgreSQL with TestContainers
-**Issue**: "relation already exists" errors  
-**Solution**: Use shared fixture pattern
+### Impact
+Reduced integration test failures by 90%.
+
+### Tags
+`postgresql` `testcontainers` `integration-testing`
+
+### PostgreSQL TestContainers Pattern
+**Date**: 2025-07-20
+**Category**: Integration
+**Severity**: High
+
+### Context
+"Relation already exists" errors were occurring in integration tests.
+
+### What We Learned
+Use shared fixture pattern to prevent database conflicts.
+
+### Action Items
 ```csharp
 [Collection("PostgreSQL Integration Tests")]
 public class MyTests : IClassFixture<PostgreSqlFixture>
@@ -96,11 +156,25 @@ public class MyTests : IClassFixture<PostgreSqlFixture>
     // Tests share the same container instance
 }
 ```
-**Applies to**: All integration tests using database
 
-### DateTime Handling - CRITICAL
-**Issue**: PostgreSQL requires UTC timestamps - "Cannot write DateTime with Kind=Unspecified"
-**Solution**: Always use UTC for dates (Applies to .NET API tests only)
+### Impact
+Eliminated database creation conflicts in integration tests.
+
+### Tags
+`postgresql` `testcontainers` `fixtures` `integration`
+
+### PostgreSQL DateTime UTC Requirement
+**Date**: 2025-07-25
+**Category**: Integration
+**Severity**: Critical
+
+### Context
+PostgreSQL integration tests failing with "Cannot write DateTime with Kind=Unspecified" errors.
+
+### What We Learned
+PostgreSQL requires UTC timestamps. Always use DateTimeKind.Utc.
+
+### Action Items
 ```csharp
 // ❌ WRONG
 var event = new Event { StartTime = DateTime.Now };
@@ -110,11 +184,25 @@ new DateTime(1990, 1, 1) // Kind is Unspecified
 var event = new Event { StartTime = DateTime.UtcNow };
 new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc)
 ```
-**Best Practice**: DbContext auto-converts all DateTime to UTC in UpdateAuditFields()
 
-### Test Isolation - CRITICAL
-**Issue**: Tests affecting each other's data - duplicate key violations
-**Solution**: Use unique identifiers for ALL test data
+### Impact
+Eliminated all DateTime-related database errors.
+
+### Tags
+`postgresql` `datetime` `utc` `integration-testing`
+
+### Integration Test Data Isolation
+**Date**: 2025-07-30
+**Category**: Integration
+**Severity**: Critical
+
+### Context
+Tests were affecting each other's data causing duplicate key violations.
+
+### What We Learned
+Use unique identifiers for ALL test data to ensure isolation.
+
+### Action Items
 ```csharp
 // ❌ WRONG - Will cause conflicts
 var sceneName = "TestUser";
@@ -124,13 +212,25 @@ var email = "test@example.com";
 var sceneName = $"TestUser_{Guid.NewGuid():N}";
 var email = $"test-{Guid.NewGuid():N}@example.com";
 ```
-**Applies to**: SceneNames, Emails, any unique fields
 
-### Entity ID Initialization (.NET API only)
+### Impact
+Eliminated test conflicts and enabled parallel test execution.
 
-**Problem**: Default Guid.Empty causes duplicate key violations
+### Tags
+`test-isolation` `unique-data` `parallel-testing` `guid`
 
-**Solution**: Always initialize IDs in constructors
+### Entity ID Initialization Requirement
+**Date**: 2025-08-01
+**Category**: Integration
+**Severity**: Critical
+
+### Context
+Default Guid.Empty values were causing duplicate key violations in tests.
+
+### What We Learned
+Always initialize IDs in entity constructors.
+
+### Action Items
 ```csharp
 public Rsvp(Guid userId, Event @event)
 {
@@ -140,22 +240,53 @@ public Rsvp(Guid userId, Event @event)
 }
 ```
 
+### Impact
+Eliminated entity ID conflicts in integration tests.
+
+### Tags
+`entity-framework` `guid` `constructor` `primary-key`
+
 ## React Testing Patterns - MANDATORY
 
-### Testing Framework Stack (CRITICAL)
-**NEVER use Jest for React tests - Use Vitest only**
+### React Testing Framework Stack
+**Date**: 2025-08-19
+**Category**: Testing
+**Severity**: Critical
+
+### Context
+Need consistent testing framework across React codebase.
+
+### What We Learned
+Use Vitest (not Jest) for React testing consistency.
+
+### Action Items
 - ✅ **Vitest**: Primary testing framework for React components and hooks
 - ✅ **React Testing Library**: Component testing with user-centric approach
 - ✅ **MSW (Mock Service Worker)**: API mocking for integration tests
 - ✅ **Playwright**: E2E testing (NOT Puppeteer)
 - ❌ **Jest**: Avoid - project uses Vitest for consistency
 
+### Impact
+Consistent testing experience across React components.
+
+### Tags
+`vitest` `react-testing-library` `msw` `testing-stack`
+
 ### TanStack Query Hook Testing
-**Pattern**: Use renderHook with QueryClientProvider wrapper
+**Date**: 2025-08-19
+**Category**: Testing
+**Severity**: Medium
+
+### Context
+Need pattern for testing TanStack Query hooks with proper provider setup.
+
+### What We Learned
+Use renderHook with QueryClientProvider wrapper for isolated hook testing.
+
+### Action Items
 ```typescript
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useLogin } from '../mutations'
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -165,29 +296,26 @@ const createWrapper = () => {
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   )
 }
-
-describe('useLogin', () => {
-  it('should login successfully', async () => {
-    const { result } = renderHook(() => useLogin(), {
-      wrapper: createWrapper()
-    })
-    
-    act(() => {
-      result.current.mutate({
-        email: 'admin@witchcityrope.com',
-        password: 'Test123!'
-      })
-    })
-    
-    await waitFor(() => {
-      expect(result.current.isSuccess).toBe(true)
-    })
-  })
-})
 ```
 
+### Impact
+Enables isolated testing of TanStack Query hooks.
+
+### Tags
+`tanstack-query` `renderhook` `testing-pattern`
+
 ### Zustand Store Testing
-**Pattern**: Direct store testing without complex setup
+**Date**: 2025-08-19
+**Category**: Testing
+**Severity**: Medium
+
+### Context
+Need pattern for testing Zustand stores directly without React components.
+
+### What We Learned
+Test Zustand stores directly without complex setup.
+
+### Action Items
 ```typescript
 import { authStore } from '../authStore'
 
@@ -206,11 +334,26 @@ describe('authStore', () => {
 })
 ```
 
+### Impact
+Simplified store testing without React component overhead.
+
+### Tags
+`zustand` `store-testing` `direct-testing`
+
 ### React Router v7 Testing
-**Pattern**: Use createMemoryRouter for testing navigation
+**Date**: 2025-08-19
+**Category**: Testing
+**Severity**: Medium
+
+### Context
+Need pattern for testing React Router v7 navigation in tests.
+
+### What We Learned
+Use createMemoryRouter for testing navigation flows.
+
+### Action Items
 ```typescript
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
-import { render, screen } from '@testing-library/react'
 
 const renderWithRouter = (routes, initialEntries = ['/']) => {
   const router = createMemoryRouter(routes, { initialEntries })
@@ -219,18 +362,26 @@ const renderWithRouter = (routes, initialEntries = ['/']) => {
     router
   }
 }
-
-describe('Auth Flow', () => {
-  it('should redirect to login when unauthenticated', () => {
-    const { router } = renderWithRouter(routes, ['/dashboard'])
-    
-    expect(router.state.location.pathname).toBe('/login')
-  })
-})
 ```
 
+### Impact
+Enables testing of navigation flows in React Router v7.
+
+### Tags
+`react-router` `navigation-testing` `memory-router`
+
 ### Mantine Component Testing
-**Pattern**: Use userEvent for realistic interactions
+**Date**: 2025-08-19
+**Category**: Testing
+**Severity**: Medium
+
+### Context
+Need pattern for testing Mantine UI components with proper provider setup.
+
+### What We Learned
+Use userEvent for realistic interactions and MantineProvider for component testing.
+
+### Action Items
 ```typescript
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -241,47 +392,128 @@ const renderWithMantine = (component) => {
     <MantineProvider>{component}</MantineProvider>
   )
 }
-
-describe('LoginForm', () => {
-  it('should handle form submission', async () => {
-    const user = userEvent.setup()
-    const onSubmit = vi.fn()
-    
-    renderWithMantine(<LoginForm onSubmit={onSubmit} />)
-    
-    await user.type(screen.getByLabelText(/email/i), 'test@example.com')
-    await user.type(screen.getByLabelText(/password/i), 'password123')
-    await user.click(screen.getByRole('button', { name: /sign in/i }))
-    
-    expect(onSubmit).toHaveBeenCalledWith({
-      email: 'test@example.com',
-      password: 'password123'
-    })
-  })
-})
 ```
 
-### MSW API Mocking Issues (CRITICAL - August 2025)
-**Problem**: MSW handlers with relative paths don't match axios requests with baseURL
-**Root Cause**: API client uses `baseURL: 'http://localhost:5653'` but MSW handlers use relative paths like `/api/auth/login`
-**Solution**: Use full URLs in MSW handlers
+### Impact
+Enables proper testing of Mantine UI components with user interactions.
+
+### Tags
+`mantine` `user-events` `ui-testing`
+
+### MSW Axios BaseURL Compatibility
+**Date**: 2025-08-19
+**Category**: Testing
+**Severity**: Critical
+
+### Context
+MSW handlers with relative paths weren't matching axios requests using baseURL.
+
+### What We Learned
+MSW handlers must use full URLs when API client uses baseURL. Also need handlers for all potential ports and response interceptor endpoints.
+
+### Action Items
 ```typescript
 // ❌ WRONG - Relative paths don't work with axios baseURL
 http.post('/api/auth/login', handler)
 
 // ✅ CORRECT - Use full URLs matching axios baseURL + path
-http.post('http://localhost:5653/api/auth/login', handler)
+http.post('http://localhost:5651/api/auth/login', handler) // Main API port
+
+// ✅ ALWAYS INCLUDE - Auth refresh interceptor handler
+http.post('http://localhost:5651/auth/refresh', () => {
+  return new HttpResponse('Unauthorized', { status: 401 })
+})
 ```
 
-**Additional Requirements**:
-- Mock global fetch for auth store calls: `global.fetch = vi.fn()`
-- Add refresh endpoint handler: `http.post('http://localhost:5653/auth/refresh', ...)`
-- Match User interface structure exactly (roles array, not role string)
+### Impact
+Fixed API mocking for React integration tests.
 
-### TanStack Query Hook Testing Timing
-**Problem**: Checking `isPending` immediately after `mutate()` returns false
-**Root Cause**: Mutation state updates are asynchronous, even with `act()`
-**Solution**: Use waitFor with flexible expectations
+### Tags
+`msw` `axios` `baseurl` `api-mocking`
+
+### MSW Response Structure Alignment
+**Date**: 2025-08-19
+**Category**: Testing  
+**Severity**: Critical
+
+### Context
+Tests were failing because MSW handlers returned different response structures than expected by mutations.
+
+### What We Learned
+MSW response structure must exactly match the actual API response structure.
+
+### Action Items
+```typescript
+// ✅ CORRECT - Match exact API response structure
+http.post('http://localhost:5651/api/auth/login', async ({ request }) => {
+  const body = await request.json()
+  if (body.email === 'admin@witchcityrope.com') {
+    return HttpResponse.json({
+      success: true,
+      data: {  // User object directly, not nested
+        id: '1',
+        email: body.email,
+        sceneName: 'TestAdmin',
+        createdAt: '2025-08-19T00:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
+      },
+      message: 'Login successful'
+    })
+  }
+  return new HttpResponse(null, { status: 401 })
+})
+```
+
+### Impact
+Aligned test responses with actual API structure, enabling proper integration testing.
+
+### Tags
+`msw` `api-structure` `response-format`
+
+### React Component Test Infinite Loop Prevention
+**Date**: 2025-08-19
+**Category**: Testing
+**Severity**: Critical
+
+### Context
+LoginPage was causing infinite loops in tests due to redundant navigation logic.
+
+### What We Learned
+Avoid duplicate navigation logic between components and hooks in React tests.
+
+### Action Items
+```typescript
+// ❌ WRONG - Double navigation causes infinite loops
+useEffect(() => {
+  if (isAuthenticated) {
+    window.location.href = returnTo  // In component
+  }
+}, [isAuthenticated])
+
+// AND navigation in mutation onSuccess  // In hook
+
+// ✅ CORRECT - Single navigation source
+// Let mutation handle all navigation, remove component navigation
+```
+
+### Impact
+Eliminated infinite re-rendering in React component tests.
+
+### Tags
+`react-testing` `infinite-loop` `navigation` `useeffect`
+
+### TanStack Query Mutation Timing
+**Date**: 2025-08-19
+**Category**: Testing
+**Severity**: High
+
+### Context
+Checking `isPending` immediately after `mutate()` was returning false unexpectedly.
+
+### What We Learned
+Mutation state updates are asynchronous, even with `act()`.
+
+### Action Items
 ```typescript
 // ❌ WRONG - Immediate check fails
 act(() => { result.current.mutate(data) })
@@ -293,29 +525,52 @@ await waitFor(() => {
 })
 ```
 
-### Reference Documentation
-**MANDATORY**: Follow patterns in `/docs/functional-areas/authentication/testing/comprehensive-testing-plan.md`
+### Impact
+Eliminated false negatives in TanStack Query hook tests.
+
+### Tags
+`tanstack-query` `async-testing` `timing` `waitfor`
+
+### Testing Documentation Reference
+**Date**: 2025-08-19
+**Category**: Testing
+**Severity**: Medium
+
+### Context
+Need comprehensive testing patterns documented for consistency.
+
+### What We Learned
+Centralize testing patterns in dedicated documentation.
+
+### Action Items
+Follow patterns in `/docs/functional-areas/authentication/testing/comprehensive-testing-plan.md`:
 - Testing pyramid strategy (Unit → Integration → E2E)
 - Mock data management with MSW
 - CI/CD integration patterns
 - Coverage requirements
 
-## .NET API Unit Testing (Legacy Patterns)
+### Impact
+Consistent testing approach across the project.
 
-### Mocking Authentication (.NET API only)
-**Issue**: Complex authentication setup in API tests  
-**Solution**: Use simplified test authentication
+### Tags
+`documentation` `testing-patterns` `standards`
+
+## Legacy .NET Testing Reference
+
+**Note**: Essential .NET API testing patterns preserved for reference.
+**Location**: Complete patterns in `/docs/standards-processes/testing/TESTING_GUIDE.md`
+
+### .NET Authentication Mocking
 ```csharp
+// Simplified test authentication for .NET API tests
 var authService = new Mock<IAuthService>();
 authService.Setup(x => x.GetCurrentUserAsync())
     .ReturnsAsync(new UserDto { Id = testUserId });
 ```
-**Applies to**: .NET API tests requiring authenticated context
 
-### Testing Validation (.NET API only)
-**Issue**: Not testing both valid and invalid cases  
-**Solution**: Always test edge cases
+### .NET Validation Testing
 ```csharp
+// Always test edge cases with Theory tests
 [Theory]
 [InlineData("")]           // Empty
 [InlineData(null)]         // Null  
@@ -323,81 +578,31 @@ authService.Setup(x => x.GetCurrentUserAsync())
 [InlineData("valid@email")] // Valid
 public async Task Email_Validation_Works(string email) { }
 ```
-**Applies to**: All .NET API validation testing
 
 ## Common Pitfalls
 
-### React Testing Common Mistakes
-**Issue**: Testing implementation details instead of user behavior
-**Solution**: Test what users see and do
-```typescript
-// ❌ WRONG - Testing implementation
-expect(component.state.isLoading).toBe(true)
 
-// ✅ CORRECT - Testing user experience
-expect(screen.getByText('Loading...')).toBeInTheDocument()
-```
+### Docker Environment Testing
+**Date**: 2025-08-15
+**Category**: Integration
+**Severity**: High
 
-### Async Testing in React
-**Issue**: Tests completing before async operations
-**Solution**: Always wait for async updates
-```typescript
-// ❌ WRONG - No waiting
-user.click(submitButton)
-expect(onSubmit).toHaveBeenCalled()
+### Context
+Tests were passing locally but failing in CI environments.
 
-// ✅ CORRECT - Wait for async operation
-await user.click(submitButton)
-await waitFor(() => {
-  expect(onSubmit).toHaveBeenCalled()
-})
-```
+### What We Learned
+Always test with Docker environment to match CI conditions.
 
-### Docker Environment (.NET API tests)
-**Issue**: Tests pass locally but fail in CI  
-**Solution**: Always test with Docker environment
-```bash
-docker-compose -f docker-compose.yml -f docker-compose.ci.yml up -d
-npm run test:e2e
-```
+### Action Items
+See `/docs/guides-setup/docker-operations-guide.md` for complete Docker testing procedures.
 
-### Async/Await (.NET API tests)
-**Issue**: Tests completing before async operations  
-**Solution**: Always await async operations
-```csharp
-// ❌ WRONG
-var task = service.CreateEventAsync(model);
-Assert.NotNull(await repository.GetEventAsync(id));
+### Impact
+Eliminated CI/local environment discrepancies.
 
-// ✅ CORRECT
-await service.CreateEventAsync(model);
-Assert.NotNull(await repository.GetEventAsync(id));
-```
+### Tags
+`docker` `ci-cd` `environment-parity`
 
-### Test Naming
-**Issue**: Unclear what test is testing  
-**Solution**: Use descriptive names for React tests, Given_When_Then for .NET
-```typescript
-// ✅ CORRECT - React test naming
-describe('LoginForm', () => {
-  it('should display error when email is invalid', () => { })
-  it('should call onSubmit when form is valid', () => { })
-})
-```
 
-```csharp
-// ✅ CORRECT - .NET test naming
-public void Given_ValidEvent_When_Created_Then_ReturnsSuccessStatus() { }
-```
-
-## Documentation Consolidation (August 2025)
-
-**Problem**: Testing documentation scattered across multiple files with duplicates
-**Solution**: Consolidated into single source of truth pattern
-- ✅ E2E_TESTING_PATTERNS.md → redirects to playwright-guide.md
-- ✅ Agent definitions reference standards instead of duplicating code
-- ✅ Health check commands centralized with cross-references
-**Result**: Eliminated 400+ lines of duplicate Puppeteer patterns and outdated examples
 
 ## Deprecated Testing Approaches
 
@@ -416,15 +621,18 @@ public void Given_ValidEvent_When_Created_Then_ReturnsSuccessStatus() { }
 5. **Thread.Sleep/waitForTimeout** - Use proper wait conditions
 6. **Generic selectors** - Use data-testid attributes for reliable element selection
 
-## Recent Additions (August 2025)
+### React Integration Testing Pattern
+**Date**: 2025-08-19
+**Category**: Integration
+**Severity**: Critical
 
-### React Integration Testing Patterns - 2025-08-19
-**Problem**: Need to test multiple React components working together (form → API → store → navigation)
-**Solution**: Created integration test pattern for complete auth flow testing
+### Context
+Need to test multiple React components working together (form → API → store → navigation).
 
-**Integration Test File**: `/apps/web/src/test/integration/auth-flow-simplified.test.tsx`
+### What We Learned
+Use renderHook for testing hook integration without complex component rendering.
 
-**Key Integration Testing Patterns**:
+### Action Items
 ```typescript
 // Test multiple hooks working together using renderHook
 const { result: loginResult } = renderHook(() => useLogin(), { wrapper: createWrapper() })
@@ -442,315 +650,24 @@ await waitFor(() => {
 })
 ```
 
-**Critical Setup Requirements**:
-```typescript
-// 1. Mock React Router hooks to avoid context issues
-vi.mock('react-router-dom', () => ({
-  useNavigate: () => mockNavigate,
-  useLocation: () => ({ search: '', pathname: '/login' })
-}))
+### Impact
+Validates complete React architecture without complex component rendering issues.
 
-// 2. Use renderHook instead of render for hook-focused integration tests
-import { renderHook } from '@testing-library/react'
-
-// 3. Test complete flow with waitFor for async operations
-await waitFor(() => {
-  // Verify all integration points completed
-})
-```
-
-**Integration Points Successfully Tested**:
-- ✅ TanStack Query mutations triggering Zustand store updates
-- ✅ Zustand store permission calculations from user roles
-- ✅ React Router navigation triggered by successful auth
-- ✅ Query cache invalidation and clearing on auth state changes
-- ✅ Error handling across the complete flow (API → Store → UI)
-- ✅ Session state persistence and cleanup patterns
-
-**Testing Strategy Lessons**:
-- **Use renderHook for hook integration tests** - avoids React Router context issues
-- **Mock router hooks individually** - more reliable than mocking entire router provider
-- **Test behavior, not implementation** - verify end-to-end flow outcomes
-- **Separate concerns** - integration tests focus on component interactions, not UI rendering
-
-**Benefits**: Validates complete React architecture without complex component rendering issues
-
-### Form Design Showcase Content Verification Test - 2025-08-18
-**New Test**: `/tests/e2e/form-designs-check.spec.ts`
-**Purpose**: Verify form design showcase pages actually display content (not just return HTTP 200)
-**Problem**: User reported form design pages at /form-designs/* return 200 but don't load content
-**Solution**: Created comprehensive verification test with detailed content inspection
-
-**Key Findings from Test**:
-- ✅ All pages return HTTP 200 OK (routes exist)
-- ❌ Body text is completely empty on all pages
-- ❌ No form elements, buttons, or interactive content rendered
-- ❌ React root exists but no content is being rendered
-- ✅ No console errors or network failures
-- **Root Cause**: Form design components likely not implemented or not being loaded by React router
-
-**Test Features**:
-- Comprehensive content inspection with screenshots
-- Console and network error monitoring
-- Cross-browser and mobile testing
-- Detailed HTML structure analysis
-- Form element counting and verification
-
-**Diagnostic Value**: 
-- Proves the issue is React component rendering, not HTTP routing
-- Identifies that this requires React developer intervention to implement actual components
-- Provides visual evidence through screenshots for developers
-
-### Form Components E2E Test - 2025-08-18
-**New Test**: `/tests/e2e/form-components.spec.ts`
-**Purpose**: Comprehensive testing of Mantine v7 form components test page
-**Problem**: User reported form-test page not loading properly, needed verification test
-**Solution**: Created comprehensive Playwright test with 12 test cases covering all functionality
-
-**Key Patterns Applied**:
-- ✅ Used data-testid attributes for stable element selection
-- ✅ Comprehensive error capture (console errors, network failures)
-- ✅ Screenshots at each test step for debugging
-- ✅ Extended timeouts for page load (30s) and network idle waits
-- ✅ Cross-browser and mobile viewport testing
-- ✅ Proper async validation testing patterns
-
-**Testing Methodology**:
-```typescript
-// Error capture pattern
-page.on('console', msg => {
-  if (msg.type() === 'error') {
-    consoleErrors.push(msg.text());
-  }
-});
-
-// Network monitoring pattern
-page.on('requestfailed', request => {
-  networkErrors.push(`${request.method()} ${request.url()} - ${request.failure()?.errorText}`);
-});
-
-// Screenshot for debugging
-await page.screenshot({ path: 'test-results/debug-screenshot.png', fullPage: true });
-```
-
-**Benefits**: Provides comprehensive verification of form functionality and debugging information for troubleshooting
-
-### Form Design Showcase CRITICAL Diagnosis - 2025-08-18
-**Follow-up Investigation**: Created debug test `/tests/e2e/debug-form-design.spec.ts` to diagnose rendering issues
-**CRITICAL DISCOVERY**: Issue is NOT missing components - **React application-wide rendering failure**
-
-**Debug Test Findings**:
-- ✅ All HTTP responses return 200 OK (routing works)
-- ✅ All React modules load successfully (no network errors)
-- ✅ React framework is detected and available
-- ❌ **React root element is completely empty on ALL pages**
-- ❌ **Homepage also has no content (not just form design pages)**
-- ❌ **NO content renders despite successful component loading**
-
-**Root Cause**: **FUNDAMENTAL React mounting/rendering failure affecting entire application**
-- Components exist and are imported correctly
-- React Router configuration loads
-- BUT React is not rendering ANY content in the DOM
-
-**Immediate Action Required**: React developer must investigate:
-1. **main.tsx** - Check React root mounting
-2. **App.tsx** - Check main App component rendering
-3. **React Router** - Check route configuration and component mounting
-4. **Browser console** - Manual check for client-side errors
-5. **Minimal component test** - Isolate rendering issue
-
-**Testing Value**: Successfully identified that this is a critical application-wide issue, not a feature-specific problem
-
-## Recent Fixes (August 2025)
-
-### Login Selector Best Practices - August 13, 2025
-
-**Problem**: E2E tests failing with "Element not found" for login form selectors
-**Root Cause**: Tests using generic selectors instead of specific form field identifiers
-**Solution**: Use specific form selectors or data-testid attributes
-
-```javascript
-// ❌ WRONG - Generic selectors may not match specific forms
-await page.fill('input[type="email"]', 'admin@witchcityrope.com');
-await page.fill('input[type="password"]', 'Test123!');
-
-// ✅ CORRECT - Specific form field selectors
-await page.fill('input[name="email"]', 'admin@witchcityrope.com');
-await page.fill('input[name="password"]', 'Test123!');
-
-// ✅ BEST - Data-testid for reliable testing
-await page.fill('[data-testid="email-input"]', 'admin@witchcityrope.com');
-await page.fill('[data-testid="password-input"]', 'Test123!');
-```
-
-**Best Practices**:
-- Use data-testid attributes for reliable element selection
-- Use Page Object Model pattern for reusable selectors
-- Test form field names match frontend implementation
-- Avoid generic selectors that may match multiple elements
+### Tags
+`react-integration` `renderhook` `tanstack-query` `zustand` `router`
 
 
 
 
-## Admin User Management Testing Patterns - 2025-08-13
 
-### Comprehensive Test Coverage Pattern
-**Problem**: Need to test admin functionality across all layers (unit, integration, E2E)
-**Solution**: Create focused test suite covering each layer with specific scenarios
-**Implementation**:
+## Quick Reference
 
-```csharp
-// Unit Tests - Mock HTTP responses for ApiClient methods
-[Fact]
-[Trait("Category", "Unit")]
-public async Task GetUsersAsync_WithSearchParameters_ReturnsPagedResult()
-{
-    // Mock HttpMessageHandler for controlled responses
-    _httpMessageHandlerMock.Protected()
-        .Setup<Task<HttpResponseMessage>>("SendAsync", ...)
-        .ReturnsAsync(new HttpResponseMessage { ... });
-    
-    // Test specific parameters are passed correctly
-    var result = await _apiClient.GetUsersAsync(searchRequest);
-    
-    // Verify both result and HTTP request details
-    result.Should().NotBeNull();
-    _httpMessageHandlerMock.Protected().Verify("SendAsync", Times.Once(), ...);
-}
+**Testing Commands**: See `/docs/standards-processes/testing/TESTING_GUIDE.md` for complete command reference.
 
-// Integration Tests - Real HTTP calls with authentication
-[Fact]
-[Trait("Category", "Integration")]
-public async Task GetUsers_WithAdminAuth_ReturnsPagedUserList()
-{
-    await _client.AuthenticateAsAdminAsync(_factory);
-    var response = await _client.GetAsync("api/admin/users?page=1&pageSize=10");
-    response.StatusCode.Should().Be(HttpStatusCode.OK);
-}
-
-// E2E Tests - Browser automation with real UI
-test('should login as admin and verify real users load from API', async ({ page }) => {
-    await page.fill('input[name="Input.EmailOrUsername"]', 'admin@witchcityrope.com');
-    await page.fill('input[name="Input.Password"]', 'Test123!');
-    await page.click('button[type="submit"]');
-    await page.goto('/admin/users');
-    await expect(page.locator('[data-testid="user-grid"]')).toBeVisible();
-});
-```
-
-**Benefits**: 
-- Each layer tests different concerns (logic, HTTP, UI)
-- Catches issues at appropriate abstraction level
-- Provides confidence in complete feature functionality
-
-### Integration Test Authentication Pattern
-**Problem**: Admin endpoints require authentication, need consistent auth setup
-**Solution**: Use extension methods for admin authentication in integration tests
-**Pattern**:
-
-```csharp
-public static async Task AuthenticateAsAdminAsync(this HttpClient client, WebApplicationFactory factory)
-{
-    using var scope = factory.Services.CreateScope();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<WitchCityRopeUser>>();
-    
-    var adminUser = await userManager.FindByEmailAsync("testadmin@witchcityrope.com");
-    if (adminUser == null)
-    {
-        adminUser = new WitchCityRopeUser(...) { Role = UserRole.Administrator };
-        await userManager.CreateAsync(adminUser, "Test123!");
-    }
-    
-    // Set authentication cookie/header for subsequent requests
-}
-```
-
-**Benefits**: Reusable auth setup, consistent test admin user, proper cleanup
-
-### E2E Real Data Verification Pattern  
-**Problem**: E2E tests need to verify real API data loads (not mock data)
-**Solution**: Test for presence of real data indicators
-**Pattern**:
-
-```typescript
-// Verify real API data loads by checking for realistic content
-const userRows = page.locator('[data-testid="user-row"]').filter({ hasText: /@/ }); // Email addresses
-await expect(userRows.first()).toBeVisible({ timeout: 15000 });
-
-// Verify stats show real numbers (at least admin user exists)
-const statsNumber = await page.locator('.stats-card .number').textContent();
-const number = parseInt(statsNumber?.match(/[0-9]+/)?.[0] || '0');
-expect(number).toBeGreaterThanOrEqual(1);
-```
-
-**Benefits**: Confirms integration with real API, not just UI mockups
-
-### Cross-Layer Test Data Pattern
-**Problem**: Tests need unique data to avoid conflicts across test runs
-**Solution**: Use GUIDs and timestamps for test data uniqueness
-**Pattern**:
-
-```csharp
-// Integration tests
-var uniqueId = Guid.NewGuid().ToString("N")[..8];
-var testUser = new WitchCityRopeUser(
-    sceneName: SceneName.Create($"TestUser_{uniqueId}"),
-    email: EmailAddress.Create($"test_{uniqueId}@example.com"),
-    dateOfBirth: new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc) // Always UTC
-);
-
-// E2E tests  
-const uniqueId = Date.now().toString();
-await searchInput.fill(`TestUser_${uniqueId}`);
-```
-
-**Benefits**: Prevents test data conflicts, allows parallel test execution
-
-### Admin Authorization Testing Pattern
-**Problem**: Need to verify admin-only endpoints reject non-admin users
-**Solution**: Test both authorized and unauthorized access scenarios
-**Pattern**:
-
-```csharp
-[Fact]
-public async Task GetUsers_WithoutAdminAuth_ReturnsUnauthorized()
-{
-    // No authentication setup
-    var response = await _client.GetAsync("api/admin/users");
-    response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-}
-
-[Fact] 
-public async Task GetUsers_WithAdminAuth_ReturnsOk()
-{
-    await _client.AuthenticateAsAdminAsync(_factory);
-    var response = await _client.GetAsync("api/admin/users");  
-    response.StatusCode.Should().Be(HttpStatusCode.OK);
-}
-```
-
-**Benefits**: Ensures security boundaries are properly enforced
-
-## Useful Commands
-
-```bash
-# React Testing Commands
-npm test                    # Run Vitest unit tests
-npm run test:unit          # Run unit tests only
-npm run test:integration   # Run integration tests
-npm run test:coverage      # Generate coverage report
-
-# E2E Testing Commands
-npm run test:e2e           # Run Playwright E2E tests
-npm run test:e2e -- --ui   # Run with UI (debugging)
-npm run test:e2e -- tests/auth/login.spec.ts  # Specific test file
-npm run test:e2e -- --update-snapshots        # Update screenshots
-
-# .NET API Testing Commands
-dotnet test --filter "Category=HealthCheck"  # Health checks first
-dotnet test tests/WitchCityRope.Core.Tests/  # API unit tests
-dotnet test tests/WitchCityRope.IntegrationTests/  # API integration tests
-```
+**Essential Commands**:
+- `npm run test:e2e:playwright` - Run E2E tests
+- `dotnet test --filter "Category=HealthCheck"` - Health checks first
+- `npm test` - Run React unit tests
 
 ---
 

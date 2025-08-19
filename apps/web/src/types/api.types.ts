@@ -6,16 +6,15 @@ export interface ApiError {
   details?: Record<string, string[]>
 }
 
+// Aligned with API DTO - do not modify without backend coordination
 export interface User {
   id: string
   email: string
-  firstName: string
-  lastName: string
   sceneName: string
-  role: UserRole
-  isVetted: boolean
   createdAt: string
-  updatedAt: string
+  lastLoginAt?: string
+  // Note: sceneName is used instead of firstName/lastName per community requirements
+  // Note: role/permissions are handled via separate API calls, not included in User DTO
 }
 
 export type UserRole = 'Admin' | 'Teacher' | 'VettedMember' | 'GeneralMember' | 'Guest'

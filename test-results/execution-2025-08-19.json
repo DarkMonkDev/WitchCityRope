@@ -1,0 +1,200 @@
+{
+  "execution_date": "2025-08-19",
+  "execution_time": "00:45:09",
+  "environment_status": {
+    "docker_containers": "failed_to_start",
+    "build_status": "compilation_errors",
+    "api_services": "not_running",
+    "database": "not_accessible"
+  },
+  "test_execution_summary": {
+    "status": "partial_execution",
+    "total_tests_attempted": 57,
+    "passed": 12,
+    "failed": 45,
+    "skipped": 0,
+    "success_rate": "21%"
+  },
+  "test_suite_results": {
+    "unit_tests": {
+      "status": "partially_executed",
+      "location": "/apps/web/src/features/auth/api/__tests__/",
+      "execution_method": "npm run test (Vitest)",
+      "results": {
+        "total": 57,
+        "passed": 12,
+        "failed": 45
+      },
+      "notes": "Tests ran but with network connectivity issues"
+    },
+    "integration_tests": {
+      "status": "partially_executed", 
+      "location": "/apps/web/src/test/integration/",
+      "execution_method": "npm run test (Vitest)",
+      "results": {
+        "included_in_unit_test_run": true,
+        "auth_flow_tests": "multiple_failures",
+        "msw_mocking": "configuration_issues"
+      }
+    },
+    "e2e_tests": {
+      "status": "not_executed",
+      "location": "/tests/playwright/",
+      "execution_method": "npm run test:e2e:playwright",
+      "reason": "compilation_errors_prevent_build"
+    }
+  },
+  "critical_issues_found": {
+    "compilation_errors": {
+      "severity": "critical",
+      "count": 100,
+      "categories": [
+        {
+          "type": "missing_react_query_imports",
+          "description": "Multiple files importing non-existent exports from @tanstack/react-query",
+          "examples": [
+            "QueryClient not exported",
+            "useMutation not exported", 
+            "useQuery not exported",
+            "QueryClientProvider not exported"
+          ],
+          "suggested_fix": "react-developer needed - package version mismatch or wrong imports"
+        },
+        {
+          "type": "typescript_type_errors",
+          "description": "Missing properties and type mismatches in User interface",
+          "examples": [
+            "Property 'firstName' does not exist on type 'User'",
+            "Property 'roles' does not exist on type 'User'",
+            "Property 'permissions' does not exist on type 'AuthStore'"
+          ],
+          "suggested_fix": "backend-developer needed - User interface mismatch between API and frontend"
+        },
+        {
+          "type": "implicit_any_parameters",
+          "description": "TypeScript strict mode violations with untyped parameters",
+          "examples": [
+            "Parameter 'error' implicitly has an 'any' type",
+            "Parameter 'variables' implicitly has an 'any' type",
+            "Parameter 'response' implicitly has an 'any' type"
+          ],
+          "suggested_fix": "react-developer needed - add proper TypeScript types"
+        }
+      ]
+    },
+    "test_failures": {
+      "severity": "high",
+      "categories": [
+        {
+          "type": "network_connectivity",
+          "description": "Tests trying to connect to non-running API services",
+          "examples": [
+            "Error: connect ECONNREFUSED 127.0.0.1:5651",
+            "Error: connect ECONNREFUSED 127.0.0.1:5655"
+          ],
+          "note": "Expected as API services not running due to compilation errors"
+        },
+        {
+          "type": "msw_configuration",
+          "description": "Mock Service Worker not properly intercepting requests",
+          "examples": [
+            "Warning: intercepted a request without a matching request handler",
+            "TypeError: response.clone is not a function"
+          ],
+          "suggested_fix": "test-developer needed - MSW configuration issues"
+        },
+        {
+          "type": "authentication_flow",
+          "description": "All authentication flow tests failing",
+          "examples": [
+            "should complete login flow from mutation to store to navigation",
+            "should handle logout flow from mutation to store to navigation"
+          ],
+          "suggested_fix": "react-developer needed - authentication logic implementation"
+        }
+      ]
+    },
+    "docker_environment": {
+      "severity": "critical",
+      "description": "Cannot start development environment due to compilation errors",
+      "details": {
+        "build_stage": "failed during React compilation",
+        "api_build": "successful", 
+        "database": "not_started_due_to_web_failure"
+      },
+      "resolution": "Must fix compilation errors before environment can start"
+    }
+  },
+  "test_execution_details": {
+    "vitest_output": {
+      "test_files": 9,
+      "duration": "10.22s",
+      "stderr_warnings": [
+        "MSW request handler warnings",
+        "Network connection errors",
+        "AxiosError: Network Error responses"
+      ]
+    },
+    "docker_build_output": {
+      "api_service": "build_successful",
+      "web_service": "build_failed_typescript_errors",
+      "postgres_service": "not_attempted"
+    }
+  },
+  "environment_diagnostics": {
+    "attempted_startup": "2025-08-19 00:45:00",
+    "docker_compose_version": "1.29.2",
+    "node_version": "v22.17.0",
+    "npm_version": "10.8.2",
+    "turbo_version": "2.5.6"
+  },
+  "recommendations": {
+    "immediate_actions": [
+      {
+        "priority": "critical",
+        "action": "Fix React Query import errors",
+        "assigned_to": "react-developer",
+        "description": "Update @tanstack/react-query imports throughout codebase"
+      },
+      {
+        "priority": "critical", 
+        "action": "Align User interface between API and frontend",
+        "assigned_to": "backend-developer",
+        "description": "Ensure User type includes firstName, roles properties"
+      },
+      {
+        "priority": "high",
+        "action": "Fix MSW test configuration",
+        "assigned_to": "test-developer", 
+        "description": "Configure proper request handlers for all API endpoints"
+      }
+    ],
+    "testing_workflow": [
+      "Fix compilation errors first",
+      "Restart Docker environment with ./dev.sh",
+      "Run environment health checks",
+      "Execute unit tests with proper mocking",
+      "Run integration tests with live API",
+      "Execute E2E tests with Playwright"
+    ]
+  },
+  "files_analyzed": [
+    "apps/web/package.json",
+    "apps/web/src/features/auth/api/**/*.ts",
+    "apps/web/src/test/integration/**/*.test.tsx",
+    "tests/playwright/ (attempted)"
+  ],
+  "next_steps": {
+    "orchestrator_decision": "Code issues require developer intervention before testing can proceed",
+    "cannot_proceed_with": [
+      "E2E testing (compilation errors)",
+      "Full integration testing (API not running)",
+      "Docker environment validation"
+    ],
+    "can_proceed_with": [
+      "Code analysis and reporting",
+      "Test configuration review",
+      "Documentation of issues found"
+    ]
+  }
+}

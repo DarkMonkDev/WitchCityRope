@@ -58,10 +58,31 @@ describe('Authentication Flow Integration', () => {
   })
 
   const renderWithProviders = (component: React.ReactElement) => {
+    const router = createMemoryRouter([
+      {
+        path: '/',
+        element: component
+      },
+      {
+        path: '/login',
+        element: component
+      },
+      {
+        path: '/dashboard',
+        element: <div>Dashboard</div>
+      },
+      {
+        path: '/form-test',
+        element: <div>Form Test</div>
+      }
+    ], {
+      initialEntries: ['/login']
+    })
+
     return render(
       <QueryClientProvider client={queryClient}>
         <MantineProvider>
-          {component}
+          <RouterProvider router={router} />
         </MantineProvider>
       </QueryClientProvider>
     )
@@ -101,10 +122,9 @@ describe('Authentication Flow Integration', () => {
       expect(authState.user).toEqual({
         id: '1',
         email: 'admin@witchcityrope.com',
-        firstName: 'Test',
-        lastName: 'Admin',
         sceneName: 'TestAdmin',
-        roles: ['admin'],
+        createdAt: '2025-08-19T00:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
       })
 
       // Verify navigation was called
@@ -134,7 +154,7 @@ describe('Authentication Flow Integration', () => {
     it('should display error for invalid credentials', async () => {
       // Override MSW handler for failed login
       server.use(
-        http.post('http://localhost:5653/api/auth/login', () => {
+        http.post('http://localhost:5651/api/auth/login', () => {
           return new HttpResponse('Invalid credentials', { status: 401 })
         })
       )
@@ -163,16 +183,16 @@ describe('Authentication Flow Integration', () => {
     it('should show loading state during form submission', async () => {
       // Create a delayed response to test loading state
       server.use(
-        http.post('http://localhost:5653/api/auth/login', async () => {
+        http.post('http://localhost:5651/api/auth/login', async () => {
           await new Promise(resolve => setTimeout(resolve, 100))
           return HttpResponse.json({
-            user: {
+            success: true,
+            data: {
               id: '1',
               email: 'admin@witchcityrope.com',
-              firstName: 'Test',
-              lastName: 'Admin',
               sceneName: 'TestAdmin',
-              roles: ['admin'],
+              createdAt: '2025-08-19T00:00:00Z',
+              lastLoginAt: '2025-08-19T10:00:00Z'
             }
           })
         })
@@ -213,15 +233,14 @@ describe('Authentication Flow Integration', () => {
         expect(authState.user).toEqual({
           id: '1',
           email: 'admin@witchcityrope.com',
-          firstName: 'Test',
-          lastName: 'Admin',
           sceneName: 'TestAdmin',
-          roles: ['admin'],
+          createdAt: '2025-08-19T00:00:00Z',
+          lastLoginAt: '2025-08-19T10:00:00Z'
         })
       })
     })
 
-    it('should calculate permissions correctly from user roles', async () => {
+    it('should authenticate user successfully', async () => {
       renderWithProviders(<LoginPage />)
 
       await user.type(screen.getByTestId('email-input'), 'admin@witchcityrope.com')
@@ -231,11 +250,9 @@ describe('Authentication Flow Integration', () => {
       // Wait for auth store update
       await waitFor(() => {
         const authState = useAuthStore.getState()
-        expect(authState.permissions).toContain('read')
-        expect(authState.permissions).toContain('write')
-        expect(authState.permissions).toContain('delete')
-        expect(authState.permissions).toContain('manage_users')
-        expect(authState.permissions).toContain('manage_events')
+        expect(authState.isAuthenticated).toBe(true)
+        expect(authState.user).not.toBe(null)
+        expect(authState.user?.email).toBe('admin@witchcityrope.com')
       })
     })
 
@@ -244,10 +261,9 @@ describe('Authentication Flow Integration', () => {
       useAuthStore.getState().actions.login({
         id: '1',
         email: 'admin@witchcityrope.com',
-        firstName: 'Test',
-        lastName: 'Admin',
         sceneName: 'TestAdmin',
-        roles: ['admin'],
+        createdAt: '2025-08-19T00:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
       })
 
       // Verify authenticated state
@@ -260,7 +276,6 @@ describe('Authentication Flow Integration', () => {
       const authState = useAuthStore.getState()
       expect(authState.isAuthenticated).toBe(false)
       expect(authState.user).toBe(null)
-      expect(authState.permissions).toEqual([])
     })
   })
 
@@ -320,7 +335,7 @@ describe('Authentication Flow Integration', () => {
     it('should handle API errors correctly', async () => {
       // Override MSW handler for failed login
       server.use(
-        http.post('http://localhost:5653/api/auth/login', () => {
+        http.post('http://localhost:5651/api/auth/login', () => {
           return new HttpResponse('Invalid credentials', { status: 401 })
         })
       )

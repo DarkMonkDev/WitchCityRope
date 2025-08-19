@@ -17,6 +17,24 @@ This catalog provides a comprehensive inventory of all tests in the WitchCityRop
 
 ## Recent Additions (August 2025)
 
+### MSW Configuration Fix - 2025-08-19
+**Fixed**: `/apps/web/src/test/mocks/handlers.ts`
+**Added**: `/apps/web/src/test/integration/msw-verification.test.ts`
+**Purpose**: Fixed Mock Service Worker (MSW) configuration for proper API request interception
+**Context**: MSW was not intercepting requests properly due to port mismatches and response structure misalignment
+
+**Test Coverage**:
+- MSW request interception verification for all authentication endpoints
+- Response structure validation matching actual API format
+- Error handling for unauthorized requests
+- Support for multiple API ports (5651, 5653, 5655)
+
+**Key Fixes Applied**:
+- Updated MSW handlers to use correct API base URL (port 5651)
+- Fixed nested response structure: `{ success: true, data: { ...user }, message: "..." }`
+- Added missing `/auth/refresh` endpoint handler for axios interceptor
+- Removed duplicate navigation logic causing infinite loops in React tests
+
 ### Improved Authentication E2E Test - 2025-08-19
 **Added**: `/apps/web/tests/playwright/auth-flow-improved.spec.ts`
 **Purpose**: Enhanced E2E authentication test following best practices from lessons learned

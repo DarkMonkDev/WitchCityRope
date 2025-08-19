@@ -3,22 +3,55 @@ import { http, HttpResponse } from 'msw'
 import type { User, Event, PaginatedResponse } from '../../types/api.types'
 
 export const handlers = [
-  // Authentication - Updated paths to match mutations.ts
-  http.get('http://localhost:5653/api/auth/me', () => {
+  // Authentication - Aligned with API DTO structure (support all ports)
+  http.get('http://localhost:5651/api/auth/me', () => {
     return HttpResponse.json({
-      id: '1',
-      email: 'admin@witchcityrope.com',
-      firstName: 'Test',
-      lastName: 'Admin',
-      sceneName: 'TestAdmin',
-      roles: ['admin'], // Use roles array to match auth store User interface
-      isVetted: true,
-      createdAt: '2025-08-19T00:00:00Z',
-      updatedAt: '2025-08-19T00:00:00Z',
+      success: true,
+      data: {
+        id: '1',
+        email: 'admin@witchcityrope.com',
+        sceneName: 'TestAdmin',
+        createdAt: '2025-08-19T00:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
+      }
     })
   }),
 
+  http.get('http://localhost:5653/api/auth/me', () => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        id: '1',
+        email: 'admin@witchcityrope.com',
+        sceneName: 'TestAdmin',
+        createdAt: '2025-08-19T00:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
+      }
+    })
+  }),
+
+  http.get('http://localhost:5655/api/auth/me', () => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        id: '1',
+        email: 'admin@witchcityrope.com',
+        sceneName: 'TestAdmin',
+        createdAt: '2025-08-19T00:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
+      }
+    })
+  }),
+
+  http.post('http://localhost:5651/api/auth/logout', () => {
+    return new HttpResponse(null, { status: 204 })
+  }),
+
   http.post('http://localhost:5653/api/auth/logout', () => {
+    return new HttpResponse(null, { status: 204 })
+  }),
+
+  http.post('http://localhost:5655/api/auth/logout', () => {
     return new HttpResponse(null, { status: 204 })
   }),
 
@@ -27,40 +60,124 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 })
   }),
 
-  http.post('http://localhost:5653/api/auth/login', async ({ request }) => {
-    const body = await request.json()
+  http.post('http://localhost:5651/api/auth/login', async ({ request }) => {
+    const body = await request.json() as any
     if (body.email === 'admin@witchcityrope.com') {
       return HttpResponse.json({
-        user: {
+        success: true,
+        data: {
           id: '1',
-          email: body.email,
-          firstName: 'Test',
-          lastName: 'Admin',
+          email: body.email as string,
           sceneName: 'TestAdmin',
-          roles: ['admin'], // Use roles array to match auth store User interface
-        }
+          createdAt: '2025-08-19T00:00:00Z',
+          lastLoginAt: '2025-08-19T10:00:00Z'
+        },
+        message: 'Login successful'
+      })
+    }
+    return new HttpResponse(null, { status: 401 })
+  }),
+
+  http.post('http://localhost:5653/api/auth/login', async ({ request }) => {
+    const body = await request.json() as any
+    if (body.email === 'admin@witchcityrope.com') {
+      return HttpResponse.json({
+        success: true,
+        data: {
+          user: {
+            id: '1',
+            email: body.email as string,
+            sceneName: 'TestAdmin',
+            createdAt: '2025-08-19T00:00:00Z',
+            lastLoginAt: '2025-08-19T10:00:00Z'
+          },
+          token: 'fake-jwt-token'
+        },
+        message: 'Login successful'
+      })
+    }
+    return new HttpResponse(null, { status: 401 })
+  }),
+
+  http.post('http://localhost:5655/api/auth/login', async ({ request }) => {
+    const body = await request.json() as any
+    if (body.email === 'admin@witchcityrope.com') {
+      return HttpResponse.json({
+        success: true,
+        data: {
+          user: {
+            id: '1',
+            email: body.email as string,
+            sceneName: 'TestAdmin',
+            createdAt: '2025-08-19T00:00:00Z',
+            lastLoginAt: '2025-08-19T10:00:00Z'
+          },
+          token: 'fake-jwt-token'
+        },
+        message: 'Login successful'
       })
     }
     return new HttpResponse(null, { status: 401 })
   }),
 
   // Auth refresh endpoint for interceptor
+  http.post('http://localhost:5651/auth/refresh', () => {
+    return new HttpResponse('Unauthorized', { status: 401 })
+  }),
+
   http.post('http://localhost:5653/auth/refresh', () => {
     return new HttpResponse('Unauthorized', { status: 401 })
+  }),
+
+  http.post('http://localhost:5655/auth/refresh', () => {
+    return new HttpResponse('Unauthorized', { status: 401 })
+  }),
+
+  // Protected welcome endpoint
+  http.get('http://localhost:5655/api/protected/welcome', () => {
+    return HttpResponse.json({
+      message: 'Welcome to the protected area!',
+      user: {
+        id: '1',
+        email: 'admin@witchcityrope.com',
+        sceneName: 'TestAdmin',
+        createdAt: '2025-08-19T00:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
+      },
+      serverTime: new Date().toISOString()
+    })
+  }),
+
+  // Register endpoint
+  http.post('http://localhost:5651/api/auth/register', async ({ request }) => {
+    const body = await request.json() as any
+    return HttpResponse.json({
+      success: true,
+      data: {
+        user: {
+          id: 'new-user-id',
+          email: body.email as string,
+          sceneName: body.sceneName as string,
+          createdAt: new Date().toISOString(),
+          lastLoginAt: new Date().toISOString()
+        },
+        token: 'fake-jwt-token'
+      },
+      message: 'Registration successful'
+    })
   }),
 
   // Keep legacy paths for backward compatibility
   http.get('/auth/me', () => {
     return HttpResponse.json({
-      id: '1',
-      email: 'admin@witchcityrope.com',
-      firstName: 'Test',
-      lastName: 'Admin',
-      sceneName: 'TestAdmin',
-      roles: ['admin'], // Use roles array to match auth store User interface
-      isVetted: true,
-      createdAt: '2025-08-19T00:00:00Z',
-      updatedAt: '2025-08-19T00:00:00Z',
+      success: true,
+      data: {
+        id: '1',
+        email: 'admin@witchcityrope.com',
+        sceneName: 'TestAdmin',
+        createdAt: '2025-08-19T00:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
+      }
     })
   }),
 
@@ -68,18 +185,19 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 })
   }),
 
-  http.post('/auth/login', async ({ request }) => {
-    const body = await request.json()
+  http.post('/api/auth/login', async ({ request }) => {
+    const body = await request.json() as any
     if (body.email === 'admin@witchcityrope.com') {
       return HttpResponse.json({
-        user: {
+        success: true,
+        data: {
           id: '1',
-          email: body.email,
-          firstName: 'Test',
-          lastName: 'Admin',
+          email: body.email as string,
           sceneName: 'TestAdmin',
-          roles: ['admin'], // Use roles array to match auth store User interface
-        }
+          createdAt: '2025-08-19T00:00:00Z',
+          lastLoginAt: '2025-08-19T10:00:00Z'
+        },
+        message: 'Login successful'
       })
     }
     return new HttpResponse(null, { status: 401 })
@@ -101,6 +219,8 @@ export const handlers = [
         id: '1',
         sceneName: 'TestInstructor',
         email: 'instructor@test.com',
+        createdAt: '2025-08-19T00:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
       },
       attendees: [],
     } as Event)
@@ -153,24 +273,30 @@ export const handlers = [
   }),
 
   http.post('/api/events', async ({ request }) => {
-    const body = await request.json()
+    const body = await request.json() as any
     return HttpResponse.json({
       id: 'new-event-id',
-      ...body,
+      ...(body as object),
       currentAttendees: 0,
       isRegistrationOpen: true,
       instructorId: '1',
-      instructor: { id: '1', sceneName: 'TestInstructor' },
+      instructor: { 
+        id: '1', 
+        sceneName: 'TestInstructor',
+        email: 'instructor@test.com',
+        createdAt: '2025-08-19T00:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
+      },
       attendees: [],
     } as Event)
   }),
 
   http.put('/api/events/:id', async ({ params, request }) => {
-    const body = await request.json()
+    const body = await request.json() as any
     return HttpResponse.json({
       id: params.id,
       title: 'Updated Test Event',
-      ...body,
+      ...(body as object),
       currentAttendees: 5,
       isRegistrationOpen: true,
     } as Event)
@@ -182,7 +308,7 @@ export const handlers = [
 
   // Event Registration
   http.post('/api/events/:eventId/registration', async ({ params, request }) => {
-    const body = await request.json()
+    const body = await request.json() as any
     return HttpResponse.json({
       id: `reg-${params.eventId}`,
       eventId: params.eventId,
@@ -202,24 +328,16 @@ export const handlers = [
       {
         id: '1',
         email: 'member1@test.com',
-        firstName: 'Test',
-        lastName: 'Member1',
         sceneName: 'TestMember1',
-        role: 'VettedMember',
-        isVetted: true,
         createdAt: '2025-08-19T00:00:00Z',
-        updatedAt: '2025-08-19T00:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
       },
       {
         id: '2',
         email: 'member2@test.com',
-        firstName: 'Test',
-        lastName: 'Member2',
         sceneName: 'TestMember2',
-        role: 'GeneralMember',
-        isVetted: false,
         createdAt: '2025-08-19T00:00:00Z',
-        updatedAt: '2025-08-19T00:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
       },
     ] as User[]
 
@@ -243,41 +361,31 @@ export const handlers = [
     return HttpResponse.json({
       id: params.id,
       email: 'member@test.com',
-      firstName: 'Test',
-      lastName: 'Member',
       sceneName: 'TestMember',
-      role: 'VettedMember',
-      isVetted: true,
       createdAt: '2025-08-19T00:00:00Z',
-      updatedAt: '2025-08-19T00:00:00Z',
+      lastLoginAt: '2025-08-19T10:00:00Z'
     } as User)
   }),
 
   http.put('/api/members/:id/status', async ({ params, request }) => {
-    const body = await request.json()
+    const body = await request.json() as any
     return HttpResponse.json({
       id: params.id,
       email: 'member@test.com',
-      firstName: 'Test',
-      lastName: 'Member',
       sceneName: 'TestMember',
-      role: 'VettedMember',
-      isVetted: body.status === 'vetted',
       createdAt: '2025-08-19T00:00:00Z',
-      updatedAt: new Date().toISOString(),
+      lastLoginAt: new Date().toISOString()
     } as User)
   }),
 
   http.put('/api/members/profile', async ({ request }) => {
-    const body = await request.json()
+    const body = await request.json() as any
     return HttpResponse.json({
       id: '1',
       email: 'user@test.com',
-      ...body,
-      role: 'VettedMember',
-      isVetted: true,
+      sceneName: body.sceneName || 'TestUser',
       createdAt: '2025-08-19T00:00:00Z',
-      updatedAt: new Date().toISOString(),
+      lastLoginAt: new Date().toISOString()
     } as User)
   }),
 ]

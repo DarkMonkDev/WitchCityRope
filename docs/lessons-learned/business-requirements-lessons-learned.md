@@ -1,174 +1,164 @@
 # Business Requirements Lessons Learned
 
-## File Discovery and Validation
+## Always Check File Existence Before Reading
 
-### Don't Try to Read Files That May Not Exist (CRITICAL)
 **Date**: 2025-08-17
 **Category**: File Management
 **Severity**: Critical
 
-#### Context
-Attempting to read files that may not exist causes errors and breaks the workflow. Must validate file existence before attempting to read.
+### Context
+Attempting to read files that may not exist causes errors and breaks the workflow. Business requirements analysis often involves reading various documentation files that may or may not exist.
 
-#### What We Learned
+### What We Learned
 - Always check if files exist before attempting to read them
-- Use file discovery patterns (Glob, LS) to verify file presence
-- Don't assume files exist based on naming conventions or expectations
-- Handle file-not-found gracefully rather than failing the entire workflow
+- Use file discovery patterns to verify file presence
+- Don't assume files exist based on naming conventions
+- Handle file-not-found gracefully rather than failing
 
-#### Action Items
-- [ ] ALWAYS use LS or Glob to check file existence before Read operations
-- [ ] PROVIDE graceful fallbacks when expected files don't exist
-- [ ] DOCUMENT when files are expected vs optional in requirements analysis
-- [ ] CREATE files only when explicitly required, never speculatively
+### Action Items
+- [ ] Use LS or Glob to check file existence before Read operations
+- [ ] Provide graceful fallbacks when expected files don't exist
+- [ ] Document when files are expected vs optional in requirements analysis
+- [ ] Create files only when explicitly required, never speculatively
 
-#### Impact
+### Impact
 Prevents workflow failures and provides more robust requirements analysis process.
 
 ### Tags
-#critical #file-management #error-handling #workflow-robustness
+#critical #file-management #error-handling
 
-## Documentation Discovery Process
+## Check Master Index Before Starting Requirements Work
 
-### Check Master Index First for Existing Requirements (CRITICAL)
 **Date**: 2025-08-17
 **Category**: Process
 **Severity**: Critical
 
-#### Context
-Must check the master index at `/docs/architecture/functional-area-master-index.md` before starting new requirements work to avoid duplication.
+### Context
+Must check the functional area master index before starting new requirements work to avoid duplication and understand existing work.
 
-#### What We Learned
-- Master index contains authoritative list of all functional areas and their current states
+### What We Learned
+- Master index contains authoritative list of all functional areas
 - Existing requirements may already cover requested functionality
 - Current work status prevents conflicts with ongoing development
-- Historical work provides context for new requirements
+- Historical work provides essential context
 
-#### Action Items
-- [ ] ALWAYS check master index before starting new requirements analysis
-- [ ] IDENTIFY existing functional areas that might contain relevant requirements
-- [ ] REVIEW current work status to avoid conflicts with ongoing development
-- [ ] REFERENCE existing requirements when building on previous work
+### Action Items
+- [ ] Always check `/docs/architecture/functional-area-master-index.md` first
+- [ ] Identify existing functional areas with relevant requirements
+- [ ] Review current work status to avoid conflicts
+- [ ] Reference existing requirements when building on previous work
 
-#### Impact
-Prevents duplicate work, ensures consistency with existing requirements, and builds on established patterns.
+### Impact
+Prevents duplicate work, ensures consistency, and builds on established patterns.
 
 ### Tags
 #critical #process #master-index #duplication-prevention
 
-## Domain-Specific Business Analysis
+## Apply Domain-Specific Business Knowledge
 
-### Focus on Domain-Specific Business Analysis
 **Date**: 2025-08-17
 **Category**: Analysis
 **Severity**: High
 
-#### Context
-Business requirements analysis must focus on the specific domain knowledge and business patterns rather than generic analysis.
+### Context
+WitchCityRope serves a specialized community with unique needs that must be understood for effective requirements analysis.
 
-#### What We Learned
-- WitchCityRope has unique community dynamics and safety requirements
+### What We Learned
 - Rope bondage community has specific consent, safety, and privacy needs
-- Event management for workshops requires specialized pricing and capacity models
-- Membership tiers affect access patterns and feature requirements
+- Event management requires specialized pricing models (sliding scale)
+- Membership tiers significantly affect access patterns and requirements
+- Community vetting processes are critical for trust and safety
 
-#### Action Items
-- [ ] LEVERAGE domain expertise in rope bondage community dynamics
-- [ ] CONSIDER safety and consent implications in all requirements
-- [ ] APPLY community-specific patterns for membership and access
-- [ ] REFERENCE existing successful patterns from the platform
+### Action Items
+- [ ] Consider safety and consent implications in all requirements
+- [ ] Apply community-specific patterns for membership and access
+- [ ] Reference existing successful platform patterns
+- [ ] Leverage domain expertise rather than generic business analysis
 
-#### Impact
-Ensures requirements align with community needs and leverage domain-specific understanding for better business solutions.
+### Impact
+Ensures requirements align with community needs and leverage domain understanding for better solutions.
 
 ### Tags
 #high #domain-expertise #community-analysis #business-patterns
 
-## Platform Context Understanding
+## Analyze All User Roles in Requirements
 
-### Platform Overview: WitchCityRope Membership and Event Management
-**Date**: 2025-08-17
-**Category**: Platform Knowledge
-**Severity**: High
-
-#### Context
-Understanding the platform's core purpose and user base is essential for all requirements analysis.
-
-#### What We Learned
-- WitchCityRope is a membership and event management platform for Salem's rope bondage community
-- Primary functions: workshops, performances, social events, member management
-- User roles: Admin, Teacher, Vetted Member, General Member, Guest/Attendee
-- Technology stack: React + TypeScript + Vite frontend, .NET API backend, PostgreSQL database
-- Key patterns: sliding scale pricing, consent workflows, safety protocols, vetting processes
-
-#### Action Items
-- [ ] ALWAYS consider community safety and consent requirements
-- [ ] APPLY appropriate user role restrictions in requirements
-- [ ] LEVERAGE existing pricing and event management patterns
-- [ ] ENSURE requirements align with React frontend capabilities
-
-#### Impact
-Provides essential context for all requirements analysis and ensures community-appropriate solutions.
-
-### Tags
-#high #platform-knowledge #community-focus #context
-
-## Requirements Quality Patterns
-
-### Business Requirements Must Include Complete User Role Analysis
 **Date**: 2025-08-17
 **Category**: Quality
-**Severity**: Medium
+**Severity**: High
 
-#### Context
-Requirements analysis must consider all user roles and their different needs and permissions within the platform.
+### Context
+Platform has distinct user roles (Admin, Teacher, Vetted Member, General Member, Guest) with different capabilities and needs.
 
-#### What We Learned
-- Each user role (Admin, Teacher, Vetted Member, General Member, Guest) has different capabilities
-- Access patterns vary significantly between role types
-- Safety and privacy requirements differ by user role
-- Business rules must account for role-based restrictions
+### What We Learned
+- Each user role has different access capabilities and restrictions
+- Safety and privacy requirements differ significantly by role
+- Business rules must account for role-based permissions
+- Access patterns vary between role types
 
-#### Action Items
-- [ ] ANALYZE impact on all user roles for every requirement
-- [ ] DOCUMENT role-specific business rules and restrictions
-- [ ] CONSIDER privacy implications for each role interaction
-- [ ] VALIDATE requirements against existing role permission patterns
+### Action Items
+- [ ] Analyze impact on all user roles for every requirement
+- [ ] Document role-specific business rules and restrictions
+- [ ] Consider privacy implications for each role interaction
+- [ ] Validate requirements against existing role permission patterns
 
-#### Impact
-Ensures comprehensive requirements that work for all platform users and maintain appropriate access controls.
+### Impact
+Ensures comprehensive requirements that work for all users and maintain appropriate access controls.
 
 ### Tags
-#medium #quality #user-roles #access-control
+#high #quality #user-roles #access-control
 
-## Technology Alignment
+## Align Requirements with React Architecture
 
-### Requirements Must Align with React Frontend Architecture
 **Date**: 2025-08-17
 **Category**: Architecture
 **Severity**: Medium
 
-#### Context
-All requirements must be feasible within the React + TypeScript frontend architecture and .NET API backend.
+### Context
+All requirements must be feasible within React + TypeScript frontend and .NET API backend architecture.
 
-#### What We Learned
-- React component patterns influence UI requirements
+### What We Learned
+- React component patterns influence UI requirements design
 - API-driven architecture affects data flow requirements
 - Authentication uses hybrid JWT + HttpOnly Cookies pattern
-- Real-time features may require SignalR or similar technology
+- Real-time features may require SignalR implementation
 
-#### Action Items
-- [ ] ENSURE UI requirements align with React component patterns
-- [ ] CONSIDER API design implications in data requirements
-- [ ] REFERENCE existing authentication patterns for security requirements
-- [ ] VALIDATE technical feasibility with development team when uncertain
+### Action Items
+- [ ] Ensure UI requirements align with React component patterns
+- [ ] Consider API design implications in data requirements
+- [ ] Reference existing authentication patterns for security requirements
+- [ ] Validate technical feasibility with development team when uncertain
 
-#### Impact
-Ensures requirements can be implemented efficiently within the existing technology stack.
+### Impact
+Ensures requirements can be implemented efficiently within existing technology stack.
 
 ### Tags
 #medium #architecture #technology-alignment #feasibility
 
----
-*This file is maintained by the business-requirements agent. Add new lessons immediately when discovered, remove outdated entries as needed.*
-*Last updated: 2025-08-17 - Initial creation with essential business analysis patterns and platform knowledge*
+## Use Structured Requirements Documentation
+
+**Date**: 2025-08-19
+**Category**: Documentation
+**Severity**: Medium
+
+### Context
+Business requirements need consistent structure for effective communication with development teams and stakeholders.
+
+### What We Learned
+- Standardized format improves clarity and completeness
+- User stories with acceptance criteria provide clear implementation guidance
+- Business rules must be explicitly documented
+- Success metrics are essential for validating implementation
+
+### Action Items
+- [ ] Use standardized business requirements template
+- [ ] Include user stories with clear acceptance criteria
+- [ ] Document business rules explicitly
+- [ ] Define measurable success metrics
+- [ ] Provide examples and scenarios for complex requirements
+
+### Impact
+Improves communication clarity and reduces implementation ambiguity.
+
+### Tags
+#medium #documentation #structure #communication

@@ -42,10 +42,9 @@ const LoginPage: React.FC = () => {
     const mockUser = {
       id: '1',
       email: 'test@example.com',
-      firstName: 'Test',
-      lastName: 'User',
       sceneName: 'TestUser',
-      roles: ['member']
+      createdAt: '2025-08-19T10:00:00Z',
+      lastLoginAt: '2025-08-19T10:00:00Z'
     };
     login(mockUser);
     
@@ -81,14 +80,15 @@ const DashboardPage: React.FC = () => {
       <Title order={1} mb="xl">Dashboard</Title>
       <Paper shadow="sm" p="xl" mb="lg">
         <Text size="lg" mb="md">
-          Welcome, {user?.sceneName || user?.firstName}!
+          Welcome, {user?.sceneName}!
         </Text>
         <Text c="dimmed" mb="lg">
           This is a protected route. You can only see this because you're authenticated.
         </Text>
         <Group>
           <Text><strong>Email:</strong> {user?.email}</Text>
-          <Text><strong>Roles:</strong> {user?.roles?.join(', ')}</Text>
+          <Text><strong>Scene Name:</strong> {user?.sceneName}</Text>
+          <Text><strong>Created:</strong> {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown'}</Text>
         </Group>
       </Paper>
       <Button onClick={handleLogout} color="red">
@@ -139,7 +139,7 @@ const Navigation: React.FC = () => {
               <Text component={Link} to="/dashboard" c="dimmed" style={{ textDecoration: 'none' }}>
                 Dashboard
               </Text>
-              <Text c="dimmed">Welcome, {user.sceneName || user.firstName}</Text>
+              <Text c="dimmed">Welcome, {user.sceneName}</Text>
               <Button
                 variant="filled"
                 color="red"

@@ -65,7 +65,7 @@ export const Navigation: React.FC = () => {
           {isAuthenticated && user ? (
             <>
               <Text component={Link} to="/dashboard" c="dimmed" style={{ textDecoration: 'none' }}>
-                Welcome, {user.sceneName || user.firstName}
+                Welcome, {user.sceneName}
               </Text>
               <Button
                 variant="filled"

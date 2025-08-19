@@ -41,14 +41,7 @@ export const LoginPage: React.FC = () => {
     },
   })
 
-  // If already authenticated, the mutation will handle navigation
-  useEffect(() => {
-    if (isAuthenticated) {
-      const urlParams = new URLSearchParams(location.search)
-      const returnTo = urlParams.get('returnTo') || '/dashboard'
-      window.location.href = returnTo
-    }
-  }, [isAuthenticated, location.search])
+  // Navigation is handled by the useLogin mutation to avoid infinite loops
 
   const handleSubmit = (values: LoginFormData) => {
     loginMutation.mutate(values)

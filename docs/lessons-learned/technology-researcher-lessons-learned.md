@@ -1,6 +1,7 @@
 # Technology Researcher Lessons Learned
 
-## Research Methodology Standards (HIGH)
+## Research Methodology Standards
+
 **Date**: 2025-08-17
 **Category**: Process
 **Severity**: High
@@ -22,41 +23,14 @@ Establishing efficient and reliable technology research patterns for React migra
 - [ ] WEIGHT evaluation criteria based on WitchCityRope's specific needs
 - [ ] PROVIDE confidence levels with all recommendations
 
+### Impact
+Ensures research quality and reduces decision-making uncertainty for technical choices.
+
 ### Tags
 #high #methodology #research #documentation
 
-## Problem-Specific Research Patterns (CRITICAL)
-**Date**: 2025-08-18
-**Category**: Problem Solving
-**Severity**: Critical
+## Platform-Specific Evaluation Criteria
 
-### Context
-Researching specific technical issues like Mantine v7 placeholder visibility requires targeted search strategies and multiple information sources.
-
-### What We Learned
-- GitHub issues provide real-world developer experiences with specific problems
-- Stack Overflow discussions reveal common workarounds and community solutions
-- Official documentation may not cover edge cases or complex use scenarios
-- Multiple search term variations are needed to find comprehensive solutions
-- WebFetch tool is invaluable for getting detailed information from documentation pages
-- Community discussions (GitHub discussions, Reddit) offer practical insights
-- Browser-specific behavior differences need to be considered for CSS solutions
-- CSS specificity conflicts are common with UI frameworks like Mantine
-
-### Action Items
-- [ ] SEARCH GitHub issues for reported problems and solutions
-- [ ] CHECK Stack Overflow for community workarounds and discussions
-- [ ] USE multiple search term variations to capture different perspectives
-- [ ] FETCH official documentation pages for detailed technical information
-- [ ] EVALUATE browser compatibility for CSS-based solutions
-- [ ] CONSIDER CSS specificity conflicts when recommending styling approaches
-- [ ] DOCUMENT implementation code examples for immediate use
-- [ ] ASSESS performance impact of different solution approaches
-
-### Tags
-#critical #problem-solving #search-strategy #css #mantine
-
-## Platform-Specific Evaluation Criteria (CRITICAL)
 **Date**: 2025-08-17
 **Category**: Evaluation
 **Severity**: Critical
@@ -78,10 +52,14 @@ Technology choices for WitchCityRope must consider unique platform requirements 
 - [ ] ALIGN technology choices with community values and mission
 - [ ] VALIDATE compatibility with httpOnly cookie authentication pattern
 
+### Impact
+Prevents technology choices that conflict with WitchCityRope's core requirements and constraints.
+
 ### Tags
 #critical #platform-specific #safety #privacy #mobile
 
-## Research Documentation Standards (HIGH)
+## Research Documentation Standards
+
 **Date**: 2025-08-17
 **Category**: Documentation
 **Severity**: High
@@ -103,10 +81,14 @@ Research documents must provide clear, actionable information for architecture d
 - [ ] ASSESS risks with mitigation strategies for each recommendation
 - [ ] REFERENCE all sources for verification and credibility
 
+### Impact
+Improves decision quality and reduces implementation risks through better documentation.
+
 ### Tags
 #high #documentation #standards #decision-support
 
-## CSS Framework Integration Research Excellence (HIGH)
+## UI Framework Issue Resolution Patterns
+
 **Date**: 2025-08-18
 **Category**: Technical Research
 **Severity**: High
@@ -121,64 +103,65 @@ Successfully researched and solved complex Mantine v7 placeholder visibility iss
 - Browser compatibility testing is essential for CSS pseudo-element solutions
 - Performance impact should be quantified (+200-400 bytes for CSS vs state management overhead)
 - Implementation examples with actual code accelerate development adoption
-- Risk assessment prevents future maintenance issues
+- GitHub issues provide real-world developer experiences with specific problems
+- Stack Overflow discussions reveal common workarounds and community solutions
+- Multiple search term variations are needed to find comprehensive solutions
 
 ### Action Items
+- [ ] RESEARCH existing solutions before creating custom implementations
+- [ ] CHECK multiple information sources (GitHub, Stack Overflow, docs) for comprehensive understanding
 - [ ] PRIORITIZE CSS-only solutions for visual enhancements when possible
 - [ ] RESEARCH CSS specificity conflicts with UI framework internal styles
 - [ ] PROVIDE working code examples in research recommendations
 - [ ] QUANTIFY performance impact in measurable terms (bytes, runtime cost)
-- [ ] DOCUMENT browser compatibility requirements and testing needs
-- [ ] ASSESS long-term maintenance implications of different approaches
-- [ ] VALIDATE solutions against existing project architecture (CSS modules)
-
-**Tags**: #high #css #mantine #performance #implementation
-
----
-
-### UI Framework Issue Resolution Patterns - 2025-08-18
-
-**Context**: Successfully resolved Mantine v7 placeholder visibility issues through comprehensive research and multiple solution validation.
-
-**What We Learned**:
-- **Research Existing Solutions First**: Always check GitHub issues, Stack Overflow, and community discussions before creating custom solutions
-- **CSS Specificity Conflicts**: Common with component libraries - require understanding framework's internal class structure
-- **Multi-Selector Approach**: When CSS isn't working as expected, check multiple selector approaches (class, type, data attributes)
-- **Password Input Variations**: Different input types may have different internal structures requiring additional CSS targeting
-- **Performance vs Maintenance**: CSS-only solutions often outperform React state management for simple visual behaviors
-
-**Research Process That Worked**:
-1. **GitHub Issues Search**: "Mantine placeholder visibility" revealed community discussions
-2. **Stack Overflow Research**: Multiple search term variations captured different perspectives
-3. **Official Documentation**: Mantine Styles API provided framework-specific customization patterns
-4. **Browser Testing**: Validated CSS selector effectiveness across different input types
-5. **Implementation Examples**: Provided working code for immediate adoption
-
-**Critical Discovery**:
-```css
-/* Insufficient - only targets basic inputs */
-.form input::placeholder { opacity: 0; }
-
-/* Complete - targets all Mantine input variations */
-.enhancedInput :global(.mantine-TextInput-input)::placeholder,
-.enhancedInput :global(.mantine-PasswordInput-input)::placeholder,
-.enhancedInput :global(.mantine-Textarea-input)::placeholder {
-  opacity: 0 !important;
-}
-```
-
-**Action Items**:
-- [ ] RESEARCH existing solutions before creating custom implementations
-- [ ] CHECK multiple information sources (GitHub, Stack Overflow, docs) for comprehensive understanding
-- [ ] VALIDATE CSS solutions across all relevant input types
-- [ ] QUANTIFY performance impact when recommending solutions
-- [ ] PROVIDE working implementation examples with research recommendations
+- [ ] VALIDATE solutions across all relevant input types and browsers
 - [ ] CONSIDER framework-specific patterns when researching UI library issues
 
-**Impact**: Prevents reinventing solutions and ensures comprehensive coverage of technical requirements.
+### Impact
+Prevents reinventing solutions, ensures comprehensive coverage of technical requirements, and provides immediately actionable research outputs.
 
-**Tags**: #research-first #ui-frameworks #css-specificity #mantine #implementation-examples #performance-analysis
+### References
+- Mantine v7 Styles API Documentation
+- GitHub Issues: Mantine placeholder visibility discussions
+- Stack Overflow: CSS specificity with component libraries
+
+### Tags
+#high #css #mantine #performance #implementation #research-strategy
+
+## Problem-Specific Research Strategy
+
+**Date**: 2025-08-18
+**Category**: Problem Solving
+**Severity**: Critical
+
+### Context
+Researching specific technical issues requires targeted search strategies and multiple information sources to find comprehensive solutions.
+
+### What We Learned
+- GitHub issues provide real-world developer experiences with specific problems
+- Official documentation may not cover edge cases or complex use scenarios
+- WebFetch tool is invaluable for getting detailed information from documentation pages
+- Community discussions (GitHub discussions, Reddit) offer practical insights
+- Browser-specific behavior differences need to be considered for CSS solutions
+- CSS specificity conflicts are common with UI frameworks and require framework-specific targeting
+
+### Action Items
+- [ ] SEARCH GitHub issues for reported problems and solutions first
+- [ ] CHECK Stack Overflow for community workarounds and discussions
+- [ ] USE multiple search term variations to capture different perspectives
+- [ ] FETCH official documentation pages for detailed technical information
+- [ ] EVALUATE browser compatibility for CSS-based solutions
+- [ ] CONSIDER CSS specificity conflicts when recommending styling approaches
+- [ ] DOCUMENT implementation code examples for immediate use
+- [ ] ASSESS performance impact of different solution approaches
+
+### Impact
+Enables efficient problem resolution by leveraging existing community knowledge and avoiding reinvention of solutions.
+
+### Tags
+#critical #problem-solving #search-strategy #community-research #css-specificity
 
 ---
+
 *This file is maintained by the technology researcher agent. Add new lessons immediately when discovered, remove outdated entries as needed.*
-*Last updated: 2025-08-18 - Added UI framework issue resolution patterns*
+*Last updated: 2025-08-19 - Cleaned up format and consolidated duplicate content*

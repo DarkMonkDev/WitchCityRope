@@ -35,7 +35,7 @@ export const DashboardPage: React.FC = () => {
         </Title>
         
         <Text size="lg" mb="md">
-          Hello, {currentUser?.sceneName || currentUser?.firstName || 'User'}!
+          Hello, {currentUser?.sceneName || 'User'}!
         </Text>
         
         <Text c="dimmed" mb="lg">
@@ -45,7 +45,9 @@ export const DashboardPage: React.FC = () => {
         <Group>
           <Text><strong>Email:</strong> {currentUser?.email}</Text>
           <Text><strong>User ID:</strong> {currentUser?.id}</Text>
-          <Text><strong>Roles:</strong> {currentUser?.roles?.join(', ') || 'None'}</Text>
+          <Text><strong>Scene Name:</strong> {currentUser?.sceneName || 'None'}</Text>
+          <Text><strong>Created:</strong> {currentUser?.createdAt ? new Date(currentUser.createdAt).toLocaleDateString() : 'Unknown'}</Text>
+          <Text><strong>Last Login:</strong> {currentUser?.lastLoginAt ? new Date(currentUser.lastLoginAt).toLocaleDateString() : 'Never'}</Text>
         </Group>
       </Paper>
 

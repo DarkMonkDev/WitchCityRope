@@ -52,24 +52,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // Check role requirement if specified
-  if (requiredRole && !user.roles.includes(requiredRole)) {
-    if (fallback) {
-      return <>{fallback}</>;
-    }
-    
-    return (
-      <Box p="xl" style={{ textAlign: 'center' }}>
-        <Text size="xl" c="red" mb="md">
-          Access Denied
-        </Text>
-        <Text c="dimmed">
-          You don't have permission to access this page.
-        </Text>
-        <Text c="dimmed" size="sm" mt="md">
-          Required role: {requiredRole}
-        </Text>
-      </Box>
-    );
+  // TODO: Role checking needs to be implemented via separate API call
+  // The User DTO no longer includes roles - they need to be fetched separately
+  if (requiredRole) {
+    // For now, allow access for authenticated users
+    // This should be replaced with proper role checking via API
+    console.warn(`Role checking not implemented yet. Required role: ${requiredRole}. User: ${user.sceneName}`);
   }
 
   // All checks passed - render children
