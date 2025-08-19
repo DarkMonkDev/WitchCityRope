@@ -1,20 +1,29 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { Link } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
-import type { ProtectedWelcomeResponse } from '../services/authService'
+import {
+  Container,
+  Paper,
+  Title,
+  Text,
+  Button,
+  Grid,
+  Card,
+  Group,
+  Badge,
+  Stack,
+  Alert,
+  Loader
+} from '@mantine/core'
+import { IconLogout, IconCalendar, IconUser, IconSettings, IconAlertCircle } from '@tabler/icons-react'
+import { useProtectedWelcome } from '../features/auth/api/queries'
+import { useLogout } from '../features/auth/api/mutations'
 
 export const ProtectedWelcomePage: React.FC = () => {
-  const { logout, getProtectedWelcome } = useAuth()
-  const [welcomeData, setWelcomeData] = useState<ProtectedWelcomeResponse | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { data: welcomeData, isLoading, error } = useProtectedWelcome()
+  const logoutMutation = useLogout()
 
-  const handleLogout = async () => {
-    try {
-      await logout()
-    } catch (err) {
-      console.error('Logout failed:', err)
-    }
+  const handleLogout = () => {
+    logoutMutation.mutate()
   }
 
   const formatDate = (dateString: string) => {
@@ -31,165 +40,179 @@ export const ProtectedWelcomePage: React.FC = () => {
     }
   }
 
-  useEffect(() => {
-    const fetchWelcomeData = async () => {
-      try {
-        setError(null)
-        const data = await getProtectedWelcome()
-        setWelcomeData(data)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load welcome data')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchWelcomeData()
-  }, [getProtectedWelcome])
-
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-white">Loading welcome data...</div>
-      </div>
+      <Container size="lg" py="xl">
+        <Stack align="center" gap="lg">
+          <Loader size="lg" />
+          <Text>Loading welcome data...</Text>
+        </Stack>
+      </Container>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 p-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="bg-slate-800 rounded-lg shadow-lg p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <span
-                className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium"
-                data-testid="protected-indicator"
-              >
-                🔒 Protected Content
-              </span>
-              <h1 className="text-2xl font-bold text-purple-400">WitchCityRope Dashboard</h1>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors"
-              data-testid="logout-button"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
+    <Container size="lg" py="xl">
+      {/* Header */}
+      <Paper shadow="md" p="lg" mb="lg">
+        <Group justify="space-between" align="center">
+          <Group>
+            <Badge color="green" variant="filled" data-testid="protected-indicator">
+              🔒 Protected Content
+            </Badge>
+            <Title order={1} c="wcr.6">WitchCityRope Dashboard</Title>
+          </Group>
+          <Button
+            leftSection={<IconLogout size={16} />}
+            color="red"
+            onClick={handleLogout}
+            loading={logoutMutation.isPending}
+            data-testid="logout-button"
+          >
+            Logout
+          </Button>
+        </Group>
+      </Paper>
 
-        {/* Welcome Section */}
-        <div className="bg-slate-800 rounded-lg shadow-lg p-6 mb-6">
-          {error ? (
-            <div className="bg-red-500/20 border border-red-500 text-red-200 px-4 py-3 rounded">
-              Error: {error}
-            </div>
-          ) : welcomeData ? (
-            <>
-              <h2 className="text-xl font-semibold text-white mb-4" data-testid="welcome-message">
-                {welcomeData.message}
-              </h2>
+      {/* Welcome Section */}
+      <Paper shadow="md" p="lg" mb="lg">
+        {error ? (
+          <Alert
+            icon={<IconAlertCircle size="1rem" />}
+            color="red"
+            title="Error loading data"
+          >
+            {error.message || 'Failed to load welcome data'}
+          </Alert>
+        ) : welcomeData ? (
+          <>
+            <Title order={2} mb="lg" data-testid="welcome-message">
+              {welcomeData.message}
+            </Title>
 
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* User Information */}
-                <div className="bg-slate-700 rounded-lg p-4">
-                  <h3 className="text-lg font-medium text-purple-300 mb-3">Account Information</h3>
-                  <div className="space-y-2">
-                    <div>
-                      <span className="text-slate-400">Scene Name:</span>
-                      <span className="text-white ml-2 font-medium" data-testid="user-scene-name">
+            <Grid>
+              {/* User Information */}
+              <Grid.Col span={{ base: 12, md: 6 }}>
+                <Card withBorder p="lg" h="100%">
+                  <Title order={3} c="wcr.6" mb="md">
+                    Account Information
+                  </Title>
+                  <Stack gap="sm">
+                    <Group justify="space-between">
+                      <Text c="dimmed">Scene Name:</Text>
+                      <Text fw={500} data-testid="user-scene-name">
                         {welcomeData.user.sceneName}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">Email:</span>
-                      <span className="text-white ml-2" data-testid="user-email">
+                      </Text>
+                    </Group>
+                    <Group justify="space-between">
+                      <Text c="dimmed">Email:</Text>
+                      <Text data-testid="user-email">
                         {welcomeData.user.email}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">Member Since:</span>
-                      <span className="text-white ml-2" data-testid="member-since">
+                      </Text>
+                    </Group>
+                    <Group justify="space-between">
+                      <Text c="dimmed">Member Since:</Text>
+                      <Text data-testid="member-since">
                         {formatDate(welcomeData.user.createdAt)}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">Last Login:</span>
-                      <span className="text-white ml-2" data-testid="last-login">
-                        {formatDate(welcomeData.user.lastLoginAt)}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">Account Status:</span>
-                      <span
-                        className="text-green-400 ml-2 font-medium"
-                        data-testid="account-status"
-                      >
+                      </Text>
+                    </Group>
+                    {welcomeData.user.lastLoginAt && (
+                      <Group justify="space-between">
+                        <Text c="dimmed">Last Login:</Text>
+                        <Text data-testid="last-login">
+                          {formatDate(welcomeData.user.lastLoginAt)}
+                        </Text>
+                      </Group>
+                    )}
+                    <Group justify="space-between">
+                      <Text c="dimmed">Account Status:</Text>
+                      <Badge color="green" variant="light" data-testid="account-status">
                         Active
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                      </Badge>
+                    </Group>
+                  </Stack>
+                </Card>
+              </Grid.Col>
 
-                {/* Server Information */}
-                <div className="bg-slate-700 rounded-lg p-4">
-                  <h3 className="text-lg font-medium text-purple-300 mb-3">Connection Status</h3>
-                  <div className="space-y-2">
-                    <div>
-                      <span className="text-slate-400">Server Time:</span>
-                      <span className="text-white ml-2" data-testid="server-time">
+              {/* Server Information */}
+              <Grid.Col span={{ base: 12, md: 6 }}>
+                <Card withBorder p="lg" h="100%">
+                  <Title order={3} c="wcr.6" mb="md">
+                    Connection Status
+                  </Title>
+                  <Stack gap="sm">
+                    <Group justify="space-between">
+                      <Text c="dimmed">Server Time:</Text>
+                      <Text data-testid="server-time">
                         {formatDate(welcomeData.serverTime)}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">API Status:</span>
-                      <span className="text-green-400 ml-2 font-medium">✅ Connected</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">Authentication:</span>
-                      <span className="text-green-400 ml-2 font-medium">✅ Verified</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </>
-          ) : null}
-        </div>
+                      </Text>
+                    </Group>
+                    <Group justify="space-between">
+                      <Text c="dimmed">API Status:</Text>
+                      <Badge color="green" variant="light">✅ Connected</Badge>
+                    </Group>
+                    <Group justify="space-between">
+                      <Text c="dimmed">Authentication:</Text>
+                      <Badge color="green" variant="light">✅ Verified</Badge>
+                    </Group>
+                  </Stack>
+                </Card>
+              </Grid.Col>
+            </Grid>
+          </>
+        ) : null}
+      </Paper>
 
-        {/* Navigation Actions */}
-        <div className="bg-slate-800 rounded-lg shadow-lg p-6">
-          <h3 className="text-lg font-medium text-purple-300 mb-4">Quick Actions</h3>
-          <div className="grid md:grid-cols-3 gap-4">
-            <Link
+      {/* Navigation Actions */}
+      <Paper shadow="md" p="lg" mb="lg">
+        <Title order={3} c="wcr.6" mb="md">
+          Quick Actions
+        </Title>
+        <Grid>
+          <Grid.Col span={{ base: 12, sm: 4 }}>
+            <Button
+              component={Link}
               to="/"
-              className="bg-purple-600 hover:bg-purple-700 text-white text-center py-3 px-4 rounded-md transition-colors block"
+              leftSection={<IconCalendar size={16} />}
+              fullWidth
+              variant="filled"
+              color="wcr.6"
               data-testid="events-link"
             >
-              📅 View Public Events
-            </Link>
-            <button
-              className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-md transition-colors"
+              View Public Events
+            </Button>
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, sm: 4 }}>
+            <Button
+              leftSection={<IconUser size={16} />}
+              fullWidth
+              variant="outline"
+              color="blue"
               data-testid="profile-link"
             >
-              👤 Edit Profile
-            </button>
-            <button className="bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-md transition-colors">
-              ⚙️ Settings
-            </button>
-          </div>
-        </div>
+              Edit Profile
+            </Button>
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, sm: 4 }}>
+            <Button
+              leftSection={<IconSettings size={16} />}
+              fullWidth
+              variant="outline"
+              color="gray"
+            >
+              Settings
+            </Button>
+          </Grid.Col>
+        </Grid>
+      </Paper>
 
-        {/* Authentication Test Status */}
-        <div className="mt-6 bg-green-900/30 border border-green-600 rounded-lg p-4">
-          <h4 className="text-green-300 font-medium mb-2">🧪 Authentication Test Status</h4>
-          <p className="text-green-200 text-sm">
-            ✅ This page successfully validates the Hybrid JWT + HttpOnly Cookies authentication
-            pattern. User data was fetched from a protected API endpoint using the stored JWT token.
-          </p>
-        </div>
-      </div>
-    </div>
+      {/* Authentication Test Status */}
+      <Alert color="green" title="🧪 Authentication Test Status">
+        <Text size="sm">
+          ✅ This page successfully validates the Hybrid JWT + HttpOnly Cookies authentication
+          pattern. User data was fetched from a protected API endpoint using the stored JWT token.
+        </Text>
+      </Alert>
+    </Container>
   )
 }

@@ -1,14 +1,13 @@
 import { create } from 'zustand';
 import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 
-// User interface matching our API structure
-interface User {
+// User interface matching API structure from vertical slice
+export interface User {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  sceneName?: string;
-  roles: string[];
+  sceneName: string;
+  createdAt: string;
+  lastLoginAt?: string;
 }
 
 // Auth state interface from functional specification
@@ -16,7 +15,6 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  permissions: string[];
   lastAuthCheck: Date | null;
 }
 
@@ -26,31 +24,12 @@ interface AuthActions {
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
   checkAuth: () => Promise<void>;
-  refreshAuth: () => Promise<void>;
   setLoading: (loading: boolean) => void;
 }
 
 // Combined store type
 type AuthStore = AuthState & { actions: AuthActions };
 
-// Helper function to calculate permissions from roles
-const calculatePermissions = (roles: string[]): string[] => {
-  const permissionMap: Record<string, string[]> = {
-    admin: ['read', 'write', 'delete', 'manage_users', 'manage_events'],
-    teacher: ['read', 'write', 'manage_events', 'manage_registrations'],
-    vetted: ['read', 'write', 'register_events'],
-    member: ['read', 'register_events'],
-    guest: ['read']
-  };
-
-  const permissions = new Set<string>();
-  roles.forEach(role => {
-    const rolePermissions = permissionMap[role] || [];
-    rolePermissions.forEach(permission => permissions.add(permission));
-  });
-
-  return Array.from(permissions);
-};
 
 // Zustand auth store implementation following functional specification pattern
 const useAuthStore = create<AuthStore>()(
@@ -61,7 +40,6 @@ const useAuthStore = create<AuthStore>()(
         user: null,
         isAuthenticated: false,
         isLoading: true,
-        permissions: [],
         lastAuthCheck: null,
         
         // Actions
@@ -71,39 +49,26 @@ const useAuthStore = create<AuthStore>()(
               user, 
               isAuthenticated: true, 
               isLoading: false,
-              permissions: calculatePermissions(user.roles),
               lastAuthCheck: new Date()
             },
             false,
             'auth/login'
           ),
           
-          logout: () => {
-            // Call API logout endpoint
-            fetch('/api/auth/logout', {
-              method: 'POST',
-              credentials: 'include'
-            }).finally(() => {
-              set(
-                { 
-                  user: null, 
-                  isAuthenticated: false, 
-                  permissions: [],
-                  isLoading: false,
-                  lastAuthCheck: null
-                },
-                false,
-                'auth/logout'
-              );
-            });
-          },
+          logout: () => set(
+            { 
+              user: null, 
+              isAuthenticated: false, 
+              isLoading: false,
+              lastAuthCheck: null
+            },
+            false,
+            'auth/logout'
+          ),
           
           updateUser: (updates) => set(
             (state) => ({ 
               user: state.user ? { ...state.user, ...updates } : null,
-              permissions: state.user 
-                ? calculatePermissions({ ...state.user, ...updates }.roles) 
-                : [],
               lastAuthCheck: new Date()
             }),
             false,
@@ -114,40 +79,19 @@ const useAuthStore = create<AuthStore>()(
             set({ isLoading: true }, false, 'auth/checkAuth/start');
             
             try {
-              const response = await fetch('/api/auth/me', {
-                credentials: 'include',
-                headers: {
-                  'Accept': 'application/json'
-                }
-              });
+              // Import api client dynamically to avoid circular dependency
+              const { api } = await import('../api/client');
+              const response = await api.get('/api/auth/user');
               
-              if (response.ok) {
-                const user = await response.json();
-                get().actions.login(user);
-              } else {
-                get().actions.logout();
-              }
+              // Handle nested response structure: { success: true, data: {...} }
+              const user = response.data.data || response.data;
+              get().actions.login(user);
             } catch (error) {
               console.error('Auth check failed:', error);
               get().actions.logout();
             }
           },
           
-          refreshAuth: async () => {
-            try {
-              const response = await fetch('/api/auth/refresh', {
-                method: 'POST',
-                credentials: 'include'
-              });
-              
-              if (response.ok) {
-                const user = await response.json();
-                get().actions.login(user);
-              }
-            } catch (error) {
-              console.error('Auth refresh failed:', error);
-            }
-          },
 
           setLoading: (loading) => set(
             { isLoading: loading },
@@ -163,7 +107,6 @@ const useAuthStore = create<AuthStore>()(
           // Only persist essential, non-sensitive data
           user: state.user,
           isAuthenticated: state.isAuthenticated,
-          permissions: state.permissions,
           lastAuthCheck: state.lastAuthCheck
           // Don't persist isLoading - should always start as true for auth check
         })
@@ -184,16 +127,7 @@ export const useAuth = () => useAuthStore((state) => ({
 }));
 
 export const useAuthActions = () => useAuthStore((state) => state.actions);
-export const useUserRoles = () => useAuthStore((state) => state.user?.roles || []);
-export const usePermissions = () => useAuthStore((state) => state.permissions);
-
-// Helper hook for role-based rendering
-export const useHasRole = (requiredRole: string) => 
-  useAuthStore((state) => state.user?.roles.includes(requiredRole) || false);
-
-// Helper hook for permission-based rendering
-export const useHasPermission = (requiredPermission: string) =>
-  useAuthStore((state) => state.permissions.includes(requiredPermission));
+export const useUserSceneName = () => useAuthStore((state) => state.user?.sceneName || '');
 
 // Export the store itself for testing
 export { useAuthStore };

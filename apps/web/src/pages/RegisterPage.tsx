@@ -1,9 +1,22 @@
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import React, { useEffect } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { useForm } from '@mantine/form'
+import { zodResolver } from 'mantine-form-zod-resolver'
 import { z } from 'zod'
-import { useAuth } from '../hooks/useAuth'
+import {
+  Container,
+  Paper,
+  Title,
+  TextInput,
+  PasswordInput,
+  Button,
+  Text,
+  Alert,
+  Stack
+} from '@mantine/core'
+import { IconAlertCircle } from '@tabler/icons-react'
+import { useRegister } from '../features/auth/api/mutations'
+import { useAuth } from '../stores/authStore'
 
 const registerSchema = z.object({
   email: z.string().email('Invalid email format'),
@@ -24,127 +37,100 @@ const registerSchema = z.object({
 type RegisterFormData = z.infer<typeof registerSchema>
 
 export const RegisterPage: React.FC = () => {
-  const navigate = useNavigate()
-  const { register: registerUser, error, clearError } = useAuth()
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const location = useLocation()
+  const { isAuthenticated } = useAuth()
+  const registerMutation = useRegister()
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
+  // Mantine form with Zod validation
+  const form = useForm<RegisterFormData>({
+    mode: 'uncontrolled',
+    validate: zodResolver(registerSchema),
+    initialValues: {
+      email: '',
+      sceneName: '',
+      password: '',
+    },
   })
 
-  const onSubmit = async (data: RegisterFormData) => {
-    try {
-      setIsSubmitting(true)
-      clearError()
-      await registerUser(data)
-
-      // Redirect to welcome page after successful registration
-      navigate('/welcome', { replace: true })
-    } catch {
-      // Error is handled by AuthContext
-    } finally {
-      setIsSubmitting(false)
+  // If already authenticated, the mutation will handle navigation
+  useEffect(() => {
+    if (isAuthenticated) {
+      const urlParams = new URLSearchParams(location.search)
+      const returnTo = urlParams.get('returnTo') || '/dashboard'
+      window.location.href = returnTo
     }
+  }, [isAuthenticated, location.search])
+
+  const handleSubmit = (values: RegisterFormData) => {
+    registerMutation.mutate(values)
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-slate-800 rounded-lg shadow-lg p-8">
-          <h1 className="text-2xl font-bold text-purple-400 text-center mb-6">
-            Join WitchCityRope
-          </h1>
+    <Container size={420} my={40}>
+      <Title ta="center" c="wcr.6" fw={900}>
+        Join WitchCityRope
+      </Title>
+      <Text c="dimmed" size="sm" ta="center" mt={5}>
+        Already have an account?{' '}
+        <Link to="/login" style={{ color: 'var(--mantine-color-wcr-6)' }}>
+          Login here
+        </Link>
+      </Text>
 
-          <form onSubmit={handleSubmit(onSubmit)} data-testid="register-form">
-            {error && (
-              <div
-                className="bg-red-500/20 border border-red-500 text-red-200 px-4 py-3 rounded mb-4"
+      <Paper withBorder shadow="md" p={30} mt={30} radius="md">
+        <form onSubmit={form.onSubmit(handleSubmit)} data-testid="register-form">
+          <Stack gap="md">
+            {registerMutation.error && (
+              <Alert
+                icon={<IconAlertCircle size="1rem" />}
+                color="red"
                 data-testid="register-error"
               >
-                {error}
-              </div>
+                {registerMutation.error.message || 'Registration failed. Please try again.'}
+              </Alert>
             )}
 
-            <div className="mb-4">
-              <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-1">
-                Email *
-              </label>
-              <input
-                id="email"
-                type="email"
-                className="w-full px-3 py-2 border border-slate-600 rounded-md bg-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                data-testid="email-input"
-                {...register('email')}
-              />
-              {errors.email && <p className="text-red-400 text-sm mt-1">{errors.email.message}</p>}
-            </div>
+            <TextInput
+              label="Email"
+              placeholder="your@email.com"
+              required
+              data-testid="email-input"
+              key={form.key('email')}
+              {...form.getInputProps('email')}
+            />
 
-            <div className="mb-4">
-              <label htmlFor="sceneName" className="block text-sm font-medium text-slate-300 mb-1">
-                Scene Name *
-              </label>
-              <input
-                id="sceneName"
-                type="text"
-                className="w-full px-3 py-2 border border-slate-600 rounded-md bg-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                data-testid="scene-name-input"
-                {...register('sceneName')}
-              />
-              {errors.sceneName && (
-                <p className="text-red-400 text-sm mt-1">{errors.sceneName.message}</p>
-              )}
-              <p className="text-slate-400 text-xs mt-1">
-                Your display name in the community (3-50 characters)
-              </p>
-            </div>
+            <TextInput
+              label="Scene Name"
+              placeholder="Your display name"
+              description="Your display name in the community (3-50 characters)"
+              required
+              data-testid="scene-name-input"
+              key={form.key('sceneName')}
+              {...form.getInputProps('sceneName')}
+            />
 
-            <div className="mb-6">
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-1">
-                Password *
-              </label>
-              <input
-                id="password"
-                type="password"
-                className="w-full px-3 py-2 border border-slate-600 rounded-md bg-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                data-testid="password-input"
-                {...register('password')}
-              />
-              {errors.password && (
-                <p className="text-red-400 text-sm mt-1">{errors.password.message}</p>
-              )}
-              <p className="text-slate-400 text-xs mt-1">
-                8+ characters with uppercase, lowercase, number, and special character
-              </p>
-            </div>
+            <PasswordInput
+              label="Password"
+              placeholder="Your password"
+              description="8+ characters with uppercase, lowercase, number, and special character"
+              required
+              data-testid="password-input"
+              key={form.key('password')}
+              {...form.getInputProps('password')}
+            />
 
-            <button
+            <Button
               type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-md transition-colors"
+              fullWidth
+              loading={registerMutation.isPending}
+              color="wcr.6"
               data-testid="register-button"
             >
-              {isSubmitting ? 'Creating Account...' : 'Create Account'}
-            </button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-slate-400">
-              Already have an account?{' '}
-              <Link
-                to="/login"
-                className="text-purple-400 hover:text-purple-300 transition-colors"
-                data-testid="login-link"
-              >
-                Login here
-              </Link>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+              {registerMutation.isPending ? 'Creating Account...' : 'Create Account'}
+            </Button>
+          </Stack>
+        </form>
+      </Paper>
+    </Container>
   )
 }

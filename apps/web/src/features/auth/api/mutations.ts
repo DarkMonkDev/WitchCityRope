@@ -10,9 +10,17 @@ export interface LoginCredentials {
   password: string
 }
 
-// Login response interface
+// Registration credentials interface
+export interface RegisterCredentials {
+  email: string
+  password: string
+  sceneName: string
+}
+
+// Login response interface - matches API structure from vertical slice
 export interface LoginResponse {
-  user: User
+  success: boolean
+  data: User
   message?: string
 }
 
@@ -31,9 +39,13 @@ export function useLogin() {
       const response = await api.post('/api/auth/login', credentials)
       return response.data
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: (response, variables, context) => {
+      // Handle nested response structure from API
+      // The API returns { success: true, data: { ...user }, message: "..." }
+      const userData = response.data
+      
       // Update Zustand store with user data
-      login(data.user)
+      login(userData)
       
       // Invalidate any user-related queries (if they exist)
       queryClient.invalidateQueries({ queryKey: ['user'] })
@@ -49,6 +61,43 @@ export function useLogin() {
       // Error handling is managed by the component
     },
     // Don't retry failed login attempts automatically
+    retry: false,
+  })
+}
+
+/**
+ * Registration mutation using TanStack Query v5 + Zustand integration
+ * Connects to the working API endpoint from vertical slice
+ */
+export function useRegister() {
+  const queryClient = useQueryClient()
+  const { login } = useAuthActions()
+  const navigate = useNavigate()
+  
+  return useMutation({
+    mutationFn: async (credentials: RegisterCredentials): Promise<LoginResponse> => {
+      const response = await api.post('/api/auth/register', credentials)
+      return response.data
+    },
+    onSuccess: (response) => {
+      // Handle nested response structure from API
+      const userData = response.data
+      
+      // Update Zustand store with user data
+      login(userData)
+      
+      // Invalidate any user-related queries
+      queryClient.invalidateQueries({ queryKey: ['user'] })
+      queryClient.invalidateQueries({ queryKey: ['auth'] })
+      
+      // Navigate to dashboard after registration
+      navigate('/dashboard', { replace: true })
+    },
+    onError: (error) => {
+      console.error('Registration failed:', error)
+      // Error handling is managed by the component
+    },
+    // Don't retry failed registration attempts automatically
     retry: false,
   })
 }

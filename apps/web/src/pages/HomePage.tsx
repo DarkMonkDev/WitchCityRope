@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { EventsList } from '../components/EventsList'
-import { useAuth } from '../hooks/useAuth'
+import { useAuth } from '../stores/authStore'
 
 export const HomePage: React.FC = () => {
   const { isAuthenticated, user } = useAuth()
