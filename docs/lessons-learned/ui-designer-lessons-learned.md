@@ -1,6 +1,28 @@
 # UI Designer Lessons Learned
-<!-- Last Updated: 2025-08-18 -->
+<!-- Last Updated: 2025-08-19 -->
 <!-- Next Review: 2025-09-17 -->
+
+## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
+
+### Critical Architecture Documents (MUST READ BEFORE ANY WORK):
+1. **Migration Architecture**: `/docs/architecture/react-migration/domain-layer-architecture.md`
+2. **DTO Strategy**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
+3. **Architecture Discovery Process**: `/docs/standards-processes/architecture-discovery-process.md`
+4. **Migration Plan**: `/docs/architecture/react-migration/migration-plan.md`
+
+### Validation Gates (MUST COMPLETE):
+- [ ] Read all architecture documents above
+- [ ] Check if solution already exists
+- [ ] Reference existing patterns in your work
+- [ ] NEVER create manual DTO interfaces (use NSwag)
+
+### UI Designer Specific Rules:
+- **Check existing form components before designing new ones**
+- **Ensure form designs work with generated DTO types from NSwag**
+- **Reference Mantine v7 patterns from existing research**
+- **All designs must accommodate API response structure (not idealized data)**
+
+---
 
 ## Overview
 This document captures UI design lessons learned for the UI Designer agent role, including wireframe standards, design patterns, component specifications, and accessibility considerations. These lessons apply to design work that supports React component development and modern web applications.

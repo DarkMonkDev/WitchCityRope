@@ -1,4 +1,75 @@
 # Test Developer Lessons Learned
+
+## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
+
+### Critical Architecture Documents (MUST READ BEFORE ANY WORK):
+1. **Migration Architecture**: `/docs/architecture/react-migration/domain-layer-architecture.md`
+2. **DTO Strategy**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
+3. **Architecture Discovery Process**: `/docs/standards-processes/architecture-discovery-process.md`
+4. **Migration Plan**: `/docs/architecture/react-migration/migration-plan.md`
+
+### Validation Gates (MUST COMPLETE):
+- [ ] Read all architecture documents above
+- [ ] Check if solution already exists
+- [ ] Reference existing patterns in your work
+- [ ] NEVER create manual DTO interfaces (use NSwag)
+
+### Test Developer Specific Rules:
+- **Use generated types from @witchcityrope/shared-types for all test data**
+- **Test NSwag-generated interfaces match API responses exactly**
+- **Validate null handling for all generated DTO properties**
+- **Create contract tests that verify DTO alignment automatically**
+
+---
+
+## 🚨 CRITICAL: DTO Test Data Alignment (READ FIRST) 🚨
+**Date**: 2025-08-19
+**Category**: Test Data Integrity
+**Severity**: Critical
+
+### Context
+Test data must match actual API responses exactly to prevent false positives and ensure integration tests reflect production behavior.
+
+### What We Learned
+- **Use Real API Responses**: Test data must match actual API DTOs, not idealized mock data
+- **Validate DTO/Interface Alignment**: Integration tests should verify TypeScript interfaces match API responses
+- **Test Null Handling**: Verify frontend gracefully handles null/undefined values from API
+- **Contract Testing**: Implement consumer-driven contract tests to catch DTO changes
+- **Cross-Browser Data Validation**: Ensure data handling works across different browsers
+
+### Action Items
+- [ ] READ: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` before creating test data
+- [ ] USE: Actual API responses for mock data, not idealized structures
+- [ ] IMPLEMENT: Contract tests that validate DTO/interface alignment
+- [ ] TEST: Null/undefined handling in all scenarios
+- [ ] VERIFY: Test data matches production API responses exactly
+
+### Critical Test Patterns
+```typescript
+// ✅ CORRECT - Real API response structure
+const mockUser: User = {
+  sceneName: "TestUser123",
+  createdAt: "2023-08-19T10:30:00Z",
+  lastLoginAt: "2023-08-19T08:15:00Z",
+  roles: ["general"],
+  isVetted: false,
+  membershipLevel: "general"
+};
+
+// ❌ WRONG - Idealized mock data
+const mockUser = {
+  firstName: "John",     // API doesn't return this
+  lastName: "Doe",      // API doesn't return this
+  email: "john@test.com" // API doesn't return this
+};
+```
+
+### Tags
+#critical #test-data #dto-alignment #contract-testing #integration-tests
+
+---
+
+# Test Developer Lessons Learned
 <!-- Last Updated: 2025-08-19 -->
 <!-- Next Review: 2025-09-19 -->
 

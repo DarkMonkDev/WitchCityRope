@@ -915,6 +915,111 @@ Successfully reviewed and enhanced react-developer's lessons learned file to ens
 
 **Tags**: #project-archival #value-extraction #verification-process #knowledge-preservation #documentation-excellence
 
+## DTO Alignment Strategy Visibility Excellence - 2025-08-19
+
+**Context**: Successfully implemented comprehensive DTO alignment strategy visibility across the entire project, making it impossible for any developer to miss the critical API DTOs as source of truth principle.
+
+**What We Learned**:
+- **Strategic Document Placement**: High-visibility architectural decisions need prominent placement, not buried in functional area folders
+- **Cross-Reference Strategy**: Critical strategies need references in ALL relevant documentation entry points
+- **Agent Lessons Integration**: All development agents need immediate awareness of architectural decisions through lessons learned files
+- **Quick Reference Value**: Developers need both comprehensive strategy documents AND quick reference guides for daily use
+- **Cascade Updates**: Major architectural decisions require systematic updates across all related documentation
+- **Entry Point Coverage**: Every possible developer entry point (00-START-HERE, CODING_STANDARDS, agent lessons) must reference critical strategies
+
+**Visibility Implementation Strategy**:
+1. **Primary Strategy Document**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` - Comprehensive strategy
+2. **Migration Plan Integration**: Prominent section in migration plan with emergency contacts
+3. **Entry Point References**: Added to 00-START-HERE.md for all developer types
+4. **Coding Standards Integration**: Critical section at top of CODING_STANDARDS.md
+5. **Quick Reference Guide**: `/docs/guides-setup/dto-quick-reference.md` - Daily use patterns
+6. **Agent Lessons Updates**: All relevant agent lessons learned files updated with DTO requirements
+
+**Files Updated for Maximum Visibility**:
+- **Primary Strategy**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` - Created comprehensive strategy
+- **Migration Plan**: Added prominent DTO alignment section with emergency contacts
+- **Documentation Entry**: Enhanced 00-START-HERE.md with DTO strategy as #2 priority
+- **Coding Standards**: Added critical DTO section at document top
+- **Quick Reference**: Created practical daily-use guide with examples
+- **Backend Lessons**: Added critical DTO alignment requirements
+- **Frontend Lessons**: Added TypeScript interface alignment rules
+- **Test Developer Lessons**: Added test data alignment requirements
+- **Business Requirements Lessons**: Added DTO specification standards
+
+**Critical Principles Emphasized Everywhere**:
+- **API DTOs are SOURCE OF TRUTH** (impossible to miss)
+- **Frontend adapts to backend, never reverse** (prevents costly mistakes)
+- **30-day notice for breaking changes** (prevents integration failures)
+- **TypeScript interfaces must match C# DTOs exactly** (ensures type safety)
+- **Automated validation required** (prevents runtime errors)
+
+**Emergency Contact Integration**:
+- Architecture Review Board for violations
+- Frontend/Backend Team Leads for technical issues
+- Project Manager for process questions
+- Clear escalation paths documented
+
+**Action Items**:
+- [x] CREATE comprehensive DTO alignment strategy document in prominent location
+- [x] UPDATE migration plan with prominent DTO alignment section
+- [x] ENHANCE all developer entry points with DTO strategy references
+- [x] ADD DTO alignment section to coding standards
+- [x] CREATE practical quick reference guide with examples
+- [x] UPDATE all relevant agent lessons learned files
+- [x] ESTABLISH clear emergency contact procedures
+- [x] DOCUMENT strategy location tracking for future updates
+- [ ] MONITOR agent compliance with DTO alignment requirements
+- [ ] TRACK DTO strategy effectiveness through reduced integration issues
+
+**Impact**: Ensures DTO alignment strategy is impossible to miss for any developer working on the migration project, preventing costly integration failures and debugging cycles.
+
+**Tags**: #dto-alignment #strategy-visibility #documentation-organization #migration-success #developer-guidance #architectural-decisions
+
+## Critical Architecture Reconciliation Excellence - 2025-08-19
+
+**Context**: Discovered critical misalignment between original NSwag auto-generation plan in domain-layer-architecture.md and current manual DTO alignment strategy, requiring immediate reconciliation to prevent project direction confusion.
+
+**What We Learned**:
+- **Architecture Document Consistency**: Major architectural decisions must be synchronized across ALL related documentation
+- **Auto-Generation vs Manual Strategy**: Original migration plan specified NSwag for TypeScript type generation, but current strategy emphasized manual interface creation
+- **Technology Implementation Gap**: The whole point of NSwag is to PREVENT manual TypeScript interface creation and alignment issues
+- **Documentation Authority**: Multiple authoritative sources can create conflicting guidance if not properly reconciled
+- **Root Cause Analysis**: Manual User interface creation we fixed today was exactly the problem NSwag was meant to solve
+- **Strategic Document Hierarchy**: Domain layer architecture and tooling decisions must drive DTO strategy, not be separate concerns
+
+**Critical Discovery**:
+- **Original Plan**: `/docs/architecture/react-migration/domain-layer-architecture.md` specified comprehensive NSwag pipeline with packages/shared-types
+- **Current Strategy**: DTO-ALIGNMENT-STRATEGY.md emphasized manual TypeScript interface creation with validation
+- **Missing Integration**: No references to NSwag auto-generation in current strategy documents
+- **Implementation Gap**: packages/shared-types folder doesn't exist yet, but was central to original architecture
+- **Process Failure**: Architecture decisions made in domain layer weren't cascaded to DTO strategy
+
+**Reconciliation Actions Required**:
+1. **UPDATE DTO Alignment Strategy**: Emphasize NSwag auto-generation as PRIMARY mechanism
+2. **ADD Implementation via NSwag Section**: Reference domain-layer-architecture.md for details
+3. **REVISE Agent Lessons**: All development agents must know NEVER to create manual DTO interfaces
+4. **CREATE NSwag Quick Guide**: How to update types when API changes
+5. **FIX Current Manual Implementation**: Document as temporary until NSwag pipeline established
+
+**Critical Message for All Agents**:
+- **NEVER manually create DTO interfaces** - use generated types from packages/shared-types/src/generated/
+- **ALL types come from NSwag generation pipeline** - manual interfaces violate architecture
+- **CI/CD pipeline will fail** if types are out of sync with API
+- **Manual alignment we just fixed was exactly the problem NSwag prevents**
+
+**Action Items**:
+- [x] IDENTIFY critical misalignment between architecture documents
+- [x] DOCUMENT root cause: separate development of DTO strategy from domain architecture
+- [x] PLAN comprehensive reconciliation across all related documentation
+- [ ] UPDATE DTO alignment strategy with NSwag emphasis
+- [ ] REVISE all agent lessons learned with auto-generation requirements
+- [ ] CREATE NSwag implementation quick guide
+- [ ] ESTABLISH architecture consistency checking process
+
+**Impact**: Prevents major project direction confusion by ensuring all architectural decisions are consistently documented and implemented across all development guidance.
+
+**Tags**: #critical #architecture-reconciliation #nswag #dto-strategy #auto-generation #documentation-consistency
+
 ---
 *This file is maintained by the librarian agent. Add new lessons immediately when discovered, remove outdated entries as needed.*
-*Last updated: 2025-08-19 - Added vertical slice project archival excellence with complete value extraction verification*
+*Last updated: 2025-08-19 - Added critical architecture reconciliation excellence*

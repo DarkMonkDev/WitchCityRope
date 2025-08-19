@@ -2,26 +2,17 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../../../api/client'
 import { useAuthActions } from '../../../stores/authStore'
-import type { User } from '../../../stores/authStore'
+import type { 
+  UserDto, 
+  LoginRequest, 
+  LoginResponse
+} from '@witchcityrope/shared-types'
 
-// Login credentials interface
-export interface LoginCredentials {
-  email: string
-  password: string
-}
-
-// Registration credentials interface
+// Registration credentials interface - not generated yet, create locally
 export interface RegisterCredentials {
   email: string
   password: string
   sceneName: string
-}
-
-// Login response interface - matches API structure from vertical slice
-export interface LoginResponse {
-  success: boolean
-  data: User
-  message?: string
 }
 
 /**
@@ -35,14 +26,14 @@ export function useLogin() {
   const navigate = useNavigate()
   
   return useMutation({
-    mutationFn: async (credentials: LoginCredentials): Promise<LoginResponse> => {
+    mutationFn: async (credentials: LoginRequest): Promise<LoginResponse> => {
       const response = await api.post('/api/auth/login', credentials)
       return response.data
     },
     onSuccess: (response, variables, context) => {
       // Handle nested response structure from API
-      // The API returns { success: true, data: { ...user }, message: "..." }
-      const userData = response.data
+      // The API returns { success: true, user: { ...user }, message: "..." }
+      const userData = response.user
       
       // Update Zustand store with user data
       login(userData)
@@ -81,7 +72,7 @@ export function useRegister() {
     },
     onSuccess: (response) => {
       // Handle nested response structure from API
-      const userData = response.data
+      const userData = response.user
       
       // Update Zustand store with user data
       login(userData)

@@ -32,7 +32,7 @@ import { useCreateEvent, useUpdateEvent, useDeleteEvent, useEventRegistration } 
 import { useMembers, useInfiniteMembers, useMember } from '../features/members/api/queries'
 import { useUpdateMemberStatus, useUpdateProfile } from '../features/members/api/mutations'
 
-import type { Event, User, CreateEventData, UpdateEventData } from '../types/api.types'
+import type { Event, UserDto, CreateEventData, UpdateEventData } from '../types/api.types'
 
 interface ValidationResult {
   pattern: string

@@ -2,7 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../../api/client'
 import { queryKeys } from '../../../api/queryKeys'
-import type { User } from '../../../types/api.types'
+import type { UserDto } from '@witchcityrope/shared-types'
 
 interface UpdateMemberStatusData {
   id: string
@@ -37,7 +37,7 @@ export function useUpdateMemberStatus() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: async ({ id, status, reason }: UpdateMemberStatusData): Promise<User> => {
+    mutationFn: async ({ id, status, reason }: UpdateMemberStatusData): Promise<UserDto> => {
       const response = await api.put(`/api/members/${id}/status`, { status, reason })
       return response.data
     },
@@ -46,11 +46,11 @@ export function useUpdateMemberStatus() {
       await queryClient.cancelQueries({ queryKey: queryKeys.user(id) })
       
       // Snapshot previous value
-      const previousUser = queryClient.getQueryData<User>(queryKeys.user(id))
+      const previousUser = queryClient.getQueryData<UserDto>(queryKeys.user(id))
       
       // Optimistically update user
       if (previousUser) {
-        queryClient.setQueryData(queryKeys.user(id), (old: User) => ({
+        queryClient.setQueryData(queryKeys.user(id), (old: UserDto) => ({
           ...old,
           isVetted: status === 'vetted',
         }))

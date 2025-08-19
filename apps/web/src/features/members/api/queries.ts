@@ -2,7 +2,7 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import { api } from '../../../api/client'
 import { queryKeys } from '../../../api/queryKeys'
-import type { User, PaginatedResponse } from '../../../types/api.types'
+import type { UserDto, PaginatedResponse } from '../../../types/api.types'
 
 interface MemberFilters {
   search?: string
@@ -14,7 +14,7 @@ interface MemberFilters {
 export function useMembers(filters: MemberFilters = {}) {
   return useQuery({
     queryKey: [...queryKeys.users(), 'members', filters],
-    queryFn: async (): Promise<User[]> => {
+    queryFn: async (): Promise<UserDto[]> => {
       const response = await api.get('/api/members', { params: filters })
       return response.data
     },
@@ -25,7 +25,7 @@ export function useMembers(filters: MemberFilters = {}) {
 export function useInfiniteMembers(filters: MemberFilters = {}) {
   return useInfiniteQuery({
     queryKey: [...queryKeys.users(), 'infinite', filters],
-    queryFn: async ({ pageParam = 1 }): Promise<PaginatedResponse<User>> => {
+    queryFn: async ({ pageParam = 1 }): Promise<PaginatedResponse<UserDto>> => {
       const response = await api.get('/api/members', {
         params: { page: pageParam, pageSize: 20, ...filters }
       })
@@ -43,7 +43,7 @@ export function useInfiniteMembers(filters: MemberFilters = {}) {
 export function useMember(userId: string) {
   return useQuery({
     queryKey: queryKeys.user(userId),
-    queryFn: async (): Promise<User> => {
+    queryFn: async (): Promise<UserDto> => {
       const response = await api.get(`/api/members/${userId}`)
       return response.data
     },

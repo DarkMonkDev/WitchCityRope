@@ -12,7 +12,7 @@ export * from './hooks/useOptimistic'
 // Export types
 export * from './types/api.types'
 export type { 
-  LoginCredentials, 
+  LoginRequest, 
   RegisterCredentials, 
   LoginResponse, 
   AuthQueryKey 

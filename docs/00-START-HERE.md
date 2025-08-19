@@ -10,19 +10,28 @@ Welcome to the WitchCityRope documentation. This guide helps you find exactly wh
 
 ### For New Team Members
 1. **Read First**: [/CLAUDE.md](/CLAUDE.md) - Critical project configuration and warnings
-2. **Architecture**: [architecture/current-state.md](architecture/current-state.md) - System overview
-3. **Development Setup**: [guides-setup/developer-quick-start.md](guides-setup/developer-quick-start.md)
-4. **Your Role's Lessons**: [lessons-learned/](lessons-learned/) - Find your role-specific file
+2. **🚨 CRITICAL**: [architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md](architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md) - **API DTOs ARE SOURCE OF TRUTH**
+3. **Architecture**: [architecture/current-state.md](architecture/current-state.md) - System overview
+4. **Development Setup**: [guides-setup/developer-quick-start.md](guides-setup/developer-quick-start.md)
+5. **Your Role's Lessons**: [lessons-learned/](lessons-learned/) - Find your role-specific file
 
 ### By Role
 
-#### 🎨 UI Developers (Blazor)
+#### ⚛️ React Developers (TypeScript)
+- **🚨 READ FIRST**: [architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md](architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md) - **TYPESCRIPT INTERFACES MUST MATCH C# DTOs**
+- **Lessons Learned**: [lessons-learned/frontend-lessons-learned.md](lessons-learned/frontend-lessons-learned.md)
+- **Migration Plan**: [architecture/react-migration/migration-plan.md](architecture/react-migration/migration-plan.md)
+- **Coding Standards**: [standards-processes/CODING_STANDARDS.md](standards-processes/CODING_STANDARDS.md)
+- **Active Work**: Check relevant [functional-areas/*/new-work/status.md](functional-areas/)
+
+#### 🎨 UI Developers (Blazor - Legacy)
 - **Lessons Learned**: [lessons-learned/ui-developers.md](lessons-learned/ui-developers.md)
 - **Component Catalog**: [standards-processes/ui-components/component-catalog.md](standards-processes/ui-components/component-catalog.md)
 - **Coding Standards**: [standards-processes/CODING_STANDARDS.md](standards-processes/CODING_STANDARDS.md)
 - **Active Work**: Check relevant [functional-areas/*/new-work/status.md](functional-areas/)
 
 #### 🔧 Backend Developers (C#/API)
+- **🚨 READ FIRST**: [architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md](architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md) - **API DTOs ARE SOURCE OF TRUTH**
 - **Lessons Learned**: [lessons-learned/backend-developers.md](lessons-learned/backend-developers.md)
 - **API Standards**: [standards-processes/development-standards/api-guidelines.md](standards-processes/development-standards/api-guidelines.md)
 - **Architecture Decisions**: [architecture/decisions/](architecture/decisions/)

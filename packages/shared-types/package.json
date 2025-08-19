@@ -1,0 +1,27 @@
+{
+  "name": "@witchcityrope/shared-types",
+  "version": "1.0.0",
+  "description": "Auto-generated TypeScript types from WitchCityRope API",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "generate": "node scripts/generate-types-openapi.js",
+    "generate:watch": "nodemon --watch ../api --ext cs --exec npm run generate",
+    "postgenerate": "npm run build",
+    "clean": "rimraf dist src/generated"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.4.4",
+    "typescript": "^5.0.0",
+    "rimraf": "^6.0.1",
+    "nodemon": "^3.0.0"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "publishConfig": {
+    "access": "restricted"
+  }
+}

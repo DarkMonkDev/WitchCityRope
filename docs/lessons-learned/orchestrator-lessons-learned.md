@@ -1,5 +1,37 @@
 # Orchestrator Lessons Learned
 
+## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
+
+### Critical Architecture Documents (MUST READ BEFORE ANY WORK):
+1. **Migration Architecture**: `/docs/architecture/react-migration/domain-layer-architecture.md`
+2. **DTO Strategy**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
+3. **Architecture Discovery Process**: `/docs/standards-processes/architecture-discovery-process.md`
+4. **Migration Plan**: `/docs/architecture/react-migration/migration-plan.md`
+
+### Validation Gates (MUST COMPLETE):
+- [ ] Read all architecture documents above
+- [ ] Check if solution already exists
+- [ ] Reference existing patterns in your work
+- [ ] NEVER create manual DTO interfaces (use NSwag)
+
+### Orchestrator Agent Specific Rules:
+- **VALIDATE: Has architecture been reviewed? If no, STOP work immediately**
+- **When delegating: Include 'Check architecture docs first' in every prompt**
+- **Fail fast if agents propose manual solutions to solved problems**  
+- **Architecture Discovery is PHASE 0 - MANDATORY before any specification work**
+
+### Delegation Prompt Template (MANDATORY):
+When delegating ANY technical work, ALWAYS include:
+```
+BEFORE starting work:
+1. Complete Architecture Discovery per /docs/standards-processes/architecture-discovery-process.md
+2. Check if solution exists in /docs/architecture/react-migration/ documents
+3. For DTO/API work: Verify NSwag auto-generation in domain-layer-architecture.md lines 725-997
+4. Document your findings with specific line references before proposing solutions
+```
+
+---
+
 ## Sub-Agent Communication and Knowledge Sharing
 
 ### Sub-Agents Don't Read CLAUDE.md (CRITICAL)

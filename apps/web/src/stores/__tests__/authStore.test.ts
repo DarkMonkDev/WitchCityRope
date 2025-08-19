@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, MockedFunction } from 'vitest';
-import { useAuthStore, type User } from '../authStore';
+import { useAuthStore, type UserDto } from '../authStore';
 
 const mockFetch = vi.fn() as MockedFunction<typeof fetch>;
 
@@ -18,13 +18,14 @@ describe('AuthStore', () => {
     useAuthStore.getState().actions.logout();
   });
 
-  // Aligned with API DTO structure - User interface matches backend response
-  const mockUser: User = {
+  // Aligned with generated UserDto from @witchcityrope/shared-types
+  const mockUser: UserDto = {
     id: '1',
     email: 'test@witchcityrope.com',
     sceneName: 'TestUser',
     createdAt: '2025-08-19T10:00:00Z',
-    lastLoginAt: '2025-08-19T10:00:00Z'
+    // Note: UserDto uses updatedAt instead of lastLoginAt
+    updatedAt: '2025-08-19T10:00:00Z'
   };
 
   describe('login action', () => {
@@ -41,7 +42,7 @@ describe('AuthStore', () => {
     });
 
     it('should handle different scene names correctly', () => {
-      const userWithDifferentName: User = {
+      const userWithDifferentName: UserDto = {
         ...mockUser,
         sceneName: 'RopeEnthusiast42'
       };

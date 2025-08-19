@@ -8,11 +8,23 @@ This document outlines a comprehensive, phased migration plan for transitioning 
 
 ## Migration Strategy Overview
 
+### **🚨 CRITICAL: DTO Alignment Strategy 🚨**
+**ALL DEVELOPERS MUST READ**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
+
+**Core Principle**: API DTOs are SOURCE OF TRUTH. NSwag auto-generates TypeScript types.
+- **NSwag Auto-Generation**: NEVER manually create DTO interfaces - use packages/shared-types
+- **Zero Type Mismatches**: Generated types automatically match C# DTOs exactly
+- **Type Generation Pipeline**: Run `npm run generate:types` when API changes
+- **Breaking Change Control**: 30-day notice required for any DTO changes
+- **Architecture Reference**: `/docs/architecture/react-migration/domain-layer-architecture.md` for NSwag implementation
+- **Emergency Contact**: Architecture Review Board for any violations
+
 ### **Parallel Development Approach**
 - **Strategy**: Build React application alongside existing Blazor implementation
 - **Benefits**: Zero downtime, ability to test thoroughly, easy rollback
 - **Timeline**: 13-17 weeks total development + 4 weeks parallel testing
 - **Deployment**: Feature-flag controlled rollout
+- **Data Contracts**: Strict adherence to DTO alignment strategy
 
 ### **Risk Mitigation Principles**
 1. **No Big Bang**: Gradual migration with validation at each step

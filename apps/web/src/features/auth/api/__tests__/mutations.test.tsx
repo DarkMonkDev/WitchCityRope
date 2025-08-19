@@ -243,13 +243,13 @@ describe('useLogin', () => {
 
 describe('useLogout', () => {
   beforeEach(() => {
-    // Set up authenticated state
+    // Set up authenticated state - using UserDto structure
     useAuthStore.getState().actions.login({
       id: '1',
       email: 'admin@witchcityrope.com',
       sceneName: 'TestAdmin',
       createdAt: '2025-08-19T00:00:00Z',
-      lastLoginAt: '2025-08-19T10:00:00Z'
+      updatedAt: '2025-08-19T10:00:00Z'
     })
     mockNavigate.mockClear()
     mockFetch.mockClear()

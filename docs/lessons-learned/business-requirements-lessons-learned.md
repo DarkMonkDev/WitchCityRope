@@ -1,5 +1,76 @@
 # Business Requirements Lessons Learned
 
+## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
+
+### Critical Architecture Documents (MUST READ BEFORE ANY WORK):
+1. **Migration Architecture**: `/docs/architecture/react-migration/domain-layer-architecture.md`
+2. **DTO Strategy**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
+3. **Architecture Discovery Process**: `/docs/standards-processes/architecture-discovery-process.md`
+4. **Migration Plan**: `/docs/architecture/react-migration/migration-plan.md`
+
+### Validation Gates (MUST COMPLETE):
+- [ ] Read all architecture documents above
+- [ ] Check if solution already exists
+- [ ] Reference existing patterns in your work
+- [ ] NEVER create manual DTO interfaces (use NSwag)
+
+### Business Requirements Agent Specific Rules:
+- **BEFORE creating ANY technical requirements, complete Architecture Discovery Phase**
+- **If work involves DTOs, APIs, or types → Check domain-layer-architecture.md FIRST**
+- **Document: 'Verified no existing solution in: [docs checked]'**
+- **NEVER specify manual DTO creation - all types come from NSwag auto-generation**
+
+---
+
+## 🚨 CRITICAL: DTO Specification Requirements (READ FIRST) 🚨
+**Date**: 2025-08-19
+**Category**: Requirements Documentation
+**Severity**: Critical
+
+### Context
+Business requirements must specify exact data structure requirements to prevent DTO/interface mismatches during implementation.
+
+### What We Learned
+- **NSwag Auto-Generation Workflow**: Requirements drive C# DTOs which auto-generate TypeScript types
+- **OpenAPI Documentation Critical**: Well-documented DTOs in requirements ensure perfect generated types
+- **No Frontend Type Specifications**: Requirements specify business needs - NSwag handles TypeScript
+- **DTO Changes Auto-Propagate**: C# DTO modifications automatically update frontend via generation
+- **Business Logic vs Data Transfer**: Requirements must separate business rules from API data contracts
+- **Change Management**: Breaking DTO changes require 30-day notice for frontend coordination
+
+### Action Items
+- [ ] READ: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` (updated with NSwag emphasis)
+- [ ] READ: `/docs/architecture/react-migration/domain-layer-architecture.md` for NSwag workflow
+- [ ] SPECIFY: Business data needs - let NSwag handle TypeScript generation
+- [ ] DOCUMENT: OpenAPI annotation requirements for comprehensive type generation
+- [ ] REFERENCE: Existing C# DTOs in packages/contracts/ before new specifications
+- [ ] COORDINATE: DTO changes with 30-day frontend notice requirement
+
+### Requirements Documentation Standards
+```markdown
+## Data Structure Requirements
+
+### User Profile Data
+- sceneName: string (required, 3-50 characters)
+- createdAt: DateTime (required, ISO 8601 format)
+- lastLoginAt: DateTime? (optional, can be null)
+- roles: List<string> (required, from predefined role enum)
+- isVetted: boolean (required, default: false)
+- membershipLevel: string (required, from membership enum)
+
+### Business Rules
+- sceneName must be unique across platform
+- lastLoginAt updates on each successful authentication
+- roles array cannot be empty for authenticated users
+```
+
+### Tags
+#critical #requirements #dto-specification #data-structures #api-contracts
+
+---
+
+# Business Requirements Lessons Learned
+
 ## Always Check File Existence Before Reading
 
 **Date**: 2025-08-17

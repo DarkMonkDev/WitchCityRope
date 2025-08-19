@@ -1,5 +1,27 @@
 # Technology Researcher Lessons Learned
 
+## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
+
+### Critical Architecture Documents (MUST READ BEFORE ANY WORK):
+1. **Migration Architecture**: `/docs/architecture/react-migration/domain-layer-architecture.md`
+2. **DTO Strategy**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
+3. **Architecture Discovery Process**: `/docs/standards-processes/architecture-discovery-process.md`
+4. **Migration Plan**: `/docs/architecture/react-migration/migration-plan.md`
+
+### Validation Gates (MUST COMPLETE):
+- [ ] Read all architecture documents above
+- [ ] Check if solution already exists
+- [ ] Reference existing patterns in your work
+- [ ] NEVER create manual DTO interfaces (use NSwag)
+
+### Technology Researcher Specific Rules:
+- **BEFORE researching alternatives, check if solution exists in architecture docs**
+- **If work involves DTOs, APIs, or types → Check NSwag implementation FIRST**
+- **Document: 'Verified no existing solution in architecture docs: [list checked]'**
+- **Research established patterns before suggesting new ones**
+
+---
+
 ## Research Methodology Standards
 
 **Date**: 2025-08-17

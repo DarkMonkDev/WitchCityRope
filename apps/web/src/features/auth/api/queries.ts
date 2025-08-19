@@ -1,18 +1,18 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../../../api/client'
-import type { User } from '../../../stores/authStore'
+import type { UserDto } from '@witchcityrope/shared-types'
 
-// Response interfaces matching API structure from vertical slice
+// Response interfaces - temporary until full API coverage
 interface UserResponse {
   success: boolean
-  data: User
+  data: UserDto
 }
 
 interface ProtectedWelcomeResponse {
   success: boolean
   data: {
     message: string
-    user: User
+    user: UserDto
     serverTime: string
   }
 }
@@ -24,7 +24,7 @@ interface ProtectedWelcomeResponse {
 export function useCurrentUser() {
   return useQuery({
     queryKey: ['auth', 'user'],
-    queryFn: async (): Promise<User> => {
+    queryFn: async (): Promise<UserDto> => {
       const response = await api.get<UserResponse>('/api/auth/user')
       return response.data.data
     },

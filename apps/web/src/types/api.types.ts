@@ -1,4 +1,16 @@
 // types/api.types.ts
+// Use generated types from @witchcityrope/shared-types
+import type { UserDto } from '@witchcityrope/shared-types'
+
+export type { 
+  UserDto, 
+  UserRole, 
+  EventDto,
+  EventType,
+  EventStatus,
+  EventListResponse
+} from '@witchcityrope/shared-types'
+
 export interface ApiError {
   message: string
   status: number
@@ -6,19 +18,7 @@ export interface ApiError {
   details?: Record<string, string[]>
 }
 
-// Aligned with API DTO - do not modify without backend coordination
-export interface User {
-  id: string
-  email: string
-  sceneName: string
-  createdAt: string
-  lastLoginAt?: string
-  // Note: sceneName is used instead of firstName/lastName per community requirements
-  // Note: role/permissions are handled via separate API calls, not included in User DTO
-}
-
-export type UserRole = 'Admin' | 'Teacher' | 'VettedMember' | 'GeneralMember' | 'Guest'
-
+// Legacy Event interface - migrate to use EventDto from generated types
 export interface Event {
   id: string
   title: string
@@ -29,8 +29,8 @@ export interface Event {
   currentAttendees: number
   isRegistrationOpen: boolean
   instructorId: string
-  instructor: User
-  attendees: User[]
+  instructor: UserDto
+  attendees: UserDto[]
 }
 
 export interface EventRegistration {

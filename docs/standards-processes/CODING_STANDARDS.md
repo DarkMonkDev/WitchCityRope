@@ -1,5 +1,15 @@
 # WitchCityRope Coding Standards
 
+## 🚨 CRITICAL: DTO Alignment Strategy 🚨
+
+**ALL DEVELOPERS MUST READ**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
+
+**MANDATORY DTO RULES**:
+- ✅ **API DTOs are SOURCE OF TRUTH** - Frontend adapts to backend
+- ✅ **TypeScript interfaces must match C# DTOs exactly**
+- ✅ **30-day notice required for breaking DTO changes**
+- ❌ **NEVER modify DTOs without frontend coordination**
+
 ## Overview
 
 This document outlines the coding standards, principles, and conventions used throughout the WitchCityRope project. These standards ensure code quality, maintainability, and consistency across all project contributions.

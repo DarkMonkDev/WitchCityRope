@@ -2,7 +2,7 @@ import { useLoaderData } from 'react-router-dom';
 import { Box, Title, Text, Paper, Group, Button } from '@mantine/core';
 import { useAuth } from '../stores/authStore';
 import { useLogout } from '../features/auth/api/mutations';
-import type { User } from '../stores/authStore';
+import type { UserDto } from '../stores/authStore';
 
 /**
  * Dashboard Page - Protected route example
@@ -12,7 +12,7 @@ import type { User } from '../stores/authStore';
  * Also demonstrates integration with Zustand auth store
  */
 export const DashboardPage: React.FC = () => {
-  const loaderData = useLoaderData() as { user: User };
+  const loaderData = useLoaderData() as { user: UserDto };
   const { user, isAuthenticated } = useAuth();
   const logoutMutation = useLogout();
 
@@ -47,7 +47,7 @@ export const DashboardPage: React.FC = () => {
           <Text><strong>User ID:</strong> {currentUser?.id}</Text>
           <Text><strong>Scene Name:</strong> {currentUser?.sceneName || 'None'}</Text>
           <Text><strong>Created:</strong> {currentUser?.createdAt ? new Date(currentUser.createdAt).toLocaleDateString() : 'Unknown'}</Text>
-          <Text><strong>Last Login:</strong> {currentUser?.lastLoginAt ? new Date(currentUser.lastLoginAt).toLocaleDateString() : 'Never'}</Text>
+          <Text><strong>Last Updated:</strong> {currentUser?.updatedAt ? new Date(currentUser.updatedAt).toLocaleDateString() : 'Never'}</Text>
         </Group>
       </Paper>
 

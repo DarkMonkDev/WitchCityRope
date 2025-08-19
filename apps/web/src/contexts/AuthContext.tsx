@@ -1,18 +1,17 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react'
+import type { UserDto, LoginRequest } from '@witchcityrope/shared-types'
 import {
   authService,
-  User,
-  LoginCredentials,
   RegisterCredentials,
   ProtectedWelcomeResponse,
 } from '../services/authService'
 
 export interface AuthContextType {
-  user: User | null
+  user: UserDto | null
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
-  login: (credentials: LoginCredentials) => Promise<void>
+  login: (credentials: LoginRequest) => Promise<void>
   register: (credentials: RegisterCredentials) => Promise<void>
   logout: () => Promise<void>
   clearError: () => void
@@ -26,7 +25,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<UserDto | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -36,7 +35,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setError(null)
   }, [])
 
-  const login = useCallback(async (credentials: LoginCredentials) => {
+  const login = useCallback(async (credentials: LoginRequest) => {
     try {
       setIsLoading(true)
       setError(null)

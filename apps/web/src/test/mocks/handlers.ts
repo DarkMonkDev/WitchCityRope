@@ -1,6 +1,6 @@
 // test/mocks/handlers.ts
 import { http, HttpResponse } from 'msw'
-import type { User, Event, PaginatedResponse } from '../../types/api.types'
+import type { UserDto, Event, PaginatedResponse } from '../../types/api.types'
 
 export const handlers = [
   // Authentication - Aligned with API DTO structure (support all ports)
@@ -339,7 +339,7 @@ export const handlers = [
         createdAt: '2025-08-19T00:00:00Z',
         lastLoginAt: '2025-08-19T10:00:00Z'
       },
-    ] as User[]
+    ] as UserDto[]
 
     // Return paginated or simple response based on request
     if (url.searchParams.has('page')) {
@@ -351,7 +351,7 @@ export const handlers = [
         totalPages: 3,
         hasNext: page < 3,
         hasPrevious: page > 1,
-      } as PaginatedResponse<User>)
+      } as PaginatedResponse<UserDto>)
     }
 
     return HttpResponse.json(members)
@@ -364,7 +364,7 @@ export const handlers = [
       sceneName: 'TestMember',
       createdAt: '2025-08-19T00:00:00Z',
       lastLoginAt: '2025-08-19T10:00:00Z'
-    } as User)
+    } as UserDto)
   }),
 
   http.put('/api/members/:id/status', async ({ params, request }) => {
@@ -375,7 +375,7 @@ export const handlers = [
       sceneName: 'TestMember',
       createdAt: '2025-08-19T00:00:00Z',
       lastLoginAt: new Date().toISOString()
-    } as User)
+    } as UserDto)
   }),
 
   http.put('/api/members/profile', async ({ request }) => {
@@ -386,6 +386,6 @@ export const handlers = [
       sceneName: body.sceneName || 'TestUser',
       createdAt: '2025-08-19T00:00:00Z',
       lastLoginAt: new Date().toISOString()
-    } as User)
+    } as UserDto)
   }),
 ]

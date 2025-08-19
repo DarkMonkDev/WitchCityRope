@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../client'
 import { authKeys, cacheUtils } from '../utils/cache'
 import type { 
-  LoginCredentials, 
+  LoginRequest, 
   RegisterCredentials, 
   LoginResponse, 
   UserDto 
@@ -36,7 +36,7 @@ export function useLogin() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: async (credentials: LoginCredentials): Promise<LoginResponse> => {
+    mutationFn: async (credentials: LoginRequest): Promise<LoginResponse> => {
       const { data } = await apiClient.post<ApiResponse<LoginResponse>>('/api/auth/login', credentials)
       if (!data.data) throw new Error('Login failed')
       return data.data

@@ -1,17 +1,10 @@
 import type { PaginationParams } from './api.types'
 
-// Member/User models extending existing auth types
-export interface UserDto {
-  id: string
-  email: string
-  sceneName: string
-  status?: 'active' | 'pending' | 'suspended' | 'vetted'
-  role?: 'admin' | 'teacher' | 'vetted_member' | 'general_member' | 'guest'
-  createdAt: string
-  lastLoginAt?: string
-  profilePicture?: string
-  bio?: string
-}
+// Re-export UserDto from generated types
+export type { UserDto } from '@witchcityrope/shared-types'
+
+// Member/User models extending generated types
+// Note: Using generated UserDto from @witchcityrope/shared-types
 
 export interface UpdateMemberDto {
   id: string

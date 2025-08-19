@@ -12,7 +12,9 @@
     "test": "turbo run test",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,md,json}\""
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,md,json}\"",
+    "generate:types": "cd packages/shared-types && npm run generate",
+    "generate:types:watch": "cd packages/shared-types && npm run generate:watch"
   },
   "devDependencies": {
     "@playwright/test": "^1.54.2",

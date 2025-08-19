@@ -1,5 +1,59 @@
 # Backend Lessons Learned
 
+## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
+
+### Critical Architecture Documents (MUST READ BEFORE ANY WORK):
+1. **Migration Architecture**: `/docs/architecture/react-migration/domain-layer-architecture.md`
+2. **DTO Strategy**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
+3. **Architecture Discovery Process**: `/docs/standards-processes/architecture-discovery-process.md`
+4. **Migration Plan**: `/docs/architecture/react-migration/migration-plan.md`
+
+### Validation Gates (MUST COMPLETE):
+- [ ] Read all architecture documents above
+- [ ] Check if solution already exists
+- [ ] Reference existing patterns in your work
+- [ ] NEVER create manual DTO interfaces (use NSwag)
+
+### Backend Developer Specific Rules:
+- **DTOs auto-generate via NSwag - NEVER create manual TypeScript interfaces**
+- **Run `npm run generate:types` when API changes**
+- **Import from @witchcityrope/shared-types only**
+- **Add comprehensive OpenAPI annotations - these generate frontend types**
+
+---
+
+## 🚨 CRITICAL: DTO Alignment Strategy (READ FIRST) 🚨
+**Date**: 2025-08-19
+**Category**: Architecture
+**Severity**: Critical
+
+### Context
+DTO alignment strategy is MANDATORY for React migration project success. API DTOs are the source of truth.
+
+### What We Learned
+- **API DTOs are SOURCE OF TRUTH**: Frontend must adapt to backend DTOs, never reverse
+- **NSwag Auto-Generation is THE SOLUTION**: OpenAPI annotations automatically generate TypeScript types
+- **NEVER Manual TypeScript Interfaces**: Frontend gets ALL types from packages/shared-types/src/generated/
+- **Breaking Changes Require 30-Day Notice**: Any DTO property changes need frontend coordination
+- **OpenAPI Annotations Generate Frontend Types**: Well-documented DTOs = perfect TypeScript interfaces
+- **Change Control Process**: All DTO modifications go through architecture review board
+
+### Action Items
+- [ ] READ: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` before ANY DTO work
+- [ ] READ: `/docs/architecture/react-migration/domain-layer-architecture.md` for NSwag implementation
+- [ ] ADD comprehensive OpenAPI annotations to ALL DTOs - these generate frontend types
+- [ ] COORDINATE with frontend team before any DTO changes
+- [ ] COMMIT both API changes and generated TypeScript updates together
+- [ ] FOLLOW 30-day notice period for breaking changes
+- [ ] NEVER create manual TypeScript interfaces - ensure NSwag pipeline works
+
+### Tags
+#critical #dto-alignment #api-contracts #typescript-integration #migration
+
+---
+
+# Backend Lessons Learned
+
 This file captures key learnings for backend development in the WitchCityRope project. Focus on actionable insights for C# .NET API development, database integration, and authentication patterns.
 
 ## Lessons Learned

@@ -1,18 +1,10 @@
 import { create } from 'zustand';
 import { devtools, persist, createJSONStorage } from 'zustand/middleware';
-
-// User interface matching API structure from vertical slice
-export interface User {
-  id: string;
-  email: string;
-  sceneName: string;
-  createdAt: string;
-  lastLoginAt?: string;
-}
+import type { UserDto } from '@witchcityrope/shared-types';
 
 // Auth state interface from functional specification
 interface AuthState {
-  user: User | null;
+  user: UserDto | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   lastAuthCheck: Date | null;
@@ -20,9 +12,9 @@ interface AuthState {
 
 // Auth actions interface from functional specification
 interface AuthActions {
-  login: (user: User) => void;
+  login: (user: UserDto) => void;
   logout: () => void;
-  updateUser: (updates: Partial<User>) => void;
+  updateUser: (updates: Partial<UserDto>) => void;
   checkAuth: () => Promise<void>;
   setLoading: (loading: boolean) => void;
 }
@@ -133,4 +125,4 @@ export const useUserSceneName = () => useAuthStore((state) => state.user?.sceneN
 export { useAuthStore };
 
 // Export types for use in other components
-export type { User, AuthState, AuthActions };
+export type { UserDto, AuthState, AuthActions };

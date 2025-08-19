@@ -1,5 +1,83 @@
 # Frontend Lessons Learned
 
+## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
+
+### Critical Architecture Documents (MUST READ BEFORE ANY WORK):
+1. **Migration Architecture**: `/docs/architecture/react-migration/domain-layer-architecture.md`
+2. **DTO Strategy**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
+3. **Architecture Discovery Process**: `/docs/standards-processes/architecture-discovery-process.md`
+4. **Migration Plan**: `/docs/architecture/react-migration/migration-plan.md`
+
+### Validation Gates (MUST COMPLETE):
+- [ ] Read all architecture documents above
+- [ ] Check if solution already exists
+- [ ] Reference existing patterns in your work
+- [ ] NEVER create manual DTO interfaces (use NSwag)
+
+### Frontend Developer Specific Rules:
+- **DTOs auto-generate via NSwag - NEVER create manual TypeScript interfaces**
+- **Run `npm run generate:types` when API changes**
+- **Import from @witchcityrope/shared-types only**
+- **RED FLAG words: 'alignment', 'DTO', 'type generation' → STOP and check NSwag docs**
+
+---
+
+## 🚨 CRITICAL: NEVER Create Manual DTO Interfaces (READ FIRST) 🚨
+**Date**: 2025-08-19
+**Category**: NSwag Auto-Generation
+**Severity**: Critical
+
+### Context
+NSwag auto-generation is THE solution for TypeScript types. NEVER manually create DTO interfaces - this violates the migration architecture and causes exactly the problems we spent hours fixing.
+
+### What We Learned
+- **NSwag Generates ALL DTO Types**: Use @witchcityrope/shared-types package
+- **NEVER Manual Interface Creation**: Import from packages/shared-types/src/generated/ only
+- **Manual User Interface Was The Problem**: The alignment issues we fixed were exactly what NSwag prevents
+- **API DTOs are SOURCE OF TRUTH**: NSwag ensures perfect alignment automatically
+- **Generated Types Always Current**: Run npm run generate:types when API changes
+- **Original Architecture Specified This**: domain-layer-architecture.md planned NSwag from start
+
+### Action Items
+- [ ] READ: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` (updated with NSwag emphasis)
+- [ ] READ: `/docs/architecture/react-migration/domain-layer-architecture.md` for NSwag implementation
+- [ ] NEVER create manual DTO interfaces - always import from @witchcityrope/shared-types
+- [ ] RUN: npm run generate:types when API changes
+- [ ] REPLACE: All manual DTO interfaces with generated types
+- [ ] IMPORT: Generated types only: import { User } from '@witchcityrope/shared-types'
+
+### Critical Implementation Rules
+```typescript
+// ✅ CORRECT - Import generated types
+import { User, Event, Registration } from '@witchcityrope/shared-types';
+
+function UserProfile({ user }: { user: User }) {
+  // All type information is automatically correct
+}
+
+// ❌ WRONG - Never create manual interfaces
+interface User {
+  sceneName: string;        // This violates the architecture!
+  createdAt: string;        // Use generated types instead
+  lastLoginAt: string | null; // Matches C# DateTime?
+  roles: string[];          // Matches C# List<string>
+}
+
+// ❌ WRONG - Assuming properties
+interface User {
+  firstName: string;  // API doesn't return this
+  lastName: string;   // API doesn't return this
+  fullName: string;   // API doesn't return this
+}
+```
+
+### Tags
+#critical #typescript-interfaces #dto-alignment #api-integration #migration
+
+---
+
+# Frontend Lessons Learned
+
 ## Overview
 
 This document captures key technical learnings for React developers working on WitchCityRope. It contains actionable insights about React patterns, TypeScript integration, Mantine v7, TanStack Query, and frontend architecture decisions.
