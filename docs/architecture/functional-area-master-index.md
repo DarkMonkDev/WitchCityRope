@@ -1,6 +1,6 @@
 # Functional Area Master Index
-<!-- Last Updated: 2025-08-17 - Technology Research Phase Complete, Infrastructure Testing Ready -->
-<!-- Version: 1.1 -->
+<!-- Last Updated: 2025-08-19 - Documentation Reorganization Complete, Homepage Functional Area Added -->
+<!-- Version: 1.2 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -12,10 +12,10 @@ This master index is maintained by the librarian agent to provide quick lookups 
 | Functional Area | Base Path | Current Work Path | Description | Status | Last Updated |
 |-----------------|-----------|-------------------|-------------|--------|--------------|
 | **AI Workflow Orchestration** | `/docs/functional-areas/ai-workflow-orchstration/` | Technology Research Complete | Workflow automation and agent coordination with technology-researcher sub-agent integrated | Enhanced | 2025-08-17 |
-| **Authentication** | `/docs/functional-areas/authentication/` | N/A | Login, logout, user sessions, JWT/cookie auth, service-to-service auth | Stable | 2025-08-13 |
+| **Authentication** | `/docs/functional-areas/authentication/` | N/A | Login, logout, user sessions, JWT/cookie auth, service-to-service auth - Complete workflow structure | Enhanced | 2025-08-19 |
 | ~~**Authentication-Identity**~~ | `/docs/_archive/authentication-identity-legacy-2025-08-12/` | **ARCHIVED** | Legacy authentication docs - ARCHIVED to prevent confusion | Archived | 2025-08-12 |
 | **Events Management** | `/docs/functional-areas/events/` | N/A | Event creation, RSVP, ticketing | Active | 2025-08-12 |
-| **Home Page** | `/docs/functional-areas/home-page/` | N/A | Landing page and main navigation | Stable | 2025-08-12 |
+| **Homepage** | `/docs/functional-areas/homepage/` | N/A | Landing page and main navigation entry point with complete workflow structure and design assets | Enhanced | 2025-08-19 |
 | **Payment (PayPal/Venmo)** | `/docs/functional-areas/payment-paypal-venmo/` | N/A | Payment processing integration | Planning | 2025-08-12 |
 | **User Management** | `/docs/functional-areas/user-management/` | `/docs/functional-areas/user-management/new-work/2025-08-12-admin-screen/` | Admin user management, member profiles, vetting status | In Development | 2025-08-12 |
 | **Vertical Slice Home Page** | `/docs/functional-areas/vertical-slice-home-page/` | COMPLETED - All 5 phases | Test implementation of complete workflow process with home page displaying events | ✅ COMPLETE | 2025-08-16 |
@@ -23,15 +23,25 @@ This master index is maintained by the librarian agent to provide quick lookups 
 
 ## Active Development Work
 
-### 🚀 CURRENT: Infrastructure Testing with Mantine v7
-- **Phase**: Infrastructure Testing (Post Technology Research)
-- **Technology Stack**: Confirmed - React + TypeScript + Vite + Mantine v7
-- **Forms Standards**: Complete - Mantine use-form + Zod validation patterns
-- **Documentation**: Consolidated - Single source of truth established
-- **Status**: Ready for vertical slice testing with confirmed technology stack
-- **Success Criteria**: Simple feature works with Mantine components and standardized form patterns
-- **Next Action**: Test Mantine infrastructure with simple form feature
-- **Session**: 2025-08-17
+### 🚀 CURRENT: Phase 2 Feature Migration Ready
+- **Phase**: Feature Migration (Infrastructure Testing COMPLETE)
+- **Technology Stack**: VALIDATED - React + TypeScript + Vite + Mantine v7
+- **Infrastructure Status**: ✅ COMPLETE - All form components working
+- **Test Page**: `/mantine-forms` - Full demonstration of working components
+- **CSS Architecture**: CSS Modules + PostCSS preset + Mantine variables WORKING
+- **Form Patterns**: Mantine use-form + Zod validation PROVEN
+- **Success Criteria**: ✅ ACHIEVED - All components functional with WitchCityRope branding
+- **Next Action**: Begin core feature migration using proven infrastructure
+- **Session**: 2025-08-18
+
+### 📋 COMPLETED: Infrastructure Testing Phase
+- **Work Folder**: `/apps/web/src/components/forms/` + `/apps/web/src/styles/FormComponents.module.css`
+- **Test Page**: `/mantine-forms` - Working demonstration of all form components
+- **Components**: MantineTextInput, MantinePasswordInput, MantineTextarea, MantineSelect
+- **CSS Solutions**: Placeholder visibility control, floating labels, tapered underlines
+- **Form Validation**: Mantine use-form + Zod patterns PROVEN
+- **Infrastructure**: ✅ COMPLETE - All components validated and working
+- **Session**: 2025-08-18
 
 ### 📋 COMPLETED: Technology Research Phase
 - **Work Folder**: `/docs/architecture/react-migration/adrs/`
@@ -126,5 +136,6 @@ Pattern: `{base_path}/wireframes/`
 
 | Feature | Work Path | Completion Date | Archived To |
 |---------|-----------|-----------------|-------------|
+| **Infrastructure Testing Phase** | `/apps/web/src/components/forms/` + `/apps/web/src/styles/` | 2025-08-18 | ACTIVE - Working components and CSS modules retained |
 | **Technology Research Phase** | `/docs/architecture/react-migration/adrs/` | 2025-08-17 | ACTIVE - ADR-004 and consolidation documentation retained |
 | **Vertical Slice Home Page** | `/docs/functional-areas/vertical-slice-home-page/` | 2025-08-16 | ACTIVE - Complete documentation retained for reference |

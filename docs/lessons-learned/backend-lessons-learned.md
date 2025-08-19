@@ -1645,6 +1645,218 @@ print_success() {
 
 ---
 
+### Frontend Integration Patterns - MANDATORY FOR API DEVELOPMENT - 2025-08-19
+
+**Context**: Based on validated React technology patterns, backend APIs must follow specific patterns to integrate properly with TanStack Query v5, Zustand state management, and React Router v7 authentication flows.
+
+**CRITICAL**: API responses and authentication patterns must match the validated frontend technology stack.
+
+**Frontend Technology Integration Requirements**:
+
+#### 1. API Response Patterns for TanStack Query v5
+- **Reference**: `/docs/functional-areas/api-integration-validation/requirements/functional-specification-v2.md`
+- **Required Pattern**: APIs must return data in format expected by TanStack Query
+- **Type Safety**: API responses must match types in `/apps/web/src/types/api.types.ts`
+
+```csharp
+// ✅ CORRECT - API response format for TanStack Query
+[HttpGet]
+public async Task<ActionResult<PaginatedResponse<EventDto>>> GetEvents(
+    [FromQuery] int page = 1, 
+    [FromQuery] int pageSize = 20)
+{
+    var events = await _eventService.GetPagedEventsAsync(page, pageSize);
+    
+    return Ok(new PaginatedResponse<EventDto>
+    {
+        Data = events.Items,
+        Page = page,
+        PageSize = pageSize,
+        TotalCount = events.TotalCount,
+        TotalPages = (int)Math.Ceiling((double)events.TotalCount / pageSize),
+        HasNext = page < (int)Math.Ceiling((double)events.TotalCount / pageSize),
+        HasPrevious = page > 1
+    });
+}
+
+// ✅ CORRECT - Error response format for TanStack Query
+public class ApiError
+{
+    public string Message { get; set; }
+    public int Status { get; set; }
+    public string? Code { get; set; }
+    public Dictionary<string, string[]>? Details { get; set; }
+}
+```
+
+#### 2. Authentication for httpOnly Cookies (Zustand Integration)
+- **Reference**: `/docs/functional-areas/state-management-validation/requirements/functional-specification.md`
+- **Required Pattern**: httpOnly cookies with /auth endpoints for Zustand stores
+- **Security**: NO JWT tokens in localStorage - only httpOnly cookies
+
+```csharp
+// ✅ CORRECT - Authentication endpoints for Zustand
+[HttpPost("/auth/login")]
+public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginDto request)
+{
+    var result = await _authService.LoginAsync(request.Email, request.Password);
+    
+    if (result.Success)
+    {
+        // Set httpOnly cookie
+        Response.Cookies.Append("__session", result.SessionToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            MaxAge = TimeSpan.FromDays(30)
+        });
+        
+        return Ok(new AuthResponse { Success = true, User = result.User });
+    }
+    
+    return Unauthorized(new AuthResponse { Success = false, Message = result.ErrorMessage });
+}
+
+[HttpGet("/auth/session")]
+public async Task<ActionResult<SessionData>> GetSession()
+{
+    // Validate httpOnly cookie session
+    if (!Request.Cookies.TryGetValue("__session", out var sessionToken))
+        return Unauthorized();
+        
+    var session = await _authService.ValidateSessionAsync(sessionToken);
+    return session != null ? Ok(session) : Unauthorized();
+}
+
+[HttpPost("/auth/logout")]
+public async Task<ActionResult> Logout()
+{
+    // Clear httpOnly cookie
+    Response.Cookies.Delete("__session");
+    return Ok(new { Success = true });
+}
+```
+
+#### 3. CORS Configuration for React Router v7
+- **Reference**: `/docs/functional-areas/routing-validation/requirements/functional-specification.md`
+- **Required Pattern**: CORS must allow credentials for httpOnly cookie authentication
+
+```csharp
+// ✅ CORRECT - CORS for React Router v7 with credentials
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ReactDevelopment", builder => builder
+        .WithOrigins(
+            "http://localhost:5173",    // Vite dev server
+            "http://localhost:3000",    // Alternative React port
+            "http://127.0.0.1:5173"     // Local alternative
+        )
+        .AllowCredentials()           // CRITICAL for httpOnly cookies
+        .AllowAnyMethod()
+        .AllowAnyHeader());
+});
+```
+
+#### 4. Pagination Patterns for TanStack Query useInfiniteQuery
+- **Required Pattern**: Consistent pagination that works with useInfiniteQuery
+
+```csharp
+// ✅ CORRECT - Pagination for TanStack Query infinite queries
+public class PaginatedResponse<T>
+{
+    public List<T> Data { get; set; } = new();
+    public int Page { get; set; }
+    public int PageSize { get; set; }
+    public int TotalCount { get; set; }
+    public int TotalPages { get; set; }
+    public bool HasNext { get; set; }
+    public bool HasPrevious { get; set; }
+}
+
+// Usage in controller
+[HttpGet]
+public async Task<ActionResult<PaginatedResponse<EventDto>>> GetInfiniteEvents(
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 20)
+{
+    // TanStack Query expects this exact format for getNextPageParam
+    return Ok(paginatedResponse);
+}
+```
+
+#### 5. Optimistic Update Support
+- **Required Pattern**: APIs must support optimistic updates with rollback
+
+```csharp
+// ✅ CORRECT - Return updated entity for optimistic updates
+[HttpPut("{id}")]
+public async Task<ActionResult<EventDto>> UpdateEvent(Guid id, [FromBody] UpdateEventDto request)
+{
+    try
+    {
+        var updatedEvent = await _eventService.UpdateAsync(id, request);
+        
+        // Return complete updated entity for TanStack Query cache update
+        return Ok(updatedEvent);
+    }
+    catch (NotFoundException)
+    {
+        return NotFound(new ApiError { Message = "Event not found", Status = 404 });
+    }
+    catch (ValidationException ex)
+    {
+        return BadRequest(new ApiError 
+        { 
+            Message = "Validation failed", 
+            Status = 400,
+            Details = ex.Errors 
+        });
+    }
+}
+```
+
+**Integration Requirements**:
+
+#### Authentication Flow:
+- ✅ MUST use httpOnly cookies for session management
+- ✅ MUST provide /auth/login, /auth/logout, /auth/session endpoints
+- ✅ MUST validate sessions on protected routes
+- ❌ NEVER return JWT tokens to frontend
+- ❌ NEVER rely on client-side token storage
+
+#### API Response Format:
+- ✅ MUST follow types defined in `/apps/web/src/types/api.types.ts`
+- ✅ MUST use consistent pagination format (page/pageSize/total pattern)
+- ✅ MUST return complete entities after mutations for cache updates
+- ✅ MUST provide consistent error response format
+
+#### Performance Requirements:
+- ✅ MUST support TanStack Query caching strategies
+- ✅ MUST implement proper ETag/If-None-Match for cache validation
+- ✅ MUST optimize queries to support frontend performance targets
+
+**Action Items**:
+- [ ] ALWAYS implement httpOnly cookie authentication (no JWT in response)
+- [ ] ALWAYS follow pagination patterns expected by TanStack Query
+- [ ] ALWAYS return complete entities after mutations
+- [ ] ALWAYS configure CORS with AllowCredentials for cookie auth
+- [ ] ALWAYS validate API responses match frontend types
+- [ ] NEVER implement custom authentication patterns
+- [ ] NEVER break the established API contracts
+
+**Impact**: Ensures all backend development integrates seamlessly with validated React technology stack, maintaining security, performance, and maintainability standards.
+
+**References**:
+- API Integration Patterns: `/docs/functional-areas/api-integration-validation/requirements/functional-specification-v2.md`
+- Authentication Patterns: `/docs/functional-areas/state-management-validation/requirements/functional-specification.md`
+- Routing Integration: `/docs/functional-areas/routing-validation/requirements/functional-specification.md`
+- API Type Definitions: `/apps/web/src/types/api.types.ts`
+
+**Tags**: #frontend-integration #api-patterns #authentication #tanstack-query #zustand #react-router #httponly-cookies #cors #pagination #security
+
+---
+
 ## Template Usage Instructions
 
 ### When to Use This Template

@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login/Register - Witch City Rope</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;600&family=Satisfy&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Sensual Primary Colors */
+            --color-burgundy: #880124;
+            --color-burgundy-dark: #660018;
+            --color-burgundy-light: #9F1D35;
+            
+            /* Warm Metallics */
+            --color-rose-gold: #B76D75;
+            --color-copper: #B87333;
+            --color-brass: #C9A961;
+            
+            /* CTA Accent Colors */
+            --color-electric: #9D4EDD;
+            --color-electric-dark: #7B2CBF;
+            --color-amber: #FFBF00;
+            --color-amber-dark: #FF8C00;
+            
+            /* Supporting Tones */
+            --color-dusty-rose: #D4A5A5;
+            --color-plum: #614B79;
+            --color-midnight: #1A1A2E;
+            
+            /* Warm Neutrals */
+            --color-charcoal: #2B2B2B;
+            --color-smoke: #4A4A4A;
+            --color-stone: #8B8680;
+            --color-taupe: #B8B0A8;
+            --color-ivory: #FFF8F0;
+            --color-cream: #FAF6F2;
+            
+            /* Status Colors */
+            --color-success: #228B22;
+            --color-warning: #DAA520;
+            --color-error: #DC143C;
+            
+            /* Typography */
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            --font-accent: 'Satisfy', cursive;
+            
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 16px;
+            --space-md: 24px;
+            --space-lg: 32px;
+            --space-xl: 40px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+            
+            /* Shadows */
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+            --shadow-xl: 0 20px 25px rgba(0,0,0,0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            line-height: 1.6;
+            color: var(--color-charcoal);
+            background: linear-gradient(135deg, var(--color-cream) 0%, var(--color-ivory) 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Subtle pattern overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.03;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='40' stroke='%23880124' stroke-width='1' fill='none'/%3E%3Cpath d='M50,10 Q70,30 50,50 Q30,70 50,90' stroke='%23614B79' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+            background-size: 150px 150px;
+            z-index: -1;
+        }
+        
+        /* Decorative shapes */
+        .bg-shape-1 {
+            position: fixed;
+            top: -200px;
+            right: -200px;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--color-plum) 0%, transparent 70%);
+            opacity: 0.1;
+            border-radius: 50%;
+            filter: blur(60px);
+            z-index: -1;
+        }
+        
+        .bg-shape-2 {
+            position: fixed;
+            bottom: -150px;
+            left: -150px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, var(--color-burgundy) 0%, transparent 70%);
+            opacity: 0.08;
+            border-radius: 50%;
+            filter: blur(50px);
+            z-index: -1;
+        }
+        
+        /* Utility Bar */
+        .utility-bar {
+            background: var(--color-midnight);
+            padding: 12px 40px;
+            font-size: 13px;
+            color: var(--color-taupe);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            font-family: var(--font-heading);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .utility-bar a {
+            color: var(--color-taupe);
+            text-decoration: none;
+            margin-left: var(--space-lg);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .utility-bar a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--color-rose-gold);
+            transition: width 0.3s ease;
+        }
+        
+        .utility-bar a:hover {
+            color: var(--color-rose-gold);
+        }
+        
+        .utility-bar a:hover::after {
+            width: 100%;
+        }
+        
+        .utility-bar a.incident-link {
+            color: var(--color-brass);
+            font-weight: 600;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: rgba(255, 248, 240, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            padding: var(--space-sm) 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+        
+        .header.scrolled {
+            padding: 12px 40px;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.12);
+        }
+        
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--color-burgundy);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            transition: all 0.3s ease;
+        }
+        
+        .logo:hover {
+            color: var(--color-burgundy-light);
+            transform: scale(1.02);
+        }
+        
+        .nav {
+            display: flex;
+            gap: var(--space-xl);
+            align-items: center;
+        }
+        
+        .nav-item {
+            color: var(--color-charcoal);
+            text-decoration: none;
+            font-family: var(--font-heading);
+            font-weight: 500;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: var(--color-burgundy);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-item:hover {
+            color: var(--color-burgundy);
+        }
+        
+        .nav-item:hover::before {
+            width: 100%;
+        }
+        
+        /* Luxury Button Styles */
+        .btn {
+            padding: 14px 32px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: all 0.4s ease;
+            display: inline-block;
+            cursor: pointer;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+            color: var(--color-midnight);
+            box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+            font-weight: 700;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(255, 191, 0, 0.5);
+            background: linear-gradient(135deg, var(--color-amber-dark) 0%, var(--color-amber) 100%);
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+        
+        /* Mobile menu toggle */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+        }
+        
+        .mobile-menu-toggle span {
+            display: block;
+            width: 28px;
+            height: 2px;
+            background: var(--color-burgundy);
+            margin: 6px 0;
+            transition: all 0.3s ease;
+        }
+        
+        /* Main Container */
+        .main-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-xl) var(--space-md);
+        }
+        
+        /* Auth Card */
+        .auth-card {
+            background: var(--color-ivory);
+            border-radius: 24px;
+            box-shadow: var(--shadow-xl);
+            width: 100%;
+            max-width: 480px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Decorative header band */
+        .auth-header {
+            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
+            padding: var(--space-2xl) var(--space-xl) var(--space-xl);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .auth-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(45deg);
+        }
+        
+        .auth-title {
+            font-family: var(--font-heading);
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--color-ivory);
+            margin-bottom: var(--space-xs);
+            position: relative;
+        }
+        
+        .auth-subtitle {
+            color: var(--color-dusty-rose);
+            font-size: 16px;
+            position: relative;
+        }
+        
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            background: var(--color-cream);
+            border-bottom: 1px solid var(--color-taupe);
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: var(--space-md);
+            background: none;
+            border: none;
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-stone);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .tab-button.active {
+            color: var(--color-burgundy);
+        }
+        
+        .tab-button::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--color-burgundy);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .tab-button.active::after {
+            transform: scaleX(1);
+        }
+        
+        /* Form Container */
+        .form-container {
+            padding: var(--space-xl);
+        }
+        
+        .form-group {
+            margin-bottom: var(--space-md);
+        }
+        
+        .form-label {
+            display: block;
+            font-family: var(--font-heading);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-smoke);
+            margin-bottom: var(--space-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: var(--space-sm) var(--space-md);
+            font-family: var(--font-body);
+            font-size: 16px;
+            border: 2px solid var(--color-taupe);
+            border-radius: 8px;
+            background: var(--color-ivory);
+            color: var(--color-charcoal);
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--color-burgundy);
+            box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.1);
+        }
+        
+        .form-input::placeholder {
+            color: var(--color-stone);
+        }
+        
+        /* OAuth Button */
+        .oauth-button {
+            width: 100%;
+            padding: var(--space-sm) var(--space-md);
+            border: 2px solid var(--color-taupe);
+            border-radius: 8px;
+            background: var(--color-ivory);
+            color: var(--color-charcoal);
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-sm);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .oauth-button:hover {
+            background: var(--color-cream);
+            border-color: var(--color-stone);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            margin: var(--space-lg) 0;
+        }
+        
+        .divider-line {
+            flex: 1;
+            height: 1px;
+            background: var(--color-taupe);
+        }
+        
+        .divider-text {
+            color: var(--color-stone);
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Primary CTA Button */
+        .btn-primary {
+            width: 100%;
+            padding: var(--space-md);
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+            color: var(--color-midnight);
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+            margin-top: var(--space-lg);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(255, 191, 0, 0.5);
+            background: linear-gradient(135deg, var(--color-amber-dark) 0%, var(--color-amber) 100%);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        /* Checkbox Group */
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-sm);
+            margin: var(--space-md) 0;
+        }
+        
+        .checkbox-input {
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            accent-color: var(--color-burgundy);
+        }
+        
+        .checkbox-label {
+            font-size: 14px;
+            color: var(--color-smoke);
+            line-height: 1.4;
+        }
+        
+        .checkbox-label a {
+            color: var(--color-burgundy);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+        
+        .checkbox-label a:hover {
+            color: var(--color-burgundy-dark);
+            text-decoration: underline;
+        }
+        
+        /* Footer Links */
+        .auth-footer {
+            text-align: center;
+            padding: var(--space-md);
+            background: var(--color-cream);
+            border-top: 1px solid var(--color-taupe);
+        }
+        
+        .auth-footer-text {
+            font-size: 14px;
+            color: var(--color-stone);
+        }
+        
+        .auth-footer-link {
+            color: var(--color-burgundy);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+        
+        .auth-footer-link:hover {
+            color: var(--color-burgundy-dark);
+            text-decoration: underline;
+        }
+        
+        /* Age Notice */
+        .age-notice {
+            background: linear-gradient(135deg, var(--color-burgundy-light) 0%, var(--color-burgundy) 100%);
+            color: var(--color-ivory);
+            padding: var(--space-sm) var(--space-md);
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Loading State */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--color-midnight);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .utility-bar {
+                padding: 10px 20px;
+                font-size: 11px;
+            }
+            
+            .header {
+                padding: var(--space-sm) 20px;
+            }
+            
+            .logo {
+                font-size: 28px;
+            }
+            
+            .nav {
+                display: none;
+            }
+            
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .auth-title {
+                font-size: 28px;
+            }
+            
+            .form-container {
+                padding: var(--space-lg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-shape-1"></div>
+    <div class="bg-shape-2"></div>
+    
+    <!-- Utility Bar -->
+    <div class="utility-bar">
+        <a href="#" class="incident-link">Report an Incident</a>
+        <a href="#">Private Lessons</a>
+        <a href="#">Contact</a>
+    </div>
+    
+    <!-- Header -->
+    <header class="header" id="header">
+        <a href="landing-page-visual-v2.html" class="logo">WITCH CITY ROPE</a>
+        <nav class="nav">
+            <a href="event-list-visual.html" class="nav-item">Events & Classes</a>
+            <a href="vetting-application.html" class="nav-item">How to Join</a>
+            <a href="#" class="nav-item">Resources</a>
+            <a href="auth-login-register-visual.html" class="btn btn-primary">Login</a>
+        </nav>
+        <button class="mobile-menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
+    
+    <main class="main-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1 class="auth-title">Welcome Back</h1>
+                <p class="auth-subtitle">Join Salem's premier rope education community</p>
+            </div>
+            
+            <div class="age-notice">
+                21+ COMMUNITY • AGE VERIFICATION REQUIRED
+            </div>
+            
+            <nav class="tab-nav">
+                <button class="tab-button active" onclick="showTab('login')">Sign In</button>
+                <button class="tab-button" onclick="showTab('register')">Create Account</button>
+            </nav>
+            
+            <!-- Login Form -->
+            <div id="login-tab" class="form-container">
+                <button class="oauth-button">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M18.5 10.2c0-.6 0-1.1-.1-1.6H10v3h4.8c-.2 1.1-.8 2-1.7 2.6v2.2h2.7c1.6-1.5 2.5-3.6 2.5-6.2z" fill="#4285F4"/>
+                        <path d="M10 19c2.3 0 4.2-.8 5.6-2.1l-2.7-2.1c-.8.5-1.7.8-2.9.8-2.2 0-4.1-1.5-4.8-3.5H2.4v2.2C3.8 17.1 6.7 19 10 19z" fill="#34A853"/>
+                        <path d="M5.2 11.9c-.2-.5-.3-1.1-.3-1.7s.1-1.2.3-1.7V6.3H2.4C1.9 7.3 1.6 8.5 1.6 9.8s.3 2.5.8 3.5l2.8-2.2z" fill="#FBBC04"/>
+                        <path d="M10 4.5c1.2 0 2.4.4 3.2 1.3l2.4-2.4C14.2 2.1 12.3 1 10 1 6.7 1 3.8 2.9 2.4 5.7l2.8 2.2C5.9 6 7.8 4.5 10 4.5z" fill="#EA4335"/>
+                    </svg>
+                    Continue with Google
+                </button>
+                
+                <div class="divider">
+                    <div class="divider-line"></div>
+                    <span class="divider-text">or</span>
+                    <div class="divider-line"></div>
+                </div>
+                
+                <form>
+                    <div class="form-group">
+                        <label class="form-label" for="login-email">Email Address</label>
+                        <input type="email" id="login-email" class="form-input" placeholder="your@email.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="login-password">Password</label>
+                        <input type="password" id="login-password" class="form-input" placeholder="Enter your password" required>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="remember" class="checkbox-input">
+                        <label for="remember" class="checkbox-label">Keep me signed in for 30 days</label>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">Sign In</button>
+                </form>
+            </div>
+            
+            <!-- Register Form -->
+            <div id="register-tab" class="form-container" style="display: none;">
+                <button class="oauth-button">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M18.5 10.2c0-.6 0-1.1-.1-1.6H10v3h4.8c-.2 1.1-.8 2-1.7 2.6v2.2h2.7c1.6-1.5 2.5-3.6 2.5-6.2z" fill="#4285F4"/>
+                        <path d="M10 19c2.3 0 4.2-.8 5.6-2.1l-2.7-2.1c-.8.5-1.7.8-2.9.8-2.2 0-4.1-1.5-4.8-3.5H2.4v2.2C3.8 17.1 6.7 19 10 19z" fill="#34A853"/>
+                        <path d="M5.2 11.9c-.2-.5-.3-1.1-.3-1.7s.1-1.2.3-1.7V6.3H2.4C1.9 7.3 1.6 8.5 1.6 9.8s.3 2.5.8 3.5l2.8-2.2z" fill="#FBBC04"/>
+                        <path d="M10 4.5c1.2 0 2.4.4 3.2 1.3l2.4-2.4C14.2 2.1 12.3 1 10 1 6.7 1 3.8 2.9 2.4 5.7l2.8 2.2C5.9 6 7.8 4.5 10 4.5z" fill="#EA4335"/>
+                    </svg>
+                    Continue with Google
+                </button>
+                
+                <div class="divider">
+                    <div class="divider-line"></div>
+                    <span class="divider-text">or</span>
+                    <div class="divider-line"></div>
+                </div>
+                
+                <form>
+                    <div class="form-group">
+                        <label class="form-label" for="register-email">Email Address</label>
+                        <input type="email" id="register-email" class="form-input" placeholder="your@email.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="register-password">Password</label>
+                        <input type="password" id="register-password" class="form-input" placeholder="Create a strong password" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="register-confirm">Confirm Password</label>
+                        <input type="password" id="register-confirm" class="form-input" placeholder="Confirm your password" required>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="age-confirm" class="checkbox-input" required>
+                        <label for="age-confirm" class="checkbox-label">
+                            I confirm that I am 21 years of age or older
+                        </label>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="terms" class="checkbox-input" required>
+                        <label for="terms" class="checkbox-label">
+                            I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">Create Account</button>
+                </form>
+            </div>
+            
+            <div class="auth-footer">
+                <p class="auth-footer-text">
+                    <a href="#" class="auth-footer-link">Forgot your password?</a>
+                </p>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        function showTab(tab) {
+            const loginTab = document.getElementById('login-tab');
+            const registerTab = document.getElementById('register-tab');
+            const buttons = document.querySelectorAll('.tab-button');
+            const title = document.querySelector('.auth-title');
+            
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            if (tab === 'login') {
+                loginTab.style.display = 'block';
+                registerTab.style.display = 'none';
+                buttons[0].classList.add('active');
+                title.textContent = 'Welcome Back';
+            } else {
+                loginTab.style.display = 'none';
+                registerTab.style.display = 'block';
+                buttons[1].classList.add('active');
+                title.textContent = 'Join Our Community';
+            }
+        }
+        
+        // Add header scroll effect
+        window.addEventListener('scroll', function() {
+            const header = document.getElementById('header');
+            if (window.scrollY > 100) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+    </script>
+</body>
+</html>
