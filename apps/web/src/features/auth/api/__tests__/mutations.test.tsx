@@ -254,6 +254,8 @@ describe('useLogin', () => {
 describe('useLogout', () => {
   beforeEach(() => {
     // Set up authenticated state - using NSwag UserDto structure
+    const mockToken = 'test-jwt-token';
+    const mockExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
     useAuthStore.getState().actions.login({
       id: '1',
       email: 'admin@witchcityrope.com',
@@ -265,7 +267,7 @@ describe('useLogout', () => {
       createdAt: '2025-08-19T00:00:00Z',
       updatedAt: '2025-08-19T10:00:00Z',
       lastLoginAt: '2025-08-19T10:00:00Z'
-    })
+    }, mockToken, mockExpiresAt)
     mockNavigate.mockClear()
     mockFetch.mockClear()
     // Mock fetch for auth store logout calls to resolve immediately

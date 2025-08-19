@@ -8,6 +8,8 @@ import MantineFormTest from '../pages/MantineFormTest';
 // TODO: Fix TypeScript errors in API validation pages before uncommenting
 // import ApiValidation from '../pages/ApiValidation';
 import ApiValidationV2Simple from '../pages/ApiValidationV2Simple';
+import ApiConnectionTest from '../pages/ApiConnectionTest';
+import { TestMSWPage } from '../pages/TestMSWPage';
 import { RootLayout } from '../components/layout/RootLayout';
 import { RootErrorBoundary } from '../components/errors/RootErrorBoundary';
 import { authLoader } from './loaders/authLoader';
@@ -53,6 +55,14 @@ export const router = createBrowserRouter([
       { 
         path: "api-validation-v2-simple", 
         element: <ApiValidationV2Simple /> 
+      },
+      { 
+        path: "api-connection-test", 
+        element: <ApiConnectionTest /> 
+      },
+      { 
+        path: "test-msw", 
+        element: <TestMSWPage /> 
       },
       
       // Protected routes - authentication required

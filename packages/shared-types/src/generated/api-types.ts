@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/api/auth/me": {
+    "/api/auth/user": {
         parameters: {
             query?: never;
             header?: never;

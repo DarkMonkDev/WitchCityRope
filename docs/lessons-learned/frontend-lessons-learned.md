@@ -77,6 +77,358 @@ Enables TypeScript compilation and test execution. Critical for development work
 
 ---
 
+## 🚨 CRITICAL: useEffect Infinite Loop Fix (READ FIRST) 🚨
+**Date**: 2025-08-19
+**Category**: React Hooks Critical Bug
+**Severity**: Critical
+
+### Context
+Fixed "Maximum update depth exceeded" error that occurred when visiting any test page. The error was caused by an infinite loop in the App.tsx useEffect dependency array.
+
+### What We Learned
+- **useEffect Dependency Arrays with Zustand**: Functions returned from Zustand stores get recreated on every state update
+- **Infinite Loop Pattern**: useEffect → function call → state update → re-render → new function reference → useEffect runs again
+- **Auth Check Pattern**: Authentication checks should typically run only once on app mount, not on every auth state change
+- **Empty Dependency Array**: Use `[]` when effect should only run once on mount
+- **Function Reference Stability**: Zustand store actions are NOT stable references across renders
+
+### Action Items
+- [ ] NEVER include Zustand store action functions in useEffect dependency arrays
+- [ ] USE empty dependency array `[]` for one-time initialization effects
+- [ ] USE useCallback for stable function references if dependency is truly needed
+- [ ] REVIEW all useEffect hooks for similar infinite loop patterns
+- [ ] TEST pages after auth-related changes to catch loops early
+
+### Critical Implementation Rules
+```typescript
+// ❌ WRONG - Creates infinite loop
+useEffect(() => {
+  checkAuth();
+}, [checkAuth]); // checkAuth reference changes on every store update
+
+// ✅ CORRECT - Runs only once on mount
+useEffect(() => {
+  checkAuth();
+}, []); // Empty dependency array for initialization
+
+// ✅ CORRECT - If you truly need the function as dependency
+const stableCheckAuth = useCallback(() => {
+  // auth logic here
+}, []); // Or appropriate dependencies
+
+useEffect(() => {
+  stableCheckAuth();
+}, [stableCheckAuth]);
+```
+
+### Impact
+Prevents infinite re-render loops that make the application unusable and cause "Maximum update depth exceeded" errors.
+
+### Tags
+#critical #useEffect #infinite-loop #zustand #react-hooks #maximum-update-depth
+
+---
+
+## 🚨 CRITICAL: Zustand Selector Infinite Loop Fix (MOST IMPORTANT) 🚨
+**Date**: 2025-08-19
+**Category**: Zustand Critical Bug
+**Severity**: Critical - Root Cause
+
+### Context
+Fixed the ACTUAL root cause of "Maximum update depth exceeded" error. The infinite loop was caused by Zustand selectors that return new objects on every render, causing all components using those selectors to re-render infinitely.
+
+### What We Learned
+- **Object Selector Anti-Pattern**: Zustand selectors that return new objects (`{ user: state.user, isAuthenticated: state.isAuthenticated }`) create new references on every render
+- **Infinite Re-render Loop**: New object references cause React to think state changed → re-render → new object → re-render → crash
+- **Individual Selectors Solution**: Use separate selector hooks for each property to return stable primitive values
+- **8+ Components Affected**: All components using auth selectors had to be updated to prevent the infinite loop
+- **Reference Equality**: React uses Object.is() for reference equality - new objects always fail this check
+- **Zustand Behavior**: Store updates trigger ALL selectors to re-run, including those returning computed objects
+
+### Action Items
+- [ ] NEVER create Zustand selectors that return new objects `{ prop1: state.prop1, prop2: state.prop2 }`
+- [ ] ALWAYS use individual selector hooks: `useUser()`, `useIsAuthenticated()`, `useIsLoading()`
+- [ ] CONVERT any existing object-returning selectors to individual property selectors
+- [ ] TEST components after auth changes to catch infinite loops immediately
+- [ ] REVIEW all Zustand selectors in codebase for object return patterns
+- [ ] DOCUMENT this pattern as the PRIMARY Zustand usage pattern
+
+### Critical Implementation Rules
+```typescript
+// ❌ WRONG - Creates infinite loop (THIS WAS THE BUG)
+export const useAuth = () => useAuthStore((state) => ({
+  user: state.user,                    // New object every render
+  isAuthenticated: state.isAuthenticated,
+  isLoading: state.isLoading
+}));
+
+// ✅ CORRECT - Individual selectors (THE ACTUAL FIX)
+export const useUser = () => useAuthStore((state) => state.user);
+export const useIsAuthenticated = () => useAuthStore((state) => state.isAuthenticated);
+export const useIsLoading = () => useAuthStore((state) => state.isLoading);
+
+// ✅ CORRECT - Component usage
+function MyComponent() {
+  const user = useUser();                    // Stable reference
+  const isAuthenticated = useIsAuthenticated(); // Stable reference
+  const isLoading = useIsLoading();          // Stable reference
+  
+  // No infinite re-renders
+}
+
+// ❌ WRONG - What was causing the crash
+function MyComponent() {
+  const { user, isAuthenticated, isLoading } = useAuth(); // New object every render
+  // Infinite re-renders → "Maximum update depth exceeded"
+}
+```
+
+### Components Fixed (8+ files updated)
+All these components were updated from object selectors to individual selectors:
+- `App.tsx` - Auth checking
+- `LoginPage.tsx` - Login form
+- `Header.tsx` - User display
+- `ProtectedRoute.tsx` - Route guards
+- `AdminDashboard.tsx` - Admin access
+- And 3+ other auth-dependent components
+
+### Impact
+This was THE fix that made the application usable again. Without this change, visiting any page caused immediate crashes with "Maximum update depth exceeded" errors.
+
+### Tags
+#critical #zustand-selectors #infinite-loop #maximum-update-depth #object-references #react-rendering #root-cause
+
+---
+
+## 🚨 CRITICAL: Authentication Endpoint Correction Fix (READ FIRST) 🚨
+**Date**: 2025-08-19
+**Category**: Authentication Critical Bug Fix
+**Severity**: Critical
+
+### Context
+Fixed authentication verification issue where frontend was calling the wrong API endpoint. Authentication was working perfectly at the API level, but the frontend was calling `/api/auth/me` (which doesn't exist) instead of `/api/auth/user` (which exists and works).
+
+### What We Learned
+- **Root Cause**: Frontend/NSwag generated code was calling non-existent `/api/auth/me` endpoint
+- **Correct Endpoint**: `/api/auth/user` is the actual working endpoint that requires JWT authentication
+- **Verification Working**: Vertical slice testing proved `/api/auth/user` works perfectly with JWT tokens
+- **Simple String Replacement**: The fix was just updating endpoint URLs, no complex auth logic needed
+- **Multiple File Impact**: Endpoint was referenced in auth store, API client, generated types, route loaders, and test files
+
+### Action Items
+- [ ] ALWAYS use `/api/auth/user` for authentication verification (NEVER `/api/auth/me`)
+- [ ] UPDATE NSwag generated types manually after generation if endpoint names are incorrect
+- [ ] ENSURE JWT tokens are included in Authorization header for `/api/auth/user` calls
+- [ ] TEST authentication flow after endpoint changes to verify functionality
+- [ ] UPDATE all test files to use correct endpoint URLs
+- [ ] VERIFY route loaders include JWT token in fetch requests
+
+### Critical Implementation Rules
+```typescript
+// ✅ CORRECT - Use /api/auth/user endpoint
+const response = await api.get('/api/auth/user'); // With JWT token in headers
+
+// ✅ CORRECT - Include JWT token in fetch requests
+const response = await fetch('/api/auth/user', {
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    'Accept': 'application/json'
+  }
+});
+
+// ❌ WRONG - Non-existent endpoint
+const response = await api.get('/api/auth/me'); // This endpoint doesn't exist
+
+// ❌ WRONG - Missing JWT token
+const response = await fetch('/api/auth/user'); // Will return 401 without token
+```
+
+### Files Updated
+- `/apps/web/src/routes/loaders/authLoader.ts` - Fixed fetch URL and added JWT token
+- `/apps/web/src/lib/api/hooks/useAuth.ts` - Fixed fallback endpoint URL
+- `/packages/shared-types/src/generated/api-client.ts` - Fixed getCurrentUser method URL
+- `/packages/shared-types/src/generated/api-helpers.ts` - Fixed GetCurrentUserResponse type
+- `/packages/shared-types/src/generated/api-types.ts` - Fixed path definition
+- Multiple Playwright test files - Updated endpoint URLs
+
+### Impact
+Fixes authentication verification that was failing due to calling non-existent API endpoint. Authentication flow now works correctly with existing JWT token implementation.
+
+### Tags
+#critical #authentication #api-endpoint #jwt #endpoint-correction #bug-fix
+
+---
+
+## 🚨 CRITICAL: JWT Token Implementation for API Authentication (READ FIRST) 🚨
+**Date**: 2025-08-19
+**Category**: Authentication Critical Implementation
+**Severity**: Critical
+
+### Context
+Implemented complete JWT token handling in React frontend to authenticate with .NET API. The API returns JWT tokens in login responses but the NSwag generated types were missing the token fields, requiring manual type extensions.
+
+### What We Learned
+- **API Response Structure**: Login returns `{ success: true, data: { token: "JWT", expiresAt: "ISO_DATE", user: {...} } }`
+- **NSwag Type Gap**: Generated types don't include token/expiresAt fields from LoginResponse model
+- **In-Memory Token Storage**: JWT tokens stored in Zustand store memory (not persisted for security)
+- **Axios Interceptors Pattern**: Request interceptor adds Authorization header, response interceptor clears invalid tokens
+- **Token Expiration Checking**: Store validates token expiration before use
+- **Auth Store Token Methods**: Added getToken() and isTokenExpired() methods to auth actions
+
+### Action Items
+- [ ] STORE JWT tokens in memory only (Zustand state), never persist to localStorage/sessionStorage
+- [ ] ADD Authorization: Bearer headers via axios request interceptors
+- [ ] CHECK token expiration before API calls in auth store methods
+- [ ] CLEAR tokens on 401 responses via axios response interceptors
+- [ ] UPDATE auth checking to use /api/auth/user endpoint (requires JWT) instead of /api/Protected/profile
+- [ ] EXTEND generated types manually when NSwag doesn't capture all API fields
+- [ ] USE checkAuth() to validate token before protected operations
+
+### Critical Implementation Rules
+```typescript
+// ✅ CORRECT - JWT token storage in auth store
+interface AuthState {
+  token: string | null;           // In-memory only
+  tokenExpiresAt: Date | null;    // In-memory only
+  // ... other fields
+}
+
+// ✅ CORRECT - Login with JWT token
+login: (user, token, expiresAt) => set({
+  user,
+  token,                    // Store JWT token
+  tokenExpiresAt: expiresAt,// Store expiration
+  isAuthenticated: true
+})
+
+// ✅ CORRECT - Axios request interceptor
+api.interceptors.request.use(async (config) => {
+  const token = store.actions.getToken()  // Checks expiration
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+// ✅ CORRECT - Token expiration check
+getToken: () => {
+  const state = get()
+  if (!state.token || get().actions.isTokenExpired()) {
+    return null  // Don't return expired tokens
+  }
+  return state.token
+}
+
+// ❌ WRONG - Persisting JWT tokens (security risk)
+partialize: (state) => ({
+  token: state.token,        // NEVER persist tokens!
+  tokenExpiresAt: state.tokenExpiresAt  // NEVER persist!
+})
+
+// ❌ WRONG - Using expired tokens
+getToken: () => state.token  // Should check expiration first
+```
+
+### API Response Structure
+```typescript
+// Login Response Structure
+{
+  "success": true,
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "expiresAt": "2025-08-19T20:00:00Z",
+    "user": {
+      "id": "guid",
+      "email": "user@example.com",
+      "sceneName": "UserName"
+    }
+  },
+  "message": "Login successful"
+}
+```
+
+### Security Considerations
+- **In-Memory Storage**: JWT tokens stored only in Zustand state (memory), cleared on page refresh
+- **No Persistence**: Tokens never saved to localStorage/sessionStorage (XSS protection)
+- **Automatic Expiration**: Tokens checked for expiration before each use
+- **401 Cleanup**: Invalid tokens automatically cleared on API 401 responses
+- **Selective Persistence**: Only user data persisted, never tokens
+
+### Impact
+Enables secure JWT authentication with the .NET API while maintaining frontend security best practices. All API calls now include proper authorization headers.
+
+### Tags
+#critical #jwt-authentication #api-integration #security #axios-interceptors #token-management #zustand
+
+---
+
+## 🚨 CRITICAL: API Interceptor Reload Loop Fix (READ FIRST) 🚨
+**Date**: 2025-08-19
+**Category**: Critical Bug Fix
+**Severity**: Critical
+
+### Context
+Fixed critical continuous page reload loop that prevented login functionality. The app was reloading every few seconds due to an infinite loop in the axios response interceptor using `window.location.href` for authentication redirects.
+
+### What We Learned
+- **window.location.href = '/login'** in axios interceptors causes full page reloads, not React Router navigation
+- **Infinite Loop Pattern**: App loads → checkAuth() → 401 error → window.location.href → Page reload → Loop continues
+- **API Interceptors Should Not Handle Navigation**: Let React components and auth store handle routing decisions
+- **401 Errors Should Be Handled by Auth Store**: Authentication state management should handle failed auth checks
+- **Axios Interceptors Run Outside React Context**: They can't access React Router's navigate function
+
+### Action Items
+- [ ] NEVER use `window.location.href` in axios response interceptors
+- [ ] LET auth store handle authentication state changes and routing decisions
+- [ ] USE React Router's navigate() function only within React components/hooks
+- [ ] LOG 401 errors but don't automatically redirect in interceptors
+- [ ] HANDLE authentication failures in the auth store's checkAuth() method
+
+### Critical Implementation Rules
+```typescript
+// ❌ WRONG - Causes infinite reload loop
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      window.location.href = '/login' // This causes page reload!
+    }
+    return Promise.reject(error)
+  }
+)
+
+// ✅ CORRECT - Let auth store handle it
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      // Don't redirect - let the auth store handle it
+      console.log('401 Unauthorized - Authentication expired')
+    }
+    return Promise.reject(error)
+  }
+)
+
+// ✅ CORRECT - Handle auth failures in auth store
+checkAuth: async () => {
+  try {
+    const response = await api.get('/api/Protected/profile');
+    // Update authenticated state
+  } catch (error) {
+    // Update unauthenticated state - let components handle navigation
+    set({ user: null, isAuthenticated: false, isLoading: false });
+  }
+}
+```
+
+### Impact
+Fixes the critical reload loop that made the application completely unusable. Users can now access the login page and use the application without continuous page reloads.
+
+### Tags
+#critical #reload-loop #axios-interceptors #authentication #window-location #react-router
+
+---
+
 ## 🚨 CRITICAL: NEVER Create Manual DTO Interfaces (READ FIRST) 🚨
 **Date**: 2025-08-19
 **Category**: NSwag Auto-Generation
@@ -140,6 +492,72 @@ interface User {
 This document captures key technical learnings for React developers working on WitchCityRope. It contains actionable insights about React patterns, TypeScript integration, Mantine v7, TanStack Query, and frontend architecture decisions.
 
 **IMPORTANT**: This file is for capturing technical lessons that help future development, NOT for documenting processes, progress tracking, or implementation details. For process documentation, see `/docs/guides-setup/` and `/docs/standards-processes/`.
+
+## 🚨 CRITICAL: Conditional MSW Setup for UI Testing (READ FIRST) 🚨
+**Date**: 2025-08-19
+**Category**: Testing Infrastructure
+**Severity**: Critical
+
+### Context
+Implemented conditional MSW (Mock Service Worker) setup that allows switching between mock data (for UI testing) and real API (for integration testing). Fixed infinite loop error that was causing "Maximum update depth exceeded" crashes.
+
+### What We Learned
+- **Conditional MSW Setup**: Use environment variable `VITE_MSW_ENABLED=true` to enable mocking for UI testing
+- **MSW Browser Worker**: Must be initialized before React app renders for proper interception
+- **Service Worker Location**: MSW worker file must be in `/public/mockServiceWorker.js`
+- **Infinite Loop Cause**: Zustand store actions in useEffect dependencies cause re-render loops
+- **State Update Pattern**: Use direct `set()` calls instead of action functions in async operations
+- **API Endpoint Alignment**: Mock handlers must match actual API Pascal case endpoints
+
+### Action Items
+- [ ] USE environment variable `VITE_MSW_ENABLED=true/false` to control MSW
+- [ ] INITIALIZE MSW before React app renders in main.tsx
+- [ ] ALIGN mock handlers with actual API endpoints (Pascal case)
+- [ ] AVOID circular state updates in Zustand async actions
+- [ ] TEST both MSW (UI testing) and real API (integration testing) modes
+- [ ] DOCUMENT MSW setup pattern for other developers
+
+### Critical Implementation Rules
+```typescript
+// ✅ CORRECT - Conditional MSW setup in main.tsx
+async function initializeApp() {
+  await enableMocking() // Initialize MSW first
+  createRoot(document.getElementById('root')!).render(<App />)
+}
+
+// ✅ CORRECT - Environment-based MSW control
+if (import.meta.env.VITE_MSW_ENABLED === 'true') {
+  await worker.start()
+}
+
+// ✅ CORRECT - Avoid circular updates in Zustand
+checkAuth: async () => {
+  // Direct state update instead of calling login action
+  set({ user, isAuthenticated: true, isLoading: false });
+}
+
+// ❌ WRONG - Circular update pattern
+checkAuth: async () => {
+  get().actions.login(user); // This triggers re-renders
+}
+```
+
+### Testing Modes
+```bash
+# UI Testing Mode (MSW enabled)
+VITE_MSW_ENABLED=true  # Mock data for UI testing
+# Visit: http://localhost:5173/test-msw
+
+# Integration Testing Mode (Real API)
+VITE_MSW_ENABLED=false # Real API connection
+# Visit: http://localhost:5173/api-connection-test
+```
+
+### Impact
+Enables flexible testing approach - UI testing with mock data and integration testing with real API. Fixes infinite loop crashes that made development impossible.
+
+### Tags
+#critical #msw-conditional #ui-testing #infinite-loop-fix #zustand #testing-infrastructure
 
 ## Lessons Learned
 

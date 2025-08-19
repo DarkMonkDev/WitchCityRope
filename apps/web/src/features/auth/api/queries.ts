@@ -3,29 +3,27 @@ import { api } from '../../../api/client'
 import type { UserDto } from '@witchcityrope/shared-types'
 
 // Response interfaces - temporary until full API coverage
-interface UserResponse {
+interface ApiResponse<T> {
   success: boolean
-  data: UserDto
+  data: T
+  message?: string
 }
 
-interface ProtectedWelcomeResponse {
-  success: boolean
-  data: {
-    message: string
-    user: UserDto
-    serverTime: string
-  }
+interface ProtectedWelcomeData {
+  message: string
+  user: UserDto
+  serverTime: string
 }
 
 /**
  * Query to fetch current authenticated user
- * Connects to /api/auth/user endpoint from vertical slice
+ * Connects to /api/auth/user endpoint (requires JWT token)
  */
 export function useCurrentUser() {
   return useQuery({
     queryKey: ['auth', 'user'],
     queryFn: async (): Promise<UserDto> => {
-      const response = await api.get<UserResponse>('/api/auth/user')
+      const response = await api.get<ApiResponse<UserDto>>('/api/auth/user')
       return response.data.data
     },
     staleTime: 5 * 60 * 1000, // Consider data stale after 5 minutes
@@ -40,13 +38,13 @@ export function useCurrentUser() {
 
 /**
  * Query to fetch protected welcome message
- * This endpoint requires JWT authentication via the Web Service proxy
+ * This endpoint requires JWT authentication
  */
 export function useProtectedWelcome() {
   return useQuery({
     queryKey: ['protected', 'welcome'],
-    queryFn: async (): Promise<ProtectedWelcomeResponse['data']> => {
-      const response = await api.get<ProtectedWelcomeResponse>('/api/protected/welcome')
+    queryFn: async (): Promise<ProtectedWelcomeData> => {
+      const response = await api.get<ApiResponse<ProtectedWelcomeData>>('/api/protected/welcome')
       return response.data.data
     },
     staleTime: 30 * 1000, // Consider data stale after 30 seconds

@@ -16,10 +16,11 @@ import './App.css'
 function App() {
   const { checkAuth } = useAuthActions();
 
-  // Check authentication status on app load
+  // Check authentication status on app load (only once)
   useEffect(() => {
     checkAuth();
-  }, [checkAuth]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array - auth check should only run once on mount
 
   return <RouterProvider router={router} />
 }

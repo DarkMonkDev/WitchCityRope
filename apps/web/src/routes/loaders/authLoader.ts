@@ -22,18 +22,31 @@ export async function authLoader({ request }: LoaderFunctionArgs) {
     // Set loading state
     actions.setLoading(true);
     
+    // Get JWT token for authentication
+    const token = actions.getToken();
+    if (!token) {
+      // No valid JWT token available
+      throw new Error('No valid token');
+    }
+    
     // Attempt to get current session from server
-    const response = await fetch('/api/auth/me', {
+    const response = await fetch('/api/auth/user', {
       credentials: 'include',
       headers: {
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
       }
     });
     
     if (response.ok) {
-      const userData = await response.json();
-      // Update auth store with valid user data
-      actions.login(userData);
+      const apiResponse = await response.json();
+      const userData = apiResponse.data || apiResponse;
+      
+      // User is authenticated via JWT token - update store with current user data
+      // Keep existing token since it's valid
+      const currentState = useAuthStore.getState();
+      
+      actions.login(userData, currentState.token!, currentState.tokenExpiresAt!);
       return { user: userData };
     }
   } catch (error) {

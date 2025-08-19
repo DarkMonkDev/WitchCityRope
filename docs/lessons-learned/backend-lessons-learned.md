@@ -52,6 +52,92 @@ DTO alignment strategy is MANDATORY for React migration project success. API DTO
 
 ---
 
+### Docker Environment Database Connection Resolution - 2025-08-19
+
+**Date**: 2025-08-19
+**Category**: DevOps
+**Severity**: Critical
+
+**Context**: Fixed database connection issues for full end-to-end testing by resolving Docker container build targets and package dependencies.
+
+**What We Learned**:
+- Package.json with non-existent dependencies breaks container builds and prevents proper testing
+- Docker multi-stage builds require explicit target specification in development
+- Connection string mismatches between appsettings.json and docker-compose.yml cause authentication failures
+- EF Core tools must be installed and PATH configured for container-based migrations
+
+**Action Items**: 
+- [ ] ALWAYS verify package.json dependencies exist before Docker builds
+- [ ] ALWAYS use development target for API containers: `docker build --target development`
+- [ ] ALWAYS ensure connection string consistency between appsettings and docker-compose
+- [ ] ALWAYS install dotnet-ef tools in development containers for migrations
+
+**Impact**: Achieved full end-to-end testing capability with working database connections, API authentication, and React integration.
+
+**Code Examples**:
+```bash
+# Correct development environment startup
+docker build --target development -t witchcityrope-react_api:latest ./apps/api
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+# Migration commands in containers
+docker exec witchcity-api bash -c "export PATH=\"\$PATH:/root/.dotnet/tools\" && dotnet ef database update"
+
+# Comprehensive health check
+curl -f http://localhost:5655/health && curl -f http://localhost:5173 && echo "✅ Full stack operational"
+```
+
+**References**: Docker Operations Guide, Entity Framework Patterns
+
+**Tags**: #docker #database #end-to-end-testing #migration #package-management
+
+---
+
+### Authentication Endpoint Pattern Implementation - 2025-08-19
+
+**Date**: 2025-08-19
+**Category**: Authentication
+**Severity**: Medium
+
+**Context**: Frontend React app expected `/api/auth/user` endpoint (without ID) but API only had `/api/auth/user/{id}` which required ID parameter. Frontend authentication flow failed with 404 errors.
+
+**What We Learned**:
+- Authentication endpoints must match frontend expectations exactly
+- JWT token extraction pattern works consistently across controllers
+- `[Authorize]` attribute with JWT Bearer authentication handles token validation automatically
+- User claims extraction using "sub" claim or ClaimTypes.NameIdentifier provides backward compatibility
+- Error handling should distinguish between invalid tokens (401) and missing users (404)
+
+**Action Items**: 
+- [ ] ALWAYS implement `/api/auth/user` endpoint (no ID) for JWT-authenticated current user retrieval
+- [ ] ALWAYS use consistent JWT claim extraction pattern: `User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value`
+- [ ] ALWAYS add proper logging for authentication debugging
+- [ ] ALWAYS return 401 for authentication issues, 404 for missing users
+
+**Impact**: Fixed React frontend authentication by providing the expected endpoint pattern, enabling complete authentication flow.
+
+**Code Example**:
+```csharp
+[HttpGet("user")]
+[Authorize] // JWT Bearer token required
+public async Task<IActionResult> GetCurrentUser()
+{
+    var userId = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    if (string.IsNullOrEmpty(userId))
+        return Unauthorized(new ApiResponse<object> { Success = false, Error = "Invalid token" });
+    
+    var user = await _authService.GetUserByIdAsync(userId);
+    return user != null ? Ok(new ApiResponse<UserDto> { Success = true, Data = user }) 
+                       : NotFound(new ApiResponse<object> { Success = false, Error = "User not found" });
+}
+```
+
+**References**: AuthController.cs, ProtectedController.cs JWT patterns
+
+**Tags**: #authentication #jwt #endpoints #frontend-integration #react
+
+---
+
 # Backend Lessons Learned
 
 This file captures key learnings for backend development in the WitchCityRope project. Focus on actionable insights for C# .NET API development, database integration, and authentication patterns.

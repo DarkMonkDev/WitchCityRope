@@ -15,7 +15,7 @@ import React, { useEffect } from 'react';
 import { createBrowserRouter, RouterProvider, Outlet, useRouteError, isRouteErrorResponse, Link } from 'react-router-dom';
 import { LoaderFunctionArgs, redirect } from 'react-router-dom';
 import { AppShell, Box, Group, Button, Text, Title, Paper, Loader } from '@mantine/core';
-import { useAuth, useAuthActions } from './stores/authStore';
+import { useUser, useIsAuthenticated, useAuthActions } from './stores/authStore';
 
 // Simple HomePage component
 const HomePage: React.FC = () => (
@@ -46,7 +46,9 @@ const LoginPage: React.FC = () => {
       createdAt: '2025-08-19T10:00:00Z',
       lastLoginAt: '2025-08-19T10:00:00Z'
     };
-    login(mockUser);
+    const mockToken = 'test-jwt-token';
+    const mockExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
+    login(mockUser, mockToken, mockExpiresAt);
     
     // In real app, would redirect based on returnTo parameter
     window.location.href = '/dashboard';
@@ -67,7 +69,7 @@ const LoginPage: React.FC = () => {
 
 // Dashboard component (protected)
 const DashboardPage: React.FC = () => {
-  const { user } = useAuth();
+  const user = useUser();
   const { logout } = useAuthActions();
 
   const handleLogout = () => {
@@ -100,7 +102,8 @@ const DashboardPage: React.FC = () => {
 
 // Navigation component
 const Navigation: React.FC = () => {
-  const { user, isAuthenticated } = useAuth();
+  const user = useUser();
+  const isAuthenticated = useIsAuthenticated();
   const { logout } = useAuthActions();
 
   const handleLogout = () => {
@@ -278,7 +281,8 @@ const TestApp: React.FC = () => {
     checkAuth().catch(() => {
       // Ignore errors in test mode
     });
-  }, [checkAuth]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array - auth check should only run once on mount
 
   return <RouterProvider router={testRouter} />;
 };

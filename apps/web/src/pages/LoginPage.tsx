@@ -17,7 +17,7 @@ import {
 } from '@mantine/core'
 import { IconAlertCircle } from '@tabler/icons-react'
 import { useLogin } from '../features/auth/api/mutations'
-import { useAuth } from '../stores/authStore'
+import { useIsAuthenticated } from '../stores/authStore'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email format'),
@@ -28,7 +28,7 @@ type LoginFormData = z.infer<typeof loginSchema>
 
 export const LoginPage: React.FC = () => {
   const location = useLocation()
-  const { isAuthenticated } = useAuth()
+  const isAuthenticated = useIsAuthenticated();
   const loginMutation = useLogin()
 
   // Mantine form with Zod validation

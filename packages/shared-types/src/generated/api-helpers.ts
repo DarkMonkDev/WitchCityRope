@@ -34,7 +34,7 @@ export type EventType = schemas['EventType'];
 export type EventStatus = schemas['EventStatus'];
 
 // API operation types
-export type GetCurrentUserResponse = ApiResponse<'/api/auth/me', 'get'>;
+export type GetCurrentUserResponse = ApiResponse<'/api/auth/user', 'get'>;
 export type LoginApiRequest = ApiRequestBody<'/api/auth/login', 'post'>;
 export type LoginApiResponse = ApiResponse<'/api/auth/login', 'post'>;
 export type GetEventsResponse = ApiResponse<'/api/events', 'get'>;

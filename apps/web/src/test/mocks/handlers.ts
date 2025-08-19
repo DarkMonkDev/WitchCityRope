@@ -17,82 +17,71 @@ type UserDto = {
 }
 
 export const handlers = [
-  // Authentication - Aligned with NSwag generated UserDto structure
-  // Primary API port (5651) - Auth endpoints
-  http.get('http://localhost:5651/api/auth/me', () => {
+  // Authentication - Pascal case endpoints matching actual API
+  // Mock the actual API endpoint that auth store calls: /api/Protected/profile
+  http.get('/api/Protected/profile', () => {
     return HttpResponse.json({
-      success: true,
-      data: {
-        id: '1',
-        email: 'admin@witchcityrope.com',
-        sceneName: 'TestAdmin',
-        firstName: null,
-        lastName: null,
-        roles: ['Admin'],
-        isActive: true,
-        createdAt: '2025-08-19T00:00:00Z',
-        updatedAt: '2025-08-19T10:00:00Z',
-        lastLoginAt: '2025-08-19T10:00:00Z'
-      } as UserDto
-    })
+      id: '1',
+      email: 'admin@witchcityrope.com',
+      sceneName: 'TestAdmin',
+      firstName: null,
+      lastName: null,
+      roles: ['Admin'],
+      isActive: true,
+      createdAt: '2025-08-19T00:00:00Z',
+      updatedAt: '2025-08-19T10:00:00Z',
+      lastLoginAt: '2025-08-19T10:00:00Z'
+    } as UserDto)
   }),
 
-  // Auth store is using /api/auth/user - add handler for this endpoint
-  http.get('http://localhost:5651/api/auth/user', () => {
+  // Support absolute URLs for profile endpoint
+  http.get('http://localhost:5653/api/Protected/profile', () => {
     return HttpResponse.json({
-      success: true,
-      data: {
-        id: '1',
-        email: 'admin@witchcityrope.com',
-        sceneName: 'TestAdmin',
-        firstName: null,
-        lastName: null,
-        roles: ['Admin'],
-        isActive: true,
-        createdAt: '2025-08-19T00:00:00Z',
-        updatedAt: '2025-08-19T10:00:00Z',
-        lastLoginAt: '2025-08-19T10:00:00Z'
-      } as UserDto
-    })
+      id: '1',
+      email: 'admin@witchcityrope.com',
+      sceneName: 'TestAdmin',
+      firstName: null,
+      lastName: null,
+      roles: ['Admin'],
+      isActive: true,
+      createdAt: '2025-08-19T00:00:00Z',
+      updatedAt: '2025-08-19T10:00:00Z',
+      lastLoginAt: '2025-08-19T10:00:00Z'
+    } as UserDto)
   }),
 
-  // Support legacy 5655 port (main API)
-  http.get('http://localhost:5655/api/auth/me', () => {
+  http.get('http://localhost:5655/api/Protected/profile', () => {
     return HttpResponse.json({
-      success: true,
-      data: {
-        id: '1',
-        email: 'admin@witchcityrope.com',
-        sceneName: 'TestAdmin',
-        firstName: null,
-        lastName: null,
-        roles: ['Admin'],
-        isActive: true,
-        createdAt: '2025-08-19T00:00:00Z',
-        updatedAt: '2025-08-19T10:00:00Z',
-        lastLoginAt: '2025-08-19T10:00:00Z'
-      } as UserDto
-    })
+      id: '1',
+      email: 'admin@witchcityrope.com',
+      sceneName: 'TestAdmin',
+      firstName: null,
+      lastName: null,
+      roles: ['Admin'],
+      isActive: true,
+      createdAt: '2025-08-19T00:00:00Z',
+      updatedAt: '2025-08-19T10:00:00Z',
+      lastLoginAt: '2025-08-19T10:00:00Z'
+    } as UserDto)
   }),
 
-  // Logout endpoints - align with correct ports
-  http.post('http://localhost:5651/api/auth/logout', () => {
+  // Logout endpoints - Pascal case to match actual API
+  http.post('/api/Auth/logout', () => {
     return new HttpResponse(null, { status: 204 })
   }),
 
-  http.post('http://localhost:5655/api/auth/logout', () => {
+  http.post('http://localhost:5653/api/Auth/logout', () => {
     return new HttpResponse(null, { status: 204 })
   }),
 
-  // Add handler for relative path as well
-  http.post('/api/auth/logout', () => {
+  http.post('http://localhost:5655/api/Auth/logout', () => {
     return new HttpResponse(null, { status: 204 })
   }),
 
-  // Login endpoints - align with NSwag LoginResponse structure
-  http.post('http://localhost:5651/api/auth/login', async ({ request }) => {
+  // Login endpoints - Pascal case with proper LoginResponse structure
+  http.post('/api/Auth/login', async ({ request }) => {
     const body = await request.json() as any
-    if (body.email === 'admin@witchcityrope.com') {
+    if (body.email === 'admin@witchcityrope.com' && body.password === 'Test123!') {
       return HttpResponse.json({
         success: true,
         user: {
@@ -110,12 +99,14 @@ export const handlers = [
         message: 'Login successful'
       })
     }
-    return new HttpResponse(null, { status: 401 })
+    return HttpResponse.json({
+      error: 'Invalid credentials'
+    }, { status: 401 })
   }),
 
-  http.post('http://localhost:5655/api/auth/login', async ({ request }) => {
+  http.post('http://localhost:5653/api/Auth/login', async ({ request }) => {
     const body = await request.json() as any
-    if (body.email === 'admin@witchcityrope.com') {
+    if (body.email === 'admin@witchcityrope.com' && body.password === 'Test123!') {
       return HttpResponse.json({
         success: true,
         user: {
@@ -133,7 +124,34 @@ export const handlers = [
         message: 'Login successful'
       })
     }
-    return new HttpResponse(null, { status: 401 })
+    return HttpResponse.json({
+      error: 'Invalid credentials'
+    }, { status: 401 })
+  }),
+
+  http.post('http://localhost:5655/api/Auth/login', async ({ request }) => {
+    const body = await request.json() as any
+    if (body.email === 'admin@witchcityrope.com' && body.password === 'Test123!') {
+      return HttpResponse.json({
+        success: true,
+        user: {
+          id: '1',
+          email: body.email as string,
+          sceneName: 'TestAdmin',
+          firstName: null,
+          lastName: null,
+          roles: ['Admin'],
+          isActive: true,
+          createdAt: '2025-08-19T00:00:00Z',
+          updatedAt: '2025-08-19T10:00:00Z',
+          lastLoginAt: '2025-08-19T10:00:00Z'
+        } as UserDto,
+        message: 'Login successful'
+      })
+    }
+    return HttpResponse.json({
+      error: 'Invalid credentials'
+    }, { status: 401 })
   }),
 
   // Auth refresh endpoint for interceptor

@@ -1,6 +1,6 @@
 import { useLoaderData } from 'react-router-dom';
 import { Box, Title, Text, Paper, Group, Button } from '@mantine/core';
-import { useAuth } from '../stores/authStore';
+import { useUser, useIsAuthenticated } from '../stores/authStore';
 import { useLogout } from '../features/auth/api/mutations';
 import type { UserDto } from '@witchcityrope/shared-types';
 
@@ -13,7 +13,8 @@ import type { UserDto } from '@witchcityrope/shared-types';
  */
 export const DashboardPage: React.FC = () => {
   const loaderData = useLoaderData() as { user: UserDto };
-  const { user, isAuthenticated } = useAuth();
+  const user = useUser();
+  const isAuthenticated = useIsAuthenticated();
   const logoutMutation = useLogout();
 
   // Use the most current user data (store may be more up-to-date than loader)

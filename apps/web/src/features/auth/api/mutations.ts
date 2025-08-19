@@ -8,6 +8,20 @@ import type {
   LoginResponse
 } from '@witchcityrope/shared-types'
 
+// Extended LoginResponse with JWT token fields (until NSwag is updated)
+interface LoginResponseWithToken {
+  token: string;
+  expiresAt: string;
+  user: UserDto;
+}
+
+// API Response wrapper
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+}
+
 // Registration credentials interface - not generated yet, create locally
 export interface RegisterCredentials {
   email: string
@@ -26,17 +40,20 @@ export function useLogin() {
   const navigate = useNavigate()
   
   return useMutation({
-    mutationFn: async (credentials: LoginRequest): Promise<LoginResponse> => {
-      const response = await api.post('/api/auth/login', credentials)
+    mutationFn: async (credentials: LoginRequest): Promise<ApiResponse<LoginResponseWithToken>> => {
+      const response = await api.post('/api/Auth/login', credentials)
       return response.data
     },
     onSuccess: (response, variables, context) => {
       // Handle nested response structure from API
-      // The API returns { success: true, user: { ...user }, message: "..." }
-      const userData = response.user
+      // The API returns { success: true, data: { token: '...', expiresAt: '...', user: {...} }, message: '...' }
+      const { data } = response
+      const userData = data.user
+      const token = data.token
+      const expiresAt = new Date(data.expiresAt)
       
-      // Update Zustand store with user data
-      login(userData)
+      // Update Zustand store with user data and JWT token
+      login(userData, token, expiresAt)
       
       // Invalidate any user-related queries (if they exist)
       queryClient.invalidateQueries({ queryKey: ['user'] })
@@ -66,23 +83,18 @@ export function useRegister() {
   const navigate = useNavigate()
   
   return useMutation({
-    mutationFn: async (credentials: RegisterCredentials): Promise<LoginResponse> => {
-      const response = await api.post('/api/auth/register', credentials)
+    mutationFn: async (credentials: RegisterCredentials): Promise<ApiResponse<UserDto>> => {
+      const response = await api.post('/api/Auth/register', credentials)
       return response.data
     },
     onSuccess: (response) => {
       // Handle nested response structure from API
-      const userData = response.user
+      // Registration doesn't return JWT token - user needs to login
+      // Just navigate to login page with success message
+      const userData = response.data
       
-      // Update Zustand store with user data
-      login(userData)
-      
-      // Invalidate any user-related queries
-      queryClient.invalidateQueries({ queryKey: ['user'] })
-      queryClient.invalidateQueries({ queryKey: ['auth'] })
-      
-      // Navigate to dashboard after registration
-      navigate('/dashboard', { replace: true })
+      // Navigate to login page after successful registration
+      navigate('/login?message=Registration successful. Please log in.', { replace: true })
     },
     onError: (error) => {
       console.error('Registration failed:', error)
@@ -103,7 +115,7 @@ export function useLogout() {
   
   return useMutation({
     mutationFn: async (_?: void): Promise<void> => {
-      await api.post('/api/auth/logout')
+      await api.post('/api/Auth/logout')
     },
     onSuccess: () => {
       // Update Zustand store (clear auth state)

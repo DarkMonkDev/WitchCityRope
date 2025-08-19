@@ -3,6 +3,10 @@ import { useAuthStore, type UserDto } from '../authStore';
 
 const mockFetch = vi.fn() as MockedFunction<typeof fetch>;
 
+// Mock JWT token data
+const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_token_payload';
+const mockExpiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+
 describe('AuthStore', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -36,7 +40,7 @@ describe('AuthStore', () => {
     it('should update state correctly on login', () => {
       const { actions } = useAuthStore.getState();
       
-      actions.login(mockUser);
+      actions.login(mockUser, mockToken, mockExpiresAt);
       
       const state = useAuthStore.getState();
       expect(state.isAuthenticated).toBe(true);
@@ -52,7 +56,7 @@ describe('AuthStore', () => {
       };
       
       const { actions } = useAuthStore.getState();
-      actions.login(userWithDifferentName);
+      actions.login(userWithDifferentName, mockToken, mockExpiresAt);
       
       const state = useAuthStore.getState();
       expect(state.user?.sceneName).toBe('RopeEnthusiast42');
@@ -64,7 +68,7 @@ describe('AuthStore', () => {
     it('should clear state', () => {
       // Setup authenticated state
       const { actions } = useAuthStore.getState();
-      actions.login(mockUser);
+      actions.login(mockUser, mockToken, mockExpiresAt);
       
       // Verify initial authenticated state
       expect(useAuthStore.getState().isAuthenticated).toBe(true);
@@ -90,7 +94,7 @@ describe('AuthStore', () => {
       const { actions } = useAuthStore.getState();
       
       // Setup authenticated state
-      actions.login(mockUser);
+      actions.login(mockUser, mockToken, mockExpiresAt);
       
       // Update user with new scene name
       actions.updateUser({ sceneName: 'UpdatedSceneName' });
@@ -218,7 +222,7 @@ describe('AuthStore', () => {
   describe('store state access', () => {
     it('should provide correct state values', () => {
       const { actions } = useAuthStore.getState();
-      actions.login(mockUser);
+      actions.login(mockUser, mockToken, mockExpiresAt);
       
       // Test direct state access
       const state = useAuthStore.getState();
@@ -234,7 +238,7 @@ describe('AuthStore', () => {
   describe('selector hooks', () => {
     it('should provide scene name via direct state access', () => {
       const { actions } = useAuthStore.getState();
-      actions.login(mockUser);
+      actions.login(mockUser, mockToken, mockExpiresAt);
       
       // Test selector function directly with state
       const state = useAuthStore.getState();

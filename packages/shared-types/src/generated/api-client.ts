@@ -82,7 +82,7 @@ class ApiClient {
 
   // Auth endpoints
   async getCurrentUser(): Promise<UserDto> {
-    return this.request<UserDto>('/api/auth/me');
+    return this.request<UserDto>('/api/auth/user');
   }
 
   async login(credentials: LoginRequest): Promise<LoginResponse> {

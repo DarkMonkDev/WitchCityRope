@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using WitchCityRope.Api.Models.Auth;
 using WitchCityRope.Api.Services;
 
@@ -123,7 +124,68 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Get current user information (requires authentication)
+    /// Get current authenticated user information (requires JWT token)
+    /// Extracts user ID from JWT token in Authorization header
+    /// </summary>
+    /// <returns>Current user data</returns>
+    [HttpGet("user")]
+    [Authorize] // Requires JWT Bearer token authentication
+    [ProducesResponseType(typeof(ApiResponse<UserDto>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<object>), 401)]
+    [ProducesResponseType(typeof(ApiResponse<object>), 404)]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        try
+        {
+            // Extract user ID from JWT token claims
+            // JWT uses "sub" claim for user ID
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogWarning("Auth user endpoint accessed without valid user ID claim");
+                return Unauthorized(new ApiResponse<object>
+                {
+                    Success = false,
+                    Error = "Invalid token",
+                    Details = "User ID not found in token claims"
+                });
+            }
+
+            var user = await _authService.GetUserByIdAsync(userId);
+
+            if (user != null)
+            {
+                _logger.LogDebug("Current user retrieved successfully: {UserId} ({SceneName})", userId, user.SceneName);
+                return Ok(new ApiResponse<UserDto>
+                {
+                    Success = true,
+                    Data = user
+                });
+            }
+
+            _logger.LogWarning("Auth user endpoint accessed with token for non-existent user: {UserId}", userId);
+            return NotFound(new ApiResponse<object>
+            {
+                Success = false,
+                Error = "User not found",
+                Details = "Token is valid but user no longer exists"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving current user information");
+            return StatusCode(500, new ApiResponse<object>
+            {
+                Success = false,
+                Error = "Internal server error",
+                Details = "An error occurred retrieving your information"
+            });
+        }
+    }
+
+    /// <summary>
+    /// Get user information by ID (requires authentication)
     /// Note: This is a placeholder for cookie-based authentication
     /// In real implementation, this would validate HttpOnly cookies
     /// </summary>

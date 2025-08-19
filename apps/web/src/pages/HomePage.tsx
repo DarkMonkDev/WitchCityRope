@@ -1,19 +1,34 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { EventsList } from '../components/EventsList'
-import { useAuth } from '../stores/authStore'
+import { useUser, useIsAuthenticated } from '../stores/authStore'
 
 export const HomePage: React.FC = () => {
-  const { isAuthenticated, user } = useAuth()
+  const user = useUser();
+  const isAuthenticated = useIsAuthenticated();
 
   return (
     <div className="py-8">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">WitchCityRope Events</h1>
         <h2 className="text-xl text-slate-300 mb-1">Technical Stack Test</h2>
-        <p className="text-sm text-slate-400 mb-4">
+        <p className="text-sm text-slate-400 mb-2">
           This is throwaway code for validating React + API + Database communication
         </p>
+        <div className="space-x-3 mb-4">
+          <Link
+            to="/api-connection-test"
+            className="inline-block bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors"
+          >
+            🔗 Test Real API Connection
+          </Link>
+          <Link
+            to="/test-msw"
+            className="inline-block bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-sm transition-colors"
+          >
+            🧪 Test MSW Mocking
+          </Link>
+        </div>
 
         {/* Authentication Status Banner */}
         <div className="max-w-md mx-auto mb-6">

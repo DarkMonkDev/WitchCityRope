@@ -8,6 +8,10 @@ import { useLogin, useLogout } from '../../features/auth/api/mutations'
 
 // Mock global fetch for auth store calls
 const mockFetch = vi.fn()
+
+// Mock JWT token data for tests
+const mockToken = 'test-jwt-token';
+const mockExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
 global.fetch = mockFetch
 
 // Mock React Router hooks
@@ -167,7 +171,7 @@ describe('Authentication Flow Integration Tests', () => {
         email: 'admin@witchcityrope.com',
         sceneName: 'TestAdmin',
         roles: ['Admin'],
-      })
+      }, mockToken, mockExpiresAt)
     })
 
     it('should complete logout flow from mutation to store to navigation', async () => {
@@ -261,7 +265,7 @@ describe('Authentication Flow Integration Tests', () => {
         lastName: 'Admin',
         sceneName: 'TestAdmin',
         roles: ['Admin'],
-      })
+      }, mockToken, mockExpiresAt)
 
       const clearSpy = vi.spyOn(queryClient, 'clear')
 
@@ -381,7 +385,7 @@ describe('Authentication Flow Integration Tests', () => {
         lastName: 'Member',
         sceneName: 'TestMember',
         roles: ['GeneralMember'],
-      })
+      }, mockToken, mockExpiresAt)
 
       let authState = useAuthStore.getState()
       // expect(authState.permissions).toEqual(['read', 'register_events'])
@@ -452,7 +456,7 @@ describe('Authentication Flow Integration Tests', () => {
         email: 'admin@witchcityrope.com',
         sceneName: 'TestAdmin',
         roles: ['Admin'],
-      })
+      }, mockToken, mockExpiresAt)
 
       // Verify lastAuthCheck is set
       expect(useAuthStore.getState().lastAuthCheck).toBeInstanceOf(Date)

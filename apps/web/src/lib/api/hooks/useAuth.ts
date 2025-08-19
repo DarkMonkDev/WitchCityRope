@@ -20,7 +20,7 @@ export function useCurrentUser(enabled: boolean = true) {
         return data.data || (data as any).user // Handle both response formats
       } catch (error) {
         // Fallback to dedicated user endpoint
-        const { data } = await apiClient.get<ApiResponse<UserDto>>('/api/auth/me')
+        const { data } = await apiClient.get<ApiResponse<UserDto>>('/api/auth/user')
         if (!data.data) throw new Error('User not found')
         return data.data
       }

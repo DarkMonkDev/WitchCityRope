@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../stores/authStore';
+import { useUser, useIsAuthenticated, useIsLoading } from '../../stores/authStore';
 import { Loader, Box, Text } from '@mantine/core';
 
 interface ProtectedRouteProps {
@@ -25,7 +25,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredRole,
   fallback 
 }) => {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const user = useUser();
+  const isAuthenticated = useIsAuthenticated();
+  const isLoading = useIsLoading();
   const location = useLocation();
 
   // Show loading state while checking authentication

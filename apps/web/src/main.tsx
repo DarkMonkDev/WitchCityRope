@@ -10,15 +10,24 @@ import './index.css'
 import App from './App.tsx'
 import { wcrTheme } from './theme'
 import { queryClient } from './lib/api/queryClient'
+import { enableMocking } from './mocks'
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <MantineProvider theme={wcrTheme}>
-        <Notifications />
-        <App />
-        <ReactQueryDevtools initialIsOpen={false} />
-      </MantineProvider>
-    </QueryClientProvider>
-  </StrictMode>
-)
+async function initializeApp() {
+  // Initialize MSW for UI testing if enabled
+  await enableMocking()
+  
+  // Render the React app
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <MantineProvider theme={wcrTheme}>
+          <Notifications />
+          <App />
+          <ReactQueryDevtools initialIsOpen={false} />
+        </MantineProvider>
+      </QueryClientProvider>
+    </StrictMode>
+  )
+}
+
+initializeApp().catch(console.error)

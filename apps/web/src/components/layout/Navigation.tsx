@@ -1,13 +1,14 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Group, Button, Text, Box } from '@mantine/core';
-import { useAuth, useAuthActions } from '../../stores/authStore';
+import { useUser, useIsAuthenticated, useAuthActions } from '../../stores/authStore';
 
 /**
  * Navigation Component using Mantine components
  * Integrated with Zustand auth store for authentication state
  */
 export const Navigation: React.FC = () => {
-  const { user, isAuthenticated } = useAuth();
+  const user = useUser();
+  const isAuthenticated = useIsAuthenticated();
   const { logout } = useAuthActions();
   const navigate = useNavigate();
 
@@ -58,6 +59,10 @@ export const Navigation: React.FC = () => {
           
           <Text component={Link} to="/api-validation-v2-simple" c="dimmed" style={{ textDecoration: 'none' }}>
             API Demo
+          </Text>
+          
+          <Text component={Link} to="/api-connection-test" c="dimmed" style={{ textDecoration: 'none' }}>
+            API Test
           </Text>
         </Group>
 
