@@ -1,6 +1,7 @@
 import { useLoaderData } from 'react-router-dom';
 import { Box, Title, Text, Paper, Group, Button } from '@mantine/core';
-import { useAuth, useAuthActions } from '../stores/authStore';
+import { useAuth } from '../stores/authStore';
+import { useLogout } from '../features/auth/api/mutations';
 import type { User } from '../stores/authStore';
 
 /**
@@ -13,17 +14,13 @@ import type { User } from '../stores/authStore';
 export const DashboardPage: React.FC = () => {
   const loaderData = useLoaderData() as { user: User };
   const { user, isAuthenticated } = useAuth();
-  const { logout } = useAuthActions();
+  const logoutMutation = useLogout();
 
   // Use the most current user data (store may be more up-to-date than loader)
   const currentUser = user || loaderData.user;
 
-  const handleLogout = async () => {
-    try {
-      logout();
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
+  const handleLogout = () => {
+    logoutMutation.mutate();
   };
 
   return (
@@ -85,8 +82,9 @@ export const DashboardPage: React.FC = () => {
             variant="filled" 
             color="red"
             onClick={handleLogout}
+            loading={logoutMutation.isPending}
           >
-            Logout
+            {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
           </Button>
         </Group>
       </Paper>

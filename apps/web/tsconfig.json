@@ -9,7 +9,7 @@
     "skipLibCheck": true,
     
     /* Module Resolution */
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,

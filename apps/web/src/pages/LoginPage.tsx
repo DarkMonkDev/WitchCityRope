@@ -1,9 +1,23 @@
-import React, { useState } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import React, { useEffect } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { useForm } from '@mantine/form'
+import { zodResolver } from 'mantine-form-zod-resolver'
 import { z } from 'zod'
-import { useAuth } from '../hooks/useAuth'
+import {
+  Container,
+  Paper,
+  Title,
+  TextInput,
+  PasswordInput,
+  Button,
+  Text,
+  Alert,
+  Group,
+  Stack
+} from '@mantine/core'
+import { IconAlertCircle } from '@tabler/icons-react'
+import { useLogin } from '../features/auth/api/mutations'
+import { useAuth } from '../stores/authStore'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email format'),
@@ -13,107 +27,94 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>
 
 export const LoginPage: React.FC = () => {
-  const navigate = useNavigate()
   const location = useLocation()
-  const { login, error, clearError } = useAuth()
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { isAuthenticated } = useAuth()
+  const loginMutation = useLogin()
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  // Mantine form with Zod validation
+  const form = useForm<LoginFormData>({
+    mode: 'uncontrolled',
+    validate: zodResolver(loginSchema),
+    initialValues: {
+      email: '',
+      password: '',
+    },
   })
 
-  const onSubmit = async (data: LoginFormData) => {
-    try {
-      setIsSubmitting(true)
-      clearError()
-      await login(data)
-
-      // Redirect to the page they were trying to visit or to welcome page
-      const from = location.state?.from?.pathname || '/welcome'
-      navigate(from, { replace: true })
-    } catch {
-      // Error is handled by AuthContext
-    } finally {
-      setIsSubmitting(false)
+  // If already authenticated, the mutation will handle navigation
+  useEffect(() => {
+    if (isAuthenticated) {
+      const urlParams = new URLSearchParams(location.search)
+      const returnTo = urlParams.get('returnTo') || '/dashboard'
+      window.location.href = returnTo
     }
+  }, [isAuthenticated, location.search])
+
+  const handleSubmit = (values: LoginFormData) => {
+    loginMutation.mutate(values)
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-slate-800 rounded-lg shadow-lg p-8">
-          <h1 className="text-2xl font-bold text-purple-400 text-center mb-6">
-            Login to WitchCityRope
-          </h1>
+    <Container size={420} my={40}>
+      <Title ta="center" c="wcr.6" fw={900}>
+        Welcome to WitchCityRope
+      </Title>
+      <Text c="dimmed" size="sm" ta="center" mt={5}>
+        Don't have an account yet?{' '}
+        <Link to="/register" style={{ color: 'var(--mantine-color-wcr-6)' }}>
+          Create account
+        </Link>
+      </Text>
 
-          <form onSubmit={handleSubmit(onSubmit)} data-testid="login-form">
-            {error && (
-              <div
-                className="bg-red-500/20 border border-red-500 text-red-200 px-4 py-3 rounded mb-4"
+      <Paper withBorder shadow="md" p={30} mt={30} radius="md">
+        <form onSubmit={form.onSubmit(handleSubmit)} data-testid="login-form">
+          <Stack gap="md">
+            {loginMutation.error && (
+              <Alert
+                icon={<IconAlertCircle size="1rem" />}
+                color="red"
                 data-testid="login-error"
               >
-                {error}
-              </div>
+                {loginMutation.error.message || 'Login failed. Please try again.'}
+              </Alert>
             )}
 
-            <div className="mb-4">
-              <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-1">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                className="w-full px-3 py-2 border border-slate-600 rounded-md bg-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                data-testid="email-input"
-                {...register('email')}
-              />
-              {errors.email && <p className="text-red-400 text-sm mt-1">{errors.email.message}</p>}
-            </div>
+            <TextInput
+              label="Email"
+              placeholder="your@email.com"
+              required
+              data-testid="email-input"
+              key={form.key('email')}
+              {...form.getInputProps('email')}
+            />
 
-            <div className="mb-6">
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-1">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                className="w-full px-3 py-2 border border-slate-600 rounded-md bg-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                data-testid="password-input"
-                {...register('password')}
-              />
-              {errors.password && (
-                <p className="text-red-400 text-sm mt-1">{errors.password.message}</p>
-              )}
-            </div>
+            <PasswordInput
+              label="Password"
+              placeholder="Your password"
+              required
+              data-testid="password-input"
+              key={form.key('password')}
+              {...form.getInputProps('password')}
+            />
 
-            <button
+            <Button
               type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-md transition-colors"
+              fullWidth
+              loading={loginMutation.isPending}
+              color="wcr.6"
               data-testid="login-button"
             >
-              {isSubmitting ? 'Logging in...' : 'Login'}
-            </button>
-          </form>
+              {loginMutation.isPending ? 'Logging in...' : 'Login'}
+            </Button>
+          </Stack>
+        </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-slate-400">
-              Don't have an account?{' '}
-              <Link
-                to="/register"
-                className="text-purple-400 hover:text-purple-300 transition-colors"
-                data-testid="register-link"
-              >
-                Register here
-              </Link>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+        <Group justify="center" mt="lg">
+          <Text size="sm" c="dimmed">
+            Test Account: admin@witchcityrope.com / Test123!
+          </Text>
+        </Group>
+      </Paper>
+    </Container>
   )
 }
