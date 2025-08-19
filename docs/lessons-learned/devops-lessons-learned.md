@@ -188,6 +188,101 @@ EOF
 
 **Result**: Clean commit with 56 files changed, 4091 insertions, 4857 deletions, comprehensive milestone documentation
 
+### NSwag Architectural Implementation Commit Pattern
+
+**Success Pattern**: Major architectural improvement with comprehensive type generation pipeline
+```bash
+# Stage core NSwag package first
+git add ../../packages/shared-types/
+
+# Stage package configuration changes
+git add ../../package.json ../../package-lock.json package.json
+
+# Stage all files updated to use generated types
+git add src/lib/api/types/ src/types/api.types.ts src/features/*/api/ src/services/ src/stores/ src/contexts/AuthContext.tsx
+
+# Stage test and page updates
+git add src/pages/ApiValidationV2.tsx src/pages/DashboardPage.tsx src/test/
+
+# Stage all documentation updates
+git add ../../docs/architecture/ ../../docs/guides-setup/ ../../docs/lessons-learned/ ../../docs/standards-processes/
+
+# Stage project documentation
+git add ../../docs/00-START-HERE.md ../../NSWAG_IMPLEMENTATION_SUMMARY.md
+
+# Use comprehensive HEREDOC commit message
+git commit -m "$(cat <<'EOF'
+feat(arch): Implement NSwag pipeline for automated TypeScript type generation from API
+
+MAJOR ARCHITECTURAL IMPROVEMENT: Eliminated manual DTO maintenance and type mismatches
+
+Core NSwag Implementation:
+- Created packages/shared-types with complete NSwag pipeline and scripts
+- Auto-generates TypeScript types from OpenAPI/Swagger specifications
+- Provides type-safe API client generation with proper error handling
+- Includes versioning and post-processing for customization
+- Supports both development and production build scenarios
+
+Type Synchronization Achieved:
+- Removed manual User and LoginCredentials interfaces that caused mismatches
+- Updated 15+ files to use generated types from @witchcityrope/shared-types
+- Eliminated frontend/backend DTO discrepancies that caused debugging sessions
+- All API calls now use auto-generated, synchronized types
+
+Files Updated for Generated Types:
+- Auth system: contexts, stores, services, mutations, queries
+- Member system: mutations and queries updated
+- Test infrastructure: mocks and integration tests aligned
+- API client: centralized type imports and proper error handling
+- Type definitions: consolidated under generated types
+
+Architecture Discovery Process:
+- Added mandatory architecture discovery process documentation
+- Prevents future misses of existing solutions like NSwag
+- Requires checking for architectural patterns before custom solutions
+- Updated agent lessons learned with mandatory discovery checks
+
+Documentation and Guides:
+- Added DTO Quick Reference for developers
+- Created NSwag Quick Guide for maintenance
+- Added DTO Alignment Strategy document
+- Updated architecture discovery process standards
+- Critical analysis of missed NSwag solution for future prevention
+
+Benefits Achieved:
+- Eliminated hours of DTO mismatch debugging
+- Automatic type synchronization on API changes
+- Type-safe API client with IntelliSense support
+- Reduced maintenance overhead for type definitions
+- Prevented future architectural pattern misses
+- Follows original migration architecture plan
+
+Technical Details:
+- NSwag configuration with TypeScript client generation
+- Post-processing scripts for custom type enhancements
+- Workspace integration with monorepo structure
+- Build pipeline integration for automated regeneration
+- Version tracking for generated types
+
+Files: 59 changed, 5397 insertions, 366 deletions
+Status: Critical architectural improvement preventing future DTO mismatches
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+```
+
+**Result**: Clean commit with 59 files changed, 5397 insertions, 366 deletions, major architectural improvement documented
+
+**Key Success Factors for NSwag Pattern**:
+- Stage files in logical groups: core package → configs → updated files → documentation
+- Exclude build artifacts (bin/obj files) - they should never be committed
+- Document the architectural significance and benefits achieved
+- Include file counts and impact metrics in commit message
+- Emphasize prevention of future issues and alignment with architectural plans
+
 ### Branch Management
 **Current**: Working on `master` branch (legacy naming)
 **Note**: Repository uses `master` not `main` as primary branch
