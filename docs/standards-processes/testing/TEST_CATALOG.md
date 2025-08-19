@@ -17,6 +17,182 @@ This catalog provides a comprehensive inventory of all tests in the WitchCityRop
 
 ## Recent Additions (August 2025)
 
+### Improved Authentication E2E Test - 2025-08-19
+**Added**: `/apps/web/tests/playwright/auth-flow-improved.spec.ts`
+**Purpose**: Enhanced E2E authentication test following best practices from lessons learned
+**Context**: Created comprehensive, reliable authentication flow test for React architecture validation
+
+**Test Coverage**:
+- Successful login flow with admin user and navigation verification
+- Protected route access control (redirects to login when unauthenticated)
+- Invalid credentials handling with proper error display
+- Complete logout flow with auth state clearing
+- Authentication state persistence across page refresh
+- Protected route returnTo parameter functionality
+- HttpOnly cookie security verification (anti-XSS protection)
+- Performance testing (login completes within 3 seconds)
+- Cross-browser authentication consistency testing
+
+**Best Practices Applied**:
+- ✅ Uses existing test accounts (admin@witchcityrope.com) for reliability
+- ✅ Proper wait strategies (no fixed timeouts) - `page.waitForURL()` with timeouts
+- ✅ Data-testid attributes where possible, proper form selectors (`input[name="email"]`)
+- ✅ Tests real API interactions (not mocked)
+- ✅ Clear Arrange-Act-Assert pattern throughout
+- ✅ Test isolation with `page.context().clearCookies()` in beforeEach
+- ✅ Comprehensive error scenarios and edge cases
+- ✅ Security testing (httpOnly cookie verification)
+- ✅ Performance benchmarking with timing assertions
+
+**Testing Architecture Validated**:
+- ✅ React Router v7 navigation patterns with protected routes
+- ✅ Authentication state management with proper persistence
+- ✅ Form interaction patterns with Mantine components
+- ✅ API integration for login/logout endpoints
+- ✅ Cross-browser compatibility (Chrome, Firefox, Safari)
+- ✅ Security best practices (httpOnly cookies, XSS protection)
+
+**Key Patterns Established**:
+```typescript
+// Proper wait strategy for authentication flow
+await page.waitForURL('/dashboard', { timeout: 10000 })
+await expect(page.locator('text=Welcome')).toBeVisible({ timeout: 10000 })
+
+// Security testing pattern
+const accessibleCookies = await page.evaluate(() => document.cookie)
+expect(accessibleCookies).not.toContain('auth-token') // HttpOnly protection
+
+// Performance testing pattern
+const startTime = Date.now()
+// ... authentication flow ...
+const loginDuration = endTime - startTime
+expect(loginDuration).toBeLessThan(3000)
+```
+
+**Benefits for Development**:
+- ✅ Validates complete React authentication architecture works in browser
+- ✅ Provides reliable test patterns for future E2E authentication testing
+- ✅ Establishes security verification patterns for authentication flows
+- ✅ Creates performance benchmarks for authentication responsiveness
+- ✅ Validates cross-browser authentication consistency
+
+### Authentication Integration Test - 2025-08-19
+**Added**: `/apps/web/src/test/integration/auth-flow.test.tsx` and `/apps/web/src/test/integration/auth-flow-simplified.test.tsx`
+**Purpose**: Integration tests for complete authentication flow testing multiple components working together
+**Context**: Created to validate React authentication architecture with TanStack Query, Zustand, and React Router v7
+
+**Integration Points Tested**:
+- Mantine form validation → TanStack Query mutation → Zustand store → React Router navigation
+- MSW API mocking for authentication endpoints with full URLs
+- Auth store permission calculation from user roles
+- Query invalidation and cache management on auth state changes
+- Error handling across the complete auth flow
+- Session state persistence and cleanup
+
+**Testing Architecture Validated**:
+- ✅ Multiple React hooks working together (useLogin + useAuth + useNavigate)
+- ✅ Zustand store integration with TanStack Query mutations
+- ✅ MSW v2 API mocking with full URL patterns (not relative paths)
+- ✅ React Testing Library with complex component interactions
+- ✅ Mantine component testing with proper mocks (matchMedia, ResizeObserver)
+
+**Key Patterns Established**:
+```typescript
+// Integration test wrapper with all providers
+const renderWithProviders = (component: React.ReactElement) => {
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MantineProvider>
+        {component}
+      </MantineProvider>
+    </QueryClientProvider>
+  )
+}
+
+// MSW handlers must use full URLs for axios baseURL compatibility
+http.post('http://localhost:5653/api/auth/login', handler)  // ✅ CORRECT
+http.post('/api/auth/login', handler)  // ❌ WRONG with baseURL
+```
+
+**Challenges Identified**:
+- React Router context issues in isolated component testing - requires proper provider setup
+- Zustand store snapshot warnings in complex component trees - solved by mocking Router hooks
+- MSW response.clone issues with mock Response objects - requires proper Response mocking
+
+### React Authentication Hook Unit Tests - 2025-08-19
+**Added**: `/apps/web/src/features/auth/api/__tests__/mutations.test.tsx`
+**Purpose**: Unit tests for TanStack Query useLogin and useLogout hooks to validate React testing patterns
+**Context**: Created as part of React migration from Blazor Server to validate testing infrastructure
+
+**Test Coverage**:
+- `useLogin` hook with success/failure scenarios
+- `useLogout` hook with success/failure scenarios  
+- TanStack Query integration with React Testing Library
+- Zustand auth store integration testing
+- MSW API mocking for authentication endpoints
+- React Router navigation testing
+- Query invalidation testing
+- Retry behavior testing (disabled for auth mutations)
+
+**Testing Infrastructure Validated**:
+- ✅ Vitest test runner working with React hooks
+- ✅ React Testing Library renderHook for custom hooks
+- ✅ TanStack Query integration with test wrappers
+- ✅ MSW v2 API mocking for authentication endpoints
+- ✅ Zustand store state management in tests
+- ✅ React Router navigation mocking and verification
+
+**Test Patterns Established**:
+```typescript
+// Query client wrapper for hook testing
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } }
+  })
+  return ({ children }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  )
+}
+
+// Hook testing with async operations
+const { result } = renderHook(() => useLogin(), { wrapper: createWrapper() })
+act(() => { result.current.mutate(credentials) })
+await waitFor(() => { expect(result.current.isSuccess).toBe(true) })
+```
+
+**Issues Discovered and Resolved**:
+- MSW handler path mismatches (needed full URLs for API client)
+- Auth store User interface mismatch (roles vs role property)
+- Global fetch mocking conflicts between MSW and auth store
+- Async state timing issues in hook testing
+
+**Files Created**:
+- `/apps/web/src/features/auth/api/__tests__/mutations.test.tsx` - Main test file
+- `/apps/web/src/features/auth/api/__tests__/mutations-simple.test.tsx` - Simplified test with direct mocks
+
+**Files Updated**:
+- `/apps/web/src/test/mocks/handlers.ts` - Added proper auth endpoints with correct paths
+- Handlers updated to use auth store User interface (roles array)
+
+**Test Execution**:
+```bash
+# Run React hook tests
+npm test -- src/features/auth/api/__tests__/mutations.test.tsx
+
+# Run simple version
+npm test -- src/features/auth/api/__tests__/mutations-simple.test.tsx
+```
+
+**Value for Development**:
+- ✅ Validates React testing patterns work with new architecture
+- ✅ Establishes testing infrastructure for TanStack Query hooks
+- ✅ Confirms MSW integration for API mocking
+- ✅ Creates reusable patterns for future React testing
+- ✅ Validates Zustand store testing approaches
+- ✅ Provides template for auth-related testing
+
+## Recent Additions (August 2025)
+
 ### Form Design Showcase Content Verification Test - 2025-08-18
 **Added**: `/tests/e2e/form-designs-check.spec.ts`
 **Purpose**: Verify form design showcase pages actually display content beyond HTTP 200 responses

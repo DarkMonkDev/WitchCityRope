@@ -3,7 +3,53 @@ import { http, HttpResponse } from 'msw'
 import type { User, Event, PaginatedResponse } from '../../types/api.types'
 
 export const handlers = [
-  // Authentication
+  // Authentication - Updated paths to match mutations.ts
+  http.get('http://localhost:5653/api/auth/me', () => {
+    return HttpResponse.json({
+      id: '1',
+      email: 'admin@witchcityrope.com',
+      firstName: 'Test',
+      lastName: 'Admin',
+      sceneName: 'TestAdmin',
+      roles: ['admin'], // Use roles array to match auth store User interface
+      isVetted: true,
+      createdAt: '2025-08-19T00:00:00Z',
+      updatedAt: '2025-08-19T00:00:00Z',
+    })
+  }),
+
+  http.post('http://localhost:5653/api/auth/logout', () => {
+    return new HttpResponse(null, { status: 204 })
+  }),
+
+  // Add handler for relative path as well
+  http.post('/api/auth/logout', () => {
+    return new HttpResponse(null, { status: 204 })
+  }),
+
+  http.post('http://localhost:5653/api/auth/login', async ({ request }) => {
+    const body = await request.json()
+    if (body.email === 'admin@witchcityrope.com') {
+      return HttpResponse.json({
+        user: {
+          id: '1',
+          email: body.email,
+          firstName: 'Test',
+          lastName: 'Admin',
+          sceneName: 'TestAdmin',
+          roles: ['admin'], // Use roles array to match auth store User interface
+        }
+      })
+    }
+    return new HttpResponse(null, { status: 401 })
+  }),
+
+  // Auth refresh endpoint for interceptor
+  http.post('http://localhost:5653/auth/refresh', () => {
+    return new HttpResponse('Unauthorized', { status: 401 })
+  }),
+
+  // Keep legacy paths for backward compatibility
   http.get('/auth/me', () => {
     return HttpResponse.json({
       id: '1',
@@ -11,11 +57,11 @@ export const handlers = [
       firstName: 'Test',
       lastName: 'Admin',
       sceneName: 'TestAdmin',
-      role: 'Admin',
+      roles: ['admin'], // Use roles array to match auth store User interface
       isVetted: true,
       createdAt: '2025-08-19T00:00:00Z',
       updatedAt: '2025-08-19T00:00:00Z',
-    } as User)
+    })
   }),
 
   http.post('/auth/logout', () => {
@@ -32,8 +78,7 @@ export const handlers = [
           firstName: 'Test',
           lastName: 'Admin',
           sceneName: 'TestAdmin',
-          role: 'Admin',
-          isVetted: true,
+          roles: ['admin'], // Use roles array to match auth store User interface
         }
       })
     }
