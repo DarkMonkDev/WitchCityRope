@@ -1,6 +1,6 @@
 # DevOps Lessons Learned
-<!-- Last Updated: 2025-08-18 -->
-<!-- Next Review: 2025-09-18 -->
+<!-- Last Updated: 2025-08-19 -->
+<!-- Next Review: 2025-09-19 -->
 
 ## 🚨 CRITICAL: Docker Build Configuration
 
@@ -28,6 +28,38 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 - This has caused repeated failures across multiple sessions
 
 ## Git Operations
+
+### Documentation Commit Pattern
+
+**Success Pattern**: Comprehensive documentation commits with logical file grouping
+```bash
+# Stage documentation files in logical groups
+git add ../../docs/lessons-learned/frontend-lessons-learned.md 
+git add ../../docs/lessons-learned/backend-lessons-learned.md 
+git add ../../docs/guides-setup/authentication-implementation-guide.md
+git add ../../docs/architecture/file-registry.md 
+git add ../../docs/functional-areas/authentication/
+
+# Use HEREDOC for multi-line commit messages with conventional format
+git commit -m "$(cat <<'EOF'
+docs: document validated technology patterns for consistent implementation
+
+Updated lessons-learned for react and backend developers with validated patterns:
+- Frontend lessons: React Query, Mantine components, TypeScript patterns
+- Backend lessons: Authentication flows, API design, database patterns  
+- Form implementation guide with Mantine v7 research
+- Authentication implementation guide with cookie-based auth patterns
+
+Ensures all sub-agents use researched patterns instead of custom solutions.
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+```
+
+**Result**: Clean commit with 16 files changed, 3200 insertions, proper conventional commit format
 
 ### Form Design Implementation Commit Pattern
 
@@ -57,6 +89,43 @@ EOF
 ```
 
 **Result**: Clean commit with 28 files changed, 4498 insertions, proper attribution
+
+### Auth Store Implementation Commit Pattern
+
+**Success Pattern**: Feature implementation with comprehensive testing and documentation
+```bash
+# Stage feature files in logical groups
+git add src/stores/authStore.ts src/stores/__tests__/authStore.test.ts src/stores/README.md
+git add ../../docs/functional-areas/authentication/implementation/minimal-auth-implementation-plan.md
+git add ../../docs/architecture/file-registry.md
+
+# Use HEREDOC for multi-line commit messages
+git commit -m "$(cat <<'EOF'
+feat(auth): implement Zustand auth store with validated patterns
+
+Step 1 of minimal auth implementation completed:
+- Created authStore.ts with Zustand state management following validated patterns
+- Uses sessionStorage for security (no localStorage for auth tokens)
+- Includes comprehensive test suite with 15 test cases covering all scenarios
+- Implements role-based permission system with automatic calculation
+- Uses researched Zustand middleware patterns (persist, devtools)
+- Provides optimized selector hooks to prevent re-renders
+- Ready for integration with login flow in Step 2
+
+Files added:
+- /apps/web/src/stores/authStore.ts - Main auth store implementation
+- /apps/web/src/stores/__tests__/authStore.test.ts - Comprehensive test suite
+- /apps/web/src/stores/README.md - Usage documentation and examples
+- Implementation plan documenting the complete minimal auth flow
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+```
+
+**Result**: Clean commit with 5 files changed, 721 insertions, proper conventional commit format
 
 ### Branch Management
 **Current**: Working on `master` branch (legacy naming)

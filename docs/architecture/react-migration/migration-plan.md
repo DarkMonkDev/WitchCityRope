@@ -11,7 +11,7 @@ This document outlines a comprehensive, phased migration plan for transitioning 
 ### **Parallel Development Approach**
 - **Strategy**: Build React application alongside existing Blazor implementation
 - **Benefits**: Zero downtime, ability to test thoroughly, easy rollback
-- **Timeline**: 12-16 weeks total development + 4 weeks parallel testing
+- **Timeline**: 13-17 weeks total development + 4 weeks parallel testing
 - **Deployment**: Feature-flag controlled rollout
 
 ### **Risk Mitigation Principles**
@@ -60,10 +60,17 @@ This document outlines a comprehensive, phased migration plan for transitioning 
 - ✅ Risk assessment and mitigation strategies
 - ✅ Tool and library compatibility matrix
 - ✅ **UI Framework Decision**: Mantine v7 selected (Score: 89/100) - ADR-004
+- ✅ **Form Components Test Page**: Infrastructure validation complete (2025-08-18)
 
 ### **Phase 1: Foundation Setup (Weeks 1-2)**
 
-#### **Objectives**
+#### **Status**: ✅ **INFRASTRUCTURE COMPLETE** (2025-08-18)
+- React development environment established
+- Mantine v7 UI framework integrated and validated
+- Design system foundation with WitchCityRope branding
+- Form components with floating labels and CSS modules
+
+#### **Original Objectives**
 - Establish React development environment
 - Set up build tools and basic project structure
 - Create design system foundation
@@ -182,7 +189,379 @@ apiClient.interceptors.request.use((config) => {
 - ✅ Basic component library
 - ✅ Project structure and conventions established
 
-### **Phase 2: Authentication & User Management (Weeks 3-4)**
+### **Phase 1.5: Technical Infrastructure Validation (Weeks 2-3)**
+
+#### **Status**: 🔄 **IN PROGRESS** (Form Components ✅ COMPLETE 2025-08-18)
+
+#### **Objectives**
+- Validate all critical technical patterns before full migration
+- Create proof-of-concept implementations for high-risk areas
+- Establish reusable patterns and best practices
+- Identify and resolve technical blockers early
+- Document implementation decisions and patterns
+
+#### **Critical Technical Areas Requiring Validation**
+
+##### **1. API Integration & Data Fetching Pattern**
+**Priority**: CRITICAL
+**Risk Level**: High
+**Dependencies**: Blocks all feature development
+
+**Requirements to Validate**:
+- TanStack Query (React Query) setup with .NET Minimal API
+- Proper error handling and retry logic configuration
+- Caching strategy and cache invalidation patterns
+- Optimistic updates for better UX
+- Request interceptors for authentication tokens
+- Pagination and infinite scroll patterns
+- Background refetching strategies
+
+**Proof of Concept Requirements**:
+```typescript
+// Validate these patterns work correctly:
+- useQuery with proper error boundaries
+- useMutation with optimistic updates
+- useInfiniteQuery for paginated data
+- Proper TypeScript typing for API responses
+- Global query client configuration
+- Network error recovery patterns
+```
+
+**Success Criteria**:
+- Successfully fetch and display data from all API endpoints
+- Handle network failures gracefully
+- Implement working optimistic updates
+- Achieve <100ms perceived latency for user actions
+
+##### **2. Authentication & Authorization System**
+**Priority**: CRITICAL
+**Risk Level**: High
+**Dependencies**: Blocks all protected features
+
+**Requirements to Validate**:
+- HttpOnly cookie authentication with ASP.NET Core Identity
+- JWT token generation for service-to-service calls
+- Refresh token rotation mechanism
+- Protected route implementation with React Router
+- Role-based access control (RBAC) at component level
+- Session timeout handling
+- Remember me functionality
+- Multi-tab session synchronization
+
+**Proof of Concept Requirements**:
+```typescript
+// Validate these authentication flows:
+- Login with email/password
+- Registration with email verification
+- Password reset flow
+- Logout with cookie cleanup
+- Token refresh without user interruption
+- Role-based route protection
+- Component-level permission checks
+```
+
+**Success Criteria**:
+- Seamless authentication across page refreshes
+- Proper session management across browser tabs
+- Secure token storage (no localStorage for auth tokens)
+- Working role-based access control
+- Graceful handling of expired sessions
+
+##### **3. State Management Architecture**
+**Priority**: HIGH
+**Risk Level**: Medium
+**Dependencies**: Affects all components
+
+**Requirements to Validate**:
+- Zustand store setup and organization patterns
+- Global vs local state decision framework
+- State persistence across navigation
+- State hydration from server
+- DevTools integration for debugging
+- State migration patterns for updates
+
+**Proof of Concept Requirements**:
+```typescript
+// Validate these state patterns:
+- User authentication state
+- Application settings state
+- UI state (modals, sidebars, etc.)
+- Form state management
+- Cart/registration state persistence
+- Cross-component state updates
+```
+
+**Success Criteria**:
+- State persists correctly across navigation
+- No unnecessary re-renders
+- DevTools show clear state structure
+- State updates are performant (<16ms)
+
+##### **4. Routing & Navigation System**
+**Priority**: HIGH
+**Risk Level**: Medium
+**Dependencies**: Core navigation functionality
+
+**Requirements to Validate**:
+- React Router v7 implementation
+- Nested routing patterns
+- Protected route implementation
+- Route guards for auth/permissions
+- Deep linking support
+- Query parameter management
+- Route transitions and loading states
+- 404 and error route handling
+- Breadcrumb generation
+
+**Proof of Concept Requirements**:
+```typescript
+// Validate these routing patterns:
+- Public routes (home, about, events)
+- Protected routes (dashboard, profile)
+- Admin-only routes
+- Nested routes (event/:id/register)
+- Wildcard and 404 routes
+- Programmatic navigation
+- Route-based code splitting
+```
+
+**Success Criteria**:
+- All routes load correctly
+- Protected routes redirect when unauthorized
+- Browser back/forward works correctly
+- Deep links work after page refresh
+- Route changes are performant (<100ms)
+
+##### **5. Real-Time Updates System**
+**Priority**: MEDIUM
+**Risk Level**: High
+**Dependencies**: Live features
+
+**Requirements to Validate**:
+- WebSocket connection management
+- Automatic reconnection logic
+- Fallback to polling if WebSocket fails
+- Event-driven UI updates
+- Connection state management
+- Message queuing for offline support
+
+**Proof of Concept Requirements**:
+```typescript
+// Validate these real-time patterns:
+- WebSocket connection establishment
+- Heartbeat/ping-pong mechanism
+- Auto-reconnection with exponential backoff
+- Message handler registration
+- UI updates from server events
+- Connection status indicators
+- Graceful degradation to polling
+```
+
+**Success Criteria**:
+- Stable WebSocket connections
+- Automatic recovery from disconnections
+- <100ms message delivery latency
+- Proper cleanup on component unmount
+
+##### **6. File Upload System**
+**Priority**: MEDIUM
+**Risk Level**: Medium
+**Dependencies**: Vetting system, profile management
+
+**Requirements to Validate**:
+- Multi-file upload with progress tracking
+- Drag-and-drop support
+- Image preview and validation
+- File size and type restrictions
+- Chunked upload for large files
+- Resume capability for interrupted uploads
+- Integration with backend storage (S3/Azure)
+
+**Proof of Concept Requirements**:
+```typescript
+// Validate these upload patterns:
+- Single file upload
+- Multiple file upload
+- Drag and drop interface
+- Progress indicators
+- Cancel upload capability
+- Error handling for failed uploads
+- Image preview generation
+- File validation (size, type, dimensions)
+```
+
+**Success Criteria**:
+- Files upload successfully to backend
+- Progress accurately tracks upload
+- Large files (>10MB) upload reliably
+- Proper error messages for validation failures
+
+##### **7. Error Handling & Recovery System**
+**Priority**: HIGH
+**Risk Level**: Low
+**Dependencies**: All features
+
+**Requirements to Validate**:
+- React Error Boundaries implementation
+- Global error handler setup
+- User-friendly error messages
+- Error logging and reporting
+- Fallback UI components
+- Recovery actions for common errors
+- Network error handling
+- Form validation error display
+
+**Proof of Concept Requirements**:
+```typescript
+// Validate these error patterns:
+- Component error boundaries
+- API error handling
+- Network failure handling
+- Validation error display
+- 404 page handling
+- Unexpected error recovery
+- Error logging to backend
+- User feedback mechanisms
+```
+
+**Success Criteria**:
+- No white screen of death
+- All errors show user-friendly messages
+- Errors are logged for debugging
+- Users can recover from errors without refresh
+
+##### **8. Performance Optimization Patterns**
+**Priority**: MEDIUM
+**Risk Level**: Low
+**Dependencies**: User experience
+
+**Requirements to Validate**:
+- Code splitting with React.lazy()
+- Route-based bundle splitting
+- Component lazy loading
+- Image optimization and lazy loading
+- Virtual scrolling for long lists
+- Memoization strategies
+- Web Worker integration for heavy computation
+- Service Worker for offline support
+
+**Proof of Concept Requirements**:
+```typescript
+// Validate these performance patterns:
+- Lazy load route components
+- Lazy load heavy components (charts, editors)
+- Image lazy loading with placeholders
+- Virtual scrolling for 1000+ items
+- React.memo for expensive components
+- useMemo/useCallback optimization
+- Bundle size analysis
+- Performance profiling
+```
+
+**Success Criteria**:
+- Initial bundle <200KB gzipped
+- Route chunks <50KB each
+- Time to Interactive <3 seconds
+- 60 FPS scrolling performance
+- Lighthouse score >90
+
+#### **Implementation Approach**
+
+##### **Week 2: Core Infrastructure Validation**
+
+**Day 1-2: API Integration & State Management**
+- Set up TanStack Query with proper configuration
+- Implement Zustand stores for core functionality
+- Create reusable API hooks
+- Test error handling and retry logic
+
+**Day 3-4: Authentication System**
+- Implement complete auth flow with cookies
+- Set up protected routes
+- Test token refresh mechanism
+- Validate multi-tab synchronization
+
+**Day 5: Routing & Navigation**
+- Configure React Router v7
+- Implement route guards
+- Test deep linking
+- Validate navigation performance
+
+##### **Week 3: Advanced Features Validation**
+
+**Day 1-2: Real-Time & File Upload**
+- Implement WebSocket connection manager
+- Create file upload component with progress
+- Test reconnection logic
+- Validate large file handling
+
+**Day 3-4: Error Handling & Performance**
+- Set up Error Boundaries
+- Implement lazy loading patterns
+- Configure code splitting
+- Run performance benchmarks
+
+**Day 5: Integration Testing**
+- Test all systems working together
+- Validate error scenarios
+- Performance testing under load
+- Document patterns and decisions
+
+#### **Deliverables**
+
+##### **Technical Validation Reports**
+Each area must produce:
+1. Working proof-of-concept implementation
+2. Technical decision documentation
+3. Performance benchmarks
+4. Risk assessment and mitigation strategies
+5. Implementation patterns documentation
+6. Integration test results
+
+##### **Code Artifacts**
+- `/src/lib/api/` - TanStack Query setup and hooks
+- `/src/lib/auth/` - Authentication utilities
+- `/src/stores/` - Zustand store implementations
+- `/src/components/providers/` - Context providers
+- `/src/components/error/` - Error boundary components
+- `/src/utils/upload/` - File upload utilities
+- `/src/utils/websocket/` - WebSocket manager
+
+##### **Documentation Requirements**
+- `/docs/technical-validation/` - All validation reports
+- `/docs/patterns/` - Reusable pattern documentation
+- `/docs/decisions/` - ADRs for technical choices
+- API integration guide with examples
+- State management best practices
+- Performance optimization guide
+
+#### **Success Metrics**
+- ✅ All 8 technical areas validated with working code
+- ✅ Performance benchmarks meet or exceed targets
+- ✅ No critical technical blockers identified
+- ✅ Clear documentation for all patterns
+- ✅ Team confidence in technical approach >90%
+
+#### **Risk Mitigation**
+If any critical area fails validation:
+1. Investigate alternative approaches
+2. Consider hybrid solutions
+3. Adjust migration timeline if needed
+4. Document limitations and workarounds
+5. Re-evaluate technology choices if necessary
+
+#### **Review Gates**
+Before proceeding to Phase 2:
+- [ ] Technical review by senior developer
+- [ ] Security review of auth implementation
+- [ ] Performance benchmarks validated
+- [ ] All PoCs code reviewed and approved
+- [ ] Documentation complete and reviewed
+- [ ] Team training on new patterns completed
+
+---
+
+### **Phase 2: Authentication & User Management (Weeks 4-5)**
 
 #### **Objectives**
 - Complete authentication system migration
@@ -190,7 +569,7 @@ apiClient.interceptors.request.use((config) => {
 - Establish security patterns
 - Create admin user interface
 
-#### **Week 3: Authentication Foundation**
+#### **Week 4: Authentication Foundation**
 
 **UPDATED AUTHENTICATION STRATEGY - August 16, 2025**
 
@@ -248,7 +627,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
 }));
 ```
 
-#### **Week 4: User Management**
+#### **Week 5: User Management**
 
 **Day 1-2: User Management API Integration**
 ```typescript
@@ -283,14 +662,14 @@ export const useUpdateUser = () => {
 - Component-level permission gates
 - Audit logging for admin actions
 
-#### **Week 4 Deliverables**
+#### **Week 5 Deliverables**
 - ✅ Complete authentication system
 - ✅ User management interface
 - ✅ Role-based access control
 - ✅ Security patterns established
 - ✅ Admin functionality working
 
-### **Phase 3: Core Features Migration (Weeks 5-8)**
+### **Phase 3: Core Features Migration (Weeks 6-9)**
 
 #### **Objectives**
 - Migrate event management system
@@ -298,7 +677,7 @@ export const useUpdateUser = () => {
 - Create content management
 - Build notification system
 
-#### **Week 5: Event Management**
+#### **Week 6: Event Management**
 
 **Day 1-2: Event API Integration**
 ```typescript
@@ -334,7 +713,7 @@ export const useCreateEvent = () => {
 - Attendee management
 - Event analytics
 
-#### **Week 6: Member Dashboard**
+#### **Week 7: Member Dashboard**
 
 **Day 1-2: Dashboard Layout**
 ```typescript
@@ -369,7 +748,7 @@ const MemberDashboard = () => {
 - Resource library
 - Educational materials
 
-#### **Week 7: Content Management**
+#### **Week 8: Content Management**
 
 **Day 1-2: Static Content Setup**
 ```typescript
@@ -400,7 +779,7 @@ export async function getStaticProps({ params }) {
 - News updates
 - Community guidelines
 
-#### **Week 8: Advanced Features**
+#### **Week 9: Advanced Features**
 
 **Day 1-2: Notification System**
 ```typescript
@@ -436,14 +815,14 @@ export const useToast = () => {
 - Image optimization
 - Bundle analysis and optimization
 
-#### **Weeks 5-8 Deliverables**
+#### **Weeks 6-9 Deliverables**
 - ✅ Complete event management system
 - ✅ Full-featured member dashboard
 - ✅ Content management system
 - ✅ Notification and feedback systems
 - ✅ Performance optimizations
 
-### **Phase 4: Advanced Features & Vetting (Weeks 9-12)**
+### **Phase 4: Advanced Features & Vetting (Weeks 10-13)**
 
 #### **Objectives**
 - Implement vetting system
@@ -451,7 +830,7 @@ export const useToast = () => {
 - Build incident management
 - Add real-time features
 
-#### **Week 9-10: Vetting System**
+#### **Week 10-11: Vetting System**
 
 **Multi-Step Vetting Application**
 ```typescript
@@ -476,7 +855,7 @@ const useMultiStepForm = (steps: FormStep[]) => {
 - Approval workflow
 - Status tracking
 
-#### **Week 11: Financial & Reporting**
+#### **Week 12: Financial & Reporting**
 
 **Financial Dashboard**
 - Revenue tracking
@@ -491,7 +870,7 @@ const useMultiStepForm = (steps: FormStep[]) => {
 - Registration trends
 - Custom report builder
 
-#### **Week 12: Real-Time Features**
+#### **Week 13: Real-Time Features**
 
 **WebSocket Integration**
 ```typescript
@@ -526,14 +905,14 @@ const useRealTimeUpdates = () => {
 - Chat/messaging system
 - Notification delivery
 
-#### **Weeks 9-12 Deliverables**
+#### **Weeks 10-13 Deliverables**
 - ✅ Complete vetting system
 - ✅ Financial reporting and analytics
 - ✅ Incident management system
 - ✅ Real-time update system
 - ✅ All advanced features implemented
 
-### **Phase 5: Testing & Quality Assurance (Weeks 13-14)**
+### **Phase 5: Testing & Quality Assurance (Weeks 14-15)**
 
 #### **Objectives**
 - Comprehensive testing suite
@@ -541,7 +920,7 @@ const useRealTimeUpdates = () => {
 - Security audit
 - Accessibility compliance
 
-#### **Week 13: Testing Implementation**
+#### **Week 14: Testing Implementation**
 
 **Unit Testing**
 ```typescript
@@ -575,7 +954,7 @@ describe('EventCard', () => {
 - Cross-browser validation
 - Mobile responsiveness
 
-#### **Week 14: Quality Assurance**
+#### **Week 15: Quality Assurance**
 
 **Performance Testing**
 - Lighthouse CI implementation
@@ -595,14 +974,14 @@ describe('EventCard', () => {
 - Keyboard navigation
 - Color contrast validation
 
-#### **Weeks 13-14 Deliverables**
+#### **Weeks 14-15 Deliverables**
 - ✅ 90%+ test coverage
 - ✅ All E2E tests passing
 - ✅ Performance benchmarks met
 - ✅ Security audit complete
 - ✅ Accessibility compliance verified
 
-### **Phase 6: Deployment & Migration (Weeks 15-16)**
+### **Phase 6: Deployment & Migration (Weeks 16-17)**
 
 #### **Objectives**
 - Production deployment preparation
@@ -610,7 +989,7 @@ describe('EventCard', () => {
 - Feature flag implementation
 - Gradual rollout execution
 
-#### **Week 15: Deployment Preparation**
+#### **Week 16: Deployment Preparation**
 
 **Production Build**
 ```bash
@@ -651,7 +1030,7 @@ const ReactApp = () => {
 };
 ```
 
-#### **Week 16: Migration Execution**
+#### **Week 17: Migration Execution**
 
 **Data Validation**
 - Database backup verification
@@ -672,7 +1051,7 @@ const ReactApp = () => {
 - User feedback collection
 - Support ticket monitoring
 
-#### **Weeks 15-16 Deliverables**
+#### **Weeks 16-17 Deliverables**
 - ✅ Production deployment complete
 - ✅ Feature flag rollout successful
 - ✅ All monitoring systems active
@@ -797,13 +1176,13 @@ Total Estimated Cost: $180,000 - $276,000
 
 ## Post-Migration Plan
 
-### **Immediate Post-Launch (Weeks 17-18)**
+### **Immediate Post-Launch (Weeks 18-19)**
 - **24/7 Monitoring**: Continuous system monitoring
 - **Hot-fix Deployment**: Rapid issue resolution capability
 - **User Feedback Collection**: Gather user experience feedback
 - **Performance Analysis**: Compare actual vs expected metrics
 
-### **Optimization Phase (Weeks 19-22)**
+### **Optimization Phase (Weeks 20-23)**
 - **Performance Tuning**: Based on real-world usage patterns
 - **User Experience Improvements**: Based on feedback
 - **Feature Enhancements**: React-specific improvements
