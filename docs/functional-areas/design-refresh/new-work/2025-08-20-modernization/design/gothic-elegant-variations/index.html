@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WitchCityRope - Gothic Elegant Variations Overview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c2c2c, #1a1a1a);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .intro {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            margin-bottom: 3rem;
+        }
+
+        .stakeholder-feedback {
+            background: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .stakeholder-feedback h3 {
+            color: #0c4a6e;
+            margin-bottom: 1rem;
+        }
+
+        .feedback-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .loves, .hates {
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .loves {
+            background: #dcfce7;
+            border: 1px solid #bbf7d0;
+        }
+
+        .loves h4 {
+            color: #166534;
+        }
+
+        .hates {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+        }
+
+        .hates h4 {
+            color: #dc2626;
+        }
+
+        .variations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+        }
+
+        .variation-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .variation-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+        }
+
+        .variation-preview {
+            height: 250px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .midnight {
+            background: linear-gradient(135deg, #0a0a0a, #8b0000, #1a1a1a);
+        }
+
+        .satin {
+            background: linear-gradient(135deg, #1c1c1c, #4a148c, #d4af37);
+        }
+
+        .obsidian {
+            background: linear-gradient(135deg, #000000, #dc143c, #0d0d0d);
+        }
+
+        .victorian {
+            background: linear-gradient(135deg, #4a0e2b, #1b3b36, #b8860b);
+        }
+
+        .raven {
+            background: linear-gradient(135deg, #0e0e0e, #0f1419, #c7d2fe);
+        }
+
+        .variation-preview::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 80%;
+            height: 2px;
+            background: rgba(255,255,255,0.8);
+            transform: translate(-50%, -50%);
+            transition: width 0.3s ease;
+        }
+
+        .variation-card:hover .variation-preview::before {
+            width: 90%;
+        }
+
+        .variation-content {
+            padding: 1.5rem;
+        }
+
+        .variation-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #1f2937;
+        }
+
+        .variation-subtitle {
+            color: #6b7280;
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+
+        .variation-features {
+            margin-bottom: 1.5rem;
+        }
+
+        .variation-features h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 0.2rem 0;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .feature-list li::before {
+            content: '→';
+            margin-right: 0.5rem;
+            color: #9ca3af;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-preview {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e5e7eb;
+            background: white;
+            color: #374151;
+            text-decoration: none;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-preview:hover {
+            border-color: #6b7280;
+            background: #f9fafb;
+        }
+
+        .btn-primary {
+            background: #1f2937;
+            color: white;
+            border-color: #1f2937;
+        }
+
+        .btn-primary:hover {
+            background: #374151;
+            border-color: #374151;
+        }
+
+        .implementation-notes {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .implementation-notes h3 {
+            color: #ea580c;
+            margin-bottom: 1rem;
+        }
+
+        .key-features {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            margin-bottom: 3rem;
+        }
+
+        .key-features h3 {
+            margin-bottom: 1.5rem;
+            color: #1f2937;
+        }
+
+        .key-features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .key-feature {
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #10b981;
+        }
+
+        .key-feature h4 {
+            color: #065f46;
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .variations-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .feedback-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .key-features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Gothic Elegant Variations</h1>
+        <p>5 Dark & Sophisticated Design Options for WitchCityRope</p>
+    </header>
+
+    <div class="container">
+        <div class="intro">
+            <div class="stakeholder-feedback">
+                <h3>🎯 Stakeholder Feedback Integrated</h3>
+                <div class="feedback-list">
+                    <div class="loves">
+                        <h4>✅ Stakeholder LOVES:</h4>
+                        <ul>
+                            <li>Original Rope & Flow organic layout</li>
+                            <li>Underline animations (Mantine v2 style)</li>
+                            <li>Gothic, elegant but dark aesthetic</li>
+                            <li>Classy with dark overtone, slightly menacing</li>
+                        </ul>
+                    </div>
+                    <div class="hates">
+                        <h4>❌ Stakeholder HATES:</h4>
+                        <ul>
+                            <li>Mouse-following animations (REMOVED)</li>
+                            <li>Boxes moving on hover (AVOIDED)</li>
+                            <li>"Vibrant energy" style (REPLACED)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="key-features">
+                <h3>🔑 Key Design Features</h3>
+                <div class="key-features-grid">
+                    <div class="key-feature">
+                        <h4>Organic Layout</h4>
+                        <p>Flowing curves and clip-path usage inspired by the beloved Rope & Flow design</p>
+                    </div>
+                    <div class="key-feature">
+                        <h4>Underline Animations</h4>
+                        <p>Sophisticated underline effects on navigation, CTAs, and between event images and text</p>
+                    </div>
+                    <div class="key-feature">
+                        <h4>NO Mouse Following</h4>
+                        <p>Static, elegant animations that don't track cursor movement</p>
+                    </div>
+                    <div class="key-feature">
+                        <h4>Gothic Aesthetics</h4>
+                        <p>Dark, classy designs with subtle menacing undertones</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="variations-grid">
+            <!-- Midnight Velvet -->
+            <div class="variation-card">
+                <div class="variation-preview midnight"></div>
+                <div class="variation-content">
+                    <h3 class="variation-title">1. Midnight Velvet</h3>
+                    <p class="variation-subtitle">Classic Gothic Elegance</p>
+                    <div class="variation-features">
+                        <h4>Color Palette</h4>
+                        <ul class="feature-list">
+                            <li>Deep black backgrounds</li>
+                            <li>Blood red accents (#8b0000)</li>
+                            <li>Silver highlights (#c0c0c0)</li>
+                            <li>Sharp serif typography (Playfair Display)</li>
+                        </ul>
+                        <h4>Underline Style</h4>
+                        <ul class="feature-list">
+                            <li>Blood gradient underlines from center outward</li>
+                            <li>Dramatic gothic shadow effects</li>
+                            <li>Sharp, precise animations</li>
+                        </ul>
+                    </div>
+                    <div class="cta-buttons">
+                        <a href="gothic-elegant-midnight.html" class="btn-preview btn-primary" target="_blank">View Full Design</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dark Satin -->
+            <div class="variation-card">
+                <div class="variation-preview satin"></div>
+                <div class="variation-content">
+                    <h3 class="variation-title">2. Dark Satin</h3>
+                    <p class="variation-subtitle">Luxurious Darkness</p>
+                    <div class="variation-features">
+                        <h4>Color Palette</h4>
+                        <ul class="feature-list">
+                            <li>Charcoal black (#1c1c1c)</li>
+                            <li>Deep purple accents (#4a148c)</li>
+                            <li>Gold highlights (#d4af37)</li>
+                            <li>Elegant serif typography (Cormorant Garamond)</li>
+                        </ul>
+                        <h4>Underline Style</h4>
+                        <ul class="feature-list">
+                            <li>Silk-smooth gold gradient underlines</li>
+                            <li>Luxurious shimmer effects</li>
+                            <li>Refined, flowing animations</li>
+                        </ul>
+                    </div>
+                    <div class="cta-buttons">
+                        <a href="gothic-elegant-satin.html" class="btn-preview btn-primary" target="_blank">View Full Design</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Obsidian Edge -->
+            <div class="variation-card">
+                <div class="variation-preview obsidian"></div>
+                <div class="variation-content">
+                    <h3 class="variation-title">3. Obsidian Edge</h3>
+                    <p class="variation-subtitle">Sharp Gothic Modern</p>
+                    <div class="variation-features">
+                        <h4>Color Palette</h4>
+                        <ul class="feature-list">
+                            <li>Pure black (#000000)</li>
+                            <li>White contrast (#ffffff)</li>
+                            <li>Crimson details (#dc143c)</li>
+                            <li>Modern geometric typography (Bebas Neue)</li>
+                        </ul>
+                        <h4>Underline Style</h4>
+                        <ul class="feature-list">
+                            <li>Precise crimson underlines with clip-path</li>
+                            <li>Sharp, clean geometric effects</li>
+                            <li>Contemporary precision animations</li>
+                        </ul>
+                    </div>
+                    <div class="cta-buttons">
+                        <a href="gothic-elegant-obsidian.html" class="btn-preview btn-primary" target="_blank">View Full Design</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Victorian Shadow -->
+            <div class="variation-card">
+                <div class="variation-preview victorian"></div>
+                <div class="variation-content">
+                    <h3 class="variation-title">4. Victorian Shadow</h3>
+                    <p class="variation-subtitle">Historical Gothic</p>
+                    <div class="variation-features">
+                        <h4>Color Palette</h4>
+                        <ul class="feature-list">
+                            <li>Dark burgundy (#4a0e2b)</li>
+                            <li>Forest green (#1b3b36)</li>
+                            <li>Antique gold (#b8860b)</li>
+                            <li>Ornate typography (Uncial Antiqua)</li>
+                        </ul>
+                        <h4>Underline Style</h4>
+                        <ul class="feature-list">
+                            <li>Ornate gold gradient underlines</li>
+                            <li>Graceful, flowing animations</li>
+                            <li>Historical elegance with shimmer</li>
+                        </ul>
+                    </div>
+                    <div class="cta-buttons">
+                        <a href="gothic-elegant-victorian.html" class="btn-preview btn-primary" target="_blank">View Full Design</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Raven's Wing -->
+            <div class="variation-card">
+                <div class="variation-preview raven"></div>
+                <div class="variation-content">
+                    <h3 class="variation-title">5. Raven's Wing</h3>
+                    <p class="variation-subtitle">Contemporary Dark</p>
+                    <div class="variation-features">
+                        <h4>Color Palette</h4>
+                        <ul class="feature-list">
+                            <li>Gradient blacks (#0e0e0e)</li>
+                            <li>Deep blue undertones (#0f1419)</li>
+                            <li>Silver accents (#c7d2fe)</li>
+                            <li>Modern typography (Space Grotesk)</li>
+                        </ul>
+                        <h4>Underline Style</h4>
+                        <ul class="feature-list">
+                            <li>Feathered silver gradient underlines</li>
+                            <li>Contemporary fluid animations</li>
+                            <li>Sleek, modern elegance</li>
+                        </ul>
+                    </div>
+                    <div class="cta-buttons">
+                        <a href="gothic-elegant-raven.html" class="btn-preview btn-primary" target="_blank">View Full Design</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="implementation-notes">
+            <h3>🛠️ Implementation Notes</h3>
+            <p><strong>All designs include:</strong></p>
+            <ul style="margin-left: 2rem; margin-top: 1rem;">
+                <li><strong>Organic Layout:</strong> Clip-path curves and flowing sections inspired by original Rope & Flow</li>
+                <li><strong>Underline Animations:</strong> 
+                    <ul style="margin-left: 1rem; margin-top: 0.5rem;">
+                        <li>Navigation menu items (center outward)</li>
+                        <li>Primary CTA buttons (under button text)</li>
+                        <li>Event tiles (between image and text content)</li>
+                        <li>Footer links (left to right)</li>
+                    </ul>
+                </li>
+                <li><strong>NO Mouse Following:</strong> All animations are static or triggered by hover/focus only</li>
+                <li><strong>Accessibility:</strong> WCAG 2.1 compliant with proper focus indicators</li>
+                <li><strong>Responsive:</strong> Mobile-first design with touch-friendly interactions</li>
+                <li><strong>Performance:</strong> CSS-only animations with reduced motion support</li>
+            </ul>
+            
+            <p style="margin-top: 1.5rem;"><strong>Ready for Mantine v7 implementation:</strong> All designs use standard web components that can be easily converted to Mantine components with the same styling approach.</p>
+        </div>
+    </div>
+
+    <script>
+        // Add subtle hover effects to cards
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.variation-card');
+            
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-8px)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(-4px)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

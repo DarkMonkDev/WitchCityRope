@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WitchCityRope - Geometric Modern Design (Variation 3)</title>
+    <style>
+        /* Geometric Modern Design - Variation 3 */
+        /* Clean lines, uncluttered, asymmetric layouts with modern shapes */
+        
+        :root {
+            /* Geometric color palette - clean, minimal, sophisticated */
+            --wcr-ivory: #f8f4e6;
+            --wcr-pure-white: #ffffff;
+            --wcr-light-gray: #f5f5f5;
+            --wcr-medium-gray: #e0e0e0;
+            --wcr-dusty-rose: #d4a5a5;
+            --wcr-rose-accent: #c48b8b;
+            --wcr-plum: #9b4a75;
+            --wcr-burgundy: #880124;
+            --wcr-deep-charcoal: #1a1a1a;
+            --wcr-charcoal: #2c2c2c;
+            
+            /* Geometric design system */
+            --geometric-shadow: 0 10px 30px rgba(44, 44, 44, 0.1);
+            --sharp-shadow: 0 0 0 1px rgba(44, 44, 44, 0.1), 0 4px 20px rgba(44, 44, 44, 0.15);
+            --angular-transition: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --clip-angle: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+            --clip-reverse: polygon(0 15%, 100% 0, 100% 100%, 0 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.5;
+            color: var(--wcr-charcoal);
+            background: var(--wcr-pure-white);
+            overflow-x: hidden;
+        }
+
+        /* Geometric Header with angular design */
+        .header {
+            background: var(--wcr-pure-white);
+            box-shadow: var(--sharp-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            clip-path: var(--clip-angle);
+            padding-bottom: 20px;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            height: 80px;
+            gap: 2rem;
+        }
+
+        .logo {
+            font-family: 'Bodoni Moda', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--wcr-deep-charcoal);
+            text-decoration: none;
+            position: relative;
+            transition: all 0.3s var(--angular-transition);
+        }
+
+        .logo::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -10px;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, var(--wcr-burgundy), var(--wcr-plum));
+            transform: scaleY(0);
+            transition: transform 0.3s var(--angular-transition);
+            transform-origin: bottom;
+        }
+
+        .logo:hover::before {
+            transform: scaleY(1);
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 0;
+            justify-self: center;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--wcr-charcoal);
+            font-weight: 500;
+            padding: 1rem 2rem;
+            position: relative;
+            transition: all 0.3s var(--angular-transition);
+            clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+            margin-right: -10px;
+        }
+
+        .nav-link:hover {
+            background: var(--wcr-light-gray);
+            color: var(--wcr-burgundy);
+            z-index: 2;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            width: 60%;
+            height: 2px;
+            background: var(--wcr-burgundy);
+            transform: scaleX(0);
+            transition: transform 0.3s var(--angular-transition);
+        }
+
+        .nav-link:hover::after {
+            transform: scaleX(1);
+        }
+
+        .nav-cta {
+            background: var(--wcr-deep-charcoal);
+            color: white;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            font-weight: 600;
+            position: relative;
+            transition: all 0.4s var(--angular-transition);
+            clip-path: polygon(0 0, 85% 0%, 100% 100%, 15% 100%);
+            overflow: hidden;
+        }
+
+        .nav-cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--wcr-burgundy), var(--wcr-plum));
+            transition: left 0.4s var(--angular-transition);
+        }
+
+        .nav-cta:hover::before {
+            left: 0;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+        }
+
+        .nav-cta span {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Geometric Hero Section */
+        .hero {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            min-height: 100vh;
+            align-items: center;
+        }
+
+        .hero-content {
+            padding: 4rem 2rem 4rem 4rem;
+            background: var(--wcr-pure-white);
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-content::before {
+            content: '';
+            position: absolute;
+            top: 20%;
+            right: -50px;
+            width: 100px;
+            height: 60%;
+            background: linear-gradient(135deg, var(--wcr-dusty-rose), var(--wcr-plum));
+            clip-path: polygon(0 0, 100% 20%, 100% 100%, 0 80%);
+            z-index: -1;
+        }
+
+        .hero-content h1 {
+            font-family: 'Bodoni Moda', serif;
+            font-size: 5rem;
+            font-weight: 700;
+            line-height: 0.9;
+            margin-bottom: 2rem;
+            color: var(--wcr-deep-charcoal);
+            letter-spacing: -2px;
+        }
+
+        .hero-content .highlight {
+            display: block;
+            color: var(--wcr-burgundy);
+            position: relative;
+            margin-left: 2rem;
+        }
+
+        .hero-content .highlight::before {
+            content: '';
+            position: absolute;
+            left: -2rem;
+            top: 50%;
+            width: 1.5rem;
+            height: 2px;
+            background: var(--wcr-burgundy);
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            font-weight: 300;
+            color: var(--wcr-charcoal);
+            margin-bottom: 3rem;
+            line-height: 1.4;
+            max-width: 500px;
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-item {
+            text-align: left;
+            padding: 1.5rem;
+            background: var(--wcr-light-gray);
+            clip-path: polygon(0 0, 85% 0%, 100% 100%, 15% 100%);
+            transition: all 0.3s var(--angular-transition);
+        }
+
+        .stat-item:hover {
+            background: var(--wcr-medium-gray);
+            transform: translateY(-3px);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--wcr-burgundy);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--wcr-charcoal);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--wcr-deep-charcoal);
+            color: white;
+            padding: 1.5rem 3rem;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.4s var(--angular-transition);
+            clip-path: polygon(0 0, 85% 0%, 100% 100%, 15% 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--wcr-burgundy), var(--wcr-plum));
+            transition: left 0.4s var(--angular-transition);
+        }
+
+        .btn-primary:hover::before {
+            left: 0;
+        }
+
+        .btn-primary span {
+            position: relative;
+            z-index: 2;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--wcr-charcoal);
+            padding: 1.5rem 3rem;
+            border: 2px solid var(--wcr-charcoal);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.4s var(--angular-transition);
+            clip-path: polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%);
+        }
+
+        .btn-secondary:hover {
+            background: var(--wcr-charcoal);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .hero-visual {
+            background: linear-gradient(135deg, var(--wcr-light-gray) 0%, var(--wcr-medium-gray) 100%);
+            position: relative;
+            clip-path: var(--clip-reverse);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero-visual::before {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            width: 80%;
+            height: 80%;
+            background: linear-gradient(45deg, rgba(155, 74, 117, 0.1), transparent, rgba(136, 1, 36, 0.1));
+            clip-path: polygon(20% 0%, 100% 20%, 80% 100%, 0% 80%);
+        }
+
+        .hero-visual-content {
+            text-align: center;
+            z-index: 2;
+            position: relative;
+        }
+
+        .hero-visual h3 {
+            font-size: 2rem;
+            color: var(--wcr-deep-charcoal);
+            margin-bottom: 1rem;
+            font-family: 'Bodoni Moda', serif;
+        }
+
+        .hero-visual p {
+            font-size: 1.2rem;
+            color: var(--wcr-charcoal);
+            max-width: 300px;
+        }
+
+        /* Geometric Features Section */
+        .features {
+            padding: 8rem 0;
+            background: var(--wcr-light-gray);
+            margin: 6rem 0;
+            clip-path: var(--clip-angle);
+            position: relative;
+        }
+
+        .features::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: var(--wcr-pure-white);
+            clip-path: var(--clip-reverse);
+        }
+
+        .features-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .features-header {
+            text-align: left;
+            margin-bottom: 6rem;
+            max-width: 600px;
+        }
+
+        .features h2 {
+            font-family: 'Bodoni Moda', serif;
+            font-size: 4rem;
+            color: var(--wcr-deep-charcoal);
+            line-height: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .features-description {
+            font-size: 1.3rem;
+            color: var(--wcr-charcoal);
+            line-height: 1.6;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4rem;
+        }
+
+        .feature-card {
+            background: var(--wcr-pure-white);
+            padding: 3rem;
+            position: relative;
+            transition: all 0.4s var(--angular-transition);
+            clip-path: polygon(0 0, 90% 0%, 100% 100%, 10% 100%);
+        }
+
+        .feature-card:nth-child(even) {
+            clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+            margin-top: 2rem;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, var(--wcr-burgundy), var(--wcr-plum));
+            transform: scaleY(0);
+            transition: transform 0.4s var(--angular-transition);
+            transform-origin: bottom;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleY(1);
+        }
+
+        .feature-card:hover {
+            box-shadow: var(--geometric-shadow);
+            transform: translateY(-5px);
+        }
+
+        .feature-number {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--wcr-medium-gray);
+            line-height: 1;
+            margin-bottom: 1rem;
+            font-family: 'Bodoni Moda', serif;
+        }
+
+        .feature-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: var(--wcr-deep-charcoal);
+            font-weight: 700;
+        }
+
+        .feature-card p {
+            color: var(--wcr-charcoal);
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+
+        /* Geometric Footer */
+        .footer {
+            background: var(--wcr-deep-charcoal);
+            color: white;
+            padding: 6rem 0 2rem;
+            position: relative;
+            clip-path: var(--clip-reverse);
+        }
+
+        .footer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 4rem;
+        }
+
+        .footer-brand {
+            background: var(--wcr-charcoal);
+            padding: 3rem;
+            clip-path: polygon(0 0, 85% 0%, 100% 100%, 15% 100%);
+        }
+
+        .footer-brand h4 {
+            font-family: 'Bodoni Moda', serif;
+            font-size: 2rem;
+            color: var(--wcr-dusty-rose);
+            margin-bottom: 1rem;
+        }
+
+        .footer-brand p {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+        }
+
+        .footer-links {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 3rem;
+        }
+
+        .footer-section h5 {
+            color: var(--wcr-dusty-rose);
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            display: block;
+            padding: 0.5rem 0;
+            transition: all 0.3s var(--angular-transition);
+            position: relative;
+        }
+
+        .footer-section a::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 0;
+            height: 1px;
+            background: var(--wcr-dusty-rose);
+            transition: width 0.3s var(--angular-transition);
+        }
+
+        .footer-section a:hover::before {
+            width: 20px;
+        }
+
+        .footer-section a:hover {
+            color: var(--wcr-dusty-rose);
+            padding-left: 25px;
+        }
+
+        .footer-bottom {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            grid-column: 1 / -1;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 1024px) {
+            .hero {
+                grid-template-columns: 1fr;
+                min-height: auto;
+            }
+
+            .hero-visual {
+                min-height: 60vh;
+                clip-path: var(--clip-angle);
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .feature-card:nth-child(even) {
+                margin-top: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .nav-container {
+                grid-template-columns: 1fr auto;
+            }
+
+            .hero-content {
+                padding: 3rem 2rem;
+            }
+
+            .hero-content h1 {
+                font-size: 3rem;
+            }
+
+            .hero-stats {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .features h2 {
+                font-size: 2.5rem;
+            }
+
+            .footer-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .footer-links {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+
+        /* Accessibility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .nav-link:focus,
+        .nav-cta:focus,
+        .btn-primary:focus,
+        .btn-secondary:focus {
+            outline: 3px solid var(--wcr-burgundy);
+            outline-offset: 2px;
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Geometric Header -->
+    <header class="header">
+        <nav class="nav-container">
+            <a href="#" class="logo">WitchCityRope</a>
+            <ul class="nav-menu">
+                <li><a href="#events" class="nav-link">Events</a></li>
+                <li><a href="#community" class="nav-link">Community</a></li>
+                <li><a href="#education" class="nav-link">Education</a></li>
+                <li><a href="#safety" class="nav-link">Safety</a></li>
+                <li><a href="#contact" class="nav-link">Contact</a></li>
+            </ul>
+            <a href="#join" class="nav-cta"><span>Join Community</span></a>
+        </nav>
+    </header>
+
+    <!-- Geometric Hero Section -->
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h1>
+                    Salem's<br>
+                    <span class="highlight">Rope Community</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Modern education meets traditional artistry in Massachusetts' 
+                    premier rope bondage community.
+                </p>
+                
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">500+</div>
+                        <div class="stat-label">Members</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">50+</div>
+                        <div class="stat-label">Events</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">15+</div>
+                        <div class="stat-label">Instructors</div>
+                    </div>
+                </div>
+
+                <div class="hero-actions">
+                    <a href="#events" class="btn-primary"><span>Browse Events</span></a>
+                    <a href="#about" class="btn-secondary">Learn More</a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="hero-visual-content">
+                    <h3>Art • Education • Community</h3>
+                    <p>Where modern techniques meet timeless artistry in a supportive environment</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Geometric Features Section -->
+        <section class="features">
+            <div class="features-container">
+                <div class="features-header">
+                    <h2>Why Choose<br>Our Community</h2>
+                    <p class="features-description">
+                        We combine structured learning with creative expression, 
+                        offering comprehensive education in a welcoming environment.
+                    </p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-number">01</div>
+                        <h3>Expert Instruction</h3>
+                        <p>Learn from certified instructors with years of experience in rope artistry and safety protocols.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-number">02</div>
+                        <h3>Progressive Curriculum</h3>
+                        <p>Structured learning path from fundamentals to advanced techniques with clear skill progression.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-number">03</div>
+                        <h3>Safe Environment</h3>
+                        <p>Comprehensive safety protocols and consent education ensure a secure learning space for all.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-number">04</div>
+                        <h3>Vibrant Community</h3>
+                        <p>Connect with like-minded individuals in a supportive, inclusive environment that celebrates diversity.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Geometric Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <h4>WitchCityRope</h4>
+                <p>Salem's premier rope bondage education and community platform, dedicated to safe learning and artistic expression.</p>
+            </div>
+            <div class="footer-links">
+                <div class="footer-section">
+                    <h5>Education</h5>
+                    <a href="#workshops">Workshops</a>
+                    <a href="#curriculum">Curriculum</a>
+                    <a href="#certification">Certification</a>
+                    <a href="#safety">Safety Training</a>
+                </div>
+                <div class="footer-section">
+                    <h5>Community</h5>
+                    <a href="#events">Events</a>
+                    <a href="#social">Social Gatherings</a>
+                    <a href="#performances">Performances</a>
+                    <a href="#members">Member Directory</a>
+                </div>
+                <div class="footer-section">
+                    <h5>Support</h5>
+                    <a href="#contact">Contact</a>
+                    <a href="#resources">Resources</a>
+                    <a href="#guidelines">Guidelines</a>
+                    <a href="#help">Help Center</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 WitchCityRope. Professional rope education and community. | Salem, Massachusetts</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Geometric interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Smooth scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Geometric reveal animations
+            const observerOptions = {
+                threshold: 0.2,
+                rootMargin: '0px 0px -100px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0) translateX(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Animate feature cards with geometric movement
+            document.querySelectorAll('.feature-card').forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = index % 2 === 0 ? 'translateX(-30px)' : 'translateX(30px)';
+                card.style.transition = `opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${index * 0.1}s, transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${index * 0.1}s`;
+                observer.observe(card);
+            });
+
+            // Animate stats with geometric precision
+            document.querySelectorAll('.stat-item').forEach((stat, index) => {
+                stat.style.opacity = '0';
+                stat.style.transform = 'translateY(20px)';
+                stat.style.transition = `opacity 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${index * 0.1}s, transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${index * 0.1}s`;
+                
+                setTimeout(() => {
+                    stat.style.opacity = '1';
+                    stat.style.transform = 'translateY(0)';
+                }, 500 + (index * 100));
+            });
+
+            // Parallax effect for hero visual
+            window.addEventListener('scroll', () => {
+                const scrolled = window.pageYOffset;
+                const heroVisual = document.querySelector('.hero-visual::before');
+                // Subtle parallax would be applied via CSS custom properties
+            });
+
+            // Angular navigation highlight
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateX(5px)';
+                });
+                link.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateX(0)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

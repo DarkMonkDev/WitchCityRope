@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WitchCityRope - Obsidian Edge Gothic</title>
+    <style>
+        /* Obsidian Edge - Sharp Gothic Modern */
+        /* Pure black, white contrast, crimson details */
+        
+        :root {
+            /* Obsidian Edge palette */
+            --pure-black: #000000;
+            --deep-black: #0d0d0d;
+            --obsidian: #1a1a1a;
+            --sharp-white: #ffffff;
+            --ice-white: #f8f8f8;
+            --stark-gray: #e0e0e0;
+            --crimson-edge: #dc143c;
+            --blood-crimson: #b22222;
+            --dark-crimson: #8b0000;
+            --shadow-crimson: rgba(220, 20, 60, 0.3);
+            
+            /* Sharp modern effects */
+            --obsidian-gradient: linear-gradient(135deg, var(--pure-black), var(--deep-black), var(--obsidian));
+            --crimson-gradient: linear-gradient(45deg, var(--crimson-edge), var(--blood-crimson), var(--dark-crimson));
+            --sharp-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+            --edge-shadow: 0 8px 32px rgba(0, 0, 0, 0.9);
+            --precise-curve: cubic-bezier(0.4, 0.0, 0.2, 1);
+            --sharp-border-radius: 4px 12px 4px 12px;
+            
+            /* Sharp geometric textures */
+            --edge-texture: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M20 0L40 20L20 40L0 20Z'/%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Bebas Neue', 'Arial Black', sans-serif;
+            line-height: 1.5;
+            color: var(--sharp-white);
+            background: var(--pure-black);
+            background-image: var(--edge-texture);
+            overflow-x: hidden;
+        }
+
+        /* Sharp Header with geometric curves */
+        .header {
+            background: var(--obsidian-gradient);
+            box-shadow: var(--sharp-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 3px solid var(--crimson-edge);
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 75px;
+        }
+
+        .logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.4rem;
+            font-weight: 900;
+            background: var(--crimson-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+            transition: all 0.4s var(--precise-curve);
+            position: relative;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        /* PRECISE UNDERLINE ANIMATION */
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: var(--crimson-gradient);
+            transition: all 0.5s var(--precise-curve);
+            transform: translateX(-50%);
+            clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
+        }
+
+        .logo:hover::after {
+            width: 100%;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--sharp-white);
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 0.8rem 1.5rem;
+            border-radius: var(--sharp-border-radius);
+            transition: all 0.3s var(--precise-curve);
+            position: relative;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* PRECISE UNDERLINE for navigation */
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--crimson-edge);
+            transition: all 0.4s var(--precise-curve);
+            transform: translateX(-50%);
+            clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%);
+        }
+
+        .nav-link:hover::after {
+            width: 90%;
+        }
+
+        .nav-link:hover {
+            color: var(--crimson-edge);
+            text-shadow: 0 0 8px var(--shadow-crimson);
+        }
+
+        .nav-cta {
+            background: var(--crimson-gradient);
+            color: var(--sharp-white);
+            padding: 1rem 2.5rem;
+            border-radius: var(--sharp-border-radius);
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.4s var(--precise-curve);
+            box-shadow: var(--sharp-shadow);
+            position: relative;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        /* PRECISE UNDERLINE for CTA */
+        .nav-cta::after {
+            content: '';
+            position: absolute;
+            bottom: 6px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--sharp-white);
+            transition: all 0.4s var(--precise-curve);
+            transform: translateX(-50%);
+        }
+
+        .nav-cta:hover::after {
+            width: 80%;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--edge-shadow);
+        }
+
+        /* Sharp Hero with geometric curves */
+        .hero {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 6rem 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            min-height: 90vh;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -8%;
+            right: -12%;
+            width: 45%;
+            height: 116%;
+            background: linear-gradient(135deg, rgba(220, 20, 60, 0.1), rgba(178, 34, 34, 0.05));
+            clip-path: polygon(0 0, 100% 0, 80% 100%, 20% 100%);
+            z-index: -1;
+            animation: sharp-flow 20s ease-in-out infinite;
+        }
+
+        @keyframes sharp-flow {
+            0%, 100% { 
+                transform: rotate(0deg) scale(1);
+                clip-path: polygon(0 0, 100% 0, 80% 100%, 20% 100%);
+            }
+            50% { 
+                transform: rotate(1deg) scale(1.01);
+                clip-path: polygon(10% 0, 90% 0, 100% 100%, 0% 100%);
+            }
+        }
+
+        .hero-content {
+            position: relative;
+        }
+
+        .hero-content h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 4.2rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 2rem;
+            color: var(--sharp-white);
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 1);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .hero-content .highlight {
+            background: var(--crimson-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+        }
+
+        /* PRECISE UNDERLINE for hero highlight */
+        .hero-content .highlight::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--crimson-gradient);
+            clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
+            animation: edge-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes edge-pulse {
+            0%, 100% { 
+                transform: scaleX(1);
+                opacity: 0.9;
+            }
+            50% { 
+                transform: scaleX(1.02);
+                opacity: 1;
+            }
+        }
+
+        .hero-content p {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.3rem;
+            color: var(--stark-gray);
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: var(--crimson-gradient);
+            color: var(--sharp-white);
+            padding: 1.3rem 2.8rem;
+            border: none;
+            border-radius: var(--sharp-border-radius);
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.5s var(--precise-curve);
+            box-shadow: var(--sharp-shadow);
+            position: relative;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-family: 'Bebas Neue', sans-serif;
+        }
+
+        /* PRECISE UNDERLINE for primary button */
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--sharp-white);
+            transition: all 0.5s var(--precise-curve);
+            transform: translateX(-50%);
+        }
+
+        .btn-primary:hover::after {
+            width: 80%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--edge-shadow);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--crimson-edge);
+            padding: 1.3rem 2.8rem;
+            border: 2px solid var(--crimson-edge);
+            border-radius: var(--sharp-border-radius);
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.5s var(--precise-curve);
+            position: relative;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-family: 'Bebas Neue', sans-serif;
+        }
+
+        .btn-secondary:hover {
+            background: var(--crimson-gradient);
+            color: var(--sharp-white);
+            border-color: transparent;
+            transform: translateY(-2px);
+        }
+
+        .hero-visual {
+            background: var(--obsidian-gradient);
+            clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+            padding: 3.5rem;
+            min-height: 480px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--sharp-white);
+            text-align: center;
+            box-shadow: var(--edge-shadow);
+            position: relative;
+            overflow: hidden;
+            animation: obsidian-pulse 18s ease-in-out infinite;
+            border: 2px solid var(--crimson-edge);
+        }
+
+        @keyframes obsidian-pulse {
+            0%, 100% {
+                clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+                transform: scale(1);
+            }
+            50% {
+                clip-path: polygon(0% 0%, 90% 0%, 100% 100%, 10% 100%);
+                transform: scale(1.01);
+            }
+        }
+
+        .hero-visual::before {
+            content: '';
+            position: absolute;
+            top: 30%;
+            left: 30%;
+            width: 40%;
+            height: 40%;
+            background: linear-gradient(45deg, var(--shadow-crimson), transparent);
+            clip-path: polygon(0 0, 100% 0, 80% 100%, 20% 100%);
+            animation: edge-float 10s ease-in-out infinite;
+        }
+
+        @keyframes edge-float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(45deg); }
+        }
+
+        .hero-visual-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-visual h3 {
+            font-size: 1.6rem;
+            margin-bottom: 1rem;
+            font-family: 'Orbitron', monospace;
+            color: var(--crimson-edge);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        /* Event Tiles with PRECISE UNDERLINE ANIMATIONS between image and text */
+        .events-section {
+            background: var(--obsidian-gradient);
+            padding: 7rem 2rem;
+            position: relative;
+            clip-path: polygon(0 6%, 100% 0%, 100% 94%, 0% 100%);
+            margin: 4rem 0;
+        }
+
+        .events-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .events h2 {
+            font-family: 'Orbitron', monospace;
+            font-size: 3.2rem;
+            text-align: center;
+            margin-bottom: 4rem;
+            color: var(--sharp-white);
+            background: var(--crimson-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .event-card {
+            background: var(--deep-black);
+            border-radius: var(--sharp-border-radius);
+            box-shadow: var(--sharp-shadow);
+            border: 2px solid var(--crimson-edge);
+            transition: all 0.5s var(--precise-curve);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .event-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--edge-shadow);
+        }
+
+        .event-image {
+            height: 200px;
+            background: linear-gradient(135deg, var(--obsidian), var(--crimson-edge));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--sharp-white);
+            font-size: 1.1rem;
+            position: relative;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* PRECISE UNDERLINE between image and text content */
+        .event-image::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: var(--crimson-gradient);
+            transition: all 0.5s var(--precise-curve);
+            transform: translateX(-50%);
+            clip-path: polygon(5% 0%, 95% 0%, 100% 100%, 0% 100%);
+        }
+
+        .event-card:hover .event-image::after {
+            width: 90%;
+        }
+
+        .event-content {
+            padding: 2rem;
+        }
+
+        .event-title {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: var(--sharp-white);
+            font-family: 'Orbitron', monospace;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .event-details {
+            color: var(--stark-gray);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .event-cta {
+            background: var(--crimson-gradient);
+            color: var(--sharp-white);
+            padding: 0.8rem 1.8rem;
+            border: none;
+            border-radius: var(--sharp-border-radius);
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s var(--precise-curve);
+            position: relative;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* PRECISE UNDERLINE for event CTA */
+        .event-cta::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            width: 0;
+            height: 1px;
+            background: var(--sharp-white);
+            transition: all 0.3s var(--precise-curve);
+            transform: translateX(-50%);
+        }
+
+        .event-cta:hover::after {
+            width: 70%;
+        }
+
+        /* Sharp Footer */
+        .footer {
+            background: var(--pure-black);
+            color: var(--sharp-white);
+            padding: 4rem 2rem 2rem;
+            margin-top: 6rem;
+            position: relative;
+            clip-path: polygon(0 12%, 100% 0%, 100% 100%, 0% 100%);
+            border-top: 2px solid var(--crimson-edge);
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 2.5rem;
+            position: relative;
+        }
+
+        .footer h4 {
+            color: var(--crimson-edge);
+            margin-bottom: 1.5rem;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .footer a {
+            color: var(--stark-gray);
+            text-decoration: none;
+            transition: all 0.3s var(--precise-curve);
+            display: block;
+            padding: 0.3rem 0;
+            position: relative;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+        }
+
+        /* PRECISE UNDERLINE for footer links */
+        .footer a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--crimson-edge);
+            transition: all 0.3s var(--precise-curve);
+        }
+
+        .footer a:hover::after {
+            width: 100%;
+        }
+
+        .footer a:hover {
+            color: var(--crimson-edge);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--crimson-edge);
+            margin-top: 3rem;
+            padding-top: 2rem;
+            text-align: center;
+            color: var(--stark-gray);
+            position: relative;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+                padding: 3rem 1rem;
+                text-align: center;
+            }
+
+            .hero-content h1 {
+                font-size: 2.8rem;
+            }
+
+            .hero-visual {
+                order: -1;
+                min-height: 320px;
+                clip-path: polygon(5% 0%, 95% 0%, 100% 100%, 0% 100%);
+            }
+
+            .events-section {
+                padding: 5rem 1rem;
+                clip-path: polygon(0 4%, 100% 0%, 100% 96%, 0% 100%);
+            }
+
+            .events-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer {
+                padding: 3rem 1rem 2rem;
+                clip-path: polygon(0 8%, 100% 0%, 100% 100%, 0% 100%);
+            }
+
+            .btn-primary, .btn-secondary {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        /* Accessibility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .nav-link:focus,
+        .nav-cta:focus,
+        .btn-primary:focus,
+        .btn-secondary:focus {
+            outline: 3px solid var(--crimson-edge);
+            outline-offset: 3px;
+            border-radius: var(--sharp-border-radius);
+        }
+
+        /* Respect reduced motion for complex animations only */
+        @media (prefers-reduced-motion: reduce) {
+            .hero::before,
+            .hero-visual,
+            .hero-visual::before {
+                animation: none !important;
+            }
+            
+            .hero-content .highlight::after {
+                animation: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sharp Header -->
+    <header class="header">
+        <nav class="nav-container">
+            <a href="#" class="logo">WitchCityRope</a>
+            <ul class="nav-menu">
+                <li><a href="#events" class="nav-link">Events</a></li>
+                <li><a href="#community" class="nav-link">Edge</a></li>
+                <li><a href="#precision" class="nav-link">Precision</a></li>
+                <li><a href="#power" class="nav-link">Power</a></li>
+                <li><a href="#contact" class="nav-link">Contact</a></li>
+            </ul>
+            <a href="#join" class="nav-cta">Join Edge</a>
+        </nav>
+    </header>
+
+    <!-- Sharp Hero Section -->
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h1>
+                    Salem's Sharp<br>
+                    <span class="highlight">Edge Collective</span>
+                </h1>
+                <p>
+                    Experience the cutting edge of rope artistry where precision meets passion. 
+                    In Salem's most modern sanctuary, every knot is deliberate, every line is clean, every moment is sharp.
+                </p>
+                <div class="hero-actions">
+                    <a href="#events" class="btn-primary">Enter the Edge</a>
+                    <a href="#precision" class="btn-secondary">Our Method</a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="hero-visual-content">
+                    <h3>Sharp • Clean • Precise</h3>
+                    <p>Where modern technique meets ancient artistry</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Events Section with Precise Underline Animations -->
+        <section class="events-section">
+            <div class="events-container">
+                <h2>Sharp Sessions</h2>
+                <div class="events-grid">
+                    <div class="event-card">
+                        <div class="event-image">
+                            Precision Training
+                        </div>
+                        <div class="event-content">
+                            <h3 class="event-title">Edge Technique</h3>
+                            <p class="event-details">
+                                Master the sharp precision of modern rope work. 
+                                Learn clean techniques that cut through confusion with surgical accuracy.
+                            </p>
+                            <a href="#register" class="event-cta">Perfect Skill</a>
+                        </div>
+                    </div>
+                    <div class="event-card">
+                        <div class="event-image">
+                            Modern Workshop
+                        </div>
+                        <div class="event-content">
+                            <h3 class="event-title">Sharp Lines</h3>
+                            <p class="event-details">
+                                Contemporary rope artistry with geometric precision. 
+                                Where every movement is calculated and every line serves a purpose.
+                            </p>
+                            <a href="#register" class="event-cta">Cut Deep</a>
+                        </div>
+                    </div>
+                    <div class="event-card">
+                        <div class="event-image">
+                            Edge Performance
+                        </div>
+                        <div class="event-content">
+                            <h3 class="event-title">Obsidian Show</h3>
+                            <p class="event-details">
+                                Witness performances that blend modern artistry with ancient power. 
+                                Sharp, clean, and devastatingly beautiful.
+                            </p>
+                            <a href="#register" class="event-cta">See Edge</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Sharp Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div>
+                <h4>Edge</h4>
+                <a href="#precision">Precision Sessions</a>
+                <a href="#workshops">Sharp Workshops</a>
+                <a href="#performances">Edge Shows</a>
+            </div>
+            <div>
+                <h4>Method</h4>
+                <a href="#training">Begin Training</a>
+                <a href="#technique">Master Technique</a>
+                <a href="#philosophy">Our Edge</a>
+            </div>
+            <div>
+                <h4>Collective</h4>
+                <a href="#contact">Find Edge</a>
+                <a href="#guidance">Sharp Guidance</a>
+                <a href="#resources">Technical Library</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 WitchCityRope. Where precision cuts through. | Salem's Sharp Edge</p>
+        </div>
+    </footer>
+
+    <script>
+        // Sharp precision interactions - NO MOUSE FOLLOWING
+        document.addEventListener('DOMContentLoaded', function() {
+            // Precise scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Sharp scroll animations for event cards
+            const observerOptions = {
+                threshold: 0.2,
+                rootMargin: '0px 0px -60px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe event cards for precise reveal
+            document.querySelectorAll('.event-card').forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = `opacity 0.6s cubic-bezier(0.4, 0.0, 0.2, 1) ${index * 0.1}s, transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1) ${index * 0.1}s`;
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>

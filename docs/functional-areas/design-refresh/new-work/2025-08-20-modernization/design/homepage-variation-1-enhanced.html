@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WitchCityRope - Enhanced Current Design (Variation 1)</title>
+    <style>
+        /* Enhanced Current Design - Variation 1 */
+        /* Subtle improvements to existing design with modern touches */
+        
+        :root {
+            /* WitchCityRope brand colors */
+            --wcr-ivory: #f8f4e6;
+            --wcr-dusty-rose: #d4a5a5;
+            --wcr-rose-muted: #c48b8b;
+            --wcr-rose-deep: #b47171;
+            --wcr-plum: #9b4a75;
+            --wcr-burgundy: #880124;
+            --wcr-burgundy-dark: #6b0119;
+            --wcr-charcoal: #2c2c2c;
+            
+            /* Enhanced subtle effects */
+            --subtle-shadow: 0 2px 8px rgba(44, 44, 44, 0.1);
+            --hover-shadow: 0 4px 16px rgba(155, 74, 117, 0.15);
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--wcr-charcoal);
+            background: var(--wcr-ivory);
+        }
+
+        /* Enhanced Header with subtle improvements */
+        .header {
+            background: white;
+            box-shadow: var(--subtle-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(155, 74, 117, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .logo {
+            font-family: 'Bodoni Moda', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--wcr-burgundy);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .logo:hover {
+            color: var(--wcr-plum);
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--wcr-charcoal);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+
+        .nav-link:hover {
+            background: rgba(155, 74, 117, 0.05);
+            color: var(--wcr-burgundy);
+        }
+
+        .nav-cta {
+            background: linear-gradient(135deg, var(--wcr-burgundy), var(--wcr-plum));
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+            box-shadow: var(--subtle-shadow);
+        }
+
+        .nav-cta:hover {
+            box-shadow: var(--hover-shadow);
+            transform: translateY(-1px);
+        }
+
+        /* Enhanced Hero Section */
+        .hero {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+            min-height: 80vh;
+        }
+
+        .hero-content h1 {
+            font-family: 'Bodoni Moda', serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            color: var(--wcr-charcoal);
+        }
+
+        .hero-content .highlight {
+            background: linear-gradient(135deg, var(--wcr-burgundy), var(--wcr-plum));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-content p {
+            font-size: 1.25rem;
+            color: rgba(44, 44, 44, 0.8);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--wcr-burgundy), var(--wcr-plum));
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: var(--transition);
+            box-shadow: var(--subtle-shadow);
+        }
+
+        .btn-primary:hover {
+            box-shadow: var(--hover-shadow);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--wcr-burgundy);
+            padding: 1rem 2rem;
+            border: 2px solid var(--wcr-burgundy);
+            border-radius: var(--border-radius);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: var(--transition);
+        }
+
+        .btn-secondary:hover {
+            background: var(--wcr-burgundy);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .hero-visual {
+            background: linear-gradient(135deg, rgba(155, 74, 117, 0.1), rgba(136, 1, 36, 0.05));
+            border-radius: 16px;
+            padding: 2rem;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--wcr-plum);
+            font-size: 1.2rem;
+            text-align: center;
+            box-shadow: var(--subtle-shadow);
+        }
+
+        /* Enhanced Features Section */
+        .features {
+            background: white;
+            padding: 6rem 2rem;
+        }
+
+        .features-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .features h2 {
+            font-family: 'Bodoni Moda', serif;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            color: var(--wcr-charcoal);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--subtle-shadow);
+            border: 1px solid rgba(155, 74, 117, 0.1);
+            transition: var(--transition);
+        }
+
+        .feature-card:hover {
+            box-shadow: var(--hover-shadow);
+            transform: translateY(-4px);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--wcr-plum), var(--wcr-burgundy));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--wcr-charcoal);
+        }
+
+        .feature-card p {
+            color: rgba(44, 44, 44, 0.8);
+            line-height: 1.6;
+        }
+
+        /* Enhanced Footer */
+        .footer {
+            background: var(--wcr-charcoal);
+            color: white;
+            padding: 3rem 2rem 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer h4 {
+            color: var(--wcr-dusty-rose);
+            margin-bottom: 1rem;
+        }
+
+        .footer a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer a:hover {
+            color: var(--wcr-dusty-rose);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 2rem;
+            padding-top: 2rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                padding: 2rem 1rem;
+                text-align: center;
+            }
+
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-visual {
+                order: -1;
+                min-height: 300px;
+            }
+
+            .hero-actions {
+                justify-content: center;
+            }
+
+            .features {
+                padding: 4rem 1rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer {
+                padding: 2rem 1rem;
+            }
+        }
+
+        /* Accessibility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Focus styles */
+        .nav-link:focus,
+        .nav-cta:focus,
+        .btn-primary:focus,
+        .btn-secondary:focus {
+            outline: 2px solid var(--wcr-burgundy);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Enhanced Header -->
+    <header class="header">
+        <nav class="nav-container">
+            <a href="#" class="logo">WitchCityRope</a>
+            <ul class="nav-menu">
+                <li><a href="#events" class="nav-link">Events</a></li>
+                <li><a href="#community" class="nav-link">Community</a></li>
+                <li><a href="#education" class="nav-link">Education</a></li>
+                <li><a href="#safety" class="nav-link">Safety</a></li>
+                <li><a href="#contact" class="nav-link">Contact</a></li>
+            </ul>
+            <a href="#join" class="nav-cta">Join Community</a>
+        </nav>
+    </header>
+
+    <!-- Enhanced Hero Section -->
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h1>
+                    Salem's Premier<br>
+                    <span class="highlight">Rope Community</span>
+                </h1>
+                <p>
+                    Educational workshops, community events, and safe learning environment 
+                    for rope bondage in Salem, Massachusetts.
+                </p>
+                <div class="hero-actions">
+                    <a href="#events" class="btn-primary">View Events</a>
+                    <a href="#about" class="btn-secondary">Learn More</a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div>
+                    <h3>Community • Education • Safety</h3>
+                    <p>Building connections through shared learning and respect</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Enhanced Features Section -->
+        <section class="features">
+            <div class="features-container">
+                <h2>Why Choose WitchCityRope</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📚</div>
+                        <h3>Expert Education</h3>
+                        <p>Learn from experienced instructors in a supportive environment with structured curriculum and safety-first approach.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🤝</div>
+                        <h3>Welcoming Community</h3>
+                        <p>Join a diverse, inclusive community that celebrates learning, growth, and respectful exploration.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🛡️</div>
+                        <h3>Safety First</h3>
+                        <p>Comprehensive safety protocols, consent education, and ongoing support for all community members.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Enhanced Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div>
+                <h4>Community</h4>
+                <p><a href="#events">Upcoming Events</a></p>
+                <p><a href="#workshops">Workshops</a></p>
+                <p><a href="#social">Social Events</a></p>
+            </div>
+            <div>
+                <h4>Education</h4>
+                <p><a href="#beginners">Getting Started</a></p>
+                <p><a href="#safety">Safety Guidelines</a></p>
+                <p><a href="#resources">Resources</a></p>
+            </div>
+            <div>
+                <h4>Support</h4>
+                <p><a href="#contact">Contact Us</a></p>
+                <p><a href="#faq">FAQ</a></p>
+                <p><a href="#help">Help Center</a></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 WitchCityRope. All rights reserved. | Salem, Massachusetts</p>
+        </div>
+    </footer>
+
+    <script>
+        // Enhanced interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Add subtle scroll animations
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe feature cards for fade-in animation
+            document.querySelectorAll('.feature-card').forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>

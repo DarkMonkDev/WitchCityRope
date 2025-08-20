@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WitchCityRope - Victorian Shadow Gothic</title>
+    <style>
+        /* Victorian Shadow - Historical Gothic */
+        /* Dark burgundy, forest green, antique gold */
+        
+        :root {
+            /* Victorian Shadow palette */
+            --dark-burgundy: #4a0e2b;
+            --deep-burgundy: #6b1538;
+            --rich-burgundy: #8b1e3f;
+            --forest-green: #1b3b36;
+            --deep-forest: #0d2623;
+            --sage-green: #2d5f5d;
+            --antique-gold: #b8860b;
+            --old-gold: #d4af37;
+            --tarnished-gold: #9b7f0a;
+            --parchment: #f4f1e8;
+            --aged-white: #f0ede4;
+            --shadow-burgundy: rgba(74, 14, 43, 0.4);
+            
+            /* Victorian ornate effects */
+            --victorian-gradient: linear-gradient(135deg, var(--dark-burgundy), var(--deep-burgundy), var(--forest-green));
+            --ornate-gradient: linear-gradient(45deg, var(--antique-gold), var(--old-gold), var(--tarnished-gold));
+            --deep-shadow: 0 8px 32px rgba(27, 59, 54, 0.6);
+            --ornate-shadow: 0 12px 48px rgba(74, 14, 43, 0.5);
+            --graceful-curve: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --ornate-border-radius: 20px 40px 30px 50px;
+            
+            /* Victorian textures */
+            --damask-texture: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23b8860b' fill-opacity='0.03'%3E%3Cpath d='M40 40c0-16.568-13.432-30-30-30s-30 13.432-30 30 13.432 30 30 30 30-13.432 30-30zm-30-26c14.359 0 26 11.641 26 26s-11.641 26-26 26S-16 54.359-16 40s11.641-26 26-26z'/%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Text', 'Times New Roman', serif;
+            line-height: 1.7;
+            color: var(--parchment);
+            background: var(--deep-forest);
+            background-image: var(--damask-texture);
+            overflow-x: hidden;
+        }
+
+        /* Ornate Header with flowing curves */
+        .header {
+            background: var(--victorian-gradient);
+            box-shadow: var(--deep-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 3px solid var(--antique-gold);
+            clip-path: ellipse(130% 100% at center top);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 90px;
+        }
+
+        .logo {
+            font-family: 'Uncial Antiqua', serif;
+            font-size: 2.6rem;
+            font-weight: 400;
+            background: var(--ornate-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+            transition: all 0.7s var(--graceful-curve);
+            position: relative;
+            letter-spacing: 2px;
+        }
+
+        /* ORNATE UNDERLINE ANIMATION */
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            width: 0;
+            height: 4px;
+            background: var(--ornate-gradient);
+            border-radius: 10px;
+            transition: all 0.8s var(--graceful-curve);
+            transform: translateX(-50%);
+            box-shadow: 0 0 12px rgba(184, 134, 11, 0.5);
+        }
+
+        .logo:hover::after {
+            width: 100%;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 3rem;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--parchment);
+            font-weight: 500;
+            font-size: 1.2rem;
+            padding: 1rem 1.8rem;
+            border-radius: var(--ornate-border-radius);
+            transition: all 0.6s var(--graceful-curve);
+            position: relative;
+            letter-spacing: 0.5px;
+        }
+
+        /* ORNATE UNDERLINE for navigation */
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--antique-gold), transparent);
+            border-radius: 5px;
+            transition: all 0.7s var(--graceful-curve);
+            transform: translateX(-50%);
+        }
+
+        .nav-link:hover::after {
+            width: 80%;
+        }
+
+        .nav-link:hover {
+            color: var(--old-gold);
+            text-shadow: 0 0 8px rgba(184, 134, 11, 0.4);
+        }
+
+        .nav-cta {
+            background: var(--ornate-gradient);
+            color: var(--deep-forest);
+            padding: 1.3rem 3rem;
+            border-radius: var(--ornate-border-radius);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.7s var(--graceful-curve);
+            box-shadow: var(--deep-shadow);
+            position: relative;
+            letter-spacing: 1px;
+            text-transform: capitalize;
+            font-size: 1.1rem;
+        }
+
+        /* ORNATE UNDERLINE for CTA */
+        .nav-cta::after {
+            content: '';
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--deep-forest);
+            border-radius: 3px;
+            transition: all 0.7s var(--graceful-curve);
+            transform: translateX(-50%);
+        }
+
+        .nav-cta:hover::after {
+            width: 70%;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--ornate-shadow);
+        }
+
+        /* Ornate Hero with organic curves */
+        .hero {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 8rem 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6rem;
+            align-items: center;
+            min-height: 90vh;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -15%;
+            right: -20%;
+            width: 60%;
+            height: 130%;
+            background: linear-gradient(135deg, rgba(74, 14, 43, 0.1), rgba(27, 59, 54, 0.08));
+            border-radius: 70% 0 70% 0;
+            z-index: -1;
+            animation: victorian-flow 35s ease-in-out infinite;
+        }
+
+        @keyframes victorian-flow {
+            0%, 100% { 
+                transform: rotate(0deg) scale(1);
+                border-radius: 70% 0 70% 0;
+            }
+            50% { 
+                transform: rotate(2deg) scale(1.02);
+                border-radius: 50% 20% 50% 20%;
+            }
+        }
+
+        .hero-content {
+            position: relative;
+        }
+
+        .hero-content h1 {
+            font-family: 'Uncial Antiqua', serif;
+            font-size: 5.2rem;
+            font-weight: 400;
+            line-height: 1.1;
+            margin-bottom: 3rem;
+            color: var(--aged-white);
+            text-shadow: 3px 3px 12px rgba(0, 0, 0, 0.8);
+            letter-spacing: 1px;
+        }
+
+        .hero-content .highlight {
+            background: var(--ornate-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+        }
+
+        /* ORNATE UNDERLINE for hero highlight */
+        .hero-content .highlight::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--ornate-gradient);
+            border-radius: var(--ornate-border-radius);
+            animation: ornate-shimmer 6s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(184, 134, 11, 0.4);
+        }
+
+        @keyframes ornate-shimmer {
+            0%, 100% { 
+                transform: scaleX(1);
+                opacity: 0.8;
+            }
+            50% { 
+                transform: scaleX(1.05);
+                opacity: 1;
+            }
+        }
+
+        .hero-content p {
+            font-size: 1.6rem;
+            color: rgba(244, 241, 232, 0.9);
+            margin-bottom: 4rem;
+            line-height: 1.8;
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: var(--ornate-gradient);
+            color: var(--deep-forest);
+            padding: 1.8rem 3.5rem;
+            border: none;
+            border-radius: var(--ornate-border-radius);
+            font-size: 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.8s var(--graceful-curve);
+            box-shadow: var(--deep-shadow);
+            position: relative;
+            text-transform: capitalize;
+            letter-spacing: 1px;
+        }
+
+        /* ORNATE UNDERLINE for primary button */
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--deep-forest);
+            border-radius: 3px;
+            transition: all 0.8s var(--graceful-curve);
+            transform: translateX(-50%);
+        }
+
+        .btn-primary:hover::after {
+            width: 75%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--ornate-shadow);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--antique-gold);
+            padding: 1.8rem 3.5rem;
+            border: 3px solid var(--antique-gold);
+            border-radius: var(--ornate-border-radius);
+            font-size: 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.8s var(--graceful-curve);
+            position: relative;
+            text-transform: capitalize;
+            letter-spacing: 1px;
+        }
+
+        .btn-secondary:hover {
+            background: var(--ornate-gradient);
+            color: var(--deep-forest);
+            border-color: transparent;
+            transform: translateY(-3px);
+        }
+
+        .hero-visual {
+            background: linear-gradient(135deg, var(--deep-burgundy), var(--forest-green));
+            border-radius: 50% 60% 60% 50% / 50% 50% 60% 60%;
+            padding: 5rem;
+            min-height: 550px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--parchment);
+            text-align: center;
+            box-shadow: var(--ornate-shadow);
+            position: relative;
+            overflow: hidden;
+            animation: victorian-pulse 30s ease-in-out infinite;
+            border: 3px solid var(--antique-gold);
+        }
+
+        @keyframes victorian-pulse {
+            0%, 100% {
+                border-radius: 50% 60% 60% 50% / 50% 50% 60% 60%;
+                transform: scale(1);
+            }
+            50% {
+                border-radius: 60% 50% 50% 60% / 60% 60% 50% 50%;
+                transform: scale(1.02);
+            }
+        }
+
+        .hero-visual::before {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: 20%;
+            width: 60%;
+            height: 60%;
+            background: linear-gradient(45deg, var(--shadow-burgundy), transparent);
+            border-radius: 50%;
+            animation: ornate-float 18s ease-in-out infinite;
+        }
+
+        @keyframes ornate-float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(120deg); }
+        }
+
+        .hero-visual-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-visual h3 {
+            font-size: 2.2rem;
+            margin-bottom: 1.5rem;
+            font-family: 'Uncial Antiqua', serif;
+            color: var(--old-gold);
+            letter-spacing: 1px;
+        }
+
+        /* Event Tiles with ORNATE UNDERLINE ANIMATIONS between image and text */
+        .events-section {
+            background: var(--victorian-gradient);
+            padding: 10rem 2rem;
+            position: relative;
+            clip-path: polygon(0 12%, 100% 0%, 100% 88%, 0% 100%);
+            margin: 4rem 0;
+        }
+
+        .events-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .events h2 {
+            font-family: 'Uncial Antiqua', serif;
+            font-size: 4.2rem;
+            text-align: center;
+            margin-bottom: 6rem;
+            color: var(--aged-white);
+            background: var(--ornate-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
+        }
+
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 4rem;
+        }
+
+        .event-card {
+            background: var(--deep-burgundy);
+            border-radius: var(--ornate-border-radius);
+            box-shadow: var(--deep-shadow);
+            border: 2px solid var(--antique-gold);
+            transition: all 0.8s var(--graceful-curve);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .event-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--ornate-shadow);
+        }
+
+        .event-image {
+            height: 240px;
+            background: linear-gradient(135deg, var(--forest-green), var(--antique-gold));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--aged-white);
+            font-size: 1.4rem;
+            position: relative;
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        /* ORNATE UNDERLINE between image and text content */
+        .event-image::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 4px;
+            background: var(--ornate-gradient);
+            border-radius: 8px;
+            transition: all 0.8s var(--graceful-curve);
+            transform: translateX(-50%);
+            box-shadow: 0 0 12px rgba(184, 134, 11, 0.4);
+        }
+
+        .event-card:hover .event-image::after {
+            width: 90%;
+        }
+
+        .event-content {
+            padding: 3rem;
+        }
+
+        .event-title {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: var(--aged-white);
+            font-family: 'Uncial Antiqua', serif;
+            letter-spacing: 1px;
+        }
+
+        .event-details {
+            color: rgba(244, 241, 232, 0.85);
+            line-height: 1.8;
+            margin-bottom: 2.5rem;
+            font-style: italic;
+            font-size: 1.1rem;
+        }
+
+        .event-cta {
+            background: var(--ornate-gradient);
+            color: var(--deep-forest);
+            padding: 1.2rem 2.5rem;
+            border: none;
+            border-radius: var(--ornate-border-radius);
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.6s var(--graceful-curve);
+            position: relative;
+            letter-spacing: 0.5px;
+            text-transform: capitalize;
+            font-weight: 600;
+        }
+
+        /* ORNATE UNDERLINE for event CTA */
+        .event-cta::after {
+            content: '';
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--deep-forest);
+            border-radius: 3px;
+            transition: all 0.6s var(--graceful-curve);
+            transform: translateX(-50%);
+        }
+
+        .event-cta:hover::after {
+            width: 70%;
+        }
+
+        /* Ornate Footer */
+        .footer {
+            background: var(--deep-forest);
+            color: var(--parchment);
+            padding: 6rem 2rem 2rem;
+            margin-top: 6rem;
+            position: relative;
+            clip-path: polygon(0 20%, 100% 0%, 100% 100%, 0% 100%);
+            border-top: 2px solid var(--antique-gold);
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 4rem;
+            position: relative;
+        }
+
+        .footer h4 {
+            color: var(--old-gold);
+            margin-bottom: 2.5rem;
+            font-family: 'Uncial Antiqua', serif;
+            font-size: 1.6rem;
+            letter-spacing: 1px;
+        }
+
+        .footer a {
+            color: rgba(244, 241, 232, 0.8);
+            text-decoration: none;
+            transition: all 0.5s var(--graceful-curve);
+            display: block;
+            padding: 0.5rem 0;
+            position: relative;
+            font-size: 1.1rem;
+        }
+
+        /* ORNATE UNDERLINE for footer links */
+        .footer a::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--old-gold);
+            border-radius: 3px;
+            transition: all 0.5s var(--graceful-curve);
+        }
+
+        .footer a:hover::after {
+            width: 100%;
+        }
+
+        .footer a:hover {
+            color: var(--old-gold);
+        }
+
+        .footer-bottom {
+            border-top: 2px solid var(--antique-gold);
+            margin-top: 4rem;
+            padding-top: 3rem;
+            text-align: center;
+            color: rgba(244, 241, 232, 0.6);
+            position: relative;
+            font-style: italic;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 4rem;
+                padding: 5rem 1rem;
+                text-align: center;
+            }
+
+            .hero-content h1 {
+                font-size: 3.5rem;
+            }
+
+            .hero-visual {
+                order: -1;
+                min-height: 400px;
+            }
+
+            .events-section {
+                padding: 7rem 1rem;
+                clip-path: polygon(0 8%, 100% 0%, 100% 92%, 0% 100%);
+            }
+
+            .events-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer {
+                padding: 5rem 1rem 2rem;
+                clip-path: polygon(0 12%, 100% 0%, 100% 100%, 0% 100%);
+            }
+
+            .btn-primary, .btn-secondary {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        /* Accessibility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .nav-link:focus,
+        .nav-cta:focus,
+        .btn-primary:focus,
+        .btn-secondary:focus {
+            outline: 3px solid var(--old-gold);
+            outline-offset: 3px;
+            border-radius: var(--ornate-border-radius);
+        }
+
+        /* Respect reduced motion for complex animations only */
+        @media (prefers-reduced-motion: reduce) {
+            .hero::before,
+            .hero-visual,
+            .hero-visual::before {
+                animation: none !important;
+            }
+            
+            .hero-content .highlight::after {
+                animation: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Ornate Header -->
+    <header class="header">
+        <nav class="nav-container">
+            <a href="#" class="logo">WitchCityRope</a>
+            <ul class="nav-menu">
+                <li><a href="#events" class="nav-link">Events</a></li>
+                <li><a href="#community" class="nav-link">Manor</a></li>
+                <li><a href="#parlour" class="nav-link">Parlour</a></li>
+                <li><a href="#library" class="nav-link">Library</a></li>
+                <li><a href="#contact" class="nav-link">Contact</a></li>
+            </ul>
+            <a href="#join" class="nav-cta">Join the Manor</a>
+        </nav>
+    </header>
+
+    <!-- Ornate Hero Section -->
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h1>
+                    Salem's Grand<br>
+                    <span class="highlight">Victorian Manor</span>
+                </h1>
+                <p>
+                    Step into the refined elegance of yesteryear, where Victorian sensibilities meet the timeless art of rope. 
+                    In our grand manor, every gathering is a celebration of grace, tradition, and exquisite craftsmanship.
+                </p>
+                <div class="hero-actions">
+                    <a href="#events" class="btn-primary">Enter the Manor</a>
+                    <a href="#traditions" class="btn-secondary">Our Traditions</a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="hero-visual-content">
+                    <h3>Grace • Tradition • Elegance</h3>
+                    <p>Where old world charm meets timeless artistry</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Events Section with Ornate Underline Animations -->
+        <section class="events-section">
+            <div class="events-container">
+                <h2>Manor Gatherings</h2>
+                <div class="events-grid">
+                    <div class="event-card">
+                        <div class="event-image">
+                            Evening Salon Sessions
+                        </div>
+                        <div class="event-content">
+                            <h3 class="event-title">Parlour Arts</h3>
+                            <p class="event-details">
+                                Intimate evenings of refined rope artistry in our Victorian parlour. 
+                                Experience the grace and elegance of traditional techniques in sumptuous surroundings.
+                            </p>
+                            <a href="#register" class="event-cta">Join the Salon</a>
+                        </div>
+                    </div>
+                    <div class="event-card">
+                        <div class="event-image">
+                            Classical Workshop
+                        </div>
+                        <div class="event-content">
+                            <h3 class="event-title">Traditional Methods</h3>
+                            <p class="event-details">
+                                Learn the time-honored techniques passed down through generations. 
+                                Master the graceful art of rope work in our grand library setting.
+                            </p>
+                            <a href="#register" class="event-cta">Study the Arts</a>
+                        </div>
+                    </div>
+                    <div class="event-card">
+                        <div class="event-image">
+                            Grand Performance
+                        </div>
+                        <div class="event-content">
+                            <h3 class="event-title">Manor Soirée</h3>
+                            <p class="event-details">
+                                Witness performances in our grand ballroom. 
+                                An evening of champagne, classical music, and the most exquisite rope artistry.
+                            </p>
+                            <a href="#register" class="event-cta">Attend Soirée</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Ornate Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div>
+                <h4>The Manor</h4>
+                <a href="#salons">Private Salons</a>
+                <a href="#soirees">Grand Soirées</a>
+                <a href="#parlour">Parlour Sessions</a>
+            </div>
+            <div>
+                <h4>Arts & Letters</h4>
+                <a href="#initiation">Begin Studies</a>
+                <a href="#mastery">Classical Training</a>
+                <a href="#traditions">Our Heritage</a>
+            </div>
+            <div>
+                <h4>Estate</h4>
+                <a href="#contact">Visit Manor</a>
+                <a href="#butler">Manor Butler</a>
+                <a href="#library">Private Library</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 WitchCityRope. Where tradition preserves artistry. | Salem's Victorian Manor</p>
+        </div>
+    </footer>
+
+    <script>
+        // Victorian elegance interactions - NO MOUSE FOLLOWING
+        document.addEventListener('DOMContentLoaded', function() {
+            // Graceful scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Ornate scroll animations for event cards
+            const observerOptions = {
+                threshold: 0.15,
+                rootMargin: '0px 0px -100px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe event cards for graceful reveal
+            document.querySelectorAll('.event-card').forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(40px)';
+                card.style.transition = `opacity 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${index * 0.25}s, transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${index * 0.25}s`;
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>
