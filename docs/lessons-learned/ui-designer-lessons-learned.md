@@ -2,6 +2,33 @@
 <!-- Last Updated: 2025-08-20 -->
 <!-- Next Review: 2025-09-20 -->
 
+## 🚨 MANDATORY: Use v7 Design System Standards (2025-08-20)
+
+### Critical Design Authority
+**ALL new designs MUST use the v7 design system as the single source of truth.**
+
+#### Authority Documents (MUST READ BEFORE ANY DESIGN):
+- **Template**: `/docs/design/current/homepage-template-v7.html`
+- **Design System**: `/docs/design/current/design-system-v7.md`
+- **Design Tokens**: `/docs/design/current/design-tokens-v7.json`
+- **Animation Standards**: `/docs/design/implementation/animation-standards.md`
+- **Component Library**: `/docs/design/implementation/component-library.md`
+
+#### Key v7 Standards:
+- **Colors**: Use ONLY the 23 approved colors from design-tokens-v7.json
+- **Typography**: 4 Google Fonts (Bodoni Moda, Montserrat, Source Sans 3, Satisfy)
+- **Animations**: 6 signature animations (nav underline, button morph, etc.)
+- **Spacing**: 8px-based system
+- **Components**: Use patterns from component-library.md
+
+#### What NOT to Do:
+- ❌ Create new color schemes
+- ❌ Add new animations without documentation
+- ❌ Use different fonts
+- ❌ Ignore the established patterns
+
+---
+
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 
 ### Critical Architecture Documents (MUST READ BEFORE ANY WORK):

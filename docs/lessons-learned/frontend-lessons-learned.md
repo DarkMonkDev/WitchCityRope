@@ -1,5 +1,32 @@
 # Frontend Lessons Learned
 
+## 🚨 MANDATORY: Implement v7 Design System Standards (2025-08-20)
+
+### Critical Implementation Authority
+**ALL React components MUST follow the v7 design system specifications.**
+
+#### Implementation Resources (MUST READ BEFORE CODING):
+- **Quick Start**: `/docs/design/implementation/quick-start-guide.md`
+- **Component Library**: `/docs/design/implementation/component-library.md`
+- **Animation Standards**: `/docs/design/implementation/animation-standards.md`
+- **Design Tokens**: `/docs/design/current/design-tokens-v7.json`
+- **Template**: `/docs/design/templates/page-template.html`
+
+#### Key Implementation Requirements:
+- **Design Tokens**: Import and use design-tokens-v7.json
+- **Components**: Use pre-built components from component-library.md
+- **Animations**: Implement exactly as specified in animation-standards.md
+- **Mantine v7**: All components must use Mantine v7 patterns
+- **TypeScript**: Strongly typed component props
+
+#### Code Example:
+```typescript
+import designTokens from '@/docs/design/current/design-tokens-v7.json';
+import { NavigationUnderline, ButtonMorph } from '@/components/animations';
+```
+
+---
+
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 
 ### Critical Architecture Documents (MUST READ BEFORE ANY WORK):

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Title - Witch City Rope</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,700;6..96,900&family=Montserrat:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;600&family=Satisfy&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Import v7 Design System Variables */
+        :root {
+            /* Colors */
+            --color-burgundy: #880124;
+            --color-burgundy-dark: #660018;
+            --color-burgundy-light: #9F1D35;
+            --color-rose-gold: #B76D75;
+            --color-copper: #B87333;
+            --color-brass: #C9A961;
+            --color-electric: #9D4EDD;
+            --color-electric-dark: #7B2CBF;
+            --color-amber: #FFBF00;
+            --color-amber-dark: #FF8C00;
+            --color-dusty-rose: #D4A5A5;
+            --color-plum: #614B79;
+            --color-midnight: #1A1A2E;
+            --color-charcoal: #2B2B2B;
+            --color-smoke: #4A4A4A;
+            --color-stone: #8B8680;
+            --color-taupe: #B8B0A8;
+            --color-ivory: #FFF8F0;
+            --color-cream: #FAF6F2;
+            --color-success: #228B22;
+            --color-warning: #DAA520;
+            --color-error: #DC143C;
+            
+            /* Typography */
+            --font-display: 'Bodoni Moda', serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            --font-accent: 'Satisfy', cursive;
+            
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 16px;
+            --space-md: 24px;
+            --space-lg: 32px;
+            --space-xl: 40px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            line-height: 1.6;
+            color: var(--color-charcoal);
+            background-color: var(--color-cream);
+            overflow-x: hidden;
+        }
+        
+        /* Subtle rope pattern background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.03;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40,40 L80,80 L40,120 L80,160' stroke='%23880124' stroke-width='1' fill='none' opacity='0.5'/%3E%3Cpath d='M80,40 L120,80 L80,120 L120,160' stroke='%23880124' stroke-width='1' fill='none' opacity='0.5'/%3E%3Cpath d='M120,40 L160,80 L120,120 L160,160' stroke='%23880124' stroke-width='1' fill='none' opacity='0.5'/%3E%3C/svg%3E");
+            background-size: 200px 200px;
+            z-index: -1;
+        }
+        
+        /* Utility Bar */
+        .utility-bar {
+            background: var(--color-midnight);
+            padding: 12px 40px;
+            font-size: 13px;
+            color: var(--color-taupe);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            font-family: var(--font-heading);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .utility-bar a {
+            color: var(--color-taupe);
+            text-decoration: none;
+            margin-left: var(--space-lg);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .utility-bar a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            width: 0;
+            height: 1px;
+            background: var(--color-rose-gold);
+            transform: translateX(-50%);
+            transition: width 0.3s ease;
+        }
+        
+        .utility-bar a:hover {
+            color: var(--color-rose-gold);
+        }
+        
+        .utility-bar a:hover::after {
+            width: 100%;
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(255, 248, 240, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            padding: var(--space-sm) 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid rgba(183, 109, 117, 0.3);
+        }
+        
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--color-burgundy);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--color-burgundy), transparent);
+            transition: width 0.3s ease;
+        }
+        
+        .logo:hover {
+            color: var(--color-burgundy-light);
+            transform: scale(1.02);
+        }
+        
+        .logo:hover::after {
+            width: 100%;
+        }
+        
+        .nav {
+            display: flex;
+            gap: var(--space-lg);
+            align-items: center;
+        }
+        
+        .nav-item {
+            color: var(--color-charcoal);
+            text-decoration: none;
+            font-family: var(--font-heading);
+            font-weight: 500;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-item::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--color-burgundy), transparent);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-item:hover {
+            color: var(--color-burgundy);
+        }
+        
+        .nav-item:hover::after {
+            width: 100%;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 14px 32px;
+            border-radius: 12px 6px 12px 6px;
+            text-decoration: none;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: all 0.3s ease;
+            display: inline-block;
+            cursor: pointer;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn:hover {
+            border-radius: 6px 12px 6px 12px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+            color: var(--color-midnight);
+            box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+            font-weight: 700;
+        }
+        
+        .btn-primary:hover {
+            box-shadow: 0 6px 25px rgba(255, 191, 0, 0.5);
+            background: linear-gradient(135deg, var(--color-amber-dark) 0%, var(--color-amber) 100%);
+        }
+        
+        /* Main Content */
+        .main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--space-2xl) 40px;
+        }
+        
+        .page-title {
+            font-family: var(--font-heading);
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: var(--space-xl);
+            text-align: center;
+            color: var(--color-burgundy);
+            position: relative;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        
+        .page-title::after {
+            content: '';
+            display: block;
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--color-rose-gold), transparent);
+            margin: var(--space-sm) auto 0;
+        }
+        
+        .content {
+            font-family: var(--font-body);
+            font-size: 16px;
+            line-height: 1.7;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-lg);
+        }
+        
+        /* Footer */
+        .footer {
+            background: var(--color-midnight);
+            color: var(--color-taupe);
+            padding: var(--space-2xl) 40px var(--space-xl);
+            margin-top: var(--space-2xl);
+            text-align: center;
+        }
+        
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--color-rose-gold), transparent);
+        }
+        
+        .footer-link {
+            color: var(--color-taupe);
+            text-decoration: none;
+            margin: 0 var(--space-sm);
+            transition: color 0.3s ease;
+        }
+        
+        .footer-link:hover {
+            color: var(--color-rose-gold);
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .utility-bar {
+                padding: 10px 20px;
+                font-size: 11px;
+            }
+            
+            .header {
+                padding: var(--space-sm) 20px;
+            }
+            
+            .logo {
+                font-size: 28px;
+            }
+            
+            .nav {
+                display: none; /* Implement mobile menu as needed */
+            }
+            
+            .main {
+                padding: var(--space-xl) 20px;
+            }
+            
+            .page-title {
+                font-size: 36px;
+                letter-spacing: 2px;
+            }
+            
+            .footer {
+                padding: var(--space-xl) 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Utility Bar -->
+    <div class="utility-bar">
+        <a href="#" class="incident-link">Report an Incident</a>
+        <a href="#">Private Lessons</a>
+        <a href="#">Contact</a>
+    </div>
+    
+    <!-- Header -->
+    <header class="header">
+        <a href="#" class="logo">WITCH CITY ROPE</a>
+        <nav class="nav">
+            <a href="#events" class="nav-item">Events & Classes</a>
+            <a href="#join" class="nav-item">How to Join</a>
+            <a href="#resources" class="nav-item">Resources</a>
+            <a href="#login" class="btn btn-primary">Login</a>
+        </nav>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="main">
+        <h1 class="page-title">Page Title Here</h1>
+        
+        <div class="content">
+            <p>This is a starter template for creating new pages in the WitchCityRope design system v7.</p>
+            
+            <p>Replace this content with your page-specific content. The template includes:</p>
+            
+            <ul style="margin-left: var(--space-lg); margin-bottom: var(--space-lg);">
+                <li>Complete v7 design system CSS variables</li>
+                <li>Utility bar with signature animations</li>
+                <li>Header with logo and navigation</li>
+                <li>Responsive design patterns</li>
+                <li>Footer with consistent styling</li>
+                <li>Google Fonts integration</li>
+                <li>Subtle rope pattern background</li>
+            </ul>
+            
+            <p>To customize this template:</p>
+            
+            <ol style="margin-left: var(--space-lg); margin-bottom: var(--space-lg);">
+                <li>Update the page title in both &lt;title&gt; and &lt;h1&gt;</li>
+                <li>Replace the content in the main section</li>
+                <li>Add page-specific styles as needed</li>
+                <li>Ensure all new elements follow v7 design patterns</li>
+                <li>Test responsive behavior on mobile devices</li>
+            </ol>
+            
+            <p>For more information, reference the complete design system documentation.</p>
+        </div>
+        
+        <div style="text-align: center; margin-top: var(--space-xl);">
+            <a href="#" class="btn btn-primary">Call to Action</a>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2024 Witch City Rope. All rights reserved.</p>
+        <p style="margin-top: var(--space-sm);">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Use</a>
+            <a href="#" class="footer-link">Age 21+ Community</a>
+        </p>
+    </footer>
+    
+    <script>
+        // Add header scroll effect
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('.header');
+            if (window.scrollY > 100) {
+                header.style.padding = '12px 40px';
+                header.style.boxShadow = '0 4px 30px rgba(0,0,0,0.12)';
+                header.style.borderBottomColor = 'rgba(183, 109, 117, 0.5)';
+            } else {
+                header.style.padding = 'var(--space-sm) 40px';
+                header.style.boxShadow = '0 2px 20px rgba(0,0,0,0.08)';
+                header.style.borderBottomColor = 'rgba(183, 109, 117, 0.3)';
+            }
+        });
+    </script>
+</body>
+</html>
