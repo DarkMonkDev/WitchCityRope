@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WitchCityRope - Dark Theme Focus (Variation 2) Wireframe</title>
+    <style>
+        :root {
+            /* Dark Theme Focus Color Palette */
+            --dark-bg: #0D1117;
+            --dark-surface: #161B22;
+            --dark-elevated: #21262D;
+            --neon-burgundy: #FF0A54;
+            --neon-rose: #FF6B9D;
+            --electric-purple: #C77DFF;
+            --cyber-green: #39FF14;
+            --warning-amber: #FFB000;
+            --text-primary: #F0F6FC;
+            --text-secondary: #B3B3B3;
+            --text-dimmed: #8B949E;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Header with neon accent */
+        .header {
+            background: var(--dark-bg);
+            border-bottom: 1px solid var(--neon-burgundy);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 0 20px rgba(255, 10, 84, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--neon-burgundy) 0%, var(--neon-rose) 50%, var(--electric-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 10, 84, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            0% { filter: drop-shadow(0 0 5px rgba(255, 10, 84, 0.5)); }
+            100% { filter: drop-shadow(0 0 15px rgba(255, 10, 84, 0.8)); }
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: var(--neon-rose);
+            background: rgba(255, 10, 84, 0.1);
+            box-shadow: 0 0 15px rgba(255, 10, 84, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--neon-burgundy) 0%, var(--electric-purple) 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(255, 10, 84, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(255, 10, 84, 0.6);
+            background: linear-gradient(135deg, var(--electric-purple) 0%, var(--neon-burgundy) 100%);
+        }
+
+        /* Cyberpunk Hero Section */
+        .hero {
+            background: var(--dark-bg);
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(rgba(255, 10, 84, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 10, 84, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: grid-move 20s linear infinite;
+        }
+
+        @keyframes grid-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .hero-glow-1 {
+            position: absolute;
+            top: 20%;
+            right: 10%;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(199, 125, 255, 0.1) 0%, transparent 70%);
+            filter: blur(40px);
+        }
+
+        .hero-glow-2 {
+            position: absolute;
+            bottom: 20%;
+            left: 5%;
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 107, 157, 0.1) 0%, transparent 70%);
+            filter: blur(30px);
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-tagline {
+            color: var(--neon-rose);
+            font-family: monospace;
+            font-weight: 500;
+            font-size: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+            text-shadow: 0 0 10px rgba(255, 107, 157, 0.5);
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 8vw, 4.5rem);
+            font-weight: bold;
+            line-height: 1.1;
+            letter-spacing: -2px;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #FFFFFF 0%, var(--neon-rose) 50%, var(--electric-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+        }
+
+        .hero-subtitle {
+            background: linear-gradient(135deg, var(--neon-burgundy) 0%, var(--warning-amber) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255, 10, 84, 0.4);
+        }
+
+        .hero-description {
+            color: var(--text-secondary);
+            font-size: 20px;
+            line-height: 1.7;
+            max-width: 900px;
+            margin: 0 auto 48px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary-neon {
+            background: linear-gradient(135deg, var(--neon-burgundy) 0%, var(--electric-purple) 100%);
+            color: white;
+            padding: 20px 40px;
+            border: none;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 0 30px rgba(255, 10, 84, 0.4);
+            animation: pulse-glow 2s ease-in-out infinite alternate;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary-neon:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 0 40px rgba(255, 10, 84, 0.6);
+            background: linear-gradient(135deg, var(--electric-purple) 0%, var(--neon-burgundy) 100%);
+        }
+
+        @keyframes pulse-glow {
+            0% { 
+                box-shadow: 0 0 30px rgba(255, 10, 84, 0.4);
+                transform: scale(1);
+            }
+            100% { 
+                box-shadow: 0 0 40px rgba(255, 10, 84, 0.6), 0 0 60px rgba(199, 125, 255, 0.2);
+                transform: scale(1.02);
+            }
+        }
+
+        .btn-secondary-cyber {
+            border: 2px solid var(--cyber-green);
+            color: var(--cyber-green);
+            background: rgba(57, 255, 20, 0.05);
+            padding: 18px 38px;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(57, 255, 20, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary-cyber:hover {
+            background: rgba(57, 255, 20, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(57, 255, 20, 0.4);
+        }
+
+        /* Event Cards Section */
+        .events-section {
+            background: var(--dark-surface);
+            padding: 80px 24px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 64px;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--neon-rose) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .events-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 32px;
+        }
+
+        .event-card {
+            background: var(--dark-elevated);
+            border: 1px solid #30363D;
+            border-radius: 12px;
+            padding: 0;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .event-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 10, 84, 0.1) 0%, rgba(199, 125, 255, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: 0;
+        }
+
+        .event-card:hover {
+            transform: translateY(-8px) rotateX(5deg);
+            box-shadow: 0 20px 40px rgba(255, 10, 84, 0.2);
+            border-color: var(--neon-burgundy);
+        }
+
+        .event-card:hover::before {
+            opacity: 1;
+        }
+
+        .event-header {
+            height: 120px;
+            background: linear-gradient(135deg, var(--neon-burgundy) 0%, var(--electric-purple) 50%, var(--cyber-green) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(255, 10, 84, 0.3);
+        }
+
+        .event-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10,50 L30,50 L35,30 L40,70 L45,50 L90,50' stroke='rgba(255,255,255,0.3)' stroke-width='1' fill='none'/%3E%3Ccircle cx='35' cy='30' r='2' fill='rgba(255,255,255,0.5)'/%3E%3Ccircle cx='40' cy='70' r='2' fill='rgba(255,255,255,0.5)'/%3E%3C/svg%3E");
+            background-size: 80px 80px;
+            animation: circuit-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes circuit-pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+        }
+
+        .event-title {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .event-content {
+            padding: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .event-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .event-date {
+            color: var(--neon-rose);
+            font-weight: 600;
+            font-family: monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .event-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-vetted {
+            background: var(--neon-burgundy);
+            color: white;
+            box-shadow: 0 0 10px rgba(255, 10, 84, 0.5);
+        }
+
+        .badge-open {
+            background: var(--cyber-green);
+            color: black;
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+        }
+
+        .event-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .event-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .event-price {
+            color: var(--warning-amber);
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(255, 176, 0, 0.5);
+        }
+
+        .event-status {
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-available {
+            color: var(--cyber-green);
+            text-shadow: 0 0 8px rgba(57, 255, 20, 0.5);
+        }
+
+        .status-limited {
+            color: var(--warning-amber);
+            text-shadow: 0 0 8px rgba(255, 176, 0, 0.5);
+        }
+
+        .status-full {
+            color: var(--neon-burgundy);
+            text-shadow: 0 0 8px rgba(255, 10, 84, 0.5);
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn-primary-neon,
+            .btn-secondary-cyber {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .events-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .events-section {
+                padding: 60px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header with Neon Accents -->
+    <header class="header">
+        <div class="logo">WITCH CITY ROPE</div>
+        <nav class="nav-links">
+            <a href="#" class="nav-link">EVENTS & CLASSES</a>
+            <a href="#" class="nav-link">HOW TO JOIN</a>
+            <a href="#" class="nav-link">RESOURCES</a>
+            <button class="login-btn">LOGIN</button>
+        </nav>
+    </header>
+
+    <!-- Cyberpunk Hero Section -->
+    <section class="hero">
+        <div class="hero-glow-1"></div>
+        <div class="hero-glow-2"></div>
+        
+        <div class="hero-content">
+            <div class="hero-tagline">&gt; WHERE_CURIOSITY_MEETS_CONNECTION</div>
+            
+            <h1 class="hero-title">
+                SALEM'S<br>
+                <span class="hero-subtitle">ROPE BONDAGE</span><br>
+                COMMUNITY
+            </h1>
+            
+            <p class="hero-description">
+                Join 600+ members in Salem's most authentic alternative community—
+                where consent, creativity, and connection create transformative experiences
+            </p>
+            
+            <div class="hero-buttons">
+                <button class="btn-primary-neon">ENTER THE COMMUNITY</button>
+                <button class="btn-secondary-cyber">LEARN MORE</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Neon Event Cards Section -->
+    <section class="events-section">
+        <h2 class="section-title">UPCOMING EXPERIENCES</h2>
+        
+        <div class="events-grid">
+            <!-- Event Card 1 -->
+            <div class="event-card">
+                <div class="event-header">
+                    <div class="event-title">ROPE FUNDAMENTALS</div>
+                </div>
+                <div class="event-content">
+                    <div class="event-meta">
+                        <div class="event-date">SAT, MAR 15 • 2:00 PM</div>
+                        <div class="event-badge badge-open">OPEN</div>
+                    </div>
+                    <p class="event-description">
+                        Learn fundamental ties and safety practices in a supportive environment. 
+                        Perfect for your first class or building strong foundations.
+                    </p>
+                    <div class="event-footer">
+                        <div class="event-price">$35-55</div>
+                        <div class="event-status status-available">10 SPOTS LEFT</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Event Card 2 -->
+            <div class="event-card">
+                <div class="event-header">
+                    <div class="event-title">MARCH ROPE JAM</div>
+                </div>
+                <div class="event-content">
+                    <div class="event-meta">
+                        <div class="event-date">FRI, MAR 21 • 7:00 PM</div>
+                        <div class="event-badge badge-vetted">VETTED</div>
+                    </div>
+                    <p class="event-description">
+                        Practice your skills and connect with fellow rope enthusiasts 
+                        in our welcoming community space. For vetted members.
+                    </p>
+                    <div class="event-footer">
+                        <div class="event-price">$0-35</div>
+                        <div class="event-status status-available">OPEN</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Event Card 3 -->
+            <div class="event-card">
+                <div class="event-header">
+                    <div class="event-title">SUSPENSION INTENSIVE</div>
+                </div>
+                <div class="event-content">
+                    <div class="event-meta">
+                        <div class="event-date">SUN, MAR 23 • 1:00 PM</div>
+                        <div class="event-badge badge-vetted">VETTED</div>
+                    </div>
+                    <p class="event-description">
+                        Take your skills to new heights! This workshop explores suspension 
+                        basics with a strong focus on safety. Prerequisites apply.
+                    </p>
+                    <div class="event-footer">
+                        <div class="event-price">$95</div>
+                        <div class="event-status status-limited">3 SPOTS LEFT</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Add interactive glow effects
+        document.querySelectorAll('.event-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.perspective = '1000px';
+                this.style.transformStyle = 'preserve-3d';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) rotateX(0)';
+            });
+        });
+
+        // Simulate real-time glow animation
+        setInterval(() => {
+            const glowElements = document.querySelectorAll('.logo, .btn-primary-neon');
+            glowElements.forEach(el => {
+                el.style.filter = `drop-shadow(0 0 ${Math.random() * 10 + 10}px rgba(255, 10, 84, ${Math.random() * 0.3 + 0.5}))`;
+            });
+        }, 2000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events Page - Dark Theme Focus | WitchCityRope Wireframe</title>
+    <style>
+        /* CSS Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0D1117;
+            color: #C9D1D9;
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+
+        /* Grid Background Animation */
+        .grid-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(255, 10, 84, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 10, 84, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            animation: grid-move 20s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes grid-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(40px, 40px); }
+        }
+
+        /* Floating Neon Orbs */
+        .neon-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(60px);
+            animation: float 8s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        .neon-orb-1 {
+            top: 15%;
+            right: 10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255, 10, 84, 0.08) 0%, transparent 70%);
+        }
+
+        .neon-orb-2 {
+            bottom: 20%;
+            left: 5%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(199, 125, 255, 0.06) 0%, transparent 70%);
+            animation-delay: -4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Terminal Header */
+        .terminal-header {
+            padding: 2rem;
+            border-bottom: 1px solid #30363D;
+        }
+
+        .terminal-title {
+            color: #39FF14;
+            font-size: 1.8rem;
+            text-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+        }
+
+        .terminal-prompt {
+            color: #8B949E;
+            font-size: 0.9rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .action-button {
+            background: linear-gradient(135deg, #FF0A54, #C77DFF);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(255, 10, 84, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(255, 10, 84, 0.5);
+        }
+
+        /* Main Layout */
+        .main-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Filters Sidebar */
+        .filters-sidebar {
+            background: #161B22;
+            border: 1px solid #30363D;
+            border-radius: 8px;
+            padding: 1.5rem;
+            height: fit-content;
+            box-shadow: 0 0 20px rgba(255, 10, 84, 0.1);
+        }
+
+        .filter-section {
+            margin-bottom: 2rem;
+        }
+
+        .filter-title {
+            color: #C77DFF;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 5px rgba(199, 125, 255, 0.3);
+        }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .filter-checkbox {
+            color: #39FF14;
+        }
+
+        .filter-checkbox.unchecked {
+            color: #6B7280;
+        }
+
+        .search-input {
+            width: 100%;
+            background: #0D1117;
+            border: 1px solid #30363D;
+            color: #C9D1D9;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #FF0A54;
+            box-shadow: 0 0 10px rgba(255, 10, 84, 0.3);
+        }
+
+        /* Events Grid */
+        .events-section {
+            min-height: 100vh;
+        }
+
+        .events-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .events-status {
+            color: #8B949E;
+            font-size: 0.9rem;
+        }
+
+        .view-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .view-button {
+            background: #39FF14;
+            color: #000;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+        }
+
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Event Cards */
+        .event-card {
+            background: #161B22;
+            border: 1px solid #FF0A54;
+            border-radius: 8px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(255, 10, 84, 0.2);
+        }
+
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 30px rgba(255, 10, 84, 0.4);
+            border-color: #C77DFF;
+        }
+
+        /* Animated border effect */
+        .event-card::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            bottom: -1px;
+            background: linear-gradient(45deg, #FF0A54, #C77DFF, #39FF14, #FF0A54);
+            border-radius: inherit;
+            z-index: -1;
+            opacity: 0;
+            animation: border-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes border-pulse {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        .event-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .event-id {
+            color: #39FF14;
+            font-size: 0.8rem;
+            text-shadow: 0 0 5px rgba(57, 255, 20, 0.3);
+        }
+
+        .event-badge {
+            background: #FF0A54;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .event-image {
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(45deg, #1a1a2e, #16213e);
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .event-image::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255, 10, 84, 0.1), rgba(199, 125, 255, 0.1));
+        }
+
+        .event-title {
+            color: #C9D1D9;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 5px rgba(201, 209, 217, 0.3);
+        }
+
+        .event-description {
+            color: #8B949E;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+
+        .event-details {
+            margin-bottom: 1rem;
+        }
+
+        .event-detail {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .detail-label {
+            color: #39FF14;
+            min-width: 80px;
+        }
+
+        .detail-value {
+            color: #C9D1D9;
+        }
+
+        .capacity-bar {
+            color: #FFB000;
+        }
+
+        .event-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .event-price {
+            color: #39FF14;
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-shadow: 0 0 5px rgba(57, 255, 20, 0.3);
+        }
+
+        .price-note {
+            color: #8B949E;
+            font-size: 0.7rem;
+        }
+
+        .register-button {
+            background: linear-gradient(135deg, #FF0A54 0%, #C77DFF 100%);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(255, 10, 84, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .register-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(255, 10, 84, 0.6);
+        }
+
+        .access-level {
+            background: #0D1117;
+            border: 1px solid #30363D;
+            color: #39FF14;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            margin-top: 0.5rem;
+            display: inline-block;
+        }
+
+        /* Load More Section */
+        .load-more {
+            text-align: center;
+            margin-top: 3rem;
+        }
+
+        .load-more-button {
+            background: transparent;
+            border: 2px solid #FF0A54;
+            color: #FF0A54;
+            padding: 1rem 3rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 0 15px rgba(255, 10, 84, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .load-more-button:hover {
+            background: rgba(255, 10, 84, 0.1);
+            box-shadow: 0 0 25px rgba(255, 10, 84, 0.4);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .filters-sidebar {
+                order: 2;
+            }
+            
+            .events-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .terminal-header {
+                padding: 1rem;
+            }
+            
+            .terminal-title {
+                font-size: 1.4rem;
+            }
+            
+            .header-actions {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .events-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            /* Disable complex animations on mobile */
+            .neon-orb,
+            .grid-background {
+                display: none;
+            }
+            
+            .event-card::before {
+                animation: none;
+            }
+        }
+
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Focus indicators */
+        button:focus,
+        input:focus {
+            outline: 2px solid #39FF14;
+            outline-offset: 2px;
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .event-card {
+                border-width: 2px;
+            }
+            
+            .terminal-title {
+                text-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Grid Background -->
+    <div class="grid-background"></div>
+    
+    <!-- Floating Neon Orbs -->
+    <div class="neon-orb neon-orb-1"></div>
+    <div class="neon-orb neon-orb-2"></div>
+
+    <!-- Terminal Header -->
+    <header class="terminal-header">
+        <h1 class="terminal-title">&gt; EVENTS_TERMINAL</h1>
+        <p class="terminal-prompt">user@witchcity:/events$ ls -la --sort=date --filter=upcoming</p>
+        <div class="header-actions">
+            <button class="action-button" onclick="alert('Search functionality')">⚡ SEARCH</button>
+            <button class="action-button" onclick="alert('Settings menu')">☰ SETTINGS</button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-container">
+        <!-- Filters Sidebar -->
+        <aside class="filters-sidebar">
+            <div class="filter-section">
+                <div class="filter-title">╔═══════════════╗</div>
+                <div class="filter-title">║ FILTER_MODULE ║</div>
+                <div class="filter-title">╚═══════════════╝</div>
+            </div>
+
+            <div class="filter-section">
+                <div class="filter-title">&gt; SEARCH_QUERY</div>
+                <input type="text" class="search-input" placeholder="search_events..." />
+            </div>
+
+            <div class="filter-section">
+                <div class="filter-title">&gt; EVENT_TYPE</div>
+                <div class="filter-option" onclick="toggleFilter(this)">
+                    <span class="filter-checkbox">[◉]</span>
+                    <span>WORKSHOPS</span>
+                </div>
+                <div class="filter-option" onclick="toggleFilter(this)">
+                    <span class="filter-checkbox">[◉]</span>
+                    <span>PERFORMANCES</span>
+                </div>
+                <div class="filter-option" onclick="toggleFilter(this)">
+                    <span class="filter-checkbox unchecked">[○]</span>
+                    <span>SOCIAL_EVENTS</span>
+                </div>
+                <div class="filter-option" onclick="toggleFilter(this)">
+                    <span class="filter-checkbox unchecked">[○]</span>
+                    <span>EDUCATIONAL</span>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <div class="filter-title">&gt; DATE_RANGE</div>
+                <div class="filter-option" onclick="toggleFilter(this)">
+                    <span class="filter-checkbox">[◉]</span>
+                    <span>THIS_WEEK</span>
+                </div>
+                <div class="filter-option" onclick="toggleFilter(this)">
+                    <span class="filter-checkbox unchecked">[○]</span>
+                    <span>THIS_MONTH</span>
+                </div>
+                <div class="filter-option" onclick="toggleFilter(this)">
+                    <span class="filter-checkbox unchecked">[○]</span>
+                    <span>NEXT_QUARTER</span>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <div class="filter-title">&gt; MEMBER_LEVEL</div>
+                <div class="filter-option" onclick="toggleFilter(this)">
+                    <span class="filter-checkbox">[◉]</span>
+                    <span>ALL_ACCESS</span>
+                </div>
+                <div class="filter-option" onclick="toggleFilter(this)">
+                    <span class="filter-checkbox unchecked">[○]</span>
+                    <span>VETTED_ONLY</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Events Section -->
+        <section class="events-section">
+            <!-- Events Header -->
+            <div class="events-header">
+                <div class="events-status">&gt; found 24 events | showing 6 | sort=date_asc</div>
+                <div class="view-controls">
+                    <span style="background: #39FF14; color: #000; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">LIVE</span>
+                </div>
+            </div>
+
+            <!-- Events Grid -->
+            <div class="events-grid">
+                <!-- Event Card 1 -->
+                <article class="event-card" onclick="showEventDetails('Advanced Suspension')">
+                    <div class="event-header">
+                        <span class="event-id">█EVT_001█</span>
+                        <span class="event-badge">WORKSHOP</span>
+                    </div>
+                    
+                    <div class="event-image"></div>
+                    
+                    <div class="event-content">
+                        <h3 class="event-title">ADVANCED_SUSPENSION.exe</h3>
+                        <p class="event-description">
+                            // Master advanced suspension protocols<br>
+                            // Safety modules included
+                        </p>
+                        
+                        <div class="event-details">
+                            <div class="event-detail">
+                                <span class="detail-label">DATE:</span>
+                                <span class="detail-value">2024-12-14_14:00-17:00</span>
+                            </div>
+                            <div class="event-detail">
+                                <span class="detail-label">LOCATION:</span>
+                                <span class="detail-value">salem_arts_center.venue</span>
+                            </div>
+                            <div class="event-detail">
+                                <span class="detail-label">INSTRUCTOR:</span>
+                                <span class="detail-value">sarah_mitchell.admin</span>
+                            </div>
+                            <div class="event-detail">
+                                <span class="detail-label">CAPACITY:</span>
+                                <span class="detail-value capacity-bar">[████████░░] 8/12</span>
+                            </div>
+                        </div>
+                        
+                        <div class="event-footer">
+                            <div class="pricing">
+                                <div class="event-price">$85.00</div>
+                                <div class="price-note">sliding_scale=true</div>
+                            </div>
+                            <button class="register-button" onclick="register(event, 'EVT_001')">&gt; EXECUTE</button>
+                        </div>
+                        
+                        <div class="access-level">ACCESS_LEVEL: VETTED</div>
+                    </div>
+                </article>
+
+                <!-- Event Card 2 -->
+                <article class="event-card" onclick="showEventDetails('Rope Performance')">
+                    <div class="event-header">
+                        <span class="event-id">█EVT_002█</span>
+                        <span class="event-badge">PERFORMANCE</span>
+                    </div>
+                    
+                    <div class="event-image"></div>
+                    
+                    <div class="event-content">
+                        <h3 class="event-title">ROPE_PERFORMANCE.art</h3>
+                        <p class="event-description">
+                            // Artistic expression through rope<br>
+                            // Performance techniques module
+                        </p>
+                        
+                        <div class="event-details">
+                            <div class="event-detail">
+                                <span class="detail-label">DATE:</span>
+                                <span class="detail-value">2024-12-16_19:00-21:00</span>
+                            </div>
+                            <div class="event-detail">
+                                <span class="detail-label">LOCATION:</span>
+                                <span class="detail-value">salem_theater.venue</span>
+                            </div>
+                            <div class="event-detail">
+                                <span class="detail-label">INSTRUCTOR:</span>
+                                <span class="detail-value">alex_chen.artist</span>
+                            </div>
+                            <div class="event-detail">
+                                <span class="detail-label">CAPACITY:</span>
+                                <span class="detail-value capacity-bar">[██████████] 30/30</span>
+                            </div>
+                        </div>
+                        
+                        <div class="event-footer">
+                            <div class="pricing">
+                                <div class="event-price">$45.00</div>
+                                <div class="price-note">member_discount=15%</div>
+                            </div>
+                            <button class="register-button" onclick="register(event, 'EVT_002')">&gt; EXECUTE</button>
+                        </div>
+                        
+                        <div class="access-level">ACCESS_LEVEL: ALL</div>
+                    </div>
+                </article>
+
+                <!-- Event Card 3 -->
+                <article class="event-card" onclick="showEventDetails('Safety Workshop')">
+                    <div class="event-header">
+                        <span class="event-id">█EVT_003█</span>
+                        <span class="event-badge">EDUCATIONAL</span>
+                    </div>
+                    
+                    <div class="event-image"></div>
+                    
+                    <div class="event-content">
+                        <h3 class="event-title">SAFETY_PROTOCOLS.core</h3>
+                        <p class="event-description">
+                            // Essential safety framework<br>
+                            // Certification module included
+                        </p>
+                        
+                        <div class="event-details">
+                            <div class="event-detail">
+                                <span class="detail-label">DATE:</span>
+                                <span class="detail-value">2024-12-18_13:00-16:00</span>
+                            </div>
+                            <div class="event-detail">
+                                <span class="detail-label">LOCATION:</span>
+                                <span class="detail-value">community_center.venue</span>
+                            </div>
+                            <div class="event-detail">
+                                <span class="detail-label">INSTRUCTOR:</span>
+                                <span class="detail-value">jamie_rodriguez.cert</span>
+                            </div>
+                            <div class="event-detail">
+                                <span class="detail-label">CAPACITY:</span>
+                                <span class="detail-value capacity-bar">[██████░░░░] 9/15</span>
+                            </div>
+                        </div>
+                        
+                        <div class="event-footer">
+                            <div class="pricing">
+                                <div class="event-price">$35.00</div>
+                                <div class="price-note">certification_fee=10</div>
+                            </div>
+                            <button class="register-button" onclick="register(event, 'EVT_003')">&gt; EXECUTE</button>
+                        </div>
+                        
+                        <div class="access-level">ACCESS_LEVEL: ALL</div>
+                    </div>
+                </article>
+
+                <!-- Event Card 4 -->
+                <article class="event-card" onclick="showEventDetails('Community Munch')">
+                    <div class="event-header">
+                        <span class="event-id">█EVT_004█</span>
+                        <span class="event-badge">SOCIAL</span>
+                    </div>
+                    
+                    <div class="event-image"></div>
+                    
+                    <div class="event-content">
+                        <h3 class="event-title">COMMUNITY_MUNCH.social</h3>
+                        <p class="event-description">
+                            // Monthly community gathering<br>
+                            // Networking and discussion
+                        </p>
+                        
+                        <div class="event-details">
+                            <div class="event-detail">
+                                <span class="detail-label">DATE:</span>
+                                <span class="detail-value">2024-12-20_18:30-21:00</span>
+                            </div>
+                            <div class="event-detail">
+                                <span class="detail-label">LOCATION:</span>
+                                <span class="detail-value">ravens_nest.restaurant</span>
+                            </div>
+                            <div class="event-detail">
+                                <span class="detail-label">HOST:</span>
+                                <span class="detail-value">community.organizers</span>
+                            </div>
+                            <div class="event-detail">
+                                <span class="detail-label">CAPACITY:</span>
+                                <span class="detail-value capacity-bar">[████░░░░░░] 12/25</span>
+                            </div>
+                        </div>
+                        
+                        <div class="event-footer">
+                            <div class="pricing">
+                                <div class="event-price">$0.00</div>
+                                <div class="price-note">food_cost_separate</div>
+                            </div>
+                            <button class="register-button" onclick="register(event, 'EVT_004')">&gt; EXECUTE</button>
+                        </div>
+                        
+                        <div class="access-level">ACCESS_LEVEL: VETTED</div>
+                    </div>
+                </article>
+
+                <!-- Event Card 5 -->
+                <article class="event-card" onclick="showEventDetails('Intermediate Workshop')">
+                    <div class="event-header">
+                        <span class="event-id">█EVT_005█</span>
+                        <span class="event-badge">WORKSHOP</span>
+                    </div>
+                    
+                    <div class="event-image"></div>
+                    
+                    <div class="event-content">
+                        <h3 class="event-title">INTERMEDIATE_TIES.workshop</h3>
+                        <p class="event-description">
+                            // Level 2 rope techniques<br>
+                            // Prerequisites: safety cert
+                        </p>
+                        
+                        <div class="event-details">
+                            <div class="event-detail">
+                                <span class="detail-label">DATE:</span>
+                                <span class="detail-value">2024-12-21_14:00-17:00</span>
+                            </div>
+                            <div class="event-detail">
+                                <span class="detail-label">LOCATION:</span>
+                                <span class="detail-value">salem_arts_center.venue</span>
+                            </div>
+                            <div class="event-detail">
+                                <span class="detail-label">INSTRUCTOR:</span>
+                                <span class="detail-value">morgan_taylor.expert</span>
+                            </div>
+                            <div class="event-detail">
+                                <span class="detail-label">CAPACITY:</span>
+                                <span class="detail-value capacity-bar">[███████░░░] 7/10</span>
+                            </div>
+                        </div>
+                        
+                        <div class="event-footer">
+                            <div class="pricing">
+                                <div class="event-price">$65.00</div>
+                                <div class="price-note">early_bird_discount</div>
+                            </div>
+                            <button class="register-button" onclick="register(event, 'EVT_005')">&gt; EXECUTE</button>
+                        </div>
+                        
+                        <div class="access-level">ACCESS_LEVEL: CERTIFIED</div>
+                    </div>
+                </article>
+
+                <!-- Event Card 6 -->
+                <article class="event-card" onclick="showEventDetails('Holiday Party')">
+                    <div class="event-header">
+                        <span class="event-id">█EVT_006█</span>
+                        <span class="event-badge">SOCIAL</span>
+                    </div>
+                    
+                    <div class="event-image"></div>
+                    
+                    <div class="event-content">
+                        <h3 class="event-title">WINTER_SOLSTICE.party</h3>
+                        <p class="event-description">
+                            // Annual celebration event<br>
+                            // Demonstrations and socializing
+                        </p>
+                        
+                        <div class="event-details">
+                            <div class="event-detail">
+                                <span class="detail-label">DATE:</span>
+                                <span class="detail-value">2024-12-22_19:00-23:00</span>
+                            </div>
+                            <div class="event-detail">
+                                <span class="detail-label">LOCATION:</span>
+                                <span class="detail-value">private_venue.exclusive</span>
+                            </div>
+                            <div class="event-detail">
+                                <span class="detail-label">HOSTS:</span>
+                                <span class="detail-value">community.leadership</span>
+                            </div>
+                            <div class="event-detail">
+                                <span class="detail-label">CAPACITY:</span>
+                                <span class="detail-value capacity-bar">[████████░░] 24/30</span>
+                            </div>
+                        </div>
+                        
+                        <div class="event-footer">
+                            <div class="pricing">
+                                <div class="event-price">$25.00</div>
+                                <div class="price-note">includes_refreshments</div>
+                            </div>
+                            <button class="register-button" onclick="register(event, 'EVT_006')">&gt; EXECUTE</button>
+                        </div>
+                        
+                        <div class="access-level">ACCESS_LEVEL: ALL</div>
+                    </div>
+                </article>
+            </div>
+
+            <!-- Load More Section -->
+            <div class="load-more">
+                <button class="load-more-button" onclick="loadMoreEvents()">&gt; LOAD_MORE_DATA</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Interactive Functions
+        function toggleFilter(element) {
+            const checkbox = element.querySelector('.filter-checkbox');
+            if (checkbox.textContent === '[◉]') {
+                checkbox.textContent = '[○]';
+                checkbox.classList.add('unchecked');
+            } else {
+                checkbox.textContent = '[◉]';
+                checkbox.classList.remove('unchecked');
+            }
+            
+            // Simulate filtering
+            console.log('Filter toggled:', element.textContent.trim());
+        }
+
+        function showEventDetails(eventName) {
+            alert(`> ACCESSING EVENT: ${eventName}\n\nFull event details would be displayed in a modal or separate page.`);
+        }
+
+        function register(event, eventId) {
+            if (event) {
+                event.stopPropagation();
+            }
+            alert(`> INITIATING REGISTRATION\n> EVENT_ID: ${eventId}\n> STATUS: PROCESSING...\n\nRedirecting to secure registration portal...`);
+        }
+
+        function loadMoreEvents() {
+            alert('> LOADING_MORE_DATA\n> FETCHING: events_7-12\n> STATUS: SUCCESS\n\nAdditional events would be loaded here.');
+        }
+
+        // Terminal-style typing effect for search
+        document.querySelector('.search-input').addEventListener('input', function(e) {
+            console.log('> SEARCH_QUERY:', e.target.value);
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'k') {
+                e.preventDefault();
+                document.querySelector('.search-input').focus();
+                alert('> GLOBAL_SEARCH activated\nCtrl+K detected');
+            }
+        });
+
+        // Accessibility improvements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add ARIA labels to interactive elements
+            const eventCards = document.querySelectorAll('.event-card');
+            eventCards.forEach((card, index) => {
+                card.setAttribute('role', 'button');
+                card.setAttribute('tabindex', '0');
+                card.setAttribute('aria-label', `Event ${index + 1}: ${card.querySelector('.event-title').textContent}`);
+                
+                // Add keyboard navigation
+                card.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        card.click();
+                    }
+                });
+            });
+
+            // Add ARIA labels to filter options
+            const filterOptions = document.querySelectorAll('.filter-option');
+            filterOptions.forEach(option => {
+                option.setAttribute('role', 'checkbox');
+                option.setAttribute('tabindex', '0');
+                option.setAttribute('aria-label', `Filter: ${option.textContent.trim()}`);
+                
+                option.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleFilter(option);
+                    }
+                });
+            });
+        });
+
+        // Performance monitoring
+        console.log('> EVENTS_TERMINAL initialized');
+        console.log('> RENDERING_ENGINE: active');
+        console.log('> ACCESSIBILITY: enhanced');
+        console.log('> MOBILE_OPTIMIZATION: enabled');
+    </script>
+</body>
+</html>

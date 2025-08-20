@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WitchCityRope - Advanced Mantine Design (Variation 4)</title>
+    <style>
+        /* Advanced Mantine Design - Variation 4 */
+        /* Sophisticated component showcase with Mantine v7 patterns */
+        
+        :root {
+            /* Advanced Mantine color system */
+            --mantine-color-witchcity-0: #f8f4e6;
+            --mantine-color-witchcity-1: #e8ddd4;
+            --mantine-color-witchcity-2: #d4a5a5;
+            --mantine-color-witchcity-3: #c48b8b;
+            --mantine-color-witchcity-4: #b47171;
+            --mantine-color-witchcity-5: #a45757;
+            --mantine-color-witchcity-6: #9b4a75;
+            --mantine-color-witchcity-7: #880124;
+            --mantine-color-witchcity-8: #6b0119;
+            --mantine-color-witchcity-9: #2c2c2c;
+            
+            /* Mantine system variables */
+            --mantine-primary-color: witchcity;
+            --mantine-color-text: var(--mantine-color-witchcity-9);
+            --mantine-color-body: var(--mantine-color-witchcity-0);
+            --mantine-color-dimmed: rgba(44, 44, 44, 0.6);
+            --mantine-radius-md: 8px;
+            --mantine-radius-lg: 12px;
+            --mantine-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
+            --mantine-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --mantine-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --mantine-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            
+            /* Advanced component variables */
+            --spotlight-overlay: rgba(0, 0, 0, 0.85);
+            --notification-success: #51cf66;
+            --notification-error: #ff6b6b;
+            --notification-info: #339af0;
+            --chart-grid: rgba(155, 74, 117, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.55;
+            color: var(--mantine-color-text);
+            background: var(--mantine-color-body);
+            font-size: 14px;
+        }
+
+        /* Mantine AppShell Structure */
+        .mantine-app-shell {
+            display: grid;
+            grid-template-areas: 
+                "header header"
+                "navbar main";
+            grid-template-columns: 280px 1fr;
+            grid-template-rows: 60px 1fr;
+            min-height: 100vh;
+        }
+
+        .mantine-app-shell-header {
+            grid-area: header;
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            box-shadow: var(--mantine-shadow-sm);
+        }
+
+        .mantine-app-shell-navbar {
+            grid-area: navbar;
+            background: white;
+            border-right: 1px solid #e9ecef;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .mantine-app-shell-main {
+            grid-area: main;
+            padding: 2rem;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        /* Header Components */
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--mantine-color-witchcity-7);
+            text-decoration: none;
+        }
+
+        .header-search {
+            flex: 1;
+            max-width: 400px;
+            margin: 0 2rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            border: 1px solid #ced4da;
+            border-radius: var(--mantine-radius-md);
+            font-size: 0.875rem;
+            background: #f8f9fa;
+            transition: all 0.15s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--mantine-color-witchcity-6);
+            box-shadow: 0 0 0 2px rgba(155, 74, 117, 0.1);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .notification-indicator {
+            position: relative;
+            padding: 0.5rem;
+            border-radius: var(--mantine-radius-md);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--mantine-color-dimmed);
+            transition: all 0.15s ease;
+        }
+
+        .notification-indicator:hover {
+            background: #f8f9fa;
+            color: var(--mantine-color-text);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 0.25rem;
+            right: 0.25rem;
+            width: 8px;
+            height: 8px;
+            background: var(--notification-error);
+            border-radius: 50%;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: var(--mantine-radius-md);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .user-menu:hover {
+            background: #f8f9fa;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--mantine-color-witchcity-6), var(--mantine-color-witchcity-7));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        /* Navigation Components */
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--mantine-color-dimmed);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+            padding: 0 0.75rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: var(--mantine-radius-md);
+            color: var(--mantine-color-text);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: all 0.15s ease;
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-link:hover {
+            background: #f8f9fa;
+        }
+
+        .nav-link.active {
+            background: var(--mantine-color-witchcity-0);
+            color: var(--mantine-color-witchcity-7);
+            font-weight: 600;
+        }
+
+        .nav-icon {
+            width: 16px;
+            height: 16px;
+            opacity: 0.6;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            background: var(--mantine-color-witchcity-6);
+            color: white;
+            padding: 0.125rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Main Content Area */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--mantine-color-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-description {
+            color: var(--mantine-color-dimmed);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .page-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        /* Mantine Button Components */
+        .mantine-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--mantine-radius-md);
+            font-size: 0.875rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s ease;
+            min-height: 36px;
+        }
+
+        .mantine-button-filled {
+            background: var(--mantine-color-witchcity-6);
+            color: white;
+        }
+
+        .mantine-button-filled:hover {
+            background: var(--mantine-color-witchcity-7);
+        }
+
+        .mantine-button-outline {
+            background: transparent;
+            color: var(--mantine-color-witchcity-6);
+            border: 1px solid var(--mantine-color-witchcity-6);
+        }
+
+        .mantine-button-outline:hover {
+            background: var(--mantine-color-witchcity-0);
+        }
+
+        .mantine-button-subtle {
+            background: transparent;
+            color: var(--mantine-color-witchcity-6);
+        }
+
+        .mantine-button-subtle:hover {
+            background: var(--mantine-color-witchcity-0);
+        }
+
+        /* Dashboard Grid System */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Mantine Card Components */
+        .mantine-card {
+            background: white;
+            border-radius: var(--mantine-radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--mantine-shadow-sm);
+            border: 1px solid #e9ecef;
+            transition: all 0.15s ease;
+        }
+
+        .mantine-card:hover {
+            box-shadow: var(--mantine-shadow-md);
+        }
+
+        .mantine-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--mantine-color-text);
+        }
+
+        .card-badge {
+            background: var(--mantine-color-witchcity-1);
+            color: var(--mantine-color-witchcity-7);
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--mantine-radius-md);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Stats Cards */
+        .stat-card {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--mantine-color-witchcity-7);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--mantine-color-dimmed);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .stat-change {
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .stat-change.positive {
+            color: var(--notification-success);
+        }
+
+        .stat-change.negative {
+            color: var(--notification-error);
+        }
+
+        /* Data Table Component */
+        .mantine-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: var(--mantine-radius-lg);
+            overflow: hidden;
+            box-shadow: var(--mantine-shadow-sm);
+        }
+
+        .mantine-table th {
+            background: #f8f9fa;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--mantine-color-text);
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.875rem;
+        }
+
+        .mantine-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #f1f3f4;
+            font-size: 0.875rem;
+        }
+
+        .mantine-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .table-action-button {
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--mantine-radius-md);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--mantine-color-dimmed);
+            transition: all 0.15s ease;
+        }
+
+        .table-action-button:hover {
+            background: #f1f3f4;
+            color: var(--mantine-color-text);
+        }
+
+        /* Spotlight Search Overlay */
+        .spotlight-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--spotlight-overlay);
+            z-index: 1000;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 10vh;
+        }
+
+        .spotlight-modal {
+            background: white;
+            border-radius: var(--mantine-radius-lg);
+            width: 90%;
+            max-width: 600px;
+            box-shadow: var(--mantine-shadow-xl);
+            overflow: hidden;
+        }
+
+        .spotlight-search {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .spotlight-input {
+            width: 100%;
+            border: none;
+            outline: none;
+            font-size: 1.125rem;
+            background: transparent;
+        }
+
+        .spotlight-results {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .spotlight-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .spotlight-item:hover {
+            background: #f8f9fa;
+        }
+
+        .spotlight-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--mantine-radius-md);
+            background: var(--mantine-color-witchcity-1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--mantine-color-witchcity-7);
+        }
+
+        /* Notification System */
+        .notification-container {
+            position: fixed;
+            top: 80px;
+            right: 1rem;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-width: 400px;
+        }
+
+        .notification {
+            background: white;
+            border-radius: var(--mantine-radius-lg);
+            padding: 1rem;
+            box-shadow: var(--mantine-shadow-lg);
+            border-left: 4px solid var(--notification-info);
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border-left-color: var(--notification-success);
+        }
+
+        .notification.error {
+            border-left-color: var(--notification-error);
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+        }
+
+        .notification-message {
+            color: var(--mantine-color-dimmed);
+            font-size: 0.8125rem;
+            line-height: 1.4;
+        }
+
+        /* Chart Component */
+        .chart-container {
+            height: 300px;
+            display: flex;
+            align-items: end;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: white;
+            border-radius: var(--mantine-radius-lg);
+            box-shadow: var(--mantine-shadow-sm);
+        }
+
+        .chart-bar {
+            background: linear-gradient(to top, var(--mantine-color-witchcity-7), var(--mantine-color-witchcity-6));
+            border-radius: 4px 4px 0 0;
+            flex: 1;
+            min-height: 20px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .chart-bar:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .mantine-app-shell {
+                grid-template-areas: 
+                    "header"
+                    "main";
+                grid-template-columns: 1fr;
+                grid-template-rows: 60px 1fr;
+            }
+
+            .mantine-app-shell-navbar {
+                display: none;
+            }
+
+            .header-search {
+                display: none;
+            }
+
+            .dashboard-grid,
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .page-actions {
+                justify-content: stretch;
+            }
+
+            .mantine-button {
+                flex: 1;
+            }
+        }
+
+        /* Dark Theme Support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --mantine-color-body: #1a1b1e;
+                --mantine-color-text: #c1c2c5;
+            }
+
+            .mantine-app-shell-header,
+            .mantine-app-shell-navbar,
+            .mantine-card,
+            .mantine-table,
+            .spotlight-modal,
+            .notification {
+                background: #25262b;
+                border-color: #373a40;
+            }
+
+            .mantine-app-shell-main {
+                background: #1a1b1e;
+            }
+
+            .search-input {
+                background: #373a40;
+                border-color: #373a40;
+                color: #c1c2c5;
+            }
+
+            .mantine-table th {
+                background: #373a40;
+            }
+        }
+
+        /* Accessibility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        *:focus-visible {
+            outline: 2px solid var(--mantine-color-witchcity-6);
+            outline-offset: 2px;
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mantine AppShell Structure -->
+    <div class="mantine-app-shell">
+        <!-- Header -->
+        <header class="mantine-app-shell-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <a href="#" class="logo">WitchCityRope</a>
+                </div>
+                
+                <div class="header-search">
+                    <input 
+                        type="text" 
+                        class="search-input" 
+                        placeholder="Search events, members, resources... (Ctrl+K)"
+                        id="global-search"
+                    >
+                </div>
+
+                <div class="header-actions">
+                    <button class="notification-indicator" aria-label="Notifications">
+                        🔔
+                        <span class="notification-badge"></span>
+                    </button>
+                    
+                    <div class="user-menu">
+                        <div class="user-avatar">JD</div>
+                        <span style="font-size: 0.875rem; font-weight: 500;">Jane Doe</span>
+                        <span style="font-size: 0.75rem;">▼</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Sidebar -->
+        <nav class="mantine-app-shell-navbar">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="#dashboard" class="nav-link active">
+                    <span class="nav-icon">📊</span>
+                    Dashboard
+                </a>
+                <a href="#events" class="nav-link">
+                    <span class="nav-icon">📅</span>
+                    Events
+                    <span class="nav-badge">12</span>
+                </a>
+                <a href="#community" class="nav-link">
+                    <span class="nav-icon">👥</span>
+                    Community
+                </a>
+                <a href="#education" class="nav-link">
+                    <span class="nav-icon">📚</span>
+                    Education
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Member Tools</div>
+                <a href="#profile" class="nav-link">
+                    <span class="nav-icon">👤</span>
+                    My Profile
+                </a>
+                <a href="#registrations" class="nav-link">
+                    <span class="nav-icon">🎫</span>
+                    My Events
+                </a>
+                <a href="#progress" class="nav-link">
+                    <span class="nav-icon">📈</span>
+                    Learning Progress
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Admin</div>
+                <a href="#user-management" class="nav-link">
+                    <span class="nav-icon">⚙️</span>
+                    User Management
+                </a>
+                <a href="#vetting" class="nav-link">
+                    <span class="nav-icon">✅</span>
+                    Vetting System
+                    <span class="nav-badge">3</span>
+                </a>
+                <a href="#analytics" class="nav-link">
+                    <span class="nav-icon">📊</span>
+                    Analytics
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="mantine-app-shell-main">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Community Dashboard</h1>
+                    <p class="page-description">
+                        Welcome to Salem's premier rope bondage community platform. 
+                        Manage events, connect with members, and track your learning journey.
+                    </p>
+                </div>
+                <div class="page-actions">
+                    <button class="mantine-button mantine-button-outline">
+                        📊 Analytics
+                    </button>
+                    <button class="mantine-button mantine-button-filled">
+                        ➕ Create Event
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="mantine-card stat-card">
+                    <div class="stat-value">524</div>
+                    <div class="stat-label">Active Members</div>
+                    <div class="stat-change positive">↗ +12 this week</div>
+                </div>
+                <div class="mantine-card stat-card">
+                    <div class="stat-value">18</div>
+                    <div class="stat-label">Upcoming Events</div>
+                    <div class="stat-change positive">↗ +3 new</div>
+                </div>
+                <div class="mantine-card stat-card">
+                    <div class="stat-value">47</div>
+                    <div class="stat-label">Workshops This Month</div>
+                    <div class="stat-change positive">↗ +8 vs last month</div>
+                </div>
+                <div class="mantine-card stat-card">
+                    <div class="stat-value">96%</div>
+                    <div class="stat-label">Member Satisfaction</div>
+                    <div class="stat-change positive">↗ +2%</div>
+                </div>
+            </div>
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Recent Events Card -->
+                <div class="mantine-card">
+                    <div class="mantine-card-header">
+                        <h3 class="card-title">Recent Events</h3>
+                        <span class="card-badge">Live</span>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #f1f3f4;">
+                            <div>
+                                <div style="font-weight: 600; font-size: 0.875rem;">Intermediate Suspension Workshop</div>
+                                <div style="color: var(--mantine-color-dimmed); font-size: 0.8125rem;">Tonight 7:00 PM • 12/15 spots</div>
+                            </div>
+                            <button class="mantine-button mantine-button-subtle" style="padding: 0.5rem 1rem; font-size: 0.75rem;">
+                                View
+                            </button>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #f1f3f4;">
+                            <div>
+                                <div style="font-weight: 600; font-size: 0.875rem;">Beginner Safety & Fundamentals</div>
+                                <div style="color: var(--mantine-color-dimmed); font-size: 0.8125rem;">Tomorrow 6:00 PM • 8/20 spots</div>
+                            </div>
+                            <button class="mantine-button mantine-button-subtle" style="padding: 0.5rem 1rem; font-size: 0.75rem;">
+                                View
+                            </button>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0;">
+                            <div>
+                                <div style="font-weight: 600; font-size: 0.875rem;">Advanced Performance Techniques</div>
+                                <div style="color: var(--mantine-color-dimmed); font-size: 0.8125rem;">Sunday 2:00 PM • 5/8 spots</div>
+                            </div>
+                            <button class="mantine-button mantine-button-subtle" style="padding: 0.5rem 1rem; font-size: 0.75rem;">
+                                View
+                            </button>
+                        </div>
+                    </div>
+                    <button class="mantine-button mantine-button-outline" style="width: 100%;">
+                        View All Events
+                    </button>
+                </div>
+
+                <!-- Community Activity Chart -->
+                <div class="mantine-card">
+                    <div class="mantine-card-header">
+                        <h3 class="card-title">Weekly Activity</h3>
+                        <span class="card-badge">7 days</span>
+                    </div>
+                    <div class="chart-container" style="margin: 0; padding: 1rem 0;">
+                        <div class="chart-bar" style="height: 40%;"></div>
+                        <div class="chart-bar" style="height: 60%;"></div>
+                        <div class="chart-bar" style="height: 80%;"></div>
+                        <div class="chart-bar" style="height: 90%;"></div>
+                        <div class="chart-bar" style="height: 70%;"></div>
+                        <div class="chart-bar" style="height: 50%;"></div>
+                        <div class="chart-bar" style="height: 30%;"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--mantine-color-dimmed); margin-top: 0.5rem;">
+                        <span>Mon</span>
+                        <span>Tue</span>
+                        <span>Wed</span>
+                        <span>Thu</span>
+                        <span>Fri</span>
+                        <span>Sat</span>
+                        <span>Sun</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Members Table -->
+            <div class="mantine-card" style="margin-top: 2rem;">
+                <div class="mantine-card-header">
+                    <h3 class="card-title">Recent Member Activity</h3>
+                    <button class="mantine-button mantine-button-subtle">
+                        View All
+                    </button>
+                </div>
+                <table class="mantine-table" style="margin: 0; box-shadow: none;">
+                    <thead>
+                        <tr>
+                            <th>Member</th>
+                            <th>Role</th>
+                            <th>Last Activity</th>
+                            <th>Events Attended</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <div class="user-avatar" style="width: 24px; height: 24px; font-size: 0.7rem;">AS</div>
+                                    <div>
+                                        <div style="font-weight: 600;">Alex Smith</div>
+                                        <div style="font-size: 0.75rem; color: var(--mantine-color-dimmed);">alex@example.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="card-badge">Vetted Member</span></td>
+                            <td>2 hours ago</td>
+                            <td>12 events</td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="table-action-button">👁️</button>
+                                    <button class="table-action-button">✏️</button>
+                                    <button class="table-action-button">💬</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <div class="user-avatar" style="width: 24px; height: 24px; font-size: 0.7rem;">MJ</div>
+                                    <div>
+                                        <div style="font-weight: 600;">Maria Johnson</div>
+                                        <div style="font-size: 0.75rem; color: var(--mantine-color-dimmed);">maria@example.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="card-badge" style="background: #e3f2fd; color: #1976d2;">Teacher</span></td>
+                            <td>1 day ago</td>
+                            <td>28 events</td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="table-action-button">👁️</button>
+                                    <button class="table-action-button">✏️</button>
+                                    <button class="table-action-button">💬</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <div class="user-avatar" style="width: 24px; height: 24px; font-size: 0.7rem;">RB</div>
+                                    <div>
+                                        <div style="font-weight: 600;">Robert Brown</div>
+                                        <div style="font-size: 0.75rem; color: var(--mantine-color-dimmed);">robert@example.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="card-badge" style="background: #f3e5f5; color: #7b1fa2;">Member</span></td>
+                            <td>3 days ago</td>
+                            <td>5 events</td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="table-action-button">👁️</button>
+                                    <button class="table-action-button">✏️</button>
+                                    <button class="table-action-button">💬</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Spotlight Search Overlay -->
+    <div class="spotlight-overlay" id="spotlight-overlay">
+        <div class="spotlight-modal">
+            <div class="spotlight-search">
+                <input 
+                    type="text" 
+                    class="spotlight-input" 
+                    placeholder="Search anything..."
+                    id="spotlight-input"
+                >
+            </div>
+            <div class="spotlight-results">
+                <div class="spotlight-item">
+                    <div class="spotlight-icon">📅</div>
+                    <div>
+                        <div style="font-weight: 600;">Intermediate Suspension Workshop</div>
+                        <div style="font-size: 0.75rem; color: var(--mantine-color-dimmed);">Event • Tonight 7:00 PM</div>
+                    </div>
+                </div>
+                <div class="spotlight-item">
+                    <div class="spotlight-icon">👤</div>
+                    <div>
+                        <div style="font-weight: 600;">Alex Smith</div>
+                        <div style="font-size: 0.75rem; color: var(--mantine-color-dimmed);">Member • Vetted</div>
+                    </div>
+                </div>
+                <div class="spotlight-item">
+                    <div class="spotlight-icon">📚</div>
+                    <div>
+                        <div style="font-weight: 600;">Safety Guidelines</div>
+                        <div style="font-size: 0.75rem; color: var(--mantine-color-dimmed);">Resource • Education</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div class="notification-container" id="notification-container">
+        <!-- Notifications will be dynamically inserted here -->
+    </div>
+
+    <script>
+        // Advanced Mantine interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Spotlight search (Ctrl+K)
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'k') {
+                    e.preventDefault();
+                    toggleSpotlight();
+                }
+                if (e.key === 'Escape') {
+                    closeSpotlight();
+                }
+            });
+
+            function toggleSpotlight() {
+                const overlay = document.getElementById('spotlight-overlay');
+                const input = document.getElementById('spotlight-input');
+                overlay.style.display = overlay.style.display === 'flex' ? 'none' : 'flex';
+                if (overlay.style.display === 'flex') {
+                    input.focus();
+                }
+            }
+
+            function closeSpotlight() {
+                document.getElementById('spotlight-overlay').style.display = 'none';
+            }
+
+            // Click outside to close spotlight
+            document.getElementById('spotlight-overlay').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeSpotlight();
+                }
+            });
+
+            // Global search functionality
+            document.getElementById('global-search').addEventListener('focus', toggleSpotlight);
+
+            // Notification system
+            function showNotification(title, message, type = 'info') {
+                const container = document.getElementById('notification-container');
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.innerHTML = `
+                    <div class="notification-content">
+                        <div class="notification-title">${title}</div>
+                        <div class="notification-message">${message}</div>
+                    </div>
+                    <button onclick="this.parentElement.remove()" style="background: none; border: none; cursor: pointer; color: var(--mantine-color-dimmed);">✕</button>
+                `;
+                
+                container.appendChild(notification);
+                
+                // Trigger animation
+                setTimeout(() => notification.classList.add('show'), 100);
+                
+                // Auto remove after 5 seconds
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 5000);
+            }
+
+            // Chart interactions
+            document.querySelectorAll('.chart-bar').forEach((bar, index) => {
+                bar.addEventListener('mouseenter', function() {
+                    this.style.opacity = '0.8';
+                    // Show tooltip functionality would go here
+                });
+                
+                bar.addEventListener('mouseleave', function() {
+                    this.style.opacity = '1';
+                });
+            });
+
+            // Table sorting simulation
+            document.querySelectorAll('.mantine-table th').forEach(header => {
+                header.style.cursor = 'pointer';
+                header.addEventListener('click', function() {
+                    // Add sorting indicator
+                    const sortIcon = this.querySelector('.sort-icon') || document.createElement('span');
+                    sortIcon.className = 'sort-icon';
+                    sortIcon.innerHTML = ' ↑';
+                    if (!this.querySelector('.sort-icon')) {
+                        this.appendChild(sortIcon);
+                    }
+                    
+                    showNotification('Table Sorted', `Sorted by ${this.textContent}`, 'success');
+                });
+            });
+
+            // DataTable hover effects
+            document.querySelectorAll('.mantine-table tr').forEach(row => {
+                row.addEventListener('mouseenter', function() {
+                    if (!this.parentElement.tagName === 'THEAD') {
+                        this.style.backgroundColor = '#f8f9fa';
+                    }
+                });
+                
+                row.addEventListener('mouseleave', function() {
+                    this.style.backgroundColor = '';
+                });
+            });
+
+            // Navigation active states
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active from all
+                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                    
+                    // Add active to clicked
+                    this.classList.add('active');
+                    
+                    showNotification('Navigation', `Navigated to ${this.textContent.trim()}`, 'info');
+                });
+            });
+
+            // Button click handlers
+            document.querySelectorAll('.mantine-button').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    if (!this.disabled) {
+                        const text = this.textContent.trim();
+                        if (text.includes('Create Event')) {
+                            showNotification('Event Creation', 'Opening event creation form...', 'info');
+                        } else if (text.includes('Analytics')) {
+                            showNotification('Analytics', 'Loading analytics dashboard...', 'info');
+                        }
+                    }
+                });
+            });
+
+            // Simulate real-time updates
+            setInterval(() => {
+                const badges = document.querySelectorAll('.nav-badge');
+                badges.forEach(badge => {
+                    if (Math.random() > 0.95) { // 5% chance every interval
+                        const currentValue = parseInt(badge.textContent) || 0;
+                        badge.textContent = currentValue + 1;
+                        showNotification('New Activity', 'You have new notifications', 'info');
+                    }
+                });
+            }, 5000);
+
+            // Initial welcome notification
+            setTimeout(() => {
+                showNotification('Welcome to WitchCityRope', 'Your community dashboard is ready', 'success');
+            }, 1000);
+
+            // Keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                if (e.altKey) {
+                    switch(e.key) {
+                        case '1':
+                            e.preventDefault();
+                            document.querySelector('[href="#dashboard"]').click();
+                            break;
+                        case '2':
+                            e.preventDefault();
+                            document.querySelector('[href="#events"]').click();
+                            break;
+                        case '3':
+                            e.preventDefault();
+                            document.querySelector('[href="#community"]').click();
+                            break;
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

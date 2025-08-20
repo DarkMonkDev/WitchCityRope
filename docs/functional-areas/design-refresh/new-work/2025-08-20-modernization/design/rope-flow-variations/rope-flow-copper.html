@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WitchCityRope - Copper Binding Variation</title>
+    <style>
+        /* Reset and base styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        /* Color System - Copper Binding */
+        :root {
+            --copper-base: #B87333;
+            --deep-charcoal: #1A202C;
+            --rose-gold: #E8B4A0;
+            --warm-white: #FAFAFA;
+            --bronze-dark: #8B4513;
+            --copper-light: #D2691E;
+            --metallic-silver: #C0C0C0;
+            
+            /* Animation Properties */
+            --metallic-curve: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            --shimmer-duration: 0.4s;
+            --metal-lift: translateY(-5px);
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--deep-charcoal);
+            color: var(--warm-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Luxurious Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(26, 32, 44, 0.95);
+            backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 2px solid var(--copper-base);
+            z-index: 1000;
+            padding: 1rem 2rem;
+            transition: all var(--shimmer-duration) var(--metallic-curve);
+        }
+        
+        .navbar.scrolled {
+            background: rgba(26, 32, 44, 0.98);
+            box-shadow: 0 8px 32px rgba(184, 115, 51, 0.3);
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--copper-base), var(--rose-gold));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+            position: relative;
+            letter-spacing: 1px;
+        }
+        
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--copper-base), var(--rose-gold), var(--copper-light));
+            transition: width var(--shimmer-duration) var(--metallic-curve);
+            box-shadow: 0 0 10px var(--copper-base);
+        }
+        
+        .logo:hover::after {
+            width: 100%;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: var(--warm-white);
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            position: relative;
+            font-weight: 500;
+            transition: all var(--shimmer-duration) var(--metallic-curve);
+            border: 1px solid transparent;
+        }
+        
+        .nav-links a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--copper-base), var(--bronze-dark));
+            opacity: 0;
+            border-radius: 8px;
+            transition: all var(--shimmer-duration) var(--metallic-curve);
+            transform: scale(0.8);
+        }
+        
+        .nav-links a:hover {
+            color: var(--warm-white);
+            transform: var(--metal-lift);
+            border-color: var(--copper-base);
+            box-shadow: 0 8px 25px rgba(184, 115, 51, 0.4);
+        }
+        
+        .nav-links a:hover::before {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        /* Hero Section with Shimmering Metal Textures */
+        .hero {
+            height: 100vh;
+            background: linear-gradient(135deg, var(--deep-charcoal) 0%, #2D3748 50%, #1A202C 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .metal-texture {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(184, 115, 51, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(232, 180, 160, 0.1) 0%, transparent 50%),
+                linear-gradient(45deg, transparent 40%, rgba(184, 115, 51, 0.05) 50%, transparent 60%);
+            animation: metalShimmer 10s ease-in-out infinite;
+        }
+        
+        @keyframes metalShimmer {
+            0%, 100% { 
+                opacity: 0.3;
+                transform: translateX(0) scale(1) rotate(0deg);
+            }
+            50% { 
+                opacity: 0.7;
+                transform: translateX(20px) scale(1.05) rotate(2deg);
+            }
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            padding: 2rem;
+        }
+        
+        .hero h1 {
+            font-size: 5rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--copper-base), var(--rose-gold), var(--copper-light));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(184, 115, 51, 0.5);
+            animation: heroEntry 2s var(--metallic-curve);
+            letter-spacing: 2px;
+        }
+        
+        @keyframes heroEntry {
+            0% { 
+                opacity: 0; 
+                transform: translateY(80px) scale(0.8);
+                filter: blur(20px);
+            }
+            100% { 
+                opacity: 1; 
+                transform: translateY(0) scale(1);
+                filter: blur(0px);
+            }
+        }
+        
+        .hero p {
+            font-size: 1.4rem;
+            color: var(--warm-white);
+            margin-bottom: 2.5rem;
+            opacity: 0.9;
+            font-weight: 300;
+            line-height: 1.8;
+        }
+        
+        .cta-button {
+            background: linear-gradient(135deg, var(--copper-base), var(--bronze-dark));
+            color: var(--warm-white);
+            padding: 1.3rem 3.5rem;
+            border: 2px solid var(--copper-base);
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all var(--shimmer-duration) var(--metallic-curve);
+            box-shadow: 0 8px 25px rgba(184, 115, 51, 0.3);
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+        }
+        
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.8s;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(184, 115, 51, 0.5);
+            border-color: var(--rose-gold);
+        }
+        
+        .cta-button:hover::before {
+            left: 100%;
+        }
+        
+        /* Content Sections with Metallic Flow */
+        .section {
+            padding: 6rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .section-divider {
+            height: 120px;
+            background: linear-gradient(135deg, transparent 0%, rgba(184, 115, 51, 0.2) 50%, transparent 100%);
+            margin: 4rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .section-divider::before {
+            content: '⬡';
+            font-size: 3rem;
+            color: var(--copper-base);
+            text-shadow: 0 0 20px var(--copper-base);
+            animation: metalPulse 4s ease-in-out infinite;
+        }
+        
+        @keyframes metalPulse {
+            0%, 100% { 
+                transform: scale(1) rotate(0deg); 
+                opacity: 0.7;
+                text-shadow: 0 0 20px var(--copper-base);
+            }
+            50% { 
+                transform: scale(1.3) rotate(180deg); 
+                opacity: 1;
+                text-shadow: 0 0 30px var(--copper-base), 0 0 40px var(--rose-gold);
+            }
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+        
+        .feature-card {
+            background: linear-gradient(135deg, rgba(26, 32, 44, 0.8), rgba(45, 55, 72, 0.8));
+            backdrop-filter: blur(10px);
+            padding: 3rem;
+            border-radius: 12px;
+            border: 2px solid var(--copper-base);
+            transition: all var(--shimmer-duration) var(--metallic-curve);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--copper-base), var(--rose-gold), var(--copper-light));
+            transform: scaleX(0);
+            transition: transform var(--shimmer-duration) var(--metallic-curve);
+        }
+        
+        .feature-card::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, rgba(184, 115, 51, 0.1), transparent);
+            transition: all 0.6s ease;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-15px) scale(1.03);
+            box-shadow: 0 25px 50px rgba(184, 115, 51, 0.3);
+            border-color: var(--rose-gold);
+        }
+        
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .feature-card:hover::after {
+            width: 400px;
+            height: 400px;
+        }
+        
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--copper-base), var(--bronze-dark));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            color: var(--warm-white);
+            font-size: 2rem;
+            box-shadow: 0 8px 25px rgba(184, 115, 51, 0.4);
+            transition: all var(--shimmer-duration) var(--metallic-curve);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 12px 35px rgba(184, 115, 51, 0.6);
+        }
+        
+        .feature-card h3 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--copper-base);
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .feature-card p {
+            color: var(--warm-white);
+            line-height: 1.7;
+            font-weight: 300;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* Events Section with Metal Hardware */
+        .events-section {
+            background: linear-gradient(135deg, rgba(45, 55, 72, 0.8) 0%, rgba(26, 32, 44, 0.8) 100%);
+            border: 2px solid var(--copper-base);
+            border-radius: 20px;
+            margin: 4rem 0;
+            padding: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .events-section::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--copper-base), var(--rose-gold), var(--copper-light), var(--copper-base));
+            background-size: 400% 400%;
+            border-radius: 20px;
+            z-index: -1;
+            animation: borderGlow 4s ease infinite;
+        }
+        
+        @keyframes borderGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+        
+        .event-card {
+            background: linear-gradient(135deg, rgba(26, 32, 44, 0.9), rgba(45, 55, 72, 0.9));
+            border: 2px solid var(--bronze-dark);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all var(--shimmer-duration) var(--metallic-curve);
+            position: relative;
+        }
+        
+        .event-card:hover {
+            transform: translateY(-12px) scale(1.03);
+            box-shadow: 0 20px 60px rgba(184, 115, 51, 0.4);
+            border-color: var(--copper-base);
+        }
+        
+        .event-image {
+            height: 240px;
+            background: linear-gradient(135deg, var(--copper-base), var(--bronze-dark), var(--rose-gold));
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .event-image::after {
+            content: '⚙️';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            opacity: 0.4;
+            animation: metalRotate 8s linear infinite;
+        }
+        
+        @keyframes metalRotate {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        .event-content {
+            padding: 2.5rem;
+        }
+        
+        .event-date {
+            color: var(--rose-gold);
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 0.8rem;
+        }
+        
+        .event-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--copper-base), var(--rose-gold));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+        }
+        
+        .event-description {
+            color: var(--warm-white);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            font-weight: 300;
+            opacity: 0.9;
+        }
+        
+        .event-button {
+            background: linear-gradient(90deg, var(--copper-base), var(--bronze-dark));
+            color: var(--warm-white);
+            border: 2px solid var(--copper-base);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all var(--shimmer-duration) var(--metallic-curve);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .event-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transition: all 0.6s ease;
+            transform: translate(-50%, -50%);
+        }
+        
+        .event-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(184, 115, 51, 0.4);
+            border-color: var(--rose-gold);
+        }
+        
+        .event-button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        /* Footer with Metallic Glow */
+        .footer {
+            background: linear-gradient(135deg, #0D1117 0%, var(--deep-charcoal) 100%);
+            color: var(--warm-white);
+            padding: 4rem 2rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border-top: 3px solid var(--copper-base);
+        }
+        
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, var(--copper-base), var(--rose-gold), var(--copper-light), var(--copper-base));
+            background-size: 400% 100%;
+            animation: metalFlow 6s ease infinite;
+        }
+        
+        @keyframes metalFlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+        
+        .footer-section h3 {
+            color: var(--copper-base);
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        .footer-links a {
+            color: var(--warm-white);
+            text-decoration: none;
+            display: block;
+            margin: 1rem 0;
+            font-weight: 400;
+            transition: all var(--shimmer-duration) var(--metallic-curve);
+            padding: 0.5rem 0;
+            border-left: 3px solid transparent;
+            padding-left: 0;
+        }
+        
+        .footer-links a:hover {
+            color: var(--rose-gold);
+            transform: translateX(20px);
+            border-left-color: var(--copper-base);
+            padding-left: 15px;
+        }
+        
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: linear-gradient(135deg, var(--copper-base), var(--bronze-dark));
+            color: var(--warm-white);
+            border: 2px solid var(--copper-base);
+            border-radius: 12px;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(184, 115, 51, 0.4);
+            transition: all var(--shimmer-duration) var(--metallic-curve);
+            z-index: 1000;
+            font-size: 1.5rem;
+        }
+        
+        .theme-toggle:hover {
+            transform: scale(1.15) rotate(10deg);
+            box-shadow: 0 15px 40px rgba(184, 115, 51, 0.6);
+            border-color: var(--rose-gold);
+        }
+        
+        /* Mobile Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .hero h1 {
+                font-size: 3.5rem;
+                letter-spacing: 1px;
+            }
+            
+            .features-grid,
+            .events-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .section {
+                padding: 4rem 1rem;
+            }
+            
+            .events-section {
+                padding: 2rem;
+                margin: 2rem 0;
+            }
+            
+            /* Disable complex animations on mobile */
+            .metal-texture {
+                animation: none;
+                opacity: 0.2;
+            }
+            
+            .events-section::before {
+                animation: none;
+            }
+        }
+        
+        /* Accessibility - Reduced Motion Support */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* Advanced Interactive Elements */
+        .metal-cursor {
+            position: fixed;
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle, var(--copper-base), var(--bronze-dark));
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 0 15px var(--copper-base);
+        }
+        
+        .metal-cursor.active {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <!-- Metal Cursor -->
+    <div class="metal-cursor" id="metalCursor"></div>
+    
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">WitchCityRope</a>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#events">Events</a></li>
+                <li><a href="#community">Community</a></li>
+                <li><a href="#resources">Resources</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="metal-texture"></div>
+        <div class="hero-content">
+            <h1>Metallic Mastery</h1>
+            <p>Discover the precision and elegance of rope artistry where technique meets luxury. Salem's most sophisticated learning environment.</p>
+            <button class="cta-button">Forge Your Path</button>
+        </div>
+    </section>
+    
+    <!-- Section Divider -->
+    <div class="section-divider"></div>
+    
+    <!-- Features Section -->
+    <section class="section">
+        <h2 style="text-align: center; background: linear-gradient(135deg, var(--copper-base), var(--rose-gold)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-size: 3rem; font-weight: 900; margin-bottom: 2rem; letter-spacing: 2px;">Precision & Power</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Technical Excellence</h3>
+                <p>Master the mechanical precision of rope work through rigorous training and advanced techniques that push the boundaries of the art.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔥</div>
+                <h3>Intensive Training</h3>
+                <p>High-performance learning environment where serious practitioners develop elite-level skills through focused, challenging instruction.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">👑</div>
+                <h3>Luxury Experience</h3>
+                <p>Premium facilities and personalized attention create an exclusive atmosphere worthy of the sophisticated artistry you'll develop.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Section Divider -->
+    <div class="section-divider"></div>
+    
+    <!-- Events Section -->
+    <section class="section">
+        <div class="events-section">
+            <h2 style="text-align: center; background: linear-gradient(135deg, var(--copper-base), var(--rose-gold)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-size: 3rem; font-weight: 900; margin-bottom: 1rem; letter-spacing: 2px;">Elite Workshops</h2>
+            <p style="text-align: center; color: var(--warm-white); font-weight: 300; margin-bottom: 2rem; line-height: 1.8; opacity: 0.9;">Exclusive training sessions designed for those who demand excellence.</p>
+            
+            <div class="events-grid">
+                <div class="event-card">
+                    <div class="event-image"></div>
+                    <div class="event-content">
+                        <div class="event-date">Sat, Aug 24</div>
+                        <h3 class="event-title">Precision Foundations</h3>
+                        <p class="event-description">Intensive bootcamp covering fundamental techniques with military-grade precision and attention to detail.</p>
+                        <button class="event-button">Enlist Now</button>
+                    </div>
+                </div>
+                
+                <div class="event-card">
+                    <div class="event-image"></div>
+                    <div class="event-content">
+                        <div class="event-date">Sun, Aug 25</div>
+                        <h3 class="event-title">Advanced Mechanisms</h3>
+                        <p class="event-description">Master-level course exploring complex rigging systems and mechanical advantage principles in rope work.</p>
+                        <button class="event-button">Join Elite</button>
+                    </div>
+                </div>
+                
+                <div class="event-card">
+                    <div class="event-image"></div>
+                    <div class="event-content">
+                        <div class="event-date">Fri, Aug 30</div>
+                        <h3 class="event-title">Executive Circle</h3>
+                        <p class="event-description">Exclusive networking event for advanced practitioners. VIP atmosphere with premium amenities.</p>
+                        <button class="event-button">Reserve VIP</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Training</h3>
+                <div class="footer-links">
+                    <a href="#intensive">Intensive Courses</a>
+                    <a href="#membership">Elite Membership</a>
+                    <a href="#safety">Safety Protocols</a>
+                    <a href="#masters">Master Instructors</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Community</h3>
+                <div class="footer-links">
+                    <a href="#elite">Elite Circle</a>
+                    <a href="#showcase">Member Showcase</a>
+                    <a href="#resources">Advanced Resources</a>
+                    <a href="#mentorship">Mentorship Program</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Excellence</h3>
+                <div class="footer-links">
+                    <a href="#contact">Contact Elite</a>
+                    <a href="#facility">Private Facility</a>
+                    <a href="#certification">Certification</a>
+                    <a href="#network">Professional Network</a>
+                </div>
+            </div>
+        </div>
+        <p style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid var(--copper-base); opacity: 0.8; font-weight: 300;">
+            © 2025 WitchCityRope. Where precision meets passion in the pursuit of excellence.
+        </p>
+    </footer>
+    
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" onclick="toggleTheme()">💎</button>
+    
+    <script>
+        // Metallic navigation effects
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbar = document.getElementById('navbar');
+            
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 100) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            });
+            
+            // Advanced metal cursor
+            const cursor = document.getElementById('metalCursor');
+            let mouseX = 0, mouseY = 0;
+            let cursorX = 0, cursorY = 0;
+            
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                cursor.classList.add('active');
+            });
+            
+            document.addEventListener('mouseleave', () => {
+                cursor.classList.remove('active');
+            });
+            
+            // Smooth cursor animation with metallic trail
+            function animateCursor() {
+                cursorX += (mouseX - cursorX) * 0.15;
+                cursorY += (mouseY - cursorY) * 0.15;
+                cursor.style.left = cursorX + 'px';
+                cursor.style.top = cursorY + 'px';
+                requestAnimationFrame(animateCursor);
+            }
+            animateCursor();
+            
+            // Precision scroll animations
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0) scale(1)';
+                    }
+                });
+            }, { 
+                threshold: 0.1,
+                rootMargin: '0px 0px -80px 0px'
+            });
+            
+            // Observe cards with staggered metallic effects
+            document.querySelectorAll('.feature-card, .event-card').forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(60px) scale(0.9)';
+                card.style.transition = `all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) ${index * 0.15}s`;
+                observer.observe(card);
+            });
+            
+            // Metallic parallax effects
+            window.addEventListener('scroll', () => {
+                const scrolled = window.pageYOffset;
+                const metalTexture = document.querySelector('.metal-texture');
+                
+                if (metalTexture) {
+                    metalTexture.style.transform = `translateY(${scrolled * 0.2}px) scale(${1 + scrolled * 0.0001})`;
+                }
+            });
+            
+            // Enhanced magnetic button effects
+            document.querySelectorAll('.cta-button, .event-button').forEach(button => {
+                button.addEventListener('mouseenter', function(e) {
+                    const rect = e.target.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    const rotateX = (y - centerY) / centerY * 8;
+                    const rotateY = (centerX - x) / centerX * 8;
+                    
+                    e.target.style.transform = `translateY(-8px) scale(1.05) perspective(400px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                });
+                
+                button.addEventListener('mouseleave', function(e) {
+                    e.target.style.transform = 'translateY(-8px) scale(1.05)';
+                });
+                
+                // Click ripple effect
+                button.addEventListener('click', function(e) {
+                    const ripple = document.createElement('span');
+                    const rect = e.target.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    const x = e.clientX - rect.left - size / 2;
+                    const y = e.clientY - rect.top - size / 2;
+                    
+                    ripple.style.cssText = `
+                        position: absolute;
+                        border-radius: 50%;
+                        background: rgba(255, 255, 255, 0.6);
+                        transform: scale(0);
+                        animation: ripple 0.6s linear;
+                        left: ${x}px;
+                        top: ${y}px;
+                        width: ${size}px;
+                        height: ${size}px;
+                    `;
+                    
+                    e.target.appendChild(ripple);
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+            });
+            
+            // Add ripple animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes ripple {
+                    to {
+                        transform: scale(4);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Metallic hover effects for cards
+            document.querySelectorAll('.feature-card, .event-card').forEach(card => {
+                card.addEventListener('mouseenter', function(e) {
+                    const rect = e.target.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    const rotateX = (y - centerY) / centerY * 5;
+                    const rotateY = (centerX - x) / centerX * 5;
+                    
+                    e.target.style.transform = `translateY(-15px) scale(1.03) perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                });
+                
+                card.addEventListener('mouseleave', function(e) {
+                    e.target.style.transform = 'translateY(-15px) scale(1.03)';
+                });
+            });
+        });
+        
+        // Theme toggle functionality
+        function toggleTheme() {
+            document.body.classList.toggle('light-theme');
+            
+            if (document.body.classList.contains('light-theme')) {
+                document.documentElement.style.setProperty('--deep-charcoal', '#F7FAFC');
+                document.documentElement.style.setProperty('--warm-white', '#1A202C');
+                document.querySelector('.theme-toggle').textContent = '🌑';
+            } else {
+                document.documentElement.style.setProperty('--deep-charcoal', '#1A202C');
+                document.documentElement.style.setProperty('--warm-white', '#FAFAFA');
+                document.querySelector('.theme-toggle').textContent = '💎';
+            }
+        }
+        
+        // Performance optimization for mobile
+        if (window.innerWidth <= 768) {
+            // Disable expensive effects on mobile
+            document.querySelector('.metal-texture').style.animation = 'none';
+            document.querySelector('.events-section::before').style.animation = 'none';
+            
+            // Simplify interactions
+            document.querySelectorAll('.feature-card, .event-card').forEach(card => {
+                card.addEventListener('touchstart', function() {
+                    this.style.transform = 'translateY(-10px) scale(1.02)';
+                });
+                
+                card.addEventListener('touchend', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        }
+        
+        // Smooth scrolling for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

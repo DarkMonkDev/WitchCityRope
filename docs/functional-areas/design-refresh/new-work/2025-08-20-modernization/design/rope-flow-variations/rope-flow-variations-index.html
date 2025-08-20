@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WitchCityRope - Rope & Flow Design Variations</title>
+    <style>
+        /* Reset and base styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        /* Design System Colors */
+        :root {
+            --primary-grey: #2C2C2C;
+            --soft-white: #FAFAFA;
+            --accent-purple: #9B4A75;
+            --warm-copper: #B87333;
+            --sage-green: #9CAF9E;
+            --ocean-blue: #2D3748;
+            --amber-orange: #FF8C00;
+            --deep-purple: #4A148C;
+            --dusty-rose: #C4A5A5;
+            
+            /* Animation Properties */
+            --smooth-curve: cubic-bezier(0.4, 0.0, 0.2, 1);
+            --duration: 0.6s;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 100%);
+            color: var(--primary-grey);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 4rem 2rem 2rem;
+            background: linear-gradient(135deg, rgba(155, 74, 117, 0.1) 0%, rgba(45, 55, 72, 0.1) 100%);
+            margin-bottom: 3rem;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 300;
+            color: var(--accent-purple);
+            margin-bottom: 1rem;
+            letter-spacing: 2px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            color: var(--primary-grey);
+            opacity: 0.8;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+        
+        /* Navigation */
+        .navigation {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 3rem;
+            gap: 1rem;
+            padding: 0 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .nav-button {
+            background: white;
+            color: var(--primary-grey);
+            padding: 0.8rem 1.5rem;
+            border: 2px solid var(--accent-purple);
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all var(--duration) var(--smooth-curve);
+            box-shadow: 0 4px 15px rgba(155, 74, 117, 0.1);
+        }
+        
+        .nav-button:hover {
+            background: var(--accent-purple);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(155, 74, 117, 0.3);
+        }
+        
+        /* Main Content */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        /* Variations Grid */
+        .variations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 3rem;
+            margin-bottom: 4rem;
+        }
+        
+        .variation-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all var(--duration) var(--smooth-curve);
+            position: relative;
+            overflow: hidden;
+            border: 3px solid transparent;
+        }
+        
+        .variation-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            border-radius: 20px 20px 0 0;
+        }
+        
+        .variation-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Variation-specific colors */
+        .mocha::before { background: linear-gradient(90deg, #A47864, #B8604B); }
+        .mocha { border-color: #A47864; }
+        
+        .sage::before { background: linear-gradient(90deg, #9CAF9E, #A78BFA); }
+        .sage { border-color: #9CAF9E; }
+        
+        .copper::before { background: linear-gradient(90deg, #B87333, #E8B4A0); }
+        .copper { border-color: #B87333; }
+        
+        .ocean::before { background: linear-gradient(90deg, #2D3748, #81C784); }
+        .ocean { border-color: #2D3748; }
+        
+        .amber::before { background: linear-gradient(90deg, #FF8C00, #FFB347); }
+        .amber { border-color: #FF8C00; }
+        
+        .twilight::before { background: linear-gradient(90deg, #4A148C, #00E5FF); }
+        .twilight { border-color: #4A148C; }
+        
+        .dusty-rose::before { background: linear-gradient(90deg, #C4A5A5, #FFB3BA); }
+        .dusty-rose { border-color: #C4A5A5; }
+        
+        .variation-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .variation-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        .mocha .variation-icon { background: linear-gradient(135deg, #A47864, #B8604B); }
+        .sage .variation-icon { background: linear-gradient(135deg, #9CAF9E, #A78BFA); }
+        .copper .variation-icon { background: linear-gradient(135deg, #B87333, #E8B4A0); }
+        .ocean .variation-icon { background: linear-gradient(135deg, #2D3748, #81C784); }
+        .amber .variation-icon { background: linear-gradient(135deg, #FF8C00, #FFB347); }
+        .twilight .variation-icon { background: linear-gradient(135deg, #4A148C, #00E5FF); }
+        .dusty-rose .variation-icon { background: linear-gradient(135deg, #C4A5A5, #FFB3BA); }
+        
+        .variation-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-grey);
+            margin-bottom: 0.5rem;
+        }
+        
+        .variation-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .variation-description {
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            color: var(--primary-grey);
+            opacity: 0.8;
+        }
+        
+        .variation-details {
+            margin-bottom: 1.5rem;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #F0F0F0;
+        }
+        
+        .detail-label {
+            font-weight: 500;
+            color: var(--primary-grey);
+        }
+        
+        .detail-value {
+            font-weight: 600;
+            color: var(--accent-purple);
+        }
+        
+        .color-palette {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .color-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Mocha colors */
+        .mocha .color-dot:nth-child(1) { background: #A47864; }
+        .mocha .color-dot:nth-child(2) { background: #F5F1EB; }
+        .mocha .color-dot:nth-child(3) { background: #B8604B; }
+        .mocha .color-dot:nth-child(4) { background: #2C2C2C; }
+        .mocha .color-dot:nth-child(5) { background: #4A5D23; }
+        
+        /* Sage colors */
+        .sage .color-dot:nth-child(1) { background: #9CAF9E; }
+        .sage .color-dot:nth-child(2) { background: #F8F6F3; }
+        .sage .color-dot:nth-child(3) { background: #A78BFA; }
+        .sage .color-dot:nth-child(4) { background: #4A5568; }
+        .sage .color-dot:nth-child(5) { background: #87CEEB; }
+        
+        /* Copper colors */
+        .copper .color-dot:nth-child(1) { background: #B87333; }
+        .copper .color-dot:nth-child(2) { background: #1A202C; }
+        .copper .color-dot:nth-child(3) { background: #E8B4A0; }
+        .copper .color-dot:nth-child(4) { background: #FAFAFA; }
+        .copper .color-dot:nth-child(5) { background: #8B4513; }
+        
+        /* Ocean colors */
+        .ocean .color-dot:nth-child(1) { background: #2D3748; }
+        .ocean .color-dot:nth-child(2) { background: #F7FAFC; }
+        .ocean .color-dot:nth-child(3) { background: #81C784; }
+        .ocean .color-dot:nth-child(4) { background: #1A365D; }
+        .ocean .color-dot:nth-child(5) { background: #B2E5FC; }
+        
+        /* Amber colors */
+        .amber .color-dot:nth-child(1) { background: #FF8C00; }
+        .amber .color-dot:nth-child(2) { background: #FFF8DC; }
+        .amber .color-dot:nth-child(3) { background: #FFB347; }
+        .amber .color-dot:nth-child(4) { background: #3C2415; }
+        .amber .color-dot:nth-child(5) { background: #FFD700; }
+        
+        /* Twilight colors */
+        .twilight .color-dot:nth-child(1) { background: #4A148C; }
+        .twilight .color-dot:nth-child(2) { background: #1A237E; }
+        .twilight .color-dot:nth-child(3) { background: #C0C0C0; }
+        .twilight .color-dot:nth-child(4) { background: #2D2D2D; }
+        .twilight .color-dot:nth-child(5) { background: #00E5FF; }
+        
+        /* Dusty Rose colors */
+        .dusty-rose .color-dot:nth-child(1) { background: #C4A5A5; }
+        .dusty-rose .color-dot:nth-child(2) { background: #FBF9F7; }
+        .dusty-rose .color-dot:nth-child(3) { background: #FFB3BA; }
+        .dusty-rose .color-dot:nth-child(4) { background: #5A5A5A; }
+        .dusty-rose .color-dot:nth-child(5) { background: #F4C2C2; }
+        
+        .variation-actions {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .action-button {
+            flex: 1;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            text-align: center;
+            transition: all var(--duration) var(--smooth-curve);
+            cursor: pointer;
+        }
+        
+        .preview-button {
+            background: var(--accent-purple);
+            color: white;
+        }
+        
+        .preview-button:hover {
+            background: #7A3A5E;
+            transform: translateY(-2px);
+        }
+        
+        .specs-button {
+            background: transparent;
+            color: var(--accent-purple);
+            border: 2px solid var(--accent-purple);
+        }
+        
+        .specs-button:hover {
+            background: var(--accent-purple);
+            color: white;
+        }
+        
+        /* Comparison Section */
+        .comparison-section {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 4rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .comparison-title {
+            font-size: 2rem;
+            font-weight: 300;
+            color: var(--accent-purple);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #E9ECEF;
+        }
+        
+        .comparison-table th {
+            background: #F8F9FA;
+            font-weight: 600;
+            color: var(--primary-grey);
+        }
+        
+        .comparison-table td {
+            color: var(--primary-grey);
+            opacity: 0.8;
+        }
+        
+        /* Inspiration Section */
+        .inspiration-section {
+            background: linear-gradient(135deg, rgba(155, 74, 117, 0.05) 0%, rgba(45, 55, 72, 0.05) 100%);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 4rem;
+        }
+        
+        .inspiration-title {
+            font-size: 2rem;
+            font-weight: 300;
+            color: var(--accent-purple);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .inspiration-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .inspiration-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .inspiration-card h4 {
+            color: var(--accent-purple);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .inspiration-card p {
+            color: var(--primary-grey);
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: var(--primary-grey);
+            color: white;
+            margin-top: 4rem;
+        }
+        
+        .footer h3 {
+            font-weight: 300;
+            margin-bottom: 1rem;
+            color: var(--accent-purple);
+        }
+        
+        .footer p {
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .variations-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-button {
+                width: 200px;
+                text-align: center;
+            }
+            
+            .comparison-table {
+                font-size: 0.9rem;
+            }
+            
+            .comparison-table th,
+            .comparison-table td {
+                padding: 0.5rem;
+            }
+        }
+        
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <h1>Rope & Flow Design Variations</h1>
+        <p>Seven sophisticated interpretations of the Rope & Flow aesthetic, each inspired by award-winning 2024/2025 design trends. These variations expand beyond burgundy/black to offer warm earth tones, ethereal blues, sophisticated metallics, and organic animation patterns that create welcoming yet edgy community spaces.</p>
+    </header>
+    
+    <!-- Navigation -->
+    <nav class="navigation">
+        <a href="#variations" class="nav-button">View Variations</a>
+        <a href="#comparison" class="nav-button">Compare Features</a>
+        <a href="#inspiration" class="nav-button">Design Inspiration</a>
+        <a href="#implementation" class="nav-button">Implementation Notes</a>
+    </nav>
+    
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Variations Grid -->
+        <section id="variations" class="variations-section">
+            <div class="variations-grid">
+                <!-- Mocha Rope -->
+                <div class="variation-card mocha">
+                    <div class="variation-header">
+                        <div class="variation-icon">🪵</div>
+                        <div>
+                            <div class="variation-title">Mocha Rope</div>
+                            <div class="variation-subtitle">Warm Earth Sophistication</div>
+                        </div>
+                    </div>
+                    
+                    <div class="color-palette">
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                    </div>
+                    
+                    <p class="variation-description">
+                        Based on Pantone 2025 Mocha Mousse, this variation offers warm, grounding earth tones with smooth rope-settling animations. Features natural material textures and sophisticated neutral palette.
+                    </p>
+                    
+                    <div class="variation-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Primary Color</span>
+                            <span class="detail-value">Mocha Mousse (#A47864)</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Animation Style</span>
+                            <span class="detail-value">Smooth, grounded movements</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Typography</span>
+                            <span class="detail-value">Modern serif headers</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Inspiration</span>
+                            <span class="detail-value">Awwwards earth tone trend</span>
+                        </div>
+                    </div>
+                    
+                    <div class="variation-actions">
+                        <a href="rope-flow-mocha.html" class="action-button preview-button">Live Preview</a>
+                        <a href="#mocha-specs" class="action-button specs-button">View Specs</a>
+                    </div>
+                </div>
+                
+                <!-- Sage Flow -->
+                <div class="variation-card sage">
+                    <div class="variation-header">
+                        <div class="variation-icon">🌿</div>
+                        <div>
+                            <div class="variation-title">Sage Flow</div>
+                            <div class="variation-subtitle">Ethereal Tranquility</div>
+                        </div>
+                    </div>
+                    
+                    <div class="color-palette">
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                    </div>
+                    
+                    <p class="variation-description">
+                        Featuring Sherwin-Williams Quietude sage with ethereal blues and buttercream highlights. Gentle floating movements like rope in water create a tranquil, mindful atmosphere.
+                    </p>
+                    
+                    <div class="variation-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Primary Color</span>
+                            <span class="detail-value">Quietude Sage (#9CAF9E)</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Animation Style</span>
+                            <span class="detail-value">Floating organic shapes</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Typography</span>
+                            <span class="detail-value">Elegant sans-serif</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Inspiration</span>
+                            <span class="detail-value">Digital Lavender trend</span>
+                        </div>
+                    </div>
+                    
+                    <div class="variation-actions">
+                        <a href="rope-flow-sage.html" class="action-button preview-button">Live Preview</a>
+                        <a href="#sage-specs" class="action-button specs-button">View Specs</a>
+                    </div>
+                </div>
+                
+                <!-- Copper Binding -->
+                <div class="variation-card copper">
+                    <div class="variation-header">
+                        <div class="variation-icon">⚙️</div>
+                        <div>
+                            <div class="variation-title">Copper Binding</div>
+                            <div class="variation-subtitle">Metallic Luxury</div>
+                        </div>
+                    </div>
+                    
+                    <div class="color-palette">
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                    </div>
+                    
+                    <p class="variation-description">
+                        Sophisticated dark theme with copper metallics, deep charcoal, and rose gold accents. Precise metal rope movements with shimmering hover effects and luxury aesthetics.
+                    </p>
+                    
+                    <div class="variation-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Primary Color</span>
+                            <span class="detail-value">Brushed Copper (#B87333)</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Animation Style</span>
+                            <span class="detail-value">Sleek, precise movements</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Typography</span>
+                            <span class="detail-value">Geometric sans-serif</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Inspiration</span>
+                            <span class="detail-value">2025 metallic luxury trend</span>
+                        </div>
+                    </div>
+                    
+                    <div class="variation-actions">
+                        <a href="rope-flow-copper.html" class="action-button preview-button">Live Preview</a>
+                        <a href="#copper-specs" class="action-button specs-button">View Specs</a>
+                    </div>
+                </div>
+                
+                <!-- Ocean Rope -->
+                <div class="variation-card ocean">
+                    <div class="variation-header">
+                        <div class="variation-icon">🌊</div>
+                        <div>
+                            <div class="variation-title">Ocean Rope</div>
+                            <div class="variation-subtitle">Cool Sophistication</div>
+                        </div>
+                    </div>
+                    
+                    <div class="color-palette">
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                    </div>
+                    
+                    <p class="variation-description">
+                        Deep ocean blues with seafoam green and sandy neutrals. Wave-like rope movements with tidal navigation flows create a fluid, sophisticated experience.
+                    </p>
+                    
+                    <div class="variation-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Primary Color</span>
+                            <span class="detail-value">Ocean Blue (#2D3748)</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Animation Style</span>
+                            <span class="detail-value">Wave-like motions</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Typography</span>
+                            <span class="detail-value">Modern sans-serif</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Inspiration</span>
+                            <span class="detail-value">CSS Design Awards blues</span>
+                        </div>
+                    </div>
+                    
+                    <div class="variation-actions">
+                        <a href="rope-flow-ocean.html" class="action-button preview-button">Live Preview</a>
+                        <a href="#ocean-specs" class="action-button specs-button">View Specs</a>
+                    </div>
+                </div>
+                
+                <!-- Amber Glow -->
+                <div class="variation-card amber">
+                    <div class="variation-header">
+                        <div class="variation-icon">🔥</div>
+                        <div>
+                            <div class="variation-title">Amber Glow</div>
+                            <div class="variation-subtitle">Warm Vibrancy</div>
+                        </div>
+                    </div>
+                    
+                    <div class="color-palette">
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                    </div>
+                    
+                    <p class="variation-description">
+                        Energetic marigold orange with honeyed gold and rich browns. Glowing warmth effects with ember-like interactions create a vibrant, welcoming atmosphere.
+                    </p>
+                    
+                    <div class="variation-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Primary Color</span>
+                            <span class="detail-value">Marigold Orange (#FF8C00)</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Animation Style</span>
+                            <span class="detail-value">Energetic, bouncing movements</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Typography</span>
+                            <span class="detail-value">Friendly rounded sans-serif</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Inspiration</span>
+                            <span class="detail-value">Opal Tadpole yellow trend</span>
+                        </div>
+                    </div>
+                    
+                    <div class="variation-actions">
+                        <a href="rope-flow-amber.html" class="action-button preview-button">Live Preview</a>
+                        <a href="#amber-specs" class="action-button specs-button">View Specs</a>
+                    </div>
+                </div>
+                
+                <!-- Twilight Binding -->
+                <div class="variation-card twilight">
+                    <div class="variation-header">
+                        <div class="variation-icon">🌑</div>
+                        <div>
+                            <div class="variation-title">Twilight Binding</div>
+                            <div class="variation-subtitle">Sophisticated Dark</div>
+                        </div>
+                    </div>
+                    
+                    <div class="color-palette">
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                    </div>
+                    
+                    <p class="variation-description">
+                        Deep purples and midnight blues with silver accents and electric blue highlights. Constellation-like connections with smooth dark transitions for elite sophistication.
+                    </p>
+                    
+                    <div class="variation-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Primary Color</span>
+                            <span class="detail-value">Deep Purple (#4A148C)</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Animation Style</span>
+                            <span class="detail-value">Sharp, precise movements</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Typography</span>
+                            <span class="detail-value">Modern geometric</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Inspiration</span>
+                            <span class="detail-value">2025 dark mode trends</span>
+                        </div>
+                    </div>
+                    
+                    <div class="variation-actions">
+                        <a href="rope-flow-twilight.html" class="action-button preview-button">Live Preview</a>
+                        <a href="#twilight-specs" class="action-button specs-button">View Specs</a>
+                    </div>
+                </div>
+                
+                <!-- Dusty Rose Rope -->
+                <div class="variation-card dusty-rose">
+                    <div class="variation-header">
+                        <div class="variation-icon">🌸</div>
+                        <div>
+                            <div class="variation-title">Dusty Rose Rope</div>
+                            <div class="variation-subtitle">Soft Alternative</div>
+                        </div>
+                    </div>
+                    
+                    <div class="color-palette">
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                        <div class="color-dot"></div>
+                    </div>
+                    
+                    <p class="variation-description">
+                        Gentle dusty rose with mauve and soft grays. Petal-soft transitions with delicate rope movements create a romantic, nurturing alternative aesthetic.
+                    </p>
+                    
+                    <div class="variation-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Primary Color</span>
+                            <span class="detail-value">Dusty Rose (#C4A5A5)</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Animation Style</span>
+                            <span class="detail-value">Gentle, organic settling</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Typography</span>
+                            <span class="detail-value">Elegant serif headers</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Inspiration</span>
+                            <span class="detail-value">Creamy pastels trend</span>
+                        </div>
+                    </div>
+                    
+                    <div class="variation-actions">
+                        <a href="rope-flow-dusty-rose.html" class="action-button preview-button">Live Preview</a>
+                        <a href="#dusty-rose-specs" class="action-button specs-button">View Specs</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Comparison Section -->
+        <section id="comparison" class="comparison-section">
+            <h2 class="comparison-title">Design Comparison Matrix</h2>
+            
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Variation</th>
+                        <th>Primary Color</th>
+                        <th>Mood</th>
+                        <th>Animation Style</th>
+                        <th>Typography</th>
+                        <th>Best For</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Mocha Rope</strong></td>
+                        <td>Warm Earth Tones</td>
+                        <td>Grounded, Sophisticated</td>
+                        <td>Smooth, Natural</td>
+                        <td>Modern Serif</td>
+                        <td>Professional communities</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Sage Flow</strong></td>
+                        <td>Ethereal Blues/Sage</td>
+                        <td>Tranquil, Mindful</td>
+                        <td>Floating, Organic</td>
+                        <td>Elegant Sans-serif</td>
+                        <td>Wellness-focused groups</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Copper Binding</strong></td>
+                        <td>Metallic Luxury</td>
+                        <td>Elite, Sophisticated</td>
+                        <td>Precise, Mechanical</td>
+                        <td>Geometric Sans-serif</td>
+                        <td>High-end experiences</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ocean Rope</strong></td>
+                        <td>Cool Ocean Blues</td>
+                        <td>Fluid, Sophisticated</td>
+                        <td>Wave-like, Flowing</td>
+                        <td>Modern Sans-serif</td>
+                        <td>Calm, depth-focused</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Amber Glow</strong></td>
+                        <td>Vibrant Orange/Gold</td>
+                        <td>Energetic, Warm</td>
+                        <td>Bouncing, Dynamic</td>
+                        <td>Rounded Sans-serif</td>
+                        <td>Active, social communities</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Twilight Binding</strong></td>
+                        <td>Deep Purple/Blue</td>
+                        <td>Mystical, Elite</td>
+                        <td>Sharp, Precise</td>
+                        <td>Modern Geometric</td>
+                        <td>Exclusive, advanced groups</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Dusty Rose Rope</strong></td>
+                        <td>Soft Rose/Mauve</td>
+                        <td>Romantic, Gentle</td>
+                        <td>Petal-soft, Delicate</td>
+                        <td>Elegant Serif</td>
+                        <td>Nurturing, romantic focus</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        
+        <!-- Inspiration Section -->
+        <section id="inspiration" class="inspiration-section">
+            <h2 class="inspiration-title">Award-Winning Design Inspiration</h2>
+            
+            <div class="inspiration-grid">
+                <div class="inspiration-card">
+                    <h4>Igloo Inc - Awwwards Site of the Year 2024</h4>
+                    <p>Organic shape morphing and fluid simulations inspired our rope-like flowing animations and natural material textures across all variations.</p>
+                </div>
+                
+                <div class="inspiration-card">
+                    <h4>Opal Tadpole - E-commerce Site of the Year 2024</h4>
+                    <p>Warm color accents and microinteraction details influenced our Amber Glow variation and sophisticated product visualization approach.</p>
+                </div>
+                
+                <div class="inspiration-card">
+                    <h4>Immersive Garden - CSS Design Awards 2024</h4>
+                    <p>Sophisticated neutral palettes and tactile 3D elements shaped our Mocha Rope and Copper Binding metallic texture approaches.</p>
+                </div>
+                
+                <div class="inspiration-card">
+                    <h4>Pantone 2025 Color Trends</h4>
+                    <p>Mocha Mousse and ethereal color movements directly informed our warm earth tone palettes and sophisticated color relationships.</p>
+                </div>
+                
+                <div class="inspiration-card">
+                    <h4>Modern Animation Techniques</h4>
+                    <p>Scroll-triggered fluidity, kinetic typography, and microinteractions from 2024 winners enhanced our navigation animation improvements.</p>
+                </div>
+                
+                <div class="inspiration-card">
+                    <h4>Alternative Community Aesthetics</h4>
+                    <p>Professional tools serving alternative communities without compromising authenticity - edgy through content and community focus, not visual extremes.</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Implementation Notes -->
+        <section id="implementation" class="comparison-section">
+            <h2 class="comparison-title">Implementation Guidelines</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                <div>
+                    <h4 style="color: var(--accent-purple); margin-bottom: 1rem;">Navigation Improvements</h4>
+                    <ul style="line-height: 1.8; color: var(--primary-grey); opacity: 0.8;">
+                        <li>Smooth morphing transitions (300-600ms)</li>
+                        <li>GPU acceleration with transform3d</li>
+                        <li>Magnetic hover effects</li>
+                        <li>Flowing underline animations</li>
+                        <li>Subtle parallax on scroll</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 style="color: var(--accent-purple); margin-bottom: 1rem;">Technical Stack</h4>
+                    <ul style="line-height: 1.8; color: var(--primary-grey); opacity: 0.8;">
+                        <li>React + TypeScript + Vite</li>
+                        <li>Mantine v7 component library</li>
+                        <li>Framer Motion for animations</li>
+                        <li>CSS Grid and Flexbox layouts</li>
+                        <li>WCAG 2.1 AA accessibility</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 style="color: var(--accent-purple); margin-bottom: 1rem;">Performance</h4>
+                    <ul style="line-height: 1.8; color: var(--primary-grey); opacity: 0.8;">
+                        <li>Mobile-first responsive design</li>
+                        <li>Lazy loading for complex animations</li>
+                        <li>Intersection Observer for reveals</li>
+                        <li>Prefers-reduced-motion support</li>
+                        <li>Progressive enhancement</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 style="color: var(--accent-purple); margin-bottom: 1rem;">Quality Standards</h4>
+                    <ul style="line-height: 1.8; color: var(--primary-grey); opacity: 0.8;">
+                        <li>Dark/light theme toggle</li>
+                        <li>Touch-friendly interactions</li>
+                        <li>Keyboard navigation support</li>
+                        <li>Screen reader optimized</li>
+                        <li>Brand guidelines compliance</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <h3>WitchCityRope Design Variations</h3>
+        <p>Seven sophisticated interpretations of the Rope & Flow aesthetic, each designed to create welcoming yet edgy community spaces. Based on award-winning 2024/2025 design trends with improved navigation animations and sophisticated color palettes that move beyond traditional burgundy/black combinations.</p>
+        <br>
+        <p style="opacity: 0.6;">© 2025 WitchCityRope UI Design Team. Created with care for Salem's rope bondage community.</p>
+    </footer>
+    
+    <script>
+        // Smooth scrolling for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Card hover effects
+        document.querySelectorAll('.variation-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-12px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(-8px) scale(1)';
+            });
+        });
+        
+        // Intersection Observer for scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        // Observe all cards for animation
+        document.querySelectorAll('.variation-card, .inspiration-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'all 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)';
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>

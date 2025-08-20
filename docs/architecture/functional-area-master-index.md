@@ -15,6 +15,7 @@ This master index is maintained by the librarian agent to provide quick lookups 
 | **API Data Alignment** | `/docs/functional-areas/api-data-alignment/` | `/docs/functional-areas/api-data-alignment/new-work/2025-08-19-dto-database-alignment-strategy/` | DTO alignment strategy for React migration - API DTOs as source of truth, TypeScript interface alignment requirements | Enhanced | 2025-08-19 |
 | **Authentication** | `/docs/functional-areas/authentication/` | **MILESTONE COMPLETE** ✅ | **Complete React authentication system with NSwag type generation** - Production-ready implementation with TanStack Query + Zustand + React Router v7 + Mantine v7 + automated types | **COMPLETE** | 2025-08-19 |
 | ~~**Authentication-Identity**~~ | `/docs/_archive/authentication-identity-legacy-2025-08-12/` | **ARCHIVED** | Legacy authentication docs - ARCHIVED to prevent confusion | Archived | 2025-08-12 |
+| **Design Refresh** | `/docs/functional-areas/design-refresh/` | `/docs/functional-areas/design-refresh/new-work/2025-08-20-modernization/` | Design system modernization with edgy/modern aesthetic, homepage navigation refresh, 5 design iterations, documentation reorganization | Phase 1 - Requirements | 2025-08-20 |
 | **Events Management** | `/docs/functional-areas/events/` | N/A | Event creation, RSVP, ticketing | Active | 2025-08-12 |
 | **Homepage** | `/docs/functional-areas/homepage/` | N/A | Landing page and main navigation entry point with complete workflow structure and design assets | Enhanced | 2025-08-19 |
 | **Payment (PayPal/Venmo)** | `/docs/functional-areas/payment-paypal-venmo/` | N/A | Payment processing integration | Planning | 2025-08-12 |
@@ -23,6 +24,16 @@ This master index is maintained by the librarian agent to provide quick lookups 
 | **Docker Authentication** | `/docs/functional-areas/docker-authentication/` | Phase 2 Complete - Pending Human Approval | Containerize existing working authentication system (React + .NET API + PostgreSQL) | Phase 2 Design Complete | 2025-08-17 |
 
 ## Active Development Work
+
+### 🚀 ACTIVE: Design Refresh Modernization
+- **Current Work**: `/docs/functional-areas/design-refresh/new-work/2025-08-20-modernization/`
+- **Status**: Phase 1 - Requirements & Planning (In Progress)
+- **Objective**: Transform current design to more edgy/modern aesthetic while preserving excellent UX
+- **Scope**: Homepage navigation refresh, style guide updates, 5 design iterations, documentation reorganization
+- **Quality Gates**: Requirements 0% → 95%, Design 0% → 90%, Implementation 0% → 85%, Testing 0% → 100%
+- **Next Human Review**: After Business Requirements Document completion
+- **Key Deliverables**: Business requirements, design brief, 5 design variations, stakeholder selection, implementation guides
+- **Session**: 2025-08-20
 
 ### 🏆 MILESTONE COMPLETE: Authentication + NSwag Implementation Excellence
 - **Milestone Achievement**: Complete React authentication system with automated type generation

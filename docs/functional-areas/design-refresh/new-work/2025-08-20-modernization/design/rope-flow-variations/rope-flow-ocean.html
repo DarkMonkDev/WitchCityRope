@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WitchCityRope - Ocean Rope Variation</title>
+    <style>
+        /* Reset and base styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        /* Color System - Ocean Rope */
+        :root {
+            --ocean-blue: #2D3748;
+            --soft-grey: #F7FAFC;
+            --seafoam-green: #81C784;
+            --navy-deep: #1A365D;
+            --aqua-light: #B2E5FC;
+            --pearl-white: #FEFEFE;
+            --coral-accent: #FF7043;
+            
+            /* Animation Properties */
+            --wave-curve: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --ocean-duration: 1.2s;
+            --tide-lift: translateY(-6px);
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--soft-grey);
+            color: var(--navy-deep);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Flowing Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(247, 250, 252, 0.92);
+            backdrop-filter: blur(25px) saturate(180%);
+            border-bottom: 1px solid rgba(45, 55, 72, 0.1);
+            z-index: 1000;
+            padding: 1.2rem 2rem;
+            transition: all var(--ocean-duration) var(--wave-curve);
+        }
+        
+        .navbar.scrolled {
+            background: rgba(247, 250, 252, 0.96);
+            box-shadow: 0 8px 32px rgba(45, 55, 72, 0.15);
+            border-bottom-color: rgba(45, 55, 72, 0.2);
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            font-size: 1.7rem;
+            font-weight: 600;
+            color: var(--ocean-blue);
+            text-decoration: none;
+            position: relative;
+            letter-spacing: 1px;
+        }
+        
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--ocean-blue), var(--seafoam-green), var(--aqua-light));
+            transition: width var(--ocean-duration) var(--wave-curve);
+            border-radius: 2px;
+        }
+        
+        .logo:hover::after {
+            width: 100%;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: var(--navy-deep);
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            position: relative;
+            font-weight: 400;
+            transition: all var(--ocean-duration) var(--wave-curve);
+            background: rgba(255, 255, 255, 0);
+        }
+        
+        .nav-links a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(45, 55, 72, 0.05), rgba(129, 199, 132, 0.1));
+            border-radius: 25px;
+            opacity: 0;
+            transition: all var(--ocean-duration) var(--wave-curve);
+            transform: scale(0.8) translateY(5px);
+        }
+        
+        .nav-links a:hover {
+            color: var(--ocean-blue);
+            transform: var(--tide-lift);
+        }
+        
+        .nav-links a:hover::before {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+        
+        /* Hero Section with Wave-like Motion */
+        .hero {
+            height: 100vh;
+            background: linear-gradient(135deg, var(--soft-grey) 0%, #E3F2FD 30%, #F0F8FF 70%, var(--soft-grey) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .wave-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .wave {
+            position: absolute;
+            width: 200%;
+            height: 100px;
+            background: linear-gradient(90deg, 
+                rgba(45, 55, 72, 0.1) 0%, 
+                rgba(129, 199, 132, 0.1) 25%, 
+                rgba(178, 229, 252, 0.1) 50%, 
+                rgba(129, 199, 132, 0.1) 75%, 
+                rgba(45, 55, 72, 0.1) 100%);
+            border-radius: 50px;
+            animation: waveFloat 20s ease-in-out infinite;
+        }
+        
+        .wave:nth-child(1) {
+            top: 20%;
+            left: -50%;
+            animation-delay: 0s;
+            opacity: 0.3;
+        }
+        
+        .wave:nth-child(2) {
+            top: 60%;
+            left: -100%;
+            animation-delay: -7s;
+            opacity: 0.4;
+        }
+        
+        .wave:nth-child(3) {
+            bottom: 30%;
+            left: -75%;
+            animation-delay: -14s;
+            opacity: 0.2;
+        }
+        
+        @keyframes waveFloat {
+            0%, 100% { 
+                transform: translateX(0) translateY(0) rotate(0deg);
+            }
+            25% { 
+                transform: translateX(30px) translateY(-20px) rotate(2deg);
+            }
+            50% { 
+                transform: translateX(60px) translateY(10px) rotate(-1deg);
+            }
+            75% { 
+                transform: translateX(90px) translateY(-15px) rotate(1deg);
+            }
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            padding: 2rem;
+        }
+        
+        .hero h1 {
+            font-size: 4.5rem;
+            font-weight: 300;
+            margin-bottom: 1.5rem;
+            color: var(--ocean-blue);
+            text-shadow: 0 4px 20px rgba(45, 55, 72, 0.1);
+            animation: oceanEntry 2.5s var(--wave-curve);
+            letter-spacing: 2px;
+        }
+        
+        @keyframes oceanEntry {
+            0% { 
+                opacity: 0; 
+                transform: translateY(80px) scale(0.9);
+                filter: blur(15px);
+            }
+            60% {
+                opacity: 0.8;
+                transform: translateY(-10px) scale(1.02);
+                filter: blur(2px);
+            }
+            100% { 
+                opacity: 1; 
+                transform: translateY(0) scale(1);
+                filter: blur(0px);
+            }
+        }
+        
+        .hero p {
+            font-size: 1.3rem;
+            color: var(--navy-deep);
+            margin-bottom: 2.5rem;
+            opacity: 0.8;
+            font-weight: 300;
+            line-height: 1.8;
+        }
+        
+        .cta-button {
+            background: linear-gradient(135deg, var(--ocean-blue), var(--seafoam-green));
+            color: var(--pearl-white);
+            padding: 1.2rem 3rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 400;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all var(--ocean-duration) var(--wave-curve);
+            box-shadow: 0 12px 35px rgba(45, 55, 72, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 1s;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 20px 50px rgba(45, 55, 72, 0.3);
+        }
+        
+        .cta-button:hover::before {
+            left: 100%;
+        }
+        
+        /* Content Sections with Tidal Flow */
+        .section {
+            padding: 6rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .section-divider {
+            height: 120px;
+            background: linear-gradient(135deg, transparent 0%, rgba(45, 55, 72, 0.05) 50%, transparent 100%);
+            margin: 4rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .section-divider::before {
+            content: '〜';
+            font-size: 3rem;
+            color: var(--seafoam-green);
+            animation: tidalBreath 4s ease-in-out infinite;
+        }
+        
+        @keyframes tidalBreath {
+            0%, 100% { 
+                transform: scale(1) rotate(0deg); 
+                opacity: 0.6;
+            }
+            50% { 
+                transform: scale(1.4) rotate(10deg); 
+                opacity: 1;
+            }
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(15px);
+            padding: 2.5rem;
+            border-radius: 20px;
+            border: 1px solid rgba(45, 55, 72, 0.1);
+            transition: all var(--ocean-duration) var(--wave-curve);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--ocean-blue), var(--seafoam-green), var(--aqua-light));
+            transform: scaleX(0);
+            transition: transform var(--ocean-duration) var(--wave-curve);
+        }
+        
+        .feature-card::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, rgba(129, 199, 132, 0.1), transparent);
+            transition: all 0.8s ease;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 25px 60px rgba(45, 55, 72, 0.15);
+            border-color: rgba(129, 199, 132, 0.3);
+        }
+        
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .feature-card:hover::after {
+            width: 400px;
+            height: 400px;
+        }
+        
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--ocean-blue), var(--seafoam-green));
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: white;
+            font-size: 1.8rem;
+            transition: all var(--ocean-duration) var(--wave-curve);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1) rotate(-3deg);
+            box-shadow: 0 15px 35px rgba(45, 55, 72, 0.3);
+        }
+        
+        .feature-card h3 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: var(--ocean-blue);
+            margin-bottom: 1rem;
+            letter-spacing: 0.5px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .feature-card p {
+            color: var(--navy-deep);
+            line-height: 1.7;
+            font-weight: 300;
+            opacity: 0.8;
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* Events Section with Ocean Currents */
+        .events-section {
+            background: linear-gradient(135deg, rgba(227, 242, 253, 0.6) 0%, rgba(240, 248, 255, 0.6) 50%, rgba(178, 229, 252, 0.3) 100%);
+            border-radius: 30px;
+            margin: 4rem 0;
+            padding: 4rem;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(45, 55, 72, 0.1);
+        }
+        
+        .events-section::before {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(
+                circle at 50% 50%, 
+                rgba(129, 199, 132, 0.1) 0%, 
+                rgba(178, 229, 252, 0.05) 30%, 
+                transparent 70%
+            );
+            animation: currentFlow 25s linear infinite;
+        }
+        
+        @keyframes currentFlow {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+        
+        .events-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+            gap: 2.5rem;
+            margin-top: 3rem;
+        }
+        
+        .event-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid rgba(45, 55, 72, 0.1);
+            transition: all var(--ocean-duration) var(--wave-curve);
+            position: relative;
+        }
+        
+        .event-card:hover {
+            transform: translateY(-12px) scale(1.03);
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 25px 70px rgba(45, 55, 72, 0.2);
+            border-color: rgba(129, 199, 132, 0.3);
+        }
+        
+        .event-image {
+            height: 220px;
+            background: linear-gradient(135deg, var(--ocean-blue), var(--seafoam-green), var(--aqua-light));
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .event-image::after {
+            content: '🌊';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            opacity: 0.4;
+            animation: waveMotion 8s ease-in-out infinite;
+        }
+        
+        @keyframes waveMotion {
+            0%, 100% { 
+                transform: translate(-50%, -50%) rotate(0deg) scale(1);
+            }
+            25% { 
+                transform: translate(-50%, -50%) rotate(5deg) scale(1.1);
+            }
+            50% { 
+                transform: translate(-50%, -50%) rotate(0deg) scale(0.9);
+            }
+            75% { 
+                transform: translate(-50%, -50%) rotate(-5deg) scale(1.05);
+            }
+        }
+        
+        .event-content {
+            padding: 2rem;
+        }
+        
+        .event-date {
+            color: var(--seafoam-green);
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 0.8rem;
+        }
+        
+        .event-title {
+            font-size: 1.4rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            color: var(--ocean-blue);
+            letter-spacing: 0.5px;
+        }
+        
+        .event-description {
+            color: var(--navy-deep);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            font-weight: 300;
+            opacity: 0.8;
+        }
+        
+        .event-button {
+            background: linear-gradient(90deg, var(--ocean-blue), var(--seafoam-green));
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 400;
+            letter-spacing: 1px;
+            transition: all var(--ocean-duration) var(--wave-curve);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .event-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transition: all 0.8s ease;
+            transform: translate(-50%, -50%);
+        }
+        
+        .event-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 35px rgba(45, 55, 72, 0.3);
+        }
+        
+        .event-button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        /* Footer with Ocean Depths */
+        .footer {
+            background: linear-gradient(135deg, var(--navy-deep) 0%, #2C3E50 50%, var(--ocean-blue) 100%);
+            color: var(--pearl-white);
+            padding: 4rem 2rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, var(--ocean-blue), var(--seafoam-green), var(--aqua-light), var(--coral-accent), var(--ocean-blue));
+            background-size: 400% 100%;
+            animation: oceanFlow 8s ease infinite;
+        }
+        
+        @keyframes oceanFlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+        
+        .footer-section h3 {
+            color: var(--seafoam-green);
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+        
+        .footer-links a {
+            color: var(--pearl-white);
+            text-decoration: none;
+            display: block;
+            margin: 0.8rem 0;
+            font-weight: 300;
+            transition: all var(--ocean-duration) var(--wave-curve);
+            padding: 0.4rem 0;
+            opacity: 0.8;
+        }
+        
+        .footer-links a:hover {
+            color: var(--aqua-light);
+            transform: translateX(15px);
+            opacity: 1;
+        }
+        
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: linear-gradient(135deg, var(--ocean-blue), var(--seafoam-green));
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            box-shadow: 0 12px 35px rgba(45, 55, 72, 0.3);
+            transition: all var(--ocean-duration) var(--wave-curve);
+            z-index: 1000;
+            font-size: 1.5rem;
+        }
+        
+        .theme-toggle:hover {
+            transform: scale(1.15) rotate(10deg);
+            box-shadow: 0 18px 50px rgba(45, 55, 72, 0.4);
+        }
+        
+        /* Mobile Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .hero h1 {
+                font-size: 3rem;
+                letter-spacing: 1px;
+            }
+            
+            .features-grid,
+            .events-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .section {
+                padding: 4rem 1rem;
+            }
+            
+            .events-section {
+                padding: 2rem;
+                margin: 2rem 0;
+            }
+            
+            /* Disable complex animations on mobile */
+            .wave-background .wave {
+                animation: none;
+                opacity: 0.1;
+            }
+            
+            .events-section::before {
+                animation: none;
+            }
+        }
+        
+        /* Accessibility - Reduced Motion Support */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* Advanced Interactive Elements */
+        .ocean-cursor {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, var(--seafoam-green), var(--ocean-blue));
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .ocean-cursor.active {
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <!-- Ocean Cursor -->
+    <div class="ocean-cursor" id="oceanCursor"></div>
+    
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">WitchCityRope</a>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#events">Events</a></li>
+                <li><a href="#community">Community</a></li>
+                <li><a href="#resources">Resources</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="wave-background">
+            <div class="wave"></div>
+            <div class="wave"></div>
+            <div class="wave"></div>
+        </div>
+        <div class="hero-content">
+            <h1>Ocean Depths</h1>
+            <p>Dive deep into the fluid artistry of rope work. Where technique flows like water and mastery emerges from the depths of practice.</p>
+            <button class="cta-button">Dive Deeper</button>
+        </div>
+    </section>
+    
+    <!-- Section Divider -->
+    <div class="section-divider"></div>
+    
+    <!-- Features Section -->
+    <section class="section">
+        <h2 style="text-align: center; color: var(--ocean-blue); font-size: 2.8rem; font-weight: 400; margin-bottom: 2rem; letter-spacing: 1px;">Flow & Depth</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🌊</div>
+                <h3>Fluid Technique</h3>
+                <p>Learn rope work as a flowing art form, where each movement builds naturally upon the last in smooth, continuous progression.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🐚</div>
+                <h3>Deep Understanding</h3>
+                <p>Explore the profound connections between technique, safety, and artistry in our comprehensive learning environment.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚓</div>
+                <h3>Grounded Community</h3>
+                <p>Find your anchor in our supportive community of practitioners who share your passion for this beautiful art form.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Section Divider -->
+    <div class="section-divider"></div>
+    
+    <!-- Events Section -->
+    <section class="section">
+        <div class="events-section">
+            <div class="events-content">
+                <h2 style="text-align: center; color: var(--ocean-blue); font-size: 2.8rem; font-weight: 400; margin-bottom: 1rem; letter-spacing: 1px;">Tidal Sessions</h2>
+                <p style="text-align: center; color: var(--navy-deep); font-weight: 300; margin-bottom: 2rem; line-height: 1.8; opacity: 0.8;">Immersive learning experiences that ebb and flow with your journey of discovery.</p>
+                
+                <div class="events-grid">
+                    <div class="event-card">
+                        <div class="event-image"></div>
+                        <div class="event-content">
+                            <div class="event-date">Sat, Aug 24</div>
+                            <h3 class="event-title">Surface Tensions</h3>
+                            <p class="event-description">Gentle introduction to rope fundamentals, exploring the surface beauty and deeper currents of this art form.</p>
+                            <button class="event-button">Wade In</button>
+                        </div>
+                    </div>
+                    
+                    <div class="event-card">
+                        <div class="event-image"></div>
+                        <div class="event-content">
+                            <div class="event-date">Sun, Aug 25</div>
+                            <h3 class="event-title">Deep Currents</h3>
+                            <p class="event-description">Advanced techniques that flow from years of experience, exploring the profound depths of rope mastery.</p>
+                            <button class="event-button">Dive Deep</button>
+                        </div>
+                    </div>
+                    
+                    <div class="event-card">
+                        <div class="event-image"></div>
+                        <div class="event-content">
+                            <div class="event-date">Fri, Aug 30</div>
+                            <h3 class="event-title">Harbor Gathering</h3>
+                            <p class="event-description">Monthly community connection where all skill levels converge to share stories and experiences.</p>
+                            <button class="event-button">Join Harbor</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Navigation</h3>
+                <div class="footer-links">
+                    <a href="#workshops">Flowing Workshops</a>
+                    <a href="#membership">Deep Membership</a>
+                    <a href="#safety">Safe Harbor</a>
+                    <a href="#guides">Tide Masters</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Community</h3>
+                <div class="footer-links">
+                    <a href="#depths">Deep Connections</a>
+                    <a href="#gallery">Ocean Gallery</a>
+                    <a href="#currents">Knowledge Currents</a>
+                    <a href="#support">Calm Support</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Horizons</h3>
+                <div class="footer-links">
+                    <a href="#contact">Send Message</a>
+                    <a href="#location">Find Harbor</a>
+                    <a href="#tides">Tide Updates</a>
+                    <a href="#waves">Follow Waves</a>
+                </div>
+            </div>
+        </div>
+        <p style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid rgba(129, 199, 132, 0.3); opacity: 0.7; font-weight: 300;">
+            © 2025 WitchCityRope. Where depths of knowledge meet oceans of possibility.
+        </p>
+    </footer>
+    
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" onclick="toggleTheme()">🌊</button>
+    
+    <script>
+        // Ocean navigation effects
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbar = document.getElementById('navbar');
+            
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 100) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            });
+            
+            // Advanced ocean cursor
+            const cursor = document.getElementById('oceanCursor');
+            let mouseX = 0, mouseY = 0;
+            let cursorX = 0, cursorY = 0;
+            
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                cursor.classList.add('active');
+            });
+            
+            document.addEventListener('mouseleave', () => {
+                cursor.classList.remove('active');
+            });
+            
+            // Smooth flowing cursor animation
+            function animateCursor() {
+                cursorX += (mouseX - cursorX) * 0.12;
+                cursorY += (mouseY - cursorY) * 0.12;
+                cursor.style.left = cursorX + 'px';
+                cursor.style.top = cursorY + 'px';
+                requestAnimationFrame(animateCursor);
+            }
+            animateCursor();
+            
+            // Wave-like scroll animations
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0) scale(1)';
+                    }
+                });
+            }, { 
+                threshold: 0.1,
+                rootMargin: '0px 0px -60px 0px'
+            });
+            
+            // Observe cards with flowing animations
+            document.querySelectorAll('.feature-card, .event-card').forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(50px) scale(0.95)';
+                card.style.transition = `all 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${index * 0.2}s`;
+                observer.observe(card);
+            });
+            
+            // Ocean parallax effects
+            window.addEventListener('scroll', () => {
+                const scrolled = window.pageYOffset;
+                const waves = document.querySelectorAll('.wave');
+                
+                waves.forEach((wave, index) => {
+                    const speed = 0.2 + (index * 0.1);
+                    const direction = index % 2 === 0 ? 1 : -1;
+                    wave.style.transform = `translateX(${scrolled * speed * direction}px) translateY(${Math.sin(scrolled * 0.01) * 10}px)`;
+                });
+            });
+            
+            // Enhanced fluid button interactions
+            document.querySelectorAll('.cta-button, .event-button').forEach(button => {
+                button.addEventListener('mouseenter', function(e) {
+                    const rect = e.target.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    const rotateX = (y - centerY) / centerY * 5;
+                    const rotateY = (centerX - x) / centerX * 5;
+                    
+                    e.target.style.transform = `translateY(-8px) scale(1.05) perspective(400px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                });
+                
+                button.addEventListener('mouseleave', function(e) {
+                    e.target.style.transform = 'translateY(-8px) scale(1.05)';
+                });
+                
+                // Ripple effect like water drops
+                button.addEventListener('click', function(e) {
+                    const ripple = document.createElement('span');
+                    const rect = e.target.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    const x = e.clientX - rect.left - size / 2;
+                    const y = e.clientY - rect.top - size / 2;
+                    
+                    ripple.style.cssText = `
+                        position: absolute;
+                        border-radius: 50%;
+                        background: rgba(129, 199, 132, 0.4);
+                        transform: scale(0);
+                        animation: waterRipple 0.8s ease-out;
+                        left: ${x}px;
+                        top: ${y}px;
+                        width: ${size}px;
+                        height: ${size}px;
+                    `;
+                    
+                    e.target.appendChild(ripple);
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 800);
+                });
+            });
+            
+            // Add water ripple animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes waterRipple {
+                    to {
+                        transform: scale(3);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Flowing hover effects for cards
+            document.querySelectorAll('.feature-card, .event-card').forEach(card => {
+                card.addEventListener('mouseenter', function(e) {
+                    const rect = e.target.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    const rotateX = (y - centerY) / centerY * 3;
+                    const rotateY = (centerX - x) / centerX * 3;
+                    
+                    e.target.style.transform = `translateY(-15px) scale(1.02) perspective(500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                });
+                
+                card.addEventListener('mouseleave', function(e) {
+                    e.target.style.transform = 'translateY(-15px) scale(1.02)';
+                });
+            });
+            
+            // Text reveal animations like waves
+            const textElements = document.querySelectorAll('h2, h3, p');
+            const textObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.5 });
+            
+            textElements.forEach((element, index) => {
+                if (!element.closest('.hero')) {
+                    element.style.opacity = '0';
+                    element.style.transform = 'translateY(30px)';
+                    element.style.transition = `all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${index * 0.05}s`;
+                    textObserver.observe(element);
+                }
+            });
+        });
+        
+        // Theme toggle functionality
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            
+            if (document.body.classList.contains('dark-theme')) {
+                document.documentElement.style.setProperty('--soft-grey', '#1A202C');
+                document.documentElement.style.setProperty('--navy-deep', '#E2E8F0');
+                document.querySelector('.theme-toggle').textContent = '☀️';
+            } else {
+                document.documentElement.style.setProperty('--soft-grey', '#F7FAFC');
+                document.documentElement.style.setProperty('--navy-deep', '#1A365D');
+                document.querySelector('.theme-toggle').textContent = '🌊';
+            }
+        }
+        
+        // Performance optimization for mobile
+        if (window.innerWidth <= 768) {
+            // Simplify animations on mobile
+            document.querySelectorAll('.wave').forEach(wave => {
+                wave.style.animation = 'none';
+                wave.style.opacity = '0.1';
+            });
+            
+            document.querySelector('.events-section::before').style.animation = 'none';
+            
+            // Touch interactions for mobile
+            document.querySelectorAll('.feature-card, .event-card').forEach(card => {
+                card.addEventListener('touchstart', function() {
+                    this.style.transform = 'translateY(-10px) scale(1.02)';
+                });
+                
+                card.addEventListener('touchend', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        }
+        
+        // Smooth scrolling for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

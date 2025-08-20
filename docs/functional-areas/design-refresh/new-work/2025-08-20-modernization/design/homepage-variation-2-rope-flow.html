@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WitchCityRope - Rope & Flow Design (Variation 2)</title>
+    <style>
+        /* Rope & Flow Design - Variation 2 */
+        /* Flowing curves inspired by rope patterns with warm earth tones */
+        
+        :root {
+            /* Rope & Flow color palette - warm, sensual, professional */
+            --wcr-ivory: #f8f4e6;
+            --wcr-warm-cream: #f4ebe0;
+            --wcr-dusty-rose: #d4a5a5;
+            --wcr-rose-muted: #c48b8b;
+            --wcr-terracotta: #b47171;
+            --wcr-rust: #a45757;
+            --wcr-plum: #9b4a75;
+            --wcr-burgundy: #880124;
+            --wcr-deep-wine: #6b0119;
+            --wcr-charcoal: #2c2c2c;
+            --wcr-warm-gray: #4a453f;
+            
+            /* Rope texture and flow effects */
+            --rope-gradient: linear-gradient(45deg, var(--wcr-terracotta), var(--wcr-plum), var(--wcr-burgundy));
+            --flow-shadow: 0 8px 32px rgba(155, 74, 117, 0.15);
+            --rope-border-radius: 20px 40px 20px 40px;
+            --smooth-curve: cubic-bezier(0.4, 0, 0.2, 1);
+            --rope-texture: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4a5a5' fill-opacity='0.05'%3E%3Cpath d='M30 30c0-11.046-8.954-20-20-20s-20 8.954-20 20 8.954 20 20 20 20-8.954 20-20zm-20-18c9.941 0 18 8.059 18 18s-8.059 18-18 18S-8 38.941-8 30s8.059-18 18-18z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--wcr-warm-gray);
+            background: var(--wcr-warm-cream);
+            background-image: var(--rope-texture);
+            overflow-x: hidden;
+        }
+
+        /* Flowing Header with rope-inspired curves */
+        .header {
+            background: linear-gradient(135deg, white 0%, var(--wcr-ivory) 100%);
+            box-shadow: 0 4px 20px rgba(155, 74, 117, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 3px solid;
+            border-image: var(--rope-gradient) 1;
+            clip-path: ellipse(120% 100% at center top);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 80px;
+        }
+
+        .logo {
+            font-family: 'Bodoni Moda', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: var(--rope-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+            transition: all 0.5s var(--smooth-curve);
+            position: relative;
+        }
+
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--rope-gradient);
+            transition: width 0.5s var(--smooth-curve);
+        }
+
+        .logo:hover::after {
+            width: 100%;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--wcr-warm-gray);
+            font-weight: 500;
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--rope-border-radius);
+            transition: all 0.4s var(--smooth-curve);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(155, 74, 117, 0.1), transparent);
+            transition: left 0.6s var(--smooth-curve);
+        }
+
+        .nav-link:hover::before {
+            left: 100%;
+        }
+
+        .nav-link:hover {
+            background: rgba(155, 74, 117, 0.08);
+            color: var(--wcr-burgundy);
+            transform: translateY(-2px);
+        }
+
+        .nav-cta {
+            background: var(--rope-gradient);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: var(--rope-border-radius);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.4s var(--smooth-curve);
+            box-shadow: var(--flow-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-cta::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transition: all 0.6s var(--smooth-curve);
+            transform: translate(-50%, -50%);
+        }
+
+        .nav-cta:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 40px rgba(155, 74, 117, 0.25);
+        }
+
+        /* Flowing Hero Section with rope-inspired curves */
+        .hero {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 6rem 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            min-height: 90vh;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -10%;
+            right: -10%;
+            width: 40%;
+            height: 120%;
+            background: linear-gradient(135deg, rgba(212, 165, 165, 0.1), rgba(155, 74, 117, 0.1));
+            border-radius: 50% 0 50% 0;
+            z-index: -1;
+            animation: gentle-flow 20s ease-in-out infinite;
+        }
+
+        @keyframes gentle-flow {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(3deg) scale(1.05); }
+        }
+
+        .hero-content {
+            position: relative;
+        }
+
+        .hero-content h1 {
+            font-family: 'Bodoni Moda', serif;
+            font-size: 4rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 2rem;
+            color: var(--wcr-charcoal);
+        }
+
+        .hero-content .highlight {
+            background: var(--rope-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+        }
+
+        .hero-content .highlight::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--rope-gradient);
+            border-radius: 20px;
+            animation: flow-underline 3s ease-in-out infinite;
+        }
+
+        @keyframes flow-underline {
+            0%, 100% { transform: scaleX(1); }
+            50% { transform: scaleX(1.1); }
+        }
+
+        .hero-content p {
+            font-size: 1.3rem;
+            color: rgba(74, 69, 63, 0.9);
+            margin-bottom: 2.5rem;
+            line-height: 1.7;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: var(--rope-gradient);
+            color: white;
+            padding: 1.25rem 2.5rem;
+            border: none;
+            border-radius: var(--rope-border-radius);
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.5s var(--smooth-curve);
+            box-shadow: var(--flow-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.8s var(--smooth-curve);
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 15px 45px rgba(155, 74, 117, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--wcr-burgundy);
+            padding: 1.25rem 2.5rem;
+            border: 2px solid var(--wcr-burgundy);
+            border-radius: var(--rope-border-radius);
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.5s var(--smooth-curve);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-secondary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--rope-gradient);
+            transition: left 0.5s var(--smooth-curve);
+            z-index: -1;
+        }
+
+        .btn-secondary:hover::before {
+            left: 0;
+        }
+
+        .btn-secondary:hover {
+            color: white;
+            border-color: transparent;
+            transform: translateY(-2px);
+        }
+
+        .hero-visual {
+            background: linear-gradient(135deg, rgba(212, 165, 165, 0.15), rgba(155, 74, 117, 0.08));
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            padding: 3rem;
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--wcr-plum);
+            text-align: center;
+            box-shadow: var(--flow-shadow);
+            position: relative;
+            overflow: hidden;
+            animation: organic-pulse 15s ease-in-out infinite;
+        }
+
+        @keyframes organic-pulse {
+            0%, 100% {
+                border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+                transform: scale(1);
+            }
+            50% {
+                border-radius: 70% 30% 30% 70% / 70% 70% 30% 30%;
+                transform: scale(1.02);
+            }
+        }
+
+        .hero-visual::before {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: 20%;
+            width: 60%;
+            height: 60%;
+            background: linear-gradient(45deg, rgba(155, 74, 117, 0.1), transparent);
+            border-radius: 50%;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .hero-visual-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-visual h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-family: 'Bodoni Moda', serif;
+        }
+
+        /* Flowing Features Section */
+        .features {
+            background: linear-gradient(135deg, white 0%, var(--wcr-ivory) 100%);
+            padding: 8rem 2rem;
+            position: relative;
+            clip-path: polygon(0 10%, 100% 0%, 100% 90%, 0% 100%);
+            margin: 4rem 0;
+        }
+
+        .features-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .features h2 {
+            font-family: 'Bodoni Moda', serif;
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 4rem;
+            color: var(--wcr-charcoal);
+            background: var(--rope-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 3rem;
+            border-radius: var(--rope-border-radius);
+            box-shadow: var(--flow-shadow);
+            border: 1px solid rgba(155, 74, 117, 0.1);
+            transition: all 0.6s var(--smooth-curve);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--rope-gradient);
+            transform: scaleX(0);
+            transition: transform 0.6s var(--smooth-curve);
+            transform-origin: left;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(155, 74, 117, 0.2);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--rope-gradient);
+            border-radius: 50% 20% 50% 20%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            color: white;
+            font-size: 2rem;
+            transition: all 0.5s var(--smooth-curve);
+        }
+
+        .feature-card:hover .feature-icon {
+            border-radius: 20% 50% 20% 50%;
+            transform: rotate(5deg) scale(1.1);
+        }
+
+        .feature-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: var(--wcr-charcoal);
+            font-family: 'Bodoni Moda', serif;
+        }
+
+        .feature-card p {
+            color: rgba(74, 69, 63, 0.9);
+            line-height: 1.7;
+            font-size: 1.1rem;
+        }
+
+        /* Flowing Footer */
+        .footer {
+            background: linear-gradient(135deg, var(--wcr-charcoal) 0%, var(--wcr-warm-gray) 100%);
+            color: white;
+            padding: 4rem 2rem 2rem;
+            margin-top: 6rem;
+            position: relative;
+            clip-path: polygon(0 20%, 100% 0%, 100% 100%, 0% 100%);
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: var(--rope-texture);
+            opacity: 0.03;
+            pointer-events: none;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            position: relative;
+        }
+
+        .footer h4 {
+            color: var(--wcr-dusty-rose);
+            margin-bottom: 1.5rem;
+            font-family: 'Bodoni Moda', serif;
+            font-size: 1.3rem;
+        }
+
+        .footer a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s var(--smooth-curve);
+            display: block;
+            padding: 0.3rem 0;
+        }
+
+        .footer a:hover {
+            color: var(--wcr-dusty-rose);
+            transform: translateX(5px);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 3rem;
+            padding-top: 2rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            position: relative;
+        }
+
+        /* Mobile Responsiveness with flow preservation */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+                padding: 3rem 1rem;
+                text-align: center;
+            }
+
+            .hero-content h1 {
+                font-size: 2.8rem;
+            }
+
+            .hero-visual {
+                order: -1;
+                min-height: 350px;
+            }
+
+            .hero-actions {
+                justify-content: center;
+            }
+
+            .features {
+                padding: 5rem 1rem;
+                clip-path: polygon(0 5%, 100% 0%, 100% 95%, 0% 100%);
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer {
+                padding: 3rem 1rem 2rem;
+                clip-path: polygon(0 10%, 100% 0%, 100% 100%, 0% 100%);
+            }
+
+            .btn-primary, .btn-secondary {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        /* Accessibility with flow-aware focus */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .nav-link:focus,
+        .nav-cta:focus,
+        .btn-primary:focus,
+        .btn-secondary:focus {
+            outline: 3px solid var(--wcr-burgundy);
+            outline-offset: 3px;
+            border-radius: var(--rope-border-radius);
+        }
+
+        /* Reduced motion respect */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Flowing Header -->
+    <header class="header">
+        <nav class="nav-container">
+            <a href="#" class="logo">WitchCityRope</a>
+            <ul class="nav-menu">
+                <li><a href="#events" class="nav-link">Events</a></li>
+                <li><a href="#community" class="nav-link">Community</a></li>
+                <li><a href="#education" class="nav-link">Education</a></li>
+                <li><a href="#safety" class="nav-link">Safety</a></li>
+                <li><a href="#contact" class="nav-link">Contact</a></li>
+            </ul>
+            <a href="#join" class="nav-cta">Join Community</a>
+        </nav>
+    </header>
+
+    <!-- Flowing Hero Section -->
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h1>
+                    Salem's Premier<br>
+                    <span class="highlight">Rope Community</span>
+                </h1>
+                <p>
+                    Experience the art of connection through flowing movement, educational workshops, 
+                    and a welcoming community that embraces the sensual beauty of rope in Salem, Massachusetts.
+                </p>
+                <div class="hero-actions">
+                    <a href="#events" class="btn-primary">Discover Events</a>
+                    <a href="#about" class="btn-secondary">Our Philosophy</a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="hero-visual-content">
+                    <h3>Flow • Connection • Growth</h3>
+                    <p>Where artistry meets intimacy in a safe, supportive environment</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Flowing Features Section -->
+        <section class="features">
+            <div class="features-container">
+                <h2>The Art of Connection</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🌊</div>
+                        <h3>Flowing Movement</h3>
+                        <p>Learn the graceful art of rope work through fluid techniques that honor both partners and create beautiful, dynamic connections.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">💫</div>
+                        <h3>Mindful Practice</h3>
+                        <p>Embrace mindfulness and presence in every session, creating deeper connections and more meaningful experiences.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🌸</div>
+                        <h3>Sensual Expression</h3>
+                        <p>Explore the sensual and artistic aspects of rope work in a respectful environment that celebrates intimacy and creativity.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Flowing Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div>
+                <h4>Community</h4>
+                <a href="#events">Flowing Workshops</a>
+                <a href="#social">Social Connections</a>
+                <a href="#performances">Artistic Showcases</a>
+            </div>
+            <div>
+                <h4>Education</h4>
+                <a href="#beginners">Beginning Your Journey</a>
+                <a href="#safety">Safety & Consent</a>
+                <a href="#philosophy">Our Philosophy</a>
+            </div>
+            <div>
+                <h4>Support</h4>
+                <a href="#contact">Connect With Us</a>
+                <a href="#guidance">Personal Guidance</a>
+                <a href="#resources">Learning Resources</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 WitchCityRope. A community dedicated to the flowing art of connection. | Salem, Massachusetts</p>
+        </div>
+    </footer>
+
+    <script>
+        // Rope & Flow interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Smooth scrolling with flow easing
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Flowing scroll animations
+            const observerOptions = {
+                threshold: 0.15,
+                rootMargin: '0px 0px -100px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0) scale(1)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe feature cards for flowing animation
+            document.querySelectorAll('.feature-card').forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(40px) scale(0.9)';
+                card.style.transition = `opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1) ${index * 0.2}s, transform 0.8s cubic-bezier(0.4, 0, 0.2, 1) ${index * 0.2}s`;
+                observer.observe(card);
+            });
+
+            // Organic mouse movement effects
+            let mouseX = 0, mouseY = 0;
+            let targetX = 0, targetY = 0;
+
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+
+            function animateFloatingElements() {
+                targetX += (mouseX - targetX) * 0.05;
+                targetY += (mouseY - targetY) * 0.05;
+
+                const heroVisual = document.querySelector('.hero-visual::before');
+                if (heroVisual) {
+                    const xPercent = (targetX / window.innerWidth - 0.5) * 10;
+                    const yPercent = (targetY / window.innerHeight - 0.5) * 10;
+                    // Subtle parallax effect would be applied here
+                }
+
+                requestAnimationFrame(animateFloatingElements);
+            }
+            animateFloatingElements();
+
+            // Rope-inspired loading effect for any lazy content
+            const createRopeEffect = (element) => {
+                element.style.backgroundImage = `
+                    linear-gradient(90deg, transparent 0%, var(--wcr-dusty-rose) 50%, transparent 100%)
+                `;
+                element.style.backgroundSize = '200% 100%';
+                element.style.animation = 'rope-shimmer 2s infinite';
+            };
+
+            // Add CSS for rope shimmer effect
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes rope-shimmer {
+                    0% { background-position: -200% 0; }
+                    100% { background-position: 200% 0; }
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+</body>
+</html>

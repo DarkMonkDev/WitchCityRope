@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WitchCityRope Design Variations - Visual Index</title>
+    <style>
+        /* Visual Index Styling */
+        :root {
+            --wcr-ivory: #f8f4e6;
+            --wcr-dusty-rose: #d4a5a5;
+            --wcr-plum: #9b4a75;
+            --wcr-burgundy: #880124;
+            --wcr-charcoal: #2c2c2c;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--wcr-charcoal);
+            background: var(--wcr-ivory);
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--wcr-dusty-rose);
+        }
+
+        .header h1 {
+            font-family: 'Bodoni Moda', serif;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--wcr-burgundy);
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: rgba(44, 44, 44, 0.8);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .stakeholder-note {
+            background: linear-gradient(135deg, rgba(155, 74, 117, 0.1), rgba(136, 1, 36, 0.05));
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 3rem;
+            border-left: 4px solid var(--wcr-burgundy);
+        }
+
+        .stakeholder-note h2 {
+            color: var(--wcr-burgundy);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .stakeholder-note ul {
+            margin-left: 2rem;
+        }
+
+        .stakeholder-note li {
+            margin-bottom: 0.5rem;
+        }
+
+        .variations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .variation-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border: 1px solid rgba(155, 74, 117, 0.1);
+        }
+
+        .variation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .variation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .variation-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--wcr-charcoal);
+            margin-bottom: 0.5rem;
+        }
+
+        .variation-subtitle {
+            color: var(--wcr-plum);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .complexity-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .complexity-low {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+        }
+
+        .complexity-medium {
+            background: rgba(245, 158, 11, 0.1);
+            color: #d97706;
+        }
+
+        .complexity-high {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
+        .complexity-very-high {
+            background: rgba(155, 74, 117, 0.1);
+            color: var(--wcr-burgundy);
+        }
+
+        .variation-description {
+            margin-bottom: 1.5rem;
+            color: rgba(44, 44, 44, 0.8);
+            line-height: 1.6;
+        }
+
+        .features-list {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .features-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(155, 74, 117, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .features-list li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-icon {
+            width: 20px;
+            text-align: center;
+        }
+
+        .variation-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .meta-item {
+            background: rgba(155, 74, 117, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .meta-label {
+            font-size: 0.8rem;
+            color: var(--wcr-plum);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .meta-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--wcr-charcoal);
+            margin-top: 0.25rem;
+        }
+
+        .view-button {
+            display: block;
+            width: 100%;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--wcr-burgundy), var(--wcr-plum));
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .view-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(155, 74, 117, 0.3);
+        }
+
+        .template-research {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 3rem;
+        }
+
+        .template-research h2 {
+            color: var(--wcr-burgundy);
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .template-item {
+            background: rgba(155, 74, 117, 0.05);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(155, 74, 117, 0.1);
+        }
+
+        .template-item h3 {
+            color: var(--wcr-charcoal);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .template-item p {
+            color: rgba(44, 44, 44, 0.7);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .template-item a {
+            color: var(--wcr-burgundy);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .template-item a:hover {
+            text-decoration: underline;
+        }
+
+        .comparison-matrix {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 3rem;
+        }
+
+        .comparison-matrix h2 {
+            color: var(--wcr-burgundy);
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .matrix-table th {
+            background: var(--wcr-burgundy);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .matrix-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(155, 74, 117, 0.1);
+        }
+
+        .matrix-table tr:nth-child(even) {
+            background: rgba(155, 74, 117, 0.02);
+        }
+
+        .matrix-table tr:hover {
+            background: rgba(155, 74, 117, 0.05);
+        }
+
+        .rating {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .rating-excellent {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+        }
+
+        .rating-good {
+            background: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+        }
+
+        .rating-moderate {
+            background: rgba(245, 158, 11, 0.1);
+            color: #d97706;
+        }
+
+        .rating-challenging {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
+        .footer {
+            text-align: center;
+            padding-top: 2rem;
+            margin-top: 3rem;
+            border-top: 2px solid var(--wcr-dusty-rose);
+            color: rgba(44, 44, 44, 0.6);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .variations-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .variation-meta {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>WitchCityRope Design Variations</h1>
+            <p>
+                Five progressive design options for Salem's premier rope bondage community platform, 
+                ranging from subtle enhancements to revolutionary transformations.
+            </p>
+        </div>
+
+        <!-- Stakeholder Feedback Integration -->
+        <div class="stakeholder-note">
+            <h2>🔥 Stakeholder Feedback Integrated</h2>
+            <ul>
+                <li><strong>DISLIKES:</strong> Neon colors, cyberpunk aesthetic (Variation 2 redesigned)</li>
+                <li><strong>WANTS:</strong> Edgy with "kink but with rope and flow feel"</li>
+                <li><strong>MODERN:</strong> Clean lines, uncluttered interface</li>
+                <li><strong>VISUAL:</strong> Actual HTML wireframes to SEE designs (delivered!)</li>
+                <li><strong>AESTHETIC:</strong> NO NEON - replaced with warm, flowing rope-inspired design</li>
+            </ul>
+        </div>
+
+        <!-- Design Variations Grid -->
+        <div class="variations-grid">
+            <!-- Variation 1: Enhanced Current -->
+            <div class="variation-card">
+                <div class="variation-header">
+                    <div>
+                        <h3 class="variation-title">Enhanced Current</h3>
+                        <div class="variation-subtitle">Subtle Modern Improvements</div>
+                    </div>
+                    <span class="complexity-badge complexity-low">Low Complexity</span>
+                </div>
+                
+                <p class="variation-description">
+                    Clean, minimal improvements to the existing design with modern touches. 
+                    Subtle shadows, improved typography, and enhanced interactions while maintaining familiar layout.
+                </p>
+
+                <ul class="features-list">
+                    <li><span class="feature-icon">✨</span> Subtle hover animations</li>
+                    <li><span class="feature-icon">🎨</span> Enhanced color gradients</li>
+                    <li><span class="feature-icon">📱</span> Mobile-responsive improvements</li>
+                    <li><span class="feature-icon">♿</span> Accessibility enhancements</li>
+                    <li><span class="feature-icon">⚡</span> Performance optimizations</li>
+                </ul>
+
+                <div class="variation-meta">
+                    <div class="meta-item">
+                        <div class="meta-label">Edginess</div>
+                        <div class="meta-value">2/5</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Timeline</div>
+                        <div class="meta-value">1-2 weeks</div>
+                    </div>
+                </div>
+
+                <a href="homepage-variation-1-enhanced.html" class="view-button" target="_blank">
+                    View Enhanced Design
+                </a>
+            </div>
+
+            <!-- Variation 2: Rope & Flow -->
+            <div class="variation-card">
+                <div class="variation-header">
+                    <div>
+                        <h3 class="variation-title">Rope & Flow</h3>
+                        <div class="variation-subtitle">Warm, Sensual, Professional</div>
+                    </div>
+                    <span class="complexity-badge complexity-medium">Medium Complexity</span>
+                </div>
+                
+                <p class="variation-description">
+                    REPLACING neon cyberpunk: Flowing curves inspired by rope patterns with warm earth tones. 
+                    Organic shapes, rope textures, and smooth animations that capture the sensual art of rope work.
+                </p>
+
+                <ul class="features-list">
+                    <li><span class="feature-icon">🌊</span> Flowing rope-inspired curves</li>
+                    <li><span class="feature-icon">🎨</span> Warm earth tone palette</li>
+                    <li><span class="feature-icon">🌟</span> Organic shape animations</li>
+                    <li><span class="feature-icon">🎭</span> Rope texture backgrounds</li>
+                    <li><span class="feature-icon">💫</span> Sensual but professional aesthetic</li>
+                </ul>
+
+                <div class="variation-meta">
+                    <div class="meta-item">
+                        <div class="meta-label">Edginess</div>
+                        <div class="meta-value">3/5</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Timeline</div>
+                        <div class="meta-value">3-4 weeks</div>
+                    </div>
+                </div>
+
+                <a href="homepage-variation-2-rope-flow.html" class="view-button" target="_blank">
+                    View Rope & Flow Design
+                </a>
+            </div>
+
+            <!-- Variation 3: Geometric Modern -->
+            <div class="variation-card">
+                <div class="variation-header">
+                    <div>
+                        <h3 class="variation-title">Geometric Modern</h3>
+                        <div class="variation-subtitle">Clean Lines, Uncluttered</div>
+                    </div>
+                    <span class="complexity-badge complexity-high">High Complexity</span>
+                </div>
+                
+                <p class="variation-description">
+                    Angular, sophisticated design with asymmetric layouts and CSS clip-path effects. 
+                    Clean, uncluttered interface with intentional negative space and geometric precision.
+                </p>
+
+                <ul class="features-list">
+                    <li><span class="feature-icon">📐</span> Angular geometric shapes</li>
+                    <li><span class="feature-icon">🎯</span> Asymmetric grid layouts</li>
+                    <li><span class="feature-icon">✂️</span> CSS clip-path effects</li>
+                    <li><span class="feature-icon">🔢</span> Numbered feature system</li>
+                    <li><span class="feature-icon">🎨</span> Minimal color palette</li>
+                </ul>
+
+                <div class="variation-meta">
+                    <div class="meta-item">
+                        <div class="meta-label">Edginess</div>
+                        <div class="meta-value">4/5</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Timeline</div>
+                        <div class="meta-value">4-6 weeks</div>
+                    </div>
+                </div>
+
+                <a href="homepage-variation-3-geometric.html" class="view-button" target="_blank">
+                    View Geometric Design
+                </a>
+            </div>
+
+            <!-- Variation 4: Advanced Mantine -->
+            <div class="variation-card">
+                <div class="variation-header">
+                    <div>
+                        <h3 class="variation-title">Advanced Mantine</h3>
+                        <div class="variation-subtitle">Sophisticated Component Showcase</div>
+                    </div>
+                    <span class="complexity-badge complexity-high">High Complexity</span>
+                </div>
+                
+                <p class="variation-description">
+                    Full Mantine v7 dashboard experience with AppShell, DataTable, Spotlight search, 
+                    and advanced component patterns. Professional community management interface.
+                </p>
+
+                <ul class="features-list">
+                    <li><span class="feature-icon">🏗️</span> Mantine AppShell architecture</li>
+                    <li><span class="feature-icon">🔍</span> Spotlight search (Ctrl+K)</li>
+                    <li><span class="feature-icon">📊</span> Advanced DataTable</li>
+                    <li><span class="feature-icon">🔔</span> Notification system</li>
+                    <li><span class="feature-icon">📈</span> Real-time dashboard</li>
+                </ul>
+
+                <div class="variation-meta">
+                    <div class="meta-item">
+                        <div class="meta-label">Edginess</div>
+                        <div class="meta-value">4/5</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Timeline</div>
+                        <div class="meta-value">6-8 weeks</div>
+                    </div>
+                </div>
+
+                <a href="homepage-variation-4-advanced.html" class="view-button" target="_blank">
+                    View Advanced Mantine
+                </a>
+            </div>
+
+            <!-- Variation 5: Professional Template -->
+            <div class="variation-card">
+                <div class="variation-header">
+                    <div>
+                        <h3 class="variation-title">Professional Template</h3>
+                        <div class="variation-subtitle">Enterprise-Grade Community Platform</div>
+                    </div>
+                    <span class="complexity-badge complexity-very-high">Very High Complexity</span>
+                </div>
+                
+                <p class="variation-description">
+                    Revolutionary transformation inspired by analytics dashboards. 
+                    Enterprise-grade patterns adapted for community management with professional metrics and data visualization.
+                </p>
+
+                <ul class="features-list">
+                    <li><span class="feature-icon">📊</span> Professional metrics dashboard</li>
+                    <li><span class="feature-icon">📈</span> Advanced data visualization</li>
+                    <li><span class="feature-icon">🏢</span> Enterprise navigation</li>
+                    <li><span class="feature-icon">🎯</span> Role-based interfaces</li>
+                    <li><span class="feature-icon">⚡</span> Real-time analytics</li>
+                </ul>
+
+                <div class="variation-meta">
+                    <div class="meta-item">
+                        <div class="meta-label">Edginess</div>
+                        <div class="meta-value">5/5</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Timeline</div>
+                        <div class="meta-value">8-12 weeks</div>
+                    </div>
+                </div>
+
+                <a href="homepage-variation-5-template.html" class="view-button" target="_blank">
+                    View Professional Template
+                </a>
+            </div>
+        </div>
+
+        <!-- Template Research Reference -->
+        <div class="template-research">
+            <h2>📚 Template Research Foundation</h2>
+            <p style="margin-bottom: 2rem; color: rgba(44, 44, 44, 0.8);">
+                These designs are informed by comprehensive research into modern UI patterns and Mantine v7 capabilities. 
+                <a href="../requirements/mantine-template-research.md" style="color: var(--wcr-burgundy); font-weight: 600;">View full research document →</a>
+            </p>
+            
+            <div class="template-grid">
+                <div class="template-item">
+                    <h3>Mantine Analytics Dashboard</h3>
+                    <p>Professional dashboard with role-based navigation and dark theme support</p>
+                    <a href="https://mantine-analytics-dashboard.netlify.app/" target="_blank">View Template →</a>
+                </div>
+                
+                <div class="template-item">
+                    <h3>Mantine UI Component Gallery</h3>
+                    <p>Official showcase of 120+ prebuilt components and patterns</p>
+                    <a href="https://ui.mantine.dev" target="_blank">View Gallery →</a>
+                </div>
+                
+                <div class="template-item">
+                    <h3>CoreUI React Admin</h3>
+                    <p>Fortune 500-proven admin interface with user management features</p>
+                    <a href="https://coreui.io/product/free-react-admin-template/" target="_blank">View Template →</a>
+                </div>
+                
+                <div class="template-item">
+                    <h3>Horizon UI Dashboard</h3>
+                    <p>Modern TailwindCSS dashboard with calendar and analytics modules</p>
+                    <a href="#" target="_blank">TailwindCSS React Dashboard</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison Matrix -->
+        <div class="comparison-matrix">
+            <h2>🔄 Design Comparison Matrix</h2>
+            <table class="matrix-table">
+                <thead>
+                    <tr>
+                        <th>Variation</th>
+                        <th>Development Effort</th>
+                        <th>Visual Impact</th>
+                        <th>Community Fit</th>
+                        <th>Mobile Experience</th>
+                        <th>Recommended For</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Enhanced Current</strong></td>
+                        <td><span class="rating rating-excellent">Minimal</span></td>
+                        <td><span class="rating rating-moderate">Subtle</span></td>
+                        <td><span class="rating rating-excellent">Perfect</span></td>
+                        <td><span class="rating rating-good">Excellent</span></td>
+                        <td>Conservative stakeholders, quick wins</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Rope & Flow</strong></td>
+                        <td><span class="rating rating-moderate">Moderate</span></td>
+                        <td><span class="rating rating-good">Distinctive</span></td>
+                        <td><span class="rating rating-excellent">Authentic</span></td>
+                        <td><span class="rating rating-excellent">Optimized</span></td>
+                        <td>Community authenticity, brand differentiation</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Geometric Modern</strong></td>
+                        <td><span class="rating rating-challenging">Complex</span></td>
+                        <td><span class="rating rating-excellent">Bold</span></td>
+                        <td><span class="rating rating-good">Modern</span></td>
+                        <td><span class="rating rating-good">Responsive</span></td>
+                        <td>Design-forward audiences, modern appeal</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Advanced Mantine</strong></td>
+                        <td><span class="rating rating-challenging">Complex</span></td>
+                        <td><span class="rating rating-excellent">Professional</span></td>
+                        <td><span class="rating rating-excellent">Scalable</span></td>
+                        <td><span class="rating rating-excellent">Native</span></td>
+                        <td>Feature-rich platforms, admin tools</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Professional Template</strong></td>
+                        <td><span class="rating rating-challenging">Extensive</span></td>
+                        <td><span class="rating rating-excellent">Revolutionary</span></td>
+                        <td><span class="rating rating-excellent">Enterprise</span></td>
+                        <td><span class="rating rating-excellent">Advanced</span></td>
+                        <td>Platform transformation, competitive advantage</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>
+                🎨 All designs are fully interactive HTML wireframes demonstrating real user experience<br>
+                📱 Mobile-responsive and accessibility-compliant<br>
+                🔧 Ready for Mantine v7 implementation with component specifications
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Add smooth scrolling and interaction effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Smooth hover effects for cards
+            document.querySelectorAll('.variation-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-8px)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(-5px)';
+                });
+            });
+
+            // Add click analytics (for stakeholder feedback)
+            document.querySelectorAll('.view-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const variation = this.closest('.variation-card').querySelector('.variation-title').textContent;
+                    console.log(`Stakeholder viewed: ${variation}`);
+                    
+                    // Could send analytics to track which designs get most views
+                    // This helps inform the final decision
+                });
+            });
+
+            // Table row hover effects
+            document.querySelectorAll('.matrix-table tr').forEach(row => {
+                row.addEventListener('mouseenter', function() {
+                    if (!this.parentElement.tagName === 'THEAD') {
+                        this.style.backgroundColor = 'rgba(155, 74, 117, 0.08)';
+                    }
+                });
+                
+                row.addEventListener('mouseleave', function() {
+                    this.style.backgroundColor = '';
+                });
+            });
+
+            // Animate elements on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all cards for animation
+            document.querySelectorAll('.variation-card, .template-research, .comparison-matrix').forEach((element, index) => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(30px)';
+                element.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+                observer.observe(element);
+            });
+        });
+    </script>
+</body>
+</html>
