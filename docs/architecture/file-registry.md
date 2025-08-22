@@ -7,7 +7,19 @@
 ## Active File Registry
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
-|------|-----------|--------|---------|--------------|--------|--------------|  
+|------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-08-22 | /docs/standards-processes/KEY-PROJECT-DOCUMENTS.md | CREATED | Define canonical locations for all critical project documents to prevent duplicate file disasters | Phase-Based Validation System Implementation | ACTIVE | N/A |
+| 2025-08-22 | /docs/standards-processes/PHASE-BASED-VALIDATION-SYSTEM.md | CREATED | Comprehensive 5-phase validation framework with workflow blocking authority | Phase-Based Validation System Implementation | ACTIVE | N/A |
+| 2025-08-22 | /docs/architecture/validation/ | CREATED | Directory for validation scripts and automation | Phase-Based Validation System Implementation | ACTIVE | N/A |
+| 2025-08-22 | /docs/architecture/validation/phase-validation-suite.sh | CREATED | Executable validation scripts for all 5 workflow phases with color-coded output | Phase-Based Validation System Implementation | ACTIVE | N/A |
+| 2025-08-22 | /src/mcp-servers/CLAUDE.md | MOVED | Duplicate CLAUDE.md file archived to prevent Sacred Six violations | Documentation Structure Enforcement | ARCHIVED | COMPLETED |
+| 2025-08-22 | /docs/_archive/legacy-mcp-servers-2025-08-22/CLAUDE-legacy-mcp-environment.md | CREATED | Archived duplicate CLAUDE.md with legacy WSL environment information | Documentation Structure Enforcement | ARCHIVED | COMPLETED |
+| 2025-08-22 | /docs/_archive/legacy-mcp-servers-2025-08-22/README.md | CREATED | Documentation of CLAUDE.md duplicate resolution with zero data loss | Documentation Structure Enforcement | ARCHIVED | COMPLETED |
+| 2025-08-22 | /docs/design/archive | MOVED | Multiple archive folder violation - consolidated to single archive | Archive Folder Consolidation | ARCHIVED | COMPLETED |
+| 2025-08-22 | /docs/_archive/design-archive-2025-08-20/ | CREATED | Consolidated design archive content from multiple locations | Archive Folder Consolidation | ARCHIVED | COMPLETED |
+| 2025-08-22 | /docs/_archive/design-archive-2025-08-20/README-ARCHIVE-CONSOLIDATION.md | CREATED | Documentation of archive consolidation action and policy enforcement | Archive Folder Consolidation | ARCHIVED | COMPLETED |
+| 2025-08-22 | /docs/lessons-learned/librarian-lessons-learned.md | MODIFIED | Added comprehensive phase-based validation system implementation lessons | Phase-Based Validation System Implementation | ACTIVE | N/A |
+| 2025-08-22 | /docs/lessons-learned/orchestrator-lessons-learned.md | MODIFIED | Added mandatory phase validation requirements with workflow blocking authority | Phase-Based Validation System Implementation | ACTIVE | N/A |  
 | 2025-08-22 | /docs/_archive/00-start-here-legacy-2025-08-22/README.md | CREATED | Archive documentation explaining why 00-START-HERE.md navigation approach was superseded by functional-area-master-index.md system - includes replacement navigation guidance | Librarian Agent - 00-START-HERE.md Archival | ACTIVE | N/A |
 | 2025-08-22 | /docs/_archive/00-start-here-legacy-2025-08-22/extraction-analysis.md | CREATED | Content analysis documenting what was extracted from 00-START-HERE.md and where it was preserved - DTO alignment strategy moved to CLAUDE.md, role navigation exists in lessons-learned files | Librarian Agent - 00-START-HERE.md Archival | ACTIVE | N/A |
 | 2025-08-22 | /docs/00-START-HERE.md | MOVED | **ARCHIVED** - Navigation file moved to /docs/_archive/00-start-here-legacy-2025-08-22/ - superseded by functional-area-master-index.md system for agent-focused navigation | Librarian Agent - 00-START-HERE.md Archival | ARCHIVED | 2025-08-22 |
