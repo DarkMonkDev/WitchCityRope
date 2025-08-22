@@ -19,7 +19,11 @@ Before you begin, ensure you have the following installed on your system:
 
 ### Required Software
 
-- **.NET 9.0 SDK or later**
+- **Node.js 18 or later**
+  - Download from [https://nodejs.org/](https://nodejs.org/)
+  - Verify installation: `node --version` and `npm --version`
+
+- **.NET 9.0 SDK or later** (for API)
   - Download from [https://dotnet.microsoft.com/download](https://dotnet.microsoft.com/download)
   - Verify installation: `dotnet --version`
 
@@ -28,18 +32,19 @@ Before you begin, ensure you have the following installed on your system:
   - Verify installation: `git --version`
 
 - **Code Editor** (choose one)
-  - [Visual Studio 2022](https://visualstudio.microsoft.com/) (recommended for Windows)
-  - [Visual Studio Code](https://code.visualstudio.com/) with C# extension
-  - [JetBrains Rider](https://www.jetbrains.com/rider/)
+  - [Visual Studio Code](https://code.visualstudio.com/) with TypeScript and React extensions (recommended)
+  - [WebStorm](https://www.jetbrains.com/webstorm/) for frontend development
+  - [Visual Studio 2022](https://visualstudio.microsoft.com/) for API development
 
 ### Optional Software
 
 - **Docker Desktop** (for containerized development)
   - Download from [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)
 
-- **Database Browser for SQLite**
-  - [DB Browser for SQLite](https://sqlitebrowser.org/)
-  - [SQLiteStudio](https://sqlitestudio.pl/)
+- **PostgreSQL GUI** (for database management)
+  - [pgAdmin](https://www.pgadmin.org/)
+  - [DBeaver](https://dbeaver.io/)
+  - [TablePlus](https://tableplus.com/)
 
 ## Installation
 
@@ -53,33 +58,35 @@ git clone https://github.com/yourusername/WitchCityRope.git
 cd WitchCityRope
 ```
 
-### Step 2: Restore Dependencies
+### Step 2: Install Dependencies
 
 ```bash
-# Navigate to the web project
-cd src/WitchCityRope.Web
+# Install NPM packages for the React frontend
+npm install
 
-# Restore NuGet packages
+# Install NuGet packages for the API
 dotnet restore
 ```
 
 ## Configuration
 
-### Step 1: Create Development Configuration
+### Step 1: Environment Setup
+
+The application uses auto-configuration for development. Simply copy the environment template:
 
 ```bash
-# Copy the template configuration
-cp appsettings.json appsettings.Development.json
+# Copy environment template (if needed)
+cp .env.example .env
 ```
 
-### Step 2: Configure API Keys
+### Step 2: Configure API Keys (Optional for Development)
 
-Edit `appsettings.Development.json` and add your API keys:
+Edit `apps/api/appsettings.Development.json` for production-like testing:
 
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Data Source=witchcityrope.db"
+    "DefaultConnection": "Host=localhost;Port=5433;Database=witchcityrope_dev;Username=witchcityrope;Password=witchcityrope"
   },
   "JwtSettings": {
     "Secret": "your-super-secret-key-at-least-32-characters-long",
@@ -91,9 +98,6 @@ Edit `appsettings.Development.json` and add your API keys:
     "ApiKey": "SG.your-sendgrid-api-key",
     "FromEmail": "noreply@yourdomain.com",
     "FromName": "Witch City Rope"
-  },
-  "Syncfusion": {
-    "LicenseKey": "your-syncfusion-license-key"
   },
   "PayPal": {
     "ClientId": "your-paypal-sandbox-client-id",
@@ -107,12 +111,7 @@ Edit `appsettings.Development.json` and add your API keys:
 }
 ```
 
-### Step 3: Obtain API Keys
-
-#### Syncfusion License (Required)
-1. Visit [Syncfusion Community License](https://www.syncfusion.com/products/communitylicense)
-2. Sign up for a free community license (if eligible)
-3. Copy your license key from the dashboard
+### Step 3: Obtain API Keys (Optional)
 
 #### SendGrid (Optional for Development)
 1. Sign up at [SendGrid](https://sendgrid.com/)
@@ -129,24 +128,39 @@ Edit `appsettings.Development.json` and add your API keys:
 2. Create a new project or select existing
 3. Enable Google+ API
 4. Create OAuth 2.0 credentials
-5. Add `https://localhost:5652/signin-google` to authorized redirect URIs
+5. Add `http://localhost:5173/auth/google/callback` to authorized redirect URIs
 
 ## Running the Application
 
-### Step 1: Create the Database
+### Quick Start (Recommended)
 
 ```bash
-# Ensure you're in the Web project directory
-cd src/WitchCityRope.Web
-
-# Create the database and apply migrations
-dotnet ef database update
+# Start both API and frontend with auto-initialization
+./dev.sh
 ```
 
-### Step 2: Run the Application
+This script will:
+- Start PostgreSQL database in Docker
+- Start the .NET API with auto-initialization
+- Start the React frontend with Vite
+- Open your browser to http://localhost:5173
+
+### Manual Start (Alternative)
 
 ```bash
-# Run the application
+# Terminal 1: Start the API
+cd apps/api
+dotnet run
+
+# Terminal 2: Start the React frontend
+npm run dev
+```
+
+### Docker Start (Alternative)
+
+```bash
+# Start all services with Docker
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 dotnet run
 
 # Or run with hot reload enabled

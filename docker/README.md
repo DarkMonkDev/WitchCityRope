@@ -23,10 +23,10 @@ This guide explains how to use Docker for local development of the Witch City Ro
    ```
 
 3. **Edit `.env` file** with your configuration:
-   - Add your Syncfusion license key
    - Configure SendGrid API key (or use mailcatcher for development)
    - Set up PayPal sandbox credentials
    - Configure Google OAuth credentials
+   - Set PostgreSQL connection string (auto-configured in development)
 
 4. **Start the development environment**
    ```bash
@@ -38,24 +38,24 @@ This guide explains how to use Docker for local development of the Witch City Ro
    ```
 
 5. **Access the applications**
-   - Web (Blazor): http://localhost:5651 or https://localhost:5652
+   - Web (React): http://localhost:5173
    - API: http://localhost:5653 or https://localhost:5654
    - Mailcatcher (if enabled): http://localhost:1080
 
 ## Development Workflow
 
 ### Hot Reload
-Both the API and Web projects are configured for hot reload. Any changes to C# files, Razor files, or static assets will automatically trigger a rebuild and browser refresh.
+Both the API and Web projects are configured for hot reload. Any changes to C# files in the API or TypeScript/React files in the web app will automatically trigger a rebuild and browser refresh via Vite.
 
 ### Database Management
 
-**View SQLite database:**
+**View PostgreSQL database:**
 ```bash
-# Start the SQLite viewer
-docker-compose --profile debug up -d sqlite-viewer
-
 # Access the database
-docker exec -it witchcity-sqlite-viewer sqlite3 /data/witchcityrope-dev.db
+docker-compose exec postgres psql -U witchcityrope -d witchcityrope_dev
+
+# Or use a database GUI tool
+# Connect to: localhost:5433, user: witchcityrope, database: witchcityrope_dev
 ```
 
 **Run migrations:**
@@ -106,21 +106,23 @@ Key environment variables in `docker-compose.yml`:
 - `ASPNETCORE_ENVIRONMENT`: Set to Development for detailed errors
 - `ApiBaseUrl`: Internal API URL for container communication
 - `ApiBaseUrlExternal`: External API URL for browser access
-- `ConnectionStrings__DefaultConnection`: SQLite database path
-- `Syncfusion__LicenseKey`: Your Syncfusion license
+- `ConnectionStrings__DefaultConnection`: PostgreSQL connection string
+- Database auto-initialization enabled in development
 - `Email__SendGrid__ApiKey`: SendGrid API key
 
 ### Volumes
 
-- `./data`: SQLite database files
+- `postgres_data`: PostgreSQL database files
 - `./logs`: Application logs
 - `./uploads`: User uploads
-- `./src`: Source code (mounted for hot reload)
+- `./apps`: Source code (mounted for hot reload)
+- `./packages`: Shared TypeScript types
 
 ### Ports
 
-- 5651/5652: Blazor Web application (HTTP/HTTPS)
+- 5173: React Web application (Vite dev server)
 - 5653/5654: API (HTTP/HTTPS)
+- 5433: PostgreSQL database
 - 1080: Mailcatcher web interface (dev-tools profile)
 - 1025: Mailcatcher SMTP (dev-tools profile)
 
@@ -149,11 +151,12 @@ dotnet dev-certs https -ep ~/.aspnet/https/aspnetapp.pfx -p password
 ```
 
 ### Permission Issues
-If you encounter permission issues with SQLite:
+If you encounter permission issues with PostgreSQL:
 
 ```bash
-# Fix permissions
-docker-compose exec db-init chmod 666 /data/witchcityrope-dev.db
+# Reset PostgreSQL data
+docker-compose down -v
+docker-compose up -d postgres
 ```
 
 ### Hot Reload Not Working
@@ -161,11 +164,12 @@ docker-compose exec db-init chmod 666 /data/witchcityrope-dev.db
 2. Check that volumes are mounted correctly
 3. Restart the containers: `docker-compose restart`
 
-### Database Locked
-If SQLite reports the database is locked:
+### Database Connection Issues
+If PostgreSQL connection fails:
 1. Stop all containers: `docker-compose down`
-2. Remove the lock: `rm ./data/witchcityrope-dev.db-journal`
+2. Remove volumes: `docker-compose down -v`
 3. Start containers: `docker-compose up -d`
+4. Wait for auto-initialization to complete
 
 ## Clean Up
 

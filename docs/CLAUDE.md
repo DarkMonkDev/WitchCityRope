@@ -191,10 +191,11 @@ powershell -Command "Get-NetTCPConnection | Where-Object {$_.LocalPort -in @(500
 ## Technology Stack
 
 ### Core Technologies
-- **Framework**: ASP.NET Core 9.0 with Blazor Server
-- **Database**: SQLite 3.x with Entity Framework Core 9.0
-- **UI Components**: Syncfusion Blazor 27.2.5 (commercial license available)
-- **Authentication**: JWT Bearer tokens + Google OAuth 2.0
+- **Frontend**: React 18 + TypeScript + Vite 6.0
+- **Backend**: ASP.NET Core 9.0 Minimal API
+- **Database**: PostgreSQL 17 with Entity Framework Core 9.0
+- **UI Components**: Mantine v7 (open source)
+- **Authentication**: JWT Bearer tokens + httpOnly cookies + Google OAuth 2.0
 - **2FA**: TOTP-based with QR code generation
 - **Payments**: PayPal Checkout SDK 1.1.0
 - **Email**: SendGrid 9.29.3 for transactional and bulk emails
@@ -207,11 +208,14 @@ powershell -Command "Get-NetTCPConnection | Where-Object {$_.LocalPort -in @(500
 ### Project Structure
 ```
 WitchCityRope/
+├── apps/
+│   ├── api/                         # ASP.NET Core Minimal API
+│   └── web/                         # React + TypeScript frontend
+├── packages/
+│   └── shared-types/                # NSwag generated TypeScript types
 ├── src/
 │   ├── WitchCityRope.Core/           # Domain entities, interfaces, DTOs
-│   ├── WitchCityRope.Infrastructure/ # Data access, external services
-│   ├── WitchCityRope.Api/            # REST API endpoints
-│   └── WitchCityRope.Web/            # Blazor Server UI
+│   └── WitchCityRope.Infrastructure/ # Data access, external services
 ├── tests/
 │   ├── WitchCityRope.Core.Tests/
 │   ├── WitchCityRope.Infrastructure.Tests/
@@ -250,12 +254,13 @@ WitchCityRope/
    - Request/Response models
    - API-specific middleware
 
-4. **Web Layer** (`WitchCityRope.Web`)
-   - Blazor Server components
-   - Razor pages
-   - UI services
-   - Static assets (CSS, JS)
-   - Syncfusion component integration
+4. **Web Layer** (`apps/web`)
+   - React components with TypeScript
+   - Vite build system
+   - Mantine UI components
+   - TanStack Query for data fetching
+   - Zustand for state management
+   - React Router v7 for navigation
 
 ### Key Design Patterns
 - **Vertical Slice Architecture** for feature organization
@@ -321,22 +326,25 @@ WitchCityRope/
 - `/src/WitchCityRope.Infrastructure/Migrations/` - Database migrations
 
 ### Features (Web)
-- `/src/WitchCityRope.Web/Features/Auth/` - Authentication pages
-- `/src/WitchCityRope.Web/Features/Events/` - Event management
-- `/src/WitchCityRope.Web/Features/Vetting/` - Member vetting
-- `/src/WitchCityRope.Web/Features/Payments/` - Payment processing
-- `/src/WitchCityRope.Web/Features/Admin/` - Admin dashboard
+- `/apps/web/src/pages/auth/` - Authentication pages
+- `/apps/web/src/pages/events/` - Event management
+- `/apps/web/src/pages/admin/` - Admin dashboard
+- `/apps/api/Features/` - API endpoints organized by feature
+- `/packages/shared-types/src/generated/` - Auto-generated TypeScript types
 
 ## Common Tasks
 
 ### Running the Application
 ```bash
-# From repository root
-cd src/WitchCityRope.Web
-dotnet run
+# Start both API and Web with development containers
+./dev.sh
+
+# Or start services individually:
+npm run dev          # Start React dev server (port 5173)
+dotnet run --project apps/api  # Start API (port 5653)
 
 # Or with Docker
-docker-compose up --build
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ```
 
 ### Database Operations
@@ -373,11 +381,12 @@ dotnet test --filter "Category=Unit"
 3. Add repository interfaces to Core
 4. Implement repositories in Infrastructure
 5. Add service interfaces to Core
-6. Implement services in Infrastructure or Web
-7. Create Blazor components in Web
-8. Write unit tests
-9. Write integration tests
-10. Update documentation
+6. Implement services in Infrastructure or API
+7. Add API endpoints in apps/api
+8. Run NSwag generation for TypeScript types
+9. Create React components using generated types
+10. Write unit tests and E2E tests with Playwright
+11. Update documentation
 
 ## Project Conventions
 
@@ -395,12 +404,13 @@ dotnet test --filter "Category=Unit"
 - Tests mirror source structure
 - Feature-based organization in Web project
 
-### Blazor Components
-- Use `@page` directive for routable components
-- Inject services via `@inject`
-- Use `OnInitializedAsync` for data loading
-- Handle errors with try-catch and user feedback
-- Use Syncfusion components where applicable
+### React Components
+- Use functional components with TypeScript
+- Use TanStack Query for data fetching
+- Use Zustand for global state management
+- Use Mantine v7 components for UI
+- Handle errors with React Error Boundaries
+- Use generated TypeScript types from @witchcityrope/shared-types
 
 ### Database Conventions
 - Use Fluent API for configuration
@@ -470,7 +480,7 @@ dotnet test --filter "Category=Unit"
 1. **Name-based check-in** - Manual search, no QR codes by design
 2. **Honor system payments** - Trust-based sliding scale
 3. **SQLite limitations** - Single-writer model, consider PostgreSQL for scale
-4. **Syncfusion licensing** - Requires valid license key
+4. **PostgreSQL setup** - Requires database server (auto-configured in development)
 5. **Email throttling** - SendGrid rate limits apply
 6. **File uploads** - Currently stored on disk, consider cloud storage
 7. **No real-time updates** - Blazor Server but no SignalR hub yet
@@ -504,7 +514,7 @@ SendGrid__ApiKey=your-sendgrid-api-key
 PayPal__ClientId=your-paypal-client-id
 PayPal__ClientSecret=your-paypal-client-secret
 PayPal__Mode=live
-Syncfusion__LicenseKey=your-syncfusion-license
+# Syncfusion license no longer required - using Mantine v7 (open source)
 ASPNETCORE_ENVIRONMENT=Production
 ```
 
@@ -551,7 +561,7 @@ ASPNETCORE_ENVIRONMENT=Production
 3. **Keep commits focused and atomic**
 4. **Update tests when changing code**
 5. **Document breaking changes**
-6. **Use Syncfusion components where possible**
+6. **Use Mantine v7 components consistently**
 7. **Follow existing patterns for consistency**
 8. **Check logs for detailed error information**
 9. **Use the debugger - Blazor Server supports it well**

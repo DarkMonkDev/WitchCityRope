@@ -75,14 +75,14 @@ WitchCityRope/
 
 ## 🔧 Technology Stack
 
-- **Backend:** ASP.NET Core 9.0, Entity Framework Core
-- **Frontend:** Blazor Server with Syncfusion components
-- **Database:** SQLite (upgradeable to PostgreSQL)
+- **Backend:** ASP.NET Core 9.0 Minimal API, Entity Framework Core
+- **Frontend:** React 18 + TypeScript + Vite with Mantine v7 components
+- **Database:** PostgreSQL 17 with auto-initialization
 - **Authentication:** JWT + Google OAuth + 2FA
 - **Payments:** PayPal Checkout SDK
 - **Email:** SendGrid
 - **Containerization:** Docker
-- **Testing:** xUnit, Moq, FluentAssertions, Playwright
+- **Testing:** xUnit, Moq, FluentAssertions, Playwright, TestContainers
 - **Monitoring:** Prometheus, Grafana, ELK stack
 
 ## 📊 Project Metrics
@@ -137,22 +137,20 @@ The project is now ready for production deployment with:
 
 ## 🎯 Next Steps
 
-1. **Deploy to Staging**
+1. **Start Development Environment**
    ```bash
-   cd deployment
-   ./deploy-staging.sh
+   ./dev.sh
    ```
 
-2. **Run Security Audit**
+2. **Run Tests**
    ```bash
-   cd security
-   python vulnerability_scanner.py https://staging.witchcityrope.com
+   npm run test:e2e:playwright    # E2E tests
+   dotnet test                    # API tests
    ```
 
 3. **Deploy to Production**
    ```bash
-   cd deployment
-   ./deploy-linux.sh -e production
+   docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
    ```
 
 ## 📞 Support Resources

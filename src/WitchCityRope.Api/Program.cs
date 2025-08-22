@@ -8,27 +8,12 @@ global using Microsoft.Extensions.Caching.Memory;
 using WitchCityRope.Api.Infrastructure;
 using WitchCityRope.Infrastructure;
 using Microsoft.AspNetCore.HttpLogging;
-using Syncfusion.Licensing;
 using SendGrid.Extensions.DependencyInjection;
 using WitchCityRope.Api.Features.Auth.Models;
 using WitchCityRope.Core.Exceptions;
 using WitchCityRope.Api.Interfaces;
 using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Extensions;
-
-// Register Syncfusion license early
-var syncfusionLicense = Environment.GetEnvironmentVariable("SYNCFUSION_LICENSE_KEY") 
-    ?? new ConfigurationBuilder()
-        .SetBasePath(Directory.GetCurrentDirectory())
-        .AddJsonFile("appsettings.json", optional: false)
-        .Build()["Syncfusion:LicenseKey"];
-
-if (!string.IsNullOrEmpty(syncfusionLicense))
-{
-    syncfusionLicense = syncfusionLicense.Trim();
-    SyncfusionLicenseProvider.RegisterLicense(syncfusionLicense);
-    Console.WriteLine($"[API] Syncfusion license registered: {syncfusionLicense.Substring(0, 10)}...");
-}
 
 var builder = WebApplication.CreateBuilder(args);
 

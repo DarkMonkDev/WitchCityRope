@@ -207,6 +207,66 @@ const useEventsForHomepage = (enabled: boolean = true) => {
 - **v7 Styling Preserved**: All loading, error, and empty states maintain v7 design consistency
 - **Error Boundary**: User-friendly error messages while preserving styling framework
 
+### ✅ COMPLETED: Dashboard Pages API Integration (2025-08-22)
+**STATUS**: Successfully integrated all dashboard pages with existing TanStack Query API hooks.
+
+#### Implementation Completed:
+- ✅ **DashboardPage.tsx**: Uses `useCurrentUser()` and `useEvents()` hooks for real data instead of mocks
+- ✅ **EventsPage.tsx**: Displays user's events with upcoming/past categorization using `useEvents()`
+- ✅ **ProfilePage.tsx**: Shows real user profile data with `useCurrentUser()` hook and form validation
+- ✅ **MembershipPage.tsx**: Uses `useCurrentUser()` for account information with mock membership data
+- ✅ **SecurityPage.tsx**: Added TODO comments for future mutation integrations
+
+#### Critical Integration Patterns:
+```typescript
+// Pattern: Using existing API hooks with loading/error states
+const { data: user, isLoading: userLoading, error: userError } = useCurrentUser();
+const { data: events, isLoading: eventsLoading, error: eventsError } = useEvents();
+
+// Pattern: Proper loading state handling
+if (isLoading) {
+  return (
+    <DashboardLayout>
+      <Box style={{ textAlign: 'center', padding: '40px' }}>
+        <Loader size="lg" color="#880124" />
+        <Text style={{ marginTop: '16px', color: '#8B8680' }}>Loading...</Text>
+      </Box>
+    </DashboardLayout>
+  );
+}
+
+// Pattern: Error state handling
+if (error) {
+  return (
+    <Alert color="red" style={{ background: 'rgba(220, 20, 60, 0.1)', border: '1px solid rgba(220, 20, 60, 0.3)' }}>
+      Failed to load data. Please try refreshing the page.
+    </Alert>
+  );
+}
+```
+
+#### Key Implementation Details:
+- **NO New API Hooks Created**: Used existing hooks from `/features/auth/api/queries.ts` and `/features/events/api/queries.ts`
+- **Consistent Error Handling**: All pages use same error/loading state patterns with v7 design system styling
+- **Future-Ready**: Added comprehensive TODO comments for mutations (password change, profile updates, etc.)
+- **Event Filtering**: Dashboard shows upcoming events only, Events page separates upcoming/past
+- **Form Integration**: Profile page pre-populates forms with user data using `useEffect` pattern
+- **Mock Data Flags**: Clear documentation about what data is real vs mock for future development
+
+#### Files Modified:
+- `/apps/web/src/pages/dashboard/DashboardPage.tsx` - Real API integration for user and events
+- `/apps/web/src/pages/dashboard/EventsPage.tsx` - Complete events listing with categorization
+- `/apps/web/src/pages/dashboard/ProfilePage.tsx` - User profile with form pre-population
+- `/apps/web/src/pages/dashboard/MembershipPage.tsx` - User account info with mock membership data
+- `/apps/web/src/pages/dashboard/SecurityPage.tsx` - Enhanced TODO comments for future mutations
+
+#### Next Steps for Full API Integration:
+1. Create profile update mutation: `useUpdateProfile()` in `/features/auth/api/mutations.ts`
+2. Create password change mutation: `useChangePassword()` in `/features/auth/api/mutations.ts`
+3. Create user events query: `useUserEvents()` in `/features/events/api/queries.ts`
+4. Create membership API endpoints and queries
+5. Implement 2FA toggle and data download mutations
+
 ---
 
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
