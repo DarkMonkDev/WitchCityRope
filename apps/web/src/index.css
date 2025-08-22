@@ -103,6 +103,10 @@ html {
   transition: width 0.3s ease;
 }
 
+.nav-underline-animation:hover {
+  color: var(--color-burgundy);
+}
+
 .nav-underline-animation:hover::after {
   width: 100%;
 }
@@ -124,8 +128,46 @@ html {
   transition: width 0.3s ease;
 }
 
+.logo-underline-animation:hover {
+  color: var(--color-burgundy-light);
+  transform: scale(1.02);
+}
+
 .logo-underline-animation:hover::after {
   width: 100%;
+}
+
+/* Utility Bar Links Animation */
+.utility-bar-link {
+  position: relative;
+}
+
+.utility-bar-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 0;
+  height: 1px;
+  background: var(--color-rose-gold);
+  transform: translateX(-50%);
+  transition: width 0.3s ease;
+}
+
+.utility-bar-link:hover {
+  color: var(--color-rose-gold) !important;
+}
+
+.utility-bar-link:hover::after {
+  width: 100%;
+}
+
+.utility-bar-link.incident-link {
+  color: var(--color-brass) !important;
+}
+
+.utility-bar-link.incident-link:hover {
+  color: var(--color-brass) !important;
 }
 
 /* v7 Feature Icon Shape-Shifting Animation */
@@ -199,8 +241,47 @@ html {
   animation: rotate 30s linear infinite;
 }
 
+/* Mobile Navigation Styles */
+.mobile-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.mobile-menu-toggle span {
+  display: block;
+  width: 28px;
+  height: 2px;
+  background: var(--color-burgundy);
+  margin: 6px 0;
+  transition: all 0.3s ease;
+}
+
 /* Mobile Responsive Styles - From v7 Template */
 @media (max-width: 768px) {
+  .utility-bar {
+    padding: 10px 20px !important;
+    font-size: 11px !important;
+  }
+  
+  .header {
+    padding: var(--space-sm) 20px !important;
+  }
+  
+  .logo {
+    font-size: 28px !important;
+  }
+  
+  .nav {
+    display: none !important;
+  }
+  
+  .mobile-menu-toggle {
+    display: block !important;
+  }
+
   .hero-section {
     padding: var(--space-xl) 20px !important;
   }
