@@ -1,0 +1,886 @@
+@page "/"
+@using WitchCityRope.Web.Services
+@using WitchCityRope.Web.Features.Events.Components
+@inject IEventService EventService
+@inject NavigationManager Navigation
+
+<PageTitle>Witch City Rope - Salem's Rope Bondage Community</PageTitle>
+
+<div class="hero-section">
+    <div class="hero-background-pattern"></div>
+    <div class="hero-content">
+        <p class="hero-tagline">Where curiosity meets connection</p>
+        <h1 class="hero-title">Salem's Rope Bondage<br><span>Education & Practice</span><br>Community</h1>
+        <p class="hero-description">Join 600+ members learning and growing together in a supportive, consent-focused space that celebrates every journey</p>
+        <div class="hero-actions">
+            <a href="/events" class="btn btn-primary btn-large">Browse Upcoming Classes</a>
+            <a href="/apply" class="btn btn-secondary btn-large">Start Your Journey</a>
+        </div>
+    </div>
+</div>
+
+<!-- Decorative Rope Divider -->
+<div class="rope-divider-container">
+    <svg id="ropeDividerSvg" class="rope-divider" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120" preserveAspectRatio="none">
+        <defs>
+            <pattern id="ropePattern" x="0" y="0" width="200" height="120" patternUnits="userSpaceOnUse">
+                <!-- Twisted rope pattern -->
+                <path d="M0,30 Q25,10 50,30 T100,30 Q125,50 150,30 T200,30" 
+                      stroke="#880124" 
+                      stroke-width="8" 
+                      fill="none" 
+                      opacity="1"/>
+                <path d="M0,50 Q25,70 50,50 T100,50 Q125,30 150,50 T200,50" 
+                      stroke="#880124" 
+                      stroke-width="8" 
+                      fill="none" 
+                      opacity="0.8"/>
+                <path d="M0,70 Q25,90 50,70 T100,70 Q125,50 150,70 T200,70" 
+                      stroke="#880124" 
+                      stroke-width="8" 
+                      fill="none" 
+                      opacity="0.6"/>
+                
+                <!-- Rope texture details -->
+                <circle cx="25" cy="30" r="2" fill="#660119" opacity="0.4"/>
+                <circle cx="75" cy="30" r="2" fill="#660119" opacity="0.4"/>
+                <circle cx="125" cy="30" r="2" fill="#660119" opacity="0.4"/>
+                <circle cx="175" cy="30" r="2" fill="#660119" opacity="0.4"/>
+                
+                <circle cx="25" cy="50" r="2" fill="#660119" opacity="0.3"/>
+                <circle cx="75" cy="50" r="2" fill="#660119" opacity="0.3"/>
+                <circle cx="125" cy="50" r="2" fill="#660119" opacity="0.3"/>
+                <circle cx="175" cy="50" r="2" fill="#660119" opacity="0.3"/>
+                
+                <circle cx="25" cy="70" r="2" fill="#660119" opacity="0.2"/>
+                <circle cx="75" cy="70" r="2" fill="#660119" opacity="0.2"/>
+                <circle cx="125" cy="70" r="2" fill="#660119" opacity="0.2"/>
+                <circle cx="175" cy="70" r="2" fill="#660119" opacity="0.2"/>
+            </pattern>
+            
+            <!-- Gradient for fade effect at edges -->
+            <linearGradient id="ropeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#880124;stop-opacity:0" />
+                <stop offset="10%" style="stop-color:#880124;stop-opacity:1" />
+                <stop offset="90%" style="stop-color:#880124;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#880124;stop-opacity:0" />
+            </linearGradient>
+        </defs>
+        
+        <!-- Main rope using the pattern -->
+        <rect x="0" y="0" width="100%" height="120" fill="url(#ropePattern)"/>
+        
+        <!-- Add a visible rope path as backup -->
+        <path d="M0,60 Q100,30 200,60 T400,60 Q500,90 600,60 T800,60 Q900,30 1000,60 T1200,60 Q1300,90 1400,60" 
+              stroke="#880124" 
+              stroke-width="6" 
+              fill="none" 
+              opacity="0.8"
+              mask="url(#ropeGradient)"/>
+        
+        <!-- Additional decorative knots -->
+        <g class="rope-knot" transform="translate(360, 60)">
+            <circle cx="0" cy="0" r="25" fill="none" stroke="#880124" stroke-width="6" opacity="0.6"/>
+            <circle cx="0" cy="0" r="15" fill="none" stroke="#880124" stroke-width="4" opacity="0.4"/>
+        </g>
+        
+        <g class="rope-knot" transform="translate(720, 60)">
+            <circle cx="0" cy="0" r="25" fill="none" stroke="#880124" stroke-width="6" opacity="0.6"/>
+            <circle cx="0" cy="0" r="15" fill="none" stroke="#880124" stroke-width="4" opacity="0.4"/>
+        </g>
+        
+        <g class="rope-knot" transform="translate(1080, 60)">
+            <circle cx="0" cy="0" r="25" fill="none" stroke="#880124" stroke-width="6" opacity="0.6"/>
+            <circle cx="0" cy="0" r="15" fill="none" stroke="#880124" stroke-width="4" opacity="0.4"/>
+        </g>
+    </svg>
+</div>
+
+<div class="page-container">
+
+    <section class="features-section">
+        <h2 class="section-title">What Makes Our Community Special</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🎭</div>
+                <h3>Expert Teaching</h3>
+                <p>Learn from experienced instructors who make rope accessible to everyone. We blend technical skills with creativity and always prioritize safety.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🌹</div>
+                <h3>Welcoming Community</h3>
+                <p>Find your people in our warm, respectful space. We celebrate diversity, honor boundaries, and support each other's growth.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔮</div>
+                <h3>Safety First, Always</h3>
+                <p>We're committed to risk-aware practice, ongoing consent, and creating an environment where everyone feels secure to learn and explore.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">✨</div>
+                <h3>Everyone Belongs</h3>
+                <p>All bodies, orientations, and experience levels are welcome here. Come as you are—we're excited to support your unique journey.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="upcoming-section">
+        <h2 class="section-title">Learn With Us This Month</h2>
+        
+        <div class="events-preview">
+            @if (isLoading)
+            {
+                <p class="loading-text">Loading upcoming events...</p>
+            }
+            else if (upcomingEvents == null || !upcomingEvents.Any())
+            {
+                <p class="no-events-text">No upcoming events at this time.</p>
+            }
+            else
+            {
+                <div class="events-grid">
+                    @foreach (var eventItem in upcomingEvents.Take(3))
+                    {
+                        <a href="/events/@eventItem.Id" class="event-card">
+                            <div class="event-image">
+                                <h3 class="event-image-title">@eventItem.Title</h3>
+                            </div>
+                            <div class="event-content">
+                                <div class="event-date">@eventItem.StartDate.ToString("dddd, MMMM d") • @eventItem.StartDate.ToString("h:mm tt")</div>
+                                <p class="event-description">@GetEventDescription(eventItem.Title)</p>
+                                <div class="event-details">
+                                    <span class="event-detail">📍 @eventItem.Location</span>
+                                    <span class="event-detail">⏱️ @GetEventDuration(eventItem.Title)</span>
+                                    <span class="event-detail">📚 @GetEventLevel(eventItem.Title)</span>
+                                </div>
+                                <div class="event-footer">
+                                    @if (eventItem.Price > 0)
+                                    {
+                                        <span class="event-price">$@eventItem.Price</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="event-price">$0-35</span>
+                                    }
+                                    @if (eventItem.AvailableSpots > 0)
+                                    {
+                                        @if (eventItem.AvailableSpots <= 5)
+                                        {
+                                            <span class="event-status limited">@eventItem.AvailableSpots spots left</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="event-status available">@eventItem.AvailableSpots spots left</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="event-status full">Sold Out</span>
+                                    }
+                                </div>
+                            </div>
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+        
+        <div style="text-align: center; margin-top: var(--spacing-xl);">
+            <a href="/events" class="btn btn-secondary">View Full Calendar</a>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="cta">
+            <div class="cta-content">
+                <p class="cta-subtitle">Ready to start?</p>
+                <h2>Your Rope Journey Begins Here</h2>
+                <p>Whether you're curious about rope or ready to deepen your practice, we're here to support you every step of the way.</p>
+                <a href="/apply" class="btn btn-primary btn-large">Join Our Community</a>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+    .hero-section {
+        background: linear-gradient(180deg, var(--color-midnight) 0%, var(--color-burgundy-dark) 100%);
+        color: var(--color-ivory);
+        padding: var(--spacing-3xl) 40px var(--spacing-2xl);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Animated background pattern */
+    .hero-background-pattern {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        opacity: 0.1;
+        background-image: 
+            repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.1) 35px, rgba(255,255,255,.1) 70px),
+            repeating-linear-gradient(-45deg, transparent, transparent 35px, rgba(255,255,255,.05) 35px, rgba(255,255,255,.05) 70px);
+        animation: backgroundMove 20s linear infinite;
+    }
+
+    @@keyframes backgroundMove {
+        0% {
+            transform: translate(0, 0);
+        }
+        100% {
+            transform: translate(70px, 70px);
+        }
+    }
+
+    .hero-content {
+        max-width: 900px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-tagline {
+        font-family: 'Satisfy', cursive;
+        font-size: 28px;
+        color: var(--color-rose-gold);
+        margin-bottom: var(--spacing-sm);
+        opacity: 0.9;
+    }
+
+    .hero-title {
+        font-family: var(--font-heading);
+        font-size: 64px;
+        margin-bottom: var(--spacing-md);
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -1px;
+        text-transform: uppercase;
+    }
+    
+    .hero-title span {
+        background: linear-gradient(135deg, var(--color-rose-gold) 0%, var(--color-brass) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .hero-description {
+        font-family: var(--font-body);
+        font-size: 22px;
+        margin-bottom: var(--spacing-xl);
+        opacity: 0.9;
+        line-height: 1.6;
+        font-weight: 300;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: var(--spacing-md);
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    /* Button Styles */
+    .btn {
+        padding: 14px 32px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-family: var(--font-heading);
+        font-weight: 600;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        transition: all 0.4s ease;
+        display: inline-block;
+        cursor: pointer;
+        border: none;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+        color: var(--color-midnight);
+        box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+        font-weight: 700;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(255, 191, 0, 0.5);
+        background: linear-gradient(135deg, var(--color-amber-dark) 0%, var(--color-amber) 100%);
+    }
+    
+    .btn-secondary {
+        background: transparent;
+        color: var(--color-burgundy);
+        border: 2px solid var(--color-burgundy);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .hero .btn-secondary {
+        background: transparent;
+        color: var(--color-ivory);
+        border-color: var(--color-rose-gold);
+    }
+    
+    .btn-secondary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 100%;
+        background: var(--color-burgundy);
+        transition: width 0.4s ease;
+        z-index: -1;
+    }
+    
+    .hero .btn-secondary::before {
+        background: var(--color-rose-gold);
+    }
+    
+    .btn-secondary:hover {
+        color: var(--color-ivory);
+    }
+    
+    .hero .btn-secondary:hover {
+        color: var(--color-midnight);
+    }
+    
+    .btn-secondary:hover::before {
+        width: 100%;
+    }
+    
+    .btn-large {
+        padding: 18px 40px;
+        font-size: 16px;
+    }
+
+    /* Section Title */
+    .section-title {
+        font-family: var(--font-heading);
+        font-size: 48px;
+        font-weight: 800;
+        margin-bottom: var(--spacing-xl);
+        text-align: center;
+        color: var(--color-burgundy);
+        position: relative;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+    }
+    
+    .section-title::after {
+        content: '';
+        display: block;
+        width: 100px;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--color-rose-gold), transparent);
+        margin: var(--spacing-sm) auto 0;
+    }
+
+    .features-section {
+        padding: var(--spacing-3xl) 0;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--spacing-xl);
+        margin-top: var(--spacing-2xl);
+    }
+
+    .feature-card {
+        background-color: var(--color-surface);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-xl);
+        text-align: center;
+        box-shadow: var(--shadow-md);
+        transition: transform var(--transition-base);
+    }
+
+    .feature-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .feature-icon {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-rose-gold) 100%);
+        border-radius: 50%;
+        margin: 0 auto var(--spacing-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-ivory);
+        font-size: 48px;
+        box-shadow: 0 10px 30px rgba(136, 1, 36, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .feature-icon::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .feature:hover .feature-icon::before {
+        opacity: 1;
+    }
+
+    .feature-card h3 {
+        font-family: var(--font-heading);
+        font-size: 24px;
+        margin-bottom: var(--spacing-sm);
+        color: var(--color-burgundy);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .upcoming-section {
+        padding: var(--spacing-3xl) 0;
+    }
+
+
+    .events-preview {
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .loading-text {
+        color: var(--color-text-secondary);
+    }
+
+    .no-events-text {
+        color: var(--color-text-secondary);
+        text-align: center;
+        padding: var(--spacing-2xl);
+    }
+
+    /* Events Grid */
+    .events-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: var(--spacing-lg);
+        margin-bottom: var(--spacing-xl);
+    }
+
+    /* Event Card */
+    .event-card {
+        background: var(--color-ivory);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: block;
+    }
+    
+    .event-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+    
+    .event-image {
+        height: 100px;
+        background: linear-gradient(135deg, var(--color-plum) 0%, var(--color-burgundy) 100%);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--spacing-md);
+    }
+    
+    .event-image::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10,50 Q30,20 50,50 T90,50' stroke='%23FFFFFF' stroke-width='0.5' fill='none' opacity='0.2'/%3E%3C/svg%3E");
+        background-size: 200px 200px;
+    }
+    
+    .event-image-title {
+        font-family: var(--font-heading);
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--color-ivory);
+        line-height: 1.3;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    .event-content {
+        padding: var(--spacing-lg);
+    }
+    
+    .event-date {
+        font-family: var(--font-heading);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--color-burgundy);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .event-description {
+        font-size: 15px;
+        color: var(--color-smoke);
+        line-height: 1.5;
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .event-details {
+        display: flex;
+        gap: var(--spacing-md);
+        font-size: 14px;
+        color: var(--color-smoke);
+        margin-bottom: var(--spacing-md);
+        flex-wrap: wrap;
+    }
+    
+    .event-detail {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+    }
+    
+    .event-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: var(--spacing-md);
+        border-top: 1px solid var(--color-taupe);
+    }
+    
+    .event-price {
+        font-family: var(--font-heading);
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--color-burgundy);
+    }
+    
+    .event-status {
+        font-size: 14px;
+        font-weight: 600;
+    }
+    
+    .event-status.available {
+        color: var(--color-success);
+    }
+    
+    .event-status.limited {
+        color: var(--color-warning);
+    }
+    
+    .event-status.full {
+        color: var(--color-error);
+    }
+
+    .cta-section {
+        padding: var(--spacing-3xl) 0;
+    }
+
+    /* CTA Section */
+    .cta {
+        background: linear-gradient(135deg, var(--color-burgundy-dark) 0%, var(--color-midnight) 100%);
+        color: var(--color-ivory);
+        padding: var(--spacing-2xl) var(--spacing-xl);
+        text-align: center;
+        max-width: 1000px;
+        margin: 0 auto;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        border-radius: 16px;
+    }
+    
+    .cta::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='30' fill='none' stroke='%23B76D75' stroke-width='0.5' opacity='0.2'/%3E%3C/svg%3E");
+        background-size: 100px 100px;
+        animation: rotate 30s linear infinite;
+    }
+    
+    @@keyframes rotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .cta-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .cta h2 {
+        font-family: var(--font-heading);
+        font-size: 42px;
+        font-weight: 800;
+        margin-bottom: var(--spacing-md);
+        text-transform: uppercase;
+        letter-spacing: 3px;
+    }
+    
+    .cta-subtitle {
+        font-family: 'Satisfy', cursive;
+        font-size: 28px;
+        color: var(--color-rose-gold);
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .cta p {
+        font-size: 20px;
+        margin-bottom: var(--spacing-xl);
+        opacity: 0.9;
+        font-weight: 300;
+    }
+    
+    .cta .btn {
+        background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+        color: var(--color-midnight);
+        box-shadow: 0 6px 20px rgba(255, 191, 0, 0.4);
+    }
+    
+    .cta .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(255, 191, 0, 0.5);
+        background: linear-gradient(135deg, var(--color-amber-dark) 0%, var(--color-amber) 100%);
+    }
+
+    /* Rope Divider Styles */
+    .rope-divider-container {
+        position: relative;
+        width: 100%;
+        height: 120px;
+        margin-top: 0;
+        margin-bottom: var(--spacing-2xl);
+        overflow: visible;
+        z-index: 10;
+        background: transparent;
+    }
+
+    .rope-divider {
+        width: 100%;
+        height: 100%;
+        animation: gentleSway 8s ease-in-out infinite;
+        display: block;
+    }
+
+    @@keyframes gentleSway {
+        0%, 100% {
+            transform: translateY(0) translateX(0);
+        }
+        25% {
+            transform: translateY(-5px) translateX(10px);
+        }
+        50% {
+            transform: translateY(3px) translateX(-5px);
+        }
+        75% {
+            transform: translateY(-3px) translateX(5px);
+        }
+    }
+
+    .rope-knot {
+        animation: knotRotate 12s linear infinite;
+        transform-origin: center;
+    }
+
+    @@keyframes knotRotate {
+        0% {
+            transform: translate(var(--knot-x, 360px), var(--knot-y, 60px)) rotate(0deg);
+        }
+        100% {
+            transform: translate(var(--knot-x, 360px), var(--knot-y, 60px)) rotate(360deg);
+        }
+    }
+
+    /* Set custom properties for each knot position */
+    .rope-knot:nth-child(1) {
+        --knot-x: 360px;
+        --knot-y: 60px;
+    }
+
+    .rope-knot:nth-child(2) {
+        --knot-x: 720px;
+        --knot-y: 60px;
+        animation-delay: -4s;
+    }
+
+    .rope-knot:nth-child(3) {
+        --knot-x: 1080px;
+        --knot-y: 60px;
+        animation-delay: -8s;
+    }
+
+    @@media (max-width: 768px) {
+        .hero-section {
+            padding: var(--spacing-2xl) 20px var(--spacing-xl);
+            min-height: 70vh;
+        }
+        
+        .hero-tagline {
+            font-size: 22px;
+        }
+
+        .hero-title {
+            font-size: 40px;
+        }
+        
+        .hero-description {
+            font-size: 18px;
+        }
+
+        .hero-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .hero-actions .btn {
+            width: 100%;
+        }
+        
+        .section-title {
+            font-size: 36px;
+        }
+
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+
+        /* Responsive rope divider */
+        .rope-divider-container {
+            height: 80px;
+            margin-top: 0;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .rope-knot {
+            display: none; /* Hide knots on mobile for cleaner look */
+        }
+
+        /* Responsive event preview */
+        .events-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .event-card {
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .cta h2 {
+            font-size: 32px;
+        }
+        
+        .cta-subtitle {
+            font-size: 22px;
+        }
+        
+        .cta p {
+            font-size: 18px;
+        }
+    }
+</style>
+
+@code {
+    private List<EventListItem>? upcomingEvents;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Load all events from the service
+            var allEvents = await EventService.GetUpcomingEventsAsync();
+            
+            // Filter to only show future events and sort by date
+            upcomingEvents = allEvents
+                .Where(e => e.StartDate > DateTime.UtcNow)
+                .OrderBy(e => e.StartDate)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            // In a real app, you'd log this error
+            Console.WriteLine($"Error loading events: {ex.Message}");
+            upcomingEvents = new List<EventListItem>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void NavigateToEvent(Guid eventId)
+    {
+        Navigation.NavigateTo($"/events/{eventId}");
+    }
+
+    private string GetEventDescription(string title)
+    {
+        return title.ToLower() switch
+        {
+            var t when t.Contains("fundamentals") => "Learn fundamental ties and safety practices in a supportive environment. Perfect for your first class or building strong foundations.",
+            var t when t.Contains("jam") => "Practice your skills and connect with fellow rope enthusiasts in our welcoming community space. For vetted members.",
+            var t when t.Contains("suspension") => "Take your skills to new heights! This workshop explores suspension basics with a strong focus on safety. Prerequisites apply.",
+            var t when t.Contains("beginner") => "Start your rope journey with foundational skills in a safe, supportive environment.",
+            var t when t.Contains("intermediate") => "Build on your foundation with more complex ties and advanced techniques.",
+            _ => "Join us for an engaging workshop focused on rope bondage education and practice."
+        };
+    }
+
+    private string GetEventDuration(string title)
+    {
+        return title.ToLower() switch
+        {
+            var t when t.Contains("intensive") => "4 hours",
+            var t when t.Contains("jam") => "3 hours",
+            var t when t.Contains("fundamentals") => "2.5 hours",
+            _ => "2 hours"
+        };
+    }
+
+    private string GetEventLevel(string title)
+    {
+        return title.ToLower() switch
+        {
+            var t when t.Contains("advanced") || t.Contains("suspension") => "Advanced",
+            var t when t.Contains("intermediate") => "Intermediate",
+            var t when t.Contains("beginner") || t.Contains("fundamentals") => "Beginner",
+            var t when t.Contains("jam") => "Members Only",
+            _ => "All Levels"
+        };
+    }
+}

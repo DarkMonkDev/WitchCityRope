@@ -1,0 +1,549 @@
+@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<div class="wcr-app">
+    <!-- Utility Bar -->
+    <div class="utility-bar">
+        <a href="/incident-report" class="incident-link">Report an Incident</a>
+        <a href="/private-lessons">Private Lessons</a>
+        <a href="/contact">Contact</a>
+    </div>
+    
+    <!-- Header -->
+    <header class="header @(_scrolled ? "scrolled" : "")" id="header">
+        <a href="/" class="logo">WITCH CITY ROPE</a>
+        <nav class="nav">
+            <a href="/events" class="nav-item">Events & Classes</a>
+            <a href="/how-to-join" class="nav-item">How To Join</a>
+            <a href="/resources" class="nav-item">Resources</a>
+            <div class="auth-buttons">
+                <a href="/login" class="btn btn-primary btn-sm">Login</a>
+            </div>
+        </nav>
+        <button class="mobile-menu-toggle" @onclick="ToggleMobileMenu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
+    
+    <!-- Mobile Menu -->
+    <div class="mobile-menu @(_mobileMenuOpen ? "active" : "")">
+        <div class="mobile-menu-header">
+            <a href="/" class="logo">WITCH CITY ROPE</a>
+            <button class="mobile-menu-close" @onclick="CloseMobileMenu">
+                <span>&times;</span>
+            </button>
+        </div>
+        <nav class="mobile-nav">
+            <a href="/events" class="mobile-nav-item" @onclick="CloseMobileMenu">Events & Classes</a>
+            <a href="/how-to-join" class="mobile-nav-item" @onclick="CloseMobileMenu">How To Join</a>
+            <a href="/resources" class="mobile-nav-item" @onclick="CloseMobileMenu">Resources</a>
+            <a href="/incident-report" class="mobile-nav-item incident" @onclick="CloseMobileMenu">Report an Incident</a>
+            <a href="/private-lessons" class="mobile-nav-item" @onclick="CloseMobileMenu">Private Lessons</a>
+            <a href="/contact" class="mobile-nav-item" @onclick="CloseMobileMenu">Contact</a>
+            <div class="mobile-nav-actions">
+                <a href="/login" class="btn btn-primary" @onclick="CloseMobileMenu">Login</a>
+            </div>
+        </nav>
+    </div>
+    <div class="mobile-menu-overlay @(_mobileMenuOpen ? "active" : "")" @onclick="CloseMobileMenu"></div>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        @Body
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Witch City Rope</h3>
+                <p>Salem's premier rope bondage education and practice community.</p>
+                <div class="social-links">
+                    <a href="#" aria-label="FetLife"><i class="fab fa-fetlife"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="Discord"><i class="fab fa-discord"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="/events">Upcoming Events</a></li>
+                    <li><a href="/how-to-join">Join Our Community</a></li>
+                    <li><a href="/resources">Resources</a></li>
+                    <li><a href="/safety">Safety Guidelines</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Support</h4>
+                <ul>
+                    <li><a href="/faq">FAQ</a></li>
+                    <li><a href="/contact">Contact Us</a></li>
+                    <li><a href="/incident-report">Report an Incident</a></li>
+                    <li><a href="/privacy">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Stay Connected</h4>
+                <p>Join our newsletter for updates on events, workshops, and community news.</p>
+                <form class="newsletter-form" @onsubmit="HandleNewsletterSubmit" @onsubmit:preventDefault="true">
+                    <input type="email" @bind="_newsletterEmail" placeholder="Enter your email" required />
+                    <button type="submit" class="btn btn-primary">Subscribe</button>
+                </form>
+                <p class="newsletter-info">We respect your privacy. Unsubscribe anytime.</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; @DateTime.Now.Year Witch City Rope. All rights reserved.</p>
+        </div>
+    </footer>
+</div>
+
+<style>
+    /* Utility Bar */
+    .utility-bar {
+        background: var(--wcr-color-midnight);
+        padding: 12px 40px;
+        font-size: 13px;
+        color: var(--wcr-color-taupe);
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        font-family: var(--wcr-font-heading);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .utility-bar a {
+        color: var(--wcr-color-taupe);
+        text-decoration: none;
+        margin-left: var(--wcr-space-lg);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .utility-bar a::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0;
+        height: 1px;
+        background: var(--wcr-color-rose-gold);
+        transition: width 0.3s ease;
+    }
+    
+    .utility-bar a:hover {
+        color: var(--wcr-color-rose-gold);
+    }
+    
+    .utility-bar a:hover::after {
+        width: 100%;
+    }
+    
+    .utility-bar a.incident-link {
+        color: var(--wcr-color-brass);
+        font-weight: 600;
+    }
+    
+    /* Header */
+    .header {
+        background: rgba(255, 248, 240, 0.95);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+        padding: var(--wcr-space-sm) 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        transition: all 0.3s ease;
+    }
+    
+    .header.scrolled {
+        padding: 12px 40px;
+        box-shadow: 0 4px 30px rgba(0,0,0,0.12);
+    }
+    
+    .logo {
+        font-family: var(--wcr-font-heading);
+        font-size: 30px;
+        font-weight: 800;
+        color: var(--wcr-color-burgundy);
+        text-decoration: none;
+        letter-spacing: -0.5px;
+        transition: all 0.3s ease;
+    }
+    
+    .logo:hover {
+        color: var(--wcr-color-burgundy-light);
+        transform: scale(1.02);
+    }
+    
+    .nav {
+        display: flex;
+        gap: var(--wcr-space-xl);
+        align-items: center;
+    }
+    
+    .nav-item {
+        color: var(--wcr-color-charcoal);
+        text-decoration: none;
+        font-family: var(--wcr-font-heading);
+        font-weight: 500;
+        font-size: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .nav-item::before {
+        content: '';
+        position: absolute;
+        bottom: -4px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 2px;
+        background: var(--wcr-color-burgundy);
+        transition: width 0.3s ease;
+    }
+    
+    .nav-item:hover {
+        color: var(--wcr-color-burgundy);
+    }
+    
+    .nav-item:hover::before {
+        width: 100%;
+    }
+    
+    /* Auth Buttons */
+    .auth-buttons {
+        display: flex;
+        gap: var(--wcr-space-sm);
+        align-items: center;
+    }
+    
+    .auth-buttons .btn-sm {
+        padding: 6px 16px;
+        font-size: 14px;
+        font-family: var(--wcr-font-heading);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+    
+    /* Mobile Menu Toggle */
+    .mobile-menu-toggle {
+        display: none;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        width: 40px;
+        height: 40px;
+        position: relative;
+    }
+    
+    .mobile-menu-toggle span {
+        display: block;
+        width: 28px;
+        height: 2px;
+        background: var(--wcr-color-burgundy);
+        margin: 6px 0;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    /* Mobile Menu */
+    .mobile-menu {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 80%;
+        max-width: 300px;
+        height: 100vh;
+        background: var(--wcr-color-ivory);
+        box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+        transition: right 0.3s ease;
+        z-index: 1000;
+        overflow-y: auto;
+    }
+    
+    .mobile-menu.active {
+        right: 0;
+    }
+    
+    .mobile-menu-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 999;
+    }
+    
+    .mobile-menu-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .mobile-menu-header {
+        padding: var(--wcr-space-md);
+        border-bottom: 1px solid var(--wcr-color-taupe);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .mobile-menu-close {
+        background: none;
+        border: none;
+        font-size: 32px;
+        cursor: pointer;
+        color: var(--wcr-color-charcoal);
+    }
+    
+    .mobile-nav {
+        padding: var(--wcr-space-md);
+    }
+    
+    .mobile-nav-item {
+        display: block;
+        padding: var(--wcr-space-sm) 0;
+        color: var(--wcr-color-charcoal);
+        text-decoration: none;
+        font-family: var(--wcr-font-heading);
+        font-weight: 500;
+        font-size: 16px;
+        border-bottom: 1px solid var(--wcr-color-cream);
+        transition: all 0.3s ease;
+    }
+    
+    .mobile-nav-item:hover {
+        color: var(--wcr-color-burgundy);
+        padding-left: var(--wcr-space-sm);
+    }
+    
+    .mobile-nav-item.incident {
+        color: var(--wcr-color-brass);
+        font-weight: 600;
+    }
+    
+    .mobile-nav-actions {
+        margin-top: var(--wcr-space-lg);
+        display: flex;
+        flex-direction: column;
+        gap: var(--wcr-space-sm);
+    }
+    
+    /* Main Content */
+    .main-content {
+        min-height: calc(100vh - 300px);
+    }
+    
+    /* Footer */
+    .footer {
+        background: var(--wcr-color-midnight);
+        color: var(--wcr-color-taupe);
+        padding: var(--wcr-space-3xl) 40px var(--wcr-space-lg);
+        margin-top: var(--wcr-space-3xl);
+    }
+    
+    .footer-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1.5fr;
+        gap: var(--wcr-space-3xl);
+    }
+    
+    .footer-section h3,
+    .footer-section h4 {
+        color: var(--wcr-color-ivory);
+        margin-bottom: var(--wcr-space-md);
+        font-family: var(--wcr-font-heading);
+    }
+    
+    .footer-section ul {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .footer-section li {
+        margin-bottom: var(--wcr-space-sm);
+    }
+    
+    .footer-section a {
+        color: var(--wcr-color-taupe);
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    
+    .footer-section a:hover {
+        color: var(--wcr-color-rose-gold);
+    }
+    
+    .social-links {
+        display: flex;
+        gap: var(--wcr-space-md);
+        margin-top: var(--wcr-space-md);
+    }
+    
+    .social-links a {
+        font-size: 24px;
+        color: var(--wcr-color-taupe);
+        transition: all 0.3s ease;
+    }
+    
+    .social-links a:hover {
+        color: var(--wcr-color-rose-gold);
+        transform: translateY(-2px);
+    }
+    
+    .footer-bottom {
+        border-top: 1px solid rgba(255,255,255,0.1);
+        margin-top: var(--wcr-space-3xl);
+        padding-top: var(--wcr-space-lg);
+        text-align: center;
+        color: var(--wcr-color-stone);
+    }
+    
+    /* Newsletter Form */
+    .newsletter-form {
+        display: flex;
+        flex-direction: column;
+        gap: var(--wcr-space-sm);
+        margin-top: var(--wcr-space-md);
+    }
+    
+    .newsletter-form input[type="email"] {
+        padding: var(--wcr-space-sm) var(--wcr-space-md);
+        background: rgba(255, 248, 240, 0.1);
+        border: 1px solid rgba(255, 248, 240, 0.2);
+        border-radius: var(--wcr-radius-sm);
+        color: var(--wcr-color-ivory);
+        font-family: var(--wcr-font-body);
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+    
+    .newsletter-form input[type="email"]::placeholder {
+        color: var(--wcr-color-stone);
+    }
+    
+    .newsletter-form input[type="email"]:focus {
+        outline: none;
+        border-color: var(--wcr-color-rose-gold);
+        background: rgba(255, 248, 240, 0.15);
+    }
+    
+    .newsletter-form .btn {
+        width: 100%;
+        padding: var(--wcr-space-sm) var(--wcr-space-md);
+        font-size: 14px;
+        background: var(--wcr-color-burgundy);
+        color: var(--wcr-color-ivory);
+        border: none;
+        border-radius: var(--wcr-radius-sm);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+    }
+    
+    .newsletter-form .btn:hover {
+        background: var(--wcr-color-burgundy-light);
+        transform: translateY(-1px);
+    }
+    
+    .newsletter-info {
+        font-size: 12px;
+        color: var(--wcr-color-stone);
+        margin-top: var(--wcr-space-xs);
+    }
+    
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .utility-bar {
+            padding: 8px 20px;
+            font-size: 11px;
+        }
+        
+        .header {
+            padding: 12px 20px;
+        }
+        
+        .logo {
+            font-size: 24px;
+        }
+        
+        .nav {
+            display: none;
+        }
+        
+        .mobile-menu-toggle {
+            display: block;
+        }
+        
+        .footer-content {
+            grid-template-columns: 1fr;
+            gap: var(--wcr-space-xl);
+        }
+        
+        .footer {
+            padding: var(--wcr-space-xl) 20px;
+        }
+    }
+</style>
+
+@code {
+    private bool _mobileMenuOpen = false;
+    private bool _scrolled = false;
+    private string _newsletterEmail = string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("addScrollListener", DotNetObjectReference.Create(this));
+        }
+    }
+
+    private void ToggleMobileMenu()
+    {
+        _mobileMenuOpen = !_mobileMenuOpen;
+    }
+
+    private void CloseMobileMenu()
+    {
+        _mobileMenuOpen = false;
+    }
+
+    [JSInvokable]
+    public void OnScroll(bool scrolled)
+    {
+        _scrolled = scrolled;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleNewsletterSubmit()
+    {
+        if (!string.IsNullOrWhiteSpace(_newsletterEmail))
+        {
+            // TODO: Implement newsletter subscription logic
+            // For now, just show a success message
+            await JS.InvokeVoidAsync("alert", "Thank you for subscribing! We'll keep you updated on our events and community news.");
+            _newsletterEmail = string.Empty;
+        }
+    }
+}

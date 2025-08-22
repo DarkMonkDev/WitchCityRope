@@ -1,0 +1,156 @@
+@page "/auth/2fa-demo"
+@layout PublicLayout
+
+<PageTitle>Two-Factor Authentication Demo - Witch City Rope</PageTitle>
+
+<div class="demo-page">
+    <div class="container">
+        <h1 class="demo-title">Two-Factor Authentication Demo</h1>
+        
+        <div class="demo-card">
+            <h2>Test the 2FA Setup Flow</h2>
+            <p>This demo page allows you to test the complete 2FA setup flow:</p>
+            
+            <ul class="feature-list">
+                <li>4-step progress indicator</li>
+                <li>Introduction explaining why 2FA is important</li>
+                <li>QR code generation for authenticator apps</li>
+                <li>Code verification (use "123456" for demo)</li>
+                <li>Backup codes generation and download</li>
+            </ul>
+            
+            <div class="demo-actions">
+                <a href="/auth/two-factor-setup" class="btn-primary">
+                    Start 2FA Setup
+                </a>
+            </div>
+            
+            <div class="demo-note">
+                <strong>Note:</strong> This is a demo implementation. In production, the QR code would be generated server-side and the verification would use actual TOTP validation.
+            </div>
+        </div>
+        
+        <div class="demo-card">
+            <h2>Components Used</h2>
+            <ul class="component-list">
+                <li><strong>ProgressIndicator.razor</strong> - Reusable progress indicator component</li>
+                <li><strong>TwoFactorSetup.razor</strong> - Main 2FA setup flow page</li>
+                <li><strong>IAuthService</strong> - Extended with 2FA setup methods</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+    .demo-page {
+        min-height: 100vh;
+        background: var(--wcr-color-cream);
+        padding: var(--wcr-space-2xl) 0;
+    }
+    
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0 var(--wcr-space-md);
+    }
+    
+    .demo-title {
+        font-family: var(--wcr-font-heading);
+        font-size: 48px;
+        font-weight: 800;
+        color: var(--wcr-color-burgundy);
+        text-align: center;
+        margin-bottom: var(--wcr-space-2xl);
+    }
+    
+    .demo-card {
+        background: var(--wcr-color-ivory);
+        border-radius: 16px;
+        padding: var(--wcr-space-xl);
+        box-shadow: var(--wcr-shadow-md);
+        margin-bottom: var(--wcr-space-xl);
+    }
+    
+    .demo-card h2 {
+        font-family: var(--wcr-font-heading);
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--wcr-color-charcoal);
+        margin-bottom: var(--wcr-space-md);
+    }
+    
+    .demo-card p {
+        color: var(--wcr-color-stone);
+        margin-bottom: var(--wcr-space-md);
+        line-height: 1.6;
+    }
+    
+    .feature-list,
+    .component-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 var(--wcr-space-lg) 0;
+    }
+    
+    .feature-list li,
+    .component-list li {
+        padding: var(--wcr-space-sm) 0;
+        padding-left: var(--wcr-space-lg);
+        position: relative;
+        color: var(--wcr-color-smoke);
+        line-height: 1.6;
+    }
+    
+    .feature-list li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: var(--wcr-color-success);
+        font-weight: bold;
+    }
+    
+    .component-list li::before {
+        content: '→';
+        position: absolute;
+        left: 0;
+        color: var(--wcr-color-burgundy);
+        font-weight: bold;
+    }
+    
+    .demo-actions {
+        text-align: center;
+        margin: var(--wcr-space-xl) 0;
+    }
+    
+    .btn-primary {
+        display: inline-block;
+        padding: var(--wcr-space-md) var(--wcr-space-xl);
+        background: linear-gradient(135deg, var(--wcr-color-burgundy) 0%, var(--wcr-color-plum) 100%);
+        color: var(--wcr-color-ivory);
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 18px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(136, 1, 36, 0.3);
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(136, 1, 36, 0.4);
+    }
+    
+    .demo-note {
+        background: rgba(255, 193, 7, 0.1);
+        border: 1px solid var(--wcr-color-warning);
+        border-radius: 8px;
+        padding: var(--wcr-space-md);
+        margin-top: var(--wcr-space-lg);
+        font-size: 14px;
+        color: var(--wcr-color-smoke);
+    }
+    
+    .demo-note strong {
+        color: var(--wcr-color-charcoal);
+    }
+</style>

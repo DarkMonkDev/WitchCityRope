@@ -1,0 +1,592 @@
+@page "/profile/vetting"
+@using WitchCityRope.Web.Services
+@inject IVettingService VettingService
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Vetting Status - Witch City Rope</PageTitle>
+
+<div class="vetting-status-page">
+    <div class="container">
+        <div class="page-header">
+            <h1>Vetting Status</h1>
+        </div>
+
+        @if (_isLoading)
+        {
+            <div class="loading-container">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+        }
+        else if (_vettingStatus == null)
+        {
+            <!-- No Application -->
+            <div class="no-application">
+                <div class="icon-container">
+                    <i class="fas fa-users fa-3x"></i>
+                </div>
+                <h2>No Application Found</h2>
+                <p>You haven't submitted a vetting application yet.</p>
+                <p>Ready to join our community?</p>
+                <div class="actions">
+                    <button class="btn btn-secondary" @onclick='() => Navigation.NavigateTo("/how-to-join")'>Learn More</button>
+                    <button class="btn btn-primary" @onclick='() => Navigation.NavigateTo("/vetting/apply")'>
+                        Start Application
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Application Status -->
+            <div class="status-card">
+                <div class="status-header @GetStatusClass()">
+                    <div class="status-icon">
+                        <i class="@GetStatusIcon()"></i>
+                    </div>
+                    <div class="status-info">
+                        <h2>@GetStatusTitle()</h2>
+                        <p class="status-date">Submitted @_vettingStatus.SubmittedAt?.ToString("MMMM d, yyyy")</p>
+                    </div>
+                </div>
+
+                <div class="status-content">
+                    @{
+                        var statusLower = _vettingStatus.Status.ToLower();
+                    }
+                    @switch (statusLower)
+                    {
+                        case "submitted":
+                            <div class="status-message">
+                                <p>Thank you for submitting your application! Our vetting team will review it soon.</p>
+                                <p>We typically respond within 5-7 business days.</p>
+                            </div>
+                            <div class="timeline">
+                                <div class="timeline-item active">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h4>Application Submitted</h4>
+                                        <p>Your application has been received</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h4>Under Review</h4>
+                                        <p>Vetting team will review your application</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h4>Decision</h4>
+                                        <p>You'll be notified of the outcome</p>
+                                    </div>
+                                </div>
+                            </div>
+                            break;
+
+                        case "underreview":
+                            <div class="status-message">
+                                <p>Your application is currently being reviewed by our vetting team.</p>
+                                <p>We appreciate your patience during this process.</p>
+                            </div>
+                            <div class="timeline">
+                                <div class="timeline-item completed">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h4>Application Submitted</h4>
+                                        <p>Your application has been received</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item active">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h4>Under Review</h4>
+                                        <p>Vetting team is reviewing your application</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h4>Decision</h4>
+                                        <p>You'll be notified of the outcome</p>
+                                    </div>
+                                </div>
+                            </div>
+                            break;
+
+                        case "moreinforequested":
+                            <div class="status-message info">
+                                <p><strong>Additional information requested:</strong></p>
+                                @if (!string.IsNullOrEmpty(_vettingStatus.Notes))
+                                {
+                                    <p class="notes">@_vettingStatus.Notes</p>
+                                }
+                                <p>Please provide the requested information to continue the vetting process.</p>
+                            </div>
+                            <div class="actions">
+                                <button class="btn btn-primary" @onclick="ContactVettingTeam">
+                                    Contact Vetting Team
+                                    <i class="fas fa-envelope"></i>
+                                </button>
+                            </div>
+                            break;
+
+                        case "approved":
+                            <div class="status-message success">
+                                <p><strong>Congratulations!</strong> Your application has been approved.</p>
+                                <p>Welcome to the Witch City Rope community!</p>
+                                @if (!string.IsNullOrEmpty(_vettingStatus.Notes))
+                                {
+                                    <p class="notes">@_vettingStatus.Notes</p>
+                                }
+                            </div>
+                            <div class="welcome-info">
+                                <h3>What's Next?</h3>
+                                <ul>
+                                    <li><i class="fas fa-check"></i> You now have access to member-only events</li>
+                                    <li><i class="fas fa-check"></i> Join our private Discord server</li>
+                                    <li><i class="fas fa-check"></i> Participate in community discussions</li>
+                                    <li><i class="fas fa-check"></i> Register for advanced workshops</li>
+                                </ul>
+                            </div>
+                            <div class="actions">
+                                <a href="/events" class="btn btn-primary">
+                                    Browse Events
+                                    <i class="fas fa-calendar"></i>
+                                </a>
+                                <a href="/member/dashboard" class="btn btn-secondary">
+                                    Go to Dashboard
+                                </a>
+                            </div>
+                            break;
+
+                        case "rejected":
+                            <div class="status-message error">
+                                <p>We're sorry, but your application was not approved at this time.</p>
+                                @if (!string.IsNullOrEmpty(_vettingStatus.Notes))
+                                {
+                                    <p class="notes">@_vettingStatus.Notes</p>
+                                }
+                            </div>
+                            <div class="next-steps">
+                                <h3>What You Can Do</h3>
+                                <ul>
+                                    <li>Continue attending our public events</li>
+                                    <li>Build connections within the community</li>
+                                    <li>Reapply after 6 months</li>
+                                </ul>
+                            </div>
+                            <div class="actions">
+                                <a href="/events" class="btn btn-secondary">View Public Events</a>
+                            </div>
+                            break;
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .vetting-status-page {
+        min-height: 100vh;
+        background: var(--wcr-color-ivory);
+        padding: var(--wcr-space-xl) 0;
+    }
+
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0 40px;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: var(--wcr-space-2xl);
+    }
+
+    .page-header h1 {
+        font-family: var(--wcr-font-heading);
+        font-size: 42px;
+        color: var(--wcr-color-burgundy);
+    }
+
+    .loading-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 400px;
+    }
+
+    /* No Application State */
+    .no-application {
+        background: white;
+        border-radius: var(--wcr-radius-lg);
+        box-shadow: var(--wcr-shadow-md);
+        padding: var(--wcr-space-3xl);
+        text-align: center;
+    }
+
+    .icon-container {
+        margin-bottom: var(--wcr-space-lg);
+        color: var(--wcr-color-brass);
+    }
+
+    .no-application h2 {
+        font-family: var(--wcr-font-heading);
+        font-size: 28px;
+        color: var(--wcr-color-charcoal);
+        margin-bottom: var(--wcr-space-md);
+    }
+
+    .no-application p {
+        color: var(--wcr-color-stone);
+        margin-bottom: var(--wcr-space-sm);
+        font-size: 18px;
+    }
+
+    /* Status Card */
+    .status-card {
+        background: white;
+        border-radius: var(--wcr-radius-lg);
+        box-shadow: var(--wcr-shadow-lg);
+        overflow: hidden;
+    }
+
+    .status-header {
+        padding: var(--wcr-space-xl);
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-lg);
+    }
+
+    .status-header.submitted {
+        background: linear-gradient(135deg, var(--wcr-color-stone) 0%, var(--wcr-color-charcoal) 100%);
+    }
+
+    .status-header.under-review {
+        background: linear-gradient(135deg, var(--wcr-color-brass) 0%, var(--wcr-color-brass-dark) 100%);
+    }
+
+    .status-header.info-requested {
+        background: linear-gradient(135deg, var(--wcr-color-amber) 0%, var(--wcr-color-amber-dark) 100%);
+    }
+
+    .status-header.approved {
+        background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+    }
+
+    .status-header.rejected {
+        background: linear-gradient(135deg, var(--wcr-color-burgundy) 0%, var(--wcr-color-burgundy-dark) 100%);
+    }
+
+    .status-icon {
+        font-size: 48px;
+        opacity: 0.9;
+    }
+
+    .status-info h2 {
+        font-family: var(--wcr-font-heading);
+        font-size: 28px;
+        margin: 0;
+    }
+
+    .status-date {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 16px;
+    }
+
+    .status-content {
+        padding: var(--wcr-space-2xl);
+    }
+
+    .status-message {
+        background: var(--wcr-color-cream);
+        padding: var(--wcr-space-lg);
+        border-radius: var(--wcr-radius-md);
+        margin-bottom: var(--wcr-space-xl);
+    }
+
+    .status-message p {
+        margin-bottom: var(--wcr-space-sm);
+        color: var(--wcr-color-charcoal);
+        line-height: 1.6;
+    }
+
+    .status-message p:last-child {
+        margin-bottom: 0;
+    }
+
+    .status-message.info {
+        background: #fff3cd;
+        border-left: 4px solid var(--wcr-color-amber);
+    }
+
+    .status-message.success {
+        background: #d4edda;
+        border-left: 4px solid #4caf50;
+    }
+
+    .status-message.error {
+        background: #f8d7da;
+        border-left: 4px solid var(--wcr-color-burgundy);
+    }
+
+    .notes {
+        font-style: italic;
+        background: rgba(255, 255, 255, 0.5);
+        padding: var(--wcr-space-sm);
+        border-radius: var(--wcr-radius-sm);
+        margin: var(--wcr-space-sm) 0;
+    }
+
+    /* Timeline */
+    .timeline {
+        position: relative;
+        padding-left: 40px;
+        margin: var(--wcr-space-xl) 0;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 20px;
+        bottom: 20px;
+        width: 2px;
+        background: var(--wcr-color-taupe);
+        opacity: 0.3;
+    }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: var(--wcr-space-lg);
+    }
+
+    .timeline-marker {
+        position: absolute;
+        left: -25px;
+        top: 5px;
+        width: 12px;
+        height: 12px;
+        background: var(--wcr-color-taupe);
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 0 3px var(--wcr-color-taupe);
+        opacity: 0.5;
+    }
+
+    .timeline-item.completed .timeline-marker {
+        background: #4caf50;
+        box-shadow: 0 0 0 3px #4caf50;
+        opacity: 1;
+    }
+
+    .timeline-item.active .timeline-marker {
+        background: var(--wcr-color-brass);
+        box-shadow: 0 0 0 3px var(--wcr-color-brass);
+        opacity: 1;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+    }
+
+    .timeline-content h4 {
+        font-family: var(--wcr-font-heading);
+        font-size: 18px;
+        color: var(--wcr-color-charcoal);
+        margin-bottom: var(--wcr-space-xs);
+    }
+
+    .timeline-content p {
+        color: var(--wcr-color-stone);
+        font-size: 14px;
+        margin: 0;
+    }
+
+    /* Welcome Info */
+    .welcome-info {
+        background: var(--wcr-color-cream);
+        padding: var(--wcr-space-lg);
+        border-radius: var(--wcr-radius-md);
+        margin-bottom: var(--wcr-space-xl);
+    }
+
+    .welcome-info h3 {
+        font-family: var(--wcr-font-heading);
+        font-size: 20px;
+        color: var(--wcr-color-charcoal);
+        margin-bottom: var(--wcr-space-md);
+    }
+
+    .welcome-info ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .welcome-info li {
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+        margin-bottom: var(--wcr-space-sm);
+        color: var(--wcr-color-charcoal);
+    }
+
+    .welcome-info li i {
+        color: #4caf50;
+    }
+
+    /* Next Steps */
+    .next-steps {
+        background: var(--wcr-color-cream);
+        padding: var(--wcr-space-lg);
+        border-radius: var(--wcr-radius-md);
+        margin-bottom: var(--wcr-space-xl);
+    }
+
+    .next-steps h3 {
+        font-family: var(--wcr-font-heading);
+        font-size: 20px;
+        color: var(--wcr-color-charcoal);
+        margin-bottom: var(--wcr-space-md);
+    }
+
+    .next-steps ul {
+        padding-left: var(--wcr-space-lg);
+    }
+
+    .next-steps li {
+        margin-bottom: var(--wcr-space-sm);
+        color: var(--wcr-color-stone);
+    }
+
+    /* Actions */
+    .actions {
+        display: flex;
+        gap: var(--wcr-space-md);
+        justify-content: center;
+        margin-top: var(--wcr-space-xl);
+        flex-wrap: wrap;
+    }
+
+    .actions .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .container {
+            padding: 0 20px;
+        }
+
+        .page-header h1 {
+            font-size: 32px;
+        }
+
+        .status-header {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .timeline {
+            padding-left: 30px;
+        }
+
+        .actions {
+            flex-direction: column;
+        }
+
+        .actions .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+@code {
+    private WitchCityRope.Web.Services.VettingStatus? _vettingStatus;
+    private UserDto? _currentUser;
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _currentUser = await AuthService.GetCurrentUserAsync();
+        
+        if (_currentUser == null)
+        {
+            Navigation.NavigateTo($"/login?returnUrl={Uri.EscapeDataString("/profile/vetting")}");
+            return;
+        }
+
+        await LoadVettingStatus();
+    }
+
+    private async Task LoadVettingStatus()
+    {
+        try
+        {
+            _vettingStatus = await VettingService.GetMyVettingStatusAsync();
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private string GetStatusClass()
+    {
+        return _vettingStatus?.Status.ToLower() switch
+        {
+            "submitted" => "submitted",
+            "underreview" => "under-review",
+            "moreinforequested" => "info-requested",
+            "approved" => "approved",
+            "rejected" => "rejected",
+            _ => "submitted"
+        };
+    }
+
+    private string GetStatusIcon()
+    {
+        return _vettingStatus?.Status.ToLower() switch
+        {
+            "submitted" => "fas fa-clock",
+            "underreview" => "fas fa-search",
+            "moreinforequested" => "fas fa-exclamation-circle",
+            "approved" => "fas fa-check-circle",
+            "rejected" => "fas fa-times-circle",
+            _ => "fas fa-question-circle"
+        };
+    }
+
+    private string GetStatusTitle()
+    {
+        return _vettingStatus?.Status.ToLower() switch
+        {
+            "submitted" => "Application Submitted",
+            "underreview" => "Under Review",
+            "moreinforequested" => "Additional Information Requested",
+            "approved" => "Application Approved",
+            "rejected" => "Application Not Approved",
+            _ => "Unknown Status"
+        };
+    }
+
+    private void ContactVettingTeam()
+    {
+        // TODO: Implement contact functionality
+        Navigation.NavigateTo("/contact?subject=vetting");
+    }
+}

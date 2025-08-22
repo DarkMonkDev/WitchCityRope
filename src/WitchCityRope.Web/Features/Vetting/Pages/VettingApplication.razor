@@ -1,0 +1,524 @@
+@page "/vetting/apply"
+@using WitchCityRope.Core.DTOs
+@inject NavigationManager Navigation
+@inject IAuthService AuthService
+@inject HttpClient Http
+@inject IToastService ToastService
+
+<PageTitle>Vetting Application - Witch City Rope</PageTitle>
+
+<div class="vetting-application-page">
+    <div class="container">
+        <div class="application-header">
+            <h1>Vetting Application</h1>
+            <p class="subtitle">Join the Witch City Rope community</p>
+        </div>
+
+        @if (_isSubmitting)
+        {
+            <div class="loading-overlay">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Submitting application...</span>
+                </div>
+            </div>
+        }
+
+        <div class="application-form">
+            <EditForm Model="_application" OnValidSubmit="HandleSubmit">
+                <DataAnnotationsValidator />
+                
+                <!-- Personal Information -->
+                <div class="form-section">
+                    <h2><i class="fas fa-user"></i> Personal Information</h2>
+                    <p class="section-description">Your legal name is kept confidential and only used for verification purposes.</p>
+                    
+                    @if (_currentUser == null)
+                    {
+                        <div class="form-group">
+                            <label for="email">Email Address <span class="required">*</span></label>
+                            <InputText id="email" @bind-Value="_anonymousEmail" class="form-control" type="email" placeholder="your@email.com" />
+                            <small class="form-text text-muted">We'll use this to contact you about your application</small>
+                        </div>
+                    }
+                    
+                    <div class="form-group">
+                        <label for="legalName">Legal Name <span class="required">*</span></label>
+                        <InputText id="legalName" @bind-Value="_application.LegalName" class="form-control" placeholder="Your legal name" />
+                        <ValidationMessage For="@(() => _application.LegalName)" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="preferredName">Preferred Name <span class="required">*</span></label>
+                        <InputText id="preferredName" @bind-Value="_application.PreferredName" class="form-control" placeholder="Name you'd like us to use" />
+                        <ValidationMessage For="@(() => _application.PreferredName)" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fetlifeName">FetLife Username</label>
+                        <InputText id="fetlifeName" @bind-Value="_application.FetlifeName" class="form-control" placeholder="Your FetLife username (optional)" />
+                        <small class="form-text text-muted">Helps us verify your community involvement</small>
+                    </div>
+                </div>
+
+                <!-- Experience -->
+                <div class="form-section">
+                    <h2><i class="fas fa-ribbon"></i> Experience & Interests</h2>
+                    
+                    <div class="form-group">
+                        <label for="experience">Rope Bondage Experience <span class="required">*</span></label>
+                        <InputTextArea id="experience" @bind-Value="_application.Experience" class="form-control" rows="4" 
+                                     placeholder="Describe your experience with rope bondage. It's okay if you're new - we all started somewhere!" />
+                        <ValidationMessage For="@(() => _application.Experience)" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="whyJoin">Why Do You Want to Join? <span class="required">*</span></label>
+                        <InputTextArea id="whyJoin" @bind-Value="_application.WhyJoin" class="form-control" rows="4" 
+                                     placeholder="What interests you about joining our community?" />
+                        <ValidationMessage For="@(() => _application.WhyJoin)" />
+                    </div>
+                </div>
+
+                <!-- References -->
+                <div class="form-section">
+                    <h2><i class="fas fa-users"></i> Community References</h2>
+                    <p class="section-description">Please provide at least two references from the kink/rope community who can vouch for you.</p>
+                    
+                    <div class="reference-box">
+                        <h3>Reference 1 <span class="required">*</span></h3>
+                        <div class="form-group">
+                            <label for="ref1Name">Name</label>
+                            <InputText id="ref1Name" @bind-Value="_application.ReferenceOneName" class="form-control" placeholder="Reference's name" />
+                            <ValidationMessage For="@(() => _application.ReferenceOneName)" />
+                        </div>
+                        <div class="form-group">
+                            <label for="ref1Contact">Contact Information</label>
+                            <InputText id="ref1Contact" @bind-Value="_application.ReferenceOneContact" class="form-control" 
+                                     placeholder="Email, phone, or FetLife username" />
+                            <ValidationMessage For="@(() => _application.ReferenceOneContact)" />
+                        </div>
+                    </div>
+
+                    <div class="reference-box">
+                        <h3>Reference 2 <span class="required">*</span></h3>
+                        <div class="form-group">
+                            <label for="ref2Name">Name</label>
+                            <InputText id="ref2Name" @bind-Value="_application.ReferenceTwoName" class="form-control" placeholder="Reference's name" />
+                            <ValidationMessage For="@(() => _application.ReferenceTwoName)" />
+                        </div>
+                        <div class="form-group">
+                            <label for="ref2Contact">Contact Information</label>
+                            <InputText id="ref2Contact" @bind-Value="_application.ReferenceTwoContact" class="form-control" 
+                                     placeholder="Email, phone, or FetLife username" />
+                            <ValidationMessage For="@(() => _application.ReferenceTwoContact)" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agreements -->
+                <div class="form-section">
+                    <h2><i class="fas fa-handshake"></i> Community Agreements</h2>
+                    
+                    <div class="agreement-item">
+                        <label>
+                            <InputCheckbox @bind-Value="_application.AgreeToCommunityGuidelines" />
+                            <span>
+                                I have read and agree to follow the 
+                                <a href="/code-of-conduct" target="_blank">Community Guidelines & Code of Conduct</a>
+                                <span class="required">*</span>
+                            </span>
+                        </label>
+                        <ValidationMessage For="@(() => _application.AgreeToCommunityGuidelines)" />
+                    </div>
+
+                    <div class="agreement-item">
+                        <label>
+                            <InputCheckbox @bind-Value="_application.AgreeToPhotoPolicy" />
+                            <span>
+                                I understand and agree to the 
+                                <a href="/photo-policy" target="_blank">Photography & Privacy Policy</a>
+                                <span class="required">*</span>
+                            </span>
+                        </label>
+                        <ValidationMessage For="@(() => _application.AgreeToPhotoPolicy)" />
+                    </div>
+
+                    <div class="agreement-item">
+                        <label>
+                            <InputCheckbox @bind-Value="_agreeToVettingProcess" />
+                            <span>
+                                I understand that the vetting process involves reference checks and review by the vetting team
+                                <span class="required">*</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Submit Section -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg" disabled="@(!CanSubmit() || _isSubmitting)">
+                        @if (_isSubmitting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            <span>Submitting...</span>
+                        }
+                        else
+                        {
+                            <span>Submit Application</span>
+                            <i class="fas fa-arrow-right ms-2"></i>
+                        }
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-lg" @onclick="Cancel">Cancel</button>
+                </div>
+            </EditForm>
+        </div>
+
+        <!-- Info Box -->
+        <div class="info-box">
+            <h3><i class="fas fa-info-circle"></i> What Happens Next?</h3>
+            <ul>
+                <li>We'll contact your references to verify your standing in the community</li>
+                <li>Our vetting team will review your application (typically 5-7 days)</li>
+                <li>You'll receive an email with our decision</li>
+                <li>If approved, you'll gain access to member events and community spaces</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+    .vetting-application-page {
+        min-height: 100vh;
+        background: var(--wcr-color-ivory);
+        padding: var(--wcr-space-xl) 0;
+    }
+
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0 40px;
+    }
+
+    .application-header {
+        text-align: center;
+        margin-bottom: var(--wcr-space-3xl);
+    }
+
+    .application-header h1 {
+        font-family: var(--wcr-font-heading);
+        font-size: 42px;
+        color: var(--wcr-color-burgundy);
+        margin-bottom: var(--wcr-space-sm);
+    }
+
+    .subtitle {
+        font-size: 18px;
+        color: var(--wcr-color-stone);
+    }
+
+    .application-form {
+        background: white;
+        border-radius: var(--wcr-radius-lg);
+        box-shadow: var(--wcr-shadow-lg);
+        padding: var(--wcr-space-2xl);
+        position: relative;
+    }
+
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        border-radius: var(--wcr-radius-lg);
+    }
+
+    .form-section {
+        margin-bottom: var(--wcr-space-2xl);
+        padding-bottom: var(--wcr-space-2xl);
+        border-bottom: 1px solid var(--wcr-color-cream);
+    }
+
+    .form-section:last-of-type {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .form-section h2 {
+        font-family: var(--wcr-font-heading);
+        font-size: 24px;
+        color: var(--wcr-color-burgundy);
+        margin-bottom: var(--wcr-space-md);
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+    }
+
+    .form-section h2 i {
+        color: var(--wcr-color-brass);
+        font-size: 20px;
+    }
+
+    .section-description {
+        color: var(--wcr-color-stone);
+        margin-bottom: var(--wcr-space-lg);
+        line-height: 1.6;
+    }
+
+    .form-group {
+        margin-bottom: var(--wcr-space-lg);
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: var(--wcr-color-charcoal);
+        margin-bottom: var(--wcr-space-sm);
+    }
+
+    .required {
+        color: var(--wcr-color-burgundy);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: var(--wcr-space-sm) var(--wcr-space-md);
+        border: 1px solid var(--wcr-color-taupe);
+        border-radius: var(--wcr-radius-sm);
+        font-family: var(--wcr-font-body);
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--wcr-color-brass);
+        box-shadow: 0 0 0 3px rgba(183, 135, 65, 0.1);
+    }
+
+    .form-control::placeholder {
+        color: var(--wcr-color-stone);
+        opacity: 0.7;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .form-text {
+        font-size: 14px;
+        margin-top: var(--wcr-space-xs);
+    }
+
+    .reference-box {
+        background: var(--wcr-color-cream);
+        padding: var(--wcr-space-lg);
+        border-radius: var(--wcr-radius-md);
+        margin-bottom: var(--wcr-space-lg);
+    }
+
+    .reference-box h3 {
+        font-family: var(--wcr-font-heading);
+        font-size: 18px;
+        color: var(--wcr-color-charcoal);
+        margin-bottom: var(--wcr-space-md);
+    }
+
+    .agreement-item {
+        margin-bottom: var(--wcr-space-md);
+    }
+
+    .agreement-item label {
+        display: flex;
+        align-items: flex-start;
+        cursor: pointer;
+        font-weight: normal;
+    }
+
+    .agreement-item input[type="checkbox"] {
+        margin-right: var(--wcr-space-sm);
+        margin-top: 4px;
+        cursor: pointer;
+    }
+
+    .agreement-item a {
+        color: var(--wcr-color-brass);
+        text-decoration: underline;
+    }
+
+    .agreement-item a:hover {
+        color: var(--wcr-color-brass-dark);
+    }
+
+    .form-actions {
+        display: flex;
+        gap: var(--wcr-space-md);
+        margin-top: var(--wcr-space-2xl);
+        padding-top: var(--wcr-space-2xl);
+        border-top: 1px solid var(--wcr-color-cream);
+    }
+
+    .btn-lg {
+        padding: var(--wcr-space-md) var(--wcr-space-xl);
+        font-size: 18px;
+    }
+
+    .info-box {
+        background: white;
+        border-radius: var(--wcr-radius-md);
+        box-shadow: var(--wcr-shadow-md);
+        padding: var(--wcr-space-xl);
+        margin-top: var(--wcr-space-xl);
+    }
+
+    .info-box h3 {
+        font-family: var(--wcr-font-heading);
+        font-size: 20px;
+        color: var(--wcr-color-burgundy);
+        margin-bottom: var(--wcr-space-md);
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+    }
+
+    .info-box h3 i {
+        color: var(--wcr-color-brass);
+    }
+
+    .info-box ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .info-box li {
+        position: relative;
+        padding-left: var(--wcr-space-lg);
+        margin-bottom: var(--wcr-space-sm);
+        color: var(--wcr-color-stone);
+        line-height: 1.6;
+    }
+
+    .info-box li::before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        color: var(--wcr-color-brass);
+        font-weight: bold;
+        font-size: 20px;
+        line-height: 1;
+    }
+
+    .validation-message {
+        color: var(--wcr-color-burgundy);
+        font-size: 14px;
+        margin-top: var(--wcr-space-xs);
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .container {
+            padding: 0 20px;
+        }
+
+        .application-form {
+            padding: var(--wcr-space-lg);
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .btn-lg {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+@code {
+    private VettingApplicationRequest _application = new();
+    private bool _agreeToVettingProcess = false;
+    private bool _isSubmitting = false;
+    private UserDto? _currentUser;
+    private string _anonymousEmail = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Allow both anonymous and authenticated users
+        _currentUser = await AuthService.GetCurrentUserAsync();
+        
+        if (_currentUser != null)
+        {
+            // Pre-fill any known information for logged-in users
+            _application.LegalName = _currentUser.DisplayName ?? "";
+            
+            // TODO: Check if user already has a pending or approved application
+        }
+        // Anonymous users can still fill out the application
+    }
+
+    private bool CanSubmit()
+    {
+        // Check email for anonymous users
+        if (_currentUser == null && string.IsNullOrWhiteSpace(_anonymousEmail))
+        {
+            return false;
+        }
+        
+        return !string.IsNullOrWhiteSpace(_application.LegalName) &&
+               !string.IsNullOrWhiteSpace(_application.PreferredName) &&
+               !string.IsNullOrWhiteSpace(_application.Experience) &&
+               !string.IsNullOrWhiteSpace(_application.WhyJoin) &&
+               !string.IsNullOrWhiteSpace(_application.ReferenceOneName) &&
+               !string.IsNullOrWhiteSpace(_application.ReferenceOneContact) &&
+               !string.IsNullOrWhiteSpace(_application.ReferenceTwoName) &&
+               !string.IsNullOrWhiteSpace(_application.ReferenceTwoContact) &&
+               _application.AgreeToCommunityGuidelines &&
+               _application.AgreeToPhotoPolicy &&
+               _agreeToVettingProcess;
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (!CanSubmit()) return;
+
+        _isSubmitting = true;
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("/api/vetting/apply", _application);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<VettingApplicationResponse>();
+                ToastService.ShowSuccess("Application submitted successfully! We'll be in touch soon.");
+                Navigation.NavigateTo("/member/dashboard");
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                ToastService.ShowError($"Failed to submit application: {errorContent}");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"An error occurred: {ex.Message}");
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/");
+    }
+}

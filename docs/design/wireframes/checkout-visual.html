@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Witch City Rope</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,700;6..96,900&family=Montserrat:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;600&family=Satisfy&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Primary Colors */
+            --color-burgundy: #880124;
+            --color-burgundy-dark: #660119;
+            --color-burgundy-light: #AA0130;
+            
+            --color-plum: #614B79;
+            --color-plum-dark: #4A3A5C;
+            --color-plum-light: #7B6296;
+            
+            /* Warm Metallics */
+            --color-rose-gold: #B76D75;
+            --color-copper: #B87333;
+            --color-brass: #C9A961;
+            
+            /* CTA Accent Colors */
+            --color-electric: #9D4EDD;
+            --color-electric-dark: #7B2CBF;
+            --color-amber: #FFBF00;
+            --color-amber-dark: #E6AC00;
+            --color-amber-light: #FFD633;
+            
+            /* Neutral Colors */
+            --color-midnight: #1A1A2E;
+            --color-charcoal: #2B2B2B;
+            --color-gray-dark: #2D2D2D;
+            --color-gray: #666666;
+            --color-gray-light: #CCCCCC;
+            --color-stone: #8B8680;
+            --color-taupe: #B8B0A8;
+            --color-ivory: #FFF8F0;
+            --color-cream: #FAF6F2;
+            --color-off-white: #F5F5F5;
+            
+            /* Supporting Tones */
+            --color-dusty-rose: #D4A5A5;
+            
+            /* Status Colors */
+            --color-success: #228B22;
+            --color-warning: #DAA520;
+            --color-error: #DC143C;
+            --color-info: #614B79;
+            
+            --color-success-light: #E6F7F1;
+            --color-warning-light: #FFF4CC;
+            --color-error-light: #FFE5EC;
+            --color-info-light: #F0EDFF;
+            
+            /* Typography */
+            --font-display: 'Bodoni Moda', serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            --font-accent: 'Satisfy', cursive;
+            
+            /* Spacing */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 40px;
+            --space-3xl: 48px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            font-size: 18px;
+            line-height: 1.6;
+            color: var(--color-charcoal);
+            background-color: var(--color-cream);
+            min-height: 100vh;
+        }
+        
+        /* Utility Bar */
+        .utility-bar {
+            background: var(--color-midnight);
+            padding: 12px 40px;
+            font-size: 13px;
+            color: var(--color-taupe);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            font-family: var(--font-heading);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .utility-bar a {
+            color: var(--color-taupe);
+            text-decoration: none;
+            margin-left: var(--space-xl);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .utility-bar a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--color-rose-gold);
+            transition: width 0.3s ease;
+        }
+        
+        .utility-bar a:hover {
+            color: var(--color-rose-gold);
+        }
+        
+        .utility-bar a:hover::after {
+            width: 100%;
+        }
+        
+        .utility-bar a.incident-link {
+            color: var(--color-brass);
+            font-weight: 600;
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(255, 248, 240, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            padding: var(--space-sm) 40px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--color-burgundy);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            transition: all 0.3s ease;
+        }
+        
+        .logo:hover {
+            color: var(--color-burgundy-light);
+            transform: scale(1.02);
+        }
+        
+        .nav-secure-wrapper {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xl);
+        }
+        
+        .nav {
+            display: flex;
+            gap: var(--space-xl);
+            align-items: center;
+        }
+        
+        .nav-item {
+            color: var(--color-charcoal);
+            text-decoration: none;
+            font-family: var(--font-heading);
+            font-weight: 500;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: var(--color-burgundy);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-item:hover {
+            color: var(--color-burgundy);
+        }
+        
+        .nav-item:hover::before {
+            width: 100%;
+        }
+        
+        .secure-badge {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            color: var(--color-success);
+            font-size: 14px;
+            font-weight: 600;
+            padding-left: var(--space-xl);
+            border-left: 1px solid var(--color-taupe);
+        }
+        
+        /* Progress Bar */
+        .progress-bar {
+            background: var(--color-ivory);
+            padding: var(--space-md) 0;
+            border-bottom: 1px solid var(--color-taupe);
+            margin-top: 48px; /* Account for utility bar */
+        }
+        
+        .progress-content {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+        }
+        
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--color-taupe);
+            z-index: 0;
+        }
+        
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--color-cream);
+            border: 2px solid var(--color-taupe);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .step-circle.active {
+            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
+            color: var(--color-ivory);
+            border-color: var(--color-burgundy);
+        }
+        
+        .step-circle.completed {
+            background: var(--color-success);
+            color: var(--color-ivory);
+            border-color: var(--color-success);
+        }
+        
+        .step-label {
+            font-size: 14px;
+            color: var(--color-stone);
+            font-weight: 500;
+        }
+        
+        .step-label.active {
+            color: var(--color-burgundy);
+            font-weight: 600;
+        }
+        
+        /* Main Layout */
+        .checkout-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: var(--space-lg) var(--space-xl);
+        }
+        
+        /* Checkout Form */
+        .checkout-form {
+            background: var(--color-ivory);
+            border-radius: 12px;
+            padding: var(--space-lg);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .form-section {
+            margin-bottom: var(--space-lg);
+        }
+        
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-md);
+            padding-bottom: var(--space-sm);
+            border-bottom: 2px solid var(--color-taupe);
+        }
+        
+        /* Class Info Section */
+        .class-info {
+            background: var(--color-cream);
+            padding: var(--space-md);
+            border-radius: 8px;
+        }
+        
+        .class-title {
+            font-family: var(--font-heading);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-sm);
+        }
+        
+        .class-details {
+            display: flex;
+            gap: var(--space-md);
+            color: var(--color-stone);
+            font-size: 14px;
+            margin-bottom: var(--space-md);
+        }
+        
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        
+        .quantity-section {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding-top: var(--space-md);
+            border-top: 1px solid var(--color-taupe);
+        }
+        
+        .quantity-label {
+            color: var(--color-stone);
+            font-weight: 600;
+        }
+        
+        .quantity-input {
+            width: 60px;
+            padding: var(--space-sm);
+            border: 2px solid var(--color-taupe);
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            background: var(--color-ivory);
+            color: var(--color-charcoal);
+        }
+        
+        .quantity-input:focus {
+            outline: none;
+            border-color: var(--color-burgundy);
+            box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.1);
+        }
+        
+        .quantity-x {
+            font-size: 18px;
+            color: var(--color-stone);
+            font-weight: 600;
+        }
+        
+        .ticket-type-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-charcoal);
+        }
+        
+        /* Form Fields */
+        .form-group {
+            margin-bottom: var(--space-md);
+        }
+        
+        .form-label {
+            display: block;
+            font-family: var(--font-heading);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-smoke);
+            margin-bottom: var(--space-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: var(--space-sm) var(--space-sm);
+            border: 2px solid var(--color-taupe);
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: var(--font-body);
+            background: var(--color-cream);
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--color-burgundy);
+            background: var(--color-ivory);
+            box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.1);
+        }
+        
+        .form-hint {
+            font-size: 13px;
+            color: var(--color-stone);
+            margin-top: var(--space-xs);
+        }
+        
+        /* Partner Info */
+        .partner-section {
+            background: var(--color-cream);
+            padding: var(--space-md);
+            border-radius: 8px;
+            margin-top: var(--space-md);
+        }
+        
+        .partner-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-md);
+        }
+        
+        .partner-title {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-charcoal);
+        }
+        
+        .optional-badge {
+            background: var(--color-info-light);
+            color: var(--color-info);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        /* Payment Methods */
+        .payment-methods {
+            display: flex;
+            gap: var(--space-md);
+            margin-bottom: var(--space-md);
+            justify-content: center;
+        }
+        
+        .payment-method {
+            padding: var(--space-sm) var(--space-lg);
+            border: 2px solid var(--color-taupe);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--color-cream);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--color-charcoal);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .payment-method:hover {
+            border-color: var(--color-burgundy);
+            background: var(--color-ivory);
+        }
+        
+        .payment-method.selected {
+            border-color: var(--color-burgundy);
+            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
+            color: var(--color-ivory);
+        }
+        
+        /* Credit Card Form */
+        .card-form {
+            display: grid;
+            gap: var(--space-md);
+        }
+        
+        .card-number-group {
+            position: relative;
+        }
+        
+        .card-icons {
+            position: absolute;
+            right: var(--space-md);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: var(--space-xs);
+        }
+        
+        .card-icon {
+            width: 32px;
+            height: 20px;
+            background: var(--color-gray-light);
+            border-radius: 4px;
+        }
+        
+        .card-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--space-md);
+        }
+        
+        /* Process Payment Section */
+        .process-payment-section {
+            background: var(--color-ivory);
+            border-radius: 12px;
+            padding: var(--space-lg);
+            margin-top: var(--space-lg);
+            text-align: center;
+            border: 2px solid var(--color-taupe);
+        }
+        
+        .total-amount {
+            margin-bottom: var(--space-md);
+        }
+        
+        .total-label {
+            font-size: 18px;
+            color: var(--color-stone);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .total-value {
+            font-family: var(--font-display);
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--color-burgundy);
+        }
+        
+        .terms-text {
+            font-size: 14px;
+            color: var(--color-stone);
+            margin-top: var(--space-md);
+            line-height: 1.6;
+        }
+        
+        .terms-text a {
+            color: var(--color-burgundy);
+            text-decoration: underline;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: var(--space-md) var(--space-xl);
+            border: none;
+            border-radius: 8px;
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+            color: var(--color-midnight);
+            box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(255, 191, 0, 0.5);
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+        
+        /* PayPal Button */
+        .paypal-button {
+            background: #FFC439;
+            color: #003087;
+            font-weight: 700;
+            width: 100%;
+            margin-top: var(--space-md);
+        }
+        
+        .paypal-button:hover {
+            background: #FFB500;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        /* Success State */
+        .success-container {
+            max-width: 600px;
+            margin: var(--space-3xl) auto;
+            text-align: center;
+            padding: 0 var(--space-xl);
+        }
+        
+        .success-icon {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--color-success) 0%, #2E7D32 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--space-lg);
+            font-size: 60px;
+            color: var(--color-ivory);
+            box-shadow: 0 8px 24px rgba(34, 139, 34, 0.3);
+        }
+        
+        .success-title {
+            font-family: var(--font-display);
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-md);
+        }
+        
+        .success-message {
+            font-size: 18px;
+            color: var(--color-stone);
+            margin-bottom: var(--space-xl);
+            line-height: 1.8;
+        }
+        
+        .confirmation-details {
+            background: var(--color-ivory);
+            border-radius: 12px;
+            padding: var(--space-lg);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            text-align: left;
+            margin-bottom: var(--space-xl);
+        }
+        
+        .confirmation-row {
+            display: flex;
+            justify-content: space-between;
+            padding: var(--space-sm) 0;
+            border-bottom: 1px solid var(--color-off-white);
+        }
+        
+        .confirmation-row:last-child {
+            border-bottom: none;
+        }
+        
+        .confirmation-label {
+            color: var(--color-stone);
+            font-size: 16px;
+        }
+        
+        .confirmation-value {
+            font-weight: 600;
+            color: var(--color-charcoal);
+            font-size: 16px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: var(--space-md);
+            justify-content: center;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--color-burgundy);
+            color: var(--color-burgundy);
+            padding: var(--space-sm) var(--space-lg);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--color-burgundy);
+            color: var(--color-ivory);
+        }
+        
+        /* Hidden States */
+        .hidden {
+            display: none;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .utility-bar {
+                padding: 10px 20px;
+                font-size: 11px;
+            }
+            
+            .header {
+                padding: var(--space-sm) 20px;
+            }
+            
+            .logo {
+                font-size: 24px;
+            }
+            
+            .nav {
+                display: none;
+            }
+            
+            .nav-secure-wrapper {
+                gap: var(--space-md);
+            }
+            
+            .secure-badge {
+                padding-left: 0;
+                border-left: none;
+            }
+            
+            .checkout-container {
+                padding: var(--space-md);
+            }
+            
+            .payment-methods {
+                flex-direction: column;
+                gap: var(--space-sm);
+            }
+            
+            .payment-method {
+                width: 100%;
+            }
+            
+            .card-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Utility Bar -->
+    <div class="utility-bar">
+        <a href="#" class="incident-link">Report an Incident</a>
+        <a href="#">Private Lessons</a>
+        <a href="#">Contact</a>
+    </div>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="landing-page-visual-v2.html" class="logo">WITCH CITY ROPE</a>
+            <div class="nav-secure-wrapper">
+                <nav class="nav">
+                    <a href="event-list-visual.html" class="nav-item">Events & Classes</a>
+                    <a href="vetting-application.html" class="nav-item">How to Join</a>
+                    <a href="#" class="nav-item">Resources</a>
+                </nav>
+                <div class="secure-badge">
+                    <span>🔒</span>
+                    <span>Secure Checkout</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+        <div class="progress-content">
+            <div class="progress-steps">
+                <div class="progress-step">
+                    <div class="step-circle completed">✓</div>
+                    <div class="step-label">Select Event</div>
+                </div>
+                <div class="progress-step">
+                    <div class="step-circle active">2</div>
+                    <div class="step-label active">Ticket & Payment</div>
+                </div>
+                <div class="progress-step">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Confirmation</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Checkout Form -->
+    <div class="checkout-container" id="checkoutStep">
+        <div class="checkout-form">
+            <!-- Class Information -->
+            <div class="form-section">
+                <h2 class="section-title">Event Information</h2>
+                
+                <div class="class-info">
+                    <h3 class="class-title">Introduction to Rope Bondage</h3>
+                    <div class="class-details">
+                        <div class="detail-item">
+                            <span>📅</span>
+                            <span>Saturday, March 15, 2024</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>⏰</span>
+                            <span>2:00 PM - 5:00 PM</span>
+                        </div>
+                    </div>
+                    
+                    <div class="quantity-section">
+                        <span class="quantity-label">Purchasing</span>
+                        <input type="number" class="quantity-input" value="1" min="1" max="10" id="ticketQuantity">
+                        <span class="quantity-x">×</span>
+                        <span class="ticket-type-text">Single Person Ticket</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment Method -->
+            <div class="form-section">
+                <h2 class="section-title">Payment Method</h2>
+                
+                <div class="payment-methods">
+                    <button class="payment-method selected" onclick="selectPayment('card')">Credit Card</button>
+                    <button class="payment-method" onclick="selectPayment('paypal')">PayPal</button>
+                </div>
+                
+                <!-- Credit Card Form -->
+                <div id="cardForm" class="card-form">
+                    <div class="form-group card-number-group">
+                        <label class="form-label">Card Number</label>
+                        <input type="text" class="form-input" placeholder="1234 5678 9012 3456" maxlength="19">
+                        <div class="card-icons">
+                            <span class="card-icon"></span>
+                            <span class="card-icon"></span>
+                            <span class="card-icon"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Cardholder Name</label>
+                        <input type="text" class="form-input" placeholder="Name on card">
+                    </div>
+                    
+                    <div class="card-row">
+                        <div class="form-group">
+                            <label class="form-label">Expiry Date</label>
+                            <input type="text" class="form-input" placeholder="MM/YY" maxlength="5">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">CVV</label>
+                            <input type="text" class="form-input" placeholder="123" maxlength="4">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Billing ZIP Code</label>
+                        <input type="text" class="form-input" placeholder="12345" maxlength="5">
+                    </div>
+                </div>
+                
+                <!-- PayPal Form -->
+                <div id="paypalForm" class="hidden">
+                    <p style="text-align: center; padding: var(--space-xl) 0; color: var(--color-stone);">
+                        You will be redirected to PayPal to complete your payment securely.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Process Payment -->
+            <div class="process-payment-section">
+                <div class="total-amount">
+                    <div class="total-label">Total Amount</div>
+                    <div class="total-value" id="totalPrice">$52.50</div>
+                </div>
+                
+                <button class="btn btn-primary" onclick="processPayment()" id="creditCardButton">Complete Purchase</button>
+                <button class="btn paypal-button hidden" id="paypalButton" onclick="processPayment()">Pay with PayPal</button>
+                
+                <p class="terms-text">
+                    By completing this purchase, you agree to our <a href="#">Terms of Service</a> and <a href="#">Refund Policy</a>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Success State -->
+    <div class="success-container hidden" id="successStep">
+        <div class="success-icon">✓</div>
+        <h1 class="success-title">Registration Complete!</h1>
+        <p class="success-message">
+            Thank you for registering! We've sent a confirmation email to your address with all the event details.
+        </p>
+        
+        <div class="confirmation-details">
+            <div class="confirmation-row">
+                <span class="confirmation-label">Confirmation Number</span>
+                <span class="confirmation-value">#WCR-2024-0315</span>
+            </div>
+            <div class="confirmation-row">
+                <span class="confirmation-label">Event</span>
+                <span class="confirmation-value">Introduction to Rope Bondage</span>
+            </div>
+            <div class="confirmation-row">
+                <span class="confirmation-label">Date & Time</span>
+                <span class="confirmation-value">March 15, 2024 at 2:00 PM</span>
+            </div>
+            <div class="confirmation-row">
+                <span class="confirmation-label">Ticket Type</span>
+                <span class="confirmation-value" id="confirmTicketType">Single Ticket</span>
+            </div>
+            <div class="confirmation-row">
+                <span class="confirmation-label">Total Paid</span>
+                <span class="confirmation-value" id="confirmTotal">$52.50</span>
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="member-my-tickets-visual.html" class="btn btn-primary">View My Tickets</a>
+            <a href="event-list-visual.html" class="btn btn-secondary">Browse More Events</a>
+        </div>
+    </div>
+    
+    <script>
+        let selectedPaymentMethod = 'card';
+        
+        function updateTotal() {
+            const quantity = parseInt(document.getElementById('ticketQuantity').value) || 1;
+            const basePrice = 50; // Single ticket price
+            const subtotal = basePrice * quantity;
+            const fee = 2.50;
+            const total = subtotal + fee;
+            
+            document.getElementById('totalPrice').textContent = `$${total.toFixed(2)}`;
+        }
+        
+        // Add event listener for quantity changes
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('ticketQuantity').addEventListener('change', updateTotal);
+            document.getElementById('ticketQuantity').addEventListener('input', updateTotal);
+            updateTotal();
+        });
+        
+        function selectPayment(method) {
+            selectedPaymentMethod = method;
+            
+            // Update UI
+            document.querySelectorAll('.payment-method').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            // Toggle payment forms
+            const cardForm = document.getElementById('cardForm');
+            const paypalForm = document.getElementById('paypalForm');
+            const creditCardButton = document.getElementById('creditCardButton');
+            const paypalButton = document.getElementById('paypalButton');
+            
+            if (method === 'paypal') {
+                cardForm.classList.add('hidden');
+                paypalForm.classList.remove('hidden');
+                creditCardButton.classList.add('hidden');
+                paypalButton.classList.remove('hidden');
+            } else {
+                cardForm.classList.remove('hidden');
+                paypalForm.classList.add('hidden');
+                creditCardButton.classList.remove('hidden');
+                paypalButton.classList.add('hidden');
+            }
+        }
+        
+        function processPayment() {
+            // Simulate payment processing
+            setTimeout(() => {
+                // Update progress bar
+                document.querySelectorAll('.step-circle')[1].classList.remove('active');
+                document.querySelectorAll('.step-circle')[1].classList.add('completed');
+                document.querySelectorAll('.step-circle')[1].textContent = '✓';
+                document.querySelectorAll('.step-circle')[2].classList.add('active');
+                document.querySelectorAll('.step-label')[2].classList.add('active');
+                
+                // Show success screen
+                document.getElementById('checkoutStep').classList.add('hidden');
+                document.getElementById('successStep').classList.remove('hidden');
+                
+                // Scroll to top
+                window.scrollTo(0, 0);
+            }, 1500);
+        }
+        
+        // Format card number input
+        document.querySelector('.card-number-group input').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '');
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+            e.target.value = formattedValue;
+        });
+        
+        // Format expiry date
+        document.querySelector('input[placeholder="MM/YY"]').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.slice(0, 2) + '/' + value.slice(2, 4);
+            }
+            e.target.value = value;
+        });
+    </script>
+</body>
+</html>

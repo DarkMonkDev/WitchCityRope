@@ -1,0 +1,135 @@
+{
+  "AppName": "WitchCityRope",
+  "Version": "1.0.0",
+  "ApiPort": 5653,
+  "WebPort": 5651,
+  "SqliteDbPath": "data/witchcityrope.db",
+  
+  "Environments": {
+    "staging": {
+      "Domain": "staging.witchcityrope.com",
+      "SSLEmail": "admin@witchcityrope.com",
+      "ApiUrl": "https://staging-api.witchcityrope.com",
+      "WebUrl": "https://staging.witchcityrope.com",
+      "BackupRetentionDays": 7,
+      "EnableDebugMode": true,
+      "LogLevel": "Information"
+    },
+    "production": {
+      "Domain": "witchcityrope.com",
+      "SSLEmail": "admin@witchcityrope.com",
+      "ApiUrl": "https://api.witchcityrope.com",
+      "WebUrl": "https://witchcityrope.com",
+      "BackupRetentionDays": 30,
+      "EnableDebugMode": false,
+      "LogLevel": "Warning"
+    }
+  },
+  
+  "Docker": {
+    "Registry": "docker.io",
+    "ImagePrefix": "witchcityrope",
+    "NetworkName": "witchcity-network",
+    "Volumes": {
+      "data": "/app/data",
+      "logs": "/app/logs",
+      "uploads": "/app/uploads"
+    }
+  },
+  
+  "Database": {
+    "Type": "SQLite",
+    "BackupSchedule": "0 2 * * *",
+    "EnableWAL": true,
+    "JournalMode": "WAL",
+    "CacheSize": 2000,
+    "PageSize": 4096
+  },
+  
+  "Security": {
+    "EnableHTTPS": true,
+    "ForceHTTPS": true,
+    "EnableHSTS": true,
+    "HSTSMaxAge": 31536000,
+    "SSLProtocols": ["TLSv1.2", "TLSv1.3"],
+    "EnableRateLimiting": true,
+    "RateLimitRequests": 100,
+    "RateLimitWindow": 60
+  },
+  
+  "Monitoring": {
+    "EnablePrometheus": true,
+    "PrometheusPort": 9090,
+    "EnableGrafana": true,
+    "GrafanaPort": 3000,
+    "EnableHealthChecks": true,
+    "HealthCheckInterval": 30,
+    "EnableLogging": true,
+    "LogRetentionDays": 30
+  },
+  
+  "Backup": {
+    "EnableAutoBackup": true,
+    "BackupSchedule": "0 2 * * *",
+    "BackupLocation": "/var/backups/witchcityrope",
+    "BackupRetentionDays": 30,
+    "CompressBackups": true,
+    "EncryptBackups": false
+  },
+  
+  "Performance": {
+    "EnableCaching": true,
+    "CacheProvider": "Redis",
+    "RedisConnectionString": "localhost:6379",
+    "EnableCompression": true,
+    "MinResponseSizeToCompress": 1024,
+    "EnableResponseCaching": true,
+    "ResponseCacheDuration": 300
+  },
+  
+  "Email": {
+    "Provider": "SendGrid",
+    "FromAddress": "noreply@witchcityrope.com",
+    "FromName": "Witch City Rope",
+    "EnableEmailLogging": true,
+    "MaxRetries": 3,
+    "RetryDelay": 60
+  },
+  
+  "Payment": {
+    "Provider": "PayPal",
+    "Environment": "production",
+    "EnableWebhooks": true,
+    "WebhookPath": "/api/webhooks/paypal",
+    "TransactionTimeout": 300,
+    "EnableLogging": true
+  },
+  
+  "FileStorage": {
+    "Provider": "Local",
+    "LocalPath": "/app/uploads",
+    "MaxFileSize": 10485760,
+    "AllowedExtensions": [".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx"],
+    "EnableVirusScanning": false,
+    "EnableImageOptimization": true
+  },
+  
+  "Deployment": {
+    "Strategy": "RollingUpdate",
+    "MaxUnavailable": 1,
+    "MaxSurge": 1,
+    "HealthCheckPath": "/health",
+    "ReadinessPath": "/ready",
+    "LivenessPath": "/live",
+    "StartupProbeDelay": 10,
+    "StartupProbeTimeout": 300
+  },
+  
+  "Maintenance": {
+    "EnableMaintenanceMode": false,
+    "MaintenanceMessage": "We're performing scheduled maintenance. We'll be back shortly!",
+    "MaintenanceEndTime": null,
+    "AllowedIPs": ["127.0.0.1"],
+    "BypassHeader": "X-Maintenance-Bypass"
+  }
+}

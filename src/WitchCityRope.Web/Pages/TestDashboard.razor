@@ -1,0 +1,207 @@
+@page "/test/dashboard"
+@using WitchCityRope.Web.Models
+@using WitchCityRope.Web.Services
+@using WitchCityRope.Core.Enums
+@using CoreVettingStatus = WitchCityRope.Core.Entities.VettingStatus
+@using EventViewModel = WitchCityRope.Web.Models.EventViewModel
+
+<PageTitle>Dashboard Test - WitchCityRope</PageTitle>
+
+<div class="container">
+    <h1>Dashboard Component Test</h1>
+    
+    <div class="alert alert-info">
+        <p>This page tests the dashboard with mock data. Click the buttons below to simulate different scenarios:</p>
+    </div>
+
+    <div class="btn-group mb-4" role="group">
+        <button class="btn btn-primary" @onclick="() => LoadDashboard(UserRole.Member, CoreVettingStatus.Approved)">
+            Test as Verified Member
+        </button>
+        <button class="btn btn-warning" @onclick="() => LoadDashboard(UserRole.Administrator, CoreVettingStatus.Approved)">
+            Test as Admin
+        </button>
+        <button class="btn btn-secondary" @onclick="() => LoadDashboard(UserRole.Attendee, CoreVettingStatus.Submitted)">
+            Test as Unvetted User
+        </button>
+        <button class="btn btn-danger" @onclick="() => SimulateError()">
+            Test Error State
+        </button>
+    </div>
+
+    @if (_showMockDashboard)
+    {
+        <div class="mock-dashboard-wrapper">
+            <CascadingValue Value="_mockData">
+                @if (_isLoading)
+                {
+                    <WitchCityRope.Web.Features.Members.Components.DashboardSkeleton />
+                }
+                else if (_hasError)
+                {
+                    <WitchCityRope.Web.Features.Members.Components.DashboardError 
+                        ErrorMessage="@_errorMessage" 
+                        OnRetry="@(() => LoadDashboard(_currentRole, _currentStatus))" />
+                }
+                else
+                {
+                    <div class="dashboard-container">
+                        <WitchCityRope.Web.Features.Members.Components.DashboardHeader />
+                        
+                        <div class="dashboard-grid">
+                            <div class="dashboard-main">
+                                <WitchCityRope.Web.Features.Members.Components.UpcomingEvents 
+                                    Events="@_mockData.UpcomingEvents" 
+                                    IsLoading="false" />
+                                
+                                @if (_mockData.Role == UserRole.Administrator)
+                                {
+                                    <WitchCityRope.Web.Features.Members.Components.AdminQuickAccess />
+                                }
+                            </div>
+                            
+                            <div class="dashboard-sidebar">
+                                <WitchCityRope.Web.Features.Members.Components.MembershipStatus 
+                                    Stats="@_mockData.Stats" />
+                                <WitchCityRope.Web.Features.Members.Components.QuickLinks 
+                                    UserRole="@_mockData.Role.ToString()" />
+                            </div>
+                        </div>
+                    </div>
+                }
+            </CascadingValue>
+        </div>
+    }
+</div>
+
+<style>
+    .mock-dashboard-wrapper {
+        border: 2px dashed #6c757d;
+        padding: 20px;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+    }
+
+    .dashboard-container {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    
+    .dashboard-main {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+    
+    .dashboard-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+    
+    @@media (max-width: 1024px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@code {
+    private bool _showMockDashboard = false;
+    private bool _isLoading = false;
+    private bool _hasError = false;
+    private string? _errorMessage;
+    private DashboardViewModel _mockData = new();
+    private UserRole _currentRole;
+    private CoreVettingStatus _currentStatus;
+
+    private async Task LoadDashboard(UserRole role, CoreVettingStatus status)
+    {
+        _showMockDashboard = true;
+        _isLoading = true;
+        _hasError = false;
+        _currentRole = role;
+        _currentStatus = status;
+
+        await Task.Delay(1000); // Simulate loading
+
+        _mockData = new DashboardViewModel
+        {
+            SceneName = role == UserRole.Administrator ? "AdminMaster" : "TestUser",
+            Role = role,
+            VettingStatus = status,
+            UpcomingEvents = GenerateMockEvents(),
+            Stats = new MembershipStatsViewModel
+            {
+                IsVerified = status == CoreVettingStatus.Approved,
+                EventsAttended = 42,
+                MonthsAsMember = 18,
+                ConsecutiveEvents = 5,
+                JoinDate = DateTime.UtcNow.AddMonths(-18),
+                VettingStatus = status,
+                NextInterviewDate = status == CoreVettingStatus.UnderReview ? DateTime.UtcNow.AddDays(5) : null
+            }
+        };
+
+        _isLoading = false;
+    }
+
+    private void SimulateError()
+    {
+        _showMockDashboard = true;
+        _isLoading = false;
+        _hasError = true;
+        _errorMessage = "Failed to load dashboard data. This is a simulated error for testing.";
+    }
+
+    private List<EventViewModel> GenerateMockEvents()
+    {
+        return new List<EventViewModel>
+        {
+            new EventViewModel
+            {
+                Id = Guid.NewGuid(),
+                Title = "Introduction to Rope Safety",
+                StartDate = DateTime.UtcNow.AddDays(5),
+                EndDate = DateTime.UtcNow.AddDays(5).AddHours(2),
+                Location = "The Rope Space - Main Room",
+                EventType = WitchCityRope.Core.Enums.EventType.Workshop,
+                InstructorName = "RopeMaster Jane",
+                RegistrationStatus = "Registered",
+                TicketId = Guid.NewGuid()
+            },
+            new EventViewModel
+            {
+                Id = Guid.NewGuid(),
+                Title = "March Rope Jam",
+                StartDate = DateTime.UtcNow.AddDays(12),
+                EndDate = DateTime.UtcNow.AddDays(12).AddHours(3),
+                Location = "The Rope Space - All Rooms",
+                EventType = WitchCityRope.Core.Enums.EventType.Social,
+                InstructorName = "Community Event",
+                RegistrationStatus = "Waitlisted",
+                TicketId = Guid.NewGuid()
+            },
+            new EventViewModel
+            {
+                Id = Guid.NewGuid(),
+                Title = "Suspension Fundamentals",
+                StartDate = DateTime.UtcNow.AddDays(20),
+                EndDate = DateTime.UtcNow.AddDays(20).AddHours(4),
+                Location = "The Rope Space - Main Room",
+                EventType = WitchCityRope.Core.Enums.EventType.Workshop,
+                InstructorName = "SuspensionPro",
+                RegistrationStatus = "Registered",
+                TicketId = Guid.NewGuid()
+            }
+        };
+    }
+}

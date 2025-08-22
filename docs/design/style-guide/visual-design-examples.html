@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Witch City Rope - Visual Design Examples</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,700;6..96,900&family=Montserrat:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;600&family=Satisfy&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Primary Colors */
+            --color-burgundy: #880124;
+            --color-burgundy-dark: #660019;
+            --color-burgundy-light: #AA0130;
+            --color-primary: var(--color-burgundy);        /* Deep Burgundy */
+            --color-primary-dark: var(--color-burgundy-dark);   /* Darker variant */
+            --color-primary-light: var(--color-burgundy-light);  /* Lighter variant */
+            
+            --color-plum: #614B79;
+            --color-plum-dark: #4A3A5C;
+            --color-plum-light: #7B6296;
+            --color-secondary: var(--color-plum);      /* Deep Plum */
+            --color-secondary-dark: var(--color-plum-dark); 
+            --color-secondary-light: var(--color-plum-light);
+            
+            /* Warm Metallics */
+            --color-rose-gold: #B76D75;
+            --color-copper: #B87333;
+            --color-brass: #C9A961;
+            
+            /* CTA Accent Colors */
+            --color-amber: #FFBF00;
+            --color-amber-dark: #E6AC00;
+            --color-amber-light: #FFD633;
+            --color-accent: var(--color-amber);         /* Warm Amber Gold - Primary CTA */
+            --color-accent-dark: var(--color-amber-dark);    /* Deep Amber - CTA Hover */
+            --color-accent-light: #F4E4BC;
+            
+            /* Neutral Colors */
+            --color-midnight: #1A1A2E;
+            --color-charcoal: #2B2B2B;
+            --color-gray-dark: #2D2D2D;
+            --color-gray: #666666;
+            --color-gray-light: #CCCCCC;
+            --color-light-gray: var(--color-gray-light);
+            --color-stone: #8B8680;
+            --color-taupe: #B8B0A8;
+            --color-ivory: #FFF8F0;
+            --color-cream: #FAF6F2;
+            --color-off-white: #F5F5F5;
+            --color-white: #FFFFFF;
+            
+            /* Supporting Tones */
+            --color-dusty-rose: #D4A5A5;
+            
+            /* Status Colors */
+            --color-success: #228B22;
+            --color-warning: #DAA520;
+            --color-error: #DC143C;
+            --color-info: var(--color-plum);
+            
+            --color-success-light: #E6F7F1;
+            --color-warning-light: #FFF4CC;
+            --color-error-light: #FFE5EC;
+            --color-info-light: #F0EDFF;
+            
+            /* Typography */
+            --font-display: 'Bodoni Moda', serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            --font-accent: 'Satisfy', cursive;
+            
+            /* Shadows */
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.08), 0 3px 6px rgba(0,0,0,0.05);
+            --shadow-xl: 0 20px 25px rgba(0,0,0,0.08), 0 8px 10px rgba(0,0,0,0.05);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            color: var(--color-charcoal);
+            background-color: var(--color-cream);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Header Styles */
+        .showcase-header {
+            text-align: center;
+            padding: 4rem 0;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+            color: var(--color-white);
+            margin: -2rem -2rem 3rem -2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .showcase-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10,50 Q30,20 50,50 T90,50' stroke='%23FFFFFF' stroke-width='0.5' fill='none' opacity='0.1'/%3E%3C/svg%3E");
+            background-size: 200px 200px;
+        }
+        
+        .showcase-header h1 {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+        
+        .showcase-header p {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            opacity: 0.9;
+            position: relative;
+        }
+        
+        /* Section Styles */
+        .section {
+            background: var(--color-white);
+            border-radius: 16px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 2rem;
+            color: var(--color-primary);
+            margin-bottom: 2rem;
+            position: relative;
+            padding-bottom: 1rem;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: var(--color-accent);
+        }
+        
+        /* Color Swatches */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .color-swatch {
+            text-align: center;
+        }
+        
+        .color-box {
+            height: 100px;
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            box-shadow: var(--shadow-md);
+            transition: transform 0.2s ease;
+        }
+        
+        .color-box:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .color-label {
+            font-size: 0.875rem;
+            color: var(--color-gray);
+        }
+        
+        /* Typography Examples */
+        .typography-example {
+            margin-bottom: 2rem;
+        }
+        
+        .display-text {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            line-height: 1.2;
+            color: var(--color-primary);
+            margin-bottom: 1rem;
+        }
+        
+        h1.example {
+            font-family: var(--font-heading);
+            font-size: 2.5rem;
+            color: var(--color-charcoal);
+            margin-bottom: 1rem;
+        }
+        
+        h2.example {
+            font-family: var(--font-heading);
+            font-size: 2rem;
+            color: var(--color-charcoal);
+            margin-bottom: 1rem;
+        }
+        
+        h3.example {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            color: var(--color-charcoal);
+            margin-bottom: 1rem;
+        }
+        
+        .body-text {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.8;
+            color: var(--color-gray);
+            margin-bottom: 1rem;
+        }
+        
+        /* Button Styles */
+        .button-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-family: var(--font-heading);
+            font-weight: 500;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%);
+            color: var(--color-charcoal);
+            box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+            font-weight: 700;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(255, 191, 0, 0.5);
+            background: linear-gradient(135deg, var(--color-accent-dark) 0%, var(--color-accent) 100%);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--color-primary);
+            border: 2px solid var(--color-primary);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+        
+        .btn-accent {
+            background: var(--color-accent);
+            color: var(--color-charcoal);
+            box-shadow: 0 4px 6px rgba(218, 165, 32, 0.3);
+        }
+        
+        .btn-accent:hover {
+            background: var(--color-accent-light);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(218, 165, 32, 0.4);
+        }
+        
+        /* Card Examples */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: var(--color-white);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .card-image {
+            height: 200px;
+            background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card-image::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: -20px;
+            width: 100px;
+            height: 100px;
+            background: var(--color-accent);
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+        
+        .card-content {
+            padding: 2rem;
+        }
+        
+        .card-title {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            color: var(--color-primary);
+            margin-bottom: 1rem;
+        }
+        
+        .card-text {
+            color: var(--color-gray);
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            font-family: var(--font-heading);
+            font-weight: 500;
+            color: var(--color-charcoal);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--color-light-gray);
+            border-radius: 8px;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--color-white);
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(160, 82, 45, 0.1);
+        }
+        
+        /* Badge/Pill Styles */
+        .badge-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+        
+        .badge {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            font-family: var(--font-heading);
+        }
+        
+        .badge-primary {
+            background: var(--color-primary);
+            color: white;
+        }
+        
+        .badge-secondary {
+            background: var(--color-secondary);
+            color: white;
+        }
+        
+        .badge-accent {
+            background: var(--color-accent-light);
+            color: var(--color-charcoal);
+        }
+        
+        .badge-success {
+            background: rgba(34, 139, 34, 0.1);
+            color: var(--color-success);
+            border: 1px solid var(--color-success);
+        }
+        
+        /* Decorative Elements */
+        .rope-decoration {
+            width: 100%;
+            height: 60px;
+            margin: 2rem 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='200' height='60' viewBox='0 0 200 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,30 Q50,10 100,30 T200,30' stroke='%23880124' stroke-width='3' fill='none'/%3E%3Cpath d='M0,30 Q50,50 100,30 T200,30' stroke='%23614B79' stroke-width='2' fill='none' opacity='0.6'/%3E%3C/svg%3E");
+            background-repeat: repeat-x;
+            background-position: center;
+        }
+        
+        /* Pattern Background */
+        .pattern-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.03;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='40' stroke='%23880124' stroke-width='1' fill='none'/%3E%3Cpath d='M50,10 Q70,30 50,50 Q30,70 50,90' stroke='%23614B79' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+            background-size: 150px 150px;
+        }
+    </style>
+</head>
+<body>
+    <div class="pattern-bg"></div>
+    
+    <div class="showcase-header">
+        <h1>Visual Design System</h1>
+        <p>Witch City Rope - Crafted Community</p>
+    </div>
+    
+    <div class="container">
+        <!-- Color Palette Section -->
+        <section class="section">
+            <h2 class="section-title">Brand Colors</h2>
+            
+            <h3 style="font-family: var(--font-heading); margin-bottom: 1rem;">Primary Palette</h3>
+            <div class="color-grid">
+                <div class="color-swatch">
+                    <div class="color-box" style="background: var(--color-burgundy);">#880124</div>
+                    <div class="color-label">Deep Burgundy<br>Primary</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-box" style="background: var(--color-plum);">#614B79</div>
+                    <div class="color-label">Deep Plum<br>Secondary</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-box" style="background: var(--color-amber);">#FFBF00</div>
+                    <div class="color-label">Warm Amber Gold<br>Primary CTA</div>
+                </div>
+            </div>
+            
+            <div class="rope-decoration"></div>
+            
+            <h3 style="font-family: var(--font-heading); margin-bottom: 1rem;">Extended Palette</h3>
+            <div class="color-grid">
+                <div class="color-swatch">
+                    <div class="color-box" style="background: var(--color-burgundy-dark);">#660019</div>
+                    <div class="color-label">Burgundy Dark</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-box" style="background: var(--color-burgundy-light);">#AA0130</div>
+                    <div class="color-label">Burgundy Light</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-box" style="background: var(--color-plum-dark);">#4A3A5C</div>
+                    <div class="color-label">Plum Dark</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-box" style="background: var(--color-plum-light);">#7B6296</div>
+                    <div class="color-label">Plum Light</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-box" style="background: var(--color-rose-gold);">#B76D75</div>
+                    <div class="color-label">Rose Gold</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-box" style="background: var(--color-brass);">#C9A961</div>
+                    <div class="color-label">Brass</div>
+                </div>
+            </div>
+            
+            <h3 style="font-family: var(--font-heading); margin-bottom: 1rem; margin-top: 2rem;">Neutral Palette</h3>
+            <div class="color-grid">
+                <div class="color-swatch">
+                    <div class="color-box" style="background: var(--color-midnight); color: white;">#1A1A2E</div>
+                    <div class="color-label">Midnight</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-box" style="background: var(--color-charcoal); color: white;">#2B2B2B</div>
+                    <div class="color-label">Charcoal</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-box" style="background: var(--color-gray); color: white;">#666666</div>
+                    <div class="color-label">Gray</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-box" style="background: var(--color-ivory); color: var(--color-charcoal); border: 1px solid var(--color-gray-light);">#FFF8F0</div>
+                    <div class="color-label">Ivory</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-box" style="background: var(--color-cream); color: var(--color-charcoal); border: 1px solid var(--color-gray-light);">#FAF6F2</div>
+                    <div class="color-label">Cream</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Typography Section -->
+        <section class="section">
+            <h2 class="section-title">Typography</h2>
+            
+            <div class="typography-example">
+                <p class="display-text">Salem's Premier Rope Education Community</p>
+                <p style="color: var(--color-gray); margin-bottom: 2rem;">Display: Bodoni Moda</p>
+                
+                <h1 class="example">Introduction to Rope Bondage</h1>
+                <h2 class="example">Safety and Consent Guidelines</h2>
+                <h3 class="example">Workshop Prerequisites</h3>
+                <p style="color: var(--color-gray); margin-bottom: 2rem;">Headings: Montserrat</p>
+                
+                <p class="body-text">
+                    Welcome to Witch City Rope, Salem's inclusive rope bondage education community. 
+                    We provide a safe, supportive environment for learning and exploring rope bondage 
+                    through workshops, practice sessions, and community events.
+                </p>
+                <p style="color: var(--color-gray);">Body: Source Sans 3</p>
+                
+                <p style="font-family: var(--font-accent); font-size: 28px; color: var(--color-rose-gold); margin-top: 2rem;">Where passion meets practice</p>
+                <p style="color: var(--color-gray);">Accent: Satisfy (used sparingly for taglines)</p>
+            </div>
+        </section>
+        
+        <!-- Buttons Section -->
+        <section class="section">
+            <h2 class="section-title">Buttons & Interactive Elements</h2>
+            
+            <div class="button-grid">
+                <button class="btn btn-primary">Register for Event</button>
+                <button class="btn btn-secondary">Learn More</button>
+                <button class="btn btn-accent">Join Community</button>
+            </div>
+            
+            <div class="badge-group">
+                <span class="badge badge-primary">Beginner Friendly</span>
+                <span class="badge badge-secondary">Members Only</span>
+                <span class="badge badge-accent">Featured</span>
+                <span class="badge badge-success">Available</span>
+            </div>
+        </section>
+        
+        <!-- Cards Section -->
+        <section class="section">
+            <h2 class="section-title">Card Components</h2>
+            
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-image"></div>
+                    <div class="card-content">
+                        <h3 class="card-title">Introduction to Rope</h3>
+                        <p class="card-text">Learn fundamental ties and safety practices in a welcoming environment designed for beginners.</p>
+                        <button class="btn btn-primary">Register Now</button>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-image"></div>
+                    <div class="card-content">
+                        <h3 class="card-title">Monthly Rope Jam</h3>
+                        <p class="card-text">Join our community practice session for skill sharing, socializing, and safe exploration.</p>
+                        <button class="btn btn-secondary">RSVP</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Forms Section -->
+        <section class="section">
+            <h2 class="section-title">Form Elements</h2>
+            
+            <div style="max-width: 400px;">
+                <div class="form-group">
+                    <label class="form-label">Scene Name</label>
+                    <input type="text" class="form-input" placeholder="Your preferred name">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Experience Level</label>
+                    <select class="form-input">
+                        <option>Beginner - New to rope</option>
+                        <option>Intermediate - Some experience</option>
+                        <option>Advanced - Experienced rigger</option>
+                    </select>
+                </div>
+                
+                <button class="btn btn-primary" style="width: 100%;">Submit Application</button>
+            </div>
+        </section>
+        
+        <!-- Design Elements -->
+        <section class="section">
+            <h2 class="section-title">Design Elements</h2>
+            
+            <p style="margin-bottom: 2rem;">Our visual language incorporates rope-inspired patterns and organic shapes that reflect the craft and community aspects of our practice.</p>
+            
+            <div class="rope-decoration"></div>
+            
+            <p style="text-align: center; color: var(--color-gray); font-style: italic;">
+                Decorative rope pattern used for section dividers
+            </p>
+        </section>
+    </div>
+</body>
+</html>

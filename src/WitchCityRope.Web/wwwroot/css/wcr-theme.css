@@ -1,0 +1,799 @@
+/* 
+ * Witch City Rope Custom Theme
+ * Overrides for Syncfusion Blazor Components
+ * Based on the WCR Design System
+ */
+
+/* ===== CSS Variables / Design Tokens ===== */
+:root {
+  /* Primary Brand Colors */
+  --wcr-color-burgundy: #880124;
+  --wcr-color-burgundy-dark: #660018;
+  --wcr-color-burgundy-light: #9F1D35;
+  --wcr-color-plum: #614B79;
+  
+  /* Warm Metallics */
+  --wcr-color-rose-gold: #B76D75;
+  --wcr-color-copper: #B87333;
+  --wcr-color-brass: #C9A961;
+  
+  /* CTA Accent Colors */
+  --wcr-color-electric: #9D4EDD;
+  --wcr-color-electric-dark: #7B2CBF;
+  --wcr-color-amber: #FFBF00;
+  --wcr-color-amber-dark: #FF8C00;
+  
+  /* Supporting Tones */
+  --wcr-color-dusty-rose: #D4A5A5;
+  --wcr-color-midnight: #1A1A2E;
+  
+  /* Warm Neutrals */
+  --wcr-color-charcoal: #2B2B2B;
+  --wcr-color-smoke: #4A4A4A;
+  --wcr-color-stone: #8B8680;
+  --wcr-color-taupe: #B8B0A8;
+  --wcr-color-ivory: #FFF8F0;
+  --wcr-color-cream: #FAF6F2;
+  
+  /* Status Colors */
+  --wcr-color-success: #228B22;
+  --wcr-color-success-light: #90EE90;
+  --wcr-color-success-dark: #006400;
+  --wcr-color-warning: #DAA520;
+  --wcr-color-warning-light: #FFD700;
+  --wcr-color-warning-dark: #B8860B;
+  --wcr-color-error: #DC143C;
+  --wcr-color-error-light: #FF6B6B;
+  --wcr-color-error-dark: #8B0000;
+  --wcr-color-info: #4169E1;
+  --wcr-color-info-light: #6495ED;
+  --wcr-color-info-dark: #191970;
+  
+  /* Maintain backward compatibility */
+  --wcr-burgundy: var(--wcr-color-burgundy);
+  --wcr-burgundy-dark: var(--wcr-color-burgundy-dark);
+  --wcr-burgundy-light: var(--wcr-color-burgundy-light);
+  --wcr-plum: var(--wcr-color-plum);
+  
+  --wcr-rose-gold: var(--wcr-color-rose-gold);
+  --wcr-copper: var(--wcr-color-copper);
+  --wcr-brass: var(--wcr-color-brass);
+  
+  --wcr-electric: var(--wcr-color-electric);
+  --wcr-electric-dark: var(--wcr-color-electric-dark);
+  --wcr-amber: var(--wcr-color-amber);
+  --wcr-amber-dark: var(--wcr-color-amber-dark);
+  
+  --wcr-dusty-rose: var(--wcr-color-dusty-rose);
+  --wcr-midnight: var(--wcr-color-midnight);
+  
+  --wcr-charcoal: var(--wcr-color-charcoal);
+  --wcr-smoke: var(--wcr-color-smoke);
+  --wcr-stone: var(--wcr-color-stone);
+  --wcr-taupe: var(--wcr-color-taupe);
+  --wcr-ivory: var(--wcr-color-ivory);
+  --wcr-cream: var(--wcr-color-cream);
+  
+  --wcr-success: var(--wcr-color-success);
+  --wcr-success-light: var(--wcr-color-success-light);
+  --wcr-success-dark: var(--wcr-color-success-dark);
+  --wcr-warning: var(--wcr-color-warning);
+  --wcr-warning-light: var(--wcr-color-warning-light);
+  --wcr-warning-dark: var(--wcr-color-warning-dark);
+  --wcr-error: var(--wcr-color-error);
+  --wcr-error-light: var(--wcr-color-error-light);
+  --wcr-error-dark: var(--wcr-color-error-dark);
+  --wcr-info: var(--wcr-color-info);
+  --wcr-info-light: var(--wcr-color-info-light);
+  --wcr-info-dark: var(--wcr-color-info-dark);
+  
+  /* Typography - Optimized for performance */
+  --wcr-font-display: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --wcr-font-heading: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --wcr-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --wcr-font-accent: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  
+  /* Spacing Scale (4px grid) */
+  --wcr-space-xs: 8px;
+  --wcr-space-sm: 16px;
+  --wcr-space-md: 24px;
+  --wcr-space-lg: 32px;
+  --wcr-space-xl: 40px;
+  --wcr-space-2xl: 48px;
+  --wcr-space-3xl: 64px;
+  
+  /* Border Radius */
+  --wcr-radius-sm: 4px;
+  --wcr-radius-base: 6px;
+  --wcr-radius-md: 8px;
+  --wcr-radius-lg: 12px;
+  --wcr-radius-xl: 16px;
+  --wcr-radius-pill: 9999px;
+  
+  /* Shadows */
+  --wcr-shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --wcr-shadow-base: 0 2px 4px rgba(0,0,0,0.08);
+  --wcr-shadow-md: 0 4px 8px rgba(0,0,0,0.1);
+  --wcr-shadow-lg: 0 8px 16px rgba(0,0,0,0.12);
+  --wcr-shadow-xl: 0 12px 24px rgba(0,0,0,0.15);
+  
+  /* Transitions */
+  --wcr-transition-fast: 150ms ease;
+  --wcr-transition-base: 300ms ease;
+  --wcr-transition-slow: 500ms ease;
+  
+  /* Button Gradients */
+  --wcr-gradient-primary: linear-gradient(135deg, var(--wcr-color-amber) 0%, var(--wcr-color-amber-dark) 100%);
+  --wcr-gradient-primary-hover: linear-gradient(135deg, var(--wcr-color-amber-dark) 0%, var(--wcr-color-amber) 100%);
+  --wcr-gradient-secondary: linear-gradient(135deg, var(--wcr-color-electric) 0%, var(--wcr-color-electric-dark) 100%);
+  --wcr-gradient-secondary-hover: linear-gradient(135deg, var(--wcr-color-electric-dark) 0%, var(--wcr-color-electric) 100%);
+}
+
+/* ===== Syncfusion Global Overrides ===== */
+
+/* Override Syncfusion's default font */
+.e-control,
+.e-lib {
+  font-family: var(--wcr-font-body) !important;
+}
+
+/* ===== Syncfusion Button Overrides ===== */
+.e-btn {
+  font-family: var(--wcr-font-heading) !important;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 14px 32px;
+  border-radius: var(--wcr-radius-sm);
+  transition: all var(--wcr-transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Primary Button */
+.e-btn.e-primary {
+  background: var(--wcr-gradient-primary);
+  color: var(--wcr-midnight);
+  border: none;
+  box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+}
+
+.e-btn.e-primary:hover:not(:disabled) {
+  background: var(--wcr-gradient-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(255, 191, 0, 0.5);
+}
+
+.e-btn.e-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(255, 191, 0, 0.4);
+}
+
+/* Secondary/Outline Button */
+.e-btn.e-outline {
+  background: transparent;
+  color: var(--wcr-burgundy);
+  border: 2px solid var(--wcr-burgundy);
+}
+
+.e-btn.e-outline:hover:not(:disabled) {
+  background: var(--wcr-burgundy);
+  color: var(--wcr-ivory);
+  border-color: var(--wcr-burgundy);
+}
+
+/* Secondary Button with Electric Purple Gradient */
+.e-btn.e-secondary {
+  background: var(--wcr-gradient-secondary);
+  color: var(--wcr-ivory);
+  border: none;
+  box-shadow: 0 4px 15px rgba(157, 78, 221, 0.4);
+}
+
+.e-btn.e-secondary:hover:not(:disabled) {
+  background: var(--wcr-gradient-secondary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(157, 78, 221, 0.5);
+}
+
+.e-btn.e-secondary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(157, 78, 221, 0.4);
+}
+
+/* Success Button */
+.e-btn.e-success {
+  background: var(--wcr-success);
+  color: white;
+  border: none;
+}
+
+.e-btn.e-success:hover:not(:disabled) {
+  background: var(--wcr-success-dark);
+  transform: translateY(-2px);
+}
+
+/* Danger Button */
+.e-btn.e-danger {
+  background: var(--wcr-error);
+  color: white;
+  border: none;
+}
+
+.e-btn.e-danger:hover:not(:disabled) {
+  background: var(--wcr-error-dark);
+  transform: translateY(-2px);
+}
+
+/* Disabled State */
+.e-btn:disabled,
+.e-btn.e-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Small Button */
+.e-btn.e-small {
+  padding: 8px 16px;
+  font-size: 12px;
+}
+
+/* Round Button */
+.e-btn.e-round {
+  border-radius: var(--wcr-radius-pill);
+}
+
+/* ===== Syncfusion Input Overrides ===== */
+.e-input-group,
+.e-float-input {
+  margin-bottom: var(--wcr-space-md);
+}
+
+.e-input,
+.e-input-group input,
+.e-textbox,
+.e-float-input input,
+.e-float-input textarea {
+  font-family: var(--wcr-font-body) !important;
+  background-color: var(--wcr-cream);
+  border: 2px solid var(--wcr-taupe);
+  border-radius: var(--wcr-radius-md);
+  padding: var(--wcr-space-sm);
+  transition: all var(--wcr-transition-base);
+}
+
+.e-input:hover:not(:disabled),
+.e-input-group input:hover:not(:disabled),
+.e-textbox:hover:not(:disabled) {
+  border-color: var(--wcr-stone);
+}
+
+.e-input:focus,
+.e-input-group.e-input-focus input,
+.e-textbox:focus,
+.e-float-input.e-input-focus input {
+  background-color: var(--wcr-ivory);
+  border-color: var(--wcr-burgundy);
+  box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.1);
+  outline: none;
+}
+
+/* Float Label */
+.e-float-input label {
+  font-family: var(--wcr-font-body) !important;
+  color: var(--wcr-stone);
+  font-weight: 500;
+}
+
+.e-float-input.e-input-focus label {
+  color: var(--wcr-burgundy);
+}
+
+/* Error State */
+.e-input.e-error,
+.e-input-group.e-error input,
+.e-error .e-input {
+  border-color: var(--wcr-error);
+  background-color: rgba(220, 20, 60, 0.05);
+}
+
+/* Success State */
+.e-input.e-success,
+.e-input-group.e-success input,
+.e-success .e-input {
+  border-color: var(--wcr-success);
+  background-color: rgba(34, 139, 34, 0.05);
+}
+
+/* ===== Syncfusion Dropdown Overrides ===== */
+.e-dropdown,
+.e-ddl {
+  font-family: var(--wcr-font-body) !important;
+}
+
+.e-dropdown .e-input-group,
+.e-ddl .e-input-group {
+  background-color: var(--wcr-cream);
+  border: 2px solid var(--wcr-taupe);
+  border-radius: var(--wcr-radius-md);
+}
+
+.e-dropdown:hover:not(.e-disabled) .e-input-group,
+.e-ddl:hover:not(.e-disabled) .e-input-group {
+  border-color: var(--wcr-stone);
+}
+
+.e-dropdown.e-input-focus .e-input-group,
+.e-ddl.e-input-focus .e-input-group {
+  background-color: var(--wcr-ivory);
+  border-color: var(--wcr-burgundy);
+  box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.1);
+}
+
+/* Dropdown Popup */
+.e-dropdown-popup,
+.e-ddl-popup {
+  border: 1px solid var(--wcr-taupe);
+  border-radius: var(--wcr-radius-md);
+  box-shadow: var(--wcr-shadow-lg);
+  background-color: var(--wcr-ivory);
+}
+
+.e-dropdown-popup .e-list-item,
+.e-ddl-popup .e-list-item {
+  font-family: var(--wcr-font-body) !important;
+  padding: var(--wcr-space-sm);
+  transition: all var(--wcr-transition-fast);
+}
+
+.e-dropdown-popup .e-list-item:hover,
+.e-ddl-popup .e-list-item:hover {
+  background-color: var(--wcr-cream);
+  color: var(--wcr-burgundy);
+}
+
+.e-dropdown-popup .e-list-item.e-active,
+.e-ddl-popup .e-list-item.e-active {
+  background-color: var(--wcr-burgundy);
+  color: var(--wcr-ivory);
+}
+
+/* ===== Syncfusion Calendar/DatePicker Overrides ===== */
+.e-calendar,
+.e-datepicker,
+.e-daterangepicker {
+  font-family: var(--wcr-font-body) !important;
+}
+
+.e-calendar .e-header,
+.e-datepicker .e-calendar .e-header {
+  background-color: var(--wcr-burgundy);
+  color: var(--wcr-ivory);
+}
+
+.e-calendar .e-content td,
+.e-datepicker .e-calendar .e-content td {
+  border-radius: var(--wcr-radius-sm);
+  transition: all var(--wcr-transition-fast);
+}
+
+.e-calendar .e-content td:hover,
+.e-datepicker .e-calendar .e-content td:hover {
+  background-color: var(--wcr-cream);
+  color: var(--wcr-burgundy);
+}
+
+.e-calendar .e-selected,
+.e-datepicker .e-calendar .e-selected {
+  background-color: var(--wcr-burgundy);
+  color: var(--wcr-ivory);
+}
+
+.e-calendar .e-today,
+.e-datepicker .e-calendar .e-today {
+  background-color: var(--wcr-amber);
+  color: var(--wcr-midnight);
+  font-weight: 600;
+}
+
+/* ===== Syncfusion Grid Overrides ===== */
+.e-grid {
+  font-family: var(--wcr-font-body) !important;
+  border: 1px solid var(--wcr-taupe);
+  border-radius: var(--wcr-radius-lg);
+  overflow: hidden;
+}
+
+.e-grid .e-gridheader {
+  background-color: var(--wcr-charcoal);
+  color: var(--wcr-ivory);
+}
+
+.e-grid .e-headercell {
+  background-color: var(--wcr-charcoal);
+  color: var(--wcr-ivory);
+  font-family: var(--wcr-font-heading) !important;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 12px;
+  padding: var(--wcr-space-md);
+  border-right: 1px solid var(--wcr-smoke);
+}
+
+.e-grid .e-rowcell {
+  padding: var(--wcr-space-md);
+  border-bottom: 1px solid var(--wcr-cream);
+  transition: background-color var(--wcr-transition-fast);
+}
+
+.e-grid .e-row:hover .e-rowcell {
+  background-color: var(--wcr-cream);
+}
+
+.e-grid .e-alt_row .e-rowcell {
+  background-color: rgba(250, 246, 242, 0.5);
+}
+
+.e-grid .e-selectionbackground {
+  background-color: var(--wcr-burgundy);
+  color: var(--wcr-ivory);
+}
+
+/* Grid Pager */
+.e-grid .e-pager {
+  background-color: var(--wcr-cream);
+  border-top: 1px solid var(--wcr-taupe);
+  padding: var(--wcr-space-md);
+}
+
+.e-grid .e-pager .e-numericitem,
+.e-grid .e-pager .e-nextprevitemdisabled,
+.e-grid .e-pager .e-nextprevitem {
+  border-radius: var(--wcr-radius-sm);
+  margin: 0 4px;
+  transition: all var(--wcr-transition-fast);
+}
+
+.e-grid .e-pager .e-numericitem:hover,
+.e-grid .e-pager .e-nextprevitem:hover {
+  background-color: var(--wcr-burgundy);
+  color: var(--wcr-ivory);
+}
+
+.e-grid .e-pager .e-currentitem {
+  background-color: var(--wcr-burgundy);
+  color: var(--wcr-ivory);
+}
+
+/* ===== Syncfusion Checkbox & Radio Overrides ===== */
+.e-checkbox-wrapper,
+.e-radio-wrapper {
+  margin-bottom: var(--wcr-space-sm);
+}
+
+.e-checkbox-wrapper .e-frame,
+.e-radio-wrapper .e-radio {
+  background-color: var(--wcr-cream);
+  border: 2px solid var(--wcr-taupe);
+  transition: all var(--wcr-transition-base);
+}
+
+.e-checkbox-wrapper:hover .e-frame,
+.e-radio-wrapper:hover .e-radio {
+  border-color: var(--wcr-burgundy);
+  background-color: var(--wcr-ivory);
+}
+
+.e-checkbox-wrapper .e-check,
+.e-radio-wrapper .e-radio:checked {
+  background-color: var(--wcr-burgundy);
+  border-color: var(--wcr-burgundy);
+}
+
+.e-checkbox-wrapper .e-check::before {
+  color: var(--wcr-ivory);
+}
+
+.e-checkbox-wrapper .e-label,
+.e-radio-wrapper .e-label {
+  font-family: var(--wcr-font-body) !important;
+  color: var(--wcr-charcoal);
+  margin-left: var(--wcr-space-xs);
+}
+
+/* ===== Syncfusion Switch/Toggle Overrides ===== */
+.e-switch-wrapper {
+  margin-bottom: var(--wcr-space-sm);
+}
+
+.e-switch-wrapper .e-switch-inner {
+  background-color: var(--wcr-taupe);
+}
+
+.e-switch-wrapper .e-switch-on {
+  background-color: var(--wcr-burgundy);
+}
+
+.e-switch-wrapper .e-switch-handle {
+  background-color: var(--wcr-ivory);
+  box-shadow: var(--wcr-shadow-sm);
+}
+
+.e-switch-wrapper:hover .e-switch-inner {
+  background-color: var(--wcr-stone);
+}
+
+/* ===== Syncfusion Dialog/Modal Overrides ===== */
+.e-dialog {
+  border-radius: var(--wcr-radius-lg);
+  box-shadow: var(--wcr-shadow-xl);
+}
+
+.e-dialog .e-dlg-header {
+  background-color: var(--wcr-burgundy);
+  color: var(--wcr-ivory);
+  font-family: var(--wcr-font-heading) !important;
+  font-weight: 600;
+  padding: var(--wcr-space-md);
+  border-radius: var(--wcr-radius-lg) var(--wcr-radius-lg) 0 0;
+}
+
+.e-dialog .e-dlg-header .e-close {
+  color: var(--wcr-ivory);
+}
+
+.e-dialog .e-dlg-content {
+  padding: var(--wcr-space-lg);
+  background-color: var(--wcr-ivory);
+}
+
+.e-dialog .e-footer-content {
+  padding: var(--wcr-space-md);
+  background-color: var(--wcr-cream);
+  border-radius: 0 0 var(--wcr-radius-lg) var(--wcr-radius-lg);
+  border-top: 1px solid var(--wcr-taupe);
+}
+
+/* Dialog Overlay */
+.e-dlg-overlay {
+  background-color: rgba(26, 26, 46, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+/* ===== Syncfusion Toast/Notification Overrides ===== */
+.e-toast {
+  border-radius: var(--wcr-radius-md);
+  font-family: var(--wcr-font-body) !important;
+  box-shadow: var(--wcr-shadow-lg);
+}
+
+.e-toast.e-toast-success {
+  background-color: var(--wcr-success);
+  color: white;
+}
+
+.e-toast.e-toast-warning {
+  background-color: var(--wcr-warning);
+  color: var(--wcr-midnight);
+}
+
+.e-toast.e-toast-danger {
+  background-color: var(--wcr-error);
+  color: white;
+}
+
+.e-toast.e-toast-info {
+  background-color: var(--wcr-info);
+  color: white;
+}
+
+/* ===== Syncfusion Tooltip Overrides ===== */
+.e-tooltip-wrap {
+  background-color: var(--wcr-midnight);
+  color: var(--wcr-ivory);
+  border-radius: var(--wcr-radius-sm);
+  font-family: var(--wcr-font-body) !important;
+  font-size: 14px;
+  padding: var(--wcr-space-xs) var(--wcr-space-sm);
+  box-shadow: var(--wcr-shadow-lg);
+}
+
+.e-tooltip-wrap .e-arrow-tip-inner {
+  color: var(--wcr-midnight);
+}
+
+/* ===== Syncfusion Tab Overrides ===== */
+.e-tab .e-tab-header {
+  background-color: var(--wcr-cream);
+  border-bottom: 2px solid var(--wcr-taupe);
+}
+
+.e-tab .e-tab-header .e-toolbar-item {
+  font-family: var(--wcr-font-heading) !important;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 14px;
+  transition: all var(--wcr-transition-base);
+}
+
+.e-tab .e-tab-header .e-toolbar-item:hover {
+  color: var(--wcr-burgundy);
+}
+
+.e-tab .e-tab-header .e-toolbar-item.e-active {
+  color: var(--wcr-burgundy);
+  border-bottom: 3px solid var(--wcr-burgundy);
+}
+
+.e-tab .e-content {
+  padding: var(--wcr-space-lg);
+  background-color: var(--wcr-ivory);
+}
+
+/* ===== Syncfusion Progress Bar Overrides ===== */
+.e-progress-bar {
+  background-color: var(--wcr-cream);
+  border-radius: var(--wcr-radius-pill);
+  overflow: hidden;
+}
+
+.e-progress-bar .e-progress {
+  background: linear-gradient(135deg, var(--wcr-burgundy) 0%, var(--wcr-burgundy-light) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.e-progress-bar .e-progress::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.3), 
+    transparent);
+  animation: progress-shine 2s ease-in-out infinite;
+}
+
+@keyframes progress-shine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ===== Syncfusion Card Overrides ===== */
+.e-card {
+  background-color: var(--wcr-ivory);
+  border-radius: var(--wcr-radius-lg);
+  box-shadow: var(--wcr-shadow-md);
+  transition: all var(--wcr-transition-base);
+  overflow: hidden;
+}
+
+.e-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--wcr-shadow-xl);
+}
+
+.e-card .e-card-header {
+  background-color: var(--wcr-cream);
+  padding: var(--wcr-space-md);
+  border-bottom: 1px solid var(--wcr-taupe);
+}
+
+.e-card .e-card-header .e-card-header-title {
+  font-family: var(--wcr-font-heading) !important;
+  font-weight: 600;
+  color: var(--wcr-charcoal);
+}
+
+.e-card .e-card-content {
+  padding: var(--wcr-space-md);
+}
+
+/* ===== Focus States for Accessibility ===== */
+.e-control:focus-visible,
+.e-btn:focus-visible,
+.e-input:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--wcr-burgundy);
+  outline-offset: 2px;
+}
+
+/* ===== Loading States ===== */
+.e-spinner-pane {
+  background-color: rgba(250, 246, 242, 0.9);
+}
+
+.e-spinner-pane .e-spinner-inner .e-spin-material {
+  stroke: var(--wcr-burgundy);
+}
+
+/* ===== Responsive Utilities ===== */
+@media (max-width: 768px) {
+  .e-grid .e-gridheader,
+  .e-grid .e-gridcontent {
+    font-size: 14px;
+  }
+  
+  .e-grid .e-headercell,
+  .e-grid .e-rowcell {
+    padding: var(--wcr-space-sm);
+  }
+  
+  .e-btn {
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+  
+  .e-dialog {
+    margin: var(--wcr-space-md);
+    width: calc(100% - var(--wcr-space-lg));
+  }
+}
+
+/* ===== Animation Utilities ===== */
+.fade-in {
+  animation: fadeIn var(--wcr-transition-base);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-in {
+  animation: slideIn var(--wcr-transition-base);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===== Print Styles ===== */
+@media print {
+  .e-btn,
+  .e-toolbar,
+  .e-pager {
+    display: none !important;
+  }
+  
+  .e-grid {
+    border: 1px solid #000;
+    box-shadow: none;
+  }
+  
+  .e-grid .e-gridheader,
+  .e-grid .e-gridcontent {
+    background-color: white;
+    color: black;
+  }
+}
