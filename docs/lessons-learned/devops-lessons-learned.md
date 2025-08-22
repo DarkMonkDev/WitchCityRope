@@ -1,6 +1,6 @@
 # DevOps Lessons Learned
-<!-- Last Updated: 2025-08-20 -->
-<!-- Next Review: 2025-09-20 -->
+<!-- Last Updated: 2025-08-22 -->
+<!-- Next Review: 2025-09-22 -->
 
 ## 🚨 CRITICAL: Docker Build Configuration
 
@@ -28,6 +28,149 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 - This has caused repeated failures across multiple sessions
 
 ## Git Operations
+
+### Final Layout Fixes Commit Pattern (AUGUST 2025) ✅
+
+**SUCCESS PATTERN**: Compact navigation and precise grid layout fixes for wireframe compliance
+```bash
+# Exclude build artifacts (CRITICAL)
+git reset apps/api/bin/ apps/api/obj/
+
+# Stage specific layout adjustment files
+git add apps/web/src/components/layout/Navigation.tsx apps/web/src/components/homepage/EventsList.tsx
+
+# Targeted layout fix commit with HEREDOC
+git commit -m "$(cat <<'EOF'
+fix(layout): Compact navigation and 3-column event grid
+
+CRITICAL LAYOUT FIXES:
+- Reduce navigation padding from 16px to 12px (8px when scrolled)
+- Navigation now matches wireframe's compact height specification
+- Fix event cards to display 3 per row using CSS Grid
+- Replace SimpleGrid with native CSS for exact wireframe match
+- Grid uses auto-fit with 350px minimum for responsive behavior
+
+NAVIGATION IMPROVEMENTS:
+- Compact height: 12px padding (normal) → 8px (scrolled)
+- Maintains professional appearance while reducing visual weight
+- Better alignment with Design System v7 spacing standards
+- Improved mobile experience with reduced header space
+
+EVENT GRID ENHANCEMENTS:
+- CSS Grid: 'repeat(auto-fit, minmax(350px, 1fr))' for exact 3-column layout
+- Responsive behavior maintains grid structure on all screen sizes
+- Consistent card spacing using Design System v7 spacing tokens
+- Removed Mantine SimpleGrid dependency for precise control
+
+WIREFRAME COMPLIANCE:
+- Navigation height now matches wireframe specifications exactly
+- Event grid displays exactly 3 cards per row as designed
+- Layout adjustments ensure pixel-perfect wireframe implementation
+- Visual consistency with approved Design System v7 patterns
+
+TECHNICAL CHANGES:
+- /apps/web/src/components/layout/Navigation.tsx: Reduced padding values
+- /apps/web/src/components/homepage/EventsList.tsx: CSS Grid implementation
+- Removed SimpleGrid import in favor of native CSS Grid
+- Maintained responsive behavior with auto-fit grid columns
+
+Status: Final layout adjustments complete - wireframe compliance achieved
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+```
+
+**Result**: Successfully committed final layout adjustments for wireframe compliance
+- 2 files changed, 10 insertions, 7 deletions
+- Navigation padding reduced for compact professional appearance
+- Event cards now display exactly 3 per row using CSS Grid
+- Replaced Mantine SimpleGrid with native CSS for precise control
+- Maintained responsive behavior with auto-fit grid pattern
+- Wireframe specifications now matched exactly
+
+**Key Success Factors for Final Layout Fixes Pattern**:
+- Always exclude build artifacts (bin/obj files) before staging
+- Stage only the specific files modified for layout adjustments
+- Use precise commit message focusing on wireframe compliance
+- Document both navigation and grid improvements clearly
+- Include technical implementation details (CSS Grid specifications)
+- Focus on precision over broad changes for final adjustments
+- Verify exact wireframe compliance before committing
+
+### Layout and Button Styling Fix Commit Pattern (AUGUST 2025) ✅
+
+**SUCCESS PATTERN**: Critical UI fix commit with comprehensive component standardization
+```bash
+# Exclude build artifacts (CRITICAL)
+git reset apps/api/bin/ apps/api/obj/
+
+# Stage critical layout and styling files
+git add apps/web/src/App.css apps/web/src/index.css
+git add apps/web/src/components/layout/Navigation.tsx apps/web/src/components/layout/UtilityBar.tsx
+git add apps/web/src/components/homepage/HeroSection.tsx apps/web/src/components/homepage/CTASection.tsx apps/web/src/components/homepage/EventsList.tsx
+git add docs/lessons-learned/frontend-lessons-learned.md
+
+# Comprehensive layout fix commit with HEREDOC
+git commit -m "$(cat <<'EOF'
+fix(layout): Edge-to-edge layout and standardized button styling
+
+CRITICAL FIXES:
+- Remove page centering - content now extends edge-to-edge
+- Fix navigation height - more compact and professional
+- Fix login button text cutoff issue
+- Create standardized button CSS classes for consistency
+
+STANDARDIZED BUTTON CLASSES:
+- .btn-primary: Amber gradient (#FFBF00 to #FF8C00)
+- .btn-primary-alt: Electric purple gradient (#9D4EDD to #7B2CBF)
+- .btn-secondary: Outline style for secondary actions
+- All buttons have corner morph animation (12px 6px to 6px 12px)
+
+PATTERN ESTABLISHED:
+- ALL buttons must use standardized classes
+- No inline styles or component-specific button styling
+- Documented in frontend lessons learned for future compliance
+- Ensures visual consistency across entire application
+
+TECHNICAL CHANGES:
+- /apps/web/src/App.css: Removed page centering and max-width constraints
+- /apps/web/src/index.css: Added comprehensive button class definitions
+- /apps/web/src/components/layout/Navigation.tsx: Optimized height (64px)
+- /apps/web/src/components/layout/UtilityBar.tsx: Edge-to-edge layout
+- /apps/web/src/components/homepage/HeroSection.tsx: Standardized button classes
+- /apps/web/src/components/homepage/CTASection.tsx: Standardized button classes
+- /apps/web/src/components/homepage/EventsList.tsx: Standardized button classes
+- /docs/lessons-learned/frontend-lessons-learned.md: Button pattern documentation
+
+Status: Critical layout fixes applied - ready for visual validation
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+```
+
+**Result**: Successfully committed critical layout and button styling fixes
+- 8 files changed, 232 insertions, 117 deletions
+- Edge-to-edge layout established removing page centering constraints
+- Standardized button classes created for entire application consistency
+- Navigation height optimized from previous implementation
+- Login button text cutoff issue resolved
+- All homepage components updated to use standardized button classes
+- Frontend lessons learned updated with button standardization pattern
+
+**Key Success Factors for Layout Fix Commit Pattern**:
+- Always exclude build artifacts (bin/obj files) before staging
+- Stage layout files in logical groups: Core CSS → Layout components → Homepage components → Documentation
+- Use comprehensive commit message documenting both problems fixed and standards established
+- Include technical file listing showing specific changes made
+- Document pattern establishment for future compliance
+- Update lessons learned to prevent future button styling inconsistencies
+- Focus on standardization to prevent component-specific styling proliferation
 
 ### Design System v7 Milestone Completion Pattern (AUGUST 2025) ✅
 
@@ -627,9 +770,9 @@ git push origin master
 - Push immediately after commit to preserve milestone in remote repository
 
 **Branch Management**
-**Current**: Working on `master` branch (legacy naming)
+**Current**: Working on `feature/2025-08-22-core-pages-implementation` branch
 **Note**: Repository uses `master` not `main` as primary branch
-**Strategy**: Solo development with direct commits to master, feature branches for complex work
+**Strategy**: Solo development with feature branches for isolation, merge to master when complete
 
 ## Docker Development
 
