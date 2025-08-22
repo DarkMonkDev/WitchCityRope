@@ -1,18 +1,49 @@
 # React Architecture Index - WitchCityRope
 <!-- Last Updated: 2025-08-22 -->
+<!-- Last Validated: 2025-08-22 -->
 <!-- Version: 1.0 -->
-<!-- Owner: Librarian Agent -->
+<!-- Primary Maintainer: React-Developer Agent -->
+<!-- Structure Owner: Librarian Agent -->
 <!-- Status: Active -->
 
 ## 🎯 Purpose
 
 This index provides **react-developer agents** and all development team members with a comprehensive guide to React architecture documentation in the WitchCityRope project. All React architecture resources are centrally catalogued here to prevent confusion and ensure agents can quickly locate the information they need.
 
+## 📝 Shared Ownership & Maintenance Model
+
+**PRIMARY MAINTAINER**: **React-Developer Agent** - Uses daily, finds broken links first  
+**STRUCTURE OWNER**: **Librarian Agent** - Maintains organization and standards compliance  
+**VALIDATION**: React-Developer updates "Last Validated" date when verifying links  
+
+### **🔧 IMMEDIATE REPAIR AUTHORITY**
+**React-Developer Agents**: ✅ **FIX BROKEN LINKS IMMEDIATELY** - Don't wait for delegation  
+**React-Developer Agents**: ✅ **UPDATE Last Validated date** when checking links  
+**React-Developer Agents**: ✅ **ADD missing architecture resources** discovered during work  
+
+### **📋 SHARED RESPONSIBILITIES**
+**React-Developer Primary Tasks:**
+- 🔧 **Fix broken links immediately** (don't wait for Librarian)
+- 📅 **Update "Last Validated" date** when using the index
+- ➕ **Add missing resources** discovered during development work
+- 🚨 **Report structural issues** to Librarian Agent
+
+**Librarian Agent Tasks:**
+- 🏗️ **Major reorganizations** when functional areas change
+- 📏 **Standards compliance** enforcement
+- 🗂️ **File registry updates** for index modifications
+- 🔍 **Structural validation** of index organization
+
+### **🚨 CRITICAL: No Permission Required for Link Fixes**
+**React-Developer**: If you find a broken link → FIX IT IMMEDIATELY  
+**React-Developer**: Update "Last Validated" date after any link verification  
+**React-Developer**: This index MUST work when you need it
+
 ## 🚨 CRITICAL FOR REACT DEVELOPERS
 
 ### **Primary Architecture Documents (READ FIRST)**
 
-1. **📋 Main Project Architecture**: `/docs/ARCHITECTURE.md`
+1. **📋 Main Project Architecture**: `/ARCHITECTURE.md`
    - **Overview**: Web+API microservices architecture with React frontend
    - **Critical Info**: Port configuration, service communication, authentication flow
    - **React Context**: React + TypeScript + Vite + Mantine UI Framework
@@ -38,7 +69,7 @@ This index provides **react-developer agents** and all development team members 
 
 | Document | Location | Purpose | Last Updated |
 |----------|----------|---------|--------------|
-| **Main Architecture** | `/docs/ARCHITECTURE.md` | Primary system architecture - Web+API pattern | 2025-08-22 |
+| **Main Architecture** | `/ARCHITECTURE.md` | Primary system architecture - Web+API pattern | 2025-08-22 |
 | **React Architecture Research** | `/docs/architecture/react-migration/react-architecture.md` | State management, routing, component patterns | 2025-08-13 |
 | **API Integration Guide** | `/docs/architecture/react-migration/api-integration.md` | Frontend-API communication patterns | Active |
 | **Technical Context** | `/docs/architecture/react-migration/technical-context.md` | Migration technical background | Active |
@@ -122,7 +153,7 @@ This index provides **react-developer agents** and all development team members 
 ## 🎯 Quick Access for Common Tasks
 
 ### **For react-developer Agent Starting Work**
-1. **Read First**: `/docs/ARCHITECTURE.md` (system overview)
+1. **Read First**: `/ARCHITECTURE.md` (system overview)
 2. **Architecture Patterns**: `/docs/architecture/react-migration/react-architecture.md`
 3. **API Integration**: `/docs/guides-setup/ai-agents/react-developer-api-changes-guide.md`
 4. **UI Framework**: `/docs/architecture/decisions/adr-004-ui-framework-mantine.md`
@@ -257,4 +288,12 @@ This index provides **react-developer agents** and all development team members 
 
 ---
 
-*This index is maintained by the Librarian Agent and updated whenever React architecture resources change. For questions or improvements, update the file registry and notify the librarian agent.*
+*This index uses **SHARED OWNERSHIP**: React-Developer Agent maintains links and content, Librarian Agent maintains structure and organization.*
+
+**For React-Developer Agents**:
+- ✅ **USE** this index as your primary architecture resource
+- ✅ **FIX BROKEN LINKS IMMEDIATELY** - no permission required  
+- ✅ **UPDATE "Last Validated" date** when verifying links
+- ✅ **ADD missing resources** you discover during development
+- ✅ **REPORT structural issues** to Librarian Agent for major changes
+- ❌ **DO NOT** create duplicate architecture documentation

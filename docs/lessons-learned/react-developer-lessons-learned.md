@@ -3,18 +3,24 @@
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 
 ### Critical Architecture Documents (MUST READ BEFORE ANY WORK):
-1. **API Changes Guide**: `/docs/guides-setup/ai-agents/react-developer-api-changes-guide.md`
-2. **Migration Architecture**: `/docs/architecture/react-migration/domain-layer-architecture.md`
-3. **DTO Strategy**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
-4. **Design System**: `/docs/design/current/design-system-v7.md`
+1. **React Architecture Index**: `/docs/architecture/REACT-ARCHITECTURE-INDEX.md` - **PRIMARY ARCHITECTURE RESOURCE**
+2. **API Changes Guide**: `/docs/guides-setup/ai-agents/react-developer-api-changes-guide.md`
+3. **Migration Architecture**: `/docs/architecture/react-migration/domain-layer-architecture.md`
+4. **DTO Strategy**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
+5. **Design System**: `/docs/design/current/design-system-v7.md`
 
 ### Validation Gates (MUST COMPLETE):
+- [ ] **Read React Architecture Index FIRST** - Single source for all React resources
 - [ ] Read API changes guide for backend integration awareness
 - [ ] Understand backend migration doesn't break frontend
 - [ ] Know about improved API response formats
 - [ ] Check for existing animated form components
 
 ### React Developer Specific Rules:
+- **React Architecture Index is SINGLE SOURCE for all React architecture documentation**
+- **YOU OWN React Architecture Index maintenance** - fix broken links immediately, no permission needed
+- **UPDATE "Last Validated" date when checking React Architecture Index links**
+- **ADD missing resources** you discover during development to React Architecture Index
 - **Backend migration is transparent to frontend (API contracts maintained)**
 - **Use improved response formats and error handling**
 - **Always check for existing animated components before creating new ones**
@@ -355,6 +361,51 @@ Using standardized CSS classes ensures:
 
 ### Tags
 #critical #security #authentication
+
+---
+
+## React Architecture Index Ownership Model
+**Date**: 2025-08-22
+**Category**: Documentation Management
+**Severity**: Critical
+
+### What We Learned
+**CRITICAL OWNERSHIP CHANGE**: React Architecture Index now uses **SHARED OWNERSHIP MODEL**
+
+**PROBLEM SOLVED**: 
+- Previously: Librarian owned index, but React-Developer used it (ownership mismatch)
+- Issue: Broken links only discovered by users, but users couldn't fix them
+- Solution: React-Developer gets immediate repair authority
+
+**NEW OWNERSHIP MODEL**:
+- **Primary Maintainer**: React-Developer Agent (daily user)
+- **Structure Owner**: Librarian Agent (organization)
+- **Immediate Authority**: React-Developer can fix broken links without permission
+
+### Critical Actions for React-Developer
+**IMMEDIATE REPAIR AUTHORITY**:
+- ✅ **FIX BROKEN LINKS IMMEDIATELY** - no permission required
+- ✅ **UPDATE "Last Validated" date** when checking links
+- ✅ **ADD missing resources** discovered during development
+- ✅ **REPORT structural issues** to Librarian for major changes
+
+**VALIDATION WORKFLOW**:
+1. When using React Architecture Index, verify links work
+2. If broken link found → FIX IMMEDIATELY
+3. Update "Last Validated" date in document header
+4. Continue with your work (no delays)
+
+**BROKEN LINK FIXED**: `/docs/ARCHITECTURE.md` → `/ARCHITECTURE.md` (canonical location)
+
+### Action Items
+- [x] **UNDERSTAND**: You OWN maintenance of React Architecture Index
+- [x] **IMPLEMENT**: Fix broken links immediately when found
+- [x] **UPDATE**: "Last Validated" date when verifying links
+- [ ] **ADD**: Missing resources discovered during development
+- [ ] **MAINTAIN**: Index accuracy through daily use
+
+### Tags
+#critical #ownership #documentation #architecture-index
 
 ---
 

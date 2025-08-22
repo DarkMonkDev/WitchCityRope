@@ -41,6 +41,8 @@
 
 This guide provides React developers with essential information about API architecture changes as WitchCityRope migrates to **Simple Vertical Slice Architecture**. The frontend integration remains largely unchanged due to consistent API contracts, but developers must understand the new endpoint organization patterns and improved response formats.
 
+**🎯 PRIMARY RESOURCE**: Use `/docs/architecture/REACT-ARCHITECTURE-INDEX.md` as your **SINGLE SOURCE** for all React architecture documentation. This guide is one component referenced in that comprehensive index.
+
 ### Key Changes Overview
 - **Minimal Impact on Frontend**: API contracts maintained for backward compatibility
 - **Improved API Organization**: Feature-based endpoint grouping
