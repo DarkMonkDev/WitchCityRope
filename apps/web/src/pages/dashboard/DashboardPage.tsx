@@ -4,12 +4,12 @@ import { Link } from 'react-router-dom';
 import { useCurrentUser } from '../../features/auth/api/queries';
 import { useEvents } from '../../features/events/api/queries';
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
-import type { Event } from '../../types/api.types';
+import type { EventDto } from '@witchcityrope/shared-types';
 
 // Helper function to format event for display
-const formatEventForDashboard = (event: Event) => {
-  const startDate = new Date(event.startDate);
-  const endDate = new Date(event.endDate);
+const formatEventForDashboard = (event: EventDto) => {
+  const startDate = new Date(event.startDateTime || '');
+  const endDate = new Date(event.endDateTime || '');
   
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('en-US', {
@@ -24,8 +24,8 @@ const formatEventForDashboard = (event: Event) => {
     title: event.title,
     date: startDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
     time: `${formatTime(startDate)} - ${formatTime(endDate)}`,
-    status: event.isRegistrationOpen ? 'Open' : 'Closed',
-    statusColor: event.isRegistrationOpen ? '#228B22' : '#DAA520',
+    status: event.status === 'Published' ? 'Open' : 'Closed',
+    statusColor: event.status === 'Published' ? '#228B22' : '#DAA520',
   };
 };
 
@@ -40,8 +40,12 @@ export const DashboardPage: React.FC = () => {
   
   // Format events for dashboard display
   const upcomingEvents = events ? events
-    .filter(event => new Date(event.startDate) > new Date()) // Only future events
-    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()) // Sort by date
+    .filter(event => event.startDateTime && new Date(event.startDateTime) > new Date()) // Only future events
+    .sort((a, b) => {
+      const dateA = new Date(a.startDateTime || 0).getTime();
+      const dateB = new Date(b.startDateTime || 0).getTime();
+      return dateA - dateB;
+    }) // Sort by date
     .slice(0, 5) // Show only first 5
     .map(formatEventForDashboard) : [];
 
