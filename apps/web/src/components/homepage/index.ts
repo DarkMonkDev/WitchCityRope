@@ -5,3 +5,4 @@ export { CTASection } from './CTASection';
 export { RopeDivider } from './RopeDivider';
 export { EventsList } from './EventsList';
 export { EventCard } from './EventCard';
+export { Footer } from './Footer';

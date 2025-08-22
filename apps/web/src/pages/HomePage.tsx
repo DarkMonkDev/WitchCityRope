@@ -5,7 +5,8 @@ import {
   EventsList, 
   FeatureGrid, 
   CTASection, 
-  RopeDivider 
+  RopeDivider,
+  Footer 
 } from '../components/homepage';
 import { useUser, useIsAuthenticated } from '../stores/authStore';
 
@@ -29,6 +30,9 @@ export const HomePage: React.FC = () => {
 
       {/* Call to Action Section */}
       <CTASection />
+
+      {/* Footer */}
+      <Footer />
     </Box>
   );
 };

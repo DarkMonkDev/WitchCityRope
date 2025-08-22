@@ -60,6 +60,7 @@ export const EventCard: React.FC<EventCardProps> = ({
     <Anchor
       component="div"
       underline="never"
+      className="event-card"
       style={{
         display: 'block',
         background: 'white',
@@ -69,10 +70,6 @@ export const EventCard: React.FC<EventCardProps> = ({
         transition: 'all 0.3s ease',
         textDecoration: 'none',
         cursor: onClick ? 'pointer' : 'default',
-        '&:hover': {
-          transform: 'translateY(-4px)',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
-        }
       }}
       onClick={onClick}
       data-testid="event-card"
