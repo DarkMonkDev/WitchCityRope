@@ -1,5 +1,35 @@
 # Claude Code Project Configuration - WitchCityRope
 
+### 🚨 CRITICAL: DOCUMENTATION STRUCTURE ENFORCEMENT 🚨
+
+**NEVER CREATE FILES OR FOLDERS IN /docs/ ROOT**
+
+ONLY these 6 files are allowed in /docs/ root:
+- 00-START-HERE.md
+- ARCHITECTURE.md  
+- CLAUDE.md
+- PROGRESS.md
+- QUICK_START.md
+- ROADMAP.md
+
+**ALL OTHER FILES MUST GO IN:**
+- `/docs/functional-areas/[area]/` - For feature work
+- `/docs/guides-setup/` - For guides and setup docs
+- `/docs/lessons-learned/` - For lessons learned
+- `/docs/standards-processes/` - For standards
+- `/docs/architecture/` - For architecture decisions
+- `/docs/design/` - For design documents
+- `/docs/_archive/` - For archived content
+
+**VIOLATIONS WILL BE IMMEDIATELY DETECTED AND REVERSED**
+
+**MANDATORY PRE-FLIGHT CHECKLIST:**
+- [ ] Check functional-area-master-index.md for proper location
+- [ ] Verify NOT creating in /docs/ root
+- [ ] Use existing functional area structure
+- [ ] Update file registry for all operations
+- [ ] Run structure validator: `bash /docs/architecture/docs-structure-validator.sh`
+
 ## 🤖 AI Workflow Orchestration Active
 
 **Project**: WitchCityRope - A membership and event management platform for Salem's rope bondage community.

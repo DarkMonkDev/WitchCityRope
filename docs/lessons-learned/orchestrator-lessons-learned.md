@@ -8,6 +8,36 @@
 
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 
+### 🚨 CRITICAL: DOCUMENTATION STRUCTURE ENFORCEMENT 🚨
+**ZERO TOLERANCE POLICY - VIOLATIONS = IMMEDIATE FAILURE**
+
+#### Documentation Structure Rules (NEVER VIOLATE):
+- ❌ **NEVER** create files in `/docs/` root (only 6 approved files allowed)
+- ✅ **ALWAYS** check `/docs/architecture/functional-area-master-index.md` FIRST
+- ✅ **ALWAYS** use proper functional area paths:
+  - `/docs/functional-areas/[area]/` - Feature work
+  - `/docs/guides-setup/` - Guides and setup
+  - `/docs/lessons-learned/` - Lessons learned
+  - `/docs/standards-processes/` - Standards
+  - `/docs/architecture/` - Architecture decisions
+  - `/docs/design/` - Design documents
+  - `/docs/_archive/` - Archived content
+- 🔍 **ALWAYS** run structure validator: `bash /docs/architecture/docs-structure-validator.sh`
+- 📝 **ALWAYS** update file registry for ALL operations
+
+#### Pre-Flight Checklist (MANDATORY):
+- [ ] Check functional-area-master-index.md for proper location
+- [ ] Verify NOT creating in /docs/ root
+- [ ] Use existing functional area structure
+- [ ] Update file registry for all operations
+- [ ] Run structure validator after operations
+
+#### Enforcement Actions:
+- **Root pollution detected** → IMMEDIATE STOP + librarian agent
+- **Multiple archive folders** → EMERGENCY + immediate fix
+- **/docs/docs/ folder** → CATASTROPHIC + session abort
+- **Agent shortcuts** → VIOLATION + re-training required
+
 ### Critical Architecture Documents (MUST READ BEFORE ANY WORK):
 1. **Migration Architecture**: `/docs/architecture/react-migration/domain-layer-architecture.md`
 2. **DTO Strategy**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`

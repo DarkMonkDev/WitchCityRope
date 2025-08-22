@@ -1,8 +1,41 @@
 # React Developer API Changes Guide - Vertical Slice Integration
 <!-- Last Updated: 2025-08-22 -->
-<!-- Version: 1.0 -->
+<!-- Version: 1.1 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
+
+## 🚨 CRITICAL: DOCUMENTATION STRUCTURE ENFORCEMENT 🚨
+
+**ZERO TOLERANCE POLICY - VIOLATIONS = IMMEDIATE SESSION FAILURE**
+
+### Documentation Structure Rules (NEVER VIOLATE):
+- ❌ **NEVER** create files in `/docs/` root (only 6 approved files allowed)
+- ✅ **ALWAYS** check `/docs/architecture/functional-area-master-index.md` FIRST
+- ✅ **ALWAYS** use proper functional area paths:
+  - `/docs/functional-areas/[area]/` - Feature work
+  - `/docs/guides-setup/` - Guides and setup
+  - `/docs/lessons-learned/` - Lessons learned
+  - `/docs/standards-processes/` - Standards
+  - `/docs/architecture/` - Architecture decisions
+  - `/docs/design/` - Design documents
+  - `/docs/_archive/` - Archived content
+- 🔍 **MANDATORY** structure validation: `bash /docs/architecture/docs-structure-validator.sh`
+- 📝 **MANDATORY** file registry updates for ALL operations
+
+### Pre-Flight Checklist (MANDATORY FOR EVERY SESSION):
+- [ ] Check functional-area-master-index.md for proper location
+- [ ] Verify NOT creating in /docs/ root
+- [ ] Use existing functional area structure
+- [ ] Update file registry for all operations
+- [ ] Run structure validator after operations
+
+### Violation Consequences:
+- **Root pollution** → IMMEDIATE STOP + escalate to librarian
+- **Multiple archives** → EMERGENCY + immediate fix required
+- **/docs/docs/** → CATASTROPHIC + session termination
+- **Shortcuts** → VIOLATION + agent retraining
+
+---
 
 ## Executive Summary
 

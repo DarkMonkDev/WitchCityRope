@@ -32,6 +32,10 @@ WitchCityRope hosts various event types to serve different community needs:
 - **Community Mixers**: Meet other members
 - **Special Events**: Performances, demos, celebrations
 
+### Online Events
+- **Virtual Workshops**: Remote learning sessions
+- **Discussion Groups**: Topic-focused conversations
+- **Q&A Sessions**: Expert-led discussions
 
 ## Finding Events
 

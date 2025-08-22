@@ -18,12 +18,14 @@ This master index is maintained by the librarian agent to provide quick lookups 
 | **Database Initialization** | `/docs/functional-areas/database-initialization/` | **IMPLEMENTATION COMPLETE** ✅ | **Complete database auto-initialization system** - Reduces setup time from 2-4 hours to under 5 minutes with automated migrations, comprehensive seed data, and real PostgreSQL testing via TestContainers | **COMPLETE** | 2025-08-22 |
 | ~~**Authentication-Identity**~~ | `/docs/_archive/authentication-identity-legacy-2025-08-12/` | **ARCHIVED** | Legacy authentication docs - ARCHIVED to prevent confusion | Archived | 2025-08-12 |
 | **Design Refresh** | `/docs/functional-areas/design-refresh/` | `/docs/functional-areas/design-refresh/new-work/2025-08-20-modernization/` | Design system modernization with edgy/modern aesthetic, homepage navigation refresh, 5 design iterations, documentation reorganization | Phase 1 - Requirements | 2025-08-20 |
-| **Events Management** | `/docs/functional-areas/events/` | N/A | Event creation, RSVP, ticketing | Active | 2025-08-12 |
+| **Events Management** | `/docs/functional-areas/events/` | N/A | Event creation, RSVP, ticketing, admin management | Active | 2025-08-22 |
 | **Homepage** | `/docs/functional-areas/homepage/` | N/A | Landing page and main navigation entry point with complete workflow structure and design assets | Enhanced | 2025-08-19 |
 | **Payment (PayPal/Venmo)** | `/docs/functional-areas/payment-paypal-venmo/` | N/A | Payment processing integration | Planning | 2025-08-12 |
 | **User Management** | `/docs/functional-areas/user-management/` | `/docs/functional-areas/user-management/new-work/2025-08-12-admin-screen/` | Admin user management, member profiles, vetting status | In Development | 2025-08-12 |
 | ~~**Vertical Slice Home Page**~~ | `/docs/_archive/vertical-slice-home-page-2025-08-16/` | **ARCHIVED** | Test implementation of complete workflow process - MISSION ACCOMPLISHED, all value extracted | 🗄️ ARCHIVED | 2025-08-19 |
 | **Docker Authentication** | `/docs/functional-areas/docker-authentication/` | Phase 2 Complete - Pending Human Approval | Containerize existing working authentication system (React + .NET API + PostgreSQL) | Phase 2 Design Complete | 2025-08-17 |
+| **Enhancements** | `/docs/functional-areas/enhancements/` | N/A | User interface enhancements and feature improvements | Active | 2025-08-22 |
+| **Browser Testing** | `/docs/functional-areas/browser-testing/` | N/A | Browser automation and testing tools configuration | Active | 2025-08-22 |
 
 ## Active Development Work
 
@@ -138,7 +140,8 @@ Pattern: `{base_path}/wireframes/`
 | **Orchestration Failures** | `/docs/lessons-learned/orchestration-failures/` | Critical lessons about AI workflow orchestration failures and solutions - UPDATED 2025-08-13 to fix test-fix-coordinator references | AI Teams | Active |
 | **Standards & Processes** | `/docs/standards-processes/` | Development standards, coding patterns, testing guidelines | All Teams | Active |
 | **Agent Boundaries** | `/docs/standards-processes/agent-boundaries.md` | Strict agent file access matrix and boundary enforcement | AI Teams | Active |
-| **Guides & Setup** | `/docs/guides-setup/` | Installation guides, Docker setup, environment configuration | DevOps/Setup | Active |
+| **Guides & Setup** | `/docs/guides-setup/` | Installation guides, Docker setup, environment configuration, admin guides | DevOps/Setup | Active |
+| **Design Assets** | `/docs/design/` | UI designs, wireframes, style guides, screenshots | Design Team | Active |
 | **Architecture** | `/docs/architecture/` | System design, ADRs, this master index, file registry | Architect/Librarian | Active |
 | **Archive** | `/docs/_archive/` | Historical documents, deprecated files, old session notes | Librarian | Archived |
 
