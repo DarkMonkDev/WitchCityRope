@@ -7,6 +7,7 @@ using System.Text;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Services;
+using WitchCityRope.Api.Features.Shared.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -96,10 +97,13 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Service layer registration
+// Service layer registration (existing services)
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+
+// New vertical slice feature services
+builder.Services.AddFeatureServices();
 
 // Health checks for database monitoring
 builder.Services.AddHealthChecks()
@@ -133,8 +137,14 @@ app.UseCors("ReactDevelopment");
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Existing controller endpoints (to be migrated)
 app.MapControllers();
-app.MapHealthChecks("/health");
+
+// Legacy health check endpoint (will be replaced by new Health feature)
+app.MapHealthChecks("/health-check");
+
+// New vertical slice feature endpoints
+app.MapFeatureEndpoints();
 
 app.Run();
 
