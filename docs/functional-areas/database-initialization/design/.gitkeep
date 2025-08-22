@@ -1,0 +1,27 @@
+# Design Phase - Database Auto-Initialization
+
+Expected documents in this folder:
+
+## Architecture Design
+- database-initialization-architecture.md - Overall system architecture and component design
+- migration-pipeline-design.md - Database migration and versioning pipeline architecture
+- seed-data-architecture.md - Seed data management and population system design
+- environment-configuration-design.md - Environment-specific configuration management
+
+## Technical Design
+- schema-design.md - Database schema creation and management design
+- entity-framework-integration.md - EF Core integration patterns and implementation design
+- docker-integration-design.md - Docker Compose and container integration architecture
+- service-design.md - Database initialization service design and interfaces
+
+## Security Design
+- security-model-design.md - Database security, roles, and permissions design
+- access-control-design.md - Database access control and authentication design
+- backup-integration-design.md - Backup and recovery procedures integration
+
+## Implementation Patterns
+- command-patterns.md - CLI tools and command-line interface design
+- api-integration.md - Integration with existing WitchCityRope API architecture
+- testing-architecture.md - Testing framework and validation architecture
+
+This folder supports Phase 2 of the AI workflow orchestration process.

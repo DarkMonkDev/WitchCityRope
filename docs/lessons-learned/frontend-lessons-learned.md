@@ -409,6 +409,62 @@ This was THE fix that made the application usable again. Without this change, vi
 
 ---
 
+## 🚨 CRITICAL: TypeScript Compilation Error Fixes (2025-08-22) 🚨
+**Date**: 2025-08-22
+**Category**: TypeScript Compilation
+**Severity**: Critical
+
+### Context
+Fixed two critical TypeScript compilation errors that were blocking test execution and build process.
+
+### Issues Fixed
+1. **EventsList.tsx Type Error**: Property 'slice' does not exist on type 'unknown'
+   - **Root Cause**: Fallback chain `customEvents ?? apiEvents ?? []` resulted in `events` being inferred as `unknown`
+   - **Fix**: Added explicit type annotation and array check: `customEvents || (Array.isArray(apiEvents) ? apiEvents : [])`
+
+2. **theme.ts Invalid Property**: Object literal may only specify known properties, and 'variants' does not exist
+   - **Root Cause**: Mantine v7 Button component doesn't support `variants` property in theme configuration
+   - **Fix**: Removed `variants` property entirely, as button styles moved to CSS classes per v7 design system
+
+### Action Items
+- [ ] ALWAYS provide explicit type annotations for complex fallback chains in TypeScript
+- [ ] USE `Array.isArray()` checks when dealing with potentially undefined API response data
+- [ ] REMOVE deprecated Mantine properties when upgrading component library versions
+- [ ] VERIFY TypeScript compilation before committing changes: `npm run build`
+- [ ] UNDERSTAND Mantine v7 moved button variants to CSS classes instead of theme variants
+
+### Critical Implementation Rules
+```typescript
+// ✅ CORRECT - Type-safe fallback with explicit checks
+const events: Event[] = customEvents || (Array.isArray(apiEvents) ? apiEvents : []);
+
+// ❌ WRONG - Creates type inference issues
+const events = customEvents ?? apiEvents ?? [];
+
+// ✅ CORRECT - Mantine v7 theme without deprecated variants
+components: {
+  Button: {
+    styles: { /* styles only */ }
+    // No variants property
+  }
+}
+
+// ❌ WRONG - Deprecated variants property
+components: {
+  Button: {
+    variants: { /* this doesn't exist in v7 */ }
+  }
+}
+```
+
+### Impact
+Enables TypeScript compilation and test execution. Critical for development workflow and CI/CD pipeline.
+
+### Tags
+#critical #typescript-compilation #type-safety #mantine-v7 #build-fix #array-fallbacks
+
+---
+
 ## 🚨 CRITICAL: Authentication Endpoint Correction Fix (READ FIRST) 🚨
 **Date**: 2025-08-19
 **Category**: Authentication Critical Bug Fix
