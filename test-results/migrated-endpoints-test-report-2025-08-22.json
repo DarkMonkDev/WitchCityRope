@@ -1,0 +1,148 @@
+{
+  "testExecutionDate": "2025-08-22T21:00:00Z",
+  "testType": "Migrated Endpoints Verification",
+  "environment": {
+    "react": {
+      "status": "healthy",
+      "url": "http://localhost:5173"
+    },
+    "api": {
+      "status": "healthy",
+      "url": "http://localhost:5655",
+      "notes": "Running locally due to Docker container issues"
+    },
+    "database": {
+      "status": "healthy",
+      "url": "localhost:5433"
+    },
+    "compilationErrors": 0,
+    "dockerIssues": "API container failed to start due to .NET SDK issues"
+  },
+  "testResults": {
+    "authenticationEndpoints": {
+      "GET_auth_current_user": {
+        "status": "PASS",
+        "httpStatus": 401,
+        "responseTime": "6.7ms",
+        "notes": "Expected 401 without authentication"
+      },
+      "POST_auth_login": {
+        "status": "PASS",
+        "httpStatus": 401,
+        "responseTime": "257ms",
+        "notes": "Returns proper error message for invalid credentials"
+      },
+      "POST_auth_register": {
+        "status": "PASS",
+        "httpStatus": 400,
+        "responseTime": "44.6ms",
+        "notes": "Returns proper error for existing user"
+      },
+      "POST_auth_logout": {
+        "status": "FAIL",
+        "httpStatus": 500,
+        "responseTime": "1.6ms",
+        "error": "AmbiguousMatchException - multiple endpoints matched",
+        "severity": "HIGH"
+      },
+      "POST_auth_service_token": {
+        "status": "PARTIAL",
+        "httpStatus": 400,
+        "responseTime": "1.6ms",
+        "notes": "Endpoint exists but requires request body"
+      }
+    },
+    "eventsEndpoints": {
+      "GET_events": {
+        "status": "FAIL",
+        "httpStatus": 500,
+        "responseTime": "1.2ms",
+        "error": "AmbiguousMatchException - multiple endpoints matched",
+        "severity": "HIGH"
+      },
+      "GET_events_id": {
+        "status": "PASS",
+        "httpStatus": 404,
+        "responseTime": "2.5ms",
+        "notes": "Returns proper error for invalid GUID format"
+      }
+    },
+    "userManagementEndpoints": {
+      "GET_users_profile": {
+        "status": "PASS",
+        "httpStatus": 401,
+        "responseTime": "2.4ms",
+        "notes": "Expected 401 without authentication"
+      },
+      "PUT_users_profile": {
+        "status": "PASS",
+        "httpStatus": 401,
+        "responseTime": "1.9ms",
+        "notes": "Expected 401 without authentication"
+      },
+      "GET_admin_users": {
+        "status": "PASS",
+        "httpStatus": 401,
+        "responseTime": "1.6ms",
+        "notes": "Expected 401 without authentication"
+      },
+      "GET_admin_users_id": {
+        "status": "PASS",
+        "httpStatus": 401,
+        "responseTime": "1.0ms",
+        "notes": "Expected 401 without authentication"
+      },
+      "PUT_admin_users_id": {
+        "status": "PASS",
+        "httpStatus": 401,
+        "responseTime": "1.0ms",
+        "notes": "Expected 401 without authentication"
+      }
+    }
+  },
+  "summary": {
+    "totalEndpoints": 11,
+    "passedEndpoints": 8,
+    "failedEndpoints": 2,
+    "partialEndpoints": 1,
+    "passRate": "72.7%",
+    "avgResponseTime": "28.7ms",
+    "criticalIssues": [
+      {
+        "endpoint": "POST /api/auth/logout",
+        "issue": "Ambiguous route mapping",
+        "impact": "Logout functionality broken",
+        "suggestedAgent": "backend-developer"
+      },
+      {
+        "endpoint": "GET /api/events", 
+        "issue": "Ambiguous route mapping",
+        "impact": "Events list functionality broken",
+        "suggestedAgent": "backend-developer"
+      }
+    ]
+  },
+  "performanceMetrics": {
+    "responseTimesUnder50ms": 10,
+    "responseTimesUnder200ms": 11,
+    "slowestEndpoint": "POST /api/auth/login (257ms)",
+    "fastestEndpoint": "PUT /api/admin/users/{id} (1.0ms)"
+  },
+  "recommendations": {
+    "immediate": [
+      "Fix ambiguous route mappings for logout and events endpoints",
+      "Resolve Docker API container startup issues",
+      "Fix Swagger schema conflicts"
+    ],
+    "medium": [
+      "Test authenticated endpoints with valid JWT tokens",
+      "Verify proper error handling and validation",
+      "Performance optimization for login endpoint"
+    ],
+    "low": [
+      "Implement comprehensive integration tests",
+      "Add health check endpoint documentation",
+      "Update API documentation"
+    ]
+  }
+}

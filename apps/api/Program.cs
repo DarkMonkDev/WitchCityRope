@@ -97,8 +97,9 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Service layer registration (existing services)
-builder.Services.AddScoped<IEventService, EventService>();
+// Service layer registration (services still used by remaining controllers)
+// Note: IEventService removed due to EventsController migration
+// Keep IAuthService for ProtectedController and IJwtService for authentication functionality
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 

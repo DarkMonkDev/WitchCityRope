@@ -1,4 +1,7 @@
 using WitchCityRope.Api.Features.Health.Services;
+using WitchCityRope.Api.Features.Authentication.Services;
+using WitchCityRope.Api.Features.Events.Services;
+using WitchCityRope.Api.Features.Users.Services;
 
 namespace WitchCityRope.Api.Features.Shared.Extensions;
 
@@ -17,10 +20,14 @@ public static class ServiceCollectionExtensions
         // Health feature services
         services.AddScoped<HealthService>();
 
-        // Future features will be added here as they are migrated:
-        // services.AddScoped<AuthenticationService>();
-        // services.AddScoped<EventService>();
-        // services.AddScoped<UserService>();
+        // Authentication feature services
+        services.AddScoped<AuthenticationService>();
+
+        // Events feature services
+        services.AddScoped<EventService>();
+
+        // Users feature services
+        services.AddScoped<UserManagementService>();
 
         return services;
     }

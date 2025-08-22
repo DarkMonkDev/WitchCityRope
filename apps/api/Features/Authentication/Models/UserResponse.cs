@@ -65,5 +65,5 @@ public class LoginResponse
     /// <summary>
     /// User information
     /// </summary>
-    public UserResponse User { get; set; } = new();
+    public AuthUserResponse User { get; set; } = new();
 }
