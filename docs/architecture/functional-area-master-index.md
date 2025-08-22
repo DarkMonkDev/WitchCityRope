@@ -142,7 +142,8 @@ Pattern: `{base_path}/wireframes/`
 | **Agent Boundaries** | `/docs/standards-processes/agent-boundaries.md` | Strict agent file access matrix and boundary enforcement | AI Teams | Active |
 | **Guides & Setup** | `/docs/guides-setup/` | Installation guides, Docker setup, environment configuration, admin guides | DevOps/Setup | Active |
 | **Design Assets** | `/docs/design/` | UI designs, wireframes, style guides, screenshots | Design Team | Active |
-| **Architecture** | `/docs/architecture/` | System design, ADRs, this master index, file registry | Architect/Librarian | Active |
+| **Architecture** | `/docs/architecture/` | System design, ADRs, this master index, file registry, **React Architecture Index** | Architect/Librarian | Active |
+| **🎯 React Architecture (INDEX)** | `/docs/architecture/REACT-ARCHITECTURE-INDEX.md` | **COMPLETE React architecture resource map** - All React docs, ADRs, guides centralized for react-developer agents | Librarian/React Team | **ACTIVE** |
 | **Archive** | `/docs/_archive/` | Historical documents, deprecated files, old session notes | Librarian | Archived |
 
 ## Agent File Access Matrix
@@ -152,7 +153,8 @@ Pattern: `{base_path}/wireframes/`
 | **Orchestrator** | All | `/.claude/workflow-data/`, `/PROGRESS.md` | Workflow coordination |
 | **Business Requirements** | All docs | `*/requirements/business-requirements.md` | Requirements phase |
 | **Functional Spec** | All docs | `*/requirements/functional-spec.md` | Design phase |
-| **Blazor Developer** | All docs | `/src/WitchCityRope.Web/` | Implementation |
+| **React Developer** | All docs | `/apps/web/src/`, React components | Frontend implementation - **USE REACT ARCHITECTURE INDEX** |
+| ~~**Blazor Developer**~~ | All docs | ~~`/src/WitchCityRope.Web/`~~ | ~~Implementation~~ **MIGRATED TO REACT** |
 | **Backend Developer** | All docs | `/src/WitchCityRope.Api/`, `/src/WitchCityRope.Core/` **FORBIDDEN**: `/tests/**/*` | API/Business logic |
 | **Test Developer** | All docs | **EXCLUSIVE**: `/tests/**/*`, `**/*.test.*`, `**/*.spec.*` | Test implementation |
 | **Database Designer** | All docs | `/src/WitchCityRope.Infrastructure/Data/` | Data layer |

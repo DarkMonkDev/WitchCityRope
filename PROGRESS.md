@@ -7,8 +7,11 @@
 
 ### Historical Archive
 For complete development history, see:
+- [Detailed Project History](docs/architecture/project-history.md) - Complete development phases and sprint details
 - [React Migration Progress](docs/architecture/react-migration/progress.md)
 - [Session Handoffs](docs/standards-processes/session-handoffs/)
+
+> **Note**: During 2025-08-22 canonical document location consolidation, extensive historical development details were moved from this file to maintain focused current status while preserving complete project history.
 
 ## Current Development Sessions
 

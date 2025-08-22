@@ -4,13 +4,12 @@
 
 **NEVER CREATE FILES OR FOLDERS IN /docs/ ROOT**
 
-ONLY these 6 files are allowed in /docs/ root:
-- 00-START-HERE.md
-- ARCHITECTURE.md  
-- CLAUDE.md
-- PROGRESS.md
-- QUICK_START.md
-- ROADMAP.md
+**ZERO FILES ALLOWED IN /docs/ ROOT**
+
+All navigation now uses:
+- **Functional Areas**: `/docs/architecture/functional-area-master-index.md` 
+- **Agent Guides**: `/.claude/agents/` and `/docs/lessons-learned/`
+- **Standards**: `/docs/standards-processes/`
 
 **ALL OTHER FILES MUST GO IN:**
 - `/docs/functional-areas/[area]/` - For feature work
@@ -93,7 +92,7 @@ All agents located in `/.claude/agents/`:
 > 📚 **DOCUMENTATION STRUCTURE** 📚
 > 
 > **Essential Documentation:**
-> - **Navigation Guide**: [/docs/00-START-HERE.md](./docs/00-START-HERE.md)
+> - **Navigation Guide**: [/docs/architecture/functional-area-master-index.md](./docs/architecture/functional-area-master-index.md)
 > - **Project Status**: [PROGRESS.md](./PROGRESS.md)
 > - **Architecture**: [ARCHITECTURE.md](./ARCHITECTURE.md)
 > - **Docker Guide**: [DOCKER_DEV_GUIDE.md](./DOCKER_DEV_GUIDE.md)
@@ -108,7 +107,15 @@ All agents located in `/.claude/agents/`:
 - **Database** (PostgreSQL): localhost:5433
 - **Pattern**: React → HTTP → API → Database (NEVER React → Database directly)
 
-### 2. Pure React with TypeScript - Component Best Practices
+### 2. 🚨 DTO ALIGNMENT STRATEGY - CRITICAL FOR ALL DEVELOPERS
+- **📍 MUST READ**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
+- **API DTOs ARE SOURCE OF TRUTH** - Never create manual TypeScript interfaces for API data
+- **TypeScript Interfaces MUST Match C# DTOs** - Use NSwag type generation
+- **React Developers**: Use generated types from `@witchcityrope/shared-types` package
+- **Backend Developers**: Any DTO changes require frontend type regeneration
+- **VIOLATION = BROKEN BUILDS** - Manual interfaces will conflict with generated types
+
+### 3. Pure React with TypeScript - Component Best Practices
 **ALWAYS USE:**
 - ✅ `.tsx` files for React components
 - ✅ TypeScript for type safety
@@ -121,18 +128,18 @@ All agents located in `/.claude/agents/`:
 - ❌ Direct DOM manipulation (use React refs when needed)
 - ❌ Inline event handlers for complex logic
 
-### 3. Authentication Pattern
+### 4. Authentication Pattern
 - ❌ **NEVER** store auth tokens in localStorage (XSS risk)
 - ✅ **ALWAYS** use httpOnly cookies via API endpoints: `/auth/login`, `/auth/logout`, `/auth/register`
 - ✅ **Pattern**: React → API endpoints → Cookie-based auth
 - ✅ **Use** React Context for auth state management
 
-### 4. E2E Testing - Playwright ONLY
+### 5. E2E Testing - Playwright ONLY
 - ✅ **Location**: `/tests/playwright/`
 - ✅ **Run**: `npm run test:e2e:playwright`
 - ❌ **NO Puppeteer**: All tests use Playwright
 
-### 5. Docker Development Build
+### 6. Docker Development Build
 ```bash
 # ❌ WRONG - Will fail:
 docker-compose up
@@ -225,7 +232,7 @@ dotnet test tests/WitchCityRope.IntegrationTests/ --filter "Category=HealthCheck
 8. **Event Handlers**: Use useCallback for functions passed as props to prevent re-renders
 
 ## 📋 Session Checklist
-- [ ] Read [/docs/00-START-HERE.md](./docs/00-START-HERE.md)
+- [ ] Check [Functional Area Master Index](./docs/architecture/functional-area-master-index.md) for navigation
 - [ ] Check [PROGRESS.md](./PROGRESS.md) for current status
 - [ ] **LOG ALL FILES** in [/docs/architecture/file-registry.md](./docs/architecture/file-registry.md)
 - [ ] Use `./dev.sh` for Docker operations

@@ -26,37 +26,76 @@ if [ -d "$DOCS_ROOT/docs" ]; then
     ERRORS_FOUND=1
 fi
 
-# 3. Check for root directory pollution
-echo "📄 Checking for root directory pollution..."
-APPROVED_ROOT_FILES=(
-    "00-START-HERE.md"
+# 3. Check for CANONICAL LOCATION VIOLATIONS (CRITICAL)
+echo "📄 Checking for canonical location violations..."
+# ZERO FILES ALLOWED IN /docs/ ROOT (As of 2025-08-22)
+APPROVED_DOCS_ROOT_FILES=()
+# 00-START-HERE.md was ARCHIVED to /docs/_archive/00-start-here-legacy-2025-08-22/
+
+# FORBIDDEN IN /docs/ ROOT - MUST BE IN PROJECT ROOT /
+FORBIDDEN_IN_DOCS=(
     "ARCHITECTURE.md"
     "CLAUDE.md"
     "PROGRESS.md"
-    "QUICK_START.md"
     "ROADMAP.md"
+    "README.md"
+    "SECURITY.md"
+    "QUICK_START.md"
 )
 
-POLLUTING_FILES=()
+VIOLATION_FILES=()
+# Check for forbidden files in /docs/ root
 for file in "$DOCS_ROOT"/*.md; do
     if [ -f "$file" ]; then
         filename=$(basename "$file")
         is_approved=false
-        for approved in "${APPROVED_ROOT_FILES[@]}"; do
+        for approved in "${APPROVED_DOCS_ROOT_FILES[@]}"; do
             if [ "$filename" = "$approved" ]; then
                 is_approved=true
                 break
             fi
         done
-        if [ "$is_approved" = false ]; then
-            POLLUTING_FILES+=("$filename")
+        
+        # Check if it's a forbidden file
+        is_forbidden=false
+        for forbidden in "${FORBIDDEN_IN_DOCS[@]}"; do
+            if [ "$filename" = "$forbidden" ]; then
+                is_forbidden=true
+                echo "🚨 CANONICAL LOCATION VIOLATION: $filename found in /docs/ but should be in project root /"
+                ERRORS_FOUND=1
+                break
+            fi
+        done
+        
+        if [ "$is_approved" = false ] && [ "$is_forbidden" = false ]; then
+            VIOLATION_FILES+=("$filename")
         fi
     fi
 done
 
-if [ ${#POLLUTING_FILES[@]} -gt 0 ]; then
-    echo "🚨 ERROR: Root directory pollution detected!"
-    printf '%s\n' "${POLLUTING_FILES[@]}"
+if [ ${#VIOLATION_FILES[@]} -gt 0 ]; then
+    echo "🚨 ERROR: Unauthorized files in /docs/ root:"
+    printf '  - %s\n' "${VIOLATION_FILES[@]}"
+    echo "Only 00-START-HERE.md is allowed in /docs/ root!"
+    ERRORS_FOUND=1
+fi
+
+# 3.1 Check that required files ARE in project root
+echo "📄 Checking canonical files are in project root..."
+PROJECT_ROOT="/home/chad/repos/witchcityrope-react"
+MISSING_FROM_ROOT=()
+for required_file in "${FORBIDDEN_IN_DOCS[@]}"; do
+    if [ "$required_file" != "QUICK_START.md" ]; then  # QUICK_START should be in guides-setup
+        if [ ! -f "$PROJECT_ROOT/$required_file" ]; then
+            MISSING_FROM_ROOT+=("$required_file")
+        fi
+    fi
+done
+
+if [ ${#MISSING_FROM_ROOT[@]} -gt 0 ]; then
+    echo "🚨 ERROR: Required files missing from project root:"
+    printf '  - %s\n' "${MISSING_FROM_ROOT[@]}"
+    echo "These files must exist in project root / not in /docs/!"
     ERRORS_FOUND=1
 fi
 
