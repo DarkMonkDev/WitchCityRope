@@ -137,5 +137,9 @@ app.MapControllers();
 app.MapHealthChecks("/health");
 
 app.Run();
+
+// Make Program class accessible for testing
+public partial class Program { }
+
 // API test $(date)
 // API hot reload test Sun Aug 17 03:43:42 PM EDT 2025

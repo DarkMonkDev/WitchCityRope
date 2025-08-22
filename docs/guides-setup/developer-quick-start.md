@@ -133,62 +133,73 @@ Edit `appsettings.Development.json` and add your API keys:
 
 ## Running the Application
 
-### Step 1: Create the Database
+### 🚀 NEW: Automatic Database Setup (August 2025)
+
+**Zero configuration required!** The database now initializes automatically:
 
 ```bash
-# Ensure you're in the Web project directory
-cd src/WitchCityRope.Web
-
-# Create the database and apply migrations
-dotnet ef database update
+# Single command - everything initializes automatically
+./dev.sh
+# Database migrations, seed data, and test accounts created in under 5 minutes
 ```
 
-### Step 2: Run the Application
+### Step 1: Start the Application
 
+**Docker (Recommended)**:
 ```bash
-# Run the application
+# Everything initializes automatically
+./dev.sh
+```
+
+**Local Development**:
+```bash
+# API starts and initializes database automatically
+cd apps/api
 dotnet run
 
-# Or run with hot reload enabled
-dotnet watch run
+# React development server
+cd apps/web
+npm run dev
 ```
 
-### Step 3: Access the Application
+### Step 2: Access the Application
 
 Open your browser and navigate to:
-- **HTTPS**: [https://localhost:5652](https://localhost:5652)
-- **HTTP**: [http://localhost:5651](http://localhost:5651)
+- **React Development**: [http://localhost:5173](http://localhost:5173)
+- **Docker React**: [http://localhost:5651](http://localhost:5651)
+- **API Documentation**: [http://localhost:5653/swagger](http://localhost:5653/swagger) (Docker)
+- **Database Health**: [http://localhost:5653/api/health/database](http://localhost:5653/api/health/database)
 
 ## First-Time Setup
 
-### Create an Admin User
+### ✨ Automatic Test Accounts (NEW)
 
-1. Navigate to the registration page
-2. Create a new account with your email
-3. Open the SQLite database using a database browser
-4. Find your user in the `Users` table
-5. Update the `Role` column to `Admin`
-6. Save the changes
+**No manual setup required!** Test accounts are created automatically:
 
-### Using SQL Command
+#### Pre-configured Test Accounts
+- **admin@witchcityrope.com** / Test123! - Administrator access
+- **teacher@witchcityrope.com** / Test123! - Teacher role, vetted
+- **vetted@witchcityrope.com** / Test123! - Vetted member
+- **member@witchcityrope.com** / Test123! - Standard member
+- **guest@witchcityrope.com** / Test123! - Guest/attendee
+- **organizer@witchcityrope.com** / Test123! - Event organizer
 
-```sql
--- Update your user to admin (replace with your email)
-UPDATE Users 
-SET Role = 'Admin' 
-WHERE Email = 'your-email@example.com';
-```
+#### Automatic Sample Data
 
-### Seed Sample Data (Optional)
+**12 Sample Events** created automatically:
+- 10 upcoming events (workshops, classes, meetups)
+- 2 historical events (for testing past data)
+- Realistic pricing, capacity, and scheduling
+- Various event types with proper access controls
+
+#### Verification
 
 ```bash
-# Run the seed command
-dotnet run -- --seed
+# Check database initialization status
+curl http://localhost:5653/api/health/database
 
-# This will create:
-# - Sample events
-# - Test users
-# - Demo vetting applications
+# Or check API logs for initialization confirmation
+docker-compose logs api | grep "initialization completed"
 ```
 
 ## Basic Usage
@@ -230,11 +241,23 @@ dotnet test --filter Category=Unit
 
 ### Database Management
 
+#### Automatic Migration (NEW)
 ```bash
-# Create a new migration
+# Migrations now apply automatically on startup
+# No manual commands needed for development
+
+# Create new migrations (when needed)
+cd apps/api
 dotnet ef migrations add YourMigrationName
 
-# Update database
+# Migrations apply automatically on next startup
+./dev.sh
+```
+
+#### Manual Migration (if needed)
+```bash
+# Force migration update
+cd apps/api
 dotnet ef database update
 
 # Revert to previous migration
@@ -242,6 +265,13 @@ dotnet ef database update PreviousMigrationName
 
 # Generate SQL script
 dotnet ef migrations script
+```
+
+#### Database Reset
+```bash
+# Complete database reset with fresh seed data
+docker-compose down -v  # Remove database volume
+./dev.sh                # Restart - auto-initializes fresh database
 ```
 
 ### Docker Development
@@ -266,10 +296,17 @@ docker-compose up --build
 - Check that the key is correctly formatted (no extra spaces)
 - Verify your license is active at [Syncfusion Dashboard](https://www.syncfusion.com/account/manage-trials/downloads)
 
-#### "Database file not found"
+#### "Database initialization failed"
 ```bash
-# Ensure you've created the database
-dotnet ef database update
+# Check database initialization status
+curl http://localhost:5653/api/health/database
+
+# View detailed initialization logs
+docker-compose logs api | grep -A 5 -B 5 "Database initialization"
+
+# Reset database if needed
+docker-compose down -v
+./dev.sh
 ```
 
 #### "SSL certificate error in development"

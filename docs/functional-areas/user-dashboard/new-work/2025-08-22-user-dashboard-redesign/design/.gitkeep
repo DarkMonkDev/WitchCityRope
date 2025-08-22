@@ -1,0 +1,9 @@
+# Design Phase Documentation
+
+Expected documents:
+- ui-design.md - Dashboard layout with left-hand navigation
+- component-architecture.md - React component structure
+- api-design.md - Dashboard data endpoints
+- database-design.md - User preference and event data structure
+- state-management-design.md - Zustand store architecture
+- wireframes/ - UI mockups and wireframes

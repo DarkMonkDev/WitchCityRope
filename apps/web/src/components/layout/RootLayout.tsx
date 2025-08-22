@@ -1,31 +1,30 @@
 import { Outlet } from 'react-router-dom';
-import { AppShell, Box } from '@mantine/core';
+import { Box } from '@mantine/core';
 import { Navigation } from './Navigation';
+import { UtilityBar } from './UtilityBar';
 
 /**
  * Root Layout Component for React Router v7
  * 
  * Provides the main application shell with:
+ * - UtilityBar at the top
  * - Navigation header
  * - Main content area with Outlet for route rendering
- * - Consistent layout across all routes
+ * - Matches the exact wireframe design structure
  */
 export const RootLayout: React.FC = () => {
   return (
-    <AppShell
-      header={{ height: 60 }}
-      padding="md"
-      style={{ minHeight: '100vh' }}
-    >
-      <AppShell.Header>
-        <Navigation />
-      </AppShell.Header>
+    <Box style={{ minHeight: '100vh', background: 'var(--color-cream)' }}>
+      {/* Utility Bar */}
+      <UtilityBar />
+      
+      {/* Main Navigation */}
+      <Navigation />
 
-      <AppShell.Main>
-        <Box style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <Outlet />
-        </Box>
-      </AppShell.Main>
-    </AppShell>
+      {/* Main Content */}
+      <Box component="main">
+        <Outlet />
+      </Box>
+    </Box>
   );
 };

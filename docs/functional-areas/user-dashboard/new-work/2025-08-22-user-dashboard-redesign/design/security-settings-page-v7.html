@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Settings - Witch City Rope (Final Simplified)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,700;6..96,900&family=Montserrat:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;600&family+Satisfy&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Design System v7 Colors */
+            --color-burgundy: #880124;
+            --color-burgundy-dark: #660018;
+            --color-burgundy-light: #9F1D35;
+            --color-rose-gold: #B76D75;
+            --color-copper: #B87333;
+            --color-brass: #C9A961;
+            --color-electric: #9D4EDD;
+            --color-electric-dark: #7B2CBF;
+            --color-amber: #FFBF00;
+            --color-amber-dark: #FF8C00;
+            --color-dusty-rose: #D4A5A5;
+            --color-plum: #614B79;
+            --color-midnight: #1A1A2E;
+            --color-charcoal: #2B2B2B;
+            --color-smoke: #4A4A4A;
+            --color-stone: #8B8680;
+            --color-taupe: #B8B0A8;
+            --color-ivory: #FFF8F0;
+            --color-cream: #FAF6F2;
+            
+            /* Status colors */
+            --color-success: #228B22;
+            --color-warning: #DAA520;
+            --color-error: #DC143C;
+            
+            /* Typography */
+            --font-display: 'Bodoni Moda', serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            --font-accent: 'Satisfy', cursive;
+            
+            /* Spacing - Compressed */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 12px;
+            --space-lg: 16px;
+            --space-xl: 20px;
+            --space-2xl: 24px;
+            --space-3xl: 32px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            line-height: 1.4;
+            color: var(--color-charcoal);
+            background: var(--color-cream);
+            font-size: 16px;
+        }
+        
+        /* Header - Same as existing */
+        .header {
+            background: rgba(255, 248, 240, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 3px solid rgba(183, 109, 117, 0.3);
+            padding: var(--space-md) 40px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--color-burgundy);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            transition: all 0.3s ease;
+        }
+        
+        .logo:hover {
+            color: var(--color-burgundy-light);
+            transform: scale(1.02);
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: var(--space-2xl);
+        }
+        
+        .nav-menu a {
+            font-family: var(--font-heading);
+            font-weight: 500;
+            color: var(--color-charcoal);
+            text-decoration: none;
+            padding: var(--space-xs) 0;
+            transition: all 0.3s ease;
+            position: relative;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Signature underline animation - center outward */
+        .nav-menu a::before {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--color-burgundy), transparent);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-menu a:hover::before {
+            width: 100%;
+        }
+        
+        .nav-menu a:hover {
+            color: var(--color-burgundy);
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-ivory);
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(136, 1, 36, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .user-avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(136, 1, 36, 0.4);
+        }
+        
+        /* COMPRESSED MAIN LAYOUT - Edge to Edge */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            max-width: 1400px;
+            margin: 0 auto;
+            min-height: calc(100vh - 70px);
+        }
+        
+        /* COMPRESSED Left Navigation - No "Menu" text */
+        .left-nav {
+            background: var(--color-cream);
+            padding: var(--space-lg) 0 var(--space-lg) 0;
+            border-right: 2px solid rgba(183, 109, 117, 0.1);
+        }
+        
+        .nav-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xs);
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md) var(--space-lg);
+            color: var(--color-charcoal);
+            text-decoration: none;
+            font-family: var(--font-heading);
+            font-weight: 500;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 0;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-link.active {
+            background: linear-gradient(135deg, var(--color-burgundy), var(--color-plum));
+            color: var(--color-ivory);
+        }
+        
+        .nav-link:not(.active):hover {
+            background: rgba(183, 109, 117, 0.1);
+            color: var(--color-burgundy);
+            transform: translateX(4px);
+        }
+        
+        .nav-icon {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* COMPRESSED Main Content - Dramatically reduced spacing */
+        .main-content {
+            background: var(--color-cream);
+            padding: var(--space-lg) var(--space-2xl);
+        }
+        
+        /* COMPRESSED Page Header - No underline */
+        .page-header {
+            margin-bottom: var(--space-xl);
+        }
+        
+        .page-title {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--color-burgundy);
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+        }
+        
+        /* SIMPLIFIED Security Sections - NO red borders, NO floating cards */
+        .security-section {
+            background: var(--color-ivory);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-lg);
+            transition: all 0.3s ease;
+        }
+        
+        .security-section:hover {
+            box-shadow: 0 1px 8px rgba(0,0,0,0.05);
+            transform: translateX(2px);
+        }
+        
+        /* COMPRESSED Section Headers - No dividing lines */
+        .section-header {
+            margin-bottom: var(--space-lg);
+        }
+        
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* SIMPLIFIED Form Styles - Clean and minimal */
+        .form-group {
+            margin-bottom: var(--space-lg);
+        }
+        
+        .form-label {
+            display: block;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-sm);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: var(--space-md) var(--space-lg);
+            font-family: var(--font-body);
+            font-size: 16px;
+            border: 1px solid rgba(183, 109, 117, 0.3);
+            border-radius: 6px;
+            background: var(--color-cream);
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--color-burgundy);
+            box-shadow: 0 0 0 2px rgba(136, 1, 36, 0.1);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-lg);
+        }
+        
+        /* MOVED Password Requirements - Below Update Password button */
+        .password-requirements {
+            background: rgba(183, 109, 117, 0.03);
+            border: 1px solid rgba(183, 109, 117, 0.2);
+            border-radius: 6px;
+            padding: var(--space-lg);
+            margin-top: var(--space-lg);
+        }
+        
+        .password-requirements h4 {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-sm);
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        
+        .password-requirements ul {
+            margin: 0;
+            padding-left: var(--space-lg);
+            color: var(--color-smoke);
+            font-size: 14px;
+        }
+        
+        .password-requirements li {
+            margin-bottom: var(--space-xs);
+        }
+        
+        /* COMPRESSED Buttons */
+        .btn {
+            padding: var(--space-md) var(--space-xl);
+            border-radius: 6px;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid var(--color-burgundy);
+            background: transparent;
+            color: var(--color-burgundy);
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            background: var(--color-burgundy);
+            color: var(--color-ivory);
+        }
+        
+        .btn-primary {
+            background: var(--color-burgundy);
+            color: var(--color-ivory);
+        }
+        
+        .btn-primary:hover {
+            background: var(--color-burgundy-dark);
+        }
+        
+        .btn-danger {
+            border-color: var(--color-error);
+            color: var(--color-error);
+        }
+        
+        .btn-danger:hover {
+            background: var(--color-error);
+            color: var(--color-ivory);
+        }
+        
+        /* COMPRESSED Status Display */
+        .status-card {
+            background: rgba(34, 139, 34, 0.03);
+            border: 1px solid rgba(34, 139, 34, 0.2);
+            border-radius: 6px;
+            padding: var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-lg);
+            margin-bottom: var(--space-lg);
+            transition: all 0.3s ease;
+        }
+        
+        .status-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            flex-shrink: 0;
+            background: var(--color-success);
+        }
+        
+        .status-content h3 {
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .status-content p {
+            color: var(--color-stone);
+            margin: 0;
+            font-size: 14px;
+        }
+        
+        /* COMPRESSED Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: rgba(139, 134, 128, 0.3);
+            border-radius: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-switch.active {
+            background: var(--color-success);
+        }
+        
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        
+        .toggle-switch.active::after {
+            transform: translateX(24px);
+        }
+        
+        .preference-item {
+            background: var(--color-cream);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-md);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+        }
+        
+        .preference-item:hover {
+            transform: translateX(2px);
+            box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+        }
+        
+        .preference-content h4 {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            margin-bottom: var(--space-xs);
+            color: var(--color-charcoal);
+            font-size: 15px;
+        }
+        
+        .preference-content p {
+            color: var(--color-stone);
+            margin: 0;
+            font-size: 13px;
+        }
+        
+        /* Mobile Responsive - SIMPLE */
+        @media (max-width: 768px) {
+            .header {
+                padding: var(--space-sm) 20px;
+            }
+            
+            .main-layout {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+            
+            .left-nav {
+                order: 2;
+                border-right: none;
+                border-top: 2px solid rgba(183, 109, 117, 0.1);
+                padding: var(--space-lg) 20px;
+            }
+            
+            .main-content {
+                order: 1;
+                padding: var(--space-lg) 20px;
+            }
+            
+            .nav-menu {
+                display: none;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: var(--space-md);
+            }
+            
+            .preference-item {
+                flex-direction: column;
+                gap: var(--space-md);
+                align-items: stretch;
+            }
+            
+            .btn {
+                justify-content: center;
+                width: 100%;
+                margin-bottom: var(--space-sm);
+            }
+        }
+        
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* Focus states */
+        .nav-link:focus,
+        .btn:focus,
+        .form-input:focus,
+        .toggle-switch:focus {
+            outline: 3px solid rgba(136, 1, 36, 0.5);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="#" class="logo">Witch City Rope</a>
+            
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="#">Dashboard</a></li>
+                    <li><a href="#">Events</a></li>
+                    <li><a href="#">Community</a></li>
+                    <li><a href="#">Learn</a></li>
+                    <li><a href="#">About</a></li>
+                </ul>
+            </nav>
+            
+            <div class="user-menu">
+                <div class="user-avatar">JS</div>
+                <span style="font-weight: 600; color: var(--color-charcoal);">Jane Smith</span>
+            </div>
+        </div>
+    </header>
+    
+    <!-- COMPRESSED Main Layout - Edge to Edge -->
+    <div class="main-layout">
+        <!-- COMPRESSED Left Navigation - No "Menu" text -->
+        <aside class="left-nav">
+            <nav>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-icon">📊</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-icon">📅</span>
+                            <span>Events</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-icon">👤</span>
+                            <span>Profile</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active">
+                            <span class="nav-icon">🔒</span>
+                            <span>Security</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-icon">🎯</span>
+                            <span>Membership</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+        
+        <!-- COMPRESSED Main Content -->
+        <main class="main-content">
+            <!-- COMPRESSED Page Header - No underline -->
+            <div class="page-header">
+                <h1 class="page-title">Security Settings</h1>
+            </div>
+            
+            <!-- SIMPLIFIED Change Password Section - NO text below heading -->
+            <section class="security-section">
+                <div class="section-header">
+                    <h2 class="section-title">Change Password</h2>
+                </div>
+                
+                <form>
+                    <div class="form-group">
+                        <label class="form-label">Current Password</label>
+                        <input type="password" class="form-input" placeholder="Enter your current password" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">New Password</label>
+                            <input type="password" class="form-input" placeholder="Enter new password" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-input" placeholder="Confirm new password" required>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Update Password</button>
+                    
+                    <!-- MOVED Password Requirements BELOW the button -->
+                    <div class="password-requirements">
+                        <h4>Password Requirements:</h4>
+                        <ul>
+                            <li>At least 8 characters long</li>
+                            <li>Include uppercase and lowercase letters</li>
+                            <li>Include at least one number</li>
+                            <li>Include at least one special character (!@#$%^&*)</li>
+                        </ul>
+                    </div>
+                </form>
+            </section>
+            
+            <!-- SIMPLIFIED Two-Factor Authentication - Basic setup only -->
+            <section class="security-section">
+                <div class="section-header">
+                    <h2 class="section-title">Two-Factor Authentication</h2>
+                </div>
+                
+                <div class="status-card">
+                    <div class="status-icon">✓</div>
+                    <div class="status-content">
+                        <h3>Two-Factor Authentication Enabled</h3>
+                        <p>Your account is protected with 2FA using your authenticator app</p>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: var(--space-md); flex-wrap: wrap;">
+                    <button class="btn btn-danger">Disable 2FA</button>
+                </div>
+            </section>
+            
+            <!-- SIMPLIFIED Privacy Settings - Essential only -->
+            <section class="security-section">
+                <div class="section-header">
+                    <h2 class="section-title">Privacy Settings</h2>
+                </div>
+                
+                <div class="preferences-list">
+                    <div class="preference-item">
+                        <div class="preference-content">
+                            <h4>Profile Visibility</h4>
+                            <p>Make your profile visible to other community members</p>
+                        </div>
+                        <div class="toggle-switch active" onclick="this.classList.toggle('active')"></div>
+                    </div>
+                    
+                    <div class="preference-item">
+                        <div class="preference-content">
+                            <h4>Event Attendance Visibility</h4>
+                            <p>Show which events you're attending to other members</p>
+                        </div>
+                        <div class="toggle-switch" onclick="this.classList.toggle('active')"></div>
+                    </div>
+                    
+                    <div class="preference-item">
+                        <div class="preference-content">
+                            <h4>Contact Information</h4>
+                            <p>Allow other vetted members to see your contact details</p>
+                        </div>
+                        <div class="toggle-switch" onclick="this.classList.toggle('active')"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- SIMPLIFIED Data Section - Essential only -->
+            <section class="security-section">
+                <div class="section-header">
+                    <h2 class="section-title">Account Data</h2>
+                </div>
+                
+                <div style="display: flex; gap: var(--space-lg); flex-wrap: wrap; align-items: center;">
+                    <div style="flex: 1; min-width: 250px;">
+                        <h4 style="font-family: var(--font-heading); font-weight: 600; margin-bottom: var(--space-xs); color: var(--color-charcoal); font-size: 15px;">Download Your Data</h4>
+                        <p style="color: var(--color-stone); margin-bottom: var(--space-md); font-size: 13px;">Get a copy of your profile and event history</p>
+                        <button class="btn">Request Data Download</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

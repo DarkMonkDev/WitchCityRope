@@ -201,6 +201,36 @@ Proven workflow reduces implementation risk, maintains quality standards, and pr
 ### Tags
 #medium #process #workflow #quality-gates #proven-patterns
 
+## Implementation Testing Protocol
+
+### Test Each Implementation Before Moving Forward (CRITICAL)
+**Date**: 2025-08-22
+**Category**: Process
+**Severity**: Critical
+
+#### Context
+During homepage implementation, attempted to move directly to login page without testing the homepage first. This violates proper incremental development practices.
+
+#### What We Learned
+- EVERY implementation must be tested before proceeding to the next feature
+- Testing reveals issues early when they're easier to fix
+- Visual verification confirms design system compliance
+- E2E tests catch integration problems immediately
+- "Implement → Test → Verify → Proceed" is the mandatory workflow
+
+#### Action Items
+- [ ] ALWAYS delegate to test-executor after each implementation
+- [ ] WAIT for test results before starting next feature
+- [ ] FIX any issues found before moving forward
+- [ ] DOCUMENT test results in progress tracking
+- [ ] CREATE screenshot artifacts for visual features
+
+#### Impact
+Testing after each implementation prevents accumulation of technical debt, ensures quality at each step, and maintains confidence in the codebase. Skipping tests leads to compounding problems that become exponentially harder to fix later.
+
+### Tags
+#critical #testing #quality-gates #incremental-development
+
 ## Agent Coordination Patterns
 
 ### Multi-Agent Coordination Success Patterns
@@ -233,4 +263,4 @@ Effective agent coordination scales development capacity while maintaining quali
 
 ---
 *This file is maintained by the orchestrator agent. Add new lessons immediately when discovered, remove outdated entries as needed.*
-*Last updated: 2025-08-17 - Initial creation with critical lessons from workflow implementation experience*
+*Last updated: 2025-08-22 - Added critical implementation testing protocol*

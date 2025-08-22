@@ -1,0 +1,9 @@
+# Lessons Learned Documentation
+
+Expected documents:
+- dashboard-implementation-lessons.md - Technical lessons from dashboard development
+- navigation-patterns-lessons.md - Lessons from left-hand navigation implementation
+- event-integration-lessons.md - Lessons from event data integration
+- design-system-usage-lessons.md - Lessons from v7 component usage
+- performance-optimization-lessons.md - Lessons from performance optimization
+- user-testing-lessons.md - Lessons from user testing and feedback
