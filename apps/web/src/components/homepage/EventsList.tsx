@@ -57,8 +57,8 @@ export const EventsList: React.FC<EventsListProps> = ({
     error: queryError 
   } = useEventsForHomepage(!customEvents); // Disable query if custom events provided
 
-  // Determine which data source to use
-  const events = customEvents ?? apiEvents ?? [];
+  // Determine which data source to use - ensure type safety with explicit casting
+  const events: Event[] = customEvents || (Array.isArray(apiEvents) ? apiEvents : []);
   const isLoading = customLoading ?? (customEvents ? false : queryLoading);
   const errorState = customError ?? (queryError ? 'Failed to load events' : null);
 

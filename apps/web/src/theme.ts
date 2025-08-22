@@ -129,62 +129,8 @@ export const wcrTheme = createTheme({
             borderRadius: '6px 12px 6px 12px', // v7 button corner morphing end
           }
         }
-      },
-      variants: {
-        // v7 Primary button (amber gradient)
-        'v7-primary': (theme: any) => ({
-          root: {
-            background: `linear-gradient(135deg, ${theme.other.colorAmber} 0%, ${theme.other.colorAmberDark} 100%)`,
-            color: theme.other.colorMidnight,
-            boxShadow: '0 4px 15px rgba(255, 191, 0, 0.4)',
-            fontWeight: 700,
-            '&:hover': {
-              boxShadow: '0 6px 25px rgba(255, 191, 0, 0.5)',
-              background: `linear-gradient(135deg, ${theme.other.colorAmberDark} 0%, ${theme.other.colorAmber} 100%)`,
-            }
-          }
-        }),
-        // v7 Primary Alt button (electric gradient)
-        'v7-primary-alt': (theme: any) => ({
-          root: {
-            background: `linear-gradient(135deg, ${theme.other.colorElectric} 0%, ${theme.other.colorElectricDark} 100%)`,
-            color: theme.other.colorIvory,
-            boxShadow: '0 4px 15px rgba(157, 78, 221, 0.4)',
-            fontWeight: 700,
-            '&:hover': {
-              boxShadow: '0 6px 25px rgba(157, 78, 221, 0.5)',
-              background: `linear-gradient(135deg, ${theme.other.colorElectricDark} 0%, ${theme.other.colorElectric} 100%)`,
-            }
-          }
-        }),
-        // v7 Secondary button (burgundy outline)
-        'v7-secondary': (theme: any) => ({
-          root: {
-            background: 'transparent',
-            color: theme.other.colorBurgundy,
-            border: `2px solid ${theme.other.colorBurgundy}`,
-            position: 'relative',
-            zIndex: 1,
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: 0,
-              height: '100%',
-              background: theme.other.colorBurgundy,
-              transition: 'width 0.4s ease',
-              zIndex: -1,
-            },
-            '&:hover': {
-              color: theme.other.colorIvory,
-              '&::before': {
-                width: '100%',
-              }
-            }
-          }
-        })
       }
+      // Note: Button variants moved to CSS classes in index.css per v7 design system
     },
     TextInput: {
       styles: {
