@@ -1,0 +1,9 @@
+# Implementation Phase Documentation
+
+Expected documents:
+- dashboard-components.md - Main dashboard React component patterns
+- navigation-implementation.md - Left-hand menu implementation
+- event-components.md - RSVP/purchased events list components
+- api-integration.md - TanStack Query data fetching patterns
+- state-management.md - Zustand store implementation
+- routing-setup.md - React Router v7 configuration

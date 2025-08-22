@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Witch City Rope (Final Simplified)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,700;6..96,900&family=Montserrat:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;600&family=Satisfy&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Design System v7 Colors */
+            --color-burgundy: #880124;
+            --color-burgundy-dark: #660018;
+            --color-burgundy-light: #9F1D35;
+            --color-rose-gold: #B76D75;
+            --color-copper: #B87333;
+            --color-brass: #C9A961;
+            --color-electric: #9D4EDD;
+            --color-electric-dark: #7B2CBF;
+            --color-amber: #FFBF00;
+            --color-amber-dark: #FF8C00;
+            --color-dusty-rose: #D4A5A5;
+            --color-plum: #614B79;
+            --color-midnight: #1A1A2E;
+            --color-charcoal: #2B2B2B;
+            --color-smoke: #4A4A4A;
+            --color-stone: #8B8680;
+            --color-taupe: #B8B0A8;
+            --color-ivory: #FFF8F0;
+            --color-cream: #FAF6F2;
+            
+            /* Status colors */
+            --color-success: #228B22;
+            --color-warning: #DAA520;
+            --color-error: #DC143C;
+            
+            /* Typography */
+            --font-display: 'Bodoni Moda', serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            --font-accent: 'Satisfy', cursive;
+            
+            /* Spacing - Compressed */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 12px;
+            --space-lg: 16px;
+            --space-xl: 20px;
+            --space-2xl: 24px;
+            --space-3xl: 32px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            line-height: 1.4;
+            color: var(--color-charcoal);
+            background: var(--color-cream);
+            font-size: 16px;
+        }
+        
+        /* Header - Same as homepage */
+        .header {
+            background: rgba(255, 248, 240, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 3px solid rgba(183, 109, 117, 0.3);
+            padding: var(--space-md) 40px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--color-burgundy);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            transition: all 0.3s ease;
+        }
+        
+        .logo:hover {
+            color: var(--color-burgundy-light);
+            transform: scale(1.02);
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: var(--space-2xl);
+        }
+        
+        .nav-menu a {
+            font-family: var(--font-heading);
+            font-weight: 500;
+            color: var(--color-charcoal);
+            text-decoration: none;
+            padding: var(--space-xs) 0;
+            transition: all 0.3s ease;
+            position: relative;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Signature underline animation - center outward */
+        .nav-menu a::before {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--color-burgundy), transparent);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-menu a:hover,
+        .nav-menu a.active {
+            color: var(--color-burgundy);
+        }
+        
+        .nav-menu a:hover::before,
+        .nav-menu a.active::before {
+            width: 100%;
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-ivory);
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(136, 1, 36, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .user-avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(136, 1, 36, 0.4);
+        }
+        
+        /* COMPRESSED Main Layout - Edge to Edge */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            max-width: 1400px;
+            margin: 0 auto;
+            min-height: calc(100vh - 70px);
+        }
+        
+        /* COMPRESSED Left Navigation - Flush left, no padding */
+        .left-nav {
+            background: var(--color-cream);
+            padding: var(--space-lg) 0 var(--space-lg) 0;
+            border-right: 2px solid rgba(183, 109, 117, 0.1);
+        }
+        
+        .nav-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xs);
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md) var(--space-lg);
+            color: var(--color-charcoal);
+            text-decoration: none;
+            font-family: var(--font-heading);
+            font-weight: 500;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 0;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-link.active {
+            background: linear-gradient(135deg, var(--color-burgundy), var(--color-plum));
+            color: var(--color-ivory);
+        }
+        
+        .nav-link:not(.active):hover {
+            background: rgba(183, 109, 117, 0.1);
+            color: var(--color-burgundy);
+            transform: translateX(4px);
+        }
+        
+        .nav-icon {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* COMPRESSED Main Content - Dramatically reduced spacing */
+        .main-content {
+            background: var(--color-cream);
+            padding: var(--space-lg) var(--space-2xl);
+            border-left: none;
+        }
+        
+        /* COMPRESSED Welcome - No underline */
+        .welcome-header {
+            margin-bottom: var(--space-xl);
+        }
+        
+        .welcome-title {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--color-burgundy);
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+        }
+        
+        /* FULL WIDTH Underline - extends to right edge */
+        .section-divider {
+            width: calc(100% + var(--space-2xl));
+            height: 2px;
+            background: linear-gradient(90deg, var(--color-burgundy), rgba(183, 109, 117, 0.3));
+            margin: var(--space-lg) calc(-1 * var(--space-2xl)) var(--space-xl) 0;
+        }
+        
+        /* COMPRESSED Events Section */
+        .events-section {
+            margin-bottom: var(--space-xl);
+        }
+        
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-lg);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .events-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+        
+        /* TABLE-LIKE Event Items - Horizontal layout */
+        .event-item {
+            background: var(--color-ivory);
+            padding: var(--space-md) var(--space-lg);
+            border-left: 3px solid var(--color-burgundy);
+            display: grid;
+            grid-template-columns: 80px 1fr 120px 100px 80px;
+            gap: var(--space-lg);
+            align-items: center;
+            transition: all 0.3s ease;
+            min-height: 60px;
+        }
+        
+        .event-item:hover {
+            transform: translateX(2px);
+            box-shadow: 0 1px 8px rgba(0,0,0,0.1);
+        }
+        
+        .event-date {
+            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
+            color: var(--color-ivory);
+            padding: var(--space-sm);
+            border-radius: 6px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .event-date-day {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 800;
+            line-height: 1;
+        }
+        
+        .event-date-month {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+        
+        .event-title {
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--color-charcoal);
+        }
+        
+        .event-time {
+            font-size: 14px;
+            color: var(--color-stone);
+            font-family: var(--font-heading);
+            font-weight: 500;
+        }
+        
+        .event-status {
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+        
+        .event-status.confirmed {
+            background: rgba(34, 139, 34, 0.1);
+            color: var(--color-success);
+            border: 1px solid var(--color-success);
+        }
+        
+        .event-status.pending {
+            background: rgba(218, 165, 32, 0.1);
+            color: var(--color-warning);
+            border: 1px solid var(--color-warning);
+        }
+        
+        .event-action {
+            text-align: center;
+        }
+        
+        .details-link {
+            font-size: 12px;
+            color: var(--color-burgundy);
+            text-decoration: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 4px 8px;
+            border: 1px solid var(--color-burgundy);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .details-link:hover {
+            background: var(--color-burgundy);
+            color: var(--color-ivory);
+        }
+        
+        /* COMPRESSED Empty State */
+        .empty-state {
+            text-align: center;
+            padding: var(--space-2xl) var(--space-lg);
+            color: var(--color-stone);
+            background: var(--color-ivory);
+            border-radius: 6px;
+        }
+        
+        .empty-icon {
+            font-size: 36px;
+            margin-bottom: var(--space-md);
+            opacity: 0.5;
+        }
+        
+        .empty-title {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-smoke);
+            margin-bottom: var(--space-sm);
+        }
+        
+        .empty-text {
+            font-size: 14px;
+            margin-bottom: var(--space-lg);
+        }
+        
+        /* RETURNED Quick Links Box at bottom */
+        .quick-links {
+            background: var(--color-ivory);
+            border-left: 3px solid var(--color-burgundy);
+            padding: var(--space-lg);
+            margin-top: var(--space-2xl);
+        }
+        
+        .quick-links-title {
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-md);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .quick-links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-md);
+        }
+        
+        .quick-link-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm);
+            color: var(--color-burgundy);
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .quick-link-item:hover {
+            background: rgba(136, 1, 36, 0.05);
+            transform: translateX(2px);
+        }
+        
+        /* Mobile Responsive - SIMPLE */
+        @media (max-width: 768px) {
+            .header {
+                padding: var(--space-sm) 20px;
+            }
+            
+            .main-layout {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+            
+            .left-nav {
+                order: 2;
+                border-right: none;
+                border-top: 2px solid rgba(183, 109, 117, 0.1);
+                padding: var(--space-lg) 20px;
+            }
+            
+            .main-content {
+                order: 1;
+                padding: var(--space-lg) 20px;
+            }
+            
+            .nav-menu {
+                display: none;
+            }
+            
+            .event-item {
+                grid-template-columns: 1fr;
+                gap: var(--space-sm);
+                text-align: left;
+            }
+            
+            .event-date {
+                flex-direction: row;
+                justify-content: flex-start;
+                gap: var(--space-sm);
+                align-self: flex-start;
+                width: fit-content;
+            }
+            
+            .section-divider {
+                width: calc(100% + 40px);
+                margin: var(--space-lg) -20px var(--space-xl) 0;
+            }
+            
+            .quick-links-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* Focus states */
+        .nav-link:focus,
+        .details-link:focus,
+        .quick-link-item:focus {
+            outline: 3px solid rgba(136, 1, 36, 0.5);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header - Same as homepage with Dashboard option -->
+    <header class="header">
+        <div class="header-content">
+            <a href="#" class="logo">Witch City Rope</a>
+            
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="#" class="active">Dashboard</a></li>
+                    <li><a href="#">Events</a></li>
+                    <li><a href="#">Community</a></li>
+                    <li><a href="#">Learn</a></li>
+                    <li><a href="#">About</a></li>
+                </ul>
+            </nav>
+            
+            <div class="user-menu">
+                <div class="user-avatar">JS</div>
+                <span style="font-weight: 600; color: var(--color-charcoal);">Jane Smith</span>
+            </div>
+        </div>
+    </header>
+    
+    <!-- COMPRESSED Main Layout - Edge to Edge -->
+    <div class="main-layout">
+        <!-- FLUSH LEFT Navigation - No "Menu" text -->
+        <aside class="left-nav">
+            <nav>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active">
+                            <span class="nav-icon">📊</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-icon">📅</span>
+                            <span>Events</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-icon">👤</span>
+                            <span>Profile</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-icon">🔒</span>
+                            <span>Security</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-icon">🎯</span>
+                            <span>Membership</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+        
+        <!-- COMPRESSED Main Content -->
+        <main class="main-content">
+            <!-- SIMPLIFIED Welcome - No underline -->
+            <div class="welcome-header">
+                <h1 class="welcome-title">Welcome back, Jane</h1>
+            </div>
+            
+            <!-- FULL WIDTH Underline extending to right edge -->
+            <div class="section-divider"></div>
+            
+            <!-- COMPRESSED Events Section - Table-like layout -->
+            <section class="events-section">
+                <h2 class="section-title">Your Upcoming Events</h2>
+                
+                <!-- TABLE-LIKE events list - horizontal format -->
+                <div class="events-list">
+                    <article class="event-item">
+                        <div class="event-date">
+                            <div class="event-date-day">28</div>
+                            <div class="event-date-month">Aug</div>
+                        </div>
+                        <div class="event-title">Rope Fundamentals Workshop</div>
+                        <div class="event-time">7:00 PM - 9:30 PM</div>
+                        <div class="event-status confirmed">Confirmed</div>
+                        <div class="event-action">
+                            <a href="#" class="details-link">Details</a>
+                        </div>
+                    </article>
+                    
+                    <article class="event-item">
+                        <div class="event-date">
+                            <div class="event-date-day">02</div>
+                            <div class="event-date-month">Sep</div>
+                        </div>
+                        <div class="event-title">Community Rope Jam</div>
+                        <div class="event-time">6:00 PM - 9:00 PM</div>
+                        <div class="event-status confirmed">RSVP'd</div>
+                        <div class="event-action">
+                            <a href="#" class="details-link">Details</a>
+                        </div>
+                    </article>
+                    
+                    <article class="event-item">
+                        <div class="event-date">
+                            <div class="event-date-day">15</div>
+                            <div class="event-date-month">Sep</div>
+                        </div>
+                        <div class="event-title">Advanced Suspension Class</div>
+                        <div class="event-time">2:00 PM - 6:00 PM</div>
+                        <div class="event-status pending">Payment Pending</div>
+                        <div class="event-action">
+                            <a href="#" class="details-link">Details</a>
+                        </div>
+                    </article>
+                </div>
+            </section>
+            
+            <!-- RETURNED Quick Links Box -->
+            <section class="quick-links">
+                <h3 class="quick-links-title">Quick Actions</h3>
+                <div class="quick-links-grid">
+                    <a href="#" class="quick-link-item">
+                        <span>📅</span>
+                        <span>Browse All Events</span>
+                    </a>
+                    <a href="#" class="quick-link-item">
+                        <span>👤</span>
+                        <span>Update Profile</span>
+                    </a>
+                    <a href="#" class="quick-link-item">
+                        <span>🎯</span>
+                        <span>Membership Status</span>
+                    </a>
+                    <a href="#" class="quick-link-item">
+                        <span>🔒</span>
+                        <span>Security Settings</span>
+                    </a>
+                </div>
+            </section>
+            
+            <!-- Empty state for users with no events -->
+            <!-- 
+            <section class="events-section">
+                <h2 class="section-title">Your Upcoming Events</h2>
+                <div class="empty-state">
+                    <div class="empty-icon">📅</div>
+                    <h3 class="empty-title">No upcoming events</h3>
+                    <p class="empty-text">Browse our events and sign up for classes and community gatherings.</p>
+                </div>
+            </section>
+            -->
+        </main>
+    </div>
+</body>
+</html>

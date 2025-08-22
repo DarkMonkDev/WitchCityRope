@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Dashboard - Witch City Rope</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,700;6..96,900&family=Montserrat:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;600&family=Satisfy&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Sensual Primary Colors */
+            --color-burgundy: #880124;
+            --color-burgundy-dark: #660119;
+            --color-burgundy-light: #AA0130;
+            
+            /* CTA Colors - Warm Amber Gold */
+            --color-amber: #FFBF00;
+            --color-amber-dark: #E6AC00;
+            --color-amber-light: #FFD633;
+            
+            /* Warm Metallics */
+            --color-rose-gold: #B76D75;
+            --color-copper: #B87333;
+            --color-brass: #C9A961;
+            
+            /* Supporting Tones */
+            --color-dusty-rose: #D4A5A5;
+            --color-plum: #614B79;
+            --color-plum-dark: #4A3A5C;
+            --color-plum-light: #7B6296;
+            --color-midnight: #1A1A2E;
+            
+            /* Electric for CTAs */
+            --color-electric: #9D4EDD;
+            --color-electric-dark: #7B2CBF;
+            
+            /* Warm Neutrals */
+            --color-charcoal: #2B2B2B;
+            --color-gray-dark: #2D2D2D;
+            --color-gray: #666666;
+            --color-gray-light: #CCCCCC;
+            --color-stone: #8B8680;
+            --color-taupe: #B8B0A8;
+            --color-ivory: #FFF8F0;
+            --color-cream: #FAF6F2;
+            
+            /* Status Colors */
+            --color-success: #228B22;
+            --color-warning: #DAA520;
+            --color-error: #DC143C;
+            --color-info: #614B79;
+            
+            --color-success-light: #E6F7F1;
+            --color-warning-light: #FFF4CC;
+            --color-error-light: #FFE5EC;
+            --color-info-light: #F0EDFF;
+            
+            /* Neutral Colors */
+            --color-off-white: #F5F5F5;
+            
+            /* Typography */
+            --font-display: 'Bodoni Moda', serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            --font-accent: 'Satisfy', cursive;
+            
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 16px;
+            --space-md: 24px;
+            --space-lg: 32px;
+            --space-xl: 40px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            line-height: 1.6;
+            color: var(--color-charcoal);
+            background: var(--color-cream);
+            font-size: 18px;
+        }
+        
+        /* Utility Bar */
+        .utility-bar {
+            background: var(--color-midnight);
+            padding: 12px 40px;
+            font-size: 13px;
+            color: var(--color-taupe);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: var(--space-lg);
+            font-family: var(--font-heading);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .utility-bar a {
+            color: var(--color-taupe);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .utility-bar a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--color-rose-gold);
+            transition: width 0.3s ease;
+        }
+        
+        .utility-bar a:hover {
+            color: var(--color-rose-gold);
+        }
+        
+        .utility-bar a:hover::after {
+            width: 100%;
+        }
+        
+        .utility-bar a.incident-link {
+            color: var(--color-brass);
+            font-weight: 600;
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(255, 248, 240, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            padding: var(--space-sm) 40px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--color-burgundy);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            transition: all 0.3s ease;
+        }
+        
+        .logo:hover {
+            color: var(--color-burgundy-light);
+            transform: scale(1.02);
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: var(--space-xl);
+        }
+        
+        .nav-menu a {
+            font-family: var(--font-heading);
+            font-weight: 500;
+            color: var(--color-charcoal);
+            text-decoration: none;
+            padding: var(--space-xs) 0;
+            transition: all 0.3s ease;
+            position: relative;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .nav-menu a::before {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: var(--color-burgundy);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-menu a.active,
+        .nav-menu a:hover {
+            color: var(--color-burgundy);
+        }
+        
+        .nav-menu a:hover::before,
+        .nav-menu a.active::before {
+            width: 100%;
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-ivory);
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 2px 8px rgba(136, 1, 36, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .user-avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(136, 1, 36, 0.4);
+        }
+        
+        /* Main Container */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--space-xl);
+        }
+        
+        /* Welcome Section */
+        .welcome-section {
+            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
+            border-radius: 8px;
+            padding: var(--space-3xl) var(--space-2xl);
+            margin-bottom: var(--space-2xl);
+            color: var(--color-ivory);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(136, 1, 36, 0.3);
+        }
+        
+        .welcome-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .welcome-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .welcome-title {
+            font-family: var(--font-heading);
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: var(--space-sm);
+            letter-spacing: -1px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .welcome-subtitle {
+            font-size: 20px;
+            color: rgba(255, 248, 240, 0.9);
+            margin-bottom: var(--space-xl);
+            font-family: var(--font-body);
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: var(--space-md);
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 4px;
+            font-family: var(--font-heading);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-sm);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.2);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+            color: var(--color-midnight);
+            box-shadow: 0 4px 20px rgba(255, 191, 0, 0.3);
+            font-weight: 700;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(255, 191, 0, 0.4), 0 0 60px rgba(255, 191, 0, 0.1);
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--color-burgundy);
+            border: 2px solid var(--color-burgundy);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .btn-secondary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background: var(--color-burgundy);
+            transition: width 0.4s ease;
+            z-index: -1;
+        }
+        
+        .btn-secondary:hover {
+            color: var(--color-ivory);
+        }
+        
+        .btn-secondary:hover::before {
+            width: 100%;
+        }
+        
+        /* Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--space-lg);
+            margin-bottom: var(--space-2xl);
+        }
+        
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Card Styles */
+        .card {
+            background: var(--color-ivory);
+            border-radius: 8px;
+            padding: var(--space-lg);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 1px solid rgba(184, 176, 168, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--color-burgundy), var(--color-plum));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+            transform-origin: left;
+        }
+        
+        .card:hover {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+        
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-md);
+            padding-bottom: var(--space-md);
+            border-bottom: 1px solid var(--color-taupe);
+        }
+        
+        .card-title {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--color-burgundy);
+            letter-spacing: -0.5px;
+        }
+        
+        .card-link {
+            color: var(--color-burgundy);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+        }
+        
+        .card-link::after {
+            content: '→';
+            display: inline-block;
+            margin-left: 4px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card-link:hover {
+            color: var(--color-burgundy-dark);
+        }
+        
+        .card-link:hover::after {
+            transform: translateX(4px);
+        }
+        
+        .card-link:focus {
+            outline: 2px solid var(--color-burgundy);
+            outline-offset: 2px;
+            border-radius: 2px;
+        }
+        
+        /* Event List */
+        .event-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+        
+        .event-item {
+            background: var(--color-cream);
+            border-radius: 12px;
+            padding: var(--space-md);
+            display: flex;
+            gap: var(--space-md);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid transparent;
+        }
+        
+        .event-item::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, var(--color-burgundy), var(--color-plum));
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .event-item:hover {
+            transform: translateX(8px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            border-color: rgba(136, 1, 36, 0.1);
+        }
+        
+        .event-item:hover::after {
+            transform: scaleY(1);
+        }
+        
+        .event-date {
+            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
+            color: var(--color-ivory);
+            padding: var(--space-sm);
+            border-radius: 8px;
+            text-align: center;
+            min-width: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .event-date-day {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1;
+        }
+        
+        .event-date-month {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .event-details {
+            flex: 1;
+        }
+        
+        .event-title {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-xs);
+            letter-spacing: -0.3px;
+        }
+        
+        .event-info {
+            font-size: 14px;
+            color: var(--color-stone);
+            display: flex;
+            gap: var(--space-md);
+            flex-wrap: wrap;
+        }
+        
+        .event-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--color-ivory);
+            border: 1px solid var(--color-taupe);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-smoke);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+        
+        .event-item:hover .event-badge {
+            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
+            color: var(--color-ivory);
+            border-color: transparent;
+        }
+        
+        /* Membership Status */
+        .status-banner {
+            background: linear-gradient(135deg, rgba(34, 139, 34, 0.1) 0%, rgba(34, 139, 34, 0.05) 100%);
+            border: 1px solid rgba(34, 139, 34, 0.3);
+            border-radius: 12px;
+            padding: var(--space-md);
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            margin-bottom: var(--space-md);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .status-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--color-success);
+        }
+        
+        .status-banner:hover {
+            box-shadow: 0 4px 16px rgba(34, 139, 34, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .status-banner.pending {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border-color: var(--color-warning);
+        }
+        
+        .status-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--color-success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .status-banner.pending .status-icon {
+            background: var(--color-warning);
+        }
+        
+        .status-content h3 {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .status-content p {
+            font-size: 14px;
+            color: var(--color-smoke);
+            line-height: 1.5;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-md);
+            margin-top: var(--space-lg);
+        }
+        
+        .stat-card {
+            background: var(--color-cream);
+            border-radius: 12px;
+            padding: var(--space-md);
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(136, 1, 36, 0.05) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            border-color: rgba(136, 1, 36, 0.1);
+        }
+        
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+        
+        .stat-value {
+            font-family: var(--font-heading);
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: var(--color-stone);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: var(--space-2xl);
+            color: var(--color-stone);
+        }
+        
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--color-cream);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--space-md);
+            color: var(--color-taupe);
+        }
+        
+        .empty-title {
+            font-family: var(--font-heading);
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--color-smoke);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .empty-text {
+            font-size: 16px;
+            margin-bottom: var(--space-lg);
+        }
+        
+        /* Quick Links Styling */
+        .quick-links-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+        
+        .quick-link-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-sm) var(--space-md);
+            color: var(--color-charcoal);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .quick-link-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, var(--color-burgundy), var(--color-plum));
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .quick-link-item:hover {
+            background: var(--color-cream);
+            transform: translateX(8px);
+            color: var(--color-burgundy);
+        }
+        
+        .quick-link-item:hover::before {
+            transform: scaleY(1);
+        }
+        
+        .quick-link-item:focus {
+            outline: 2px solid var(--color-burgundy);
+            outline-offset: 2px;
+        }
+        
+        .quick-link-icon {
+            font-size: 20px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-cream);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .quick-link-item:hover .quick-link-icon {
+            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
+            transform: scale(1.1);
+        }
+        
+        .quick-link-text {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Focus states for interactive elements */
+        a:focus,
+        button:focus {
+            outline: 3px solid rgba(97, 75, 121, 0.1);
+            border-color: var(--color-plum);
+        }
+        
+        /* Additional hover refinements */
+        .nav-menu a:focus {
+            outline: none;
+            box-shadow: 0 2px 0 var(--color-burgundy);
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body>
+    <!-- Utility Bar -->
+    <div class="utility-bar">
+        <a href="#">Help & FAQ</a>
+        <a href="#" class="incident-link">Report an Incident</a>
+        <a href="#">Contact</a>
+    </div>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="landing-page-visual-v2.html" class="logo">Witch City Rope</a>
+            
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="user-dashboard-visual.html" class="active">Dashboard</a></li>
+                    <li><a href="member-my-tickets-visual.html">My Events</a></li>
+                    <li><a href="member-profile-settings-visual.html">Edit Profile</a></li>
+                    <li><a href="member-membership-settings.html">Settings</a></li>
+                </ul>
+            </nav>
+            
+            <div class="user-menu">
+                <div class="user-avatar">JD</div>
+                <span style="font-weight: 600;">Jane Doe</span>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="main-container">
+        <!-- Welcome Section -->
+        <section class="welcome-section">
+            <div class="welcome-content">
+                <h1 class="welcome-title">Welcome back, Jane!</h1>
+                <p class="welcome-subtitle">Ready to explore and learn? Here's what's happening in our community.</p>
+                <div class="quick-actions">
+                    <a href="event-list-visual.html" class="btn btn-primary">Browse Classes</a>
+                    <a href="event-list-visual.html" class="btn btn-secondary">View Meetups</a>
+                    <a href="member-profile-settings-visual.html" class="btn btn-secondary">Update Profile</a>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Left Column -->
+            <div>
+                <!-- Upcoming Events -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Your Upcoming Events</h2>
+                        <a href="#" class="card-link">View all</a>
+                    </div>
+                    <div class="event-list">
+                        <div class="event-item">
+                            <div class="event-date">
+                                <div class="event-date-day">15</div>
+                                <div class="event-date-month">Feb</div>
+                            </div>
+                            <div class="event-details">
+                                <h3 class="event-title">Introduction to Rope Bondage</h3>
+                                <div class="event-info">
+                                    <span>📍 Salem Studio</span>
+                                    <span>🕒 7:00 PM - 9:30 PM</span>
+                                    <span class="event-badge">Registered</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="event-item">
+                            <div class="event-date">
+                                <div class="event-date-day">22</div>
+                                <div class="event-date-month">Feb</div>
+                            </div>
+                            <div class="event-details">
+                                <h3 class="event-title">February Rope Jam</h3>
+                                <div class="event-info">
+                                    <span>📍 Community Space</span>
+                                    <span>🕒 6:00 PM - 9:00 PM</span>
+                                    <span class="event-badge">RSVP'd</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="event-item">
+                            <div class="event-date">
+                                <div class="event-date-day">01</div>
+                                <div class="event-date-month">Mar</div>
+                            </div>
+                            <div class="event-details">
+                                <h3 class="event-title">Intermediate Suspension Workshop</h3>
+                                <div class="event-info">
+                                    <span>📍 Salem Studio</span>
+                                    <span>🕒 2:00 PM - 6:00 PM</span>
+                                    <span class="event-badge">Waitlisted</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recommended Classes -->
+                <div class="card" style="margin-top: var(--space-lg);">
+                    <div class="card-header">
+                        <h2 class="card-title">Recommended for You</h2>
+                        <a href="#" class="card-link">Browse all</a>
+                    </div>
+                    <div class="event-list">
+                        <div class="event-item">
+                            <div class="event-date">
+                                <div class="event-date-day">08</div>
+                                <div class="event-date-month">Mar</div>
+                            </div>
+                            <div class="event-details">
+                                <h3 class="event-title">Floor Work Fundamentals</h3>
+                                <div class="event-info">
+                                    <span>💰 $35-65</span>
+                                    <span>📚 Beginner Friendly</span>
+                                    <span>👥 8 spots left</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="event-item">
+                            <div class="event-date">
+                                <div class="event-date-day">15</div>
+                                <div class="event-date-month">Mar</div>
+                            </div>
+                            <div class="event-details">
+                                <h3 class="event-title">Rope Safety & Anatomy</h3>
+                                <div class="event-info">
+                                    <span>💰 $35-65</span>
+                                    <span>📚 All Levels</span>
+                                    <span>👥 12 spots left</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column -->
+            <div>
+                <!-- Membership Status -->
+                <div class="card">
+                    <h2 class="card-title" style="margin-bottom: var(--space-md);">Membership Status</h2>
+                    <div class="status-banner">
+                        <div class="status-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                            </svg>
+                        </div>
+                        <div class="status-content">
+                            <h3>Verified Member</h3>
+                            <p>You have full access to member-only events and community features.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">12</div>
+                            <div class="stat-label">Events</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">8</div>
+                            <div class="stat-label">Months</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">3</div>
+                            <div class="stat-label">Partners</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Links -->
+                <div class="card" style="margin-top: var(--space-lg);">
+                    <h2 class="card-title" style="margin-bottom: var(--space-md);">Quick Links</h2>
+                    <div class="quick-links-list">
+                        <a href="#" class="quick-link-item">
+                            <span class="quick-link-icon">📋</span>
+                            <span class="quick-link-text">Vetting Guidelines</span>
+                        </a>
+                        <a href="#" class="quick-link-item">
+                            <span class="quick-link-icon">🎓</span>
+                            <span class="quick-link-text">Skill Progression Guide</span>
+                        </a>
+                        <a href="#" class="quick-link-item">
+                            <span class="quick-link-icon">💬</span>
+                            <span class="quick-link-text">Community Discord</span>
+                        </a>
+                        <a href="#" class="quick-link-item">
+                            <span class="quick-link-icon">🛡️</span>
+                            <span class="quick-link-text">Safety Resources</span>
+                        </a>
+                        <a href="#" class="quick-link-item">
+                            <span class="quick-link-icon">📚</span>
+                            <span class="quick-link-text">Learning Library</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
