@@ -234,7 +234,60 @@ Provides framework for preventing costly architectural mismatches while building
 ### Tags
 #critical #api-contracts #architecture #prevention #workflow-enhancement #research-methodology
 
+## Approved Research Websites for .NET and C# Technologies
+
+**Date**: 2025-08-22
+**Category**: Research Sources
+**Severity**: Critical
+
+### Context
+Curated list of high-quality, authoritative sources for .NET 9 and C# research. These websites provide current, accurate information from recognized experts in the .NET ecosystem.
+
+### Approved Sources
+1. **Milan Jovanović's Blog** (https://www.milanjovanovic.tech/)
+   - Clean architecture, domain-driven design
+   - .NET performance optimization
+   - Minimal APIs and vertical slice architecture
+   - Published weekly, always current with .NET releases
+
+2. **CodeOpinion** (https://codeopinion.com/)
+   - Event-driven architecture patterns
+   - Microservices and distributed systems
+   - CQRS and Event Sourcing
+   - Practical architecture guidance
+
+3. **Scott Brady's Articles** (https://www.scottbrady.io/articles)
+   - Security and authentication best practices
+   - OAuth 2.0 and OpenID Connect
+   - ASP.NET Core security patterns
+   - Identity and access management
+
+4. **Microsoft .NET Blog** (https://devblogs.microsoft.com/dotnet/)
+   - Official .NET announcements and releases
+   - Performance improvements and benchmarks
+   - New feature documentation
+   - Best practices from the .NET team
+
+### Research Guidelines
+- **ALWAYS verify article date** - Must be published within last 6 months for .NET 9 topics
+- **CHECK .NET version compatibility** - Ensure content applies to .NET 9, not older versions
+- **USE search features** - Most sites have search fields to find specific topics
+- **CROSS-REFERENCE sources** - Validate recommendations across multiple authorities
+- **PRIORITIZE official Microsoft docs** for API specifications and breaking changes
+
+### Search Strategies
+- For minimal API patterns: Search Milan's blog and CodeOpinion
+- For security/auth: Start with Scott Brady's articles
+- For official features: Microsoft .NET Blog first
+- For architecture patterns: CodeOpinion and Milan's blog
+
+### Impact
+Ensures research is based on current, authoritative sources from recognized .NET experts, preventing outdated or incorrect architectural decisions.
+
+### Tags
+#critical #research-sources #dotnet9 #approved-websites #authority
+
 ---
 
 *This file is maintained by the technology researcher agent. Add new lessons immediately when discovered, remove outdated entries as needed.*
-*Last updated: 2025-08-19 - Added API contract mismatch prevention research patterns*
+*Last updated: 2025-08-22 - Added approved research websites for .NET and C# technologies*

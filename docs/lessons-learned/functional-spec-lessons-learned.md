@@ -92,7 +92,45 @@ Functional specifications must never specify manual DTO interface creation. All 
 ### Tags
 #critical #nswag #dto-generation #specification-standards
 
+## Approved Research Websites for .NET and C# Technologies
+
+**Date**: 2025-08-22
+**Category**: Research Sources
+**Severity**: Critical
+
+### Context
+When creating functional specifications that involve .NET 9 technologies, use these curated, authoritative sources for research and validation.
+
+### Approved Sources
+1. **Milan Jovanović's Blog** (https://www.milanjovanovic.tech/)
+   - Clean architecture, domain-driven design
+   - .NET performance optimization
+   - Minimal APIs and vertical slice architecture
+
+2. **CodeOpinion** (https://codeopinion.com/)
+   - Event-driven architecture patterns
+   - Microservices and distributed systems
+   - CQRS and Event Sourcing
+
+3. **Scott Brady's Articles** (https://www.scottbrady.io/articles)
+   - Security and authentication best practices
+   - OAuth 2.0 and OpenID Connect
+   - ASP.NET Core security patterns
+
+4. **Microsoft .NET Blog** (https://devblogs.microsoft.com/dotnet/)
+   - Official .NET announcements and releases
+   - Performance improvements and benchmarks
+   - New feature documentation
+
+### Research Guidelines
+- **ALWAYS verify article date** - Must be published within last 6 months for .NET 9
+- **CHECK .NET version compatibility** - Ensure content applies to .NET 9
+- **CROSS-REFERENCE sources** - Validate recommendations across multiple authorities
+
+### Tags
+#critical #research-sources #dotnet9 #approved-websites
+
 ---
 
 *This file captures lessons learned for functional specification creation. Add new lessons immediately when discovered, remove outdated entries as needed.*
-*Last updated: 2025-08-19 - Initial creation with critical architecture discovery lessons*
+*Last updated: 2025-08-22 - Added approved research websites for .NET technologies*
