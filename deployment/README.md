@@ -111,7 +111,6 @@ JWT_SECRET=your-secret-key-min-32-chars
 SENDGRID_API_KEY=your-sendgrid-key
 PAYPAL_CLIENT_ID=your-paypal-client-id
 PAYPAL_CLIENT_SECRET=your-paypal-secret
-SYNCFUSION_LICENSE_KEY=your-syncfusion-license
 ENCRYPTION_KEY=your-32-char-encryption-key
 
 # Optional

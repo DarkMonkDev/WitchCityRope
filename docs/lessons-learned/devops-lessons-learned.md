@@ -29,6 +29,65 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 ## Git Operations
 
+### Successful Unrelated Histories Merge Pattern (AUGUST 2025) ✅
+
+**SUCCESS PATTERN**: Merging React implementation with database seeding enhancements from divergent development paths
+```bash
+# Create feature branch for merge work
+git checkout -b feature/2025-08-22-core-pages-implementation
+
+# Fetch latest changes from all remotes
+git fetch origin
+
+# Merge with unrelated histories (required when branches have different commit histories)
+git merge origin/main --allow-unrelated-histories --no-ff -m "merge: Integrate database seeding enhancements from origin/main with unrelated histories
+
+Merging origin/main into feature/2025-08-22-core-pages-implementation:
+- Database seeding configuration from commit 4e66361
+- Syncfusion license configuration 
+- Major project cleanup and refactoring from commit 80c3f43
+- Blazor reconnection handler fixes
+- CLAUDE.md documentation updates
+
+Using --allow-unrelated-histories due to divergent development paths.
+This merge brings critical database initialization enhancements
+to continue core pages development."
+
+# Resolve conflicts strategically
+# - Keep React implementation files (priority)
+# - Merge database configurations and enhancements
+# - Integrate valuable infrastructure from Blazor project
+
+# Stage resolved files
+git add [resolved-files]
+
+# Commit merge with comprehensive documentation
+git commit -m "[comprehensive merge message with business impact]"
+```
+
+**Result**: Successfully merged 400+ files including database infrastructure while preserving React implementation
+- React architecture preserved in apps/web/
+- Database seeding infrastructure integrated (Syncfusion license, seed scripts, PostgreSQL migrations)
+- Comprehensive documentation and security assets added
+- Enhanced .env.example with merged configurations
+- Zero conflicts with React development workflow
+
+**Key Success Factors for Unrelated Histories Merge**:
+- Always use `--allow-unrelated-histories` flag when merging branches with different commit histories
+- Create dedicated feature branch for merge work (don't merge directly to master)
+- Resolve conflicts strategically: keep current development priority, merge valuable enhancements
+- Use comprehensive commit messages documenting business impact and integration strategy
+- Manually merge configuration files (.env.example) to get best of both implementations
+- Preserve both development paths in separate directories for reference
+- Document merge strategy and conflict resolution approach for future reference
+
+**When This Pattern Applies**:
+- Merging React and Blazor development branches
+- Integrating infrastructure enhancements from legacy codebase
+- Adding documentation/deployment assets from parallel development
+- Combining database seeding/configuration improvements with UI development
+- Preserving reference implementations while continuing current development path
+
 ### Database Auto-Initialization Milestone Commit Pattern (AUGUST 2025) ✅
 
 **SUCCESS PATTERN**: Complete infrastructure implementation with comprehensive documentation and business impact quantification
@@ -581,7 +640,7 @@ Status: Ready for continued development
 
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
-Co-Authored-By: Claude <noreply@anthropic.com>
+Co-Authored-By: Claude <noreply@anthropic.com)
 EOF
 )"
 ```

@@ -101,7 +101,6 @@ Key environment variables in `.env`:
 - `SENDGRID_API_KEY`: For email functionality
 - `PAYPAL_CLIENT_ID/SECRET`: For payment processing
 - `GOOGLE_CLIENT_ID/SECRET`: For Google OAuth
-- `SYNCFUSION_LICENSE_KEY`: For Syncfusion components
 
 ## Troubleshooting
 

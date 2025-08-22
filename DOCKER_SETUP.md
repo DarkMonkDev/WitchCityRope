@@ -151,8 +151,6 @@ ASPNETCORE_ENVIRONMENT=Development
 # JWT Configuration
 JWT_SECRET=YourSuperSecretKeyForDevelopmentPurposesOnly!123
 
-# Syncfusion License
-SYNCFUSION_LICENSE_KEY=your_license_key_here
 
 # Email Configuration (SendGrid)
 SENDGRID_API_KEY=your_sendgrid_key_here

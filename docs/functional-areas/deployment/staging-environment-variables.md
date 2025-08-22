@@ -56,7 +56,6 @@ This document lists all environment variables required for the staging environme
 
 | Variable | Description | Example Value |
 |----------|-------------|---------------|
-| `SYNCFUSION_LICENSE_KEY` | Syncfusion license key | `Nxxxxxxxxxxxxxxxxxxxxxx` |
 | `AZURE_STORAGE_CONNECTION_STRING` | Azure Storage connection | `DefaultEndpointsProtocol=https;AccountName=staging;...` |
 
 ### Monitoring & Logging
@@ -111,8 +110,6 @@ STRIPE_PUBLISHABLE_KEY=pk_test_your-stripe-publishable-key
 STRIPE_SECRET_KEY=sk_test_your-stripe-secret-key
 STRIPE_WEBHOOK_SECRET=whsec_your-stripe-webhook-secret
 
-# Third-Party Services
-SYNCFUSION_LICENSE_KEY=your-syncfusion-license-key
 AZURE_STORAGE_CONNECTION_STRING=your-azure-storage-connection-string
 
 # Monitoring
@@ -171,7 +168,6 @@ REQUIRED_VARS=(
     "SENDGRID_API_KEY"
     "PAYPAL_CLIENT_ID"
     "PAYPAL_CLIENT_SECRET"
-    "SYNCFUSION_LICENSE_KEY"
 )
 
 MISSING_VARS=()

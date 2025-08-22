@@ -1,44 +1,49 @@
 import React from 'react';
-import { Box, Title, Text, Paper, Group, Button, Grid, Stack } from '@mantine/core';
+import { Box, Title, Text, Paper, Group, Button, Grid, Stack, Loader, Alert } from '@mantine/core';
 import { Link } from 'react-router-dom';
-import { useUser } from '../../stores/authStore';
+import { useCurrentUser } from '../../features/auth/api/queries';
+import { useEvents } from '../../features/events/api/queries';
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
+import type { Event } from '../../types/api.types';
 
-// Mock events data - will be replaced with API calls later
-const mockEvents = [
-  {
-    id: '1',
-    title: 'Rope Fundamentals Workshop',
-    date: '2025-08-28',
-    time: '7:00 PM - 9:30 PM',
-    status: 'Confirmed',
-    statusColor: '#228B22',
-  },
-  {
-    id: '2',
-    title: 'Community Rope Jam',
-    date: '2025-09-02',
-    time: '6:00 PM - 9:00 PM',
-    status: "RSVP'd",
-    statusColor: '#228B22',
-  },
-  {
-    id: '3',
-    title: 'Advanced Suspension Class',
-    date: '2025-09-15',
-    time: '2:00 PM - 6:00 PM',
-    status: 'Payment Pending',
-    statusColor: '#DAA520',
-  },
-];
+// Helper function to format event for display
+const formatEventForDashboard = (event: Event) => {
+  const startDate = new Date(event.startDate);
+  const endDate = new Date(event.endDate);
+  
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+  
+  return {
+    id: event.id,
+    title: event.title,
+    date: startDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
+    time: `${formatTime(startDate)} - ${formatTime(endDate)}`,
+    status: event.isRegistrationOpen ? 'Open' : 'Closed',
+    statusColor: event.isRegistrationOpen ? '#228B22' : '#DAA520',
+  };
+};
 
 /**
  * Dashboard Landing Page
  * Shows user's upcoming events and quick actions
- * Follows the simplified design requirements
+ * Uses real API data via TanStack Query hooks
  */
 export const DashboardPage: React.FC = () => {
-  const user = useUser();
+  const { data: user, isLoading: userLoading, error: userError } = useCurrentUser();
+  const { data: events, isLoading: eventsLoading, error: eventsError } = useEvents();
+  
+  // Format events for dashboard display
+  const upcomingEvents = events ? events
+    .filter(event => new Date(event.startDate) > new Date()) // Only future events
+    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()) // Sort by date
+    .slice(0, 5) // Show only first 5
+    .map(formatEventForDashboard) : [];
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -51,19 +56,42 @@ export const DashboardPage: React.FC = () => {
     <DashboardLayout>
       {/* Welcome Header */}
       <Box mb="xl">
-        <Title
-          order={1}
-          style={{
-            fontFamily: "'Montserrat', sans-serif",
-            fontSize: '28px',
-            fontWeight: 800,
-            color: '#880124',
-            textTransform: 'uppercase',
-            letterSpacing: '-0.5px',
-          }}
-        >
-          Welcome back, {user?.sceneName || 'User'}
-        </Title>
+        {userLoading ? (
+          <Box style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Loader size="sm" color="#880124" />
+            <Title
+              order={1}
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontSize: '28px',
+                fontWeight: 800,
+                color: '#880124',
+                textTransform: 'uppercase',
+                letterSpacing: '-0.5px',
+              }}
+            >
+              Loading...
+            </Title>
+          </Box>
+        ) : userError ? (
+          <Alert color="red" style={{ background: 'rgba(220, 20, 60, 0.1)', border: '1px solid rgba(220, 20, 60, 0.3)' }}>
+            Failed to load user information
+          </Alert>
+        ) : (
+          <Title
+            order={1}
+            style={{
+              fontFamily: "'Montserrat', sans-serif",
+              fontSize: '28px',
+              fontWeight: 800,
+              color: '#880124',
+              textTransform: 'uppercase',
+              letterSpacing: '-0.5px',
+            }}
+          >
+            Welcome back, {user?.sceneName || 'User'}
+          </Title>
+        )}
       </Box>
 
       {/* Section Divider */}
@@ -93,9 +121,18 @@ export const DashboardPage: React.FC = () => {
           Your Upcoming Events
         </Title>
 
-        {mockEvents.length > 0 ? (
+        {eventsLoading ? (
+          <Box style={{ textAlign: 'center', padding: '40px' }}>
+            <Loader size="lg" color="#880124" />
+            <Text style={{ marginTop: '16px', color: '#8B8680' }}>Loading your upcoming events...</Text>
+          </Box>
+        ) : eventsError ? (
+          <Alert color="red" style={{ background: 'rgba(220, 20, 60, 0.1)', border: '1px solid rgba(220, 20, 60, 0.3)' }}>
+            Failed to load events. Please try refreshing the page.
+          </Alert>
+        ) : upcomingEvents.length > 0 ? (
           <Stack gap="sm">
-            {mockEvents.map((event) => {
+            {upcomingEvents.map((event) => {
               const { day, month } = formatDate(event.date);
               return (
                 <Paper

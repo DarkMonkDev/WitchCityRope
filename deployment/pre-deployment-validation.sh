@@ -293,7 +293,6 @@ check_configuration() {
             "SENDGRID_API_KEY"
             "PAYPAL_CLIENT_ID"
             "PAYPAL_CLIENT_SECRET"
-            "SYNCFUSION_LICENSE_KEY"
         )
         
         for var in "${required_vars[@]}"; do

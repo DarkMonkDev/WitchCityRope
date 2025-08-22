@@ -71,8 +71,6 @@ EMAIL_FROM=noreply@yourdomain.com
 PAYPAL_CLIENT_ID=<your-paypal-client-id>
 PAYPAL_CLIENT_SECRET=<your-paypal-client-secret>
 
-# Syncfusion
-SYNCFUSION_LICENSE_KEY=<your-syncfusion-license>
 
 # Redis (if using)
 REDIS_PASSWORD=<generate-secure-password>
@@ -89,7 +87,6 @@ SSL_EMAIL=admin@witchcityrope.com
 - [ ] SendGrid account created and API key generated
 - [ ] PayPal account configured (sandbox for staging, live for production)
 - [ ] Google OAuth credentials configured (if using)
-- [ ] Syncfusion license obtained
 - [ ] Monitoring services configured (optional)
 
 ### Security Configurations

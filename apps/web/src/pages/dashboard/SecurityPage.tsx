@@ -35,7 +35,8 @@ export const SecurityPage: React.FC = () => {
   });
 
   const handlePasswordSubmit = (values: typeof passwordForm.values) => {
-    // TODO: Implement password change API call
+    // TODO: Implement password change API call using useMutation hook
+    // Example: useChangePassword() mutation that calls /api/auth/change-password
     console.log('Password change submitted:', {
       currentPassword: values.currentPassword,
       newPassword: values.newPassword,
@@ -45,13 +46,15 @@ export const SecurityPage: React.FC = () => {
   };
 
   const handleDisable2FA = () => {
-    // TODO: Implement 2FA disable API call
+    // TODO: Implement 2FA disable API call using useMutation hook
+    // Example: useDisable2FA() mutation that calls /api/auth/disable-2fa
     console.log('Disabling 2FA...');
     setIs2FAEnabled(false);
   };
 
   const handleDataDownload = () => {
-    // TODO: Implement data download API call
+    // TODO: Implement data download API call using useMutation hook  
+    // Example: useRequestDataDownload() mutation that calls /api/auth/request-data-download
     console.log('Requesting data download...');
   };
 

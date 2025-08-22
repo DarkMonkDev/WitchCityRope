@@ -88,8 +88,6 @@ services:
       - ApiBaseUrl=http://api:8080/
       - ApiBaseUrlExternal=${API_EXTERNAL_URL:-https://api.witchcityrope.com/}
       
-      # Syncfusion License
-      - Syncfusion__LicenseKey=${SYNCFUSION_LICENSE_KEY:?SYNCFUSION_LICENSE_KEY is required}
       
       # Session Configuration
       - Session__IdleTimeout=20
