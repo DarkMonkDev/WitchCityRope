@@ -4033,19 +4033,19 @@
     ]
   },
   "packageFolders": {
-    "/home/chad/.nuget/packages/": {}
+    "/root/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/chad/repos/witchcityrope-react/apps/api/WitchCityRope.Api.csproj",
+      "projectUniqueName": "/app/WitchCityRope.Api.csproj",
       "projectName": "WitchCityRope.Api",
-      "projectPath": "/home/chad/repos/witchcityrope-react/apps/api/WitchCityRope.Api.csproj",
-      "packagesPath": "/home/chad/.nuget/packages/",
-      "outputPath": "/home/chad/repos/witchcityrope-react/apps/api/obj/",
+      "projectPath": "/app/WitchCityRope.Api.csproj",
+      "packagesPath": "/root/.nuget/packages/",
+      "outputPath": "/app/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/home/chad/.nuget/NuGet/NuGet.Config"
+        "/root/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net9.0"
@@ -4131,7 +4131,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/home/chad/.dotnet/sdk/9.0.301/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.301/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
