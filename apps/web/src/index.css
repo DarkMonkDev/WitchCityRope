@@ -1,3 +1,258 @@
+/* Import v7 Design System Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,700;6..96,900&family=Montserrat:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;600&family=Satisfy&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* v7 Design System CSS Variables */
+:root {
+  /* EXACT colors from approved wireframe (refined-original) */
+  --color-burgundy: #880124;
+  --color-burgundy-dark: #660018;
+  --color-burgundy-light: #9F1D35;
+  
+  /* Warm Metallics */
+  --color-rose-gold: #B76D75;
+  --color-copper: #B87333;
+  --color-brass: #C9A961;
+  
+  /* CTA Accent Colors */
+  --color-electric: #9D4EDD;
+  --color-electric-dark: #7B2CBF;
+  --color-amber: #FFBF00;
+  --color-amber-dark: #FF8C00;
+  
+  /* Supporting Tones */
+  --color-dusty-rose: #D4A5A5;
+  --color-plum: #614B79;
+  --color-midnight: #1A1A2E;
+  
+  /* Warm Neutrals */
+  --color-charcoal: #2B2B2B;
+  --color-smoke: #4A4A4A;
+  --color-stone: #8B8680;
+  --color-taupe: #B8B0A8;
+  --color-ivory: #FFF8F0;
+  --color-cream: #FAF6F2;
+  
+  /* Status Colors */
+  --color-success: #228B22;
+  --color-warning: #DAA520;
+  --color-error: #DC143C;
+  
+  /* Typography */
+  --font-display: 'Bodoni Moda', serif;
+  --font-heading: 'Montserrat', sans-serif;
+  --font-body: 'Source Sans 3', sans-serif;
+  --font-accent: 'Satisfy', cursive;
+  
+  /* Spacing */
+  --space-xs: 8px;
+  --space-sm: 16px;
+  --space-md: 24px;
+  --space-lg: 32px;
+  --space-xl: 40px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+}
+
+/* Global body styles for v7 */
+body {
+  font-family: var(--font-body);
+  line-height: 1.6;
+  color: var(--color-charcoal);
+  background-color: var(--color-cream);
+  overflow-x: hidden;
+}
+
+/* Subtle rope pattern background */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.03;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40,40 L80,80 L40,120 L80,160' stroke='%23880124' stroke-width='1' fill='none' opacity='0.5'/%3E%3Cpath d='M80,40 L120,80 L80,120 L120,160' stroke='%23880124' stroke-width='1' fill='none' opacity='0.5'/%3E%3Cpath d='M120,40 L160,80 L120,120 L160,160' stroke='%23880124' stroke-width='1' fill='none' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  z-index: -1;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* v7 Navigation Underline Animation (center-outward) */
+.nav-underline-animation {
+  position: relative;
+}
+
+.nav-underline-animation::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-burgundy), transparent);
+  transition: width 0.3s ease;
+}
+
+.nav-underline-animation:hover::after {
+  width: 100%;
+}
+
+/* v7 Logo Underline Animation */
+.logo-underline-animation {
+  position: relative;
+}
+
+.logo-underline-animation::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-burgundy), transparent);
+  transition: width 0.3s ease;
+}
+
+.logo-underline-animation:hover::after {
+  width: 100%;
+}
+
+/* v7 Feature Icon Shape-Shifting Animation */
+@keyframes iconMorph {
+  0%, 100% { 
+    border-radius: 50% 20% 50% 20%;
+    transform: rotate(0deg) scale(1);
+  }
+  50% { 
+    border-radius: 20% 50% 20% 50%;
+    transform: rotate(5deg) scale(1.1);
+  }
+}
+
+.feature-icon-animation {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-rose-gold) 100%);
+  border-radius: 50% 20% 50% 20%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-ivory);
+  font-size: 48px;
+  box-shadow: 0 10px 30px rgba(136, 1, 36, 0.2);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.5s ease;
+  margin: 0 auto var(--space-md);
+}
+
+.feature-icon-animation::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.feature-icon-animation:hover {
+  border-radius: 20% 50% 20% 50%;
+  transform: rotate(5deg) scale(1.1);
+}
+
+.feature-icon-animation:hover::before {
+  opacity: 1;
+}
+
+/* v7 Float Animation for Hero Background */
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(-30px, -20px) rotate(1deg); }
+  66% { transform: translate(20px, -10px) rotate(-1deg); }
+}
+
+.hero-float-animation {
+  animation: float 20s ease-in-out infinite;
+}
+
+/* v7 Rotate Animation for CTA Background */
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.cta-rotate-animation {
+  animation: rotate 30s linear infinite;
+}
+
+/* Mobile Responsive Styles - From v7 Template */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: var(--space-xl) 20px !important;
+  }
+  
+  .hero-section h1 {
+    font-size: 40px !important;
+  }
+  
+  .hero-section .hero-tagline {
+    font-size: 22px !important;
+  }
+  
+  .hero-section p {
+    font-size: 18px !important;
+  }
+  
+  .hero-buttons {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  
+  .section {
+    padding: var(--space-xl) 20px !important;
+  }
+  
+  .classes-events {
+    padding: var(--space-xl) 20px !important;
+    margin-top: var(--space-xl) !important;
+  }
+  
+  .section-title,
+  .classes-events .section-title {
+    font-size: 36px !important;
+  }
+  
+  .cta-section h2 {
+    font-size: 32px !important;
+  }
+  
+  .cta-subtitle {
+    font-size: 22px !important;
+  }
+  
+  .feature-icon-animation {
+    width: 80px !important;
+    height: 80px !important;
+    font-size: 36px !important;
+  }
+}
+
+/* Button large size override */
+.btn-large {
+  padding: 18px 40px !important;
+  font-size: 16px !important;
+}
