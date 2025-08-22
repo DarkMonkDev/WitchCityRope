@@ -6,7 +6,7 @@ import type { EventDto, EventListResponse } from '@witchcityrope/shared-types'
 import type { PaginatedResponse, EventFilters } from '../../../types/api.types'
 
 export function useEvent(eventId: string) {
-  return useQuery<EventDto, Error>({
+  return useQuery<EventDto>({
     queryKey: queryKeys.event(eventId),
     queryFn: async (): Promise<EventDto> => {
       const response = await api.get(`/api/events/${eventId}`)
@@ -18,7 +18,7 @@ export function useEvent(eventId: string) {
 }
 
 export function useEvents() {
-  return useQuery<EventDto[], Error>({
+  return useQuery<EventDto[]>({
     queryKey: queryKeys.events(),
     queryFn: async (): Promise<EventDto[]> => {
       const response = await api.get<EventListResponse>('/api/events')
@@ -29,7 +29,7 @@ export function useEvents() {
 }
 
 export function useInfiniteEvents(filters: EventFilters = {}) {
-  return useInfiniteQuery<EventListResponse, Error>({
+  return useInfiniteQuery<EventListResponse>({
     queryKey: queryKeys.infiniteEvents(filters),
     queryFn: async ({ pageParam = 1 }): Promise<EventListResponse> => {
       const response = await api.get<EventListResponse>('/api/events', {

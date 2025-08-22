@@ -2,12 +2,12 @@ import React from 'react';
 import { Box, Title, Text, Paper, Grid, Loader, Alert, Stack, Badge } from '@mantine/core';
 import { useEvents } from '../../features/events/api/queries';
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
-import type { Event } from '../../types/api.types';
+import type { EventDto } from '@witchcityrope/shared-types';
 
 // Helper function to format event dates and status
-const formatEventDisplay = (event: Event) => {
-  const startDate = new Date(event.startDate);
-  const endDate = new Date(event.endDate);
+const formatEventDisplay = (event: EventDto) => {
+  const startDate = new Date(event.startDateTime || '');
+  const endDate = new Date(event.endDateTime || '');
   const now = new Date();
   
   const formatDate = (date: Date) => {
@@ -47,7 +47,8 @@ const formatEventDisplay = (event: Event) => {
     formattedTime: `${formatTime(startDate)} - ${formatTime(endDate)}`,
     status,
     statusColor,
-    isPast: endDate < now
+    isPast: endDate < now,
+    registrationStatus: event.status === 'Published' ? 'Open' : 'Closed'
   };
 };
 
@@ -268,9 +269,9 @@ export const EventsPage: React.FC = () => {
                       {/* Capacity Info */}
                       <Box style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Text style={{ fontSize: '12px', color: '#8B8680' }}>
-                          👥 {event.currentAttendees}/{event.maxAttendees} attendees
+                          👥 {event.currentAttendees || 0}/{event.capacity || 0} attendees
                         </Text>
-                        {event.isRegistrationOpen && (
+                        {event.status === 'Published' && (
                           <Badge size="xs" color="green">Open</Badge>
                         )}
                       </Box>

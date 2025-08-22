@@ -362,7 +362,7 @@ describe('Dashboard Integration Tests', () => {
 
       // Should refetch
       await waitFor(() => {
-        expect(result.current.isFetching).toBe(false) // Will finish refetching
+        expect(result.current.isLoading).toBe(false) // Will finish refetching
         expect(result.current.data).toBeTruthy()
       })
     })

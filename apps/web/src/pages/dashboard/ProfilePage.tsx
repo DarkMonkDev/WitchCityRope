@@ -300,10 +300,9 @@ export const ProfilePage: React.FC = () => {
                     </Text>
                     <Text
                       style={{
-                        fontFamily: "'Source Sans 3', sans-serif",
+                        fontFamily: 'monospace',
                         fontSize: '16px',
                         color: '#8B8680',
-                        fontFamily: 'monospace',
                       }}
                     >
                       {user?.id || 'Not available'}
@@ -368,7 +367,7 @@ export const ProfilePage: React.FC = () => {
                       color: '#8B8680',
                     }}
                   >
-                    {new Date(user.lastLoginAt).toLocaleDateString('en-US', {
+                    {new Date(user.lastLoginAt!).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',

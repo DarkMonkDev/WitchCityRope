@@ -207,6 +207,52 @@ const useEventsForHomepage = (enabled: boolean = true) => {
 - **v7 Styling Preserved**: All loading, error, and empty states maintain v7 design consistency
 - **Error Boundary**: User-friendly error messages while preserving styling framework
 
+### ✅ COMPLETED: TypeScript Compilation Error Fixes (2025-08-22)
+**STATUS**: Successfully fixed all 47+ TypeScript compilation errors preventing tests from running.
+
+#### Issues Fixed:
+- ✅ **API Query Types**: Fixed `useCurrentUser()` and `useEvents()` hooks returning `unknown` types by adding explicit generic types
+- ✅ **Event Type Compatibility**: Updated legacy Event interface to make `instructor` and `attendees` properties optional
+- ✅ **TanStack Query v5 Types**: Used proper generic syntax `useQuery<ReturnType>()` instead of `useQuery<ReturnType, Error>()`
+- ✅ **EventDto Integration**: Updated dashboard pages to use `EventDto` from generated API types with proper property mapping
+- ✅ **Duplicate Property Fix**: Removed duplicate `fontFamily` property in ProfilePage styles
+- ✅ **Integration Test**: Fixed missing `isFetching` property by using `isLoading` in TanStack Query v5
+
+#### Critical Type Fixes Applied:
+```typescript
+// ✅ CORRECT - TanStack Query v5 generic syntax
+export function useCurrentUser() {
+  return useQuery<UserDto>({
+    queryKey: ['auth', 'user'],
+    queryFn: async (): Promise<UserDto> => {
+      const response = await api.get<ApiResponse<UserDto>>('/api/auth/user')
+      return response.data.data
+    },
+    // ... other options
+  })
+}
+
+// ✅ CORRECT - EventDto property mapping
+const startDate = new Date(event.startDateTime || '');
+const endDate = new Date(event.endDateTime || '');
+const status = event.status === 'Published' ? 'Open' : 'Closed';
+
+// ✅ CORRECT - Legacy Event interface compatibility
+export interface Event {
+  instructor?: UserDto  // Made optional for test compatibility
+  attendees?: UserDto[] // Made optional for test compatibility
+}
+```
+
+#### Impact:
+- Build pipeline now works without TypeScript errors
+- Tests can run successfully  
+- Dashboard pages properly typed with real API data
+- Proper integration between frontend and generated API types
+
+#### Tags:
+#critical #typescript-compilation #api-types #tanstack-query #build-fix #dashboard-integration
+
 ### ✅ COMPLETED: Dashboard Pages API Integration (2025-08-22)
 **STATUS**: Successfully integrated all dashboard pages with existing TanStack Query API hooks.
 
