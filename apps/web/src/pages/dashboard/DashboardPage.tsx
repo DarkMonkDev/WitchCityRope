@@ -1,11 +1,13 @@
 import React from 'react';
-import { Box, Title, Text, Paper, Group, Button, Grid, Stack } from '@mantine/core';
+import { Box, Title, Text, Paper, Group, Button, Grid, Stack, Loader, Alert } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import { useUser } from '../../stores/authStore';
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
+import { useEvents } from '../../features/events/api/queries';
+import { useCurrentUser } from '../../features/auth/api/queries';
 
-// Mock events data - will be replaced with API calls later
-const mockEvents = [
+// Mock events data - REPLACED WITH API CALLS
+const mockEvents_OLD = [
   {
     id: '1',
     title: 'Rope Fundamentals Workshop',
@@ -39,6 +41,20 @@ const mockEvents = [
  */
 export const DashboardPage: React.FC = () => {
   const user = useUser();
+  
+  // Get real data from API
+  const { data: eventsData = [], isLoading: eventsLoading, error: eventsError } = useEvents();
+  const { data: apiUser, isLoading: userLoading } = useCurrentUser();
+  
+  // Ensure events is an array for type safety
+  const events = Array.isArray(eventsData) ? eventsData : [];
+  
+  // Log to console so you can verify it's working
+  React.useEffect(() => {
+    if (events.length > 0) {
+      console.log('🎉 SUCCESS: Dashboard loaded', events.length, 'events from API/Database:', events);
+    }
+  }, [events]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -93,13 +109,22 @@ export const DashboardPage: React.FC = () => {
           Your Upcoming Events
         </Title>
 
-        {mockEvents.length > 0 ? (
+        {eventsLoading ? (
+          <Box style={{ textAlign: 'center', padding: '40px' }}>
+            <Loader size="lg" color="#880124" />
+            <Text style={{ marginTop: '16px', color: '#8B8680' }}>Loading events from database...</Text>
+          </Box>
+        ) : eventsError ? (
+          <Alert color="red">Failed to load events. Please refresh the page.</Alert>
+        ) : events.length > 0 ? (
           <Stack gap="sm">
-            {mockEvents.map((event) => {
-              const { day, month } = formatDate(event.date);
+            {events.slice(0, 5).map((event: any) => {
+              // API returns startDateTime, not date
+              const eventDate = event.startDateTime || event.date || new Date().toISOString();
+              const { day, month } = formatDate(eventDate);
               return (
                 <Paper
-                  key={event.id}
+                  key={event.id || Math.random()}
                   style={{
                     background: '#FFF8F0',
                     padding: '12px 16px',
@@ -168,7 +193,7 @@ export const DashboardPage: React.FC = () => {
                     {event.title}
                   </Text>
 
-                  {/* Time */}
+                  {/* Time/Duration */}
                   <Text
                     style={{
                       fontSize: '14px',
@@ -177,7 +202,7 @@ export const DashboardPage: React.FC = () => {
                       fontWeight: 500,
                     }}
                   >
-                    {event.time}
+                    {event.duration ? `${event.duration} hours` : event.time || 'Time TBD'}
                   </Text>
 
                   {/* Status */}
@@ -190,12 +215,12 @@ export const DashboardPage: React.FC = () => {
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px',
                       textAlign: 'center',
-                      background: `${event.statusColor}20`,
-                      color: event.statusColor,
-                      border: `1px solid ${event.statusColor}`,
+                      background: `${event.statusColor || '#228B22'}20`,
+                      color: event.statusColor || '#228B22',
+                      border: `1px solid ${event.statusColor || '#228B22'}`,
                     }}
                   >
-                    {event.status}
+                    {event.capacity ? `${event.capacity} spots` : event.status || 'Open'}
                   </Box>
 
                   {/* Action */}

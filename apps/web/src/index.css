@@ -86,6 +86,61 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Standard Form Animation Classes for Consistent Usage */
+.form-input-animated {
+  position: relative;
+  transition: all 0.2s ease-in-out;
+}
+
+.form-input-animated::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--color-burgundy),
+    transparent
+  );
+  transition: all 0.3s ease-in-out;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+.form-input-animated:focus-within::after,
+.form-input-animated.focused::after {
+  width: 100%;
+}
+
+.form-input-floating-label {
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: all 0.2s ease-in-out;
+  pointer-events: none;
+  color: var(--color-stone);
+  background: transparent;
+  padding: 0 8px;
+  z-index: 1;
+  font-size: 14px;
+}
+
+.form-input-floating-label.focused,
+.form-input-floating-label.has-value {
+  top: -10px;
+  transform: translateY(-50%) scale(0.85);
+  color: var(--color-burgundy);
+  font-size: 12px;
+}
+
+.form-input-floating-label.error {
+  color: var(--color-error);
+}
+
 /* v7 Navigation Underline Animation (center-outward) */
 .nav-underline-animation {
   position: relative;

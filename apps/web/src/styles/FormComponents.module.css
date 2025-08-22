@@ -13,7 +13,7 @@
   left: 6px;
   transition: all 0.2s ease-in-out;
   pointer-events: none;
-  color: var(--mantine-color-gray-6);
+  color: var(--color-stone);
   background: transparent;
   padding: 0 var(--mantine-spacing-xs);
   z-index: 1;
@@ -53,7 +53,7 @@
   top: -10px;
   transform: translateY(-50%) scale(0.85);
   font-size: var(--mantine-font-size-xs);
-  color: var(--mantine-color-blue-6);
+  color: var(--color-burgundy);
 }
 
 .inputContainer .floatingLabel.isEmpty {
@@ -88,13 +88,13 @@
 
 [data-mantine-color-scheme="dark"] .inputContainer .floatingLabel.hasValue,
 [data-mantine-color-scheme="dark"] .inputContainer .floatingLabel.isFocused {
-  color: var(--mantine-color-blue-4);
+  color: var(--color-burgundy);
 }
 
 /* Legacy dark mode focused states */
 [data-mantine-color-scheme="dark"] .formGroup .floatingLabel.hasValue,
 [data-mantine-color-scheme="dark"] .formGroup .floatingLabel.isFocused {
-  color: var(--mantine-color-blue-4);
+  color: var(--color-burgundy);
 }
 
 [data-mantine-color-scheme="dark"] .inputContainer .floatingLabel.hasError {
@@ -168,7 +168,7 @@
   background: linear-gradient(
     to right,
     transparent,
-    var(--mantine-color-wcr-6, var(--mantine-color-blue-6)),
+    var(--color-burgundy),
     transparent
   );
 }
@@ -221,7 +221,7 @@
   background: linear-gradient(
     to right,
     transparent,
-    var(--mantine-color-wcr-4, var(--mantine-color-blue-4)),
+    var(--color-burgundy),
     transparent
   );
 }
@@ -261,14 +261,14 @@
 .enhancedInput :global(.mantine-PasswordInput-input:focus),
 .enhancedInput :global(.mantine-Textarea-input:focus),
 .enhancedInput :global(.mantine-Select-input:focus) {
-  border-color: var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important;
+  border-color: var(--color-burgundy) !important;
 }
 
 /* Additional specific targeting for password inputs */
 .enhancedInput :global(.mantine-PasswordInput-input:focus),
 .enhancedInput :global(.mantine-PasswordInput-input:focus-visible),
 .enhancedInput :global(.mantine-PasswordInput-input:focus-within) {
-  border-color: var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important;
+  border-color: var(--color-burgundy) !important;
   outline: none !important;
   box-shadow: none !important;
 }
@@ -458,7 +458,7 @@
 /* Remove this old focus style as it's not targeting the right elements */
 /* .enhancedInput:focus,
 .enhancedInput:focus-within {
-  border-color: var(--mantine-color-wcr-6, var(--mantine-color-blue-6));
+  border-color: var(--color-burgundy);
   box-shadow: 
     0 0 0 2px var(--mantine-color-wcr-1, var(--mantine-color-blue-1)),
     0 2px 8px rgba(0, 0, 0, 0.1);
@@ -490,14 +490,14 @@
 [data-mantine-color-scheme="dark"] .enhancedInput :global(.mantine-PasswordInput-input:focus),
 [data-mantine-color-scheme="dark"] .enhancedInput :global(.mantine-Textarea-input:focus),
 [data-mantine-color-scheme="dark"] .enhancedInput :global(.mantine-Select-input:focus) {
-  border-color: var(--mantine-color-wcr-4, var(--mantine-color-blue-4)) !important;
+  border-color: var(--color-burgundy) !important;
 }
 
 /* Additional dark mode specific targeting for password inputs */
 [data-mantine-color-scheme="dark"] .enhancedInput :global(.mantine-PasswordInput-input:focus),
 [data-mantine-color-scheme="dark"] .enhancedInput :global(.mantine-PasswordInput-input:focus-visible),
 [data-mantine-color-scheme="dark"] .enhancedInput :global(.mantine-PasswordInput-input:focus-within) {
-  border-color: var(--mantine-color-wcr-4, var(--mantine-color-blue-4)) !important;
+  border-color: var(--color-burgundy) !important;
   outline: none !important;
   box-shadow: none !important;
 }
@@ -543,7 +543,7 @@
 /* Helper text styles (for Mantine description prop) */
 .helperText {
   font-size: var(--mantine-font-size-xs);
-  color: var(--mantine-color-gray-6);
+  color: var(--color-stone);
   text-align: left;
   margin-top: var(--mantine-spacing-xs);
   transition: color 0.2s ease-in-out;
@@ -644,17 +644,17 @@
 
 /* Custom WitchCityRope branding colors integration */
 .wcrPrimary {
-  color: var(--mantine-color-wcr-6, var(--mantine-color-blue-6));
+  color: var(--color-burgundy);
 }
 
 .wcrBorder {
-  border-color: var(--mantine-color-wcr-3, var(--mantine-color-blue-3));
+  border-color: var(--color-rose-gold);
 }
 
 .wcrFocus:focus {
-  border-color: var(--mantine-color-wcr-6, var(--mantine-color-blue-6));
+  border-color: var(--color-burgundy);
   box-shadow: 
-    0 0 0 2px var(--mantine-color-wcr-1, var(--mantine-color-blue-1)),
+    0 0 0 2px rgba(136, 1, 36, 0.1),
     0 2px 8px rgba(0, 0, 0, 0.1);
 }
 

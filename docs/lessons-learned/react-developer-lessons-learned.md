@@ -1,5 +1,69 @@
 # React Developer Lessons Learned
 
+## 🚨 CRITICAL: Use Animated Form Components for ALL Forms 🚨
+**Date**: 2025-08-22
+**Category**: Form Components
+**Severity**: CRITICAL
+
+### Context
+Security page was using plain Mantine TextInput components instead of the approved animated form components that provide beautiful tapered underline animations and floating labels.
+
+### What We Learned
+- Animated form components exist at `/apps/web/src/components/forms/MantineFormInputs.tsx`
+- These components provide tapered underline animations and floating labels
+- Components were using old color system instead of Design System v7 colors
+- Standard animation classes exist in `/apps/web/src/index.css`
+
+### Action Items
+- [ ] ALWAYS use `MantineTextInput` and `MantinePasswordInput` instead of plain Mantine components
+- [ ] ADD `taperedUnderline={true}` prop to enable animations
+- [ ] USE Design System v7 colors (`var(--color-burgundy)`, `var(--color-stone)`, etc.)
+- [ ] NEVER use plain Mantine TextInput/PasswordInput in forms
+- [ ] CHECK existing animated components before creating new ones
+
+### Impact
+Using animated form components ensures:
+- Consistent beautiful animations across all forms
+- Better user experience with floating labels
+- Design System v7 color compliance
+- Professional appearance matching the design standards
+
+### Required Implementation Pattern:
+```typescript
+// ✅ CORRECT - Use animated components
+import { MantineTextInput, MantinePasswordInput } from '@/components/forms/MantineFormInputs';
+
+<MantineTextInput
+  label="Email Address"
+  placeholder="Enter your email"
+  taperedUnderline={true}
+  {...form.getInputProps('email')}
+/>
+
+<MantinePasswordInput
+  label="Password"
+  placeholder="Enter your password"
+  taperedUnderline={true}
+  showStrengthMeter={true}
+  {...form.getInputProps('password')}
+/>
+
+// ❌ WRONG - Plain Mantine components
+<TextInput label="Email" />
+<PasswordInput label="Password" />
+```
+
+### Standard Animation Classes Available:
+```css
+.form-input-animated          /* Tapered underline animation */
+.form-input-floating-label    /* Floating label animation */
+```
+
+### Tags
+#critical #forms #animations #design-system-v7 #consistency
+
+---
+
 ## 🚨 CRITICAL: Use Standardized CSS Classes, NOT Inline Styles 🚨
 **Date**: 2025-08-22
 **Category**: Styling Standards

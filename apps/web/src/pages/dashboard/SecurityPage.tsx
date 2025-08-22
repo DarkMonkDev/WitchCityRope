@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Box, Title, Text, Paper, TextInput, Group, Stack, Switch, Alert } from '@mantine/core';
+import { Box, Title, Text, Paper, Group, Stack, Switch, Alert } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { MantineTextInput, MantinePasswordInput } from '../../components/forms/MantineFormInputs';
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
 
 /**
@@ -110,94 +111,31 @@ export const SecurityPage: React.FC = () => {
 
           <form onSubmit={passwordForm.onSubmit(handlePasswordSubmit)}>
             <Stack gap="md">
-              <TextInput
+              <MantinePasswordInput
                 label="Current Password"
-                type="password"
                 placeholder="Enter your current password"
                 required
-                styles={{
-                  label: {
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontWeight: 600,
-                    color: '#2B2B2B',
-                    fontSize: '14px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    marginBottom: '8px',
-                  },
-                  input: {
-                    fontFamily: "'Source Sans 3', sans-serif",
-                    fontSize: '16px',
-                    border: '1px solid rgba(183, 109, 117, 0.3)',
-                    borderRadius: '6px',
-                    background: '#FAF6F2',
-                    '&:focus': {
-                      borderColor: '#880124',
-                      boxShadow: '0 0 0 2px rgba(136, 1, 36, 0.1)',
-                    },
-                  },
-                }}
+                taperedUnderline={true}
+                showStrengthMeter={false}
                 {...passwordForm.getInputProps('currentPassword')}
               />
 
               <Group grow>
-                <TextInput
+                <MantinePasswordInput
                   label="New Password"
-                  type="password"
                   placeholder="Enter new password"
                   required
-                  styles={{
-                    label: {
-                      fontFamily: "'Montserrat', sans-serif",
-                      fontWeight: 600,
-                      color: '#2B2B2B',
-                      fontSize: '14px',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      marginBottom: '8px',
-                    },
-                    input: {
-                      fontFamily: "'Source Sans 3', sans-serif",
-                      fontSize: '16px',
-                      border: '1px solid rgba(183, 109, 117, 0.3)',
-                      borderRadius: '6px',
-                      background: '#FAF6F2',
-                      '&:focus': {
-                        borderColor: '#880124',
-                        boxShadow: '0 0 0 2px rgba(136, 1, 36, 0.1)',
-                      },
-                    },
-                  }}
+                  taperedUnderline={true}
+                  showStrengthMeter={true}
                   {...passwordForm.getInputProps('newPassword')}
                 />
 
-                <TextInput
+                <MantinePasswordInput
                   label="Confirm New Password"
-                  type="password"
                   placeholder="Confirm new password"
                   required
-                  styles={{
-                    label: {
-                      fontFamily: "'Montserrat', sans-serif",
-                      fontWeight: 600,
-                      color: '#2B2B2B',
-                      fontSize: '14px',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      marginBottom: '8px',
-                    },
-                    input: {
-                      fontFamily: "'Source Sans 3', sans-serif",
-                      fontSize: '16px',
-                      border: '1px solid rgba(183, 109, 117, 0.3)',
-                      borderRadius: '6px',
-                      background: '#FAF6F2',
-                      '&:focus': {
-                        borderColor: '#880124',
-                        boxShadow: '0 0 0 2px rgba(136, 1, 36, 0.1)',
-                      },
-                    },
-                  }}
+                  taperedUnderline={true}
+                  showStrengthMeter={false}
                   {...passwordForm.getInputProps('confirmPassword')}
                 />
               </Group>
