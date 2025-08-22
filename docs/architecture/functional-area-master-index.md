@@ -1,5 +1,5 @@
 # Functional Area Master Index
-<!-- Last Updated: 2025-08-19 - Vertical Slice Project Archived, All Value Extracted -->
+<!-- Last Updated: 2025-08-22 - Added API Architecture Modernization functional area -->
 <!-- Version: 1.3 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
@@ -12,6 +12,7 @@ This master index is maintained by the librarian agent to provide quick lookups 
 | Functional Area | Base Path | Current Work Path | Description | Status | Last Updated |
 |-----------------|-----------|-------------------|-------------|--------|--------------|
 | **AI Workflow Orchestration** | `/docs/functional-areas/ai-workflow-orchstration/` | Technology Research Complete | Workflow automation and agent coordination with technology-researcher sub-agent integrated | Enhanced | 2025-08-17 |
+| **API Architecture Modernization** | `/docs/functional-areas/api-architecture-modernization/` | `/docs/functional-areas/api-architecture-modernization/new-work/2025-08-22-minimal-api-research/` | .NET 9 minimal API modernization with vertical slice architecture patterns - Research phase for API performance and maintainability improvements | Phase 1 - Requirements & Research | 2025-08-22 |
 | **API Data Alignment** | `/docs/functional-areas/api-data-alignment/` | `/docs/functional-areas/api-data-alignment/new-work/2025-08-19-dto-database-alignment-strategy/` | DTO alignment strategy for React migration - API DTOs as source of truth, TypeScript interface alignment requirements | Enhanced | 2025-08-19 |
 | **Authentication** | `/docs/functional-areas/authentication/` | **MILESTONE COMPLETE** ✅ | **Complete React authentication system with NSwag type generation** - Production-ready implementation with TanStack Query + Zustand + React Router v7 + Mantine v7 + automated types | **COMPLETE** | 2025-08-19 |
 | **Database Initialization** | `/docs/functional-areas/database-initialization/` | **IMPLEMENTATION COMPLETE** ✅ | **Complete database auto-initialization system** - Reduces setup time from 2-4 hours to under 5 minutes with automated migrations, comprehensive seed data, and real PostgreSQL testing via TestContainers | **COMPLETE** | 2025-08-22 |
@@ -26,7 +27,17 @@ This master index is maintained by the librarian agent to provide quick lookups 
 
 ## Active Development Work
 
-### 🚀 ACTIVE: Design Refresh Modernization
+### 🚀 ACTIVE: API Architecture Modernization Research
+- **Current Work**: `/docs/functional-areas/api-architecture-modernization/new-work/2025-08-22-minimal-api-research/`
+- **Status**: Phase 1 - Requirements & Research (0% → 95%)
+- **Objective**: Research and implement .NET 9 minimal API best practices with vertical slice architecture patterns
+- **Scope**: Modern API architecture research, vertical slice patterns, performance optimization, migration strategy
+- **Quality Gates**: Requirements 0% → 95%, Design 0% → 90%, Proof of Concept 0% → 85%, Testing 0% → 100%, Documentation 0% → 95%
+- **Next Human Review**: After Business Requirements and Technology Research completion
+- **Key Deliverables**: Business requirements, .NET 9 research, vertical slice analysis, proof of concept, migration roadmap
+- **Session**: 2025-08-22
+
+### 🎨 ACTIVE: Design Refresh Modernization
 - **Current Work**: `/docs/functional-areas/design-refresh/new-work/2025-08-20-modernization/`
 - **Status**: Phase 1 - Requirements & Planning (In Progress)
 - **Objective**: Transform current design to more edgy/modern aesthetic while preserving excellent UX

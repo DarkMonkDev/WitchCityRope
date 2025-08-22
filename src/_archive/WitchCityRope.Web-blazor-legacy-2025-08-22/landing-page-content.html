@@ -1,0 +1,846 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Witch City Rope - Salem's Rope Bondage Community</title>
+    <base href="/" />
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;600;700;800&family=Satisfy&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/app.css" />
+    
+    <link href="_content/Syncfusion.Blazor.Themes/bootstrap5.css" rel="stylesheet" />
+    
+    <link rel="stylesheet" href="css/wcr-theme.css" />
+    
+    <!--Blazor:{"type":"server","prerenderId":"2606c908adae4ced93af845b59bfea48","key":{"locationHash":"77D12F14A8105320B1AAED6AE7E689DA0EC4483270A645E84079EAA0FFDF550D:0","formattedComponentKey":""},"sequence":0,"descriptor":"CfDJ8Kjxh/xIUs9PgL9dWuZIeXARRfnhLvJoXxp1SKpRGWFRkQ182axaksPr\u002BacGCTrK9gxOqJ\u002BmYCyLKLwy5rk7sMJzDwPPeY/mUkpZUUZVbthChgNPkrBpaWSEhEGQR4XZ3SF2Ui/A2o/Oql0xC6xB8l4VAa2MAeIfurJniLpFrA\u002BA8C4/A2gYPHBVdU3FqGKIKkde/Iod89YSTLKhRdbU39dhrbLpj8ERi7D2XGGYWGn3My5MrgLtTVGgcOkxRxPwAJ0/pvwtGcNDZA60lC/GNBxyRpey9wqFR1Asoy5l5PzWbB7HSqSSeqwT8OWO8spYvDUwstzFRoceK7WOBTx6\u002BYgohXskKYn\u002B0sKna73dSAWEU5XSz1RYyweMGHGFYAqex70KK6xGSJSzn9I0ofmhR7mewq5CffhZfunLo\u002BURszXP2yarDTxBBkMBWFkz6agK7m9RyaweB3eXD4hfmmnfVJdqSIqhh8Kl4pRGG7MTnQXE/mgGaqbxW5CvOEfUvz6jF\u002BbWUEi0D60kYzgJDPf91W7MXZwoJ12QsqVw4SpmLz3Ti8U6y1uBDZGrCdzk6p53ZKKmLHWAsvNFEj9w7\u002Bdoh/Q="}--><title>Witch City Rope - Salem&#x27;s Rope Bondage Community</title><!--Blazor:{"prerenderId":"2606c908adae4ced93af845b59bfea48"}-->
+</head>
+<body>
+    
+<!--Blazor:{"type":"server","prerenderId":"cfe2ab21ab6040f4afafc2f852fa0839","key":{"locationHash":"4D54016ECC4D312427F0C7CE5A17303E93509D953767D815C5618FF328E1B720:0","formattedComponentKey":""},"sequence":1,"descriptor":"CfDJ8Kjxh/xIUs9PgL9dWuZIeXAN2B2irmBW7l4so9fBArKlzbCBhLygECa1saZ9/VBERTfnbp0awPpUfXacIhgSziBIJ25lKZKGauN09l9ISARI7mGr9LuZOJdHlna4KlJOOvaIIEHLZT0kTQbxwSU27PwwrftCuCCc3F8oZMKL6uCUAUSduY1vZbeU/LiE/HCg56L8TAlYyoBsXEy3pOWxNZGfLn3A3oa0vzdZ13okCXZa52fCnzfy2SW2dCnEyNwh4oftEskwIG2fsms3IsWFxT0ZMm45SBI0BGkGls88kCuNXWohBKjQ8zj4xFn2OxJIIHvwIq9/gsYu5iwrvDIiCaD5DVMflrwXQi1ROnZ8kQ3ucQmsUpjGZ3V4pH\u002BdSbdXaYm0JXkdE7WtzazXOBcp54JUorrzzvt4oximvAbb6s0l\u002BDC6t8JZdMTvxf1ut7DtnSMrAxM7Ye\u002BXMAYBtvtIOd4kdFAs8WiYVo6udmB5Nm0Iw7KX88f5AJ7usNqXpi5gLbiuWnEhJrbbNkGAyMlFyEY="}--><div class="wcr-app"><div class="toast-container"></div>
+
+<style>
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        max-width: 400px;
+    }
+    
+    .toast {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        margin-bottom: 10px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        animation: slideIn 0.3s ease-out;
+        border-left: 4px solid;
+    }
+    
+    .toast-content {
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+    
+    .toast-icon {
+        font-size: 1.2rem;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+    
+    .toast-message {
+        flex: 1;
+        color: #333;
+    }
+    
+    .toast-close {
+        background: none;
+        border: none;
+        color: #666;
+        cursor: pointer;
+        font-size: 1rem;
+        margin-left: 12px;
+        padding: 4px;
+    }
+    
+    .toast-close:hover {
+        color: #333;
+    }
+    
+    .toast-success {
+        border-left-color: #28a745;
+    }
+    
+    .toast-success .toast-icon {
+        color: #28a745;
+    }
+    
+    .toast-error {
+        border-left-color: #dc3545;
+    }
+    
+    .toast-error .toast-icon {
+        color: #dc3545;
+    }
+    
+    .toast-warning {
+        border-left-color: #ffc107;
+    }
+    
+    .toast-warning .toast-icon {
+        color: #ffc107;
+    }
+    
+    .toast-info {
+        border-left-color: #17a2b8;
+    }
+    
+    .toast-info .toast-icon {
+        color: #17a2b8;
+    }
+    
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.3s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+</style>
+    
+    
+    <div class="utility-bar"><a href="/incident-report" class="incident-link">Report an Incident</a>
+        <a href="/private-lessons">Private Lessons</a>
+        <a href="/contact">Contact</a></div>
+    
+    
+    <header class="header " id="header"><a href="/" class="logo">WITCH CITY ROPE</a>
+        <nav class="nav"><a href="/events" class="nav-item">Events & Classes</a>
+            <a href="/member/dashboard" class="nav-item">My Dashboard</a>
+            <a href="/resources" class="nav-item">Resources</a>
+            <div class="user-menu"><button class="user-menu-btn"><img src="/images/avatar-placeholder.png" alt="User" class="user-avatar-sm">
+                    <span></span>
+                    <i class="fas fa-chevron-down"></i></button>
+                <div class="user-dropdown "><a href="/member/profile" class="dropdown-item"><i class="fas fa-user"></i> My Profile
+                    </a>
+                    <a href="/member/tickets" class="dropdown-item"><i class="fas fa-ticket-alt"></i> My Tickets
+                    </a>
+                    <a href="/member/settings" class="dropdown-item"><i class="fas fa-cog"></i> Settings
+                    </a><div class="dropdown-divider"></div>
+                    <a href="#" __internal_preventDefault_onclick class="dropdown-item"><i class="fas fa-sign-out-alt"></i> Logout
+                    </a></div></div></nav>
+        <button class="mobile-menu-toggle"><span></span>
+            <span></span>
+            <span></span></button></header>
+    
+    
+    <div class="mobile-menu "><div class="mobile-menu-header"><a href="/" class="logo">WITCH CITY ROPE</a>
+            <button class="mobile-menu-close"><span>&times;</span></button></div>
+        <nav class="mobile-nav"><div class="mobile-user-info"><img src="/images/avatar-placeholder.png" alt="User" class="user-avatar">
+                <div><div class="user-name"></div>
+                    <div class="user-email"></div></div></div>
+            <a href="/events" class="mobile-nav-item">Events & Classes</a>
+            <a href="/member/dashboard" class="mobile-nav-item">My Dashboard</a>
+            <a href="/member/tickets" class="mobile-nav-item">My Tickets</a>
+            <a href="/resources" class="mobile-nav-item">Resources</a>
+            <a href="/member/profile" class="mobile-nav-item">My Profile</a>
+            <a href="/member/settings" class="mobile-nav-item">Settings</a><a href="/incident-report" class="mobile-nav-item incident">Report an Incident</a>
+            <a href="/private-lessons" class="mobile-nav-item">Private Lessons</a>
+            <a href="/contact" class="mobile-nav-item">Contact</a>
+            <div class="mobile-nav-actions"><button class="btn btn-secondary">Logout</button></div></nav></div>
+    <div class="mobile-menu-overlay "></div>
+    
+    
+    <main class="main-content">
+
+<div class="hero-section"><div class="hero-content"><h1 class="hero-title">Welcome to Witch City Rope</h1>
+        <p class="hero-subtitle">Building community through the art of rope bondage in Salem, Massachusetts</p>
+        <div class="hero-actions"><a href="/events" class="btn btn-primary btn-lg">Explore Events</a>
+            <a href="/register" class="btn btn-secondary btn-lg">Join Our Community</a></div></div></div>
+
+<div class="page-container"><section class="intro-section"><h2>Discover the Art of Rope</h2>
+        <p class="lead">
+            Witch City Rope is Salem's premier rope bondage community, offering workshops, 
+            performances, and social events for practitioners of all experience levels. 
+            Whether you're new to rope or an experienced rigger, you'll find a welcoming 
+            and inclusive space to explore, learn, and connect.
+        </p></section>
+
+    <section class="features-section"><h2>What We Offer</h2>
+        <div class="features-grid"><div class="feature-card"><div class="feature-icon">🎓</div>
+                <h3>Educational Workshops</h3>
+                <p>Learn from experienced instructors in a safe, supportive environment. From beginner basics to advanced techniques.</p></div>
+            <div class="feature-card"><div class="feature-icon">🎭</div>
+                <h3>Performances</h3>
+                <p>Experience the artistry of rope through captivating performances that blend technical skill with creative expression.</p></div>
+            <div class="feature-card"><div class="feature-icon">👥</div>
+                <h3>Community Events</h3>
+                <p>Connect with fellow rope enthusiasts at our social gatherings, practice sessions, and community celebrations.</p></div>
+            <div class="feature-card"><div class="feature-icon">🛡️</div>
+                <h3>Safety First</h3>
+                <p>Our vetted community prioritizes consent, communication, and safety in all activities and interactions.</p></div></div></section>
+
+    <section class="upcoming-section"><div class="section-header"><h2>Upcoming Events</h2>
+            <a href="/events" class="section-link">View All Events →</a></div>
+        
+        <div class="events-preview"><p class="loading-text">Loading upcoming events...</p></div></section>
+
+    <section class="cta-section"><div class="cta-card"><h2>Ready to Join Us?</h2>
+            <p>Create an account to register for events, connect with the community, and access member resources.</p>
+            <a href="/register" class="btn btn-primary btn-lg">Get Started</a></div></section></div>
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
+        color: var(--color-text-inverse);
+        padding: var(--spacing-3xl) var(--spacing-md);
+        margin-top: calc(-1 * var(--nav-height));
+        padding-top: calc(var(--spacing-3xl) + var(--nav-height));
+        text-align: center;
+    }
+
+    .hero-content {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .hero-title {
+        font-size: var(--font-size-4xl);
+        margin-bottom: var(--spacing-md);
+        color: var(--color-text-inverse);
+    }
+
+    .hero-subtitle {
+        font-size: var(--font-size-xl);
+        margin-bottom: var(--spacing-2xl);
+        opacity: 0.9;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: var(--spacing-md);
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-lg {
+        padding: var(--spacing-md) var(--spacing-xl);
+        font-size: var(--font-size-lg);
+    }
+
+    .intro-section {
+        text-align: center;
+        padding: var(--spacing-3xl) 0;
+    }
+
+    .lead {
+        font-size: var(--font-size-lg);
+        color: var(--color-text-secondary);
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .features-section {
+        padding: var(--spacing-3xl) 0;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--spacing-xl);
+        margin-top: var(--spacing-2xl);
+    }
+
+    .feature-card {
+        background-color: var(--color-surface);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-xl);
+        text-align: center;
+        box-shadow: var(--shadow-md);
+        transition: transform var(--transition-base);
+    }
+
+    .feature-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .feature-icon {
+        font-size: 3rem;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .feature-card h3 {
+        font-size: var(--font-size-xl);
+        margin-bottom: var(--spacing-sm);
+        color: var(--color-primary);
+    }
+
+    .upcoming-section {
+        padding: var(--spacing-3xl) 0;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .section-link {
+        color: var(--color-primary);
+        font-weight: var(--font-weight-medium);
+    }
+
+    .events-preview {
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .loading-text {
+        color: var(--color-text-secondary);
+    }
+
+    .cta-section {
+        padding: var(--spacing-3xl) 0;
+    }
+
+    .cta-card {
+        background-color: var(--color-surface);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-2xl);
+        text-align: center;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .cta-card h2 {
+        color: var(--color-primary);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .cta-card p {
+        font-size: var(--font-size-lg);
+        color: var(--color-text-secondary);
+        margin-bottom: var(--spacing-xl);
+    }
+
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: var(--font-size-3xl);
+        }
+
+        .hero-subtitle {
+            font-size: var(--font-size-lg);
+        }
+
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: var(--spacing-sm);
+        }
+    }
+</style></main>
+    
+    
+    <footer class="footer"><div class="footer-content"><div class="footer-section"><h3>Witch City Rope</h3>
+                <p>Salem's premier rope bondage education and practice community.</p>
+                <div class="social-links"><a href="#" aria-label="FetLife"><i class="fab fa-fetlife"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="Discord"><i class="fab fa-discord"></i></a></div></div>
+            <div class="footer-section"><h4>Quick Links</h4>
+                <ul><li><a href="/events">Upcoming Events</a></li>
+                    <li><a href="/member/dashboard">My Dashboard</a></li>
+                    <li><a href="/resources">Resources</a></li>
+                    <li><a href="/safety">Safety Guidelines</a></li></ul></div>
+            <div class="footer-section"><h4>Support</h4>
+                <ul><li><a href="/faq">FAQ</a></li>
+                    <li><a href="/contact">Contact Us</a></li>
+                    <li><a href="/incident-report">Report an Incident</a></li>
+                    <li><a href="/privacy">Privacy Policy</a></li></ul></div></div>
+        <div class="footer-bottom"><p>&#xA9; 2025 Witch City Rope. All rights reserved.</p></div></footer></div>
+
+<style>
+    /* Utility Bar */
+    .utility-bar {
+        background: var(--wcr-color-midnight);
+        padding: 12px 40px;
+        font-size: 13px;
+        color: var(--wcr-color-taupe);
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        font-family: var(--wcr-font-heading);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .utility-bar a {
+        color: var(--wcr-color-taupe);
+        text-decoration: none;
+        margin-left: var(--wcr-space-lg);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .utility-bar a::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0;
+        height: 1px;
+        background: var(--wcr-color-rose-gold);
+        transition: width 0.3s ease;
+    }
+    
+    .utility-bar a:hover {
+        color: var(--wcr-color-rose-gold);
+    }
+    
+    .utility-bar a:hover::after {
+        width: 100%;
+    }
+    
+    .utility-bar a.incident-link {
+        color: var(--wcr-color-brass);
+        font-weight: 600;
+    }
+    
+    /* Header */
+    .header {
+        background: rgba(255, 248, 240, 0.95);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+        padding: var(--wcr-space-sm) 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        transition: all 0.3s ease;
+    }
+    
+    .header.scrolled {
+        padding: 12px 40px;
+        box-shadow: 0 4px 30px rgba(0,0,0,0.12);
+    }
+    
+    .logo {
+        font-family: var(--wcr-font-heading);
+        font-size: 30px;
+        font-weight: 800;
+        color: var(--wcr-color-burgundy);
+        text-decoration: none;
+        letter-spacing: -0.5px;
+        transition: all 0.3s ease;
+    }
+    
+    .logo:hover {
+        color: var(--wcr-color-burgundy-light);
+        transform: scale(1.02);
+    }
+    
+    .nav {
+        display: flex;
+        gap: var(--wcr-space-xl);
+        align-items: center;
+    }
+    
+    .nav-item {
+        color: var(--wcr-color-charcoal);
+        text-decoration: none;
+        font-family: var(--wcr-font-heading);
+        font-weight: 500;
+        font-size: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .nav-item::before {
+        content: '';
+        position: absolute;
+        bottom: -4px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 2px;
+        background: var(--wcr-color-burgundy);
+        transition: width 0.3s ease;
+    }
+    
+    .nav-item:hover {
+        color: var(--wcr-color-burgundy);
+    }
+    
+    .nav-item:hover::before {
+        width: 100%;
+    }
+    
+    /* User Menu */
+    .user-menu {
+        position: relative;
+    }
+    
+    .user-menu-btn {
+        background: none;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+        cursor: pointer;
+        padding: var(--wcr-space-sm);
+        border-radius: var(--wcr-radius-sm);
+        transition: all 0.3s ease;
+        font-family: var(--wcr-font-body);
+        color: var(--wcr-color-charcoal);
+    }
+    
+    .user-menu-btn:hover {
+        background: var(--wcr-color-cream);
+    }
+    
+    .user-avatar-sm {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .user-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: var(--wcr-space-sm);
+        background: white;
+        border-radius: var(--wcr-radius-md);
+        box-shadow: var(--wcr-shadow-lg);
+        min-width: 200px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+    }
+    
+    .user-dropdown.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+    
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+        padding: var(--wcr-space-sm) var(--wcr-space-md);
+        color: var(--wcr-color-charcoal);
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .dropdown-item:hover {
+        background: var(--wcr-color-cream);
+        color: var(--wcr-color-burgundy);
+    }
+    
+    .dropdown-divider {
+        height: 1px;
+        background: var(--wcr-color-cream);
+        margin: var(--wcr-space-xs) 0;
+    }
+    
+    /* Mobile Menu Toggle */
+    .mobile-menu-toggle {
+        display: none;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        width: 40px;
+        height: 40px;
+        position: relative;
+    }
+    
+    .mobile-menu-toggle span {
+        display: block;
+        width: 28px;
+        height: 2px;
+        background: var(--wcr-color-burgundy);
+        margin: 6px 0;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    /* Mobile Menu */
+    .mobile-menu {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 80%;
+        max-width: 300px;
+        height: 100vh;
+        background: var(--wcr-color-ivory);
+        box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+        transition: right 0.3s ease;
+        z-index: 1000;
+        overflow-y: auto;
+    }
+    
+    .mobile-menu.active {
+        right: 0;
+    }
+    
+    .mobile-menu-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 999;
+    }
+    
+    .mobile-menu-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .mobile-menu-header {
+        padding: var(--wcr-space-md);
+        border-bottom: 1px solid var(--wcr-color-taupe);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .mobile-menu-close {
+        background: none;
+        border: none;
+        font-size: 32px;
+        cursor: pointer;
+        color: var(--wcr-color-charcoal);
+    }
+    
+    .mobile-nav {
+        padding: var(--wcr-space-md);
+    }
+    
+    .mobile-user-info {
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+        padding: var(--wcr-space-md) 0;
+        border-bottom: 1px solid var(--wcr-color-cream);
+        margin-bottom: var(--wcr-space-md);
+    }
+    
+    .user-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .user-name {
+        font-weight: 600;
+        color: var(--wcr-color-charcoal);
+    }
+    
+    .user-email {
+        font-size: 14px;
+        color: var(--wcr-color-stone);
+    }
+    
+    .mobile-nav-item {
+        display: block;
+        padding: var(--wcr-space-sm) 0;
+        color: var(--wcr-color-charcoal);
+        text-decoration: none;
+        font-family: var(--wcr-font-heading);
+        font-weight: 500;
+        font-size: 16px;
+        border-bottom: 1px solid var(--wcr-color-cream);
+        transition: all 0.3s ease;
+    }
+    
+    .mobile-nav-item:hover {
+        color: var(--wcr-color-burgundy);
+        padding-left: var(--wcr-space-sm);
+    }
+    
+    .mobile-nav-item.incident {
+        color: var(--wcr-color-brass);
+        font-weight: 600;
+    }
+    
+    .mobile-nav-item.admin {
+        color: var(--wcr-color-burgundy);
+        font-weight: 600;
+    }
+    
+    .mobile-nav-actions {
+        margin-top: var(--wcr-space-lg);
+        display: flex;
+        flex-direction: column;
+        gap: var(--wcr-space-sm);
+    }
+    
+    /* Main Content */
+    .main-content {
+        min-height: calc(100vh - 300px);
+    }
+    
+    /* Footer */
+    .footer {
+        background: var(--wcr-color-midnight);
+        color: var(--wcr-color-taupe);
+        padding: var(--wcr-space-3xl) 40px var(--wcr-space-lg);
+        margin-top: var(--wcr-space-3xl);
+    }
+    
+    .footer-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: var(--wcr-space-3xl);
+    }
+    
+    .footer-section h3,
+    .footer-section h4 {
+        color: var(--wcr-color-ivory);
+        margin-bottom: var(--wcr-space-md);
+        font-family: var(--wcr-font-heading);
+    }
+    
+    .footer-section ul {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .footer-section li {
+        margin-bottom: var(--wcr-space-sm);
+    }
+    
+    .footer-section a {
+        color: var(--wcr-color-taupe);
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    
+    .footer-section a:hover {
+        color: var(--wcr-color-rose-gold);
+    }
+    
+    .social-links {
+        display: flex;
+        gap: var(--wcr-space-md);
+        margin-top: var(--wcr-space-md);
+    }
+    
+    .social-links a {
+        font-size: 24px;
+        color: var(--wcr-color-taupe);
+        transition: all 0.3s ease;
+    }
+    
+    .social-links a:hover {
+        color: var(--wcr-color-rose-gold);
+        transform: translateY(-2px);
+    }
+    
+    .footer-bottom {
+        border-top: 1px solid rgba(255,255,255,0.1);
+        margin-top: var(--wcr-space-3xl);
+        padding-top: var(--wcr-space-lg);
+        text-align: center;
+        color: var(--wcr-color-stone);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .utility-bar {
+            padding: 8px 20px;
+            font-size: 11px;
+        }
+        
+        .header {
+            padding: 12px 20px;
+        }
+        
+        .logo {
+            font-size: 24px;
+        }
+        
+        .nav {
+            display: none;
+        }
+        
+        .mobile-menu-toggle {
+            display: block;
+        }
+        
+        .footer-content {
+            grid-template-columns: 1fr;
+            gap: var(--wcr-space-xl);
+        }
+        
+        .footer {
+            padding: var(--wcr-space-xl) 20px;
+        }
+    }
+</style>
+            <!--Blazor:{"prerenderId":"cfe2ab21ab6040f4afafc2f852fa0839"}-->
+
+    <script src="_framework/blazor.server.js"></script>
+    
+    <script src="_content/Syncfusion.Blazor.Core/scripts/syncfusion-blazor.min.js" type="text/javascript"></script>
+    
+    <script>
+        // Reconnection handling for Blazor Server
+        window.addEventListener('beforeunload', function () {
+            Blazor.defaultReconnectionHandler._reconnectionDisplay = {
+                show: () => {},
+                update: () => {},
+                rejected: () => {}
+            };
+        });
+
+        // Custom reconnection UI
+        Blazor.defaultReconnectionHandler._reconnectCallback = function(d) {
+            document.location.reload();
+        };
+    </script>
+</body>
+</html>

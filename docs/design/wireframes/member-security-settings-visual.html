@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Settings - Witch City Rope</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Crimson+Text:ital@0;1&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Variables for Visual Design */
+        :root {
+            /* Colors - Rich, sophisticated palette */
+            --color-burgundy: #880124;
+            --color-burgundy-dark: #660119;
+            --color-burgundy-light: #AA0130;
+            --color-plum: #614B79;
+            --color-plum-dark: #4A3A5C;
+            --color-plum-light: #7B6296;
+            --color-gold: #FFBF00;
+            --color-gold-dark: #E6AC00;
+            --color-gold-light: #FFD633;
+            
+            /* Grays */
+            --color-charcoal: #1C1C1C;
+            --color-gray-dark: #2D2D2D;
+            --color-gray: #666666;
+            --color-gray-light: #CCCCCC;
+            --color-off-white: #F5F5F5;
+            
+            /* Feedback colors */
+            --color-success: #059862;
+            --color-success-light: #E6F7F1;
+            --color-warning: #E6AC00;
+            --color-warning-light: #FFF4CC;
+            --color-danger: #AA0130;
+            --color-danger-light: #FFE5EC;
+            
+            /* Typography */
+            --font-display: 'Montserrat', sans-serif;
+            --font-body: 'Crimson Text', serif;
+            
+            /* Spacing - Tighter scale */
+            --space-1: 0.25rem;
+            --space-2: 0.5rem;
+            --space-3: 0.75rem;
+            --space-4: 1rem;
+            --space-5: 1.5rem;
+            --space-6: 2rem;
+            --space-8: 3rem;
+            --space-12: 4rem;
+        }
+
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 18px;
+            line-height: 1.6;
+            color: var(--color-charcoal);
+            background: #FFFFFF;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-display);
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: var(--space-4);
+        }
+
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 1.75rem; }
+        h3 { font-size: 1.25rem; }
+
+        /* Header */
+        .site-header {
+            background: var(--color-charcoal);
+            color: white;
+            padding: var(--space-4) 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--space-4);
+        }
+
+        .main-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: white;
+            text-decoration: none;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .logo:hover {
+            color: var(--color-gold);
+            transform: translateY(-1px);
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: var(--space-5);
+            align-items: center;
+        }
+
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            font-family: var(--font-display);
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            color: var(--color-gold);
+        }
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
+            color: white;
+            padding: var(--space-6) 0;
+            margin-bottom: var(--space-6);
+        }
+
+        /* Settings Layout */
+        .settings-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: var(--space-6);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Settings Sidebar */
+        .settings-sidebar {
+            background: var(--color-off-white);
+            border-radius: 8px;
+            padding: var(--space-5);
+            height: fit-content;
+            position: sticky;
+            top: calc(80px + var(--space-4));
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .settings-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .settings-nav li {
+            margin-bottom: var(--space-2);
+        }
+
+        .settings-nav a {
+            display: block;
+            padding: var(--space-3) var(--space-4);
+            color: var(--color-charcoal);
+            text-decoration: none;
+            font-family: var(--font-display);
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .settings-nav a:hover {
+            background: white;
+            color: var(--color-plum);
+            transform: translateX(4px);
+        }
+
+        .settings-nav a.active {
+            background: linear-gradient(135deg, var(--color-burgundy), var(--color-plum));
+            color: white;
+            box-shadow: 0 2px 8px rgba(136, 1, 36, 0.3);
+        }
+
+        /* Settings Content */
+        .settings-content {
+            background: white;
+            border-radius: 8px;
+            padding: var(--space-8);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .settings-section {
+            margin-bottom: var(--space-8);
+            padding-bottom: var(--space-8);
+            border-bottom: 2px solid var(--color-off-white);
+        }
+
+        .settings-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .section-header {
+            margin-bottom: var(--space-5);
+        }
+
+        .section-header h2 {
+            color: var(--color-burgundy);
+            font-size: 1.75rem;
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .section-header h2::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(to right, var(--color-burgundy), transparent);
+        }
+
+        .section-header p {
+            color: var(--color-gray);
+            margin-top: var(--space-2);
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: var(--space-5);
+        }
+
+        .form-group label {
+            display: block;
+            font-family: var(--font-display);
+            font-weight: 600;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-2);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: var(--space-3) var(--space-4);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            border: 2px solid var(--color-gray-light);
+            border-radius: 8px;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--color-plum);
+            box-shadow: 0 0 0 3px rgba(97, 75, 121, 0.1);
+        }
+
+        /* Password Requirements */
+        .password-requirements {
+            background: var(--color-off-white);
+            border-left: 4px solid var(--color-plum);
+            padding: var(--space-4);
+            border-radius: 8px;
+            margin-bottom: var(--space-5);
+        }
+
+        .password-requirements strong {
+            font-family: var(--font-display);
+            color: var(--color-plum-dark);
+        }
+
+        .password-requirements ul {
+            margin: var(--space-2) 0 0 var(--space-5);
+            padding: 0;
+            list-style: disc;
+        }
+
+        .password-requirements li {
+            color: var(--color-gray);
+            margin-bottom: var(--space-1);
+        }
+
+        /* Two-Factor Status */
+        .two-factor-status {
+            background: var(--color-success-light);
+            border: 2px solid var(--color-success);
+            padding: var(--space-4);
+            border-radius: 8px;
+            margin-bottom: var(--space-4);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .two-factor-status.disabled {
+            background: var(--color-warning-light);
+            border-color: var(--color-warning);
+        }
+
+        .status-icon {
+            font-size: 2rem;
+        }
+
+        .two-factor-status strong {
+            font-family: var(--font-display);
+            color: var(--color-charcoal);
+            display: block;
+            margin-bottom: var(--space-1);
+        }
+
+        /* Backup Codes */
+        .backup-codes-section {
+            background: var(--color-off-white);
+            padding: var(--space-5);
+            border-radius: 8px;
+            margin-top: var(--space-4);
+        }
+
+        .backup-codes-section h3 {
+            font-size: 1.25rem;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-3);
+        }
+
+        .backup-codes-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-3);
+            margin: var(--space-4) 0;
+        }
+
+        .backup-code {
+            background: white;
+            padding: var(--space-3);
+            border: 2px solid var(--color-gray-light);
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 1.125rem;
+            text-align: center;
+            font-weight: 600;
+            color: var(--color-plum-dark);
+        }
+
+        /* Sessions */
+        .session-item {
+            background: var(--color-off-white);
+            padding: var(--space-5);
+            border-radius: 8px;
+            margin-bottom: var(--space-4);
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            transition: all 0.3s ease;
+        }
+
+        .session-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transform: translateY(-1px);
+        }
+
+        .session-info h4 {
+            font-family: var(--font-display);
+            font-weight: 600;
+            margin-bottom: var(--space-2);
+            color: var(--color-charcoal);
+        }
+
+        .current-session {
+            color: var(--color-success);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .session-details {
+            display: flex;
+            gap: var(--space-4);
+            color: var(--color-gray);
+            font-size: 0.875rem;
+        }
+
+        /* Security Cards */
+        .security-card {
+            background: var(--color-off-white);
+            padding: var(--space-5);
+            border-radius: 8px;
+            margin-bottom: var(--space-4);
+        }
+
+        .security-card h3 {
+            font-family: var(--font-display);
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-3);
+        }
+
+        .security-card.danger {
+            border: 2px solid var(--color-danger);
+            background: var(--color-danger-light);
+        }
+
+        .security-card.danger h3 {
+            color: var(--color-danger);
+        }
+
+        /* Buttons */
+        .btn {
+            font-family: var(--font-display);
+            font-weight: 700;
+            padding: var(--space-3) var(--space-5);
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-primary {
+            background: var(--color-gold);
+            color: var(--color-charcoal);
+            box-shadow: 0 2px 4px rgba(255, 191, 0, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: var(--color-gold-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(255, 191, 0, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--color-burgundy);
+            border: 2px solid var(--color-burgundy);
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-burgundy);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--color-danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: var(--color-burgundy-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(170, 1, 48, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--color-gray);
+            border: 2px solid var(--color-gray-light);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--color-gray);
+            color: var(--color-charcoal);
+        }
+
+        .btn-sm {
+            padding: var(--space-2) var(--space-4);
+            font-size: 0.875rem;
+        }
+
+        /* Checkbox Styles */
+        .form-check {
+            display: block;
+            margin-bottom: var(--space-4);
+            padding: var(--space-4);
+            background: var(--color-off-white);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .form-check:hover {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-check-input {
+            width: 24px;
+            height: 24px;
+            margin-right: var(--space-3);
+            cursor: pointer;
+            accent-color: var(--color-burgundy);
+            vertical-align: middle;
+        }
+
+        .form-check-label {
+            cursor: pointer;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .form-check-label strong {
+            font-family: var(--font-display);
+            display: block;
+            margin-bottom: var(--space-1);
+        }
+
+        .form-check-label p {
+            color: var(--color-gray);
+            margin: 0;
+            font-size: 0.875rem;
+        }
+
+        /* Row/Column Layout */
+        .row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-4);
+        }
+
+        /* Footer */
+        .site-footer {
+            background: var(--color-charcoal);
+            color: var(--color-gray-light);
+            padding: var(--space-8) 0 var(--space-6);
+            margin-top: var(--space-12);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-6);
+            margin-bottom: var(--space-6);
+        }
+
+        .footer-section h4 {
+            font-family: var(--font-display);
+            color: white;
+            margin-bottom: var(--space-4);
+        }
+
+        .footer-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-section ul li {
+            margin-bottom: var(--space-2);
+        }
+
+        .footer-section a {
+            color: var(--color-gray-light);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: var(--color-gold);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: var(--space-6);
+            border-top: 1px solid var(--color-gray-dark);
+        }
+
+        /* Mobile Styles */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .nav-menu {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--color-charcoal);
+                flex-direction: column;
+                padding: var(--space-4);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
+
+            .nav-menu.active {
+                display: flex;
+            }
+
+            .settings-container {
+                grid-template-columns: 1fr;
+            }
+
+            .settings-sidebar {
+                position: static;
+                margin-bottom: var(--space-4);
+            }
+
+            .backup-codes-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .session-item {
+                flex-direction: column;
+                gap: var(--space-3);
+            }
+
+            .session-item .btn {
+                align-self: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <div class="container">
+            <nav class="main-nav">
+                <a href="landing-page-visual.html" class="logo">Witch City Rope</a>
+                <button class="mobile-menu-toggle" onclick="document.querySelector('.nav-menu').classList.toggle('active')">☰</button>
+                <ul class="nav-menu">
+                    <li><a href="user-dashboard-visual.html">Dashboard</a></li>
+                    <li><a href="member-my-tickets-visual.html">My Events</a></li>
+                    <li><a href="member-profile-settings-visual.html">Edit Profile</a></li>
+                    <li><a href="member-membership-settings.html">Settings</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <h1>Account Settings</h1>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container">
+        <div class="settings-container">
+            <!-- Sidebar -->
+            <aside class="settings-sidebar">
+                <nav>
+                    <ul class="settings-nav">
+                        <li><a href="member-profile-settings-visual.html">Profile</a></li>
+                        <li><a href="member-membership-settings.html">Membership</a></li>
+                        <li><a href="#" class="active">Security</a></li>
+                        <li><a href="#">Notifications</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+            <!-- Settings Content -->
+            <div class="settings-content">
+                <!-- Change Password Section -->
+                <section class="settings-section">
+                    <div class="section-header">
+                        <h2>Change Password</h2>
+                        <p>Keep your account secure by using a strong, unique password</p>
+                    </div>
+
+                    <div class="password-requirements">
+                        <strong>Password Requirements:</strong>
+                        <ul>
+                            <li>At least 8 characters long</li>
+                            <li>Include uppercase and lowercase letters</li>
+                            <li>Include at least one number</li>
+                            <li>Include at least one special character</li>
+                        </ul>
+                    </div>
+
+                    <form>
+                        <div class="form-group">
+                            <label>Current Password</label>
+                            <input type="password" class="form-control" placeholder="Enter your current password">
+                        </div>
+
+                        <div class="row">
+                            <div class="form-group">
+                                <label>New Password</label>
+                                <input type="password" class="form-control" placeholder="Enter new password">
+                            </div>
+                            <div class="form-group">
+                                <label>Confirm New Password</label>
+                                <input type="password" class="form-control" placeholder="Confirm new password">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Update Password</button>
+                    </form>
+                </section>
+
+                <!-- Two-Factor Authentication Section -->
+                <section class="settings-section">
+                    <div class="section-header">
+                        <h2>Two-Factor Authentication</h2>
+                        <p>Add an extra layer of security to your account</p>
+                    </div>
+
+                    <div class="two-factor-status">
+                        <span class="status-icon">✅</span>
+                        <div>
+                            <strong>Two-factor authentication is enabled</strong>
+                            <p style="margin: 0; color: var(--color-gray);">Your account is protected with 2FA</p>
+                        </div>
+                    </div>
+
+                    <div class="backup-codes-section">
+                        <h3>Backup Codes</h3>
+                        <p style="color: var(--color-gray); margin-bottom: var(--space-4);">Use these codes to access your account if you lose your authenticator device. Each code can only be used once.</p>
+                        
+                        <div class="backup-codes-grid">
+                            <div class="backup-code">A1B2-C3D4</div>
+                            <div class="backup-code">E5F6-G7H8</div>
+                            <div class="backup-code">I9J0-K1L2</div>
+                            <div class="backup-code">M3N4-O5P6</div>
+                            <div class="backup-code">Q7R8-S9T0</div>
+                            <div class="backup-code">U1V2-W3X4</div>
+                        </div>
+
+                        <div style="display: flex; gap: var(--space-3);">
+                            <button class="btn btn-secondary btn-sm">Regenerate Codes</button>
+                            <button class="btn btn-outline btn-sm">Download Codes</button>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: var(--space-5);">
+                        <button class="btn btn-danger">Disable Two-Factor Authentication</button>
+                    </div>
+                </section>
+
+                <!-- Active Sessions Section -->
+                <section class="settings-section">
+                    <div class="section-header">
+                        <h2>Active Sessions</h2>
+                        <p>Manage devices where you're currently signed in</p>
+                    </div>
+
+                    <div class="sessions-list">
+                        <div class="session-item">
+                            <div class="session-info">
+                                <h4>Chrome on Windows <span class="current-session">(Current Session)</span></h4>
+                                <div class="session-details">
+                                    <span>Salem, MA</span>
+                                    <span>192.168.1.100</span>
+                                    <span>Active now</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="session-item">
+                            <div class="session-info">
+                                <h4>Safari on iPhone</h4>
+                                <div class="session-details">
+                                    <span>Salem, MA</span>
+                                    <span>192.168.1.101</span>
+                                    <span>Last active 2 hours ago</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline btn-sm">Revoke</button>
+                        </div>
+
+                        <div class="session-item">
+                            <div class="session-info">
+                                <h4>Firefox on MacOS</h4>
+                                <div class="session-details">
+                                    <span>Boston, MA</span>
+                                    <span>192.168.1.102</span>
+                                    <span>Last active 3 days ago</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline btn-sm">Revoke</button>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: var(--space-5);">
+                        <button class="btn btn-secondary">Revoke All Other Sessions</button>
+                    </div>
+                </section>
+
+                <!-- Account Security Section -->
+                <section class="settings-section">
+                    <div class="section-header">
+                        <h2>Account Security</h2>
+                        <p>Additional security options for your account</p>
+                    </div>
+
+                    <div class="form-check">
+                        <input type="checkbox" id="loginAlerts" class="form-check-input" checked>
+                        <label for="loginAlerts" class="form-check-label">
+                            <strong>Login Alerts</strong>
+                            <p>Get notified when your account is accessed from a new device</p>
+                        </label>
+                    </div>
+
+                    <div class="form-check">
+                        <input type="checkbox" id="securityEmails" class="form-check-input" checked>
+                        <label for="securityEmails" class="form-check-label">
+                            <strong>Security Emails</strong>
+                            <p>Receive emails about important security events</p>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- Download Data Section -->
+                <section class="settings-section">
+                    <div class="section-header">
+                        <h2>Your Data</h2>
+                        <p>Download a copy of your data or permanently delete your account</p>
+                    </div>
+
+                    <div class="security-card">
+                        <h3>Download Your Data</h3>
+                        <p style="color: var(--color-gray); margin-bottom: var(--space-4);">Get a copy of your data including your profile, events, and activity history.</p>
+                        <button class="btn btn-secondary">Request Data Download</button>
+                    </div>
+
+                    <div class="security-card danger">
+                        <h3>Delete Account</h3>
+                        <p style="color: var(--color-gray); margin-bottom: var(--space-4);">Permanently delete your account and all associated data. This action cannot be undone.</p>
+                        <button class="btn btn-danger">Delete Account</button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Witch City Rope</h4>
+                    <p>Building a safer, more inclusive rope community in Salem.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Safety</h4>
+                    <ul>
+                        <li><a href="#">Community Guidelines</a></li>
+                        <li><a href="incident-report-visual.html">Report an Incident</a></li>
+                        <li><a href="#">Safety Resources</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <ul>
+                        <li><a href="#">Discord</a></li>
+                        <li><a href="#">FetLife</a></li>
+                        <li><a href="#">Email Us</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Witch City Rope. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,585 @@
+@page "/login"
+@page "/auth/login"
+@layout PublicLayout
+
+<PageTitle>Login - Witch City Rope</PageTitle>
+
+<div class="auth-page">
+    <div class="bg-shape-1"></div>
+    <div class="bg-shape-2"></div>
+    
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1 class="auth-title">@(_activeTab == "login" ? "Welcome Back" : "Join Our Community")</h1>
+            <p class="auth-subtitle">Salem's premier rope education community</p>
+        </div>
+        
+        <div class="age-notice">
+            21+ COMMUNITY • AGE VERIFICATION REQUIRED
+        </div>
+        
+        <nav class="tab-nav">
+            <button class="tab-button @(_activeTab == "login" ? "active" : "")" @onclick="@(() => SetActiveTab("login"))">
+                Sign In
+            </button>
+            <button class="tab-button @(_activeTab == "register" ? "active" : "")" @onclick="@(() => SetActiveTab("register"))">
+                Create Account
+            </button>
+        </nav>
+        
+        @if (_activeTab == "login")
+        {
+            <div class="form-container">
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <div class="alert alert-error">
+                        <span>@_errorMessage</span>
+                    </div>
+                }
+                
+                <button class="btn-google" @onclick="GoogleLogin" type="button">
+                    <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    <span>Continue with Google</span>
+                </button>
+                
+                <div class="divider">
+                    <span>or</span>
+                </div>
+                
+                <EditForm Model="@_loginModel" OnValidSubmit="@HandleLogin">
+                    <DataAnnotationsValidator />
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="login-email">Email Address</label>
+                        <SfTextBox @bind-Value="@_loginModel.Email" 
+                                   ID="login-email" 
+                                   Placeholder="your@email.com" 
+                                   Type="InputType.Email"
+                                   CssClass="wcr-input" />
+                        <ValidationMessage For="@(() => _loginModel.Email)" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="login-password">Password</label>
+                        <SfTextBox @bind-Value="@_loginModel.Password" 
+                                   ID="login-password" 
+                                   Placeholder="Enter your password" 
+                                   Type="InputType.Password"
+                                   CssClass="wcr-input" />
+                        <ValidationMessage For="@(() => _loginModel.Password)" />
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <SfCheckBox @bind-Checked="@_loginModel.RememberMe" 
+                                    ID="remember"
+                                    Label="Keep me signed in for 30 days"
+                                    CssClass="wcr-checkbox" />
+                    </div>
+                    
+                    <SfButton Type="submit" 
+                              CssClass="btn-primary-full" 
+                              Disabled="@_isLoading"
+                              IsPrimary="true">
+                        @if (_isLoading)
+                        {
+                            <span class="loading-spinner"></span>
+                            <span>Signing In...</span>
+                        }
+                        else
+                        {
+                            <span>Sign In</span>
+                        }
+                    </SfButton>
+                </EditForm>
+            </div>
+        }
+        else
+        {
+            <div class="form-container">
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <div class="alert alert-error">
+                        <span>@_errorMessage</span>
+                    </div>
+                }
+                
+                <EditForm Model="@_registerModel" OnValidSubmit="@HandleRegister">
+                    <DataAnnotationsValidator />
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="register-email">Email Address</label>
+                        <SfTextBox @bind-Value="@_registerModel.Email" 
+                                   ID="register-email" 
+                                   Placeholder="your@email.com" 
+                                   Type="InputType.Email"
+                                   CssClass="wcr-input" />
+                        <ValidationMessage For="@(() => _registerModel.Email)" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="register-scenename">Scene Name</label>
+                        <SfTextBox @bind-Value="@_registerModel.SceneName" 
+                                   ID="register-scenename" 
+                                   Placeholder="Your scene name" 
+                                   CssClass="wcr-input" />
+                        <ValidationMessage For="@(() => _registerModel.SceneName)" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="register-password">Password</label>
+                        <SfTextBox @bind-Value="@_registerModel.Password" 
+                                   ID="register-password" 
+                                   Placeholder="Create a strong password" 
+                                   Type="InputType.Password"
+                                   CssClass="wcr-input"
+                                   @oninput="@CheckPasswordStrength" />
+                        <ValidationMessage For="@(() => _registerModel.Password)" />
+                        @if (!string.IsNullOrEmpty(_registerModel.Password))
+                        {
+                            <div class="password-strength">
+                                <div class="strength-bar">
+                                    <div class="strength-fill @_passwordStrengthClass" style="width: @_passwordStrengthPercent%"></div>
+                                </div>
+                                <span class="strength-text">@_passwordStrengthText</span>
+                            </div>
+                        }
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="register-confirm">Confirm Password</label>
+                        <SfTextBox @bind-Value="@_registerModel.ConfirmPassword" 
+                                   ID="register-confirm" 
+                                   Placeholder="Confirm your password" 
+                                   Type="InputType.Password"
+                                   CssClass="wcr-input" />
+                        <ValidationMessage For="@(() => _registerModel.ConfirmPassword)" />
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <SfCheckBox @bind-Checked="@_registerModel.AgeConfirmed" 
+                                    ID="age-confirm"
+                                    Label="I confirm that I am 21 years of age or older"
+                                    CssClass="wcr-checkbox" />
+                        <ValidationMessage For="@(() => _registerModel.AgeConfirmed)" />
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <SfCheckBox @bind-Checked="@_registerModel.TermsAccepted" 
+                                    ID="terms"
+                                    CssClass="wcr-checkbox">
+                            <label>
+                                I agree to the <a href="/terms" target="_blank">Terms of Service</a> and 
+                                <a href="/privacy" target="_blank">Privacy Policy</a>
+                            </label>
+                        </SfCheckBox>
+                        <ValidationMessage For="@(() => _registerModel.TermsAccepted)" />
+                    </div>
+                    
+                    <SfButton Type="submit" 
+                              CssClass="btn-primary-full" 
+                              Disabled="@_isLoading"
+                              IsPrimary="true">
+                        @if (_isLoading)
+                        {
+                            <span class="loading-spinner"></span>
+                            <span>Creating Account...</span>
+                        }
+                        else
+                        {
+                            <span>Create Account</span>
+                        }
+                    </SfButton>
+                </EditForm>
+            </div>
+        }
+        
+        <div class="auth-footer">
+            <p class="auth-footer-text">
+                <a href="/auth/password-reset" class="auth-footer-link">Forgot your password?</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .auth-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--wcr-space-xl) var(--wcr-space-md);
+        position: relative;
+    }
+    
+    /* Background decorative shapes */
+    .bg-shape-1 {
+        position: fixed;
+        top: -200px;
+        right: -200px;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, var(--wcr-color-plum) 0%, transparent 70%);
+        opacity: 0.1;
+        border-radius: 50%;
+        filter: blur(60px);
+        z-index: -1;
+    }
+    
+    .bg-shape-2 {
+        position: fixed;
+        bottom: -150px;
+        left: -150px;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, var(--wcr-color-burgundy) 0%, transparent 70%);
+        opacity: 0.08;
+        border-radius: 50%;
+        filter: blur(50px);
+        z-index: -1;
+    }
+    
+    /* Auth card */
+    .auth-card {
+        background: var(--wcr-color-ivory);
+        border-radius: 24px;
+        box-shadow: var(--wcr-shadow-xl);
+        width: 100%;
+        max-width: 480px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    /* Auth header */
+    .auth-header {
+        background: linear-gradient(135deg, var(--wcr-color-burgundy) 0%, var(--wcr-color-plum) 100%);
+        padding: var(--wcr-space-2xl) var(--wcr-space-xl) var(--wcr-space-xl);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .auth-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        transform: rotate(45deg);
+    }
+    
+    .auth-title {
+        font-family: var(--wcr-font-heading);
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--wcr-color-ivory);
+        margin-bottom: var(--wcr-space-xs);
+        position: relative;
+    }
+    
+    .auth-subtitle {
+        color: var(--wcr-color-dusty-rose);
+        font-size: 16px;
+        position: relative;
+    }
+    
+    /* Age notice */
+    .age-notice {
+        background: linear-gradient(135deg, var(--wcr-color-burgundy-light) 0%, var(--wcr-color-burgundy) 100%);
+        color: var(--wcr-color-ivory);
+        padding: var(--wcr-space-sm) var(--wcr-space-md);
+        text-align: center;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Tab navigation */
+    .tab-nav {
+        display: flex;
+        background: var(--wcr-color-cream);
+        border-bottom: 1px solid var(--wcr-color-taupe);
+    }
+    
+    .tab-button {
+        flex: 1;
+        padding: var(--wcr-space-md);
+        background: none;
+        border: none;
+        font-family: var(--wcr-font-heading);
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--wcr-color-stone);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .tab-button.active {
+        color: var(--wcr-color-burgundy);
+    }
+    
+    .tab-button::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--wcr-color-burgundy);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+    
+    .tab-button.active::after {
+        transform: scaleX(1);
+    }
+    
+    /* Form container */
+    .form-container {
+        padding: var(--wcr-space-xl);
+    }
+    
+    .form-group {
+        margin-bottom: var(--wcr-space-md);
+    }
+    
+    .form-label {
+        display: block;
+        font-family: var(--wcr-font-heading);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--wcr-color-smoke);
+        margin-bottom: var(--wcr-space-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Custom input styling */
+    .wcr-input .e-float-input,
+    .wcr-input .e-input-group {
+        margin-bottom: 0;
+    }
+    
+    .wcr-input input {
+        width: 100%;
+        padding: var(--wcr-space-sm) var(--wcr-space-md) !important;
+        font-family: var(--wcr-font-body);
+        font-size: 16px;
+        border: 2px solid var(--wcr-color-taupe) !important;
+        border-radius: 8px !important;
+        background: var(--wcr-color-ivory) !important;
+        color: var(--wcr-color-charcoal);
+        transition: all 0.3s ease;
+    }
+    
+    .wcr-input input:focus {
+        outline: none;
+        border-color: var(--wcr-color-burgundy) !important;
+        box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.1) !important;
+    }
+    
+    /* Checkbox styling */
+    .checkbox-group {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--wcr-space-sm);
+        margin: var(--wcr-space-md) 0;
+    }
+    
+    .wcr-checkbox {
+        margin-top: 2px;
+    }
+    
+    .wcr-checkbox label {
+        font-size: 14px;
+        color: var(--wcr-color-smoke);
+        line-height: 1.4;
+    }
+    
+    .wcr-checkbox label a {
+        color: var(--wcr-color-burgundy);
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s ease;
+    }
+    
+    .wcr-checkbox label a:hover {
+        color: var(--wcr-color-burgundy-dark);
+        text-decoration: underline;
+    }
+    
+    /* Button styling */
+    .btn-primary-full {
+        width: 100%;
+        padding: var(--wcr-space-md) !important;
+        margin-top: var(--wcr-space-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--wcr-space-xs);
+    }
+    
+    /* Google OAuth button */
+    .btn-google {
+        width: 100%;
+        padding: var(--wcr-space-md);
+        background: white;
+        border: 2px solid var(--wcr-color-taupe);
+        border-radius: 8px;
+        font-family: var(--wcr-font-body);
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--wcr-color-charcoal);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--wcr-space-sm);
+    }
+    
+    .btn-google:hover {
+        background: var(--wcr-color-cream);
+        border-color: var(--wcr-color-stone);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .google-icon {
+        flex-shrink: 0;
+    }
+    
+    /* Divider */
+    .divider {
+        position: relative;
+        text-align: center;
+        margin: var(--wcr-space-lg) 0;
+    }
+    
+    .divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: var(--wcr-color-taupe);
+    }
+    
+    .divider span {
+        position: relative;
+        display: inline-block;
+        padding: 0 var(--wcr-space-md);
+        background: var(--wcr-color-ivory);
+        color: var(--wcr-color-stone);
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Loading spinner */
+    .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid var(--wcr-color-midnight);
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Password strength */
+    .password-strength {
+        margin-top: var(--wcr-space-xs);
+    }
+    
+    .strength-bar {
+        height: 4px;
+        background: var(--wcr-color-taupe);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: var(--wcr-space-xs);
+    }
+    
+    .strength-fill {
+        height: 100%;
+        transition: width 0.3s ease, background-color 0.3s ease;
+    }
+    
+    .strength-fill.weak { background: var(--wcr-color-error); }
+    .strength-fill.medium { background: var(--wcr-color-warning); }
+    .strength-fill.strong { background: var(--wcr-color-success); }
+    
+    .strength-text {
+        font-size: 12px;
+        color: var(--wcr-color-stone);
+    }
+    
+    /* Auth footer */
+    .auth-footer {
+        text-align: center;
+        padding: var(--wcr-space-md);
+        background: var(--wcr-color-cream);
+        border-top: 1px solid var(--wcr-color-taupe);
+    }
+    
+    .auth-footer-text {
+        font-size: 14px;
+        color: var(--wcr-color-stone);
+    }
+    
+    .auth-footer-link {
+        color: var(--wcr-color-burgundy);
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s ease;
+    }
+    
+    .auth-footer-link:hover {
+        color: var(--wcr-color-burgundy-dark);
+        text-decoration: underline;
+    }
+    
+    /* Alert messages */
+    .alert {
+        padding: var(--wcr-space-sm) var(--wcr-space-md);
+        border-radius: var(--wcr-radius-md);
+        margin-bottom: var(--wcr-space-md);
+        font-size: 14px;
+    }
+    
+    .alert-error {
+        background: rgba(220, 20, 60, 0.1);
+        border: 1px solid var(--wcr-color-error);
+        color: var(--wcr-color-error);
+    }
+    
+    /* Validation messages */
+    .validation-message {
+        color: var(--wcr-color-error);
+        font-size: 12px;
+        margin-top: var(--wcr-space-xs);
+    }
+    
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .auth-title {
+            font-size: 28px;
+        }
+        
+        .form-container {
+            padding: var(--wcr-space-lg);
+        }
+    }
+</style>
+

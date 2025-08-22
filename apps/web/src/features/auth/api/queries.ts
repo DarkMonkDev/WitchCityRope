@@ -20,7 +20,7 @@ interface ProtectedWelcomeData {
  * Connects to /api/auth/user endpoint (requires JWT token)
  */
 export function useCurrentUser() {
-  return useQuery({
+  return useQuery<UserDto>({
     queryKey: ['auth', 'user'],
     queryFn: async (): Promise<UserDto> => {
       const response = await api.get<ApiResponse<UserDto>>('/api/auth/user')
@@ -41,7 +41,7 @@ export function useCurrentUser() {
  * This endpoint requires JWT authentication
  */
 export function useProtectedWelcome() {
-  return useQuery({
+  return useQuery<ProtectedWelcomeData>({
     queryKey: ['protected', 'welcome'],
     queryFn: async (): Promise<ProtectedWelcomeData> => {
       const response = await api.get<ApiResponse<ProtectedWelcomeData>>('/api/protected/welcome')

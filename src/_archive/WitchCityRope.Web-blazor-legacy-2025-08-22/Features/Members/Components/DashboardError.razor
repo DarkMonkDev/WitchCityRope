@@ -1,0 +1,239 @@
+@page "/members/components/dashboard-error"
+
+<div class="dashboard-error-container">
+    <div class="error-content">
+        <div class="error-icon-wrapper">
+            <svg class="error-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+            </svg>
+        </div>
+        
+        <h3 class="error-title">Oops! Something went wrong</h3>
+        
+        <p class="error-message">
+            @(string.IsNullOrWhiteSpace(ErrorMessage) 
+                ? "We're having trouble loading your dashboard right now. Don't worry - your data is safe, and this is usually temporary." 
+                : ErrorMessage)
+        </p>
+        
+        <div class="error-actions">
+            <button class="btn-retry" @onclick="HandleRetry">
+                <svg class="retry-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                </svg>
+                Try Again
+            </button>
+            
+            <a href="/support" class="support-link">
+                <svg class="support-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+                </svg>
+                Contact Support
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-error-container {
+        min-height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+    
+    .error-content {
+        text-align: center;
+        max-width: 420px;
+        animation: fadeInUp 0.5s ease-out;
+    }
+    
+    .error-icon-wrapper {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 80px;
+        height: 80px;
+        background-color: var(--rose-50, #fef2f2);
+        border-radius: 50%;
+        margin-bottom: 1.5rem;
+        animation: pulse 2s ease-in-out infinite;
+    }
+    
+    .error-icon {
+        width: 48px;
+        height: 48px;
+        color: var(--rose-500, #f43f5e);
+    }
+    
+    .error-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--gray-900, #111827);
+        margin-bottom: 0.75rem;
+    }
+    
+    .error-message {
+        font-size: 1rem;
+        color: var(--gray-600, #4b5563);
+        line-height: 1.6;
+        margin-bottom: 2rem;
+    }
+    
+    .error-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    
+    .btn-retry {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background-color: var(--rose-600, #e11d48);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-retry:hover {
+        background-color: var(--rose-700, #be123c);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2);
+    }
+    
+    .btn-retry:active {
+        transform: translateY(0);
+    }
+    
+    .retry-icon {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .support-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        color: var(--gray-700, #374151);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border: 1px solid var(--gray-300, #d1d5db);
+        border-radius: 0.5rem;
+    }
+    
+    .support-link:hover {
+        color: var(--rose-600, #e11d48);
+        border-color: var(--rose-200, #fecdd3);
+        background-color: var(--rose-50, #fef2f2);
+    }
+    
+    .support-icon {
+        width: 20px;
+        height: 20px;
+    }
+    
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @@keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.05);
+            opacity: 0.8;
+        }
+    }
+    
+    /* Dark mode support */
+    @@media (prefers-color-scheme: dark) {
+        .error-icon-wrapper {
+            background-color: rgba(244, 63, 94, 0.1);
+        }
+        
+        .error-title {
+            color: var(--gray-100, #f3f4f6);
+        }
+        
+        .error-message {
+            color: var(--gray-400, #9ca3af);
+        }
+        
+        .support-link {
+            color: var(--gray-300, #d1d5db);
+            border-color: var(--gray-600, #4b5563);
+        }
+        
+        .support-link:hover {
+            color: var(--rose-400, #fb7185);
+            border-color: var(--rose-800, #9f1239);
+            background-color: rgba(244, 63, 94, 0.1);
+        }
+    }
+    
+    /* Mobile responsiveness */
+    @@media (max-width: 640px) {
+        .dashboard-error-container {
+            padding: 1rem;
+        }
+        
+        .error-icon-wrapper {
+            width: 64px;
+            height: 64px;
+        }
+        
+        .error-icon {
+            width: 36px;
+            height: 36px;
+        }
+        
+        .error-title {
+            font-size: 1.25rem;
+        }
+        
+        .error-message {
+            font-size: 0.875rem;
+        }
+        
+        .error-actions {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .btn-retry,
+        .support-link {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+@code {
+    [Parameter] public string? ErrorMessage { get; set; }
+    [Parameter] public EventCallback OnRetry { get; set; }
+    
+    private async Task HandleRetry()
+    {
+        await OnRetry.InvokeAsync();
+    }
+}

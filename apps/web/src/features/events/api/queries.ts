@@ -2,12 +2,13 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import { api } from '../../../api/client'
 import { queryKeys } from '../../../api/queryKeys'
-import type { Event, PaginatedResponse, EventFilters } from '../../../types/api.types'
+import type { EventDto, EventListResponse } from '@witchcityrope/shared-types'
+import type { PaginatedResponse, EventFilters } from '../../../types/api.types'
 
 export function useEvent(eventId: string) {
-  return useQuery({
+  return useQuery<EventDto>({
     queryKey: queryKeys.event(eventId),
-    queryFn: async (): Promise<Event> => {
+    queryFn: async (): Promise<EventDto> => {
       const response = await api.get(`/api/events/${eventId}`)
       return response.data
     },
@@ -17,28 +18,31 @@ export function useEvent(eventId: string) {
 }
 
 export function useEvents() {
-  return useQuery({
+  return useQuery<EventDto[]>({
     queryKey: queryKeys.events(),
-    queryFn: async (): Promise<Event[]> => {
-      const response = await api.get('/api/events')
-      return response.data
+    queryFn: async (): Promise<EventDto[]> => {
+      const response = await api.get<EventListResponse>('/api/events')
+      return response.data.events || []
     },
     staleTime: 5 * 60 * 1000,
   })
 }
 
 export function useInfiniteEvents(filters: EventFilters = {}) {
-  return useInfiniteQuery({
+  return useInfiniteQuery<EventListResponse>({
     queryKey: queryKeys.infiniteEvents(filters),
-    queryFn: async ({ pageParam = 1 }): Promise<PaginatedResponse<Event>> => {
-      const response = await api.get('/api/events', {
+    queryFn: async ({ pageParam = 1 }): Promise<EventListResponse> => {
+      const response = await api.get<EventListResponse>('/api/events', {
         params: { page: pageParam, pageSize: 20, ...filters }
       })
       return response.data
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
-      return lastPage.hasNext ? lastPage.page + 1 : undefined
+      // EventListResponse has page, totalPages but no hasNext property
+      const currentPage = lastPage.page || 1
+      const totalPages = lastPage.totalPages || 1
+      return currentPage < totalPages ? currentPage + 1 : undefined
     },
     maxPages: 10, // v5 feature - limit memory usage
     staleTime: 2 * 60 * 1000, // 2 minutes

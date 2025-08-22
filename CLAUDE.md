@@ -5,27 +5,28 @@
 **Project**: WitchCityRope - A membership and event management platform for Salem's rope bondage community.
 **Technology Stack**: React + TypeScript + Vite (migrated from Blazor Server)
 
-### ⚡ AUTOMATIC ORCHESTRATION
-**ANY development request automatically triggers the orchestrator agent.**
-You don't need to mention it - just describe what you want built.
+### ⚡ WORKFLOW ORCHESTRATION
+**Complex development requests should trigger orchestration workflow.**
+For multi-step tasks, use the `/orchestrator` command to coordinate work.
 
 ### 🚨 TRIGGER WORD DETECTION - CHECK FIRST! 🚨
 **BEFORE ANY ACTION, check for these triggers:**
-- **continue** (ANY work/development context) → ORCHESTRATOR → MUST USE TASK TOOL
-- **test/testing/debug/fix** → ORCHESTRATOR → test-executor → orchestrator coordinates fixes (AUTOMATIC)
-- **implement/create/build/develop** → ORCHESTRATOR → MUST USE TASK TOOL
-- **complete/finish/finalize** → ORCHESTRATOR → MUST USE TASK TOOL
-- **Multi-step tasks** → ORCHESTRATOR → MUST USE TASK TOOL
+- **continue** (ANY work/development context) → Use `/orchestrator` command
+- **test/testing/debug/fix** → Delegate to test-executor agent via Task tool
+- **implement/create/build/develop** → Use `/orchestrator` command for complex work
+- **complete/finish/finalize** → Use `/orchestrator` command to coordinate
+- **Multi-step tasks** → Use `/orchestrator` command
 
-**See /.claude/ORCHESTRATOR-TRIGGERS.md for full list**
-**VIOLATION = User frustration (justified)**
+**IMPORTANT**: The main agent IS the orchestrator. For complex workflows:
+- Use `/orchestrator` command (NOT Task tool with orchestrator type)
+- For single-agent work, use Task tool directly with appropriate agent
 
-### ⚠️ CRITICAL: ACTUAL TASK TOOL INVOCATION REQUIRED ⚠️
-**When invoking orchestrator or ANY agent:**
-1. **DO NOT** just say "I'm invoking the orchestrator"
-2. **DO NOT** just say "I'm delegating to test-executor"
-3. **YOU MUST** actually use the Task tool with proper parameters
-4. **IF NO TASK TOOL VISIBLE** = YOU FAILED
+### ⚠️ CRITICAL: PROPER DELEGATION REQUIRED ⚠️
+**When delegating work:**
+1. **Complex multi-agent work** → Use `/orchestrator` command
+2. **Single agent work** → Use Task tool with specific agent type
+3. **YOU MUST** actually invoke the proper command or tool
+4. **IF NO COMMAND/TOOL VISIBLE** = Delegation failed
 
 ### Quick Start for New Sessions
 1. **Development tasks auto-trigger orchestrator** (implement, create, fix, etc.)
@@ -39,12 +40,18 @@ The orchestrator MUST pause and wait for explicit approval:
 
 ### Available Sub-Agents
 All agents located in `/.claude/agents/`:
-- **orchestrator**: Master workflow coordinator (auto-invoked for complex tasks)
 - **librarian**: Documentation and file organization
 - **git-manager**: Version control operations
 - **business-requirements**: Requirements analysis
 - **react-developer**: React + TypeScript component development
+- **backend-developer**: API and backend services development
+- **test-developer**: Test suite creation
+- **test-executor**: Test execution and reporting
+- **ui-designer**: UI/UX design and wireframes
+- **database-designer**: Database schema and architecture
 - Additional agents being added for full workflow support
+
+**NOTE**: Main agent coordinates complex workflows. Use `/orchestrator` command for multi-agent coordination.
 
 ### Workflow Process
 **Phases**: Requirements → Design → Implementation → Testing → Finalization

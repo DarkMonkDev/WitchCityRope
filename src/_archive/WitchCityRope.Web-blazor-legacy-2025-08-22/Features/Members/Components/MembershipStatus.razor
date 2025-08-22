@@ -1,0 +1,403 @@
+@using WitchCityRope.Web.Models
+@using CoreVettingStatus = WitchCityRope.Core.Entities.VettingStatus
+
+<div class="membership-status-card card">
+    <!-- Status Banner with Gradient Background -->
+    <div class="status-banner @GetStatusClass()">
+        <div class="status-content">
+            <div class="status-icon">
+                @GetStatusIcon()
+            </div>
+            <div class="status-text">
+                <h3 class="status-title">@GetStatusTitle()</h3>
+                <p class="status-description">@GetStatusDescription()</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Member Statistics Grid -->
+    @if (Stats != null)
+    {
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value">@Stats.EventsAttended</div>
+                <div class="stat-label">Events Attended</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">@GetMonthsAsMember()</div>
+                <div class="stat-label">Months as Member</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">@GetConnectionsCount()</div>
+                <div class="stat-label">Connections</div>
+            </div>
+        </div>
+    }
+
+    <!-- Vetting Status Details -->
+    <div class="status-details">
+        @switch (Stats?.VettingStatus)
+        {
+            case CoreVettingStatus.Submitted when !Stats.IsVerified:
+                <div class="status-message">
+                    <p>Ready to become a verified member? Vetting helps us maintain a safe and trusted community.</p>
+                    <a href="/vetting/application" class="btn btn-primary btn-sm">
+                        Start Your Vetting Journey
+                    </a>
+                </div>
+                break;
+
+            case CoreVettingStatus.UnderReview:
+                <div class="status-message">
+                    <p>Your vetting application is currently under review. We'll notify you once a decision has been made.</p>
+                    <div class="progress-indicator">
+                        <div class="progress-bar" style="width: 50%"></div>
+                    </div>
+                    @if (Stats.NextInterviewDate.HasValue)
+                    {
+                        <p class="status-note">Interview scheduled: @Stats.NextInterviewDate.Value.ToString("MMM dd, yyyy")</p>
+                    }
+                    else
+                    {
+                        <p class="status-note">Estimated review time: 3-5 business days</p>
+                    }
+                </div>
+                break;
+
+            case CoreVettingStatus.Approved:
+                <div class="status-message">
+                    <p class="success-message">Welcome to the verified community! You now have access to all member benefits.</p>
+                    <div class="benefits-list">
+                        <div class="benefit-item">✓ Access to vetted-only events</div>
+                        <div class="benefit-item">✓ Expanded workshop offerings</div>
+                        <div class="benefit-item">✓ Priority event registration</div>
+                    </div>
+                </div>
+                break;
+
+            case CoreVettingStatus.Rejected:
+                <div class="status-message">
+                    <p>We appreciate your interest in joining our vetted community. Unfortunately, we couldn't approve your application at this time.</p>
+                    <p class="status-note">You may reapply after 6 months. In the meantime, you're welcome to continue attending public events.</p>
+                    <a href="/contact" class="btn btn-outline btn-sm">Contact Support</a>
+                </div>
+                break;
+
+        }
+    </div>
+
+    <!-- Achievement Badges (if any) -->
+    @if (false) // Achievements not implemented
+    {
+        <div class="achievements-section">
+            <h4 class="achievements-title">Achievements</h4>
+            <div class="achievements-grid">
+                @* foreach (var achievement in Stats.Achievements) 
+                {
+                    <div class="achievement-badge" title="@achievement">
+                        <span class="achievement-icon">🏆</span>
+                    </div>
+                } *@
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .membership-status-card {
+        padding: 0;
+        margin-bottom: var(--wcr-space-lg);
+        overflow: hidden;
+    }
+
+    /* Status Banner with Gradient */
+    .status-banner {
+        padding: var(--wcr-space-lg);
+        background: linear-gradient(135deg, var(--wcr-color-plum) 0%, var(--wcr-color-burgundy) 100%);
+        color: var(--wcr-color-ivory);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .status-banner::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        transform: rotate(45deg);
+    }
+
+    .status-banner.verified {
+        background: linear-gradient(135deg, var(--wcr-color-success-dark) 0%, var(--wcr-color-success) 100%);
+    }
+
+    .status-banner.pending {
+        background: linear-gradient(135deg, var(--wcr-color-warning-dark) 0%, var(--wcr-color-warning) 100%);
+    }
+
+    .status-banner.unverified {
+        background: linear-gradient(135deg, var(--wcr-color-info-dark) 0%, var(--wcr-color-info) 100%);
+    }
+
+    .status-content {
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-md);
+        position: relative;
+        z-index: 1;
+    }
+
+    .status-icon {
+        font-size: 2.5rem;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        backdrop-filter: blur(10px);
+    }
+
+    .status-text {
+        flex: 1;
+    }
+
+    .status-title {
+        margin: 0;
+        font-size: var(--font-size-xl);
+        font-weight: var(--font-weight-bold);
+        color: inherit;
+    }
+
+    .status-description {
+        margin: var(--wcr-space-xs) 0 0 0;
+        font-size: var(--font-size-sm);
+        opacity: 0.9;
+    }
+
+    /* Statistics Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .stat-item {
+        padding: var(--wcr-space-md);
+        text-align: center;
+        border-right: 1px solid var(--color-border);
+    }
+
+    .stat-item:last-child {
+        border-right: none;
+    }
+
+    .stat-value {
+        font-size: var(--font-size-2xl);
+        font-weight: var(--font-weight-bold);
+        color: var(--wcr-color-burgundy);
+        margin-bottom: var(--wcr-space-xs);
+    }
+
+    .stat-label {
+        font-size: var(--font-size-sm);
+        color: var(--color-text-secondary);
+    }
+
+    /* Status Details Section */
+    .status-details {
+        padding: var(--wcr-space-lg);
+    }
+
+    .status-message {
+        text-align: center;
+    }
+
+    .status-message p {
+        margin-bottom: var(--wcr-space-md);
+        color: var(--color-text-secondary);
+    }
+
+    .success-message {
+        color: var(--wcr-color-success-dark);
+        font-weight: var(--font-weight-medium);
+    }
+
+    .status-note {
+        font-size: var(--font-size-sm);
+        color: var(--color-text-muted);
+        font-style: italic;
+    }
+
+    /* Progress Indicator */
+    .progress-indicator {
+        height: 8px;
+        background: var(--color-border);
+        border-radius: var(--radius-full);
+        overflow: hidden;
+        margin: var(--wcr-space-md) 0;
+    }
+
+    .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, var(--wcr-color-amber) 0%, var(--wcr-color-amber-dark) 100%);
+        border-radius: var(--radius-full);
+        transition: width var(--transition-base);
+    }
+
+    /* Benefits List */
+    .benefits-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--wcr-space-sm);
+        margin-top: var(--wcr-space-md);
+        text-align: left;
+        max-width: 300px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .benefit-item {
+        color: var(--wcr-color-success-dark);
+        font-size: var(--font-size-sm);
+    }
+
+    /* Achievements Section */
+    .achievements-section {
+        padding: var(--wcr-space-md) var(--wcr-space-lg);
+        border-top: 1px solid var(--color-border);
+        background: var(--color-surface-alt);
+    }
+
+    .achievements-title {
+        font-size: var(--font-size-base);
+        margin-bottom: var(--wcr-space-sm);
+        color: var(--color-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .achievements-grid {
+        display: flex;
+        gap: var(--wcr-space-sm);
+        flex-wrap: wrap;
+    }
+
+    .achievement-badge {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--wcr-color-brass);
+        border-radius: 50%;
+        box-shadow: var(--shadow-sm);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+    }
+
+    .achievement-badge:hover {
+        transform: scale(1.1);
+        box-shadow: var(--shadow-md);
+    }
+
+    .achievement-icon {
+        font-size: 1.25rem;
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .status-content {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 0;
+        }
+
+        .stat-item {
+            border-right: none;
+            border-bottom: 1px solid var(--color-border);
+            padding: var(--wcr-space-sm);
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+    }
+</style>
+
+@code {
+    [Parameter] public MembershipStatsViewModel? Stats { get; set; }
+
+    private string GetStatusClass()
+    {
+        if (Stats?.VettingStatus == CoreVettingStatus.Approved)
+            return "verified";
+        else if (Stats?.VettingStatus == CoreVettingStatus.UnderReview || Stats?.VettingStatus == CoreVettingStatus.MoreInfoRequested)
+            return "pending";
+        else
+            return "unverified";
+    }
+
+    private MarkupString GetStatusIcon()
+    {
+        if (Stats?.VettingStatus == CoreVettingStatus.Approved)
+            return new MarkupString("✓");
+        else if (Stats?.VettingStatus == CoreVettingStatus.UnderReview || Stats?.VettingStatus == CoreVettingStatus.MoreInfoRequested)
+            return new MarkupString("⏱");
+        else if (Stats?.VettingStatus == CoreVettingStatus.Rejected)
+            return new MarkupString("✗");
+        else
+            return new MarkupString("ℹ");
+    }
+
+    private string GetStatusTitle()
+    {
+        if (Stats?.VettingStatus == CoreVettingStatus.Approved)
+            return "Verified Member";
+        else if (Stats?.VettingStatus == CoreVettingStatus.Submitted)
+            return "Application Submitted";
+        else if (Stats?.VettingStatus == CoreVettingStatus.UnderReview)
+            return "Under Review";
+        else if (Stats?.VettingStatus == CoreVettingStatus.Rejected)
+            return "Application Status";
+        else
+            return "Unverified Member";
+    }
+
+    private string GetStatusDescription()
+    {
+        if (Stats?.VettingStatus == CoreVettingStatus.Approved)
+            return "Full access to all community features";
+        else if (Stats?.VettingStatus == CoreVettingStatus.Submitted)
+            return "Your application is being processed";
+        else if (Stats?.VettingStatus == CoreVettingStatus.UnderReview)
+            return "Our team is reviewing your application";
+        else if (Stats?.VettingStatus == CoreVettingStatus.Rejected)
+            return "Please review our requirements";
+        else
+            return "Join our verified community for exclusive benefits";
+    }
+
+    private int GetMonthsAsMember()
+    {
+        if (Stats == null) return 0;
+        return Stats.MonthsAsMember;
+    }
+
+    private int GetConnectionsCount()
+    {
+        // This would typically come from the Stats model or be calculated
+        // For now, returning a placeholder value
+        return Stats?.ConsecutiveEvents ?? 0;
+    }
+}

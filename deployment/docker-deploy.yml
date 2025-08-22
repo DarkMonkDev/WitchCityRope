@@ -1,0 +1,335 @@
+# WitchCityRope Docker Deployment Configuration
+# This file extends the base docker-compose.yml for production deployments
+
+version: '3.8'
+
+services:
+  # API Service - Production Configuration
+  api:
+    image: witchcityrope/api:${VERSION:-latest}
+    container_name: witchcityrope-api-prod
+    restart: always
+    environment:
+      # ASP.NET Core Configuration
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      
+      # Database Configuration
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/witchcityrope.db;Cache=Shared;Journal Mode=WAL;
+      
+      # JWT Configuration (use secrets in production)
+      - Jwt__Secret=${JWT_SECRET:?JWT_SECRET is required}
+      - Jwt__Issuer=WitchCityRope
+      - Jwt__Audience=WitchCityRopeUsers
+      - Jwt__ExpiresInMinutes=60
+      
+      # Email Configuration
+      - Email__SendGrid__ApiKey=${SENDGRID_API_KEY:?SENDGRID_API_KEY is required}
+      - Email__FromEmail=${EMAIL_FROM:-noreply@witchcityrope.com}
+      - Email__FromName=Witch City Rope
+      
+      # PayPal Configuration
+      - PayPal__ClientId=${PAYPAL_CLIENT_ID:?PAYPAL_CLIENT_ID is required}
+      - PayPal__ClientSecret=${PAYPAL_CLIENT_SECRET:?PAYPAL_CLIENT_SECRET is required}
+      - PayPal__Mode=live
+      
+      # Security Configuration
+      - Security__EncryptionKey=${ENCRYPTION_KEY:?ENCRYPTION_KEY is required}
+      
+      # Logging
+      - Serilog__MinimumLevel__Default=Warning
+      - Serilog__MinimumLevel__Override__Microsoft=Error
+      - Serilog__MinimumLevel__Override__System=Error
+      
+    volumes:
+      # Persistent data volumes
+      - api-data:/app/data
+      - api-logs:/app/logs
+      - uploads:/app/uploads
+      
+    networks:
+      - backend
+      - monitoring
+      
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+      
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+        compress: "true"
+
+  # Web Service - Production Configuration
+  web:
+    image: witchcityrope/web:${VERSION:-latest}
+    container_name: witchcityrope-web-prod
+    restart: always
+    environment:
+      # ASP.NET Core Configuration
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      
+      # API Configuration
+      - ApiBaseUrl=http://api:8080/
+      - ApiBaseUrlExternal=${API_EXTERNAL_URL:-https://api.witchcityrope.com/}
+      
+      
+      # Session Configuration
+      - Session__IdleTimeout=20
+      - Session__Cookie__Name=.WitchCityRope.Session
+      - Session__Cookie__HttpOnly=true
+      - Session__Cookie__IsEssential=true
+      - Session__Cookie__SecurePolicy=Always
+      - Session__Cookie__SameSite=Strict
+      
+      # Logging
+      - Logging__LogLevel__Default=Warning
+      - Logging__LogLevel__Microsoft.AspNetCore=Error
+      
+    volumes:
+      - web-logs:/app/logs
+      - uploads:/app/wwwroot/uploads:ro
+      
+    networks:
+      - frontend
+      - backend
+      - monitoring
+      
+    depends_on:
+      api:
+        condition: service_healthy
+        
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+      
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+          
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+        compress: "true"
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: witchcityrope-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx-logs:/var/log/nginx
+      - ./nginx/cache:/var/cache/nginx
+      - letsencrypt:/etc/letsencrypt:ro
+      
+    networks:
+      - frontend
+      - monitoring
+      
+    depends_on:
+      - web
+      - api
+      
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+      
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+          
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+        compress: "true"
+
+  # Redis Cache (Production)
+  redis:
+    image: redis:7-alpine
+    container_name: witchcityrope-redis
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+    volumes:
+      - redis-data:/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      
+  # Prometheus Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: witchcityrope-prometheus
+    restart: always
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - monitoring
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      
+  # Grafana Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    container_name: witchcityrope-grafana
+    restart: always
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:?GRAFANA_PASSWORD is required}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - monitoring
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+      
+  # Log Aggregation
+  loki:
+    image: grafana/loki:latest
+    container_name: witchcityrope-loki
+    restart: always
+    volumes:
+      - ./monitoring/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki-data:/loki
+    networks:
+      - monitoring
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    
+  # Promtail Log Collector
+  promtail:
+    image: grafana/promtail:latest
+    container_name: witchcityrope-promtail
+    restart: always
+    volumes:
+      - ./monitoring/promtail-config.yml:/etc/promtail/config.yml:ro
+      - api-logs:/var/log/api:ro
+      - web-logs:/var/log/web:ro
+      - nginx-logs:/var/log/nginx:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - monitoring
+    command: -config.file=/etc/promtail/config.yml
+    
+  # Database Backup Service
+  db-backup:
+    image: alpine:latest
+    container_name: witchcityrope-db-backup
+    restart: always
+    volumes:
+      - api-data:/data:ro
+      - ./backups:/backups
+    environment:
+      - BACKUP_SCHEDULE=${BACKUP_SCHEDULE:-0 2 * * *}
+      - BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-7}
+    entrypoint: |
+      sh -c 'echo "$${BACKUP_SCHEDULE} /backup.sh" | crontab - && crond -f'
+    command: |
+      sh -c 'cat > /backup.sh << "EOF"
+      #!/bin/sh
+      set -e
+      BACKUP_NAME="witchcityrope-db-backup-$$(date +%Y%m%d-%H%M%S).db"
+      cp /data/witchcityrope.db /backups/$$BACKUP_NAME
+      gzip /backups/$$BACKUP_NAME
+      find /backups -name "*.db.gz" -mtime +$$BACKUP_RETENTION_DAYS -delete
+      echo "Backup completed: $$BACKUP_NAME.gz"
+      EOF
+      chmod +x /backup.sh'
+      
+networks:
+  frontend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+  backend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.1.0/24
+  monitoring:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.2.0/24
+
+volumes:
+  # Application volumes
+  api-data:
+    driver: local
+  api-logs:
+    driver: local
+  web-logs:
+    driver: local
+  nginx-logs:
+    driver: local
+  uploads:
+    driver: local
+    
+  # Infrastructure volumes
+  redis-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  loki-data:
+    driver: local
+  letsencrypt:
+    driver: local

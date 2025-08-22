@@ -1,0 +1,440 @@
+@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@inject IAuthService AuthService
+
+<div class="wcr-admin">
+    <!-- Admin Header -->
+    <header class="admin-header">
+        <div class="admin-header-left">
+            <button class="sidebar-toggle" @onclick="ToggleSidebar">
+                <i class="fas fa-bars"></i>
+            </button>
+            <a href="/admin" class="admin-logo">WCR Admin</a>
+        </div>
+        <div class="admin-header-right">
+            <div class="admin-notifications">
+                <button class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
+                </button>
+            </div>
+            <div class="admin-user-menu">
+                <button class="user-menu-toggle" @onclick="ToggleUserMenu">
+                    <img src="/images/avatar-placeholder.png" alt="User" class="user-avatar">
+                    <span class="user-name">@_currentUser?.SceneName</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="user-dropdown @(_userMenuOpen ? "show" : "")">
+                    <a href="/member/profile" class="dropdown-item">
+                        <i class="fas fa-user"></i> My Profile
+                    </a>
+                    <a href="/member/settings" class="dropdown-item">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" @onclick="Logout" @onclick:preventDefault="true" class="dropdown-item">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Admin Layout -->
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar @(_sidebarOpen ? "open" : "")">
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <h3 class="nav-section-title">Dashboard</h3>
+                    <NavLink href="/admin" class="nav-link" Match="NavLinkMatch.All">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Overview</span>
+                    </NavLink>
+                </div>
+                
+                <div class="nav-section">
+                    <h3 class="nav-section-title">Events</h3>
+                    <NavLink href="/admin/events" class="nav-link">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>All Events</span>
+                    </NavLink>
+                    <NavLink href="/admin/events/create" class="nav-link">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Create Event</span>
+                    </NavLink>
+                    <NavLink href="/admin/events/checkin" class="nav-link">
+                        <i class="fas fa-clipboard-check"></i>
+                        <span>Check-in</span>
+                    </NavLink>
+                </div>
+                
+                <div class="nav-section">
+                    <h3 class="nav-section-title">Members</h3>
+                    <NavLink href="/admin/members" class="nav-link">
+                        <i class="fas fa-users"></i>
+                        <span>All Members</span>
+                    </NavLink>
+                    <NavLink href="/admin/vetting" class="nav-link">
+                        <i class="fas fa-user-check"></i>
+                        <span>Vetting Queue</span>
+                        @if (_vettingCount > 0)
+                        {
+                            <span class="nav-badge">@_vettingCount</span>
+                        }
+                    </NavLink>
+                </div>
+                
+                <div class="nav-section">
+                    <h3 class="nav-section-title">Safety</h3>
+                    <NavLink href="/admin/incidents" class="nav-link">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Incident Reports</span>
+                        @if (_incidentCount > 0)
+                        {
+                            <span class="nav-badge danger">@_incidentCount</span>
+                        }
+                    </NavLink>
+                    <NavLink href="/admin/banned" class="nav-link">
+                        <i class="fas fa-ban"></i>
+                        <span>Banned List</span>
+                    </NavLink>
+                </div>
+                
+                <div class="nav-section">
+                    <h3 class="nav-section-title">Financial</h3>
+                    <NavLink href="/admin/payments" class="nav-link">
+                        <i class="fas fa-dollar-sign"></i>
+                        <span>Payments</span>
+                    </NavLink>
+                    <NavLink href="/admin/reports" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Reports</span>
+                    </NavLink>
+                </div>
+                
+                <div class="nav-section">
+                    <h3 class="nav-section-title">System</h3>
+                    <NavLink href="/admin/emails" class="nav-link">
+                        <i class="fas fa-envelope"></i>
+                        <span>Email Templates</span>
+                    </NavLink>
+                    <NavLink href="/admin/settings" class="nav-link">
+                        <i class="fas fa-cogs"></i>
+                        <span>Settings</span>
+                    </NavLink>
+                </div>
+            </nav>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="admin-main">
+            <div class="admin-content">
+                @Body
+            </div>
+        </main>
+    </div>
+</div>
+
+<style>
+    .wcr-admin {
+        min-height: 100vh;
+        background: var(--wcr-color-cream);
+    }
+    
+    /* Admin Header */
+    .admin-header {
+        background: var(--wcr-color-ivory);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 0 var(--wcr-space-md);
+        height: 60px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+    
+    .admin-header-left {
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-md);
+    }
+    
+    .sidebar-toggle {
+        background: none;
+        border: none;
+        font-size: 20px;
+        color: var(--wcr-color-charcoal);
+        cursor: pointer;
+        padding: var(--wcr-space-sm);
+        border-radius: var(--wcr-radius-sm);
+        transition: all 0.3s ease;
+    }
+    
+    .sidebar-toggle:hover {
+        background: var(--wcr-color-cream);
+    }
+    
+    .admin-logo {
+        font-family: var(--wcr-font-heading);
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--wcr-color-burgundy);
+        text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .admin-header-right {
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-lg);
+    }
+    
+    /* Notifications */
+    .notification-btn {
+        background: none;
+        border: none;
+        font-size: 18px;
+        color: var(--wcr-color-charcoal);
+        cursor: pointer;
+        position: relative;
+        padding: var(--wcr-space-sm);
+    }
+    
+    .notification-badge {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        background: var(--wcr-color-error);
+        color: white;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 10px;
+        min-width: 18px;
+        text-align: center;
+    }
+    
+    /* User Menu */
+    .admin-user-menu {
+        position: relative;
+    }
+    
+    .user-menu-toggle {
+        background: none;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+        cursor: pointer;
+        padding: var(--wcr-space-sm);
+        border-radius: var(--wcr-radius-sm);
+        transition: all 0.3s ease;
+    }
+    
+    .user-menu-toggle:hover {
+        background: var(--wcr-color-cream);
+    }
+    
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .user-name {
+        font-family: var(--wcr-font-body);
+        font-weight: 500;
+        color: var(--wcr-color-charcoal);
+    }
+    
+    .user-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: var(--wcr-space-sm);
+        background: white;
+        border-radius: var(--wcr-radius-md);
+        box-shadow: var(--wcr-shadow-lg);
+        min-width: 200px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+    }
+    
+    .user-dropdown.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+    
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+        padding: var(--wcr-space-sm) var(--wcr-space-md);
+        color: var(--wcr-color-charcoal);
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .dropdown-item:hover {
+        background: var(--wcr-color-cream);
+        color: var(--wcr-color-burgundy);
+    }
+    
+    .dropdown-divider {
+        height: 1px;
+        background: var(--wcr-color-cream);
+        margin: var(--wcr-space-xs) 0;
+    }
+    
+    /* Admin Layout */
+    .admin-layout {
+        display: flex;
+        min-height: calc(100vh - 60px);
+    }
+    
+    /* Sidebar */
+    .admin-sidebar {
+        width: 280px;
+        background: var(--wcr-color-midnight);
+        color: var(--wcr-color-taupe);
+        transition: all 0.3s ease;
+        overflow-y: auto;
+    }
+    
+    .admin-sidebar:not(.open) {
+        width: 0;
+        overflow: hidden;
+    }
+    
+    .sidebar-nav {
+        padding: var(--wcr-space-md);
+    }
+    
+    .nav-section {
+        margin-bottom: var(--wcr-space-lg);
+    }
+    
+    .nav-section-title {
+        font-family: var(--wcr-font-heading);
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--wcr-color-stone);
+        margin-bottom: var(--wcr-space-sm);
+        padding: 0 var(--wcr-space-sm);
+    }
+    
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+        padding: var(--wcr-space-sm) var(--wcr-space-sm);
+        color: var(--wcr-color-taupe);
+        text-decoration: none;
+        border-radius: var(--wcr-radius-sm);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .nav-link:hover {
+        background: rgba(255,255,255,0.05);
+        color: var(--wcr-color-ivory);
+    }
+    
+    .nav-link.active {
+        background: var(--wcr-color-burgundy);
+        color: var(--wcr-color-ivory);
+    }
+    
+    .nav-link i {
+        width: 20px;
+        text-align: center;
+    }
+    
+    .nav-badge {
+        margin-left: auto;
+        background: var(--wcr-color-burgundy);
+        color: white;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 10px;
+    }
+    
+    .nav-badge.danger {
+        background: var(--wcr-color-error);
+    }
+    
+    /* Main Content */
+    .admin-main {
+        flex: 1;
+        overflow-x: hidden;
+    }
+    
+    .admin-content {
+        padding: var(--wcr-space-lg);
+    }
+    
+    /* Responsive */
+    @@media (max-width: 1024px) {
+        .admin-sidebar {
+            position: fixed;
+            height: 100%;
+            z-index: 99;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .admin-sidebar:not(.open) {
+            width: 0;
+        }
+    }
+    
+    @@media (max-width: 768px) {
+        .admin-content {
+            padding: var(--wcr-space-md);
+        }
+        
+        .user-name {
+            display: none;
+        }
+    }
+</style>
+
+@code {
+    private bool _sidebarOpen = true;
+    private bool _userMenuOpen = false;
+    private UserDto? _currentUser;
+    private int _vettingCount = 0;
+    private int _incidentCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _currentUser = await AuthService.GetCurrentUserAsync();
+        // TODO: Load vetting and incident counts
+    }
+
+    private void ToggleSidebar()
+    {
+        _sidebarOpen = !_sidebarOpen;
+    }
+
+    private void ToggleUserMenu()
+    {
+        _userMenuOpen = !_userMenuOpen;
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/");
+    }
+}

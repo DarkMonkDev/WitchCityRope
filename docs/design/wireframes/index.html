@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Witch City Rope - Wireframe Navigation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-burgundy: #880124;
+            --color-plum: #614B79;
+            --color-amber: #FFBF00;
+            --color-amber-dark: #FF8C00;
+            --color-midnight: #1A1A2E;
+            --color-charcoal: #2B2B2B;
+            --color-ivory: #FFF8F0;
+            --color-cream: #FAF6F2;
+            --color-taupe: #B8B0A8;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, var(--color-cream) 0%, var(--color-ivory) 100%);
+            color: var(--color-charcoal);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: var(--color-midnight);
+            padding: 24px 40px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--color-ivory);
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            color: var(--color-taupe);
+            font-size: 16px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .section {
+            background: var(--color-ivory);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--color-burgundy);
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--color-taupe);
+        }
+        
+        .wireframe-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .wireframe-link {
+            display: block;
+            padding: 20px;
+            background: var(--color-cream);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .wireframe-link:hover {
+            border-color: var(--color-burgundy);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(136, 1, 36, 0.1);
+        }
+        
+        .wireframe-name {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-charcoal);
+            margin-bottom: 8px;
+        }
+        
+        .wireframe-desc {
+            font-size: 14px;
+            color: var(--color-charcoal);
+            opacity: 0.7;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--color-burgundy);
+            color: var(--color-ivory);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .badge.new {
+            background: var(--color-amber);
+            color: var(--color-midnight);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">Witch City Rope</div>
+        <div class="subtitle">Wireframe Navigation Index</div>
+    </header>
+    
+    <div class="container">
+        <!-- Public Pages -->
+        <section class="section">
+            <h2 class="section-title">Public Pages</h2>
+            <div class="wireframe-grid">
+                <a href="landing-page-visual-v2.html" class="wireframe-link">
+                    <div class="wireframe-name">Landing Page <span class="badge new">Visual</span></div>
+                    <div class="wireframe-desc">Homepage with event previews and CTAs</div>
+                </a>
+                <a href="event-list-visual.html" class="wireframe-link">
+                    <div class="wireframe-name">Event List <span class="badge new">Visual</span></div>
+                    <div class="wireframe-desc">Browse all classes and meetups</div>
+                </a>
+                <a href="event-detail-visual.html" class="wireframe-link">
+                    <div class="wireframe-name">Event Detail <span class="badge new">Visual</span></div>
+                    <div class="wireframe-desc">Single event with registration</div>
+                </a>
+                <a href="vetting-application.html" class="wireframe-link">
+                    <div class="wireframe-name">Vetting Application</div>
+                    <div class="wireframe-desc">Member application form</div>
+                </a>
+                <a href="incident-report-visual.html" class="wireframe-link">
+                    <div class="wireframe-name">Incident Report <span class="badge new">Visual</span></div>
+                    <div class="wireframe-desc">Anonymous safety reporting</div>
+                </a>
+            </div>
+        </section>
+        
+        <!-- Purchase Ticket -->
+        <section class="section">
+            <h2 class="section-title">Purchase Ticket</h2>
+            <div class="wireframe-grid">
+                <a href="checkout-visual.html" class="wireframe-link">
+                    <div class="wireframe-name">Checkout Process <span class="badge new">Visual</span></div>
+                    <div class="wireframe-desc">Payment with PayPal or Credit Card</div>
+                </a>
+                <a href="checkout-confirmation-visual.html" class="wireframe-link">
+                    <div class="wireframe-name">Order Confirmation <span class="badge new">Visual</span></div>
+                    <div class="wireframe-desc">Post-purchase confirmation page</div>
+                </a>
+            </div>
+        </section>
+        
+        <!-- Authentication -->
+        <section class="section">
+            <h2 class="section-title">Authentication</h2>
+            <div class="wireframe-grid">
+                <a href="auth-login-register-visual.html" class="wireframe-link">
+                    <div class="wireframe-name">Login/Register <span class="badge new">Visual</span></div>
+                    <div class="wireframe-desc">Tabbed authentication form</div>
+                </a>
+                <a href="auth-2fa-setup-visual.html" class="wireframe-link">
+                    <div class="wireframe-name">2FA Setup <span class="badge new">Visual</span></div>
+                    <div class="wireframe-desc">Two-factor authentication setup</div>
+                </a>
+                <a href="auth-2fa-entry-visual.html" class="wireframe-link">
+                    <div class="wireframe-name">2FA Entry <span class="badge new">Visual</span></div>
+                    <div class="wireframe-desc">Enter 2FA code at login</div>
+                </a>
+                <a href="auth-password-reset-visual.html" class="wireframe-link">
+                    <div class="wireframe-name">Password Reset <span class="badge new">Visual</span></div>
+                    <div class="wireframe-desc">Reset password flow</div>
+                </a>
+            </div>
+        </section>
+        
+        <!-- Member Pages -->
+        <section class="section">
+            <h2 class="section-title">Member Pages</h2>
+            <div class="wireframe-grid">
+                <a href="user-dashboard-visual.html" class="wireframe-link">
+                    <div class="wireframe-name">Dashboard <span class="badge new">Visual</span></div>
+                    <div class="wireframe-desc">Member dashboard overview</div>
+                </a>
+                <a href="member-my-tickets-visual.html" class="wireframe-link">
+                    <div class="wireframe-name">My Events <span class="badge new">Visual</span></div>
+                    <div class="wireframe-desc">Tickets and RSVPs</div>
+                </a>
+                <a href="member-profile-settings-visual.html" class="wireframe-link">
+                    <div class="wireframe-name">Profile Settings <span class="badge new">Visual</span></div>
+                    <div class="wireframe-desc">User profile management</div>
+                </a>
+                <a href="member-membership-settings.html" class="wireframe-link">
+                    <div class="wireframe-name">Membership <span class="badge new">Visual</span></div>
+                    <div class="wireframe-desc">Membership status and options</div>
+                </a>
+                <a href="member-security-settings-visual.html" class="wireframe-link">
+                    <div class="wireframe-name">Security Settings <span class="badge new">Visual</span></div>
+                    <div class="wireframe-desc">Password and 2FA management</div>
+                </a>
+            </div>
+        </section>
+        
+        <!-- Admin Pages -->
+        <section class="section">
+            <h2 class="section-title">Admin Pages</h2>
+            <div class="wireframe-grid">
+                <a href="admin-events-visual.html" class="wireframe-link">
+                    <div class="wireframe-name">Event Management <span class="badge new">Visual</span></div>
+                    <div class="wireframe-desc">Admin event dashboard</div>
+                </a>
+                <a href="event-creation.html" class="wireframe-link">
+                    <div class="wireframe-name">Create Event</div>
+                    <div class="wireframe-desc">Multi-step event creation</div>
+                </a>
+                <a href="event-checkin-visual.html" class="wireframe-link">
+                    <div class="wireframe-name">Event Check-in <span class="badge new">Visual</span></div>
+                    <div class="wireframe-desc">Staff check-in interface</div>
+                </a>
+                <a href="admin-vetting-queue.html" class="wireframe-link">
+                    <div class="wireframe-name">Vetting Queue</div>
+                    <div class="wireframe-desc">Review member applications</div>
+                </a>
+                <a href="admin-vetting-review.html" class="wireframe-link">
+                    <div class="wireframe-name">Vetting Review</div>
+                    <div class="wireframe-desc">Individual application review</div>
+                </a>
+                <a href="checkin-modal.html" class="wireframe-link">
+                    <div class="wireframe-name">Check-in Modal</div>
+                    <div class="wireframe-desc">Modal popup for event check-in</div>
+                </a>
+            </div>
+        </section>
+        
+        <!-- Error Pages -->
+        <section class="section">
+            <h2 class="section-title">Error Pages</h2>
+            <div class="wireframe-grid">
+                <a href="error-404-visual.html" class="wireframe-link">
+                    <div class="wireframe-name">404 Error <span class="badge new">Visual</span></div>
+                    <div class="wireframe-desc">Page not found</div>
+                </a>
+                <a href="error-403.html" class="wireframe-link">
+                    <div class="wireframe-name">403 Error</div>
+                    <div class="wireframe-desc">Access denied</div>
+                </a>
+                <a href="error-500.html" class="wireframe-link">
+                    <div class="wireframe-name">500 Error</div>
+                    <div class="wireframe-desc">Server error</div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Original Wireframes -->
+        <section class="section">
+            <h2 class="section-title">Original Wireframes (Archive)</h2>
+            <div class="wireframe-grid">
+                <a href="landing-page.html" class="wireframe-link">
+                    <div class="wireframe-name">Landing Page (Original)</div>
+                    <div class="wireframe-desc">Initial homepage design</div>
+                </a>
+                <a href="event-list.html" class="wireframe-link">
+                    <div class="wireframe-name">Event List (Original)</div>
+                    <div class="wireframe-desc">Initial event listing design</div>
+                </a>
+                <a href="event-detail.html" class="wireframe-link">
+                    <div class="wireframe-name">Event Detail (Original)</div>
+                    <div class="wireframe-desc">Initial event detail design</div>
+                </a>
+                <a href="user-dashboard.html" class="wireframe-link">
+                    <div class="wireframe-name">Dashboard (Original)</div>
+                    <div class="wireframe-desc">Initial member dashboard</div>
+                </a>
+                <a href="admin-events.html" class="wireframe-link">
+                    <div class="wireframe-name">Admin Events (Original)</div>
+                    <div class="wireframe-desc">Initial admin event management</div>
+                </a>
+                <a href="incident-report.html" class="wireframe-link">
+                    <div class="wireframe-name">Incident Report (Original)</div>
+                    <div class="wireframe-desc">Initial incident reporting form</div>
+                </a>
+                <a href="event-checkin.html" class="wireframe-link">
+                    <div class="wireframe-name">Event Check-in (Original)</div>
+                    <div class="wireframe-desc">Initial check-in interface</div>
+                </a>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

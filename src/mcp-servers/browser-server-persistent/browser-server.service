@@ -1,0 +1,33 @@
+[Unit]
+Description=Browser Tools MCP Persistent Server
+Documentation=https://github.com/modelcontextprotocol/browser-tools-mcp
+After=network.target
+
+[Service]
+Type=simple
+User=%USER%
+WorkingDirectory=/mnt/c/users/chad/source/repos/WitchCityRope/src/mcp-servers
+ExecStart=/usr/bin/node /mnt/c/users/chad/source/repos/WitchCityRope/src/mcp-servers/browser-server-persistent/browser-server.js
+Restart=always
+RestartSec=10
+
+# Environment variables
+Environment="NODE_ENV=production"
+Environment="CHROME_PATH=/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
+Environment="BROWSER_SERVER_PORT=9222"
+Environment="BROWSER_SERVER_HOST=127.0.0.1"
+
+# Logging
+StandardOutput=append:/mnt/c/users/chad/source/repos/WitchCityRope/src/mcp-servers/browser-server-persistent/browser-server.log
+StandardError=append:/mnt/c/users/chad/source/repos/WitchCityRope/src/mcp-servers/browser-server-persistent/browser-server.error.log
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Resource limits
+LimitNOFILE=4096
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

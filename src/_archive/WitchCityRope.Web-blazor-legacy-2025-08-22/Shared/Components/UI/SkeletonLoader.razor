@@ -1,0 +1,340 @@
+@* Skeleton loader component for displaying loading states with shimmer animation *@
+@* Supports multiple types: text, card, table, list *@
+
+@if (Type == SkeletonType.Text)
+{
+    <div class="skeleton-wrapper">
+        @for (int i = 0; i < Count; i++)
+        {
+            <div class="skeleton skeleton-text @GetSizeClass()" style="@GetDimensionStyles()">
+                <div class="skeleton-shimmer"></div>
+            </div>
+        }
+    </div>
+}
+else if (Type == SkeletonType.Card)
+{
+    <div class="skeleton-wrapper skeleton-card-wrapper">
+        @for (int i = 0; i < Count; i++)
+        {
+            <div class="skeleton skeleton-card" style="@GetDimensionStyles()">
+                <div class="skeleton-shimmer"></div>
+                <div class="skeleton-card-content">
+                    <div class="skeleton skeleton-card-header">
+                        <div class="skeleton-shimmer"></div>
+                    </div>
+                    <div class="skeleton skeleton-card-body">
+                        <div class="skeleton-shimmer"></div>
+                    </div>
+                    <div class="skeleton skeleton-card-footer">
+                        <div class="skeleton-shimmer"></div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else if (Type == SkeletonType.Table)
+{
+    <div class="skeleton-wrapper">
+        <div class="skeleton skeleton-table" style="@GetDimensionStyles()">
+            <div class="skeleton-shimmer"></div>
+            <div class="skeleton-table-content">
+                <!-- Table Header -->
+                <div class="skeleton-table-row skeleton-table-header">
+                    @for (int col = 0; col < TableColumns; col++)
+                    {
+                        <div class="skeleton skeleton-table-cell">
+                            <div class="skeleton-shimmer"></div>
+                        </div>
+                    }
+                </div>
+                <!-- Table Rows -->
+                @for (int row = 0; row < Count; row++)
+                {
+                    <div class="skeleton-table-row">
+                        @for (int col = 0; col < TableColumns; col++)
+                        {
+                            <div class="skeleton skeleton-table-cell">
+                                <div class="skeleton-shimmer"></div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+else if (Type == SkeletonType.List)
+{
+    <div class="skeleton-wrapper">
+        @for (int i = 0; i < Count; i++)
+        {
+            <div class="skeleton skeleton-list-item" style="@GetDimensionStyles()">
+                <div class="skeleton-shimmer"></div>
+                <div class="skeleton-list-content">
+                    <div class="skeleton skeleton-list-icon">
+                        <div class="skeleton-shimmer"></div>
+                    </div>
+                    <div class="skeleton-list-text">
+                        <div class="skeleton skeleton-list-title">
+                            <div class="skeleton-shimmer"></div>
+                        </div>
+                        <div class="skeleton skeleton-list-subtitle">
+                            <div class="skeleton-shimmer"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    public enum SkeletonType
+    {
+        Text,
+        Card,
+        Table,
+        List
+    }
+
+    [Parameter] public SkeletonType Type { get; set; } = SkeletonType.Text;
+    [Parameter] public string? Width { get; set; }
+    [Parameter] public string? Height { get; set; }
+    [Parameter] public int Count { get; set; } = 1;
+    [Parameter] public int TableColumns { get; set; } = 4;
+    [Parameter] public string Size { get; set; } = "medium"; // small, medium, large
+
+    private string GetSizeClass()
+    {
+        return $"skeleton-{Size}";
+    }
+
+    private string GetDimensionStyles()
+    {
+        var styles = new List<string>();
+        
+        if (!string.IsNullOrEmpty(Width))
+        {
+            styles.Add($"width: {Width}");
+        }
+        
+        if (!string.IsNullOrEmpty(Height))
+        {
+            styles.Add($"height: {Height}");
+        }
+        
+        return string.Join("; ", styles);
+    }
+}
+
+<style>
+    /* Base skeleton styles */
+    .skeleton-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: var(--wcr-space-sm);
+    }
+
+    .skeleton {
+        position: relative;
+        overflow: hidden;
+        background-color: var(--wcr-taupe);
+        border-radius: var(--wcr-radius-sm);
+    }
+
+    /* Shimmer animation */
+    .skeleton-shimmer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.4),
+            transparent
+        );
+        animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    }
+
+    @@keyframes skeleton-shimmer {
+        0% {
+            transform: translateX(-100%);
+        }
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
+    /* Text skeleton styles */
+    .skeleton-text {
+        height: 1em;
+        margin-bottom: var(--wcr-space-xs);
+    }
+
+    .skeleton-text:last-child {
+        width: 60%;
+    }
+
+    /* Size variations for text */
+    .skeleton-text.skeleton-small {
+        height: 0.75em;
+    }
+
+    .skeleton-text.skeleton-large {
+        height: 1.25em;
+    }
+
+    /* Card skeleton styles */
+    .skeleton-card-wrapper {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: var(--wcr-space-md);
+    }
+
+    .skeleton-card {
+        width: 300px;
+        background-color: var(--wcr-cream);
+        border-radius: var(--wcr-radius-lg);
+        padding: 0;
+        box-shadow: var(--wcr-shadow-md);
+    }
+
+    .skeleton-card-content {
+        padding: var(--wcr-space-md);
+    }
+
+    .skeleton-card-header {
+        height: 150px;
+        margin: calc(-1 * var(--wcr-space-md));
+        margin-bottom: var(--wcr-space-md);
+        border-radius: var(--wcr-radius-lg) var(--wcr-radius-lg) 0 0;
+    }
+
+    .skeleton-card-body {
+        height: 3em;
+        margin-bottom: var(--wcr-space-sm);
+    }
+
+    .skeleton-card-footer {
+        height: 1em;
+        width: 70%;
+    }
+
+    /* Table skeleton styles */
+    .skeleton-table {
+        width: 100%;
+        background-color: var(--wcr-ivory);
+        border-radius: var(--wcr-radius-lg);
+        overflow: hidden;
+        border: 1px solid var(--wcr-taupe);
+    }
+
+    .skeleton-table-content {
+        width: 100%;
+    }
+
+    .skeleton-table-row {
+        display: flex;
+        border-bottom: 1px solid var(--wcr-cream);
+    }
+
+    .skeleton-table-header {
+        background-color: var(--wcr-charcoal);
+    }
+
+    .skeleton-table-header .skeleton-table-cell {
+        background-color: transparent;
+        height: 3em;
+    }
+
+    .skeleton-table-header .skeleton-shimmer {
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.2),
+            transparent
+        );
+    }
+
+    .skeleton-table-cell {
+        flex: 1;
+        padding: var(--wcr-space-md);
+        height: 2.5em;
+        margin: var(--wcr-space-xs);
+        background-color: var(--wcr-taupe);
+    }
+
+    /* List skeleton styles */
+    .skeleton-list-item {
+        width: 100%;
+        background-color: var(--wcr-ivory);
+        border-radius: var(--wcr-radius-md);
+        padding: 0;
+        border: 1px solid var(--wcr-taupe);
+        transition: all var(--wcr-transition-base);
+    }
+
+    .skeleton-list-content {
+        display: flex;
+        align-items: center;
+        padding: var(--wcr-space-md);
+        gap: var(--wcr-space-md);
+    }
+
+    .skeleton-list-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--wcr-radius-pill);
+        flex-shrink: 0;
+    }
+
+    .skeleton-list-text {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: var(--wcr-space-xs);
+    }
+
+    .skeleton-list-title {
+        height: 1.2em;
+        width: 70%;
+    }
+
+    .skeleton-list-subtitle {
+        height: 0.9em;
+        width: 40%;
+        opacity: 0.7;
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .skeleton-card-wrapper {
+            flex-direction: column;
+        }
+
+        .skeleton-card {
+            width: 100%;
+        }
+
+        .skeleton-table-cell {
+            padding: var(--wcr-space-sm);
+        }
+
+        .skeleton-list-icon {
+            width: 40px;
+            height: 40px;
+        }
+    }
+
+    /* Reduced motion support */
+    @@media (prefers-reduced-motion: reduce) {
+        .skeleton-shimmer {
+            animation: none;
+            background: rgba(255, 255, 255, 0.2);
+        }
+    }
+</style>

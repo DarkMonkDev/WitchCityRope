@@ -1,0 +1,265 @@
+# Design System Analysis Report
+================================================================================
+
+## 1. SPACING ANALYSIS
+----------------------------------------
+
+**Detected Base Unit: 4px**
+
+### Padding Values (sorted by frequency):
+  - 20px: 47 times
+  - 24px: 26 times
+  - 4px 12px: 25 times
+  - 0: 24 times
+  - 16px: 23 times
+  - 12px 16px: 16 times
+  - 30px: 14 times
+  - 10px 20px: 14 times
+  - 12px: 14 times
+  - 8px 16px: 13 times
+  - 12px 24px: 12 times
+  - 40px: 12 times
+  - 40px 20px: 8 times
+  - 20px 40px: 7 times
+  - 16px 24px: 6 times
+
+### Margin Values (sorted by frequency):
+  - 20px: 76 times
+  - 8px: 48 times
+  - 12px: 38 times
+  - 4px: 37 times
+  - 16px: 31 times
+  - 0: 30 times
+  - 24px: 21 times
+  - 30px: 20 times
+  - 40px: 20 times
+  - 32px: 17 times
+  - 0px: 16 times
+  - auto: 13 times
+  - 20px 0px: 9 times
+  - 10px: 8 times
+  - 2px: 4 times
+
+### Gap Values (Flexbox/Grid):
+  - 8px: 50 times
+  - 12px: 45 times
+  - 16px: 34 times
+  - 24px: 15 times
+  - 20px: 12 times
+  - 30px: 7 times
+  - 4px: 4 times
+  - 5px: 3 times
+  - 40px: 3 times
+  - 6px: 3 times
+  - 10px: 2 times
+  - 2px: 1 times
+
+## 2. LAYOUT PATTERNS
+----------------------------------------
+
+### Container Max-Width Values:
+  - 1200px: 17 times
+  - 600px: 7 times
+  - 768px: 5 times
+  - 500px: 5 times
+  - 400px: 3 times
+  - 600px 30px 20px: 3 times
+  - 768px 80px: 3 times
+  - 300px: 3 times
+  - 768px 20px: 3 times
+  - 440px: 2 times
+  - 800px: 2 times
+  - 480px: 2 times
+  - 1400px: 1 times
+  - 600px 12px: 1 times
+  - 600px 20px: 1 times
+  - none: 1 times
+  - 480px 95%: 1 times
+  - 768px 20px 10px: 1 times
+  - 100%: 1 times
+  - 200px: 1 times
+  - 768px 1px: 1 times
+  - 900px: 1 times
+  - 1000px: 1 times
+  - 768px 8px 20px: 1 times
+
+### Grid Template Patterns:
+  - 1fr: 10 times
+  - repeat(2, 1fr): 5 times
+  - 1fr 1fr: 3 times
+  - repeat(auto-fit, minmax(200px, 1fr)): 3 times
+  - repeat(auto-fit, minmax(250px, 1fr)): 2 times
+  - 260px 1fr: 2 times
+  - 1fr 450px: 1 times
+  - 1fr 1fr 1fr: 1 times
+  - repeat(auto-fill, minmax(250px, 1fr)): 1 times
+  - repeat(auto-fill, minmax(300px, 1fr)): 1 times
+  - 1fr 400px: 1 times
+  - repeat(auto-fit, minmax(300px, 1fr)): 1 times
+  - repeat(3, 1fr): 1 times
+  - repeat(auto-fit, minmax(120px, 1fr)): 1 times
+  - repeat(auto-fill, minmax(350px, 1fr)): 1 times
+
+### Media Query Breakpoints:
+  - 480px
+  - 600px
+  - 768px
+
+## 3. BORDER RADIUS VALUES
+----------------------------------------
+  - 6px: 86 times
+  - 8px: 43 times
+  - 50%: 27 times
+  - 12px: 23 times
+  - 4px: 20 times
+  - 20px: 16 times
+  - 3px: 5 times
+  - 2px: 5 times
+  - 10px: 3 times
+  - 30px 30px 0px 0px: 1 times
+  - 6px 6px 0px 0px: 1 times
+  - 0px 0px 6px 6px: 1 times
+
+## 4. SPACING SCALE RECOMMENDATION
+----------------------------------------
+
+Based on 4px base unit, recommended scale:
+  - 4px (1x base)
+  - 8px (2x base)
+  - 12px (3x base)
+  - 16px (4x base)
+  - 20px (5x base)
+  - 24px (6x base)
+  - 32px (8x base)
+  - 40px (10x base)
+  - 60px (15x base)
+  - 80px (20x base)
+
+## 5. POTENTIAL INCONSISTENCIES
+----------------------------------------
+
+### Similar Spacing Values:
+  - 0px and 2px (differ by 2px)
+  - 2px and 4px (differ by 2px)
+  - 4px and 6px (differ by 2px)
+  - 6px and 8px (differ by 2px)
+  - 8px and 10px (differ by 2px)
+  - 10px and 12px (differ by 2px)
+  - 12px and 16px (differ by 4px)
+  - 16px and 20px (differ by 4px)
+  - 20px and 21px (differ by 1px)
+  - 21px and 24px (differ by 3px)
+  - 30px and 32px (differ by 2px)
+
+## 6. FILE-SPECIFIC PATTERNS
+----------------------------------------
+
+### admin-events.html
+  Layout: flexbox (12 instances)
+  Top padding: 20px (2x), 0 (1x), 16px 24px (1x)
+  Top margin: auto (2x), 0 (1x), 30px (1x)
+
+### admin-vetting-queue.html
+  Layout: flexbox (11 instances)
+  Top padding: 4px 12px (2x), 20px (2x), 0 (1x)
+  Top margin: auto (2x), 2px (2x), 0 (1x)
+
+### admin-vetting-review.html
+  Layout: flexbox (17 instances), grid (2 instances)
+  Top padding: 30px (3x), 24px (3x), 20px 24px (2x)
+  Top margin: 20px (4x), 4px (3x), 0 (2x)
+
+### auth-2fa-entry.html
+  Layout: flexbox (6 instances)
+  Top padding: 20px (4x), 12px 16px (2x), 0 (1x)
+  Top margin: 20px (4x), 32px (3x), 8px (2x)
+
+### auth-2fa-setup.html
+  Layout: flexbox (11 instances), grid (2 instances)
+  Top padding: 20px (7x), 0 (1x), 30px 20px (1x)
+  Top margin: 20px (6x), 20px 0px (5x), 12px (3x)
+
+### auth-login-register.html
+  Layout: flexbox (7 instances)
+  Top padding: 20px (2x), 0 (1x), 40px 20px (1x)
+  Top margin: 20px (7x), 8px (2x), 4px (2x)
+
+### auth-password-reset-form.html
+  Layout: flexbox (5 instances)
+  Top padding: 0 (1x), 20px (1x), 40px 20px (1x)
+  Top margin: 8px (4x), 12px (3x), 24px (3x)
+
+### auth-password-reset-request.html
+  Layout: flexbox (4 instances)
+  Top padding: 20px (4x), 0 (1x), 40px 20px (1x)
+  Top margin: 8px (5x), 24px (3x), 12px (2x)
+
+### checkin-modal.html
+  Layout: flexbox (11 instances), grid (1 instances)
+  Top padding: 20px 24px (2x), 10px 12px (2x), 0 (1x)
+  Top margin: 24px (2x), 12px (2x), 16px (2x)
+
+### error-403.html
+  Layout: flexbox (6 instances)
+  Top padding: 24px (3x), 0 (1x), 20px (1x)
+  Top margin: 40px (3x), 16px (2x), 12px (2x)
+
+### error-404.html
+  Layout: flexbox (7 instances), grid (1 instances)
+  Top padding: 12px 24px (2x), 0 (1x), 20px (1x)
+  Top margin: 20px (2x), 0 (1x), 0px (1x)
+
+### error-500.html
+  Layout: flexbox (4 instances)
+  Top padding: 20px (3x), 0 (1x), 100px 20px 40px (1x)
+  Top margin: 40px (3x), 30px (2x), 0 (1x)
+
+### event-checkin.html
+  Layout: flexbox (6 instances)
+  Top padding: 8px 16px (3x), 4px 12px (3x), 20px (2x)
+  Top margin: 4px (2x), 0 (1x), 0px (1x)
+
+### event-creation.html
+  Layout: flexbox (27 instances), grid (7 instances)
+  Top padding: 4px 12px (13x), 16px (7x), 20px (3x)
+  Top margin: 20px (10x), 4px (6x), 12px (5x)
+
+### event-detail.html
+  Layout: flexbox (11 instances), grid (1 instances)
+  Top padding: 20px 40px (2x), 20px (2x), 24px (2x)
+  Top margin: 20px (9x), 8px (8x), 16px (6x)
+
+### event-list.html
+  Layout: flexbox (13 instances)
+  Top padding: 20px (2x), 0 (1x), 10px 40px (1x)
+  Top margin: 20px (3x), 12px (3x), 0px (2x)
+
+### landing-page.html
+  Layout: flexbox (4 instances), grid (3 instances)
+  Top padding: 60px 40px (2x), 0 (1x), 10px 40px (1x)
+  Top margin: auto (6x), 12px (5x), 40px (4x)
+
+### member-membership-settings.html
+  Layout: flexbox (14 instances), grid (3 instances)
+  Top padding: 24px (6x), 16px (2x), 20px (2x)
+  Top margin: 20px (6x), 32px (5x), 0 (2x)
+
+### member-my-tickets.html
+  Layout: flexbox (14 instances), grid (2 instances)
+  Top padding: 12px (3x), 24px (3x), 0 (2x)
+  Top margin: 4px (6x), 20px (5x), 8px (4x)
+
+### member-profile-settings.html
+  Layout: flexbox (21 instances), grid (3 instances)
+  Top padding: 24px (4x), 16px 0px (2x), 16px (2x)
+  Top margin: 32px (5x), 12px (4x), 20px (3x)
+
+### user-dashboard.html
+  Layout: flexbox (10 instances), grid (2 instances)
+  Top padding: 20px (4x), 20px 40px (2x), 30px (2x)
+  Top margin: 8px (3x), 20px (3x), 0 (1x)
+
+### vetting-application.html
+  Layout: flexbox (9 instances)
+  Top padding: 30px (2x), 20px (2x), 12px 16px (2x)
+  Top margin: 8px (4x), 16px (4x), 0 (3x)

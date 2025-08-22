@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation Test - Witch City Rope</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        h1 {
+            color: #880124;
+            margin-bottom: 20px;
+        }
+        
+        .links {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        a {
+            color: #880124;
+            padding: 10px;
+            border: 1px solid #880124;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        
+        a:hover {
+            background: #880124;
+            color: white;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #614B79;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Navigation Test Page</h1>
+    <p>This page tests navigation between local HTML files. Click any link below to navigate:</p>
+    
+    <div class="section">
+        <h2>Main Pages</h2>
+        <div class="links">
+            <a href="index.html">Wireframe Index</a>
+            <a href="landing-page-visual-v2.html">Landing Page</a>
+            <a href="event-list-visual.html">Event List</a>
+            <a href="event-detail-visual.html">Event Detail</a>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>User Pages</h2>
+        <div class="links">
+            <a href="user-dashboard-visual.html">Dashboard</a>
+            <a href="member-my-tickets-visual.html">My Events</a>
+            <a href="member-profile-settings-visual.html">Profile Settings</a>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>Auth Pages</h2>
+        <div class="links">
+            <a href="auth-login-register-visual.html">Login/Register</a>
+            <a href="auth-2fa-setup-visual.html">2FA Setup</a>
+            <a href="auth-password-reset-visual.html">Password Reset</a>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>Admin Pages</h2>
+        <div class="links">
+            <a href="admin-events-visual.html">Admin Events</a>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>Other Pages</h2>
+        <div class="links">
+            <a href="error-404-visual.html">404 Error</a>
+        </div>
+    </div>
+    
+    <hr style="margin: 40px 0;">
+    
+    <p><strong>Note:</strong> If clicking these links doesn't work, make sure:</p>
+    <ul>
+        <li>You're opening the HTML files directly from the file system (file:/// protocol)</li>
+        <li>All HTML files are in the same directory</li>
+        <li>Your browser allows local file navigation (most modern browsers do)</li>
+    </ul>
+</body>
+</html>

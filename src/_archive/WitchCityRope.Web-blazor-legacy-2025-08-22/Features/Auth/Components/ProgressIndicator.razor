@@ -1,0 +1,163 @@
+@namespace WitchCityRope.Web.Features.Auth.Components
+
+<div class="progress-indicator">
+    <div class="progress-track">
+        <div class="progress-fill" style="width: @ProgressWidth%"></div>
+    </div>
+    <div class="progress-steps">
+        @for (int i = 0; i < Steps.Count; i++)
+        {
+            var step = Steps[i];
+            var index = i;
+            var stepClass = GetStepClass(index);
+            
+            <div class="progress-step @stepClass">
+                <div class="step-number">
+                    @if (index < CurrentStep - 1)
+                    {
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    }
+                    else
+                    {
+                        @(index + 1)
+                    }
+                </div>
+                <div class="step-label">@step.Label</div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .progress-indicator {
+        position: relative;
+        margin-bottom: var(--wcr-space-2xl);
+    }
+    
+    .progress-track {
+        position: absolute;
+        top: 20px;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--wcr-color-taupe);
+        border-radius: 2px;
+        overflow: hidden;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--wcr-color-burgundy) 0%, var(--wcr-color-plum) 100%);
+        transition: width 0.5s ease;
+        border-radius: 2px;
+    }
+    
+    .progress-steps {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .progress-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--wcr-space-xs);
+        flex: 1;
+    }
+    
+    .step-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--wcr-color-cream);
+        border: 3px solid var(--wcr-color-taupe);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--wcr-font-heading);
+        font-weight: 700;
+        font-size: 16px;
+        color: var(--wcr-color-stone);
+        transition: all 0.3s ease;
+    }
+    
+    .step-number svg {
+        width: 20px;
+        height: 20px;
+        color: var(--wcr-color-ivory);
+    }
+    
+    .progress-step.completed .step-number {
+        background: var(--wcr-color-burgundy);
+        border-color: var(--wcr-color-burgundy);
+        color: var(--wcr-color-ivory);
+    }
+    
+    .progress-step.active .step-number {
+        background: var(--wcr-color-ivory);
+        border-color: var(--wcr-color-burgundy);
+        color: var(--wcr-color-burgundy);
+        box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.1);
+    }
+    
+    .step-label {
+        font-size: 13px;
+        color: var(--wcr-color-stone);
+        text-align: center;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+    
+    .progress-step.completed .step-label,
+    .progress-step.active .step-label {
+        color: var(--wcr-color-charcoal);
+    }
+    
+    @@media (max-width: 768px) {
+        .step-label {
+            font-size: 11px;
+            white-space: normal;
+            max-width: 80px;
+        }
+        
+        .step-number {
+            width: 32px;
+            height: 32px;
+            font-size: 14px;
+        }
+        
+        .step-number svg {
+            width: 16px;
+            height: 16px;
+        }
+    }
+</style>
+
+@code {
+    [Parameter] public int CurrentStep { get; set; } = 1;
+    [Parameter] public List<ProgressStep> Steps { get; set; } = new();
+    
+    private double ProgressWidth => CurrentStep > 0 ? ((double)(CurrentStep - 1) / (Steps.Count - 1)) * 100 : 0;
+    
+    private string GetStepClass(int index)
+    {
+        if (index < CurrentStep - 1) return "completed";
+        if (index == CurrentStep - 1) return "active";
+        return "";
+    }
+    
+    public class ProgressStep
+    {
+        public string Label { get; set; } = "";
+        public ProgressStep(string label)
+        {
+            Label = label;
+        }
+    }
+}

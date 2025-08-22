@@ -1,0 +1,68 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>.</DockerfileContext>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Blazor and ASP.NET Core -->
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.6" />
+    
+    <!-- Syncfusion Components -->
+    <PackageReference Include="Syncfusion.Blazor.Core" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.Blazor.Buttons" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.Blazor.Inputs" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.Blazor.Calendars" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.Blazor.DropDowns" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.Blazor.Grid" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.Blazor.Notifications" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.Blazor.Themes" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.Blazor.Charts" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.Blazor.Cards" Version="30.1.37" />
+    
+    <!-- Authentication -->
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.12.1" />
+    
+    <!-- HTTP Client -->
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.6" />
+    
+    <!-- Email -->
+    <PackageReference Include="SendGrid" Version="9.29.3" />
+    <PackageReference Include="SendGrid.Extensions.DependencyInjection" Version="1.0.1" />
+    
+    <!-- Logging -->
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    
+    <!-- Docker Support -->
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Ensure CSS files are included -->
+    <Content Update="wwwroot\css\*.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Create folder structure -->
+    <Folder Include="Features\Auth\Services\" />
+    <Folder Include="Features\Events\Services\" />
+    <Folder Include="Features\Members\Services\" />
+    <Folder Include="Features\Admin\Services\" />
+    <Folder Include="Shared\Models\" />
+    <Folder Include="wwwroot\images\" />
+    <Folder Include="wwwroot\js\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WitchCityRope.Core\WitchCityRope.Core.csproj" />
+    <ProjectReference Include="..\WitchCityRope.Infrastructure\WitchCityRope.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

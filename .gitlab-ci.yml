@@ -1,0 +1,165 @@
+stages:
+  - build
+  - test
+  - quality
+  - package
+
+variables:
+  DOTNET_VERSION: "9.0"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+  NUGET_PACKAGES: "$CI_PROJECT_DIR/.nuget/packages"
+  GIT_DEPTH: 0
+
+image: mcr.microsoft.com/dotnet/sdk:9.0
+
+cache:
+  key: "$CI_COMMIT_REF_SLUG-nuget"
+  paths:
+    - .nuget/packages
+  policy: pull-push
+
+.test-template: &test-template
+  stage: test
+  coverage: '/Total\s*\|\s*(\d+\.?\d*)\%/'
+  artifacts:
+    when: always
+    paths:
+      - TestResults/
+      - CoverageReport/
+    reports:
+      junit:
+        - TestResults/**/*test-results.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: CoverageReport/Cobertura.xml
+    expire_in: 1 week
+
+before_script:
+  - dotnet --version
+  - dotnet restore --packages $NUGET_PACKAGES
+
+build:
+  stage: build
+  script:
+    - dotnet build --no-restore --configuration Release
+  artifacts:
+    paths:
+      - src/**/bin/
+      - src/**/obj/
+      - tests/**/bin/
+      - tests/**/obj/
+    expire_in: 1 hour
+
+unit-tests:
+  <<: *test-template
+  needs: ["build"]
+  script:
+    - |
+      dotnet test --no-build --configuration Release \
+        --filter "FullyQualifiedName!~IntegrationTests" \
+        --logger "junit;LogFilePath=../../TestResults/{assembly}-test-results.xml" \
+        --logger "console;verbosity=detailed" \
+        --collect:"XPlat Code Coverage" \
+        --results-directory ./TestResults \
+        -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+    - |
+      dotnet tool install --global dotnet-reportgenerator-globaltool
+      reportgenerator \
+        -reports:"TestResults/**/coverage.opencover.xml" \
+        -targetdir:"CoverageReport" \
+        -reporttypes:"Html;Cobertura;TextSummary" \
+        -verbosity:"Info"
+    - cat CoverageReport/Summary.txt
+
+integration-tests:
+  <<: *test-template
+  needs: ["build"]
+  services:
+    - name: mcr.microsoft.com/mssql/server:2022-latest
+      alias: sqlserver
+      variables:
+        ACCEPT_EULA: "Y"
+        SA_PASSWORD: "YourStrong@Passw0rd"
+  variables:
+    ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=WitchCityRopeTest;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true"
+  script:
+    - |
+      # Wait for SQL Server to be ready
+      for i in {1..30}; do
+        if dotnet ef database update --project src/WitchCityRope.Infrastructure --startup-project src/WitchCityRope.Api 2>/dev/null; then
+          echo "Database is ready"
+          break
+        fi
+        echo "Waiting for database... ($i/30)"
+        sleep 2
+      done
+    - |
+      dotnet test tests/WitchCityRope.IntegrationTests/WitchCityRope.IntegrationTests.csproj \
+        --no-build --configuration Release \
+        --logger "junit;LogFilePath=../../TestResults/integration-test-results.xml" \
+        --logger "console;verbosity=detailed"
+
+code-quality:
+  stage: quality
+  needs: ["build"]
+  script:
+    - dotnet tool install --global dotnet-format
+    - dotnet format --verify-no-changes --verbosity diagnostic
+    - |
+      dotnet build --no-restore --configuration Release \
+        /p:AnalysisMode=AllEnabledByDefault \
+        /p:TreatWarningsAsErrors=true
+  allow_failure: true
+
+security-scan:
+  stage: quality
+  needs: ["build"]
+  script:
+    - dotnet list package --vulnerable --include-transitive
+    - |
+      if dotnet list package --vulnerable --include-transitive | grep -q "has vulnerabilities"; then
+        echo "Vulnerable packages found!"
+        exit 1
+      fi
+
+docker-build:
+  stage: package
+  image: docker:latest
+  services:
+    - docker:dind
+  needs: ["unit-tests", "integration-tests"]
+  only:
+    - main
+    - develop
+  before_script:
+    - docker info
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE/web:$CI_COMMIT_SHA -f src/WitchCityRope.Web/Dockerfile .
+    - docker build -t $CI_REGISTRY_IMAGE/api:$CI_COMMIT_SHA -f src/WitchCityRope.Api/Dockerfile .
+    - |
+      if [ "$CI_COMMIT_BRANCH" == "main" ]; then
+        docker tag $CI_REGISTRY_IMAGE/web:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE/web:latest
+        docker tag $CI_REGISTRY_IMAGE/api:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE/api:latest
+      fi
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker push $CI_REGISTRY_IMAGE/web:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/api:$CI_COMMIT_SHA
+    - |
+      if [ "$CI_COMMIT_BRANCH" == "main" ]; then
+        docker push $CI_REGISTRY_IMAGE/web:latest
+        docker push $CI_REGISTRY_IMAGE/api:latest
+      fi
+
+pages:
+  stage: package
+  needs: ["unit-tests"]
+  only:
+    - main
+  script:
+    - mkdir -p public
+    - cp -r CoverageReport/* public/
+  artifacts:
+    paths:
+      - public
+  when: on_success

@@ -1,0 +1,66 @@
+# Development Dockerfile for Witch City Rope
+# This file builds the entire solution for development with hot reload support
+
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS development
+
+# Install development tools
+RUN apt-get update && \
+    apt-get install -y \
+    curl \
+    git \
+    nano \
+    procps \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js for frontend tooling
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install .NET tools
+RUN dotnet tool install --global dotnet-ef
+RUN dotnet tool install --global dotnet-watch
+
+# Add tools to PATH
+ENV PATH="$PATH:/root/.dotnet/tools"
+
+# Set working directory
+WORKDIR /workspace
+
+# Create directories for data persistence
+RUN mkdir -p /app/data /app/logs /app/uploads
+
+# Set environment variables for development
+ENV ASPNETCORE_ENVIRONMENT=Development
+ENV DOTNET_USE_POLLING_FILE_WATCHER=true
+ENV DOTNET_WATCH_RESTART_ON_RUDE_EDIT=true
+ENV DOTNET_RUNNING_IN_CONTAINER=true
+
+# Copy solution file if exists
+COPY *.sln ./
+
+# Copy all project files
+COPY src/WitchCityRope.Core/WitchCityRope.Core.csproj ./src/WitchCityRope.Core/
+COPY src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj ./src/WitchCityRope.Infrastructure/
+COPY src/WitchCityRope.Api/WitchCityRope.Api.csproj ./src/WitchCityRope.Api/
+COPY src/WitchCityRope.Web/WitchCityRope.Web.csproj ./src/WitchCityRope.Web/
+
+# Copy test project files
+COPY tests/WitchCityRope.Api.Tests/WitchCityRope.Api.Tests.csproj ./tests/WitchCityRope.Api.Tests/
+COPY tests/WitchCityRope.IntegrationTests/WitchCityRope.IntegrationTests.csproj ./tests/WitchCityRope.IntegrationTests/
+COPY tests/WitchCityRope.Web.Tests/WitchCityRope.Web.Tests.csproj ./tests/WitchCityRope.Web.Tests/
+
+# Restore all dependencies
+RUN dotnet restore
+
+# Copy all source code
+COPY . .
+
+# Build the solution
+RUN dotnet build -c Debug
+
+# Expose ports
+EXPOSE 80 443 5000 5001 7000 7001
+
+# Default command (can be overridden in docker-compose)
+CMD ["dotnet", "watch", "run", "--project", "src/WitchCityRope.Web/WitchCityRope.Web.csproj"]

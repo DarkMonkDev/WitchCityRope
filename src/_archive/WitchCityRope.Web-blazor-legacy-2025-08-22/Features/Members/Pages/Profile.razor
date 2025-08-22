@@ -1,0 +1,388 @@
+@page "/profile"
+@using WitchCityRope.Web.Services
+@using WitchCityRope.Web.Shared.Layouts
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Navigations
+@using Microsoft.AspNetCore.Authorization
+@inject IUserService UserService
+@inject IFileUploadService FileUploadService
+@inject IToastService ToastService
+@inject NavigationManager Navigation
+@attribute [Authorize]
+@layout MainLayout
+
+@* User profile page for viewing and editing profile information *@
+
+<div class="profile-container">
+    <div class="profile-grid">
+        @* Settings Sidebar *@
+        <div class="settings-sidebar">
+            <h3 class="sidebar-title">Settings</h3>
+            <nav class="sidebar-nav">
+                <a href="/profile" class="sidebar-link active">
+                    <span class="e-icons e-user"></span> Profile Information
+                </a>
+                <a href="/profile/emergency-contacts" class="sidebar-link">
+                    <span class="e-icons e-warning"></span> Emergency Contacts
+                </a>
+                <a href="/profile/vetting" class="sidebar-link">
+                    <span class="e-icons e-check-circle"></span> Vetting Status
+                </a>
+                <a href="/profile/security" class="sidebar-link">
+                    <span class="e-icons e-lock"></span> Security Settings
+                </a>
+                <a href="/profile/privacy" class="sidebar-link">
+                    <span class="e-icons e-eye"></span> Privacy Settings
+                </a>
+                <a href="/profile/membership" class="sidebar-link">
+                    <span class="e-icons e-card"></span> Membership
+                </a>
+            </nav>
+        </div>
+
+        @* Main Content *@
+        <div class="content-area">
+            <div class="content-header">
+                <h1 class="content-title">Profile Settings</h1>
+                <p class="content-subtitle">Manage your public profile and personal information</p>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="loading-spinner">
+                    <div class="e-spinner-pane">
+                        <div class="e-spinner-inner">
+                            <div class="e-spin-material"></div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (profile != null)
+            {
+                <EditForm Model="@profile" OnValidSubmit="@SaveProfile">
+                    @* Avatar Section *@
+                    <div class="form-section">
+                        <div class="section-title">
+                            <div class="section-icon">
+                                <span class="e-icons e-image"></span>
+                            </div>
+                            <span>Profile Picture</span>
+                        </div>
+                        
+                        <div class="avatar-section">
+                            <div class="avatar-preview">
+                                @if (!string.IsNullOrEmpty(profile.AvatarUrl))
+                                {
+                                    <img src="@profile.AvatarUrl" alt="Profile picture" />
+                                }
+                                else
+                                {
+                                    <span>@GetInitials()</span>
+                                }
+                            </div>
+                            <div class="avatar-upload">
+                                <SfUploader ID="avatarUpload" 
+                                           AllowedExtensions=".jpg,.jpeg,.png,.gif"
+                                           MaxFileSize="5242880"
+                                           Multiple="false">
+                                    <UploaderEvents TValue="UploadFiles" OnUploadStart="@OnAvatarUploadStart" 
+                                                   Success="@OnAvatarUploadSuccess" 
+                                                   OnFailure="@OnAvatarUploadFailure"></UploaderEvents>
+                                    <UploaderTemplates>
+                                        <Template Context="uploaderContext">
+                                            <SfButton CssClass="e-outline">Choose Photo</SfButton>
+                                        </Template>
+                                    </UploaderTemplates>
+                                </SfUploader>
+                                <span class="form-hint">Maximum file size: 5MB. Supported formats: JPG, PNG, GIF</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Basic Information *@
+                    <div class="form-section">
+                        <div class="section-title">
+                            <div class="section-icon">
+                                <span class="e-icons e-user"></span>
+                            </div>
+                            <span>Basic Information</span>
+                        </div>
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Scene Name</label>
+                                <SfTextBox @bind-Value="profile.SceneName" 
+                                          Placeholder="Your scene name"
+                                          CssClass="form-input"></SfTextBox>
+                                <span class="form-hint">This is how you'll be known in the community</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Pronouns</label>
+                                <SfDropDownList TValue="string" TItem="PronounOption" 
+                                               @bind-Value="profile.Pronouns"
+                                               DataSource="@pronounOptions"
+                                               Placeholder="Select pronouns"
+                                               AllowCustom="true"
+                                               CssClass="form-input">
+                                    <DropDownListFieldSettings Text="Text" Value="Value"></DropDownListFieldSettings>
+                                </SfDropDownList>
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label class="form-label">Bio</label>
+                                <SfTextBox @bind-Value="profile.Bio" 
+                                          Multiline="true" 
+                                          Placeholder="Tell us about yourself..."
+                                          CssClass="form-textarea"></SfTextBox>
+                                <span class="form-hint">Share your experience and interests in rope bondage</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <SfTextBox Value="@profile.Email" 
+                                          Readonly="true"
+                                          CssClass="form-input"></SfTextBox>
+                                <span class="form-hint">
+                                    @if (profile.EmailVerified)
+                                    {
+                                        <span class="text-success">
+                                            <span class="e-icons e-check-circle"></span> Verified
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-warning">
+                                            <span class="e-icons e-warning"></span> Not verified
+                                            <a href="/profile/verify-email" class="link">Verify now</a>
+                                        </span>
+                                    }
+                                </span>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Member Since</label>
+                                <SfTextBox Value="@profile.MemberSince.ToString("MMMM d, yyyy")" 
+                                          Readonly="true"
+                                          CssClass="form-input"></SfTextBox>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Privacy Settings *@
+                    <div class="form-section">
+                        <div class="section-title">
+                            <div class="section-icon">
+                                <span class="e-icons e-eye"></span>
+                            </div>
+                            <span>Privacy Settings</span>
+                        </div>
+                        
+                        <div class="privacy-options">
+                            <label class="toggle-option">
+                                <SfSwitch @bind-Checked="profile.IsPublicProfile"></SfSwitch>
+                                <div class="toggle-label">
+                                    <span class="toggle-title">Public Profile</span>
+                                    <span class="toggle-description">Allow other vetted members to view your profile</span>
+                                </div>
+                            </label>
+
+                            <label class="toggle-option">
+                                <SfSwitch @bind-Checked="profile.ShowAttendanceHistory"></SfSwitch>
+                                <div class="toggle-label">
+                                    <span class="toggle-title">Show Attendance History</span>
+                                    <span class="toggle-description">Display events you've attended on your profile</span>
+                                </div>
+                            </label>
+
+                            <label class="toggle-option">
+                                <SfSwitch @bind-Checked="profile.AllowMessages"></SfSwitch>
+                                <div class="toggle-label">
+                                    <span class="toggle-title">Allow Messages</span>
+                                    <span class="toggle-description">Let other members send you direct messages</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    @* Form Actions *@
+                    <div class="form-actions">
+                        <SfButton CssClass="e-primary" Type="ButtonType.Submit" Disabled="@isSaving">
+                            @if (isSaving)
+                            {
+                                <span>Saving...</span>
+                            }
+                            else
+                            {
+                                <span>Save Changes</span>
+                            }
+                        </SfButton>
+                        <SfButton CssClass="e-outline" OnClick="@CancelChanges">Cancel</SfButton>
+                    </div>
+                </EditForm>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private ProfileViewModel? profile;
+    private bool isLoading = true;
+    private bool isSaving = false;
+
+    private List<PronounOption> pronounOptions = new()
+    {
+        new() { Value = "she/her", Text = "she/her" },
+        new() { Value = "he/him", Text = "he/him" },
+        new() { Value = "they/them", Text = "they/them" },
+        new() { Value = "she/they", Text = "she/they" },
+        new() { Value = "he/they", Text = "he/they" },
+        new() { Value = "any", Text = "any pronouns" }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProfile();
+    }
+
+    private async Task LoadProfile()
+    {
+        try
+        {
+            isLoading = true;
+            var userProfile = await UserService.GetCurrentUserProfileAsync();
+            
+            if (userProfile != null)
+            {
+                profile = new ProfileViewModel
+                {
+                    SceneName = userProfile.SceneName,
+                    Email = userProfile.Email,
+                    Bio = userProfile.Bio ?? "",
+                    Pronouns = userProfile.Pronouns ?? "",
+                    EmailVerified = userProfile.EmailVerified,
+                    MemberSince = userProfile.MemberSince,
+                    // Additional fields for the form
+                    IsPublicProfile = true,
+                    ShowAttendanceHistory = true,
+                    AllowMessages = true
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Failed to load profile: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task SaveProfile()
+    {
+        if (profile == null) return;
+
+        try
+        {
+            isSaving = true;
+            
+            var update = new UserProfileUpdate
+            {
+                SceneName = profile.SceneName,
+                Bio = profile.Bio,
+                Pronouns = profile.Pronouns
+            };
+
+            await UserService.UpdateProfileAsync(update);
+            ToastService.ShowSuccess("Profile updated successfully!");
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Failed to save profile: {ex.Message}");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void CancelChanges()
+    {
+        Navigation.NavigateTo("/dashboard");
+    }
+
+    private string GetInitials()
+    {
+        if (string.IsNullOrEmpty(profile?.SceneName))
+            return "?";
+        
+        var parts = profile.SceneName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+            return $"{parts[0][0]}{parts[^1][0]}".ToUpper();
+        
+        return profile.SceneName.Substring(0, Math.Min(2, profile.SceneName.Length)).ToUpper();
+    }
+
+    private void OnAvatarUploadStart(UploadingEventArgs args)
+    {
+        // Validate file before upload
+        var file = args.FileData;
+        if (file.Size > 5242880) // 5MB
+        {
+            args.Cancel = true;
+            ToastService.ShowError("File size must be less than 5MB");
+        }
+    }
+
+    private void OnAvatarUploadSuccess(SuccessEventArgs args)
+    {
+        try
+        {
+            // In a real implementation, this would upload to a storage service
+            // For now, we'll just show a success message
+            ToastService.ShowSuccess("Profile picture updated!");
+            
+            // Simulate updating the avatar URL
+            if (profile != null)
+            {
+                profile.AvatarUrl = "/images/avatar-placeholder.jpg"; // Placeholder
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Failed to upload image: {ex.Message}");
+        }
+    }
+
+    private void OnAvatarUploadFailure(Syncfusion.Blazor.Inputs.FailureEventArgs args)
+    {
+        ToastService.ShowError($"Upload failed: {args.Response.StatusText}");
+    }
+
+    // View model
+    public class ProfileViewModel
+    {
+        public string SceneName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string? Bio { get; set; }
+        public string? Pronouns { get; set; }
+        public bool EmailVerified { get; set; }
+        public DateTime MemberSince { get; set; }
+        public string? AvatarUrl { get; set; }
+        
+        // Privacy settings
+        public bool IsPublicProfile { get; set; }
+        public bool ShowAttendanceHistory { get; set; }
+        public bool AllowMessages { get; set; }
+    }
+
+    public class PronounOption
+    {
+        public string Value { get; set; } = string.Empty;
+        public string Text { get; set; } = string.Empty;
+    }
+}

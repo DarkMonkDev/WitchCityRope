@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-in - Rope Basics Workshop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            /* Colors from design system */
+            --color-primary: #8B4513;
+            --color-primary-hover: #6B3410;
+            --color-primary-light: #A0522D;
+            --color-primary-dark: #654321;
+            
+            /* Status Colors */
+            --color-success-text: #2e7d32;
+            --color-success-bg: #e8f5e9;
+            --color-success-border: #4caf50;
+            
+            --color-warning-text: #f57c00;
+            --color-warning-bg: #fff3e0;
+            --color-warning-border: #ff9800;
+            
+            --color-error-text: #d32f2f;
+            --color-error-bg: #ffebee;
+            --color-error-border: #f44336;
+            
+            --color-info-text: #1976d2;
+            --color-info-bg: #e3f2fd;
+            --color-info-border: #2196f3;
+            
+            /* Neutral Colors */
+            --color-black: #000000;
+            --color-gray-900: #1a1a1a;
+            --color-gray-800: #333333;
+            --color-gray-700: #4d4d4d;
+            --color-gray-600: #666666;
+            --color-gray-500: #808080;
+            --color-gray-400: #999999;
+            --color-gray-300: #cccccc;
+            --color-gray-200: #e0e0e0;
+            --color-gray-100: #f5f5f5;
+            --color-white: #ffffff;
+            
+            /* Typography */
+            --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-family-mono: monospace;
+            
+            /* Font Sizes */
+            --text-xs: 12px;
+            --text-sm: 14px;
+            --text-base: 16px;
+            --text-lg: 18px;
+            --text-xl: 20px;
+            --text-2xl: 24px;
+            --text-3xl: 28px;
+            --text-4xl: 32px;
+            
+            /* Font Weights */
+            --font-regular: 400;
+            --font-medium: 500;
+            --font-semibold: 600;
+            --font-bold: 700;
+            
+            /* Line Heights */
+            --leading-tight: 1.2;
+            --leading-normal: 1.6;
+            --leading-relaxed: 1.8;
+            
+            /* Spacing */
+            --space-0: 0px;
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 20px;
+            --space-6: 24px;
+            --space-8: 32px;
+            --space-10: 40px;
+            --space-12: 48px;
+            --space-15: 60px;
+            
+            /* Border Radius */
+            --radius-none: 0px;
+            --radius-sm: 4px;
+            --radius-base: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-pill: 20px;
+            --radius-full: 50%;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-base: 0 2px 4px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 8px rgba(0,0,0,0.1);
+            --shadow-lg: 0 8px 16px rgba(0,0,0,0.1);
+            --shadow-xl: 0 12px 24px rgba(0,0,0,0.15);
+            
+            /* Transitions */
+            --transition-fast: 150ms;
+            --transition-base: 200ms;
+            --transition-slow: 300ms;
+        }
+        
+        body {
+            font-family: var(--font-family);
+            font-size: var(--text-base);
+            line-height: var(--leading-normal);
+            color: var(--color-gray-800);
+            background: var(--color-gray-100);
+        }
+        
+        /* Header Bar */
+        .header-bar {
+            background: var(--color-primary);
+            color: var(--color-white);
+            padding: var(--space-4) var(--space-5);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .event-info h1 {
+            font-size: var(--text-2xl);
+            font-weight: var(--font-semibold);
+            margin-bottom: var(--space-1);
+        }
+        
+        .event-time {
+            font-size: var(--text-sm);
+            opacity: 0.9;
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--space-5);
+        }
+        
+        .countdown {
+            background: rgba(255,255,255,0.2);
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-base);
+            font-weight: var(--font-medium);
+        }
+        
+        .exit-btn {
+            background: transparent;
+            border: 2px solid var(--color-white);
+            color: var(--color-white);
+            padding: var(--space-2) var(--space-5);
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            font-weight: var(--font-medium);
+            transition: all var(--transition-base);
+        }
+        
+        .exit-btn:hover {
+            background: var(--color-white);
+            color: var(--color-primary);
+        }
+        
+        /* Stats Bar */
+        .stats-bar {
+            background: var(--color-white);
+            padding: var(--space-8) var(--space-5);
+            display: flex;
+            justify-content: space-around;
+            border-bottom: 1px solid var(--color-gray-200);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: var(--text-4xl);
+            font-weight: var(--font-bold);
+            color: var(--color-gray-900);
+            margin-bottom: var(--space-1);
+        }
+        
+        .stat-label {
+            font-size: var(--text-sm);
+            color: var(--color-gray-600);
+        }
+        
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--space-5);
+        }
+        
+        /* Search and Filters */
+        .controls-bar {
+            background: var(--color-white);
+            padding: var(--space-5);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-5);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-base);
+        }
+        
+        .search-box {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: var(--space-3) var(--space-10) var(--space-3) var(--space-4);
+            border: 1px solid var(--color-gray-300);
+            border-radius: var(--radius-base);
+            font-size: var(--text-base);
+            font-family: var(--font-family);
+            transition: border-color var(--transition-base) ease;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: var(--space-3);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-gray-600);
+        }
+        
+        .filter-tabs {
+            display: flex;
+            gap: var(--space-2);
+        }
+        
+        .filter-tab {
+            padding: var(--space-2) var(--space-4);
+            border: none;
+            background: var(--color-gray-100);
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            font-weight: var(--font-medium);
+            color: var(--color-gray-600);
+            transition: all var(--transition-base);
+        }
+        
+        .filter-tab.active {
+            background: var(--color-primary);
+            color: var(--color-white);
+        }
+        
+        /* Attendee Table */
+        .attendee-table {
+            background: var(--color-white);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-base);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: var(--color-gray-100);
+            padding: var(--space-3) var(--space-4);
+            text-align: left;
+            font-weight: var(--font-semibold);
+            color: var(--color-gray-600);
+            font-size: var(--text-sm);
+            border-bottom: 1px solid var(--color-gray-200);
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+        
+        th:first-child {
+            padding-left: var(--space-8);
+        }
+        
+        th:hover {
+            background: var(--color-gray-100);
+        }
+        
+        .sort-indicator {
+            display: inline-block;
+            margin-left: var(--space-2);
+            color: var(--color-gray-400);
+            font-size: var(--text-xs);
+        }
+        
+        th.sort-active .sort-indicator {
+            color: var(--color-primary);
+        }
+        
+        td {
+            padding: var(--space-4);
+            border-bottom: 1px solid var(--color-gray-100);
+        }
+        
+        tr:hover {
+            background: var(--color-gray-100);
+        }
+        
+        /* Status Column */
+        .status-badge {
+            display: inline-block;
+            padding: var(--space-1) var(--space-3);
+            border-radius: var(--radius-pill);
+            font-size: var(--text-sm);
+            font-weight: var(--font-medium);
+        }
+        
+        .status-not-arrived {
+            background: var(--color-warning-bg);
+            color: var(--color-warning-text);
+        }
+        
+        .status-checked-in {
+            background: var(--color-success-bg);
+            color: var(--color-success-text);
+        }
+        
+        /* Name Column */
+        .attendee-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding-left: var(--space-4);
+        }
+        
+        .attendee-name {
+            font-weight: var(--font-semibold);
+            color: var(--color-gray-900);
+        }
+        
+        .attendee-pronouns {
+            font-size: var(--text-sm);
+            color: var(--color-gray-600);
+        }
+        
+        /* Payment Column */
+        .payment-badge {
+            display: inline-block;
+            padding: var(--space-1) var(--space-3);
+            border-radius: var(--radius-base);
+            font-size: var(--text-sm);
+            font-weight: var(--font-medium);
+        }
+        
+        .payment-paid {
+            background: var(--color-success-bg);
+            color: var(--color-success-text);
+        }
+        
+        .payment-unpaid {
+            background: var(--color-error-bg);
+            color: var(--color-error-text);
+        }
+        
+        .payment-comp {
+            background: var(--color-info-bg);
+            color: var(--color-info-text);
+        }
+        
+        /* Waiver Column */
+        .waiver-badge {
+            display: inline-block;
+            padding: var(--space-1) var(--space-3);
+            border-radius: var(--radius-base);
+            font-size: var(--text-sm);
+            font-weight: var(--font-medium);
+        }
+        
+        .waiver-signed {
+            background: var(--color-success-bg);
+            color: var(--color-success-text);
+        }
+        
+        .waiver-not-signed {
+            background: var(--color-error-bg);
+            color: var(--color-error-text);
+        }
+        
+        /* Actions Column */
+        .check-in-btn {
+            background: var(--color-primary);
+            color: var(--color-white);
+            border: none;
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            font-weight: var(--font-medium);
+            transition: all var(--transition-base);
+            font-size: var(--text-sm);
+            line-height: 1;
+        }
+        
+        .check-in-btn:hover {
+            background: var(--color-primary-hover);
+        }
+        
+        .checked-in-text {
+            color: var(--color-success-text);
+            font-weight: var(--font-medium);
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .stats-bar {
+                padding: var(--space-5) var(--space-3);
+            }
+            
+            .stat-number {
+                font-size: var(--text-3xl);
+            }
+            
+            .controls-bar {
+                flex-direction: column;
+                gap: var(--space-4);
+            }
+            
+            .search-box {
+                max-width: 100%;
+            }
+            
+            .attendee-table {
+                overflow-x: auto;
+            }
+            
+            table {
+                min-width: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Bar -->
+    <div class="header-bar">
+        <div class="event-info">
+            <h1>Rope Basics Workshop - Check-in</h1>
+            <div class="event-time">Saturday, March 15, 2024 • 2:00 PM - 5:00 PM</div>
+        </div>
+        <div class="header-actions">
+            <button class="exit-btn">Exit Check-in</button>
+        </div>
+    </div>
+    
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stat-item">
+            <div class="stat-number">8</div>
+            <div class="stat-label">Not Arrived</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">12</div>
+            <div class="stat-label">Total Registered</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">2</div>
+            <div class="stat-label">Need Waiver</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number" id="time-left">1:42:15</div>
+            <div class="stat-label">Time Before Start</div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Search and Filters -->
+        <div class="controls-bar">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Search by name...">
+                <span class="search-icon">🔍</span>
+            </div>
+            <div class="filter-tabs">
+                <button class="filter-tab active">All (12)</button>
+                <button class="filter-tab">Not Arrived (8)</button>
+                <button class="filter-tab">Need Waiver (2)</button>
+            </div>
+        </div>
+        
+        <!-- Attendee Table -->
+        <div class="attendee-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>
+                            Name <span class="sort-indicator">↕</span>
+                        </th>
+                        <th>
+                            Payment <span class="sort-indicator">↕</span>
+                        </th>
+                        <th>
+                            Waiver <span class="sort-indicator">↕</span>
+                        </th>
+                        <th>
+                            Status <span class="sort-indicator">↕</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Alex Chen</span>
+                                <span class="attendee-pronouns">they/them</span>
+                            </div>
+                        </td>
+                        <td><span class="payment-badge payment-paid">Paid</span></td>
+                        <td><span class="waiver-badge waiver-signed">Signed</span></td>
+                        <td><span class="checked-in-text">✓ Checked In</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Ashley Martinez</span>
+                                <span class="attendee-pronouns">she/her</span>
+                            </div>
+                        </td>
+                        <td><span class="payment-badge payment-paid">Paid</span></td>
+                        <td><span class="waiver-badge waiver-signed">Signed</span></td>
+                        <td><button class="check-in-btn">Check In</button></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Chris Smith</span>
+                                <span class="attendee-pronouns">he/him</span>
+                            </div>
+                        </td>
+                        <td><span class="payment-badge payment-paid">Paid</span></td>
+                        <td><span class="waiver-badge waiver-signed">Signed</span></td>
+                        <td><span class="checked-in-text">✓ Checked In</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Jamie Davis</span>
+                                <span class="attendee-pronouns">they/them</span>
+                            </div>
+                        </td>
+                        <td><span class="payment-badge payment-paid">Paid</span></td>
+                        <td><span class="waiver-badge waiver-signed">Signed</span></td>
+                        <td><button class="check-in-btn">Check In</button></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Kelly Wilson</span>
+                                <span class="attendee-pronouns">she/they</span>
+                            </div>
+                        </td>
+                        <td><span class="payment-badge payment-paid">Paid</span></td>
+                        <td><span class="waiver-badge waiver-not-signed">Not Signed</span></td>
+                        <td><button class="check-in-btn">Check In</button></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Morgan Davis</span>
+                                <span class="attendee-pronouns">she/her</span>
+                            </div>
+                        </td>
+                        <td><span class="payment-badge payment-paid">Paid</span></td>
+                        <td><span class="waiver-badge waiver-not-signed">Not Signed</span></td>
+                        <td><button class="check-in-btn">Check In</button></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">River Moon</span>
+                                <span class="attendee-pronouns">they/them</span>
+                            </div>
+                        </td>
+                        <td><span class="payment-badge payment-comp">Comp</span></td>
+                        <td><span class="waiver-badge waiver-signed">Signed</span></td>
+                        <td><span class="checked-in-text">✓ Checked In</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Sam Taylor</span>
+                                <span class="attendee-pronouns">xe/xir</span>
+                            </div>
+                        </td>
+                        <td><span class="payment-badge payment-paid">Paid</span></td>
+                        <td><span class="waiver-badge waiver-signed">Signed</span></td>
+                        <td><button class="check-in-btn">Check In</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        // Countdown Timer
+        function updateCountdown() {
+            const eventTime = new Date('2024-03-15T14:00:00');
+            const now = new Date();
+            const diff = eventTime - now;
+            
+            if (diff > 0) {
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                const timeString = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                document.getElementById('time-left').textContent = timeString;
+            } else {
+                document.getElementById('time-left').textContent = '0:00:00';
+            }
+        }
+        
+        // Update countdown every second
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+        
+        // Check-in functionality
+        document.querySelectorAll('.check-in-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const row = this.closest('tr');
+                const actionCell = row.querySelector('td:last-child');
+                
+                // Update action button to checked in status
+                actionCell.innerHTML = '<span class="checked-in-text">✓ Checked In</span>';
+                
+                // Update stats (in real app, this would be dynamic)
+                // For demo purposes, just showing the interaction
+            });
+        });
+        
+        // Filter tabs
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                // In real app, would filter the table rows
+            });
+        });
+        
+        // Table sorting functionality
+        const table = document.querySelector('table');
+        const headers = table.querySelectorAll('th');
+        const tbody = table.querySelector('tbody');
+        
+        headers.forEach((header, index) => {
+            header.addEventListener('click', () => {
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                const sortIndicator = header.querySelector('.sort-indicator');
+                const isAscending = sortIndicator.textContent === '↑';
+                
+                // Reset all indicators and remove active class
+                headers.forEach(h => {
+                    h.classList.remove('sort-active');
+                    h.querySelector('.sort-indicator').textContent = '↕';
+                });
+                
+                // Set active class and update indicator
+                header.classList.add('sort-active');
+                sortIndicator.textContent = isAscending ? '↓' : '↑';
+                
+                // Sort rows
+                rows.sort((a, b) => {
+                    let aValue, bValue;
+                    
+                    if (index === 0) { // Name column
+                        aValue = a.querySelector('.attendee-name').textContent;
+                        bValue = b.querySelector('.attendee-name').textContent;
+                    } else if (index === 1) { // Payment column
+                        aValue = a.querySelectorAll('td')[1].textContent;
+                        bValue = b.querySelectorAll('td')[1].textContent;
+                    } else if (index === 2) { // Waiver column
+                        aValue = a.querySelectorAll('td')[2].textContent;
+                        bValue = b.querySelectorAll('td')[2].textContent;
+                    } else { // Status column
+                        aValue = a.querySelectorAll('td')[3].textContent;
+                        bValue = b.querySelectorAll('td')[3].textContent;
+                    }
+                    
+                    if (sortIndicator.textContent === '↑') {
+                        return aValue.localeCompare(bValue);
+                    } else {
+                        return bValue.localeCompare(aValue);
+                    }
+                });
+                
+                // Re-append sorted rows
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,418 @@
+@page "/events/{EventId:guid}"
+@using WitchCityRope.Web.Services
+@using WitchCityRope.Web.Shared.Layouts
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Popups
+@using Microsoft.AspNetCore.Authorization
+@inject IEventService EventService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IToastService ToastService
+@inject NavigationManager Navigation
+@layout MainLayout
+
+@* Event detail page showing full event information and registration *@
+
+@if (isLoading)
+{
+    <div class="loading-container">
+        <div class="e-spinner-pane">
+            <div class="e-spinner-inner">
+                <div class="e-spin-material"></div>
+            </div>
+        </div>
+    </div>
+}
+else if (eventDetail != null)
+{
+    <div class="event-detail-container">
+        @* Breadcrumb *@
+        <SfBreadcrumb>
+            <BreadcrumbItems>
+                <BreadcrumbItem Text="Home" Url="/"></BreadcrumbItem>
+                <BreadcrumbItem Text="Events" Url="/events"></BreadcrumbItem>
+                <BreadcrumbItem Text="@eventDetail.Title"></BreadcrumbItem>
+            </BreadcrumbItems>
+        </SfBreadcrumb>
+
+        <div class="event-detail-grid">
+            @* Main Content *@
+            <div class="event-main-content">
+                @* Event Hero *@
+                <div class="event-hero">
+                    <div class="hero-content">
+                        @if (!string.IsNullOrEmpty(eventDetail.EventType))
+                        {
+                            <div class="event-type-badge">@eventDetail.EventType</div>
+                        }
+                        <h1 class="event-title">@eventDetail.Title</h1>
+                        <div class="event-meta">
+                            <div class="event-meta-item">
+                                <span class="e-icons e-calendar"></span>
+                                @eventDetail.StartDate.ToString("dddd, MMMM d, yyyy")
+                            </div>
+                            <div class="event-meta-item">
+                                <span class="e-icons e-clock"></span>
+                                @eventDetail.StartDate.ToString("h:mm tt") - @eventDetail.EndDate.ToString("h:mm tt")
+                            </div>
+                            <div class="event-meta-item">
+                                <span class="e-icons e-location"></span>
+                                @eventDetail.Location
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @* Description Section *@
+                <div class="content-section">
+                    <h2 class="section-title">About This Event</h2>
+                    <p class="description-text">@eventDetail.Description</p>
+                    
+                    @if (eventDetail.WhatToExpect?.Any() == true)
+                    {
+                        <h3 class="subsection-title">What to Expect</h3>
+                        <ul class="expect-list">
+                            @foreach (var item in eventDetail.WhatToExpect)
+                            {
+                                <li class="expect-item">
+                                    <span class="e-icons e-check"></span>
+                                    <span>@item</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+
+                @* Prerequisites Section *@
+                @if (eventDetail.Prerequisites?.Any() == true)
+                {
+                    <div class="content-section">
+                        <h2 class="section-title">Prerequisites</h2>
+                        <ul class="prereq-list">
+                            @foreach (var prereq in eventDetail.Prerequisites)
+                            {
+                                <li class="prereq-item">
+                                    <span class="e-icons e-info"></span>
+                                    <span>@prereq</span>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                @* What to Bring Section *@
+                @if (eventDetail.WhatToBring?.Any() == true)
+                {
+                    <div class="content-section">
+                        <h2 class="section-title">What to Bring</h2>
+                        <ul class="bring-list">
+                            @foreach (var item in eventDetail.WhatToBring)
+                            {
+                                <li class="bring-item">
+                                    <span class="e-icons e-bookmark"></span>
+                                    <span>@item</span>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                @* Organizers Section *@
+                @if (eventDetail.Organizers?.Any() == true)
+                {
+                    <div class="content-section">
+                        <h2 class="section-title">Your Instructors</h2>
+                        <div class="organizers-grid">
+                            @foreach (var organizer in eventDetail.Organizers)
+                            {
+                                <div class="organizer-card">
+                                    <div class="organizer-avatar">
+                                        @organizer.ToString().Substring(0, 1).ToUpper()
+                                    </div>
+                                    <div class="organizer-info">
+                                        <h4 class="organizer-name">@organizer</h4>
+                                        <p class="organizer-bio">Experienced rope instructor and community member</p>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @* Sidebar *@
+            <div class="event-sidebar">
+                @* Registration Card *@
+                <div class="registration-card">
+                    <h3 class="card-title">Event Registration</h3>
+                    
+                    <div class="price-section">
+                        <div class="price-label">Price</div>
+                        <div class="price-value">@GetPriceDisplay()</div>
+                    </div>
+
+                    <div class="availability-section">
+                        <div class="availability-label">Available Spots</div>
+                        <div class="availability-value @GetAvailabilityClass()">
+                            @if (eventDetail.AvailableSpots > 0)
+                            {
+                                <span>@eventDetail.AvailableSpots spots remaining</span>
+                            }
+                            else
+                            {
+                                <span>Sold Out</span>
+                            }
+                        </div>
+                    </div>
+
+                    @if (eventDetail.IsRegistered)
+                    {
+                        <div class="registered-notice">
+                            <span class="e-icons e-check-circle"></span>
+                            <span>You're registered for this event!</span>
+                        </div>
+                        <SfButton CssClass="e-outline" OnClick="ViewTicket">View Your Ticket</SfButton>
+                    }
+                    else if (eventDetail.AvailableSpots > 0)
+                    {
+                        @if (isAuthenticated)
+                        {
+                            <SfButton CssClass="e-primary e-block" OnClick="RegisterForEvent">
+                                Register Now
+                            </SfButton>
+                        }
+                        else
+                        {
+                            <SfButton CssClass="e-primary e-block" OnClick="@(() => Navigation.NavigateTo($"/login?returnUrl=/events/{EventId}"))">
+                                Login to Register
+                            </SfButton>
+                        }
+                    }
+                    else
+                    {
+                        <SfButton CssClass="e-outline e-block" Disabled="true">
+                            Event Full
+                        </SfButton>
+                        <p class="waitlist-text">Contact us to join the waitlist</p>
+                    }
+                </div>
+
+                @* Location Card *@
+                <div class="location-card">
+                    <h3 class="card-title">Location</h3>
+                    <div class="location-details">
+                        <p class="venue-name">@eventDetail.VenueName</p>
+                        <p class="venue-address">@eventDetail.Address</p>
+                        @if (!string.IsNullOrEmpty(eventDetail.ParkingInfo))
+                        {
+                            <div class="parking-info">
+                                <span class="e-icons e-car"></span>
+                                <span>@eventDetail.ParkingInfo</span>
+                            </div>
+                        }
+                    </div>
+                    <SfButton CssClass="e-outline e-small" OnClick="@(() => OpenMap())">
+                        <span class="e-icons e-map"></span> View Map
+                    </SfButton>
+                </div>
+
+                @* Safety Notice *@
+                <div class="safety-card">
+                    <h4 class="safety-title">
+                        <span class="e-icons e-shield"></span>
+                        Safety First
+                    </h4>
+                    <p class="safety-text">
+                        All events follow our comprehensive safety protocols. 
+                        Emergency contacts are required for participation.
+                    </p>
+                    <a href="/safety" class="safety-link">Learn about our safety practices →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="error-container">
+        <h2>Event Not Found</h2>
+        <p>The event you're looking for doesn't exist or has been removed.</p>
+        <SfButton CssClass="e-primary" OnClick="@(() => Navigation.NavigateTo("/events"))">
+            Browse Events
+        </SfButton>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid EventId { get; set; }
+
+    private EventDetailViewModel? eventDetail;
+    private bool isLoading = true;
+    private bool isAuthenticated = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        isAuthenticated = authState?.User?.Identity?.IsAuthenticated ?? false;
+        await LoadEventDetails();
+    }
+
+    private async Task LoadEventDetails()
+    {
+        try
+        {
+            isLoading = true;
+            var detail = await EventService.GetEventDetailAsync(EventId);
+            
+            if (detail != null)
+            {
+                eventDetail = new EventDetailViewModel
+                {
+                    Id = detail.Id,
+                    Title = detail.Title,
+                    Description = detail.Description,
+                    StartDateTime = detail.StartDateTime,
+                    EndDateTime = detail.EndDateTime,
+                    Location = detail.Location,
+                    Price = detail.Price,
+                    AvailableSpots = detail.AvailableSpots,
+                    Organizers = detail.Organizers.Select(o => Guid.TryParse(o, out var g) ? g : Guid.Empty).ToList(),
+                    IsRegistered = detail.IsRegistered,
+                    EventType = DetermineEventType(detail),
+                    VenueName = "Salem Community Space",
+                    Address = "123 Essex Street, Salem, MA 01970",
+                    ParkingInfo = "Street parking available",
+                    WhatToExpect = GenerateWhatToExpect(detail),
+                    Prerequisites = GeneratePrerequisites(detail),
+                    WhatToBring = GenerateWhatToBring(detail)
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Failed to load event details: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task RegisterForEvent()
+    {
+        try
+        {
+            var success = await EventService.RegisterForEventAsync(EventId);
+            if (success)
+            {
+                ToastService.ShowSuccess("Successfully registered for event!");
+                await LoadEventDetails(); // Refresh to show updated status
+            }
+            else
+            {
+                ToastService.ShowError("Failed to register for event. Please try again.");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Registration error: {ex.Message}");
+        }
+    }
+
+    private void ViewTicket()
+    {
+        Navigation.NavigateTo($"/my-tickets?eventId={EventId}");
+    }
+
+    private void OpenMap()
+    {
+        if (eventDetail != null)
+        {
+            var address = Uri.EscapeDataString(eventDetail.Address);
+            Navigation.NavigateTo($"https://maps.google.com/?q={address}", true);
+        }
+    }
+
+    private string GetPriceDisplay()
+    {
+        if (eventDetail == null) return "";
+        
+        if (eventDetail.Price == 0)
+            return "Free with RSVP";
+        if (eventDetail.Title.Contains("sliding scale", StringComparison.OrdinalIgnoreCase))
+            return $"${eventDetail.Price:0}-{eventDetail.Price * 2:0} sliding scale";
+        return $"${eventDetail.Price:0} per person";
+    }
+
+    private string GetAvailabilityClass()
+    {
+        if (eventDetail == null) return "";
+        
+        if (eventDetail.AvailableSpots == 0)
+            return "sold-out";
+        if (eventDetail.AvailableSpots <= 3)
+            return "limited";
+        return "available";
+    }
+
+    private string? DetermineEventType(Services.EventDetail e)
+    {
+        if (e.Title.Contains("Introduction", StringComparison.OrdinalIgnoreCase))
+            return "Beginner Friendly";
+        if (e.Title.Contains("Intermediate", StringComparison.OrdinalIgnoreCase))
+            return "Intermediate";
+        if (e.Title.Contains("Advanced", StringComparison.OrdinalIgnoreCase))
+            return "Advanced";
+        return null;
+    }
+
+    private List<string> GenerateWhatToExpect(Services.EventDetail e)
+    {
+        var items = new List<string>();
+        
+        if (e.Title.Contains("Introduction", StringComparison.OrdinalIgnoreCase))
+        {
+            items.Add("Learn fundamental rope handling techniques");
+            items.Add("Practice basic single column and two column ties");
+            items.Add("Understand consent and negotiation principles");
+            items.Add("Hands-on practice with instructor guidance");
+        }
+        else if (e.Title.Contains("Suspension", StringComparison.OrdinalIgnoreCase))
+        {
+            items.Add("Review of suspension safety principles");
+            items.Add("Learn proper hard point assessment");
+            items.Add("Practice basic suspension positions");
+            items.Add("Emphasis on risk awareness and mitigation");
+        }
+        
+        return items;
+    }
+
+    private List<string>? GeneratePrerequisites(Services.EventDetail e)
+    {
+        if (e.Title.Contains("Intermediate", StringComparison.OrdinalIgnoreCase) || 
+            e.Title.Contains("Suspension", StringComparison.OrdinalIgnoreCase))
+        {
+            return new List<string>
+            {
+                "Completion of Introduction to Rope Bondage or equivalent experience",
+                "Comfortable with basic single and two column ties",
+                "Understanding of rope safety principles"
+            };
+        }
+        return null;
+    }
+
+    private List<string> GenerateWhatToBring(Services.EventDetail e)
+    {
+        return new List<string>
+        {
+            "30-40 feet of 6mm rope (available for purchase at venue)",
+            "Comfortable clothing that allows movement",
+            "Water bottle",
+            "Note-taking materials (optional)",
+            "Safety scissors (if you have them)"
+        };
+    }
+
+}

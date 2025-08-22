@@ -1,0 +1,92 @@
+{
+  "generated": "2025-06-28T03:20:35.341Z",
+  "pages": [
+    {
+      "name": "Home",
+      "url": "http://localhost:5651/",
+      "checks": {
+        "console": {
+          "errors": 0,
+          "warnings": 0
+        },
+        "network": {
+          "failed": 0,
+          "slow": 0
+        },
+        "lighthouse": {
+          "performance": 0,
+          "accessibility": 0,
+          "bestPractices": 0,
+          "seo": 0
+        },
+        "manual": {
+          "hasTitle": false,
+          "hasLang": false,
+          "hasViewport": false,
+          "hasMetaDescription": false,
+          "imagesWithAlt": 0,
+          "imagesWithoutAlt": 0,
+          "formsAccessible": false
+        }
+      }
+    },
+    {
+      "name": "Events",
+      "url": "http://localhost:5651/events",
+      "checks": {
+        "console": {
+          "errors": 0,
+          "warnings": 0
+        },
+        "network": {
+          "failed": 0,
+          "slow": 0
+        },
+        "lighthouse": {
+          "performance": 0,
+          "accessibility": 0,
+          "bestPractices": 0,
+          "seo": 0
+        },
+        "manual": {
+          "hasTitle": false,
+          "hasLang": false,
+          "hasViewport": false,
+          "hasMetaDescription": false,
+          "imagesWithAlt": 0,
+          "imagesWithoutAlt": 0,
+          "formsAccessible": false
+        }
+      }
+    },
+    {
+      "name": "Login",
+      "url": "http://localhost:5651/auth/login",
+      "checks": {
+        "console": {
+          "errors": 0,
+          "warnings": 0
+        },
+        "network": {
+          "failed": 0,
+          "slow": 0
+        },
+        "lighthouse": {
+          "performance": 0,
+          "accessibility": 0,
+          "bestPractices": 0,
+          "seo": 0
+        },
+        "manual": {
+          "hasTitle": false,
+          "hasLang": false,
+          "hasViewport": false,
+          "hasMetaDescription": false,
+          "imagesWithAlt": 0,
+          "imagesWithoutAlt": 0,
+          "formsAccessible": false
+        }
+      }
+    }
+  ]
+}

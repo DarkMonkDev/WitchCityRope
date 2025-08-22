@@ -1,0 +1,77 @@
+@* Loading spinner component for indicating async operations *@
+
+<div class="loading-spinner @Size">
+    <div class="spinner">
+        <div class="spinner-circle"></div>
+        <div class="spinner-circle"></div>
+        <div class="spinner-circle"></div>
+    </div>
+    @if (!string.IsNullOrEmpty(Message))
+    {
+        <p class="loading-message">@Message</p>
+    }
+</div>
+
+@code {
+    [Parameter] public string Size { get; set; } = "medium"; // small, medium, large
+    [Parameter] public string? Message { get; set; }
+}
+
+<style>
+    .loading-spinner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .spinner {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .spinner-circle {
+        width: 1rem;
+        height: 1rem;
+        border-radius: 50%;
+        background-color: var(--color-primary);
+        animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .spinner-circle:nth-child(1) {
+        animation-delay: -0.32s;
+    }
+
+    .spinner-circle:nth-child(2) {
+        animation-delay: -0.16s;
+    }
+
+    /* Size variations */
+    .loading-spinner.small .spinner-circle {
+        width: 0.5rem;
+        height: 0.5rem;
+    }
+
+    .loading-spinner.large .spinner-circle {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+
+    .loading-message {
+        margin-top: 1rem;
+        color: var(--color-text-secondary);
+        font-size: 0.875rem;
+    }
+
+    @@keyframes bounce {
+        0%, 80%, 100% {
+            transform: scale(0);
+            opacity: 0.5;
+        }
+        40% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+</style>

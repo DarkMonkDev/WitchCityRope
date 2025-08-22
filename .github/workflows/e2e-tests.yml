@@ -1,0 +1,155 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: Your_password123
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P Your_password123 -Q 'SELECT 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore
+
+    - name: Run Infrastructure tests first
+      run: dotnet test tests/WitchCityRope.Infrastructure.Tests --no-build --verbosity normal
+
+    - name: Start application
+      run: |
+        cd src/WitchCityRope.Web
+        dotnet run &
+        sleep 30
+      env:
+        ASPNETCORE_ENVIRONMENT: Development
+        ASPNETCORE_URLS: http://localhost:5000
+
+    - name: Install Playwright browsers
+      run: |
+        cd tests/WitchCityRope.E2E.Tests
+        dotnet build
+        npx playwright install --with-deps
+
+    - name: Run E2E tests
+      run: |
+        cd tests/WitchCityRope.E2E.Tests
+        dotnet test --no-build --verbosity normal --logger:"console;verbosity=detailed" --settings .runsettings
+      env:
+        ASPNETCORE_ENVIRONMENT: CI
+        ConnectionStrings__TestDatabase: "Server=localhost;Database=WitchCityRope_E2E_Tests;User Id=sa;Password=Your_password123;TrustServerCertificate=true"
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: |
+          tests/WitchCityRope.E2E.Tests/TestResults/
+          tests/WitchCityRope.E2E.Tests/screenshots/
+          tests/WitchCityRope.E2E.Tests/visual-diffs/
+
+    - name: Upload visual baselines
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: visual-baselines
+        path: tests/WitchCityRope.E2E.Tests/visual-baselines/
+
+  e2e-tests-cross-browser:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+    
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: Your_password123
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P Your_password123 -Q 'SELECT 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore
+
+    - name: Start application
+      run: |
+        cd src/WitchCityRope.Web
+        dotnet run &
+        sleep 30
+      env:
+        ASPNETCORE_ENVIRONMENT: Development
+        ASPNETCORE_URLS: http://localhost:5000
+
+    - name: Install Playwright browsers
+      run: |
+        cd tests/WitchCityRope.E2E.Tests
+        dotnet build
+        npx playwright install --with-deps ${{ matrix.browser }}
+
+    - name: Run E2E tests - ${{ matrix.browser }}
+      run: |
+        cd tests/WitchCityRope.E2E.Tests
+        dotnet test --no-build --verbosity normal --filter "Category!=Visual"
+      env:
+        ASPNETCORE_ENVIRONMENT: CI
+        BrowserType: ${{ matrix.browser }}
+        ConnectionStrings__TestDatabase: "Server=localhost;Database=WitchCityRope_E2E_Tests_${{ matrix.browser }};User Id=sa;Password=Your_password123;TrustServerCertificate=true"
+
+    - name: Upload test results - ${{ matrix.browser }}
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-${{ matrix.browser }}
+        path: |
+          tests/WitchCityRope.E2E.Tests/TestResults/
+          tests/WitchCityRope.E2E.Tests/screenshots/

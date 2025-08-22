@@ -1,60 +1,53 @@
 import React from 'react';
 import { Box, Title, Text, Paper, Group, Button, Grid, Stack, Loader, Alert } from '@mantine/core';
 import { Link } from 'react-router-dom';
-import { useUser } from '../../stores/authStore';
-import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
-import { useEvents } from '../../features/events/api/queries';
 import { useCurrentUser } from '../../features/auth/api/queries';
+import { useEvents } from '../../features/events/api/queries';
+import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
+import type { EventDto } from '@witchcityrope/shared-types';
 
-// Mock events data - REPLACED WITH API CALLS
-const mockEvents_OLD = [
-  {
-    id: '1',
-    title: 'Rope Fundamentals Workshop',
-    date: '2025-08-28',
-    time: '7:00 PM - 9:30 PM',
-    status: 'Confirmed',
-    statusColor: '#228B22',
-  },
-  {
-    id: '2',
-    title: 'Community Rope Jam',
-    date: '2025-09-02',
-    time: '6:00 PM - 9:00 PM',
-    status: "RSVP'd",
-    statusColor: '#228B22',
-  },
-  {
-    id: '3',
-    title: 'Advanced Suspension Class',
-    date: '2025-09-15',
-    time: '2:00 PM - 6:00 PM',
-    status: 'Payment Pending',
-    statusColor: '#DAA520',
-  },
-];
+// Helper function to format event for display
+const formatEventForDashboard = (event: EventDto) => {
+  const startDate = new Date(event.startDateTime || '');
+  const endDate = new Date(event.endDateTime || '');
+  
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+  
+  return {
+    id: event.id,
+    title: event.title,
+    date: startDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
+    time: `${formatTime(startDate)} - ${formatTime(endDate)}`,
+    status: event.status === 'Published' ? 'Open' : 'Closed',
+    statusColor: event.status === 'Published' ? '#228B22' : '#DAA520',
+  };
+};
 
 /**
  * Dashboard Landing Page
  * Shows user's upcoming events and quick actions
- * Follows the simplified design requirements
+ * Uses real API data via TanStack Query hooks
  */
 export const DashboardPage: React.FC = () => {
-  const user = useUser();
+  const { data: user, isLoading: userLoading, error: userError } = useCurrentUser();
+  const { data: events, isLoading: eventsLoading, error: eventsError } = useEvents();
   
-  // Get real data from API
-  const { data: eventsData = [], isLoading: eventsLoading, error: eventsError } = useEvents();
-  const { data: apiUser, isLoading: userLoading } = useCurrentUser();
-  
-  // Ensure events is an array for type safety
-  const events = Array.isArray(eventsData) ? eventsData : [];
-  
-  // Log to console so you can verify it's working
-  React.useEffect(() => {
-    if (events.length > 0) {
-      console.log('🎉 SUCCESS: Dashboard loaded', events.length, 'events from API/Database:', events);
-    }
-  }, [events]);
+  // Format events for dashboard display
+  const upcomingEvents = events ? events
+    .filter(event => event.startDateTime && new Date(event.startDateTime) > new Date()) // Only future events
+    .sort((a, b) => {
+      const dateA = new Date(a.startDateTime || 0).getTime();
+      const dateB = new Date(b.startDateTime || 0).getTime();
+      return dateA - dateB;
+    }) // Sort by date
+    .slice(0, 5) // Show only first 5
+    .map(formatEventForDashboard) : [];
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -67,19 +60,42 @@ export const DashboardPage: React.FC = () => {
     <DashboardLayout>
       {/* Welcome Header */}
       <Box mb="xl">
-        <Title
-          order={1}
-          style={{
-            fontFamily: "'Montserrat', sans-serif",
-            fontSize: '28px',
-            fontWeight: 800,
-            color: '#880124',
-            textTransform: 'uppercase',
-            letterSpacing: '-0.5px',
-          }}
-        >
-          Welcome back, {user?.sceneName || 'User'}
-        </Title>
+        {userLoading ? (
+          <Box style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Loader size="sm" color="#880124" />
+            <Title
+              order={1}
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontSize: '28px',
+                fontWeight: 800,
+                color: '#880124',
+                textTransform: 'uppercase',
+                letterSpacing: '-0.5px',
+              }}
+            >
+              Loading...
+            </Title>
+          </Box>
+        ) : userError ? (
+          <Alert color="red" style={{ background: 'rgba(220, 20, 60, 0.1)', border: '1px solid rgba(220, 20, 60, 0.3)' }}>
+            Failed to load user information
+          </Alert>
+        ) : (
+          <Title
+            order={1}
+            style={{
+              fontFamily: "'Montserrat', sans-serif",
+              fontSize: '28px',
+              fontWeight: 800,
+              color: '#880124',
+              textTransform: 'uppercase',
+              letterSpacing: '-0.5px',
+            }}
+          >
+            Welcome back, {user?.sceneName || 'User'}
+          </Title>
+        )}
       </Box>
 
       {/* Section Divider */}
@@ -112,19 +128,19 @@ export const DashboardPage: React.FC = () => {
         {eventsLoading ? (
           <Box style={{ textAlign: 'center', padding: '40px' }}>
             <Loader size="lg" color="#880124" />
-            <Text style={{ marginTop: '16px', color: '#8B8680' }}>Loading events from database...</Text>
+            <Text style={{ marginTop: '16px', color: '#8B8680' }}>Loading your upcoming events...</Text>
           </Box>
         ) : eventsError ? (
-          <Alert color="red">Failed to load events. Please refresh the page.</Alert>
-        ) : events.length > 0 ? (
+          <Alert color="red" style={{ background: 'rgba(220, 20, 60, 0.1)', border: '1px solid rgba(220, 20, 60, 0.3)' }}>
+            Failed to load events. Please try refreshing the page.
+          </Alert>
+        ) : upcomingEvents.length > 0 ? (
           <Stack gap="sm">
-            {events.slice(0, 5).map((event: any) => {
-              // API returns startDateTime, not date
-              const eventDate = event.startDateTime || event.date || new Date().toISOString();
-              const { day, month } = formatDate(eventDate);
+            {upcomingEvents.map((event) => {
+              const { day, month } = formatDate(event.date);
               return (
                 <Paper
-                  key={event.id || Math.random()}
+                  key={event.id}
                   style={{
                     background: '#FFF8F0',
                     padding: '12px 16px',
@@ -193,7 +209,7 @@ export const DashboardPage: React.FC = () => {
                     {event.title}
                   </Text>
 
-                  {/* Time/Duration */}
+                  {/* Time */}
                   <Text
                     style={{
                       fontSize: '14px',
@@ -202,7 +218,7 @@ export const DashboardPage: React.FC = () => {
                       fontWeight: 500,
                     }}
                   >
-                    {event.duration ? `${event.duration} hours` : event.time || 'Time TBD'}
+                    {event.time}
                   </Text>
 
                   {/* Status */}
@@ -215,12 +231,12 @@ export const DashboardPage: React.FC = () => {
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px',
                       textAlign: 'center',
-                      background: `${event.statusColor || '#228B22'}20`,
-                      color: event.statusColor || '#228B22',
-                      border: `1px solid ${event.statusColor || '#228B22'}`,
+                      background: `${event.statusColor}20`,
+                      color: event.statusColor,
+                      border: `1px solid ${event.statusColor}`,
                     }}
                   >
-                    {event.capacity ? `${event.capacity} spots` : event.status || 'Open'}
+                    {event.status}
                   </Box>
 
                   {/* Action */}
