@@ -56,6 +56,45 @@ import {
 - **Template Authority**: `/docs/design/current/homepage-template-v7.html` fully implemented
 - **Next Developers**: Can use homepage components as reference for v7 patterns
 
+### ✅ UPDATED: EventsList Component API Integration (2025-08-22)
+**STATUS**: Successfully migrated EventsList component from mock data to real API using TanStack Query.
+
+#### Implementation Completed:
+- ✅ **TanStack Query Integration**: Replaced manual fetch with useQuery hook following existing project patterns
+- ✅ **API Client Usage**: Uses configured axios client with auth interceptors from `/apps/web/src/api/client.ts`
+- ✅ **Query Key Factory**: Follows established pattern from `/apps/web/src/api/queryKeys.ts`
+- ✅ **Error Handling**: Proper retry logic that doesn't retry 401s (auth pattern)
+- ✅ **Loading States**: Enhanced loading UI with Mantine Loader component maintaining v7 styling
+- ✅ **Conditional Querying**: Disables API calls when custom events props are provided
+- ✅ **Backward Compatibility**: Maintains all existing props for custom loading/error/events states
+
+#### Code Pattern - TanStack Query for Homepage Components:
+```typescript
+// Custom hook following existing patterns from features/events/api/queries.ts
+const useEventsForHomepage = (enabled: boolean = true) => {
+  return useQuery({
+    queryKey: queryKeys.events(),
+    queryFn: async (): Promise<Event[]> => {
+      const response = await api.get('/api/events');
+      return response.data;
+    },
+    enabled, // Conditional querying when custom events provided
+    staleTime: 5 * 60 * 1000, // 5 minutes - consistent with existing patterns
+    retry: (failureCount, error: any) => {
+      if (error?.response?.status === 401) return false; // Don't retry auth errors
+      return failureCount < 3;
+    }
+  });
+};
+```
+
+#### Critical Implementation Details:
+- **API Endpoint**: GET `/api/events` (matches existing patterns)
+- **Props Priority**: Custom events → API data → empty array (graceful fallback)
+- **Query Optimization**: Disabled when custom events provided via `enabled` parameter
+- **v7 Styling Preserved**: All loading, error, and empty states maintain v7 design consistency
+- **Error Boundary**: User-friendly error messages while preserving styling framework
+
 ---
 
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨

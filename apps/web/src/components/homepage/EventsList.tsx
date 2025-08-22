@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Container, SimpleGrid, Text, Title, Button, Alert } from '@mantine/core';
+import React from 'react';
+import { Box, SimpleGrid, Text, Title, Button, Alert, Loader } from '@mantine/core';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Event } from '../../types/Event';
 import { EventCard } from './EventCard';
+import { api } from '../../api/client';
+import { queryKeys } from '../../api/queryKeys';
 
 interface EventsListProps {
   /** Section title */
@@ -19,49 +22,25 @@ interface EventsListProps {
   events?: Event[];
 }
 
-// Mock data with additional v7 styling properties
-const mockEventsData = [
-  {
-    id: '1',
-    title: 'Rope Fundamentals',
-    description: 'Learn fundamental ties and safety practices in a supportive environment. Perfect for your first class or building strong foundations.',
-    startDate: '2024-03-15T14:00:00Z',
-    location: 'Salem Studio',
-    price: '$35-55',
-    status: { type: 'available' as const, text: '10 spots left' },
-    details: { duration: '2.5 hours', level: 'Beginner', spots: 'Salem Studio' }
-  },
-  {
-    id: '2',
-    title: 'March Rope Jam',
-    description: 'Practice your skills and connect with fellow rope enthusiasts in our welcoming community space. For vetted members.',
-    startDate: '2024-03-21T19:00:00Z',
-    location: 'Community Space',
-    price: '$0-35',
-    status: { type: 'available' as const, text: 'Open' },
-    details: { duration: '3 hours', level: 'Members Only', spots: 'Community Space' }
-  },
-  {
-    id: '3',
-    title: 'Suspension Intensive',
-    description: 'Take your skills to new heights! This workshop explores suspension basics with a strong focus on safety. Prerequisites apply.',
-    startDate: '2024-03-23T13:00:00Z',
-    location: 'Salem Studio',
-    price: '$95',
-    status: { type: 'limited' as const, text: '3 spots left' },
-    details: { duration: '4 hours', level: 'Advanced', spots: 'Salem Studio' }
-  },
-  {
-    id: '4',
-    title: 'Intimacy & Rope',
-    description: 'Explore the deeper connections possible through rope. This class focuses on communication, intimacy, and building trust.',
-    startDate: '2024-03-29T18:00:00Z',
-    location: 'Private Studio',
-    price: '$75-95',
-    status: { type: 'available' as const, text: '8 spots left' },
-    details: { duration: '3 hours', level: 'Couples Welcome', spots: 'Private Studio' }
-  }
-];
+// Custom hook for fetching events - follows existing patterns from features/events/api/queries.ts
+const useEventsForHomepage = (enabled: boolean = true) => {
+  return useQuery({
+    queryKey: queryKeys.events(),
+    queryFn: async (): Promise<Event[]> => {
+      const response = await api.get('/api/events');
+      return response.data;
+    },
+    enabled, // Allow disabling the query when custom events are provided
+    staleTime: 5 * 60 * 1000, // 5 minutes - same as existing pattern
+    retry: (failureCount, error: any) => {
+      // Don't retry 401s - follows existing auth patterns
+      if (error?.response?.status === 401) {
+        return false;
+      }
+      return failureCount < 3;
+    }
+  });
+};
 
 export const EventsList: React.FC<EventsListProps> = ({
   title = "Upcoming Classes & Events",
@@ -71,56 +50,62 @@ export const EventsList: React.FC<EventsListProps> = ({
   error: customError,
   events: customEvents
 }) => {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Use TanStack Query for real API data (only if custom events not provided)
+  const { 
+    data: apiEvents, 
+    isLoading: queryLoading, 
+    error: queryError 
+  } = useEventsForHomepage(!customEvents); // Disable query if custom events provided
 
-  useEffect(() => {
-    // If custom data is provided, use it
-    if (customEvents) {
-      setEvents(customEvents);
-      setLoading(false);
-      return;
-    }
-
-    const fetchEvents = async () => {
-      try {
-        // First try real API, fallback to mock data
-        const response = await fetch('http://localhost:5655/api/events');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        setEvents(data);
-      } catch (err) {
-        console.log('Using mock data for v7 design demonstration');
-        // Use mock data for v7 design showcase
-        setEvents(mockEventsData);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEvents();
-  }, [customEvents]);
-
-  // Use custom states if provided
-  const isLoading = customLoading ?? loading;
-  const errorState = customError ?? error;
+  // Determine which data source to use
+  const events = customEvents ?? apiEvents ?? [];
+  const isLoading = customLoading ?? (customEvents ? false : queryLoading);
+  const errorState = customError ?? (queryError ? 'Failed to load events' : null);
 
   if (isLoading) {
     return (
-      <Box style={{ textAlign: 'center', padding: 'var(--space-xl)' }}>
-        <Text>Loading events...</Text>
+      <Box
+        component="section"
+        style={{
+          padding: 'var(--space-2xl) 40px',
+          maxWidth: '1200px',
+          margin: '0 auto',
+          background: 'var(--color-ivory)',
+          borderRadius: '16px',
+          marginTop: 'var(--space-2xl)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+          textAlign: 'center',
+          minHeight: '200px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Loader size="lg" style={{ marginBottom: 'var(--space-md)' }} />
+        <Text style={{ color: 'var(--color-stone)' }}>Loading events...</Text>
       </Box>
     );
   }
 
   if (errorState) {
     return (
-      <Alert color="red" style={{ margin: 'var(--space-lg)' }}>
-        <strong>Error:</strong> {errorState}
-      </Alert>
+      <Box
+        component="section"
+        style={{
+          padding: 'var(--space-2xl) 40px',
+          maxWidth: '1200px',
+          margin: '0 auto',
+          background: 'var(--color-ivory)',
+          borderRadius: '16px',
+          marginTop: 'var(--space-2xl)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+        }}
+      >
+        <Alert color="red" style={{ marginBottom: 'var(--space-lg)' }}>
+          <strong>Error:</strong> {errorState}
+        </Alert>
+      </Box>
     );
   }
 
@@ -128,8 +113,20 @@ export const EventsList: React.FC<EventsListProps> = ({
 
   if (displayEvents.length === 0) {
     return (
-      <Box style={{ textAlign: 'center', padding: 'var(--space-xl)' }}>
-        <Title order={3} style={{ marginBottom: 'var(--space-sm)' }}>
+      <Box
+        component="section"
+        style={{
+          padding: 'var(--space-2xl) 40px',
+          maxWidth: '1200px',
+          margin: '0 auto',
+          background: 'var(--color-ivory)',
+          borderRadius: '16px',
+          marginTop: 'var(--space-2xl)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+          textAlign: 'center',
+        }}
+      >
+        <Title order={3} style={{ marginBottom: 'var(--space-sm)', color: 'var(--color-burgundy)' }}>
           No events available
         </Title>
         <Text style={{ color: 'var(--color-stone)' }}>
@@ -188,10 +185,6 @@ export const EventsList: React.FC<EventsListProps> = ({
           <EventCard
             key={event.id}
             event={event}
-            // Add v7 styling props if they exist in mock data
-            {...(event as any).price && { price: (event as any).price }}
-            {...(event as any).status && { status: (event as any).status }}
-            {...(event as any).details && { details: (event as any).details }}
             onClick={() => {
               // Handle event click - could navigate to event details
               console.log('Event clicked:', event.id);
