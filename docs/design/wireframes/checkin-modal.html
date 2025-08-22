@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-in Modal - Witch City Rope</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,700;6..96,900&family=Montserrat:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;600&family=Satisfy&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Primary Colors */
+            --color-burgundy: #880124;
+            --color-burgundy-dark: #660019;
+            --color-burgundy-light: #AA0130;
+            --color-plum: #614B79;
+            --color-plum-dark: #4A3A5C;
+            --color-plum-light: #7B6296;
+            
+            /* Warm Metallics */
+            --color-rose-gold: #B76D75;
+            --color-copper: #B87333;
+            --color-brass: #C9A961;
+            
+            /* CTA Accent Colors */
+            --color-amber: #FFBF00;
+            --color-amber-dark: #E6AC00;
+            --color-amber-light: #FFD633;
+            
+            /* Neutral Colors */
+            --color-midnight: #1A1A2E;
+            --color-charcoal: #2B2B2B;
+            --color-gray: #666666;
+            --color-gray-light: #CCCCCC;
+            --color-ivory: #FFF8F0;
+            --color-cream: #FAF6F2;
+            --color-off-white: #F5F5F5;
+            
+            /* Status Colors */
+            --color-success: #228B22;
+            --color-warning: #DAA520;
+            --color-error: #DC143C;
+            --color-success-light: #E6F7F1;
+            --color-warning-light: #FFF4CC;
+            --color-error-light: #FFE5EC;
+            
+            /* Typography */
+            --font-display: 'Bodoni Moda', serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            --font-accent: 'Satisfy', cursive;
+            
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 16px;
+            --space-md: 24px;
+            --space-lg: 32px;
+            --space-xl: 40px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            font-size: 18px;
+            line-height: 1.6;
+            color: var(--color-charcoal);
+            background-color: var(--color-cream);
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        /* Modal Container */
+        .modal {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        /* Modal Header */
+        .modal-header {
+            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
+            color: white;
+            padding: var(--space-md) var(--space-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
+        }
+        
+        /* Modal Body */
+        .modal-body {
+            padding: var(--space-lg);
+        }
+        
+        /* Attendee Info Section */
+        .attendee-section {
+            background: var(--color-ivory);
+            border-radius: 8px;
+            padding: var(--space-md);
+            margin-bottom: var(--space-lg);
+            border: 1px solid var(--color-rose-gold);
+        }
+        
+        .attendee-name {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--color-burgundy);
+            margin-bottom: 4px;
+        }
+        
+        .attendee-pronouns {
+            color: var(--color-gray);
+            font-size: 16px;
+            font-style: italic;
+        }
+        
+        /* Form Sections */
+        .form-section {
+            margin-bottom: var(--space-lg);
+        }
+        
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Waiver and COVID Section Shared Styles */
+        .requirement-title {
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: var(--space-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .requirement-not-verified {
+            color: var(--color-error);
+        }
+        
+        .requirement-verified {
+            color: var(--color-charcoal);
+        }
+        
+        .requirement-action-btn {
+            width: 100%;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, var(--color-error) 0%, #B71C1C 100%);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-family: var(--font-heading);
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(220, 20, 60, 0.3);
+        }
+        
+        .requirement-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 20, 60, 0.4);
+        }
+        
+        .requirement-status {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-family: var(--font-heading);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--color-success-light);
+            color: var(--color-success);
+        }
+        
+        /* Payment Section */
+        .payment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-sm);
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-label {
+            font-family: var(--font-heading);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-gray);
+            margin-bottom: var(--space-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-input {
+            padding: 12px 16px;
+            border: 2px solid var(--color-gray-light);
+            border-radius: 4px;
+            font-family: var(--font-body);
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--color-plum);
+            box-shadow: 0 0 0 3px rgba(97, 75, 121, 0.1);
+        }
+        
+        /* Payment Method Toggle */
+        .payment-methods {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .method-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: 2px solid var(--color-gray-light);
+            background: white;
+            border-radius: 4px;
+            font-family: var(--font-heading);
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--color-gray);
+        }
+        
+        .method-btn:hover {
+            border-color: var(--color-plum);
+            color: var(--color-plum);
+        }
+        
+        .method-btn.active {
+            background: var(--color-plum);
+            color: white;
+            border-color: var(--color-plum);
+        }
+        
+        /* Notes Section */
+        .notes-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--color-gray-light);
+            border-radius: 4px;
+            font-family: var(--font-body);
+            font-size: 16px;
+            min-height: 80px;
+            resize: vertical;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .notes-textarea:focus {
+            outline: none;
+            border-color: var(--color-plum);
+            box-shadow: 0 0 0 3px rgba(97, 75, 121, 0.1);
+        }
+        
+        /* Modal Footer */
+        .modal-footer {
+            padding: var(--space-md) var(--space-lg);
+            border-top: 1px solid var(--color-gray-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: var(--space-sm);
+            background: var(--color-ivory);
+        }
+        
+        .btn {
+            padding: 14px 32px;
+            border-radius: 4px;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--color-burgundy);
+            border: 2px solid var(--color-burgundy);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--color-burgundy);
+            color: white;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+            color: var(--color-midnight);
+            flex: 1;
+            box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+            font-weight: 700;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(255, 191, 0, 0.5);
+            background: linear-gradient(135deg, var(--color-amber-dark) 0%, var(--color-amber) 100%);
+        }
+        
+        .btn-primary:disabled {
+            background: var(--color-gray-light);
+            color: var(--color-gray);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        
+        /* Warning Message */
+        .warning-message {
+            background: var(--color-warning-light);
+            border-left: 4px solid var(--color-warning);
+            padding: var(--space-sm) var(--space-md);
+            margin-bottom: var(--space-sm);
+            border-radius: 4px;
+            font-size: 14px;
+            color: #856404;
+            display: none;
+        }
+        
+        .warning-message.show {
+            display: block;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 480px) {
+            .modal {
+                width: 95%;
+                margin: 20px;
+            }
+            
+            .payment-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-footer {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Modal Selection -->
+    <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+        <h2 style="margin-bottom: var(--space-md); font-family: var(--font-heading); color: var(--color-burgundy);">Check-in Modal Examples</h2>
+        <div style="display: flex; gap: var(--space-md); justify-content: center; margin-bottom: var(--space-xl);">
+            <button class="btn btn-primary" onclick="showExample(1)">Example 1: Unpaid Attendee</button>
+            <button class="btn btn-primary" onclick="showExample(2)">Example 2: Paid Attendee</button>
+        </div>
+    </div>
+    
+    <!-- Modal Example 1 - Alex Stone (Unpaid) -->
+    <div id="example1" class="modal-overlay" style="display: flex;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Check In Attendee</h2>
+                <button class="close-btn">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- Attendee Info -->
+                <div class="attendee-section">
+                    <div class="attendee-name">Alex Stone</div>
+                    <div class="attendee-pronouns">they/them</div>
+                </div>
+                
+                <!-- Waiver Section -->
+                <div class="form-section">
+                    <div class="requirement-title requirement-not-verified" id="waiver-title1">
+                        Waiver Status - NOT SIGNED
+                    </div>
+                    <button class="requirement-action-btn" id="waiver-btn1" onclick="markWaiverSigned(this)">
+                        ✓ Mark Waiver as Signed
+                    </button>
+                </div>
+                
+                <!-- Covid Test Section -->
+                <div class="form-section">
+                    <div class="requirement-title requirement-not-verified" id="covid-title1">
+                        COVID Test - NOT VERIFIED
+                    </div>
+                    <button class="requirement-action-btn" id="covid-btn1" onclick="markCovidVerified(this)">
+                        ✓ Verify Negative Test Result
+                    </button>
+                </div>
+                
+                <!-- Payment Section -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <span>💳</span>
+                        Payment Information
+                    </div>
+                    
+                    <div class="warning-message show">
+                        ⚠️ This attendee hasn't paid yet. Expected: $35-$55 (sliding scale)
+                    </div>
+                    
+                    <div class="payment-grid">
+                        <div class="form-group">
+                            <label class="form-label">Amount Paid</label>
+                            <input type="number" class="form-input" placeholder="$0" min="0" step="5">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Payment Method</label>
+                            <div class="payment-methods">
+                                <button class="method-btn" data-method="cash">Cash</button>
+                                <button class="method-btn" data-method="venmo">Venmo</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+
+                <!-- Notes Section -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <span>📝</span>
+                        Notes (Optional)
+                    </div>
+                    <textarea class="notes-textarea" placeholder="Add any notes about this check-in..."></textarea>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-secondary">Cancel</button>
+                <button class="btn btn-primary" id="checkin-btn1" disabled>Complete Check-in</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Example 2 - Ashley Martinez (Paid) -->
+    <div id="example2" class="modal-overlay" style="display: none;">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 class="modal-title">Check In Attendee</h2>
+                    <button class="close-btn">×</button>
+                </div>
+                
+                <div class="modal-body">
+                    <!-- Attendee Info -->
+                <div class="attendee-section">
+                    <div class="attendee-name">Ashley Martinez</div>
+                    <div class="attendee-pronouns">she/her</div>
+                </div>
+                    
+                    <!-- Waiver Section -->
+                    <div class="form-section">
+                        <div class="requirement-title requirement-verified">
+                            Waiver Status
+                        </div>
+                        <div class="requirement-status">
+                            <span class="status-badge status-signed">Signed</span>
+                            <span style="color: #666; font-size: 14px;">Last signed: Feb 15, 2024</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Covid Test Section -->
+                    <div class="form-section">
+                        <div class="requirement-title requirement-verified">
+                            COVID Test
+                        </div>
+                        <div class="requirement-status">
+                            <span class="status-badge status-signed">Verified</span>
+                            <span style="color: #666; font-size: 14px;">Test from: March 14, 3:00 PM</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Section -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <span>💳</span>
+                            Payment Information
+                        </div>
+                        
+                    <div class="payment-grid">
+                        <div class="form-group">
+                            <label class="form-label">Amount Paid</label>
+                            <input type="number" class="form-input" value="20" min="0" step="5" readonly style="background: #f5f5f5;">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Payment Method</label>
+                            <div class="payment-methods">
+                                <button class="method-btn active" data-method="cash">Cash</button>
+                                <button class="method-btn" data-method="venmo">Venmo</button>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                    
+
+                    <!-- Notes Section -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <span>📝</span>
+                            Notes (Optional)
+                        </div>
+                        <textarea class="notes-textarea" placeholder="Add any notes about this check-in..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button class="btn btn-secondary">Cancel</button>
+                    <button class="btn btn-primary">Complete Check-in</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Show/hide examples
+        function showExample(num) {
+            document.getElementById('example1').style.display = 'none';
+            document.getElementById('example2').style.display = 'none';
+            document.getElementById('example' + num).style.display = 'flex';
+            
+            // Update button states
+            document.querySelectorAll('.example-btn').forEach(btn => {
+                btn.style.background = '#f0f0f0';
+                btn.style.color = '#666';
+            });
+            event.target.style.background = '#8B4513';
+            event.target.style.color = 'white';
+        }
+        
+        // Mark waiver as signed
+        function markWaiverSigned(button) {
+            const section = button.parentElement;
+            const titleId = section.querySelector('.requirement-title').id;
+            section.innerHTML = `
+                <div class="requirement-title requirement-verified" id="${titleId}">
+                    Waiver Status
+                </div>
+                <div class="requirement-status">
+                    <span class="status-badge status-signed">Signed</span>
+                    <span style="color: #666; font-size: 14px;">Signed just now</span>
+                </div>
+            `;
+            
+            // Check if both requirements are met
+            checkRequirements();
+        }
+        
+        // Mark COVID test as verified
+        function markCovidVerified(button) {
+            const section = button.parentElement;
+            const titleId = section.querySelector('.requirement-title').id;
+            section.innerHTML = `
+                <div class="requirement-title requirement-verified" id="${titleId}">
+                    COVID Test
+                </div>
+                <div class="requirement-status">
+                    <span class="status-badge status-signed">Verified</span>
+                    <span style="color: #666; font-size: 14px;">Verified just now</span>
+                </div>
+            `;
+            
+            // Check if both requirements are met
+            checkRequirements();
+        }
+        
+        // Check if all requirements are met
+        function checkRequirements() {
+            const waiverSigned = document.querySelector('#waiver-title1.requirement-verified') !== null;
+            const covidVerified = document.querySelector('#covid-title1.requirement-verified') !== null;
+            
+            // Enable check-in button only if both requirements are met
+            const checkinBtn = document.getElementById('checkin-btn1');
+            if (checkinBtn) {
+                checkinBtn.disabled = !(waiverSigned && covidVerified);
+            }
+        }
+        
+        // Payment method selection
+        document.querySelectorAll('.method-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active from all buttons in this group
+                this.parentElement.querySelectorAll('.method-btn').forEach(b => {
+                    b.classList.remove('active');
+                });
+                // Add active to clicked button
+                this.classList.add('active');
+            });
+        });
+        
+        // Close button functionality
+        document.querySelectorAll('.close-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // In real app, this would close the modal
+                console.log('Close modal');
+            });
+        });
+        
+        // Amount input formatting
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('input', function() {
+                if (this.value && !this.value.startsWith('$')) {
+                    // This is just for display, in real app would handle differently
+                }
+            });
+        });
+    </script>
+</body>
+</html>

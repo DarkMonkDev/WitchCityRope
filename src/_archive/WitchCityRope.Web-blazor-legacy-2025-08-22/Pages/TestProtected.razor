@@ -1,0 +1,60 @@
+@page "/test-protected"
+@using System.Security.Claims
+@attribute [Authorize]
+
+<PageTitle>Protected Test Page</PageTitle>
+
+<div class="container mt-5">
+    <h1>Protected Test Page</h1>
+    
+    <AuthorizeView>
+        <Authorized>
+            <div class="alert alert-success">
+                <h4>Authentication Successful!</h4>
+                <p>You are logged in as: <strong>@context.User.Identity?.Name</strong></p>
+                
+                <h5 class="mt-3">User Claims:</h5>
+                <ul>
+                    @foreach (var claim in context.User.Claims)
+                    {
+                        <li>@claim.Type: @claim.Value</li>
+                    }
+                </ul>
+                
+                <h5 class="mt-3">User Roles:</h5>
+                <ul>
+                    @foreach (var role in GetUserRoles(context.User))
+                    {
+                        <li>@role</li>
+                    }
+                </ul>
+                
+                <button class="btn btn-danger mt-3" @onclick="LogoutAsync">Logout</button>
+            </div>
+        </Authorized>
+        <NotAuthorized>
+            <div class="alert alert-warning">
+                <h4>Not Authorized</h4>
+                <p>This should not be visible if authentication is working correctly.</p>
+            </div>
+        </NotAuthorized>
+    </AuthorizeView>
+</div>
+
+@code {
+    [Inject] private IAuthService AuthService { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+    
+    private async Task LogoutAsync()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/", true);
+    }
+    
+    private IEnumerable<string> GetUserRoles(ClaimsPrincipal user)
+    {
+        return user.Claims
+            .Where(c => c.Type == ClaimTypes.Role)
+            .Select(c => c.Value);
+    }
+}

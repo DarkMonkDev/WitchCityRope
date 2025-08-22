@@ -1,0 +1,1082 @@
+{
+  "config": {
+    "configFile": "/home/chad/repos/witchcityrope-react/playwright.config.ts",
+    "rootDir": "/home/chad/repos/witchcityrope-react/tests/playwright",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 12
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "./test-results/playwright-results.json"
+        }
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "./test-results/playwright-report"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/home/chad/repos/witchcityrope-react/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 12
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/chad/repos/witchcityrope-react/tests/playwright",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.54.2",
+    "workers": 12,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:5173",
+      "reuseExistingServer": true,
+      "timeout": 30000
+    }
+  },
+  "suites": [
+    {
+      "title": "dashboard.spec.ts",
+      "file": "dashboard.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Dashboard Pages",
+          "file": "dashboard.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should navigate to dashboard and display welcome message",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 32057,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8",
+                        "location": {
+                          "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                          "column": 8,
+                          "line": 4
+                        },
+                        "snippet": "  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     "
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 8,
+                            "line": 4
+                          },
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n\n  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 16,
+                            "line": 9
+                          },
+                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n\n   7 |     \n   8 |     // Login with test admin account\n>  9 |     await page.fill('input[name=\"email\"]', 'admin@witchcityrope.com')\n     |                ^\n  10 |     await page.fill('input[name=\"password\"]', 'Test123!')\n  11 |     await page.click('button[type=\"submit\"]')\n  12 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:9:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T17:27:23.219Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--2ca4b-and-display-welcome-message-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--2ca4b-and-display-welcome-message-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--2ca4b-and-display-welcome-message-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                        "column": 8,
+                        "line": 4
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-15a24bc94c57f6ade9ad",
+              "file": "dashboard.spec.ts",
+              "line": 17,
+              "column": 7
+            },
+            {
+              "title": "should navigate to events page and display events",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "timedOut",
+                      "duration": 32022,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8",
+                        "location": {
+                          "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                          "column": 8,
+                          "line": 4
+                        },
+                        "snippet": "  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     "
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 8,
+                            "line": 4
+                          },
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n\n  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 16,
+                            "line": 9
+                          },
+                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n\n   7 |     \n   8 |     // Login with test admin account\n>  9 |     await page.fill('input[name=\"email\"]', 'admin@witchcityrope.com')\n     |                ^\n  10 |     await page.fill('input[name=\"password\"]', 'Test123!')\n  11 |     await page.click('button[type=\"submit\"]')\n  12 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:9:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T17:27:23.217Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--71477-nts-page-and-display-events-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--71477-nts-page-and-display-events-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--71477-nts-page-and-display-events-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                        "column": 8,
+                        "line": 4
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-4796cc4cbde9606c2704",
+              "file": "dashboard.spec.ts",
+              "line": 34,
+              "column": 7
+            },
+            {
+              "title": "should navigate to profile page and display form",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "timedOut",
+                      "duration": 32088,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8",
+                        "location": {
+                          "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                          "column": 8,
+                          "line": 4
+                        },
+                        "snippet": "  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     "
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 8,
+                            "line": 4
+                          },
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n\n  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 16,
+                            "line": 9
+                          },
+                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n\n   7 |     \n   8 |     // Login with test admin account\n>  9 |     await page.fill('input[name=\"email\"]', 'admin@witchcityrope.com')\n     |                ^\n  10 |     await page.fill('input[name=\"password\"]', 'Test123!')\n  11 |     await page.click('button[type=\"submit\"]')\n  12 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:9:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T17:27:23.258Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--3cdcf-ofile-page-and-display-form-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--3cdcf-ofile-page-and-display-form-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--3cdcf-ofile-page-and-display-form-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                        "column": 8,
+                        "line": 4
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-0953e927f08fd8496f2f",
+              "file": "dashboard.spec.ts",
+              "line": 47,
+              "column": 7
+            },
+            {
+              "title": "should test profile form validation",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "timedOut",
+                      "duration": 32033,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8",
+                        "location": {
+                          "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                          "column": 8,
+                          "line": 4
+                        },
+                        "snippet": "  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     "
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 8,
+                            "line": 4
+                          },
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n\n  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 16,
+                            "line": 9
+                          },
+                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n\n   7 |     \n   8 |     // Login with test admin account\n>  9 |     await page.fill('input[name=\"email\"]', 'admin@witchcityrope.com')\n     |                ^\n  10 |     await page.fill('input[name=\"password\"]', 'Test123!')\n  11 |     await page.click('button[type=\"submit\"]')\n  12 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:9:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T17:27:23.238Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--8023f-est-profile-form-validation-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--8023f-est-profile-form-validation-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--8023f-est-profile-form-validation-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                        "column": 8,
+                        "line": 4
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-c288ecfa51695bdc32d0",
+              "file": "dashboard.spec.ts",
+              "line": 68,
+              "column": 7
+            },
+            {
+              "title": "should navigate to security page and test form interactions",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "timedOut",
+                      "duration": 32062,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8",
+                        "location": {
+                          "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                          "column": 8,
+                          "line": 4
+                        },
+                        "snippet": "  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     "
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 8,
+                            "line": 4
+                          },
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n\n  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 16,
+                            "line": 9
+                          },
+                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n\n   7 |     \n   8 |     // Login with test admin account\n>  9 |     await page.fill('input[name=\"email\"]', 'admin@witchcityrope.com')\n     |                ^\n  10 |     await page.fill('input[name=\"password\"]', 'Test123!')\n  11 |     await page.click('button[type=\"submit\"]')\n  12 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:9:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T17:27:23.235Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--d14d9--and-test-form-interactions-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--d14d9--and-test-form-interactions-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--d14d9--and-test-form-interactions-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                        "column": 8,
+                        "line": 4
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-6955efc1a1e3cc98f4ec",
+              "file": "dashboard.spec.ts",
+              "line": 107,
+              "column": 7
+            },
+            {
+              "title": "should test password validation on security page",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "timedOut",
+                      "duration": 32024,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8",
+                        "location": {
+                          "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                          "column": 8,
+                          "line": 4
+                        },
+                        "snippet": "  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     "
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 8,
+                            "line": 4
+                          },
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n\n  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 16,
+                            "line": 9
+                          },
+                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n\n   7 |     \n   8 |     // Login with test admin account\n>  9 |     await page.fill('input[name=\"email\"]', 'admin@witchcityrope.com')\n     |                ^\n  10 |     await page.fill('input[name=\"password\"]', 'Test123!')\n  11 |     await page.click('button[type=\"submit\"]')\n  12 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:9:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T17:27:23.220Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--8adc8-validation-on-security-page-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--8adc8-validation-on-security-page-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--8adc8-validation-on-security-page-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                        "column": 8,
+                        "line": 4
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-7bf5b4edab549b8402c4",
+              "file": "dashboard.spec.ts",
+              "line": 146,
+              "column": 7
+            },
+            {
+              "title": "should navigate to membership page and display status",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 6,
+                      "status": "timedOut",
+                      "duration": 32030,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8",
+                        "location": {
+                          "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                          "column": 8,
+                          "line": 4
+                        },
+                        "snippet": "  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     "
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 8,
+                            "line": 4
+                          },
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n\n  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 16,
+                            "line": 9
+                          },
+                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n\n   7 |     \n   8 |     // Login with test admin account\n>  9 |     await page.fill('input[name=\"email\"]', 'admin@witchcityrope.com')\n     |                ^\n  10 |     await page.fill('input[name=\"password\"]', 'Test123!')\n  11 |     await page.click('button[type=\"submit\"]')\n  12 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:9:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T17:27:23.254Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--ec7b5-hip-page-and-display-status-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--ec7b5-hip-page-and-display-status-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--ec7b5-hip-page-and-display-status-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                        "column": 8,
+                        "line": 4
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-badb511e00a379fb32b0",
+              "file": "dashboard.spec.ts",
+              "line": 169,
+              "column": 7
+            },
+            {
+              "title": "should navigate to events dashboard page",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 7,
+                      "status": "timedOut",
+                      "duration": 32086,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8",
+                        "location": {
+                          "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                          "column": 8,
+                          "line": 4
+                        },
+                        "snippet": "  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     "
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 8,
+                            "line": 4
+                          },
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n\n  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 16,
+                            "line": 9
+                          },
+                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n\n   7 |     \n   8 |     // Login with test admin account\n>  9 |     await page.fill('input[name=\"email\"]', 'admin@witchcityrope.com')\n     |                ^\n  10 |     await page.fill('input[name=\"password\"]', 'Test123!')\n  11 |     await page.click('button[type=\"submit\"]')\n  12 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:9:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T17:27:23.240Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--6d5d4-te-to-events-dashboard-page-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--6d5d4-te-to-events-dashboard-page-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--6d5d4-te-to-events-dashboard-page-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                        "column": 8,
+                        "line": 4
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-f4c2003604906a69d3d1",
+              "file": "dashboard.spec.ts",
+              "line": 203,
+              "column": 7
+            },
+            {
+              "title": "should test responsive design on mobile viewport",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 8,
+                      "status": "timedOut",
+                      "duration": 32070,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8",
+                        "location": {
+                          "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                          "column": 8,
+                          "line": 4
+                        },
+                        "snippet": "  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     "
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 8,
+                            "line": 4
+                          },
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n\n  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 16,
+                            "line": 9
+                          },
+                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n\n   7 |     \n   8 |     // Login with test admin account\n>  9 |     await page.fill('input[name=\"email\"]', 'admin@witchcityrope.com')\n     |                ^\n  10 |     await page.fill('input[name=\"password\"]', 'Test123!')\n  11 |     await page.click('button[type=\"submit\"]')\n  12 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:9:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T17:27:23.232Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--fab20-e-design-on-mobile-viewport-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--fab20-e-design-on-mobile-viewport-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--fab20-e-design-on-mobile-viewport-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                        "column": 8,
+                        "line": 4
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-375032b1aef8fb9bba29",
+              "file": "dashboard.spec.ts",
+              "line": 216,
+              "column": 7
+            },
+            {
+              "title": "should handle dashboard navigation via URL bar",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 9,
+                      "status": "timedOut",
+                      "duration": 32060,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8",
+                        "location": {
+                          "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                          "column": 8,
+                          "line": 4
+                        },
+                        "snippet": "  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     "
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 8,
+                            "line": 4
+                          },
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n\n  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 16,
+                            "line": 9
+                          },
+                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n\n   7 |     \n   8 |     // Login with test admin account\n>  9 |     await page.fill('input[name=\"email\"]', 'admin@witchcityrope.com')\n     |                ^\n  10 |     await page.fill('input[name=\"password\"]', 'Test123!')\n  11 |     await page.click('button[type=\"submit\"]')\n  12 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:9:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T17:27:23.230Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--02063-oard-navigation-via-URL-bar-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--02063-oard-navigation-via-URL-bar-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--02063-oard-navigation-via-URL-bar-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                        "column": 8,
+                        "line": 4
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-69bf21702f26861e11bc",
+              "file": "dashboard.spec.ts",
+              "line": 244,
+              "column": 7
+            },
+            {
+              "title": "should display loading states correctly",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 10,
+                      "status": "timedOut",
+                      "duration": 32055,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8",
+                        "location": {
+                          "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                          "column": 8,
+                          "line": 4
+                        },
+                        "snippet": "  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     "
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 8,
+                            "line": 4
+                          },
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n\n  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 16,
+                            "line": 9
+                          },
+                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n\n   7 |     \n   8 |     // Login with test admin account\n>  9 |     await page.fill('input[name=\"email\"]', 'admin@witchcityrope.com')\n     |                ^\n  10 |     await page.fill('input[name=\"password\"]', 'Test123!')\n  11 |     await page.click('button[type=\"submit\"]')\n  12 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:9:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T17:27:23.251Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--e4542-ay-loading-states-correctly-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--e4542-ay-loading-states-correctly-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--e4542-ay-loading-states-correctly-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                        "column": 8,
+                        "line": 4
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-2bf50094570bf28086ba",
+              "file": "dashboard.spec.ts",
+              "line": 260,
+              "column": 7
+            },
+            {
+              "title": "should verify dashboard layout and navigation structure",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 11,
+                      "status": "timedOut",
+                      "duration": 32073,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8",
+                        "location": {
+                          "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                          "column": 8,
+                          "line": 4
+                        },
+                        "snippet": "  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     "
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 8,
+                            "line": 4
+                          },
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n\n  2 |\n  3 | test.describe('Dashboard Pages', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Navigate to login page\n  6 |     await page.goto('http://localhost:5173/login')\n  7 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:4:8"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                            "column": 16,
+                            "line": 9
+                          },
+                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n\n   7 |     \n   8 |     // Login with test admin account\n>  9 |     await page.fill('input[name=\"email\"]', 'admin@witchcityrope.com')\n     |                ^\n  10 |     await page.fill('input[name=\"password\"]', 'Test123!')\n  11 |     await page.click('button[type=\"submit\"]')\n  12 |     \n    at /home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts:9:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T17:27:23.248Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--24083-ut-and-navigation-structure-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--24083-ut-and-navigation-structure-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/dashboard-Dashboard-Pages--24083-ut-and-navigation-structure-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/chad/repos/witchcityrope-react/tests/playwright/dashboard.spec.ts",
+                        "column": 8,
+                        "line": 4
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-a99af134a3b9d1204676",
+              "file": "dashboard.spec.ts",
+              "line": 278,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-08-22T17:27:22.536Z",
+    "duration": 32968.67,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 12,
+    "flaky": 0
+  }
+}

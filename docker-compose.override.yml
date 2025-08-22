@@ -1,0 +1,121 @@
+# Docker Compose Override for Development
+# This file is automatically loaded by docker-compose and overrides settings for development
+
+version: '3.8'
+
+services:
+  # PostgreSQL Development Overrides
+  postgres:
+    environment:
+      # Use a separate database for development
+      - POSTGRES_DB=witchcityrope_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      # Persist data between restarts
+      - postgres_dev_data:/var/lib/postgresql/data
+
+  # API Service Development Overrides
+  api:
+    build:
+      target: development
+    environment:
+      # Force development environment
+      - ASPNETCORE_ENVIRONMENT=Development
+      
+      # Enable hot reload
+      - DOTNET_USE_POLLING_FILE_WATCHER=true
+      - DOTNET_WATCH_RESTART_ON_RUDE_EDIT=true
+      
+      # Development database - PostgreSQL
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=witchcityrope_dev;Username=postgres;Password=WitchCity2024!;Include Error Detail=true
+      
+      # Development logging
+      - Serilog__MinimumLevel__Default=Debug
+      - Serilog__WriteTo__0__Name=Console
+      - Serilog__WriteTo__1__Name=File
+      - Serilog__WriteTo__1__Args__path=/app/logs/api-.log
+      - Serilog__WriteTo__1__Args__rollingInterval=Day
+      
+      # Development CORS
+      - Cors__AllowedOrigins__0=http://localhost:5651
+      - Cors__AllowedOrigins__1=https://localhost:5652
+      - Cors__AllowedOrigins__2=http://localhost:5653
+      - Cors__AllowedOrigins__3=https://localhost:5654
+      
+    volumes:
+      # Override the volume mapping for development
+      - ./src:/src:cached
+      
+      # Mount appsettings for easy configuration changes
+      - ./src/WitchCityRope.Api/appsettings.Development.json:/src/WitchCityRope.Api/appsettings.Development.json:ro
+      
+      # Exclude bin and obj directories to avoid conflicts
+      - /src/WitchCityRope.Api/bin
+      - /src/WitchCityRope.Api/obj
+      - /src/WitchCityRope.Core/bin
+      - /src/WitchCityRope.Core/obj
+      - /src/WitchCityRope.Infrastructure/bin
+      - /src/WitchCityRope.Infrastructure/obj
+      
+    command: ["dotnet", "watch", "run", "--project", "/src/WitchCityRope.Api/WitchCityRope.Api.csproj", "--no-launch-profile", "--urls", "http://0.0.0.0:8080;https://0.0.0.0:8081"]
+
+  # Web Service Development Overrides
+  web:
+    build:
+      target: development
+    environment:
+      # Force development environment
+      - ASPNETCORE_ENVIRONMENT=Development
+      
+      # Enable hot reload
+      - DOTNET_USE_POLLING_FILE_WATCHER=true
+      - DOTNET_WATCH_RESTART_ON_RUDE_EDIT=true
+      
+      # Detailed errors for development
+      - DetailedErrors=true
+      
+      # Development logging
+      - Logging__LogLevel__Default=Debug
+      - Logging__LogLevel__Microsoft=Information
+      - Logging__LogLevel__Microsoft.AspNetCore.SignalR=Debug
+      - Logging__LogLevel__Microsoft.AspNetCore.Components=Debug
+      
+      # API endpoint for internal Docker network
+      - ApiBaseUrl=http://api:8080/
+      
+    volumes:
+      # Override the volume mapping for development
+      - ./src:/src:cached
+      
+      # Mount wwwroot for static file changes
+      - ./src/WitchCityRope.Web/wwwroot:/src/WitchCityRope.Web/wwwroot:cached
+      
+      # Mount appsettings for easy configuration changes
+      - ./src/WitchCityRope.Web/appsettings.Development.json:/src/WitchCityRope.Web/appsettings.Development.json:ro
+      
+      # Exclude bin and obj directories to avoid conflicts
+      - /src/WitchCityRope.Web/bin
+      - /src/WitchCityRope.Web/obj
+      - /src/WitchCityRope.Core/bin
+      - /src/WitchCityRope.Core/obj
+      - /src/WitchCityRope.Infrastructure/bin
+      - /src/WitchCityRope.Infrastructure/obj
+      
+    command: ["dotnet", "watch", "run", "--project", "/src/WitchCityRope.Web/WitchCityRope.Web.csproj", "--no-launch-profile", "--urls", "http://0.0.0.0:8080;https://0.0.0.0:8081"]
+
+  # Add a development mail catcher (optional)
+  mailcatcher:
+    image: schickling/mailcatcher:latest
+    container_name: witchcity-mailcatcher
+    ports:
+      - "1080:1080"  # Web interface
+      - "1025:1025"  # SMTP server
+    networks:
+      - witchcity-network
+    profiles:
+      - dev-tools
+
+volumes:
+  postgres_dev_data:
+    driver: local

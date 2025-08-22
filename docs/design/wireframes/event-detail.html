@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rope Basics Workshop - Witch City Rope</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        
+        /* Utility Bar */
+        .utility-bar {
+            background: #1a1a1a;
+            padding: 10px 40px;
+            font-size: 14px;
+            color: #ccc;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+        
+        .utility-bar a {
+            color: #ccc;
+            text-decoration: none;
+            margin-left: 24px;
+        }
+        
+        .utility-bar a.incident-link {
+            color: #ff6b6b;
+            font-weight: 500;
+        }
+        
+        /* Header */
+        .header {
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #8B4513;
+            text-decoration: none;
+        }
+        
+        .nav {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        .nav-item {
+            color: #666;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-block;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .btn-primary {
+            background: #8B4513;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #6B3410;
+        }
+        
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: #8B4513;
+            border: 2px solid #8B4513;
+        }
+        
+        .btn-secondary:hover {
+            background: #8B4513;
+            color: white;
+        }
+        
+        .btn-large {
+            padding: 16px 32px;
+            font-size: 18px;
+        }
+        
+        /* Breadcrumb */
+        .breadcrumb {
+            padding: 20px 40px;
+            background: white;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .breadcrumb a {
+            color: #8B4513;
+            text-decoration: none;
+        }
+        
+        .breadcrumb span {
+            color: #999;
+            margin: 0 8px;
+        }
+        
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* Two Column Layout */
+        .event-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+        }
+        
+        /* Event Content */
+        .event-content {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .event-header {
+            margin-bottom: 30px;
+        }
+        
+        .event-type {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #e8f5e9;
+            color: #2e7d32;
+            margin-bottom: 12px;
+        }
+        
+        .event-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+        }
+        
+        .event-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            font-size: 16px;
+            color: #666;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .meta-item strong {
+            color: #333;
+        }
+        
+        /* Content Sections */
+        .content-section {
+            margin-bottom: 40px;
+        }
+        
+        .content-section h2 {
+            font-size: 24px;
+            margin-bottom: 16px;
+            color: #1a1a1a;
+        }
+        
+        .content-section p {
+            color: #666;
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+        
+        .content-section ul {
+            margin-left: 20px;
+            color: #666;
+        }
+        
+        .content-section li {
+            margin-bottom: 8px;
+        }
+        
+        /* Instructor Section */
+        .instructor-card {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            background: #f8f8f8;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .instructor-avatar {
+            width: 80px;
+            height: 80px;
+            background: #e0e0e0;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+        }
+        
+        .instructor-info h3 {
+            font-size: 20px;
+            margin-bottom: 4px;
+            color: #1a1a1a;
+        }
+        
+        .instructor-info p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .instructor-link {
+            color: #8B4513;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            margin-top: 8px;
+            display: inline-block;
+        }
+        
+        /* Registration Sidebar */
+        .registration-sidebar {
+            position: sticky;
+            top: 20px;
+        }
+        
+        .registration-card {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            margin-bottom: 16px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .price-display {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2e7d32;
+            margin-bottom: 4px;
+        }
+        
+        .price-note {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 16px;
+        }
+        
+        .capacity-info {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .capacity-bar {
+            width: 60px;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .capacity-fill {
+            height: 100%;
+            background: #8B4513;
+            transition: width 0.3s;
+        }
+        
+        /* Registration Form */
+        .registration-form {
+            margin-top: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #8B4513;
+        }
+        
+        /* Sliding Scale Slider */
+        .slider-container {
+            margin-bottom: 20px;
+        }
+        
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 10px;
+        }
+        
+        .slider-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #8B4513;
+        }
+        
+        .slider-wrapper {
+            position: relative;
+            margin-bottom: 8px;
+        }
+        
+        .price-slider {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #e0e0e0;
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        .price-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #8B4513;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .price-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: #8B4513;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            border: none;
+        }
+        
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .slider-help {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f4f0;
+            border-radius: 4px;
+            line-height: 1.4;
+        }
+        
+        /* Ticket Options */
+        .ticket-options {
+            margin-bottom: 20px;
+        }
+        
+        .ticket-option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .ticket-option:hover {
+            border-color: #8B4513;
+        }
+        
+        .ticket-option.selected {
+            border-color: #8B4513;
+            background: #f8f4f0;
+        }
+        
+        .ticket-radio {
+            margin-right: 12px;
+        }
+        
+        .ticket-details {
+            flex: 1;
+        }
+        
+        .ticket-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .ticket-price {
+            color: #2e7d32;
+            font-weight: 600;
+        }
+        
+        /* Warning Box */
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 16px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .warning-box h4 {
+            font-size: 14px;
+            margin-bottom: 4px;
+            color: #856404;
+        }
+        
+        .warning-box p {
+            font-size: 13px;
+            color: #856404;
+            margin: 0;
+        }
+        
+        /* Venue Info (Hidden) */
+        .venue-hidden {
+            background: #f8f8f8;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .venue-hidden p {
+            margin-bottom: 8px;
+        }
+        
+        .lock-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+        
+        /* Success State */
+        .registration-success {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            display: none;
+        }
+        
+        .success-icon {
+            font-size: 48px;
+            color: #4caf50;
+            margin-bottom: 16px;
+        }
+        
+        .success-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2e7d32;
+            margin-bottom: 8px;
+        }
+        
+        .success-message {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .event-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .registration-sidebar {
+                position: static;
+            }
+            
+            .event-title {
+                font-size: 28px;
+            }
+            
+            .event-meta {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .capacity-info {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Utility Bar -->
+    <div class="utility-bar">
+        <a href="#" class="incident-link">
+            <span>⚠️</span> Report an Incident
+        </a>
+        <a href="#">Contact Us</a>
+    </div>
+    
+    <!-- Header -->
+    <div class="header">
+        <a href="#" class="logo">Witch City Rope</a>
+        <nav class="nav">
+            <a href="#" class="btn btn-primary">Events & Classes</a>
+            <a href="#" class="nav-item">How to Join</a>
+            <a href="#" class="nav-item">Resources</a>
+            <a href="#" class="btn btn-secondary">Login</a>
+        </nav>
+    </div>
+    
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a href="#">Home</a>
+        <span>›</span>
+        <a href="#">Events & Classes</a>
+        <span>›</span>
+        <span>Rope Basics Workshop</span>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="container">
+        <div class="event-layout">
+            <!-- Left Column - Event Details -->
+            <div class="event-content">
+                <div class="event-header">
+                    <span class="event-type">CLASS</span>
+                    <h1 class="event-title">Rope Basics Workshop</h1>
+                    <div class="event-meta">
+                        <div class="meta-item">
+                            <span>📅</span>
+                            <strong>Saturday, March 15, 2024</strong>
+                        </div>
+                        <div class="meta-item">
+                            <span>🕐</span>
+                            <strong>2:00 PM - 5:00 PM</strong> (3 hours)
+                        </div>
+                        <div class="meta-item">
+                            <span>👥</span>
+                            <strong>12 person</strong> maximum
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Description -->
+                <div class="content-section">
+                    <h2>About This Class</h2>
+                    <p>Join us for a comprehensive introduction to Japanese rope bondage (Shibari/Kinbaku). This beginner-friendly workshop is perfect for those new to rope or looking to solidify their foundational skills.</p>
+                    <p>We'll start with the basics of rope handling, safety protocols, and communication before moving into hands-on practice. You'll learn essential ties that form the building blocks of more advanced work.</p>
+                </div>
+                
+                <!-- What You'll Learn -->
+                <div class="content-section">
+                    <h2>What You'll Learn</h2>
+                    <ul>
+                        <li>Single column tie (the foundation of everything)</li>
+                        <li>Double column tie variations</li>
+                        <li>Basic chest harness (takate kote foundations)</li>
+                        <li>Rope tension and handling techniques</li>
+                        <li>Safety considerations and risk awareness</li>
+                        <li>Communication and consent practices</li>
+                        <li>How to untie safely and manage rope</li>
+                    </ul>
+                </div>
+                
+                <!-- What to Bring -->
+                <div class="content-section">
+                    <h2>What to Bring</h2>
+                    <p><strong>Rope:</strong> We'll have rope available to borrow, but if you have your own, please bring 3-4 pieces of 6mm or 8mm rope (each 7-8 meters/25-30 feet long).</p>
+                    <p><strong>Partner:</strong> You can bring a practice partner or come solo - we'll help with pairing.</p>
+                    <p><strong>Other:</strong> Water bottle, comfortable clothes you can move in, and a notebook if you like to take notes.</p>
+                </div>
+                
+                <!-- Instructor -->
+                <div class="content-section">
+                    <h2>Your Instructor</h2>
+                    <div class="instructor-card">
+                        <div class="instructor-avatar">[Photo]</div>
+                        <div class="instructor-info">
+                            <h3>River Moon</h3>
+                            <p>River has been practicing and teaching rope for over 8 years. They specialize in making rope accessible to beginners while maintaining a strong emphasis on safety and consent. River's teaching style is patient, clear, and adaptable to different learning styles.</p>
+                            <a href="#" class="instructor-link">View full instructor profile →</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Prerequisites -->
+                <div class="content-section">
+                    <h2>Prerequisites</h2>
+                    <p>None! This class is designed for complete beginners. Just bring curiosity and a willingness to learn.</p>
+                </div>
+                
+                <!-- Policies -->
+                <div class="content-section">
+                    <h2>Important Policies</h2>
+                    <p><strong>Refund Policy:</strong> Full refund available up to 48 hours before the event. No refunds within 48 hours of start time.</p>
+                    <p><strong>Age Requirement:</strong> All participants must be 21 or older.</p>
+                    <p><strong>Code of Conduct:</strong> All attendees must follow our <a href="#" style="color: #8B4513;">Code of Conduct</a>.</p>
+                </div>
+            </div>
+            
+            <!-- Right Column - Registration -->
+            <div class="registration-sidebar">
+                <!-- Price Card -->
+                <div class="registration-card">
+                    <div class="price-display">$35 - $55</div>
+                    <div class="price-note">Sliding scale pricing</div>
+                    
+                    <div class="capacity-info">
+                        <span>8 of 12 spots available</span>
+                        <div class="capacity-bar">
+                            <div class="capacity-fill" style="width: 33%;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Registration Form -->
+                    <form class="registration-form">
+                        <!-- Ticket Type -->
+                        <div class="form-group">
+                            <label class="form-label">Select Ticket Type</label>
+                            <div class="ticket-options">
+                                <div class="ticket-option selected">
+                                    <input type="radio" name="ticket" class="ticket-radio" checked>
+                                    <div class="ticket-details">
+                                        <div class="ticket-name">Individual Ticket</div>
+                                        <div class="ticket-price">$35 - $55 sliding scale</div>
+                                    </div>
+                                </div>
+                                <div class="ticket-option">
+                                    <input type="radio" name="ticket" class="ticket-radio">
+                                    <div class="ticket-details">
+                                        <div class="ticket-name">Couple Ticket (2 people)</div>
+                                        <div class="ticket-price">$60 - $100 sliding scale</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sliding Scale -->
+                        <div class="form-group">
+                            <div class="slider-container">
+                                <div class="slider-header">
+                                    <label class="form-label">Choose Your Price</label>
+                                    <div class="slider-value">$45</div>
+                                </div>
+                                <div class="slider-wrapper">
+                                    <input type="range" min="35" max="55" value="45" class="price-slider" id="priceSlider">
+                                </div>
+                                <div class="slider-labels">
+                                    <span>$35</span>
+                                    <span>$55</span>
+                                </div>
+                                <div class="slider-help">
+                                    We use sliding scale pricing to make our classes accessible. Pay what you can afford within this range - no questions asked.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Contact Info -->
+                        <div class="form-group">
+                            <label class="form-label">Email for confirmation</label>
+                            <input type="email" class="form-input" placeholder="your@email.com" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Name for attendance list</label>
+                            <input type="text" class="form-input" placeholder="How you'd like to be listed" required>
+                        </div>
+                        
+                        <!-- Register Button -->
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            Continue to Payment
+                        </button>
+                    </form>
+                    
+                    <!-- Success State (hidden by default) -->
+                    <div class="registration-success">
+                        <div class="success-icon">✓</div>
+                        <h3 class="success-title">Registration Complete!</h3>
+                        <p class="success-message">Check your email for confirmation and venue details.</p>
+                        <a href="#" class="btn btn-secondary">View My Tickets</a>
+                    </div>
+                </div>
+                
+                <!-- Venue Info Box -->
+                <div class="registration-card">
+                    <h3 style="font-size: 18px; margin-bottom: 16px;">Venue Information</h3>
+                    <div class="venue-hidden">
+                        <div class="lock-icon">🔒</div>
+                        <p><strong>Location details hidden</strong></p>
+                        <p style="font-size: 14px;">The exact venue address will be revealed after you register for this event.</p>
+                    </div>
+                </div>
+                
+                <!-- Refund Warning -->
+                <div class="warning-box">
+                    <h4>Refund Policy</h4>
+                    <p>You can receive a full refund up to 48 hours before the event starts (March 13 at 2:00 PM).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Slider functionality
+        const slider = document.getElementById('priceSlider');
+        const sliderValue = document.querySelector('.slider-value');
+        
+        slider.addEventListener('input', function() {
+            sliderValue.textContent = '$' + this.value;
+        });
+        
+        // Ticket option selection
+        const ticketOptions = document.querySelectorAll('.ticket-option');
+        ticketOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                ticketOptions.forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                this.querySelector('.ticket-radio').checked = true;
+                
+                // Update slider range based on ticket type
+                if (this.querySelector('.ticket-name').textContent.includes('Couple')) {
+                    slider.min = 60;
+                    slider.max = 100;
+                    slider.value = 80;
+                    sliderValue.textContent = '$80';
+                } else {
+                    slider.min = 35;
+                    slider.max = 55;
+                    slider.value = 45;
+                    sliderValue.textContent = '$45';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

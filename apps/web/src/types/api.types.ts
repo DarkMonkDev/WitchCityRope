@@ -29,8 +29,8 @@ export interface Event {
   currentAttendees: number
   isRegistrationOpen: boolean
   instructorId: string
-  instructor: UserDto
-  attendees: UserDto[]
+  instructor?: UserDto  // Made optional for compatibility
+  attendees?: UserDto[] // Made optional for compatibility
 }
 
 export interface EventRegistration {

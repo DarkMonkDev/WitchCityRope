@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anonymous Incident Report - Witch City Rope</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,700;6..96,900&family=Montserrat:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;600&family=Satisfy&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Variables for Visual Design */
+        :root {
+            /* Sensual Primary Colors */
+            --color-burgundy: #880124;
+            --color-burgundy-dark: #660018;
+            --color-burgundy-light: #9F1D35;
+            
+            /* Warm Metallics */
+            --color-rose-gold: #B76D75;
+            --color-copper: #B87333;
+            --color-brass: #C9A961;
+            
+            /* CTA Accent Colors */
+            --color-electric: #9D4EDD;
+            --color-electric-dark: #7B2CBF;
+            --color-amber: #FFBF00;
+            --color-amber-dark: #FF8C00;
+            
+            /* Supporting Tones */
+            --color-dusty-rose: #D4A5A5;
+            --color-plum: #614B79;
+            --color-plum-dark: #4A3A5C;
+            --color-plum-light: #7B6296;
+            --color-midnight: #1A1A2E;
+            
+            /* Old gold colors for compatibility */
+            --color-gold: #FFBF00;
+            --color-gold-dark: #E6AC00;
+            --color-gold-light: #FFD633;
+            
+            /* Warm Neutrals */
+            --color-charcoal: #2B2B2B;
+            --color-smoke: #4A4A4A;
+            --color-stone: #8B8680;
+            --color-taupe: #B8B0A8;
+            --color-ivory: #FFF8F0;
+            --color-cream: #FAF6F2;
+            
+            /* Legacy gray support */
+            --color-gray-dark: #2D2D2D;
+            --color-gray: #666666;
+            --color-gray-light: #CCCCCC;
+            --color-off-white: #F5F5F5;
+            
+            /* Feedback colors */
+            --color-warning: #E6AC00;
+            --color-warning-light: #FFF4CC;
+            --color-danger: #AA0130;
+            --color-danger-light: #FFE5EC;
+            --color-info: #614B79;
+            --color-info-light: #F0EDFF;
+            
+            /* Typography */
+            --font-display: 'Bodoni Moda', serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            --font-accent: 'Satisfy', cursive;
+            
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 16px;
+            --space-md: 24px;
+            --space-lg: 32px;
+            --space-xl: 40px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+            
+            /* Legacy spacing support */
+            --space-1: 0.25rem;
+            --space-2: 0.5rem;
+            --space-3: 0.75rem;
+            --space-4: 1rem;
+            --space-5: 1.5rem;
+            --space-6: 2rem;
+            --space-8: 3rem;
+            --space-12: 4rem;
+        }
+
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            line-height: 1.6;
+            color: var(--color-charcoal);
+            background-color: var(--color-cream);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-heading);
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: var(--space-4);
+        }
+
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 2rem; }
+        h3 { font-size: 1.5rem; }
+        h4 { font-size: 1.25rem; }
+
+        /* Utility Bar */
+        .utility-bar {
+            background: var(--color-midnight);
+            padding: 12px 40px;
+            font-size: 13px;
+            color: var(--color-taupe);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            font-family: var(--font-heading);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .utility-bar a {
+            color: var(--color-taupe);
+            text-decoration: none;
+            margin-left: var(--space-lg);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .utility-bar a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--color-rose-gold);
+            transition: width 0.3s ease;
+        }
+        
+        .utility-bar a:hover {
+            color: var(--color-rose-gold);
+        }
+        
+        .utility-bar a:hover::after {
+            width: 100%;
+        }
+        
+        .utility-bar a.incident-link {
+            color: var(--color-brass);
+            font-weight: 600;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: rgba(255, 248, 240, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            padding: var(--space-sm) 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+        
+        .header.scrolled {
+            padding: 12px 40px;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.12);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--space-4);
+        }
+
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--color-burgundy);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            transition: all 0.3s ease;
+        }
+        
+        .logo:hover {
+            color: var(--color-burgundy-light);
+            transform: scale(1.02);
+        }
+
+        .nav {
+            display: flex;
+            gap: var(--space-xl);
+            align-items: center;
+        }
+        
+        .nav-item {
+            color: var(--color-charcoal);
+            text-decoration: none;
+            font-family: var(--font-heading);
+            font-weight: 500;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: var(--color-burgundy);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-item:hover {
+            color: var(--color-burgundy);
+        }
+        
+        .nav-item:hover::before {
+            width: 100%;
+        }
+
+        /* Report Header */
+        .report-header {
+            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
+            color: white;
+            padding: var(--space-8) 0 var(--space-6);
+            text-align: center;
+        }
+
+        .report-header h1 {
+            margin-bottom: var(--space-3);
+        }
+
+        .report-header p {
+            font-size: 1.125rem;
+            opacity: 0.9;
+        }
+
+        /* Form Styles */
+        .report-form {
+            max-width: 800px;
+            margin: var(--space-6) auto;
+            padding-bottom: var(--space-8);
+        }
+
+        /* Confidentiality Notice */
+        .confidentiality-notice {
+            background: var(--color-warning-light);
+            border: 2px solid var(--color-gold);
+            padding: var(--space-5);
+            border-radius: 8px;
+            margin-bottom: var(--space-6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .confidentiality-notice::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: var(--color-gold);
+        }
+
+        .confidentiality-notice h3 {
+            color: var(--color-burgundy);
+            font-size: 1.25rem;
+            margin-bottom: var(--space-3);
+        }
+
+        .confidentiality-notice p {
+            margin-bottom: var(--space-3);
+        }
+
+        .confidentiality-notice p:last-child {
+            margin-bottom: 0;
+            font-weight: 600;
+            color: var(--color-burgundy);
+        }
+
+        /* Form Sections */
+        .form-section {
+            background: var(--color-off-white);
+            border: 1px solid var(--color-gray-light);
+            padding: var(--space-6);
+            border-radius: 8px;
+            margin-bottom: var(--space-5);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-section h3 {
+            color: var(--color-burgundy);
+            font-size: 1.5rem;
+            margin-bottom: var(--space-5);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .form-section h3::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(to right, var(--color-burgundy), transparent);
+        }
+
+        /* Anonymous Toggle */
+        .anonymous-toggle {
+            background: white;
+            padding: var(--space-5);
+            border-radius: 8px;
+            border: 1px solid var(--color-gray-light);
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 32px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--color-gray-light);
+            transition: .4s;
+            border-radius: 32px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 24px;
+            width: 24px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        input:checked + .toggle-slider {
+            background: linear-gradient(45deg, var(--color-burgundy), var(--color-plum));
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(28px);
+        }
+
+        .toggle-label strong {
+            font-family: var(--font-display);
+            font-size: 1.125rem;
+            color: var(--color-charcoal);
+            display: block;
+            margin-bottom: var(--space-1);
+        }
+
+        .toggle-label p {
+            color: var(--color-gray);
+            margin: 0;
+        }
+
+        /* Identity Fields */
+        .identity-fields {
+            background: var(--color-off-white);
+            padding: var(--space-5);
+            border-radius: 8px;
+            margin-top: var(--space-4);
+            border: 1px solid var(--color-gray-light);
+            transition: all 0.3s ease;
+        }
+
+        .identity-fields.hidden {
+            display: none;
+        }
+
+        /* Severity Options */
+        .severity-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-4);
+        }
+
+        .severity-option {
+            background: white;
+            border: 2px solid var(--color-gray-light);
+            padding: var(--space-4);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .severity-option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--color-burgundy), var(--color-plum));
+            transform: translateY(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .severity-option:hover {
+            border-color: var(--color-plum);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .severity-option:hover::before {
+            transform: translateY(0);
+        }
+
+        .severity-option.selected {
+            border-color: var(--color-burgundy);
+            background: linear-gradient(135deg, rgba(136, 1, 36, 0.05), rgba(97, 75, 121, 0.05));
+        }
+
+        .severity-option.selected::before {
+            transform: translateY(0);
+        }
+
+        .severity-option h4 {
+            font-family: var(--font-display);
+            font-weight: 700;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-2);
+        }
+
+        .severity-option p {
+            color: var(--color-gray);
+            font-size: 0.875rem;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: var(--space-5);
+        }
+
+        .form-group label {
+            display: block;
+            font-family: var(--font-display);
+            font-weight: 600;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-2);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: var(--space-3) var(--space-4);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            border: 2px solid var(--color-gray-light);
+            border-radius: 8px;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--color-plum);
+            box-shadow: 0 0 0 3px rgba(97, 75, 121, 0.1);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        select.form-control {
+            cursor: pointer;
+        }
+
+        .form-text {
+            font-size: 0.875rem;
+            color: var(--color-gray);
+            margin-top: var(--space-1);
+        }
+
+        /* Radio and Checkbox */
+        .form-check {
+            margin-bottom: var(--space-3);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .form-check-input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--color-burgundy);
+        }
+
+        .form-check-label {
+            cursor: pointer;
+            font-family: var(--font-body);
+        }
+        
+        /* Update form group fonts */
+        .form-group label {
+            font-family: var(--font-heading);
+        }
+
+        /* Support Info */
+        .support-info {
+            background: linear-gradient(135deg, rgba(97, 75, 121, 0.1), rgba(136, 1, 36, 0.05));
+            border: 2px solid var(--color-plum-light);
+            padding: var(--space-6);
+            border-radius: 8px;
+            margin-top: var(--space-6);
+        }
+
+        .support-info h3 {
+            color: var(--color-plum-dark);
+            margin-bottom: var(--space-4);
+        }
+
+        .support-info ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .support-info li {
+            padding: var(--space-2) 0;
+            border-bottom: 1px solid rgba(97, 75, 121, 0.2);
+        }
+
+        .support-info li:last-child {
+            border-bottom: none;
+        }
+
+        /* Luxury Button Styles */
+        .btn {
+            padding: 14px 32px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: all 0.4s ease;
+            display: inline-block;
+            cursor: pointer;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+            color: var(--color-midnight);
+            box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+            font-weight: 700;
+        }
+        
+        /* Add smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(255, 191, 0, 0.5);
+            background: linear-gradient(135deg, var(--color-amber-dark) 0%, var(--color-amber) 100%);
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--color-burgundy);
+            border: 2px solid var(--color-burgundy);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .btn-secondary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background: var(--color-burgundy);
+            transition: width 0.4s ease;
+            z-index: -1;
+        }
+        
+        .btn-secondary:hover {
+            color: var(--color-ivory);
+        }
+        
+        .btn-secondary:hover::before {
+            width: 100%;
+        }
+
+        /* Form Actions */
+        .form-actions {
+            display: flex;
+            gap: var(--space-4);
+            justify-content: flex-end;
+            margin-top: var(--space-6);
+            padding-top: var(--space-6);
+            border-top: 2px solid var(--color-gray-light);
+        }
+
+        /* Footer */
+        .site-footer {
+            background: var(--color-charcoal);
+            color: var(--color-gray-light);
+            padding: var(--space-8) 0 var(--space-6);
+            margin-top: var(--space-12);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-6);
+            margin-bottom: var(--space-6);
+        }
+
+        .footer-section h4 {
+            font-family: var(--font-display);
+            color: white;
+            margin-bottom: var(--space-4);
+            font-size: 1.125rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-section ul li {
+            margin-bottom: var(--space-2);
+        }
+
+        .footer-section a {
+            color: var(--color-gray-light);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: var(--color-gold);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: var(--space-6);
+            border-top: 1px solid var(--color-gray-dark);
+        }
+
+        /* Mobile Menu Toggle */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+        }
+        
+        .mobile-menu-toggle span {
+            display: block;
+            width: 28px;
+            height: 2px;
+            background: var(--color-burgundy);
+            margin: 6px 0;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .header {
+                padding: var(--space-sm) var(--space-md);
+            }
+            
+            .utility-bar {
+                padding: 10px var(--space-md);
+                font-size: 12px;
+            }
+
+            .nav {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--color-ivory);
+                flex-direction: column;
+                padding: var(--space-lg);
+                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                gap: var(--space-md);
+            }
+            
+            .nav.active {
+                display: flex;
+            }
+            
+            .nav-item {
+                font-size: 16px;
+            }
+
+            .severity-options {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .btn-secondary {
+                order: 2;
+            }
+
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.5rem; }
+            h3 { font-size: 1.25rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Utility Bar -->
+    <div class="utility-bar">
+        <a href="#" class="incident-link">Report an Incident</a>
+        <a href="#">Private Lessons</a>
+        <a href="#">Contact</a>
+    </div>
+    
+    <!-- Header -->
+    <header class="header" id="header">
+        <a href="landing-page-visual-v2.html" class="logo">WITCH CITY ROPE</a>
+        <nav class="nav">
+            <a href="event-list-visual.html" class="nav-item">Events & Classes</a>
+            <a href="vetting-application.html" class="nav-item">How to Join</a>
+            <a href="#" class="nav-item">Resources</a>
+            <a href="auth-login-register-visual.html" class="btn btn-primary">Login</a>
+        </nav>
+        <button class="mobile-menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
+
+    <!-- Report Header -->
+    <section class="report-header">
+        <div class="container">
+            <h1>Report an Incident</h1>
+            <p>Your safety is our priority. Use this form to report any incidents or concerns.</p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container">
+        <form class="report-form">
+            <!-- Confidentiality Notice -->
+            <div class="confidentiality-notice">
+                <h3>Confidentiality & Support</h3>
+                <p>This form allows you to report incidents anonymously or with your identity. All reports are treated with the utmost confidentiality and reviewed only by designated safety team members.</p>
+                <p><strong>If you are in immediate danger, please call 911 or local emergency services.</strong></p>
+            </div>
+
+            <!-- Anonymous Toggle -->
+            <div class="form-section">
+                <div class="anonymous-toggle">
+                    <div class="toggle-container">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="anonymousToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <label for="anonymousToggle" class="toggle-label">
+                            <strong>Submit Anonymously</strong>
+                            <p>Your identity will not be recorded with this report</p>
+                        </label>
+                    </div>
+                    
+                    <div class="identity-fields hidden">
+                        <p style="color: var(--color-gray); margin-bottom: var(--space-4);">Providing your identity allows us to follow up with you directly.</p>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+                            <div class="form-group">
+                                <label>Scene Name</label>
+                                <input type="text" class="form-control" placeholder="Your scene name">
+                            </div>
+                            <div class="form-group">
+                                <label>Email (optional)</label>
+                                <input type="email" class="form-control" placeholder="contact@example.com">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Incident Type -->
+            <div class="form-section">
+                <h3>Type of Incident</h3>
+                <div class="severity-options">
+                    <div class="severity-option selected">
+                        <h4>Safety Concern</h4>
+                        <p>Unsafe practices, equipment issues, or environmental hazards</p>
+                    </div>
+                    <div class="severity-option">
+                        <h4>Boundary Violation</h4>
+                        <p>Consent violations, unwanted contact, or boundary crossing</p>
+                    </div>
+                    <div class="severity-option">
+                        <h4>Harassment</h4>
+                        <p>Verbal harassment, bullying, or discriminatory behavior</p>
+                    </div>
+                    <div class="severity-option">
+                        <h4>Other Concern</h4>
+                        <p>Any other issue affecting community safety or well-being</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Incident Details -->
+            <div class="form-section">
+                <h3>Incident Details</h3>
+                
+                <div class="form-group">
+                    <label>When did this occur?</label>
+                    <input type="datetime-local" class="form-control">
+                    <small class="form-text">If you don't remember the exact time, an approximate date is fine</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Where did this occur?</label>
+                    <select class="form-control">
+                        <option value="">Select a location...</option>
+                        <option>At a Witch City Rope event</option>
+                        <option>Online (Discord, social media, etc.)</option>
+                        <option>Private play/interaction</option>
+                        <option>Other community space</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Event Name (if applicable)</label>
+                    <input type="text" class="form-control" placeholder="e.g., Rope Basics Class, Monthly Meetup">
+                </div>
+
+                <div class="form-group">
+                    <label>Please describe what happened</label>
+                    <textarea class="form-control" rows="6" placeholder="Please provide as much detail as you're comfortable sharing. Include what happened, who was involved (you can use descriptions instead of names), and any other relevant information."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Were there any witnesses?</label>
+                    <textarea class="form-control" rows="2" placeholder="If yes, please describe who might have witnessed this (you can use descriptions instead of names)"></textarea>
+                </div>
+            </div>
+
+            <!-- People Involved -->
+            <div class="form-section">
+                <h3>People Involved</h3>
+                <p style="color: var(--color-gray); margin-bottom: var(--space-5);">You can use scene names, descriptions, or any identifying information you're comfortable providing.</p>
+                
+                <div class="form-group">
+                    <label>Person(s) involved in the incident</label>
+                    <textarea class="form-control" rows="3" placeholder="e.g., 'Person wearing red rope harness at Saturday's event' or 'Discord username: example123'"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Have you spoken to this person about the incident?</label>
+                    <div class="form-check">
+                        <input type="radio" name="spoken" id="spokenYes" class="form-check-input">
+                        <label for="spokenYes" class="form-check-label">Yes</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="radio" name="spoken" id="spokenNo" class="form-check-input">
+                        <label for="spokenNo" class="form-check-label">No</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="radio" name="spoken" id="spokenNA" class="form-check-input">
+                        <label for="spokenNA" class="form-check-label">Not applicable / Prefer not to say</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Desired Outcome -->
+            <div class="form-section">
+                <h3>Desired Outcome</h3>
+                <p style="color: var(--color-gray); margin-bottom: var(--space-5);">What would you like to see happen as a result of this report? (Check all that apply)</p>
+                
+                <div class="form-check">
+                    <input type="checkbox" id="outcome1" class="form-check-input">
+                    <label for="outcome1" class="form-check-label">I just want this documented</label>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" id="outcome2" class="form-check-input">
+                    <label for="outcome2" class="form-check-label">I would like someone to speak with the person involved</label>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" id="outcome3" class="form-check-input">
+                    <label for="outcome3" class="form-check-label">I would like mediation between parties</label>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" id="outcome4" class="form-check-input">
+                    <label for="outcome4" class="form-check-label">I believe this person should be removed from the community</label>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" id="outcome5" class="form-check-input">
+                    <label for="outcome5" class="form-check-label">I would like to discuss options with a safety team member</label>
+                </div>
+                
+                <div class="form-group" style="margin-top: var(--space-4);">
+                    <label>Additional comments about desired outcome</label>
+                    <textarea class="form-control" rows="2" placeholder="Optional"></textarea>
+                </div>
+            </div>
+
+            <!-- Support Information -->
+            <div class="support-info">
+                <h3>Support Resources</h3>
+                <p>We understand that reporting an incident can be difficult. Here are some resources available to you:</p>
+                <ul>
+                    <li><strong>Community Support:</strong> safety@witchcityrope.com</li>
+                    <li><strong>National Sexual Assault Hotline:</strong> 1-800-656-HOPE (4673)</li>
+                    <li><strong>LGBTQ National Hotline:</strong> 1-888-843-4564</li>
+                    <li><strong>Local Crisis Services:</strong> [Local resources would be listed here]</li>
+                </ul>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary">Save as Draft</button>
+                <button type="submit" class="btn btn-primary">Submit Report</button>
+            </div>
+        </form>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Witch City Rope</h4>
+                    <p>Building a safer, more inclusive rope community in Salem.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Safety</h4>
+                    <ul>
+                        <li><a href="#">Community Guidelines</a></li>
+                        <li><a href="#">Report an Incident</a></li>
+                        <li><a href="#">Safety Resources</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <ul>
+                        <li><a href="#">Discord</a></li>
+                        <li><a href="#">FetLife</a></li>
+                        <li><a href="#">Email Us</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Witch City Rope. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Add header scroll effect
+        window.addEventListener('scroll', function() {
+            const header = document.getElementById('header');
+            if (window.scrollY > 100) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+        
+        // Mobile menu toggle
+        document.querySelector('.mobile-menu-toggle').addEventListener('click', function() {
+            document.querySelector('.nav').classList.toggle('active');
+        });
+        
+        // Toggle anonymous submission
+        document.getElementById('anonymousToggle').addEventListener('change', function() {
+            const identityFields = document.querySelector('.identity-fields');
+            if (this.checked) {
+                identityFields.classList.add('hidden');
+            } else {
+                identityFields.classList.remove('hidden');
+            }
+        });
+
+        // Severity option selection
+        document.querySelectorAll('.severity-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.severity-option').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+    </script>
+</body>
+</html>

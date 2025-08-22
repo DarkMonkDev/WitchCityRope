@@ -1,0 +1,489 @@
+@page "/how-to-join"
+@inject NavigationManager Navigation
+
+<PageTitle>How To Join - Witch City Rope</PageTitle>
+
+<div class="how-to-join-page">
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">Join Our Community</h1>
+            <p class="hero-subtitle">Connect with Salem's rope bondage community through our vetting process</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="content-wrapper">
+            <!-- Introduction -->
+            <section class="intro-section">
+                <h2>Welcome to Witch City Rope</h2>
+                <p class="lead">
+                    Witch City Rope is a welcoming and inclusive community in Salem dedicated to rope bondage education, 
+                    practice, and connection. We maintain a vetted membership to ensure the safety and comfort of all participants.
+                </p>
+            </section>
+
+            <!-- Why Vetting -->
+            <section class="why-vetting">
+                <h2>Why We Have a Vetting Process</h2>
+                <div class="reason-cards">
+                    <div class="reason-card">
+                        <i class="fas fa-shield-alt"></i>
+                        <h3>Safety First</h3>
+                        <p>Ensuring all members understand consent, boundaries, and safety practices</p>
+                    </div>
+                    <div class="reason-card">
+                        <i class="fas fa-users"></i>
+                        <h3>Community Trust</h3>
+                        <p>Building a trusted environment where everyone feels comfortable practicing and learning</p>
+                    </div>
+                    <div class="reason-card">
+                        <i class="fas fa-heart"></i>
+                        <h3>Shared Values</h3>
+                        <p>Confirming alignment with our community values of consent, respect, and inclusivity</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Process Steps -->
+            <section class="process-section">
+                <h2>The Vetting Process</h2>
+                <div class="process-steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Submit Application</h3>
+                            <p>Complete our online application form with your experience, interests, and references</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Reference Check</h3>
+                            <p>We'll contact your references to verify your standing in the community</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Review & Decision</h3>
+                            <p>Our vetting team reviews your application, typically within 5-7 days</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Welcome!</h3>
+                            <p>Once approved, you'll receive access to member events and our private community spaces</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Requirements -->
+            <section class="requirements-section">
+                <h2>What We Look For</h2>
+                <div class="requirements-grid">
+                    <div class="requirement">
+                        <h3><i class="fas fa-check-circle"></i> Understanding of Consent</h3>
+                        <p>Demonstrated knowledge of consent practices and negotiation</p>
+                    </div>
+                    <div class="requirement">
+                        <h3><i class="fas fa-check-circle"></i> Safety Awareness</h3>
+                        <p>Basic understanding of rope safety and risk awareness</p>
+                    </div>
+                    <div class="requirement">
+                        <h3><i class="fas fa-check-circle"></i> Community References</h3>
+                        <p>At least 2 references from the kink/rope community</p>
+                    </div>
+                    <div class="requirement">
+                        <h3><i class="fas fa-check-circle"></i> Respectful Attitude</h3>
+                        <p>Commitment to treating all community members with respect</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- No Experience Section -->
+            <section class="no-experience">
+                <h2>New to Rope?</h2>
+                <p>
+                    Don't worry! We welcome newcomers who are eager to learn. If you're new to rope bondage:
+                </p>
+                <ul>
+                    <li>Attend our public workshops and classes first</li>
+                    <li>Connect with community members at public events</li>
+                    <li>Build relationships that can serve as references</li>
+                    <li>Learn about consent and safety through our resources</li>
+                </ul>
+                <p>
+                    Many of our members started with no experience. What matters is your commitment to learning 
+                    and respecting our community values.
+                </p>
+            </section>
+
+            <!-- CTA Section -->
+            <section class="cta-section">
+                <h2>Ready to Join?</h2>
+                <p class="cta-text">
+                    Take the first step in joining Salem's vibrant rope bondage community. 
+                    Our application process is straightforward and respectful of your privacy.
+                </p>
+                <div class="cta-buttons">
+                    <button class="btn btn-primary btn-lg" @onclick='() => Navigation.NavigateTo("/vetting/apply")'>
+                        Start Your Application
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <button class="btn btn-secondary btn-lg" @onclick='() => Navigation.NavigateTo("/events")'>
+                        View Public Events
+                    </button>
+                </div>
+            </section>
+
+            <!-- FAQ Preview -->
+            <section class="faq-preview">
+                <h2>Common Questions</h2>
+                <div class="faq-items">
+                    <div class="faq-item">
+                        <h3>How long does the vetting process take?</h3>
+                        <p>Most applications are reviewed within 5-7 days, though it may take longer during busy periods.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>What if I don't have references?</h3>
+                        <p>Start by attending our public events to meet community members and build connections.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>Is my information kept confidential?</h3>
+                        <p>Yes, all application information is kept strictly confidential and only reviewed by our vetting team.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<style>
+    .how-to-join-page {
+        min-height: 100vh;
+        background: var(--wcr-color-ivory);
+    }
+
+    .hero-section {
+        background: linear-gradient(135deg, var(--wcr-color-burgundy) 0%, var(--wcr-color-burgundy-dark) 100%);
+        color: var(--wcr-color-ivory);
+        padding: 80px 40px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+        animation: pulse 20s ease-in-out infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .hero-title {
+        font-family: var(--wcr-font-heading);
+        font-size: 48px;
+        font-weight: 800;
+        margin-bottom: var(--wcr-space-md);
+        letter-spacing: -1px;
+    }
+
+    .hero-subtitle {
+        font-size: 20px;
+        opacity: 0.9;
+        font-weight: 300;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 40px;
+    }
+
+    .content-wrapper {
+        padding: var(--wcr-space-3xl) 0;
+    }
+
+    section {
+        margin-bottom: var(--wcr-space-3xl);
+    }
+
+    h2 {
+        font-family: var(--wcr-font-heading);
+        font-size: 36px;
+        color: var(--wcr-color-burgundy);
+        margin-bottom: var(--wcr-space-lg);
+        text-align: center;
+    }
+
+    .lead {
+        font-size: 18px;
+        line-height: 1.6;
+        color: var(--wcr-color-charcoal);
+        text-align: center;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    /* Why Vetting */
+    .reason-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--wcr-space-lg);
+        margin-top: var(--wcr-space-xl);
+    }
+
+    .reason-card {
+        background: white;
+        padding: var(--wcr-space-xl);
+        border-radius: var(--wcr-radius-md);
+        box-shadow: var(--wcr-shadow-md);
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .reason-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--wcr-shadow-lg);
+    }
+
+    .reason-card i {
+        font-size: 48px;
+        color: var(--wcr-color-brass);
+        margin-bottom: var(--wcr-space-md);
+    }
+
+    .reason-card h3 {
+        font-family: var(--wcr-font-heading);
+        font-size: 24px;
+        margin-bottom: var(--wcr-space-sm);
+        color: var(--wcr-color-burgundy);
+    }
+
+    /* Process Steps */
+    .process-steps {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .step {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: var(--wcr-space-xl);
+        position: relative;
+    }
+
+    .step:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        left: 30px;
+        top: 60px;
+        width: 2px;
+        height: calc(100% + var(--wcr-space-xl));
+        background: var(--wcr-color-taupe);
+        opacity: 0.3;
+    }
+
+    .step-number {
+        width: 60px;
+        height: 60px;
+        background: var(--wcr-color-brass);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--wcr-font-heading);
+        font-size: 24px;
+        font-weight: 700;
+        flex-shrink: 0;
+        margin-right: var(--wcr-space-lg);
+    }
+
+    .step-content h3 {
+        font-family: var(--wcr-font-heading);
+        font-size: 24px;
+        margin-bottom: var(--wcr-space-sm);
+        color: var(--wcr-color-charcoal);
+    }
+
+    .step-content p {
+        color: var(--wcr-color-stone);
+        line-height: 1.6;
+    }
+
+    /* Requirements */
+    .requirements-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--wcr-space-lg);
+    }
+
+    .requirement {
+        background: var(--wcr-color-cream);
+        padding: var(--wcr-space-lg);
+        border-radius: var(--wcr-radius-md);
+        border-left: 4px solid var(--wcr-color-brass);
+    }
+
+    .requirement h3 {
+        font-family: var(--wcr-font-heading);
+        font-size: 20px;
+        margin-bottom: var(--wcr-space-sm);
+        color: var(--wcr-color-charcoal);
+        display: flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+    }
+
+    .requirement i {
+        color: var(--wcr-color-brass);
+    }
+
+    /* No Experience Section */
+    .no-experience {
+        background: white;
+        padding: var(--wcr-space-2xl);
+        border-radius: var(--wcr-radius-md);
+        box-shadow: var(--wcr-shadow-md);
+        max-width: 800px;
+        margin: 0 auto var(--wcr-space-3xl);
+    }
+
+    .no-experience ul {
+        margin: var(--wcr-space-md) 0;
+        padding-left: var(--wcr-space-xl);
+    }
+
+    .no-experience li {
+        margin-bottom: var(--wcr-space-sm);
+        color: var(--wcr-color-charcoal);
+    }
+
+    /* CTA Section */
+    .cta-section {
+        background: linear-gradient(135deg, var(--wcr-color-cream) 0%, var(--wcr-color-ivory) 100%);
+        padding: var(--wcr-space-3xl);
+        border-radius: var(--wcr-radius-lg);
+        text-align: center;
+        box-shadow: var(--wcr-shadow-lg);
+    }
+
+    .cta-text {
+        font-size: 18px;
+        color: var(--wcr-color-charcoal);
+        margin-bottom: var(--wcr-space-xl);
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .cta-buttons {
+        display: flex;
+        gap: var(--wcr-space-md);
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-lg {
+        padding: var(--wcr-space-md) var(--wcr-space-xl);
+        font-size: 18px;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--wcr-space-sm);
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    button.btn {
+        font-family: inherit;
+    }
+
+    /* FAQ Preview */
+    .faq-items {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .faq-item {
+        background: white;
+        padding: var(--wcr-space-lg);
+        margin-bottom: var(--wcr-space-md);
+        border-radius: var(--wcr-radius-md);
+        box-shadow: var(--wcr-shadow-sm);
+    }
+
+    .faq-item h3 {
+        font-family: var(--wcr-font-heading);
+        font-size: 20px;
+        margin-bottom: var(--wcr-space-sm);
+        color: var(--wcr-color-burgundy);
+    }
+
+    .faq-item p {
+        color: var(--wcr-color-stone);
+        line-height: 1.6;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .hero-title {
+            font-size: 36px;
+        }
+
+        .hero-subtitle {
+            font-size: 18px;
+        }
+
+        .container {
+            padding: 0 20px;
+        }
+
+        h2 {
+            font-size: 28px;
+        }
+
+        .reason-cards {
+            grid-template-columns: 1fr;
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+        }
+
+        .cta-buttons {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .btn-lg {
+            justify-content: center;
+        }
+    }
+</style>
+
+@code {
+    // No code needed for this page
+}

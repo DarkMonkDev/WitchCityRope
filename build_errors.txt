@@ -1,0 +1,16 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  WitchCityRope.Core -> /mnt/c/users/chad/source/repos/witchcityrope/src/WitchCityRope.Core/bin/Debug/net9.0/WitchCityRope.Core.dll
+  WitchCityRope.Tests.Common -> /mnt/c/users/chad/source/repos/witchcityrope/tests/WitchCityRope.Tests.Common/bin/Debug/net9.0/WitchCityRope.Tests.Common.dll
+  WitchCityRope.Infrastructure -> /mnt/c/users/chad/source/repos/witchcityrope/src/WitchCityRope.Infrastructure/bin/Debug/net9.0/WitchCityRope.Infrastructure.dll
+  WitchCityRope.Core.Tests -> /mnt/c/users/chad/source/repos/witchcityrope/tests/WitchCityRope.Core.Tests/bin/Debug/net9.0/WitchCityRope.Core.Tests.dll
+  WitchCityRope.Infrastructure.Tests -> /mnt/c/users/chad/source/repos/witchcityrope/tests/WitchCityRope.Infrastructure.Tests/bin/Debug/net9.0/WitchCityRope.Infrastructure.Tests.dll
+  WitchCityRope.Api -> /mnt/c/users/chad/source/repos/witchcityrope/src/WitchCityRope.Api/bin/Debug/net9.0/WitchCityRope.Api.dll
+  WitchCityRope.PerformanceTests -> /mnt/c/users/chad/source/repos/witchcityrope/tests/WitchCityRope.PerformanceTests/bin/Debug/net9.0/WitchCityRope.PerformanceTests.dll
+  WitchCityRope.Web -> /mnt/c/users/chad/source/repos/witchcityrope/src/WitchCityRope.Web/bin/Debug/net9.0/WitchCityRope.Web.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:07.84

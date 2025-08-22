@@ -1,4 +1,10 @@
-# Orchestrator Lessons Learned
+# Main Agent Orchestration Lessons Learned
+
+## 🚨 IMPORTANT: Main Agent IS the Orchestrator 🚨
+**The main agent coordinates complex workflows. There is NO orchestrator sub-agent.**
+- For complex multi-agent work → Use `/orchestrator` command
+- For single agent work → Use Task tool with specific agent type
+- Sub-agents CANNOT call other sub-agents
 
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 
@@ -14,11 +20,13 @@
 - [ ] Reference existing patterns in your work
 - [ ] NEVER create manual DTO interfaces (use NSwag)
 
-### Orchestrator Agent Specific Rules:
+### Main Agent Orchestration Rules:
 - **VALIDATE: Has architecture been reviewed? If no, STOP work immediately**
 - **When delegating: Include 'Check architecture docs first' in every prompt**
 - **Fail fast if agents propose manual solutions to solved problems**  
 - **Architecture Discovery is PHASE 0 - MANDATORY before any specification work**
+- **Use `/orchestrator` command for multi-agent coordination, NOT Task tool**
+- **Single agent tasks use Task tool directly (react-developer, test-executor, etc.)**
 
 ### Delegation Prompt Template (MANDATORY):
 When delegating ANY technical work, ALWAYS include:

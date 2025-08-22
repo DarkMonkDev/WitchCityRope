@@ -1,0 +1,383 @@
+@namespace WitchCityRope.Web.Features.Members.Components
+@using WitchCityRope.Web.Services
+@using System.Text.Json
+@inject HttpClient HttpClient
+@inject NavigationManager Navigation
+@inject IToastService ToastService
+@inject IAuthService AuthService
+@inject ILogger<AdminQuickAccess> Logger
+
+@if (IsAdmin)
+{
+    <div class="admin-quick-access">
+        <div class="admin-header">
+            <div class="admin-title">
+                <i class="fas fa-shield-alt admin-icon"></i>
+                <h3>Admin Quick Access</h3>
+            </div>
+            <span class="admin-badge">Administrator</span>
+        </div>
+
+        <div class="admin-stats">
+            <div class="stat-item">
+                <div class="stat-value">@ActiveMembersCount</div>
+                <div class="stat-label">Active Members</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">@PendingVettingCount</div>
+                <div class="stat-label">Pending Vetting</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">@TodaysEventsCount</div>
+                <div class="stat-label">Today's Events</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">@RecentIncidentsCount</div>
+                <div class="stat-label">Recent Incidents</div>
+            </div>
+        </div>
+
+        <div class="admin-actions">
+            <a href="/admin/dashboard" class="admin-action-btn primary">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Admin Dashboard</span>
+            </a>
+            <a href="/admin/events" class="admin-action-btn">
+                <i class="fas fa-calendar-plus"></i>
+                <span>Manage Events</span>
+            </a>
+            <a href="/admin/vetting-queue" class="admin-action-btn">
+                <i class="fas fa-user-check"></i>
+                <span>Review Vetting</span>
+                @if (PendingVettingCount > 0)
+                {
+                    <span class="action-badge">@PendingVettingCount</span>
+                }
+            </a>
+            <a href="/admin/financial-reports" class="admin-action-btn">
+                <i class="fas fa-chart-line"></i>
+                <span>View Reports</span>
+            </a>
+        </div>
+    </div>
+}
+
+<style>
+    .admin-quick-access {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        border-radius: 1rem;
+        padding: 2rem;
+        color: white;
+        box-shadow: 0 10px 25px rgba(245, 158, 11, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .admin-quick-access::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        animation: pulse 4s ease-in-out infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+            opacity: 0.5;
+        }
+        50% {
+            transform: scale(1.1);
+            opacity: 0.3;
+        }
+    }
+
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .admin-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .admin-icon {
+        font-size: 1.5rem;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @@keyframes float {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-5px);
+        }
+    }
+
+    .admin-title h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .admin-badge {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .admin-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .stat-item {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 1rem;
+        border-radius: 0.75rem;
+        text-align: center;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .stat-item:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        opacity: 0.9;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .admin-actions {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .admin-action-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        text-decoration: none;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .admin-action-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .admin-action-btn.primary {
+        background: rgba(255, 255, 255, 0.9);
+        color: #d97706;
+        font-weight: 600;
+    }
+
+    .admin-action-btn.primary:hover {
+        background: white;
+        color: #b45309;
+    }
+
+    .admin-action-btn i {
+        font-size: 1rem;
+    }
+
+    .action-badge {
+        position: absolute;
+        top: -0.25rem;
+        right: -0.25rem;
+        background: #dc2626;
+        color: white;
+        font-size: 0.625rem;
+        font-weight: 700;
+        padding: 0.125rem 0.375rem;
+        border-radius: 0.75rem;
+        min-width: 1.25rem;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Responsive Design */
+    @@media (min-width: 768px) {
+        .admin-stats {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .admin-actions {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .admin-quick-access {
+            padding: 1.5rem;
+        }
+
+        .admin-title h3 {
+            font-size: 1.125rem;
+        }
+
+        .admin-stats {
+            gap: 0.75rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.625rem;
+        }
+
+        .admin-action-btn {
+            font-size: 0.75rem;
+            padding: 0.625rem 0.75rem;
+        }
+
+        .admin-action-btn i {
+            font-size: 0.875rem;
+        }
+    }
+
+    /* Animation for stats loading */
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .stat-item {
+        animation: fadeInUp 0.6s ease-out;
+        animation-fill-mode: backwards;
+    }
+
+    .stat-item:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .stat-item:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .stat-item:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+
+    .stat-item:nth-child(4) {
+        animation-delay: 0.4s;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    public DashboardViewModel? ViewModel { get; set; }
+
+    private bool IsAdmin => ViewModel?.Role == WitchCityRope.Core.Enums.UserRole.Administrator;
+    private int ActiveMembersCount { get; set; } = 0;
+    private int PendingVettingCount { get; set; } = 0;
+    private int TodaysEventsCount { get; set; } = 0;
+    private int RecentIncidentsCount { get; set; } = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsAdmin)
+        {
+            await LoadAdminStats();
+        }
+    }
+
+    private async Task LoadAdminStats()
+    {
+        try
+        {
+            // For now, use hardcoded values as these endpoints may not exist yet
+            // TODO: Replace with actual API calls when endpoints are implemented
+            
+            // Simulate loading stats with realistic demo data
+            ActiveMembersCount = 127;
+            PendingVettingCount = 3;
+            TodaysEventsCount = 2;
+            RecentIncidentsCount = 0;
+            
+            // Example of how to make actual API calls when endpoints are available:
+            /*
+            try
+            {
+                var response = await HttpClient.GetFromJsonAsync<AdminStatsResponse>("api/admin/stats");
+                if (response != null)
+                {
+                    ActiveMembersCount = response.ActiveMembers;
+                    PendingVettingCount = response.PendingVetting;
+                    TodaysEventsCount = response.TodaysEvents;
+                    RecentIncidentsCount = response.RecentIncidents;
+                }
+            }
+            catch (HttpRequestException httpEx)
+            {
+                Logger.LogWarning("Admin stats endpoint not available: {Message}", httpEx.Message);
+            }
+            */
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading admin stats");
+        }
+    }
+    
+    // DTO for when the API endpoint is available
+    private class AdminStatsResponse
+    {
+        public int ActiveMembers { get; set; }
+        public int PendingVetting { get; set; }
+        public int TodaysEvents { get; set; }
+        public int RecentIncidents { get; set; }
+    }
+}

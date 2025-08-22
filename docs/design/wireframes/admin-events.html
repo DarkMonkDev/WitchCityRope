@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Witch City Rope</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        /* Admin Header */
+        .admin-header {
+            background: #1a1a1a;
+            color: white;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .admin-logo {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .admin-badge {
+            background: #8B4513;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .admin-nav {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        
+        .admin-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .logout-link {
+            color: #ccc;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        /* Sidebar */
+        .admin-layout {
+            display: flex;
+            min-height: calc(100vh - 60px);
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 60px);
+        }
+        
+        .sidebar-main {
+            flex: 1;
+        }
+        
+        .sidebar-bottom {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            color: #666;
+            text-decoration: none;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .sidebar-item:hover {
+            background: #f8f8f8;
+            color: #333;
+        }
+        
+        .sidebar-item.active {
+            background: #f8f4f0;
+            color: #8B4513;
+            border-left: 3px solid #8B4513;
+            padding-left: 21px;
+        }
+        
+        .sidebar-icon {
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 30px;
+        }
+        
+        /* Page Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #8B4513;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #6B3410;
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #666;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .btn-secondary:hover {
+            background: #f8f8f8;
+        }
+        
+        /* Search Box */
+        .search-box {
+            position: relative;
+        }
+        
+        .search-input {
+            padding: 10px 40px 10px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 250px;
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+        
+        /* Events Section */
+        .events-section {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .section-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        
+        /* Filter Tabs */
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .filter-tab {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.2s;
+        }
+        
+        .filter-tab:hover {
+            background: #f0f0f0;
+        }
+        
+        .filter-tab.active {
+            background: #8B4513;
+            color: white;
+        }
+        
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: #f8f8f8;
+            padding: 12px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: #666;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        th:hover {
+            background: #f0f0f0;
+        }
+        
+        .sort-indicator {
+            display: inline-block;
+            margin-left: 8px;
+            color: #999;
+            font-size: 11px;
+            text-transform: none;
+        }
+        
+        th.sort-active .sort-indicator {
+            color: #8B4513;
+        }
+        
+        td {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        tr:hover {
+            background: #fafafa;
+        }
+        
+        .event-name {
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .event-name:hover {
+            color: #8B4513;
+            text-decoration: underline;
+        }
+        
+        .event-type {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .type-class {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .type-meetup {
+            background: #fff3e0;
+            color: #e65100;
+        }
+        
+        .event-date {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .capacity-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .capacity-bar {
+            width: 60px;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .capacity-fill {
+            height: 100%;
+            background: #8B4513;
+        }
+        
+        .revenue {
+            font-weight: 600;
+            color: #2e7d32;
+        }
+        
+        .action-btn {
+            padding: 6px 14px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            background: #e0e0e0;
+            color: #333;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Admin Header -->
+    <div class="admin-header">
+        <div class="admin-logo">
+            Witch City Rope
+            <span class="admin-badge">ADMIN</span>
+        </div>
+        <div class="admin-nav">
+            <div class="admin-user">
+                <span>River Moon</span>
+                <span style="color: #666;">•</span>
+                <a href="#" class="logout-link">Logout</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Layout -->
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-main">
+                <a href="#" class="sidebar-item">
+                    <span class="sidebar-icon">🏠</span>
+                    Dashboard
+                </a>
+                <a href="#" class="sidebar-item active">
+                    <span class="sidebar-icon">📅</span>
+                    Events
+                </a>
+                <a href="#" class="sidebar-item">
+                    <span class="sidebar-icon">🎓</span>
+                    Vetting Queue
+                    <span style="background: #ff6b6b; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: auto;">3</span>
+                </a>
+                <a href="#" class="sidebar-item">
+                    <span class="sidebar-icon">⚠️</span>
+                    Incident Reports
+                </a>
+                <a href="#" class="sidebar-item">
+                    <span class="sidebar-icon">👥</span>
+                    Members
+                </a>
+                <a href="#" class="sidebar-item">
+                    <span class="sidebar-icon">👨‍🏫</span>
+                    Teachers
+                </a>
+            </div>
+            <div class="sidebar-bottom">
+                <a href="#" class="sidebar-item">
+                    <span class="sidebar-icon">💰</span>
+                    Financial Reports
+                </a>
+                <a href="#" class="sidebar-item">
+                    <span class="sidebar-icon">⚙️</span>
+                    Settings
+                </a>
+            </div>
+        </nav>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">Event Management</h1>
+                <div class="header-actions">
+                    <div class="search-box">
+                        <input type="text" class="search-input" placeholder="Search events...">
+                        <span class="search-icon">🔍</span>
+                    </div>
+                    <button class="btn btn-primary">
+                        <span>+</span>
+                        Create Event
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Events Table -->
+            <div class="events-section">
+                <div class="section-header">
+                    <h2 class="section-title">All Events</h2>
+                    <div class="filter-tabs">
+                        <button class="filter-tab active">All</button>
+                        <button class="filter-tab">Upcoming</button>
+                        <button class="filter-tab">Past</button>
+                    </div>
+                </div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">Type<span class="sort-indicator">↕</span></th>
+                            <th>Event<span class="sort-indicator">↕</span></th>
+                            <th class="sort-active">Date & Time<span class="sort-indicator">↑</span></th>
+                            <th>Registrations<span class="sort-indicator">↕</span></th>
+                            <th>Revenue<span class="sort-indicator">↕</span></th>
+                            <th style="width: 100px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="text-align: center;">
+                                <span class="event-type type-class">CLASS</span>
+                            </td>
+                            <td>
+                                <a href="#" class="event-name">Rope Basics Workshop</a>
+                            </td>
+                            <td>
+                                <div style="font-weight: 600; color: #1a1a1a; font-size: 15px;">Saturday, March 15</div>
+                                <div style="color: #666; font-size: 14px;">2:00 PM - 5:00 PM</div>
+                            </td>
+                            <td>
+                                <div class="capacity-info">
+                                    <span>4/12</span>
+                                    <div class="capacity-bar">
+                                        <div class="capacity-fill" style="width: 33%;"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="revenue">$160</div>
+                            </td>
+                            <td>
+                                <button class="action-btn" onclick="alert('Event duplicated!')">Duplicate</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: center;">
+                                <span class="event-type type-meetup">MEETUP</span>
+                            </td>
+                            <td>
+                                <a href="#" class="event-name">Monthly Rope Jam</a>
+                            </td>
+                            <td>
+                                <div style="font-weight: 600; color: #1a1a1a; font-size: 15px;">Friday, March 21</div>
+                                <div style="color: #666; font-size: 14px;">7:00 PM - 10:00 PM</div>
+                            </td>
+                            <td>
+                                <div class="capacity-info">
+                                    <span>28/40</span>
+                                    <div class="capacity-bar">
+                                        <div class="capacity-fill" style="width: 70%;"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="revenue">$420</div>
+                            </td>
+                            <td>
+                                <button class="action-btn">Duplicate</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: center;">
+                                <span class="event-type type-class">CLASS</span>
+                            </td>
+                            <td>
+                                <a href="#" class="event-name">Introduction to Suspension</a>
+                            </td>
+                            <td>
+                                <div style="font-weight: 600; color: #1a1a1a; font-size: 15px;">Sunday, March 23</div>
+                                <div style="color: #666; font-size: 14px;">1:00 PM - 6:00 PM</div>
+                            </td>
+                            <td>
+                                <div class="capacity-info">
+                                    <span>10/12</span>
+                                    <div class="capacity-bar">
+                                        <div class="capacity-fill" style="width: 83%;"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="revenue">$650</div>
+                            </td>
+                            <td>
+                                <button class="action-btn">Duplicate</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: center;">
+                                <span class="event-type type-class">CLASS</span>
+                            </td>
+                            <td>
+                                <a href="#" class="event-name">Floorwork Intensive</a>
+                            </td>
+                            <td>
+                                <div style="font-weight: 600; color: #1a1a1a; font-size: 15px;">Saturday, March 8</div>
+                                <div style="color: #666; font-size: 14px;">2:00 PM - 5:00 PM</div>
+                            </td>
+                            <td>
+                                <div class="capacity-info">
+                                    <span>8/10</span>
+                                    <div class="capacity-bar">
+                                        <div class="capacity-fill" style="width: 80%;"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="revenue">$360</div>
+                            </td>
+                            <td>
+                                <button class="action-btn">Duplicate</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        // Table sorting functionality
+        const table = document.querySelector('table');
+        const headers = table.querySelectorAll('th');
+        const tbody = table.querySelector('tbody');
+        
+        headers.forEach((header, index) => {
+            // Skip the last column (actions)
+            if (index === headers.length - 1) return;
+            
+            header.addEventListener('click', () => {
+                const sortIndicator = header.querySelector('.sort-indicator');
+                const isAscending = sortIndicator.textContent === '↑';
+                
+                // Reset all indicators and remove active class
+                headers.forEach(h => {
+                    h.classList.remove('sort-active');
+                    const indicator = h.querySelector('.sort-indicator');
+                    if (indicator) indicator.textContent = '↕';
+                });
+                
+                // Set active class and update indicator
+                header.classList.add('sort-active');
+                sortIndicator.textContent = isAscending ? '↓' : '↑';
+                
+                // Sort logic would go here
+                console.log(`Sorting by ${header.textContent} ${isAscending ? 'descending' : 'ascending'}`);
+            });
+        });
+        
+        // Search functionality
+        const searchInput = document.querySelector('.search-input');
+        searchInput.addEventListener('input', (e) => {
+            console.log('Searching for:', e.target.value);
+            // Search logic would go here
+        });
+    </script>
+</body>
+</html>

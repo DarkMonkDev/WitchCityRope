@@ -1,0 +1,23 @@
+{
+  "name": "browser-tools-mcp",
+  "version": "1.0.0",
+  "transport": {
+    "type": "stdio"
+  },
+  "browser": {
+    "headless": false,
+    "defaultViewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "args": [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+      "--incognito"
+    ],
+    "executablePath": "/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
+  },
+  "debug": true
+}

@@ -1,0 +1,134 @@
+{
+  "testExecutionDate": "2025-08-22T13:26:00Z",
+  "executionEnvironment": "React + TypeScript + Vite",
+  "testCategories": {
+    "compilation": {
+      "status": "PASSED",
+      "details": "TypeScript compilation successful - 0 errors"
+    },
+    "unitTests": {
+      "status": "FAILED",
+      "totalFiles": 27,
+      "passedFiles": 2,
+      "failedFiles": 25,
+      "totalTests": 149,
+      "passedTests": 64,
+      "failedTests": 82,
+      "skippedTests": 3
+    },
+    "dashboardUnitTests": {
+      "status": "FAILED",
+      "totalFiles": 5,
+      "failedFiles": 5,
+      "totalTests": 88,
+      "passedTests": 29,
+      "failedTests": 59
+    },
+    "dashboardIntegrationTests": {
+      "status": "FAILED",
+      "totalFiles": 1,
+      "failedFiles": 1,
+      "totalTests": 14,
+      "passedTests": 6,
+      "failedTests": 8
+    }
+  },
+  "criticalIssues": [
+    {
+      "type": "authentication_state_management",
+      "severity": "HIGH",
+      "pattern": "TypeError: Cannot read properties of undefined (reading 'user')",
+      "location": "src/features/auth/api/mutations.ts:51:29",
+      "impact": "Authentication mutations failing",
+      "suggestedAgent": "react-developer"
+    },
+    {
+      "type": "mantine_ui_css_warnings",
+      "severity": "MEDIUM",
+      "pattern": "Warning: Unsupported style property @media (max-width: 768px)",
+      "location": "DashboardLayout component",
+      "impact": "CSS media query warnings affecting test output",
+      "suggestedAgent": "blazor-developer"
+    },
+    {
+      "type": "msw_handler_mismatch",
+      "severity": "HIGH",
+      "pattern": "MSW handlers not intercepting API calls correctly",
+      "location": "Integration tests expecting mock data",
+      "impact": "Integration tests returning empty arrays instead of mock data",
+      "suggestedAgent": "react-developer"
+    },
+    {
+      "type": "test_timeout",
+      "severity": "MEDIUM",
+      "pattern": "Test timed out in 5000ms",
+      "location": "Network timeout simulation tests",
+      "impact": "Tests failing due to timeout configuration",
+      "suggestedAgent": "test-developer"
+    }
+  ],
+  "dashboardSpecificIssues": [
+    {
+      "testFile": "DashboardPage.test.tsx",
+      "issues": "Component rendering with auth state undefined"
+    },
+    {
+      "testFile": "EventsPage.test.tsx", 
+      "issues": "Mantine CSS warnings and component mounting issues"
+    },
+    {
+      "testFile": "ProfilePage.test.tsx",
+      "issues": "Similar CSS warnings and component state issues"
+    },
+    {
+      "testFile": "SecurityPage.test.tsx",
+      "issues": "Mantine CSS warnings affecting test execution"
+    },
+    {
+      "testFile": "MembershipPage.test.tsx",
+      "issues": "Component rendering and state management issues"
+    }
+  ],
+  "integrationTestIssues": [
+    {
+      "test": "useCurrentUser Integration",
+      "issue": "Error handling tests expecting isError=true but getting false"
+    },
+    {
+      "test": "useEvents Integration", 
+      "issue": "Expecting mock data arrays but receiving empty arrays"
+    },
+    {
+      "test": "API Response Validation",
+      "issue": "MSW handlers returning default data instead of test-specific mock data"
+    },
+    {
+      "test": "Query Caching",
+      "issue": "Caching behavior not matching test expectations"
+    }
+  ],
+  "recommendations": {
+    "immediate": [
+      "Fix authentication state management in mutations.ts",
+      "Update MSW handlers to properly mock dashboard API endpoints",
+      "Resolve Mantine CSS media query syntax in DashboardLayout",
+      "Increase test timeouts for network simulation tests"
+    ],
+    "mediumTerm": [
+      "Review test data setup for integration tests",
+      "Standardize error handling patterns across dashboard components",
+      "Update test utilities to better handle authentication state"
+    ]
+  },
+  "environmentHealth": {
+    "compilationErrors": 0,
+    "nodeEnvironment": "healthy",
+    "packageDependencies": "resolved",
+    "viteDevelopmentServer": "running"
+  },
+  "nextSteps": [
+    "Attempt E2E tests to see if UI functionality works despite unit test failures",
+    "Report authentication state management issues to react-developer",
+    "Report MSW mock data configuration issues to test-developer"
+  ]
+}

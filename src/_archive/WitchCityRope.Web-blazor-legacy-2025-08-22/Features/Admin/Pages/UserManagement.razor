@@ -1,0 +1,853 @@
+@page "/admin/users"
+@using WitchCityRope.Web.Services
+@using System.Linq
+@inject ApiClient ApiClient
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@attribute [Authorize(Roles = "Admin")]
+
+@* User management page for administrators to manage system users *@
+
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">User Management</h1>
+        <p class="page-subtitle">Manage system users, roles, and permissions</p>
+    </div>
+
+    <div class="user-stats">
+        <div class="stat-card">
+            <div class="stat-value">@stats.TotalUsers</div>
+            <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@stats.ActiveUsers</div>
+            <div class="stat-label">Active Users</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@stats.NewUsersThisMonth</div>
+            <div class="stat-label">New This Month</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@stats.SuspendedUsers</div>
+            <div class="stat-label">Suspended</div>
+        </div>
+    </div>
+
+    <div class="admin-controls">
+        <div class="admin-filters">
+            <input type="text" @bind="searchTerm" @bind:event="oninput" 
+                   class="filter-input" placeholder="Search by name, email, or username..." />
+
+            <select @bind="filterRole" @bind:event="oninput" class="filter-select">
+                <option value="">All Roles</option>
+                <option value="Admin">Admin</option>
+                <option value="Staff">Staff</option>
+                <option value="Member">Member</option>
+                <option value="Guest">Guest</option>
+            </select>
+
+            <select @bind="filterStatus" @bind:event="oninput" class="filter-select">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="suspended">Suspended</option>
+                <option value="pending">Pending Verification</option>
+            </select>
+
+            <select @bind="sortBy" @bind:event="oninput" class="filter-select">
+                <option value="name-asc">Name (A-Z)</option>
+                <option value="name-desc">Name (Z-A)</option>
+                <option value="date-desc">Newest First</option>
+                <option value="date-asc">Oldest First</option>
+                <option value="last-active">Last Active</option>
+            </select>
+        </div>
+
+        <div class="admin-actions">
+            <button class="btn btn-primary" @onclick="ShowAddUserModal">
+                <i class="fas fa-plus"></i> Add User
+            </button>
+            <button class="btn btn-secondary" @onclick="ExportUsers" disabled="@(!filteredUsers?.Any() == true)">
+                <i class="fas fa-download"></i> Export
+            </button>
+            @if (selectedUsers.Any())
+            {
+                <button class="btn btn-secondary" @onclick="ShowBulkEmailModal">
+                    <i class="fas fa-envelope"></i> Send Bulk Email (@selectedUsers.Count)
+                </button>
+            }
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <LoadingSpinner />
+    }
+    else if (filteredUsers?.Any() == true)
+    {
+        <div class="view-toggle">
+            <button class="toggle-btn @(viewMode == "cards" ? "active" : "")" @onclick="@(() => viewMode = "cards")">
+                <i class="fas fa-th"></i> Cards
+            </button>
+            <button class="toggle-btn @(viewMode == "table" ? "active" : "")" @onclick="@(() => viewMode = "table")">
+                <i class="fas fa-list"></i> Table
+            </button>
+        </div>
+
+        @if (viewMode == "cards")
+        {
+            <div class="user-grid">
+                @foreach (var user in filteredUsers)
+                {
+                    <div class="user-card @(selectedUsers.Contains(user.Id) ? "selected" : "")">
+                        <div class="user-card-header">
+                            <input type="checkbox" class="user-select" 
+                                   checked="@selectedUsers.Contains(user.Id)"
+                                   @onchange="() => ToggleUserSelection(user.Id)" />
+                            <div class="user-avatar">
+                                @if (!string.IsNullOrEmpty(user.AvatarUrl))
+                                {
+                                    <img src="@user.AvatarUrl" alt="@user.FullName" />
+                                }
+                                else
+                                {
+                                    <div class="avatar-placeholder">@user.FullName.FirstOrDefault()</div>
+                                }
+                            </div>
+                            <div class="user-status-indicator @user.Status"></div>
+                        </div>
+                        
+                        <div class="user-info">
+                            <h3>@user.FullName</h3>
+                            <p class="user-email">@user.Email</p>
+                            <div class="user-meta">
+                                <span class="badge badge-@user.Role.ToLower()">@user.Role</span>
+                                <span class="join-date">Joined @user.JoinDate.ToString("MMM yyyy")</span>
+                            </div>
+                            @if (user.LastActiveDate != null)
+                            {
+                                <p class="last-active">Last active: @GetRelativeTime(user.LastActiveDate.Value)</p>
+                            }
+                        </div>
+
+                        <div class="user-actions">
+                            <button class="btn-icon" title="View Profile" @onclick="() => ViewUserProfile(user.Id)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-icon" title="Edit Role" @onclick="() => ShowEditRoleModal(user)">
+                                <i class="fas fa-user-tag"></i>
+                            </button>
+                            <button class="btn-icon" title="@(user.Status == "active" ? "Suspend" : "Activate")" 
+                                    @onclick="() => ToggleUserStatus(user)">
+                                <i class="fas fa-@(user.Status == "active" ? "ban" : "check-circle")"></i>
+                            </button>
+                            <button class="btn-icon" title="Reset Password" @onclick="() => ResetUserPassword(user)">
+                                <i class="fas fa-key"></i>
+                            </button>
+                            <button class="btn-icon" title="Send Email" @onclick="() => ShowSendEmailModal(user)">
+                                <i class="fas fa-envelope"></i>
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="user-table-container">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" @onchange="ToggleAllUsers" /></th>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Join Date</th>
+                            <th>Last Active</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in filteredUsers)
+                        {
+                            <tr class="@(selectedUsers.Contains(user.Id) ? "selected" : "")">
+                                <td>
+                                    <input type="checkbox" 
+                                           checked="@selectedUsers.Contains(user.Id)"
+                                           @onchange="() => ToggleUserSelection(user.Id)" />
+                                </td>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="user-avatar-small">
+                                            @if (!string.IsNullOrEmpty(user.AvatarUrl))
+                                            {
+                                                <img src="@user.AvatarUrl" alt="@user.FullName" />
+                                            }
+                                            else
+                                            {
+                                                <div class="avatar-placeholder">@user.FullName.FirstOrDefault()</div>
+                                            }
+                                        </div>
+                                        <span>@user.FullName</span>
+                                    </div>
+                                </td>
+                                <td>@user.Email</td>
+                                <td><span class="badge badge-@user.Role.ToLower()">@user.Role</span></td>
+                                <td><span class="status-badge status-@user.Status">@user.Status</span></td>
+                                <td>@user.JoinDate.ToString("MMM d, yyyy")</td>
+                                <td>@(user.LastActiveDate?.ToString("MMM d, yyyy") ?? "Never")</td>
+                                <td>
+                                    <div class="table-actions">
+                                        <button class="btn-icon-sm" title="View Profile" @onclick="() => ViewUserProfile(user.Id)">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn-icon-sm" title="Edit" @onclick="() => ShowEditUserModal(user)">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <div class="dropdown">
+                                            <button class="btn-icon-sm" @onclick="() => ToggleDropdown(user.Id)">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            @if (openDropdownId == user.Id)
+                                            {
+                                                <div class="dropdown-menu show">
+                                                    <a class="dropdown-item" @onclick="() => ShowEditRoleModal(user)">
+                                                        <i class="fas fa-user-tag"></i> Edit Role
+                                                    </a>
+                                                    <a class="dropdown-item" @onclick="() => ToggleUserStatus(user)">
+                                                        <i class="fas fa-@(user.Status == "active" ? "ban" : "check-circle")"></i>
+                                                        @(user.Status == "active" ? "Suspend" : "Activate")
+                                                    </a>
+                                                    <a class="dropdown-item" @onclick="() => ResetUserPassword(user)">
+                                                        <i class="fas fa-key"></i> Reset Password
+                                                    </a>
+                                                    <a class="dropdown-item" @onclick="() => ShowSendEmailModal(user)">
+                                                        <i class="fas fa-envelope"></i> Send Email
+                                                    </a>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (hasMore)
+        {
+            <div class="load-more-container">
+                <button class="btn btn-secondary" @onclick="LoadMore" disabled="@isLoadingMore">
+                    @if (isLoadingMore)
+                    {
+                        <span>Loading...</span>
+                    }
+                    else
+                    {
+                        <span>Load More</span>
+                    }
+                </button>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="empty-state">
+            <h3>No users found</h3>
+            <p>There are no users matching your filters.</p>
+        </div>
+    }
+</div>
+
+@* Add/Edit User Modal *@
+@if (showUserModal)
+{
+    <div class="modal modal-visible" @onclick="CloseUserModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2 class="modal-title">@(editingUser == null ? "Add New User" : "Edit User")</h2>
+                <button type="button" class="modal-close" @onclick="CloseUserModal">×</button>
+            </div>
+            
+            <EditForm Model="userForm" OnValidSubmit="SaveUser">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="form-group">
+                    <label for="fullName">Full Name</label>
+                    <InputText id="fullName" @bind-Value="userForm.FullName" class="form-input" />
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <InputText id="email" @bind-Value="userForm.Email" class="form-input" type="email" />
+                </div>
+
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <InputText id="username" @bind-Value="userForm.Username" class="form-input" />
+                </div>
+
+                <div class="form-group">
+                    <label for="role">Role</label>
+                    <InputSelect id="role" @bind-Value="userForm.Role" class="form-input">
+                        <option value="Guest">Guest</option>
+                        <option value="Member">Member</option>
+                        <option value="Staff">Staff</option>
+                        <option value="Admin">Admin</option>
+                    </InputSelect>
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <InputSelect id="status" @bind-Value="userForm.Status" class="form-input">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="suspended">Suspended</option>
+                        <option value="pending">Pending Verification</option>
+                    </InputSelect>
+                </div>
+
+                @if (editingUser == null)
+                {
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <InputText id="password" @bind-Value="userForm.Password" class="form-input" type="password" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <InputCheckbox @bind-Value="userForm.SendWelcomeEmail" />
+                            Send welcome email
+                        </label>
+                    </div>
+                }
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary" disabled="@isProcessing">
+                        @if (isProcessing)
+                        {
+                            <span>Saving...</span>
+                        }
+                        else
+                        {
+                            <span>@(editingUser == null ? "Add User" : "Save Changes")</span>
+                        }
+                    </button>
+                    <button type="button" class="btn btn-secondary" @onclick="CloseUserModal">Cancel</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@* Edit Role Modal *@
+@if (showRoleModal)
+{
+    <div class="modal modal-visible" @onclick="CloseRoleModal">
+        <div class="modal-content modal-small" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit Role: @roleEditUser?.FullName</h2>
+                <button type="button" class="modal-close" @onclick="CloseRoleModal">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Current Role: <strong>@roleEditUser?.Role</strong></label>
+                </div>
+
+                <div class="form-group">
+                    <label for="newRole">New Role</label>
+                    <select id="newRole" @bind="newRole" class="form-input">
+                        <option value="Guest">Guest</option>
+                        <option value="Member">Member</option>
+                        <option value="Staff">Staff</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                </div>
+
+                <div class="role-permissions">
+                    <h4>Role Permissions</h4>
+                    <ul class="permission-list">
+                        @foreach (var permission in GetRolePermissions(newRole))
+                        {
+                            <li><i class="fas fa-check"></i> @permission</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-primary" @onclick="UpdateUserRole" disabled="@isProcessing">
+                    Update Role
+                </button>
+                <button class="btn btn-secondary" @onclick="CloseRoleModal">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+@* Send Email Modal *@
+@if (showEmailModal)
+{
+    <div class="modal modal-visible" @onclick="CloseEmailModal">
+        <div class="modal-content modal-large" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2 class="modal-title">Send Email</h2>
+                <button type="button" class="modal-close" @onclick="CloseEmailModal">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Recipients</label>
+                    @if (emailRecipients.Count == 1)
+                    {
+                        <div class="recipient-single">@emailRecipients.First().FullName (@emailRecipients.First().Email)</div>
+                    }
+                    else
+                    {
+                        <div class="recipient-count">@emailRecipients.Count users selected</div>
+                    }
+                </div>
+
+                <div class="form-group">
+                    <label for="emailSubject">Subject</label>
+                    <input id="emailSubject" @bind="emailSubject" class="form-input" />
+                </div>
+
+                <div class="form-group">
+                    <label for="emailTemplate">Template</label>
+                    <select id="emailTemplate" @bind="emailTemplate" class="form-input">
+                        <option value="">Custom Message</option>
+                        <option value="welcome">Welcome Email</option>
+                        <option value="password-reset">Password Reset</option>
+                        <option value="account-suspended">Account Suspended</option>
+                        <option value="event-reminder">Event Reminder</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="emailBody">Message</label>
+                    <textarea id="emailBody" @bind="emailBody" class="form-input" rows="10"></textarea>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-primary" @onclick="SendEmail" disabled="@isProcessing">
+                    <i class="fas fa-paper-plane"></i> Send Email
+                </button>
+                <button class="btn btn-secondary" @onclick="CloseEmailModal">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private UserStatsViewModel stats = new();
+    private List<UserViewModel> users = new();
+    private List<UserViewModel> filteredUsers = new();
+    private HashSet<int> selectedUsers = new();
+    
+    private bool isLoading = true;
+    private bool isLoadingMore = false;
+    private bool hasMore = false;
+    private bool isProcessing = false;
+    
+    private string filterRole = "";
+    private string filterStatus = "";
+    private string sortBy = "name-asc";
+    private string searchTerm = "";
+    private string viewMode = "cards";
+    
+    private int currentPage = 1;
+    private const int PageSize = 20;
+    private int? openDropdownId = null;
+
+    // Modal states
+    private bool showUserModal = false;
+    private bool showRoleModal = false;
+    private bool showEmailModal = false;
+    
+    private UserViewModel? editingUser = null;
+    private UserViewModel? roleEditUser = null;
+    private List<UserViewModel> emailRecipients = new();
+    
+    private UserFormModel userForm = new();
+    private string newRole = "";
+    private string emailSubject = "";
+    private string emailTemplate = "";
+    private string emailBody = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStats();
+        await LoadUsers();
+    }
+
+    private async Task LoadStats()
+    {
+        // Mock stats for testing
+        stats = new UserStatsViewModel
+        {
+            TotalUsers = 156,
+            ActiveUsers = 142,
+            NewUsersThisMonth = 12,
+            SuspendedUsers = 5
+        };
+    }
+
+    private async Task LoadUsers()
+    {
+        try
+        {
+            isLoading = true;
+            
+            // Mock users for testing
+            users = GenerateMockUsers(50);
+            
+            ApplyFilters();
+            hasMore = users.Count == PageSize;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private List<UserViewModel> GenerateMockUsers(int count)
+    {
+        var random = new Random();
+        var roles = new[] { "Admin", "Staff", "Member", "Guest" };
+        var statuses = new[] { "active", "inactive", "suspended", "pending" };
+        var firstNames = new[] { "Alice", "Bob", "Charlie", "Diana", "Emma", "Frank", "Grace", "Henry", "Iris", "Jack" };
+        var lastNames = new[] { "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez" };
+
+        return Enumerable.Range(1, count).Select(i =>
+        {
+            var firstName = firstNames[random.Next(firstNames.Length)];
+            var lastName = lastNames[random.Next(lastNames.Length)];
+            var joinDate = DateTime.Now.AddDays(-random.Next(1, 730));
+            
+            return new UserViewModel
+            {
+                Id = i,
+                FullName = $"{firstName} {lastName}",
+                Email = $"{firstName.ToLower()}.{lastName.ToLower()}@example.com",
+                Username = $"{firstName.ToLower()}{i}",
+                Role = roles[random.Next(roles.Length)],
+                Status = statuses[random.Next(statuses.Length)],
+                JoinDate = joinDate,
+                LastActiveDate = joinDate.AddDays(random.Next(0, (int)(DateTime.Now - joinDate).TotalDays)),
+                AvatarUrl = random.Next(2) == 0 ? $"https://i.pravatar.cc/150?img={i}" : null
+            };
+        }).ToList();
+    }
+
+    private void ApplyFilters()
+    {
+        var filtered = users.AsEnumerable();
+
+        if (!string.IsNullOrEmpty(filterRole))
+        {
+            filtered = filtered.Where(u => u.Role == filterRole);
+        }
+
+        if (!string.IsNullOrEmpty(filterStatus))
+        {
+            filtered = filtered.Where(u => u.Status == filterStatus);
+        }
+
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            filtered = filtered.Where(u => 
+                u.FullName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                u.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                u.Username.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+        }
+
+        filtered = sortBy switch
+        {
+            "name-desc" => filtered.OrderByDescending(u => u.FullName),
+            "date-desc" => filtered.OrderByDescending(u => u.JoinDate),
+            "date-asc" => filtered.OrderBy(u => u.JoinDate),
+            "last-active" => filtered.OrderByDescending(u => u.LastActiveDate ?? DateTime.MinValue),
+            _ => filtered.OrderBy(u => u.FullName)
+        };
+
+        filteredUsers = filtered.Take(currentPage * PageSize).ToList();
+    }
+
+    private async Task LoadMore()
+    {
+        try
+        {
+            isLoadingMore = true;
+            currentPage++;
+            ApplyFilters();
+        }
+        finally
+        {
+            isLoadingMore = false;
+        }
+    }
+
+    private void ToggleUserSelection(int userId)
+    {
+        if (selectedUsers.Contains(userId))
+            selectedUsers.Remove(userId);
+        else
+            selectedUsers.Add(userId);
+    }
+
+    private void ToggleAllUsers(ChangeEventArgs e)
+    {
+        if ((bool?)e.Value == true)
+        {
+            selectedUsers = new HashSet<int>(filteredUsers.Select(u => u.Id));
+        }
+        else
+        {
+            selectedUsers.Clear();
+        }
+    }
+
+    private void ToggleDropdown(int userId)
+    {
+        openDropdownId = openDropdownId == userId ? null : userId;
+    }
+
+    private void ShowAddUserModal()
+    {
+        editingUser = null;
+        userForm = new UserFormModel();
+        showUserModal = true;
+    }
+
+    private void ShowEditUserModal(UserViewModel user)
+    {
+        editingUser = user;
+        userForm = new UserFormModel
+        {
+            FullName = user.FullName,
+            Email = user.Email,
+            Username = user.Username,
+            Role = user.Role,
+            Status = user.Status
+        };
+        showUserModal = true;
+        openDropdownId = null;
+    }
+
+    private void CloseUserModal()
+    {
+        showUserModal = false;
+        editingUser = null;
+        userForm = new UserFormModel();
+    }
+
+    private async Task SaveUser()
+    {
+        try
+        {
+            isProcessing = true;
+            
+            // TODO: Call API to save user
+            await Task.Delay(1000); // Simulate API call
+            
+            CloseUserModal();
+            await LoadUsers();
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private void ShowEditRoleModal(UserViewModel user)
+    {
+        roleEditUser = user;
+        newRole = user.Role;
+        showRoleModal = true;
+        openDropdownId = null;
+    }
+
+    private void CloseRoleModal()
+    {
+        showRoleModal = false;
+        roleEditUser = null;
+        newRole = "";
+    }
+
+    private async Task UpdateUserRole()
+    {
+        try
+        {
+            isProcessing = true;
+            
+            // TODO: Call API to update role
+            await Task.Delay(1000); // Simulate API call
+            
+            if (roleEditUser != null)
+            {
+                roleEditUser.Role = newRole;
+            }
+            
+            CloseRoleModal();
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private void ShowSendEmailModal(UserViewModel user)
+    {
+        emailRecipients = new List<UserViewModel> { user };
+        emailSubject = "";
+        emailTemplate = "";
+        emailBody = "";
+        showEmailModal = true;
+        openDropdownId = null;
+    }
+
+    private void ShowBulkEmailModal()
+    {
+        emailRecipients = filteredUsers.Where(u => selectedUsers.Contains(u.Id)).ToList();
+        emailSubject = "";
+        emailTemplate = "";
+        emailBody = "";
+        showEmailModal = true;
+    }
+
+    private void CloseEmailModal()
+    {
+        showEmailModal = false;
+        emailRecipients.Clear();
+    }
+
+    private async Task SendEmail()
+    {
+        try
+        {
+            isProcessing = true;
+            
+            // TODO: Call API to send email
+            await Task.Delay(1000); // Simulate API call
+            
+            CloseEmailModal();
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task ToggleUserStatus(UserViewModel user)
+    {
+        // TODO: Call API to toggle status
+        user.Status = user.Status == "active" ? "suspended" : "active";
+        openDropdownId = null;
+    }
+
+    private async Task ResetUserPassword(UserViewModel user)
+    {
+        // TODO: Call API to reset password
+        openDropdownId = null;
+    }
+
+    private void ViewUserProfile(int userId)
+    {
+        Navigation.NavigateTo($"/admin/users/{userId}");
+    }
+
+    private async Task ExportUsers()
+    {
+        // TODO: Implement export functionality
+    }
+
+    private string GetRelativeTime(DateTime date)
+    {
+        var timeSpan = DateTime.Now - date;
+        
+        if (timeSpan.TotalMinutes < 1) return "just now";
+        if (timeSpan.TotalMinutes < 60) return $"{(int)timeSpan.TotalMinutes} minutes ago";
+        if (timeSpan.TotalHours < 24) return $"{(int)timeSpan.TotalHours} hours ago";
+        if (timeSpan.TotalDays < 7) return $"{(int)timeSpan.TotalDays} days ago";
+        if (timeSpan.TotalDays < 30) return $"{(int)(timeSpan.TotalDays / 7)} weeks ago";
+        if (timeSpan.TotalDays < 365) return $"{(int)(timeSpan.TotalDays / 30)} months ago";
+        
+        return date.ToString("MMM d, yyyy");
+    }
+
+    private List<string> GetRolePermissions(string role)
+    {
+        return role switch
+        {
+            "Admin" => new List<string> 
+            { 
+                "Full system access",
+                "User management",
+                "Event management",
+                "Vetting queue access",
+                "System configuration",
+                "Reports and analytics"
+            },
+            "Staff" => new List<string> 
+            { 
+                "Event management",
+                "Vetting queue access",
+                "Member management",
+                "Limited reports access"
+            },
+            "Member" => new List<string> 
+            { 
+                "View events",
+                "RSVP to events",
+                "Update profile",
+                "View member directory"
+            },
+            "Guest" => new List<string> 
+            { 
+                "View public events",
+                "Limited profile access"
+            },
+            _ => new List<string>()
+        };
+    }
+
+    // View Models
+    public class UserStatsViewModel
+    {
+        public int TotalUsers { get; set; }
+        public int ActiveUsers { get; set; }
+        public int NewUsersThisMonth { get; set; }
+        public int SuspendedUsers { get; set; }
+    }
+
+    public class UserViewModel
+    {
+        public int Id { get; set; }
+        public string FullName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Username { get; set; } = "";
+        public string Role { get; set; } = "Member";
+        public string Status { get; set; } = "active";
+        public DateTime JoinDate { get; set; }
+        public DateTime? LastActiveDate { get; set; }
+        public string? AvatarUrl { get; set; }
+    }
+
+    public class UserFormModel
+    {
+        public string FullName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Username { get; set; } = "";
+        public string Role { get; set; } = "Member";
+        public string Status { get; set; } = "active";
+        public string? Password { get; set; }
+        public bool SendWelcomeEmail { get; set; } = true;
+    }
+}

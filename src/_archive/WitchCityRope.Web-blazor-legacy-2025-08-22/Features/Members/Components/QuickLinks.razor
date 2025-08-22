@@ -1,0 +1,241 @@
+@namespace WitchCityRope.Web.Features.Members.Components
+
+<div class="quick-links-container">
+    <div class="quick-links-grid">
+        @* Vetting Guidelines - Available to all members *@
+        <a href="/members/vetting-guidelines" class="quick-link-item vetting-link">
+            <div class="icon-circle">
+                <i class="fas fa-book"></i>
+            </div>
+            <span class="link-text">Vetting Guidelines</span>
+        </a>
+
+        @* Community Discord - Available to vetted members and above *@
+        @if (UserRole == "VettedMember" || UserRole == "Teacher" || UserRole == "Admin")
+        {
+            <a href="https://discord.gg/witchcityrope" target="_blank" rel="noopener noreferrer" class="quick-link-item discord-link">
+                <div class="icon-circle">
+                    <i class="fab fa-discord"></i>
+                </div>
+                <span class="link-text">Community Discord</span>
+            </a>
+        }
+
+        @* Safety Resources - Available to all members *@
+        <a href="/resources/safety" class="quick-link-item safety-link">
+            <div class="icon-circle">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <span class="link-text">Safety Resources</span>
+        </a>
+
+        @* Emergency Contacts - Available to all members *@
+        <a href="/resources/emergency-contacts" class="quick-link-item emergency-link">
+            <div class="icon-circle">
+                <i class="fas fa-phone"></i>
+            </div>
+            <span class="link-text">Emergency Contacts</span>
+        </a>
+
+        @* Learning Library - Available to vetted members and above *@
+        @if (UserRole == "VettedMember" || UserRole == "Teacher" || UserRole == "Admin")
+        {
+            <a href="/learning/library" class="quick-link-item learning-link">
+                <div class="icon-circle">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <span class="link-text">Learning Library</span>
+            </a>
+        }
+
+        @* Forum/Discussions - Available to vetted members and above *@
+        @if (UserRole == "VettedMember" || UserRole == "Teacher" || UserRole == "Admin")
+        {
+            <a href="/community/forum" class="quick-link-item forum-link">
+                <div class="icon-circle">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <span class="link-text">Forum/Discussions</span>
+            </a>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string UserRole { get; set; } = "Member";
+}
+
+<style>
+    .quick-links-container {
+        margin: 2rem 0;
+    }
+
+    .quick-links-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        padding: 0;
+    }
+
+    .quick-link-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1.5rem;
+        text-decoration: none;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .quick-link-item:hover {
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .icon-circle {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .icon-circle i {
+        font-size: 1.75rem;
+        color: white;
+    }
+
+    .link-text {
+        font-size: 0.95rem;
+        font-weight: 500;
+        text-align: center;
+        color: #e0e0e0;
+        transition: color 0.3s ease;
+    }
+
+    .quick-link-item:hover .link-text {
+        color: #ffffff;
+    }
+
+    /* Color schemes for different link types */
+    .vetting-link .icon-circle {
+        background: linear-gradient(135deg, #6b46c1 0%, #9333ea 100%);
+    }
+
+    .vetting-link:hover .icon-circle {
+        box-shadow: 0 0 20px rgba(147, 51, 234, 0.5);
+    }
+
+    .discord-link .icon-circle {
+        background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+    }
+
+    .discord-link:hover .icon-circle {
+        box-shadow: 0 0 20px rgba(114, 137, 218, 0.5);
+    }
+
+    .safety-link .icon-circle {
+        background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    }
+
+    .safety-link:hover .icon-circle {
+        box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+    }
+
+    .emergency-link .icon-circle {
+        background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+    }
+
+    .emergency-link:hover .icon-circle {
+        box-shadow: 0 0 20px rgba(249, 115, 22, 0.5);
+    }
+
+    .learning-link .icon-circle {
+        background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+    }
+
+    .learning-link:hover .icon-circle {
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    }
+
+    .forum-link .icon-circle {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    }
+
+    .forum-link:hover .icon-circle {
+        box-shadow: 0 0 20px rgba(52, 211, 153, 0.5);
+    }
+
+    /* Responsive design */
+    @@media (max-width: 768px) {
+        .quick-links-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .quick-link-item {
+            padding: 1rem;
+        }
+
+        .icon-circle {
+            width: 56px;
+            height: 56px;
+        }
+
+        .icon-circle i {
+            font-size: 1.5rem;
+        }
+
+        .link-text {
+            font-size: 0.875rem;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .quick-links-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .quick-link-item {
+            flex-direction: row;
+            justify-content: flex-start;
+            padding: 1rem;
+        }
+
+        .icon-circle {
+            margin-bottom: 0;
+            margin-right: 1rem;
+            width: 48px;
+            height: 48px;
+        }
+
+        .icon-circle i {
+            font-size: 1.25rem;
+        }
+
+        .link-text {
+            text-align: left;
+        }
+    }
+
+    /* Dark mode optimization */
+    @@media (prefers-color-scheme: dark) {
+        .quick-link-item {
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .quick-link-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+    }
+</style>

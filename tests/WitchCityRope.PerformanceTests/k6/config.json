@@ -1,0 +1,29 @@
+{
+  "environments": {
+    "local": {
+      "BASE_URL": "http://localhost:5651",
+      "USERS": 100,
+      "DURATION": "5m"
+    },
+    "staging": {
+      "BASE_URL": "https://staging.witchcityrope.com",
+      "USERS": 500,
+      "DURATION": "10m"
+    },
+    "production": {
+      "BASE_URL": "https://api.witchcityrope.com",
+      "USERS": 1000,
+      "DURATION": "30m"
+    }
+  },
+  "thresholds": {
+    "http_req_duration": ["p(95)<500", "p(99)<1000"],
+    "http_req_failed": ["rate<0.1"],
+    "http_reqs": ["rate>50"]
+  },
+  "reports": {
+    "enabled": true,
+    "formats": ["html", "json", "junit"],
+    "outputDir": "./reports"
+  }
+}
