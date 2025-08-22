@@ -1,12 +1,14 @@
 # Business Requirements: API Architecture Modernization Initiative
 <!-- Last Updated: 2025-08-22 -->
-<!-- Version: 1.0 -->
+<!-- Version: 2.0 -->
 <!-- Owner: Business Requirements Agent -->
-<!-- Status: Draft -->
+<!-- Status: Draft - Revised Per Stakeholder Feedback -->
 
 ## Executive Summary
 
-WitchCityRope's current controller-based API architecture requires modernization to align with .NET 9 minimal API patterns, improve developer productivity, and optimize performance for our mobile-first community members. This initiative will migrate from traditional MVC controllers to a vertical slice architecture using minimal APIs while maintaining all existing functionality and preserving our robust NSwag type generation workflow.
+WitchCityRope's current controller-based API architecture requires modernization to align with .NET 9 minimal API patterns, improve developer productivity, and optimize performance for our mobile-first community members. This initiative will migrate from traditional MVC controllers to a **simple vertical slice architecture** using minimal APIs with direct Entity Framework services, while maintaining all existing functionality and preserving our robust NSwag type generation workflow.
+
+**Key Revision**: Based on stakeholder feedback, this approach emphasizes **simplicity over architectural complexity**, removing MediatR/CQRS overhead in favor of direct Entity Framework services organized by feature.
 
 ## Business Context
 
@@ -17,68 +19,86 @@ WitchCityRope's current controller-based API architecture requires modernization
 2. **Horizontal Coupling**: Controller → Service → Repository pattern creates cross-feature dependencies that complicate testing and maintenance
 3. **Performance Gap**: 15% slower request processing and 93% higher memory usage compared to .NET 9 minimal API standards impacts mobile user experience
 4. **Architecture Drift**: Using .NET 8 patterns in .NET 9 environment creates technical debt and reduces long-term maintainability
+5. **Unnecessary Complexity**: Current CQRS-like patterns add overhead where Entity Framework can handle everything more simply
 
 **Community Impact**: 
 - Salem rope bondage community members primarily access the platform via mobile devices at events
 - Performance improvements directly benefit user experience during event check-ins and real-time interactions
-- Developer velocity improvements enable faster delivery of safety and educational features
+- **Simplicity improvements** enable faster delivery of safety and educational features without architectural overhead
 
 ### Business Value
 
 **Primary Benefits**:
-- **Developer Productivity**: Reduce endpoint development time by 40-60% through minimal API patterns
+- **Developer Productivity**: Reduce endpoint development time by 40-60% through simple minimal API patterns
 - **Performance Enhancement**: 15% faster API responses improve mobile user experience
 - **Memory Efficiency**: 93% reduction in memory allocation per request supports higher concurrent user loads
-- **Maintainability**: Feature-based organization reduces testing complexity and enables independent feature evolution
-- **Future-Proofing**: Alignment with Microsoft's recommended .NET 9 patterns ensures long-term support
+- **Maintainability**: Feature-based organization with simple Entity Framework services reduces complexity
+- **Simplicity**: Direct service calls eliminate MediatR overhead for small website with limited concurrent users
+- **Caching Strategy**: Simple read optimization through Entity Framework caching instead of complex CQRS pipeline
 
 **Quantifiable Outcomes**:
 - **Development Speed**: Reduce time to implement new API endpoints by 8-12 hours per feature
 - **Mobile Performance**: Improve API response times from 200ms to 170ms average
-- **Testing Efficiency**: Reduce unit test setup complexity by 50% through vertical slice isolation
+- **Testing Efficiency**: Reduce unit test setup complexity by 50% through simple service isolation
 - **Memory Usage**: Support 25% more concurrent users with same resource allocation
+- **Complexity Reduction**: Eliminate MediatR dependency and associated learning curve
 
-### Success Metrics
+### Success Criteria
 
 **Technical Metrics**:
 - API response time improvement: Target 15% reduction (200ms → 170ms)
 - Memory allocation reduction: Target 90%+ decrease per request 
 - Development velocity: Target 40% reduction in endpoint creation time
-- Test coverage maintenance: Maintain 95%+ coverage throughout migration
+- Code simplicity: Reduce lines of code per endpoint by 60%
+- AI agent training: 100% of backend AI agents updated with new patterns
 
 **Business Metrics**:
-- Developer satisfaction: Achieve 8.5/10 rating for new architecture patterns
+- AI agent effectiveness: Backend agents can implement new patterns independently
 - Feature delivery speed: Reduce average feature implementation time by 2-3 days
 - Production stability: Zero regression incidents during migration period
 - Mobile user experience: Achieve sub-200ms API response times for all critical paths
+- Maintainability score: Achieve 9/10 developer rating for code simplicity
 
 ## User Stories
 
-### Story 1: Developer Productivity Enhancement
-**As a** Backend Developer  
-**I want to** create new API endpoints with minimal boilerplate code  
-**So that** I can focus on business logic instead of ceremonial controller setup  
+### Story 1: Simple Entity Framework Service Development
+**As a** Backend Developer (Human or AI Agent)
+**I want to** create new API endpoints with simple Entity Framework services
+**So that** I can focus on business logic without MediatR overhead
 
 **Acceptance Criteria**:
 - Given a new feature requirement
-- When I implement the API endpoint using minimal API pattern
-- Then I complete the endpoint in 3-5 lines vs 15-20 lines with controllers
+- When I implement the API endpoint using minimal API + Entity Framework pattern
+- Then I complete the endpoint with direct service calls (no MediatR pipeline)
 - And the endpoint maintains full OpenAPI documentation
 - And NSwag type generation works identically to current implementation
+- And caching is handled through Entity Framework where needed
 
-### Story 2: Feature Isolation and Testing
+### Story 2: AI Agent Pattern Learning
+**As a** Backend AI Agent (backend-developer, react-developer)
+**I want to** learn the new simple vertical slice patterns
+**So that** I can implement features using the modernized architecture
+
+**Acceptance Criteria**:
+- Given updated AI agent documentation and lessons learned
+- When I receive a feature implementation request
+- Then I can implement using simple vertical slice + Entity Framework pattern
+- And I follow documented patterns without requiring human guidance
+- And I update lessons learned with new patterns discovered
+
+### Story 3: Feature Isolation with Simple Services
 **As a** Backend Developer  
-**I want to** organize API code by feature rather than technical layer  
-**So that** I can test and modify features independently without cross-feature impact  
+**I want to** organize API code by feature with simple Entity Framework services
+**So that** I can test and modify features independently without complexity
 
 **Acceptance Criteria**:
 - Given a feature modification requirement
 - When I update code in a feature slice
-- Then only that feature's tests need to run for validation
-- And no other features are affected by the change
-- And test setup requires minimal mocking and dependencies
+- Then only that feature's Entity Framework service needs modification
+- And no MediatR pipeline complexity interferes with changes
+- And test setup requires minimal mocking (just Entity Framework context)
 
-### Story 3: Mobile Performance Optimization
+### Story 4: Mobile Performance with Simple Architecture
 **As a** WitchCityRope Community Member using mobile device  
 **I want to** experience fast API responses during event interactions  
 **So that** I can quickly check into events and access information without delays  
@@ -86,79 +106,108 @@ WitchCityRope's current controller-based API architecture requires modernization
 **Acceptance Criteria**:
 - Given I'm using the mobile interface at an event
 - When I interact with API endpoints (authentication, event check-in, profile access)
-- Then API responses complete in under 170ms average
+- Then API responses complete in under 170ms average (improved by removing MediatR overhead)
 - And mobile interactions feel responsive and immediate
 - And event check-in process completes within 2-3 seconds total
 
-### Story 4: Development Team Onboarding  
-**As a** New Backend Developer joining the team  
-**I want to** understand API code organization quickly  
-**So that** I can contribute to feature development within my first week  
+### Story 5: Simple Development Pattern Discovery
+**As a** New Backend Developer or AI Agent
+**I want to** understand simple API code organization quickly  
+**So that** I can contribute to feature development immediately
 
 **Acceptance Criteria**:
 - Given I'm reviewing the API codebase for the first time
 - When I locate a specific feature (authentication, events, users)
-- Then all related code (endpoint, validation, business logic) is in one location
-- And I can understand the feature flow without navigating multiple directories
-- And I can implement a similar feature following established patterns
-
-### Story 5: Operational Monitoring and Documentation
-**As an** Operations Team Member  
-**I want to** maintain current monitoring and documentation capabilities  
-**So that** API performance and functionality remain fully observable  
-
-**Acceptance Criteria**:
-- Given the modernized API architecture
-- When I access API documentation and monitoring tools
-- Then Swagger/OpenAPI documentation is comprehensive and accurate
-- And health check endpoints provide same operational visibility
-- And logging patterns remain consistent for troubleshooting
-- And NSwag continues generating TypeScript types automatically
+- Then all related code (endpoint, Entity Framework service, validation) is in one location
+- And I can understand the feature flow without complex MediatR pipeline knowledge
+- And I can implement a similar feature following simple Entity Framework patterns
 
 ## Business Rules
 
+### Simplicity-First Architecture Rules
+1. **No MediatR Requirement**: Entity Framework services handle all business logic directly without pipeline overhead
+2. **Direct Service Calls**: Minimal API endpoints call Entity Framework services directly
+3. **Simple Caching**: Use Entity Framework query caching for read optimization instead of CQRS
+4. **Feature Organization**: Group related Entity Framework services and endpoints by business feature
+5. **Contract Flexibility**: Allow beneficial API contract improvements that enhance all endpoints
+
 ### Migration Execution Rules
 1. **Zero-Downtime Requirement**: All migrations must maintain 100% API availability with no service interruptions
-2. **Backward Compatibility**: All existing API contracts must remain unchanged during migration period
+2. **Backward Compatibility**: Preserve existing API contracts unless beneficial changes improve multiple endpoints
 3. **Testing Standards**: Each migrated endpoint must maintain or exceed current test coverage (95%+)
 4. **Documentation Preservation**: OpenAPI specifications must remain comprehensive throughout migration
-5. **Performance Validation**: Each migrated endpoint must demonstrate performance improvement or maintain current performance
+5. **Performance Validation**: Each migrated endpoint must demonstrate performance improvement
 
-### Quality Assurance Rules  
-1. **Feature-Complete Migration**: No functionality may be lost or degraded during architecture transition
-2. **Type Generation Continuity**: NSwag TypeScript generation must work identically with new architecture
-3. **Security Preservation**: All authentication, authorization, and security patterns must be preserved
-4. **Error Handling Consistency**: Error response patterns must remain consistent for frontend integration
-5. **Monitoring Compatibility**: Health checks and operational monitoring must function without modification
+### AI Agent Training Rules  
+1. **Agent Documentation Update**: Update backend-developer and react-developer agents with new patterns
+2. **Lessons Learned Integration**: Document simple vertical slice patterns in agent lessons learned
+3. **Pattern Examples**: Provide complete Entity Framework service examples for agent reference
+4. **Frontend Coordination**: Update react-developer agent if API contract changes are made
+5. **Implementation Guides**: Create step-by-step guides for agents implementing new patterns
 
-### Team Adoption Rules
-1. **Training Requirement**: All backend developers must complete minimal API and vertical slice architecture training
-2. **Code Review Standards**: New patterns require architectural review for first two implementations per developer
-3. **Documentation Standards**: Each new pattern must include implementation guide and team examples
-4. **Rollback Capability**: Must maintain ability to rollback to controller architecture during 30-day stabilization period
+## Solution Approach
+
+### Simple Vertical Slice Architecture
+**Core Pattern**: Feature-based organization with direct Entity Framework services
+
+```
+Features/
+├── Authentication/
+│   ├── Services/
+│   │   └── AuthenticationService.cs     // Entity Framework service
+│   ├── Endpoints/
+│   │   ├── RegisterEndpoint.cs          // Minimal API endpoint
+│   │   └── LoginEndpoint.cs
+│   └── Models/
+│       ├── RegisterRequest.cs           // DTOs for NSwag
+│       └── LoginRequest.cs
+├── Events/
+│   ├── Services/
+│   │   └── EventService.cs              // Entity Framework service
+│   ├── Endpoints/
+│   │   ├── CreateEventEndpoint.cs
+│   │   └── GetEventsEndpoint.cs
+│   └── Models/
+│       ├── CreateEventRequest.cs
+│       └── EventResponse.cs
+```
+
+### Direct Entity Framework Pattern
+**No MediatR Overhead**: Endpoints call Entity Framework services directly
+- Simple dependency injection of service into endpoint
+- Entity Framework handles all data access and business logic
+- Caching implemented through Entity Framework query optimization
+- Validation through FluentValidation (existing pattern)
+
+### AI Agent Integration Strategy
+1. **Update Agent Documentation**: Provide comprehensive examples and patterns
+2. **Lessons Learned Updates**: Document new patterns in agent-specific lessons learned
+3. **Implementation Templates**: Create reusable templates for common patterns
+4. **Frontend Coordination**: Update react-developer agent for any API contract changes
+5. **Testing Patterns**: Document simple testing approaches for AI agents
 
 ## Constraints & Assumptions
 
 ### Technical Constraints
-- **React Integration Preservation**: Cannot modify existing API contracts that React frontend depends on
-- **NSwag Pipeline Continuity**: OpenAPI generation and TypeScript type creation must continue working identically
+- **React Integration**: Allow beneficial API contract changes with coordinated frontend updates
+- **NSwag Pipeline Continuity**: OpenAPI generation and TypeScript type creation must continue working
 - **Authentication System Stability**: JWT and Identity patterns must remain unchanged during migration
-- **Database Compatibility**: Entity Framework context and data access patterns cannot change
-- **Docker Environment Support**: All changes must work identically in containerized development and production
+- **Entity Framework Continuity**: Enhance current Entity Framework patterns without breaking changes
+- **Docker Environment Support**: All changes must work identically in containerized environments
 
 ### Business Constraints
 - **Development Timeline**: Migration must complete within 3-month window alongside ongoing feature development
-- **Team Resource Allocation**: Maximum 25% of developer time can be dedicated to migration work
-- **Learning Curve Management**: New patterns cannot significantly slow feature delivery during adoption period
+- **AI Agent Resource Allocation**: Maximum 40% of AI agent updates can be dedicated to learning new patterns
+- **Simplicity Requirement**: New patterns must be simpler than current architecture (no complex pipelines)
 - **Risk Tolerance**: No more than 2 migration-related production issues acceptable
-- **Budget Limitations**: Migration must use existing technology stack without additional licensing costs
+- **Budget Limitations**: Migration must reduce complexity, not add dependencies (remove MediatR)
 
-### Operational Assumptions
-- **Development Team Capacity**: Assumes 2-3 backend developers available for migration work  
-- **Testing Infrastructure Continuity**: TestContainers and integration testing patterns will continue working
-- **Frontend Development Isolation**: Assumes frontend team can continue development without API changes
-- **Production Environment Stability**: Assumes current production deployment patterns remain unchanged
-- **Performance Monitoring**: Assumes current APM tools will monitor new architecture patterns effectively
+### AI Training Assumptions
+- **Agent Learning Capacity**: Backend AI agents can learn new Entity Framework patterns effectively
+- **Documentation Quality**: Comprehensive documentation enables AI agent pattern adoption
+- **Pattern Consistency**: Simple patterns will be consistently applied by AI agents
+- **Human Oversight**: Initial AI implementations will be reviewed for pattern compliance
+- **Iterative Improvement**: AI agent lessons learned will improve through implementation experience
 
 ## Security & Privacy Requirements
 
@@ -170,41 +219,15 @@ WitchCityRope's current controller-based API architecture requires modernization
 
 ### Data Protection Requirements  
 - **HTTPS Enforcement**: All minimal API endpoints must enforce HTTPS in production environments
-- **Input Validation**: FluentValidation patterns must be preserved or enhanced in new architecture
+- **Input Validation**: FluentValidation patterns must be preserved in simple Entity Framework services
 - **Logging Security**: Sensitive data exclusion from logs must be maintained throughout migration
 - **CORS Configuration**: React development and production CORS policies must remain functional
 
 ### Community Safety Considerations
 - **Anonymous Reporting**: Safety incident reporting endpoints must maintain anonymity guarantees
-- **Member Privacy**: Personal information access controls must be preserved in new architecture
+- **Member Privacy**: Personal information access controls must be preserved in simple service architecture
 - **Consent Verification**: Event participation consent workflows cannot be disrupted during migration
-- **Audit Trail Preservation**: All security-related actions must maintain current audit logging patterns
-
-## Compliance Requirements
-
-### Technical Compliance
-- **OpenAPI 3.0 Standards**: All endpoints must generate compliant OpenAPI specifications
-- **.NET 9 Framework Compliance**: Implementation must follow Microsoft's recommended .NET 9 patterns
-- **RESTful API Standards**: HTTP method usage and response codes must remain RESTful
-- **Docker Compatibility**: All changes must work within current containerization strategy
-
-### Development Process Compliance  
-- **Code Review Requirements**: Architecture changes require senior developer approval
-- **Testing Standards**: Minimum 95% test coverage must be maintained throughout migration
-- **Documentation Standards**: All new patterns must include comprehensive team documentation
-- **Version Control**: Migration changes must follow established branching and PR review processes
-
-## User Impact Analysis
-
-| User Type | Direct Impact | Indirect Impact | Priority |
-|-----------|---------------|-----------------|----------|
-| **Backend Developers** | Major productivity improvement, new learning curve | Better testing experience, cleaner codebase | High |
-| **Frontend Developers** | No direct impact to React code | Potentially faster API responses | Medium |  
-| **Mobile Users** | No interface changes | 15% faster API response times | High |
-| **Desktop Users** | No interface changes | Improved performance during peak usage | Medium |
-| **Administrators** | No interface changes | Better system performance monitoring | Low |
-| **Event Attendees** | No interface changes | Faster event check-in and registration | High |
-| **Teachers/Instructors** | No interface changes | More responsive event management tools | Medium |
+- **Audit Trail Preservation**: All security-related actions must maintain current logging patterns
 
 ## Implementation Examples
 
@@ -234,137 +257,231 @@ public class AuthController : ControllerBase
 }
 ```
 
-### Target Minimal API Pattern Example
+### Target Simple Minimal API Pattern Example
 ```csharp
-// Target: Minimal API with Vertical Slice (3-5 lines per endpoint)
-public class RegisterEndpoint : IEndpoint
+// Target: Simple Minimal API with Direct Entity Framework Service (3-5 lines per endpoint)
+public static class AuthenticationEndpoints
 {
-    public void MapEndpoint(IEndpointRouteBuilder app)
+    public static void MapAuthenticationEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapPost("/api/auth/register", async (
-            RegisterCommand command, 
-            IMediator mediator) =>
-            await mediator.Send(command) switch
+            RegisterRequest request, 
+            AuthenticationService authService,
+            IValidator<RegisterRequest> validator) =>
             {
-                var (success, user, _) when success => Results.Created($"/api/auth/user/{user.Id}", user),
-                var (_, _, error) => Results.BadRequest(error)
+                var validationResult = await validator.ValidateAsync(request);
+                if (!validationResult.IsValid)
+                    return Results.ValidationProblem(validationResult.ToDictionary());
+                    
+                var (success, user, error) = await authService.RegisterAsync(request);
+                return success 
+                    ? Results.Created($"/api/auth/user/{user.Id}", user)
+                    : Results.BadRequest(error);
             })
             .WithName("Register")
             .WithSummary("Register new user account")
             .WithTags("Authentication")
-            .Produces<UserDto>(201)
+            .Produces<UserResponse>(201)
             .ProducesValidationProblem();
+    }
+}
+
+// Simple Entity Framework Service (No MediatR overhead)
+public class AuthenticationService
+{
+    private readonly WitchCityRopeDbContext _context;
+    private readonly IPasswordHasher<User> _passwordHasher;
+    
+    public AuthenticationService(WitchCityRopeDbContext context, IPasswordHasher<User> passwordHasher)
+    {
+        _context = context;
+        _passwordHasher = passwordHasher;
+    }
+    
+    public async Task<(bool Success, UserResponse User, string Error)> RegisterAsync(RegisterRequest request)
+    {
+        // Direct Entity Framework business logic
+        var existingUser = await _context.Users
+            .FirstOrDefaultAsync(u => u.Email == request.Email);
+            
+        if (existingUser != null)
+            return (false, null, "Email already exists");
+            
+        var user = new User
+        {
+            Email = request.Email,
+            SceneName = request.SceneName,
+            PasswordHash = _passwordHasher.HashPassword(null, request.Password)
+        };
+        
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+        
+        return (true, user.ToResponse(), null);
     }
 }
 ```
 
-### Feature Organization Structure
+### Simple Feature Organization Structure
 ```
 Features/
 ├── Authentication/
-│   ├── Register/
-│   │   ├── RegisterCommand.cs      // Request/Response DTOs
-│   │   ├── RegisterCommandHandler.cs  // Business logic
-│   │   ├── RegisterValidator.cs    // Input validation
-│   │   └── RegisterEndpoint.cs     // API endpoint
-│   └── Login/
-│       ├── LoginCommand.cs
-│       ├── LoginCommandHandler.cs
-│       ├── LoginValidator.cs
-│       └── LoginEndpoint.cs
+│   ├── Services/
+│   │   └── AuthenticationService.cs    // Direct Entity Framework service
+│   ├── Endpoints/
+│   │   └── AuthenticationEndpoints.cs  // Minimal API endpoints
+│   ├── Models/
+│   │   ├── RegisterRequest.cs          // Request DTOs for NSwag
+│   │   ├── LoginRequest.cs
+│   │   └── UserResponse.cs             // Response DTOs for NSwag
+│   └── Validation/
+│       ├── RegisterRequestValidator.cs // FluentValidation
+│       └── LoginRequestValidator.cs
 ├── Events/
-│   ├── CreateEvent/
-│   ├── GetEvents/
-│   └── UpdateEvent/
+│   ├── Services/
+│   │   └── EventService.cs             // Direct Entity Framework service
+│   ├── Endpoints/
+│   │   └── EventEndpoints.cs
+│   └── Models/
+│       ├── CreateEventRequest.cs
+│       └── EventResponse.cs
 └── Users/
-    ├── GetProfile/
-    └── UpdateProfile/
+    ├── Services/
+    │   └── UserService.cs
+    ├── Endpoints/
+    │   └── UserEndpoints.cs
+    └── Models/
+        ├── UpdateProfileRequest.cs
+        └── UserProfileResponse.cs
 ```
+
+## AI Agent Training Requirements
+
+### Backend Developer Agent Updates
+**Documentation Required**:
+- [ ] Simple vertical slice pattern guide
+- [ ] Entity Framework service implementation patterns
+- [ ] Minimal API endpoint registration patterns
+- [ ] Validation integration with FluentValidation
+- [ ] Testing patterns for simple services
+
+**Lessons Learned Updates**:
+- [ ] Document "Entity Framework over MediatR" pattern preference
+- [ ] Add examples of simple service implementations
+- [ ] Include testing strategies for direct service calls
+- [ ] Document when to use caching vs direct queries
+
+### React Developer Agent Coordination
+**If API Contract Changes Made**:
+- [ ] Update agent with new API contract patterns
+- [ ] Document NSwag integration changes
+- [ ] Provide examples of updated TypeScript types
+- [ ] Include testing patterns for new API contracts
+
+**Frontend Impact Assessment**:
+- [ ] Analyze which API changes benefit all endpoints
+- [ ] Document required React component updates
+- [ ] Create scope of work for frontend changes
+- [ ] Plan coordination timeline with backend changes
+
+### Implementation Training Materials
+**Pattern Documentation**:
+- [ ] Step-by-step Entity Framework service creation guide
+- [ ] Minimal API endpoint registration examples
+- [ ] Feature organization best practices
+- [ ] Testing strategy for simple architecture
+
+**AI Agent Examples**:
+- [ ] Complete feature implementation example (auth, events, users)
+- [ ] Common patterns for CRUD operations
+- [ ] Error handling patterns
+- [ ] Performance optimization techniques
 
 ## Scenarios
 
-### Scenario 1: New Feature Development (Happy Path)
-**Context**: Developer needs to implement "Create Event" API endpoint
+### Scenario 1: Simple New Feature Development (Happy Path)
+**Context**: AI Agent needs to implement "Create Event" API endpoint
 **Steps**:
-1. Create `Features/Events/CreateEvent/` directory
-2. Implement `CreateEventCommand.cs` with request/response DTOs
-3. Implement `CreateEventCommandHandler.cs` with business logic using existing EventService
-4. Implement `CreateEventValidator.cs` with FluentValidation rules  
-5. Implement `CreateEventEndpoint.cs` with minimal API mapping
-6. Endpoint automatically registers via `IEndpoint` pattern
-7. OpenAPI documentation generates automatically
-8. NSwag creates TypeScript types for React consumption
+1. Create `Features/Events/Services/EventService.cs` with Entity Framework logic
+2. Implement `CreateEventRequest.cs` and `EventResponse.cs` for NSwag
+3. Implement `EventEndpoints.cs` with minimal API mapping calling service directly
+4. Add `CreateEventRequestValidator.cs` with FluentValidation rules  
+5. Register endpoints in Program.cs
+6. OpenAPI documentation generates automatically
+7. NSwag creates TypeScript types for React consumption
 
-**Outcome**: Complete feature implementation in 2-3 hours vs 4-6 hours with controller pattern
+**Outcome**: Complete feature implementation in 2-3 hours vs 4-6 hours with controller pattern, no MediatR complexity
 
-### Scenario 2: Feature Modification (Maintenance Path)
+### Scenario 2: Simple Feature Modification (Maintenance Path)
 **Context**: Need to modify event creation logic to add capacity validation
 **Steps**:
-1. Navigate to `Features/Events/CreateEvent/` directory  
-2. All related code (endpoint, validation, business logic) in single location
-3. Modify `CreateEventValidator.cs` to add capacity rules
-4. Update `CreateEventCommandHandler.cs` with business logic changes
-5. Run feature-specific tests to validate changes
-6. No other features affected by modification
+1. Navigate to `Features/Events/Services/EventService.cs`
+2. Modify Entity Framework service method directly
+3. Update validation in `CreateEventRequestValidator.cs` if needed
+4. Run feature-specific tests to validate changes
+5. No MediatR pipeline complexity to navigate
 
-**Outcome**: Isolated change with clear impact boundaries and focused testing
+**Outcome**: Isolated change with clear impact boundaries and simple testing
 
-### Scenario 3: Performance Optimization (Production Path)  
-**Context**: Mobile users experiencing slow API responses during peak event registration
+### Scenario 3: AI Agent Learning New Pattern (Training Path)  
+**Context**: Backend AI agent needs to implement user profile update feature
 **Steps**:
-1. Identify performance bottleneck in specific feature endpoint
-2. Optimize handler logic within feature slice boundary  
-3. Test performance improvement with feature-specific benchmarks
-4. Deploy optimized endpoint without affecting other features
-5. Monitor performance improvement with existing APM tools
+1. Review lessons learned documentation for simple vertical slice pattern
+2. Copy existing pattern from `Features/Authentication/Services/AuthenticationService.cs`
+3. Implement `Features/Users/Services/UserService.cs` following Entity Framework pattern
+4. Create request/response DTOs following established patterns
+5. Implement minimal API endpoints calling service directly
+6. Update lessons learned with any new patterns discovered
 
-**Outcome**: Targeted optimization with minimal deployment risk
+**Outcome**: AI agent successfully implements feature using documented simple patterns
 
-### Scenario 4: New Developer Onboarding (Team Growth Path)
-**Context**: New backend developer joins team and needs to implement user profile update feature  
+### Scenario 4: API Contract Improvement (Enhancement Path)
+**Context**: Beneficial API contract change could improve multiple endpoints
 **Steps**:
-1. Review existing feature example (`Features/Authentication/Register/`)
-2. Copy pattern to `Features/Users/UpdateProfile/` directory
-3. Follow established command/handler/validator/endpoint pattern
-4. Implement business logic using existing service layer
-5. Run tests to validate implementation
-6. Submit PR following documented patterns
+1. Identify contract improvement opportunity (e.g., consistent error response format)
+2. Assess impact on all affected endpoints
+3. Update affected Entity Framework services and DTOs
+4. Coordinate with react-developer agent for frontend changes
+5. Update NSwag generation and TypeScript types
+6. Test all affected endpoints
 
-**Outcome**: Productive contribution within first week using clear, discoverable patterns
+**Outcome**: Improved API consistency with coordinated frontend updates
 
 ## Questions for Product Manager
 
-- [ ] **Migration Timeline Priority**: Can we dedicate 25% developer time to migration over 3-month period, or should we extend timeline to reduce resource impact?
-- [ ] **Performance Requirements**: Are the 15% API response time improvements critical for addressing current mobile user experience issues?
-- [ ] **Team Training Investment**: Should we budget for 2-week training program for vertical slice architecture, or prefer gradual learning approach?
-- [ ] **Risk Tolerance**: Are we comfortable with incremental migration approach, or do you prefer big-bang migration with more comprehensive testing?
-- [ ] **Feature Development Balance**: How should we prioritize migration work against new feature development (events management, payment integration)?
-- [ ] **Success Measurement**: What additional metrics should we track to validate business value of architecture modernization?
+- [ ] **Simplicity Priority**: Do you agree with removing MediatR complexity in favor of direct Entity Framework services for our small website?
+- [ ] **AI Agent Training Investment**: Should we prioritize updating AI agents over human developer training for this architecture?
+- [ ] **API Contract Changes**: Are you comfortable allowing beneficial API contract changes if they improve multiple endpoints consistently?
+- [ ] **Entity Framework Focus**: Does the Entity Framework-centric approach align with your preference for simple, maintainable solutions?
+- [ ] **Migration Approach**: Should we focus on simplicity and performance over architectural purity?
+- [ ] **Success Measurement**: How should we measure AI agent effectiveness with the new simple patterns?
 
 ## Quality Gate Checklist (95% Required)
 
-- [x] **Business problem clearly articulated** - Developer productivity and mobile performance gaps identified
-- [x] **All user roles addressed** - Backend developers, frontend developers, mobile users, administrators  
-- [x] **Clear acceptance criteria for each story** - Specific, measurable outcomes defined
-- [x] **Business value clearly defined** - 40-60% development speed increase, 15% performance improvement
-- [x] **Edge cases considered** - Migration rollback, parallel feature development, team onboarding
+- [x] **Business problem clearly articulated** - Removed unnecessary MediatR complexity, focus on simplicity
+- [x] **All user roles addressed** - AI agents, backend developers, mobile users, frontend developers  
+- [x] **Clear acceptance criteria for each story** - Specific, measurable outcomes with simplicity focus
+- [x] **Business value clearly defined** - 40-60% development speed increase through simplicity
+- [x] **Edge cases considered** - AI agent learning, API contract changes, simple testing
 - [x] **Security requirements documented** - Authentication, authorization, data protection preserved
-- [x] **Compliance requirements checked** - OpenAPI, .NET 9 standards, development processes
+- [x] **Compliance requirements checked** - OpenAPI, .NET 9 standards, simplified development processes
 - [x] **Performance expectations set** - 170ms response time target, memory reduction goals
 - [x] **Mobile experience considered** - Primary focus on mobile user performance improvements
-- [x] **Examples provided** - Current vs target patterns, feature organization structure
-- [x] **Success metrics defined** - Technical and business metrics with specific targets
-- [x] **Risk assessment included** - Migration complexity, team adoption, timeline constraints
-- [x] **Implementation approach outlined** - Vertical slice architecture with minimal APIs
-- [x] **Resource requirements specified** - 25% developer time, 3-month timeline
-- [x] **Integration impact analyzed** - React frontend, NSwag pipeline, Docker deployment
+- [x] **Examples provided** - Simple Entity Framework patterns, direct service calls
+- [x] **Success metrics defined** - Technical and business metrics with AI agent effectiveness
+- [x] **AI agent training requirements** - Comprehensive agent update and documentation plan
+- [x] **Simplicity emphasis** - Entity Framework over MediatR, direct service calls
+- [x] **Contract change allowance** - Beneficial improvements with coordinated frontend updates
+- [x] **Implementation approach outlined** - Simple vertical slice architecture with Entity Framework
 
 ---
 
-**Research Foundation**: This requirements document builds on comprehensive technology research analyzing .NET 9 minimal API patterns and thorough analysis of our current controller-based architecture. The recommendations reflect industry best practices while preserving WitchCityRope's production-ready patterns and community-specific requirements.
+**Stakeholder Feedback Integration**: This revised requirements document incorporates critical feedback emphasizing simplicity over architectural complexity. The approach removes MediatR/CQRS overhead, focuses on AI agent training, and allows beneficial API contract improvements while maintaining the core business value proposition.
 
-**Next Phase**: Upon approval, this document will be used to create detailed functional specifications and implementation plans for the API architecture modernization initiative.
+**Research Foundation**: Built on comprehensive .NET 9 minimal API research with stakeholder preference for practical, maintainable solutions over complex architectural patterns.
+
+**Next Phase**: Upon approval, this document will be used to create implementation plans focused on simple Entity Framework services and AI agent training materials.
 
 *Last Updated: 2025-08-22 by Business Requirements Agent*  
-*Status: Ready for Product Manager Review*  
-*Estimated Review Time: 15-20 minutes*
+*Status: Ready for Product Manager Review - Revised Per Stakeholder Feedback*  
+*Estimated Review Time: 10-15 minutes*
