@@ -195,13 +195,13 @@ export const EventsList: React.FC<EventsListProps> = ({
 
       {showViewMore && (
         <Box style={{ textAlign: 'center', marginTop: 'var(--space-xl)' }}>
-          <Button
+          <Box
             component={Link}
             to="/events"
-            variant="v7-secondary"
+            className="btn btn-secondary"
           >
             View Full Calendar
-          </Button>
+          </Box>
         </Box>
       )}
     </Box>

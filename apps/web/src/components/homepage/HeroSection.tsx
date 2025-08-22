@@ -115,40 +115,21 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ customActions }) => {
         </Text>
 
         {customActions || (
-          <Group justify="center" gap="md">
-            <Button
+          <Group justify="center" gap="md" className="hero-buttons">
+            <Box
               component={Link}
               to="#events"
-              variant="v7-primary"
-              size="lg"
-              style={{
-                padding: '18px 40px',
-                fontSize: '16px',
-              }}
+              className="btn btn-primary btn-large"
             >
               Browse Upcoming Classes
-            </Button>
-            <Button
+            </Box>
+            <Box
               component={Link}
               to={isAuthenticated ? "/welcome" : "#join"}
-              variant="v7-secondary"
-              size="lg"
-              style={{
-                padding: '18px 40px',
-                fontSize: '16px',
-                background: 'transparent',
-                color: 'var(--color-ivory)',
-                borderColor: 'var(--color-rose-gold)',
-                '&::before': {
-                  background: 'var(--color-rose-gold)',
-                },
-                '&:hover': {
-                  color: 'var(--color-midnight)',
-                }
-              }}
+              className="btn btn-secondary btn-large"
             >
               {isAuthenticated ? 'Go to Dashboard' : 'Start Your Journey'}
-            </Button>
+            </Box>
           </Group>
         )}
       </Container>

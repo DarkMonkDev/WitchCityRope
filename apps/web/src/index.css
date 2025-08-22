@@ -332,8 +332,126 @@ html {
   }
 }
 
-/* Button large size override */
+/* STANDARDIZED BUTTON CLASSES - v7 Design System */
+/* Base button styles - MUST be used for all buttons across the site */
+.btn {
+  padding: 14px 32px;
+  border-radius: 12px 6px 12px 6px; /* Corner morphing start position */
+  text-decoration: none;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  transition: all 0.3s ease;
+  display: inline-block;
+  cursor: pointer;
+  border: none;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  line-height: 1;
+  text-align: center;
+}
+
+/* Primary CTA Button - Amber/Yellow Gradient */
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+  color: var(--color-midnight);
+  box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+  font-weight: 700;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 6px 25px rgba(255, 191, 0, 0.5);
+  background: linear-gradient(135deg, var(--color-amber-dark) 0%, var(--color-amber) 100%);
+  border-radius: 6px 12px 6px 12px; /* Corner morphing end position */
+  color: var(--color-midnight);
+  text-decoration: none;
+}
+
+.btn-primary:hover::before {
+  left: 100%;
+}
+
+/* Primary Alt Button - Electric Purple Gradient */
+.btn-primary-alt {
+  background: linear-gradient(135deg, var(--color-electric) 0%, var(--color-electric-dark) 100%);
+  color: var(--color-ivory);
+  box-shadow: 0 4px 15px rgba(157, 78, 221, 0.4);
+  font-weight: 700;
+}
+
+.btn-primary-alt:hover {
+  box-shadow: 0 6px 25px rgba(157, 78, 221, 0.5);
+  background: linear-gradient(135deg, var(--color-electric-dark) 0%, var(--color-electric) 100%);
+  border-radius: 6px 12px 6px 12px; /* Corner morphing end position */
+  color: var(--color-ivory);
+  text-decoration: none;
+}
+
+/* Secondary Button - Outline Style */
+.btn-secondary {
+  background: transparent;
+  color: var(--color-burgundy);
+  border: 2px solid var(--color-burgundy);
+  position: relative;
+  z-index: 1;
+}
+
+.btn-secondary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+  background: var(--color-burgundy);
+  transition: width 0.4s ease;
+  z-index: -1;
+}
+
+.btn-secondary:hover {
+  color: var(--color-ivory);
+  border-radius: 6px 12px 6px 12px; /* Corner morphing end position */
+  text-decoration: none;
+}
+
+.btn-secondary:hover::before {
+  width: 100%;
+}
+
+/* Large button size modifier */
 .btn-large {
-  padding: 18px 40px !important;
-  font-size: 16px !important;
+  padding: 18px 40px;
+  font-size: 16px;
+}
+
+/* Hero section button overrides - for buttons inside hero */
+.hero-section .btn-secondary,
+.hero-buttons .btn-secondary {
+  background: transparent;
+  color: var(--color-ivory);
+  border-color: var(--color-rose-gold);
+}
+
+.hero-section .btn-secondary::before,
+.hero-buttons .btn-secondary::before {
+  background: var(--color-rose-gold);
+}
+
+.hero-section .btn-secondary:hover,
+.hero-buttons .btn-secondary:hover {
+  color: var(--color-midnight);
 }

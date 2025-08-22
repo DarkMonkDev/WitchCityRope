@@ -56,6 +56,88 @@ import {
 - **Template Authority**: `/docs/design/current/homepage-template-v7.html` fully implemented
 - **Next Developers**: Can use homepage components as reference for v7 patterns
 
+### ✅ UPDATED: Standardized Button Classes v7 Design System (2025-08-22)
+**STATUS**: Successfully implemented standardized button classes to match the v7 wireframe exactly.
+
+#### Critical Pattern Success:
+- **Standardized CSS Classes**: Created `.btn`, `.btn-primary`, `.btn-primary-alt`, `.btn-secondary` classes that ALL buttons must use
+- **Corner Morphing Animation**: All buttons have the signature 12px 6px to 6px 12px border-radius animation
+- **NO Inline Styles**: Eliminated all component-specific button styling in favor of global CSS classes
+- **Edge-to-Edge Layout**: Fixed App.css #root container that was adding max-width and centering
+- **Consistent Typography**: All buttons use exact v7 typography settings (font-family, font-weight, letter-spacing)
+
+#### Button Classes Implementation:
+```css
+/* Base button class - REQUIRED for all buttons */
+.btn {
+  padding: 14px 32px;
+  border-radius: 12px 6px 12px 6px; /* Start position */
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  transition: all 0.3s ease;
+  /* All other base styles... */
+}
+
+/* Primary CTA - Amber gradient */
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+  color: var(--color-midnight);
+}
+
+/* Primary Alt - Electric purple gradient */
+.btn-primary-alt {
+  background: linear-gradient(135deg, var(--color-electric) 0%, var(--color-electric-dark) 100%);
+  color: var(--color-ivory);
+}
+
+/* Secondary - Outline style */
+.btn-secondary {
+  background: transparent;
+  color: var(--color-burgundy);
+  border: 2px solid var(--color-burgundy);
+}
+
+/* Large size modifier */
+.btn-large {
+  padding: 18px 40px;
+  font-size: 16px;
+}
+```
+
+#### MANDATORY Usage Pattern:
+```typescript
+// ✅ CORRECT - Use standardized classes
+<Box component={Link} to="/login" className="btn btn-primary">
+  Login
+</Box>
+
+// ✅ CORRECT - Large button variant
+<Box component={Link} to="/events" className="btn btn-primary btn-large">
+  Browse Events
+</Box>
+
+// ❌ WRONG - NO inline styles or Mantine variants
+<Button variant="v7-primary" style={{...}}>Login</Button>
+```
+
+#### Files Updated:
+- `/apps/web/src/index.css` - Added standardized button classes
+- `/apps/web/src/App.css` - Removed max-width container causing centering
+- `/apps/web/src/components/layout/Navigation.tsx` - Updated to use `.btn` classes
+- `/apps/web/src/components/homepage/HeroSection.tsx` - Updated buttons
+- `/apps/web/src/components/homepage/CTASection.tsx` - Updated buttons  
+- `/apps/web/src/components/homepage/EventsList.tsx` - Updated buttons
+
+#### Critical Rules for Future Development:
+1. **NEVER** create inline button styles
+2. **ALWAYS** use `.btn` base class plus modifier (`.btn-primary`, `.btn-secondary`, etc.)
+3. **ALL** buttons must have corner morphing animation (handled by CSS classes)
+4. **EDGE-TO-EDGE** layout requires no max-width containers on utility bar/navigation
+5. **DOCUMENT** any new button variants in this pattern
+
 ### ✅ UPDATED: EventsList Component API Integration (2025-08-22)
 **STATUS**: Successfully migrated EventsList component from mock data to real API using TanStack Query.
 

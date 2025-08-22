@@ -40,7 +40,9 @@ export const Navigation: React.FC = () => {
         background: 'rgba(255, 248, 240, 0.95)',
         backdropFilter: 'blur(10px)',
         boxShadow: '0 2px 20px rgba(0,0,0,0.08)',
-        padding: isScrolled ? '12px 40px' : 'var(--space-sm) 40px',
+        padding: isScrolled ? '12px 0' : 'var(--space-sm) 0',
+        paddingLeft: '40px',
+        paddingRight: '40px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -145,73 +147,22 @@ export const Navigation: React.FC = () => {
             >
               Welcome, {user.sceneName}
             </Box>
-            <Button
+            <Box
+              component="button"
               onClick={handleLogout}
-              style={{
-                background: 'linear-gradient(135deg, var(--color-electric) 0%, var(--color-electric-dark) 100%)',
-                color: 'var(--color-ivory)',
-                border: 'none',
-                borderRadius: '12px 6px 12px 6px',
-                padding: '14px 32px',
-                fontFamily: 'var(--font-heading)',
-                fontWeight: 600,
-                fontSize: '14px',
-                textTransform: 'uppercase',
-                letterSpacing: '1.5px',
-                transition: 'all 0.3s ease',
-                cursor: 'pointer',
-                boxShadow: '0 4px 15px rgba(157, 78, 221, 0.4)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderRadius = '6px 12px 6px 12px';
-                e.currentTarget.style.background = 'linear-gradient(135deg, var(--color-electric-dark) 0%, var(--color-electric) 100%)';
-                e.currentTarget.style.boxShadow = '0 6px 25px rgba(157, 78, 221, 0.5)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderRadius = '12px 6px 12px 6px';
-                e.currentTarget.style.background = 'linear-gradient(135deg, var(--color-electric) 0%, var(--color-electric-dark) 100%)';
-                e.currentTarget.style.boxShadow = '0 4px 15px rgba(157, 78, 221, 0.4)';
-              }}
+              className="btn btn-primary-alt"
             >
               Logout
-            </Button>
+            </Box>
           </Group>
         ) : (
-          <Button
+          <Box
             component={Link}
             to="/login"
-            style={{
-              background: 'linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%)',
-              color: 'var(--color-midnight)',
-              border: 'none',
-              borderRadius: '12px 6px 12px 6px',
-              padding: '14px 32px',
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 700,
-              fontSize: '14px',
-              textTransform: 'uppercase',
-              letterSpacing: '1.5px',
-              transition: 'all 0.3s ease',
-              cursor: 'pointer',
-              textDecoration: 'none',
-              display: 'inline-block',
-              boxShadow: '0 4px 15px rgba(255, 191, 0, 0.4)',
-              position: 'relative',
-              overflow: 'hidden',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderRadius = '6px 12px 6px 12px';
-              e.currentTarget.style.background = 'linear-gradient(135deg, var(--color-amber-dark) 0%, var(--color-amber) 100%)';
-              e.currentTarget.style.boxShadow = '0 6px 25px rgba(255, 191, 0, 0.5)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderRadius = '12px 6px 12px 6px';
-              e.currentTarget.style.background = 'linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%)';
-              e.currentTarget.style.boxShadow = '0 4px 15px rgba(255, 191, 0, 0.4)';
-            }}
+            className="btn btn-primary"
           >
             Login
-          </Button>
+          </Box>
         )}
       </Group>
 

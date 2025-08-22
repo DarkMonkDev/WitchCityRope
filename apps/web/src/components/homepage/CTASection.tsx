@@ -107,31 +107,13 @@ export const CTASection: React.FC<CTASectionProps> = ({
           </Text>
 
           {customButton || (
-            <Button
+            <Box
               component={Link}
               to={buttonLink}
-              size="lg"
-              style={{
-                padding: '18px 40px',
-                fontSize: '16px',
-                background: 'linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%)',
-                color: 'var(--color-midnight)',
-                boxShadow: '0 6px 20px rgba(255, 191, 0, 0.4)',
-                borderRadius: '12px 6px 12px 6px',
-                fontFamily: 'var(--font-heading)',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '1.5px',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  boxShadow: '0 10px 30px rgba(255, 191, 0, 0.5)',
-                  background: 'linear-gradient(135deg, var(--color-amber-dark) 0%, var(--color-amber) 100%)',
-                  borderRadius: '6px 12px 6px 12px',
-                }
-              }}
+              className="btn btn-primary btn-large"
             >
               {buttonText}
-            </Button>
+            </Box>
           )}
         </Container>
       </Box>

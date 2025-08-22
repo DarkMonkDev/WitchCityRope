@@ -11,7 +11,9 @@ export const UtilityBar: React.FC = () => {
     <Box
       style={{
         background: 'var(--color-midnight)',
-        padding: '12px 40px',
+        padding: '12px 0',
+        paddingLeft: '40px',
+        paddingRight: '40px',
         fontSize: '13px',
         color: 'var(--color-taupe)',
         fontFamily: 'var(--font-heading)',
