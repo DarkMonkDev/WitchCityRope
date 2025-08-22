@@ -75,7 +75,7 @@ export const Navigation: React.FC = () => {
       </Box>
 
       {/* Navigation Items */}
-      <Group gap="var(--space-xl)" style={{ alignItems: 'center' }} className="nav">
+      <Group gap="var(--space-xl)" style={{ alignItems: 'center', marginRight: '30px' }} className="nav">
         <Box
           component={Link}
           to="/events"
