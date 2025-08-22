@@ -40,7 +40,7 @@ export const Navigation: React.FC = () => {
         background: 'rgba(255, 248, 240, 0.95)',
         backdropFilter: 'blur(10px)',
         boxShadow: '0 2px 20px rgba(0,0,0,0.08)',
-        padding: isScrolled ? '12px 0' : 'var(--space-sm) 0',
+        padding: isScrolled ? '8px 0' : '12px 0',
         paddingLeft: '40px',
         paddingRight: '40px',
         display: 'flex',

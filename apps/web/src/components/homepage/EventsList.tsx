@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, SimpleGrid, Text, Title, Button, Alert, Loader } from '@mantine/core';
+import { Box, Text, Title, Button, Alert, Loader } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Event } from '../../types/Event';
@@ -176,10 +176,13 @@ export const EventsList: React.FC<EventsListProps> = ({
         />
       </Title>
 
-      <SimpleGrid
-        cols={{ base: 1, sm: 2, lg: 2 }}
-        spacing="lg"
-        style={{ marginBottom: 'var(--space-xl)' }}
+      <Box
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+          gap: 'var(--space-lg)',
+          marginBottom: 'var(--space-xl)'
+        }}
       >
         {displayEvents.map((event) => (
           <EventCard
@@ -191,7 +194,7 @@ export const EventsList: React.FC<EventsListProps> = ({
             }}
           />
         ))}
-      </SimpleGrid>
+      </Box>
 
       {showViewMore && (
         <Box style={{ textAlign: 'center', marginTop: 'var(--space-xl)' }}>
