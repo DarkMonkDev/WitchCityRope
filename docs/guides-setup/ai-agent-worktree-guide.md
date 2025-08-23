@@ -6,6 +6,21 @@
 - Causes session conflicts between parallel Claude Code instances
 - All development happens in isolated worktree directories
 
+## 🔴 CRITICAL CONCEPT: Worktrees ARE Branches! 🔴
+
+**UNDERSTAND THIS FIRST:**
+- A worktree IS the branch - not a copy of a branch
+- When you create a worktree, you create THE branch in its own directory
+- The branch exists ONLY in the worktree directory
+- The main repo NEVER switches branches - it stays on development/master
+- Removing the worktree removes the branch entirely
+
+### ❌ WRONG Mental Model:
+"Create a branch, then create a worktree from it" - NO! This is redundant!
+
+### ✅ CORRECT Mental Model:
+"Create a worktree AS the branch" - The worktree IS where the branch lives!
+
 ## Quick Commands for Agents
 
 ### For Orchestrator Agent
@@ -21,15 +36,17 @@ Working Directory: /home/chad/repos/witchcityrope-worktrees/feature-2025-08-23-u
 
 ### For Git-Manager Agent
 ```bash
-# Create new worktree
+# Create THE feature branch AS a worktree (one command creates both!)
 git worktree add ../witchcityrope-worktrees/feature-[date]-[name] -b feature/[date]-[name]
+# The branch feature/[date]-[name] now exists ONLY in that worktree directory
 
-# List worktrees
+# List worktrees (shows where each branch lives)
 git worktree list
 
-# Remove after PR merge (Phase 5)
+# Remove after PR merge (Phase 5) - removes BOTH worktree AND branch
 git worktree remove ../witchcityrope-worktrees/feature-[date]-[name]
-rm -rf ../witchcityrope-worktrees/feature-[date]-[name]
+# No need for rm -rf - worktree remove handles it
+# The branch is gone - it only existed in the worktree!
 git worktree prune
 ```
 
@@ -159,15 +176,50 @@ cd /home/chad/repos/witchcityrope-worktrees/[feature-name]
 - MUST check environment files exist
 - MUST report if in wrong directory
 
+## Complete Workflow Example (CORRECT)
+
+```bash
+# 1. Main repo ALWAYS stays on development/master
+cd /home/chad/repos/witchcityrope-react
+git branch --show-current  # Shows: development (NEVER changes!)
+
+# 2. Create feature branch AS a worktree
+git worktree add ../witchcityrope-worktrees/feature-auth -b feature/auth
+# This creates THE branch feature/auth that lives ONLY in the worktree
+
+# 3. Work in the worktree (the branch IS there)
+cd ../witchcityrope-worktrees/feature-auth
+git branch --show-current  # Shows: feature/auth
+# Make changes, commit, push
+
+# 4. After PR merged, cleanup removes branch AND worktree
+cd /home/chad/repos/witchcityrope-react
+git worktree remove ../witchcityrope-worktrees/feature-auth
+# Branch feature/auth is GONE - it only existed in the worktree!
+```
+
+## What NOT to Do (WRONG)
+
+```bash
+# ❌ WRONG - Don't create branch first
+git checkout -b feature/auth  # NO! This switches main repo
+git worktree add ../worktrees/auth feature/auth  # NO! Redundant!
+
+# ❌ WRONG - Don't switch branches in main repo
+cd /home/chad/repos/witchcityrope-react
+git checkout feature/something  # NO! Main repo stays on development!
+```
+
 ## Directory Structure
 
 ```
 /home/chad/repos/
-├── witchcityrope-react/           # Main repository (DO NOT WORK HERE)
-└── witchcityrope-worktrees/       # All worktrees go here
-    ├── feature-2025-08-23-auth/   # Feature worktree
-    ├── bugfix-2025-08-23-login/   # Bugfix worktree
-    └── hotfix-2025-08-23-api/     # Hotfix worktree
+├── witchcityrope-react/           # Main repo (STAYS ON DEVELOPMENT/MASTER)
+│   └── .git/                      # Shared git database
+└── witchcityrope-worktrees/       # Each worktree IS a branch
+    ├── feature-2025-08-23-auth/   # THE feature/auth branch lives HERE
+    ├── bugfix-2025-08-23-login/   # THE bugfix/login branch lives HERE
+    └── hotfix-2025-08-23-api/     # THE hotfix/api branch lives HERE
 ```
 
 ## Success Indicators

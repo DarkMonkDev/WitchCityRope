@@ -1,4 +1,6 @@
 # UI Designer Lessons Learned
+
+<!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 <!-- Last Updated: 2025-08-20 -->
 <!-- Next Review: 2025-09-20 -->
 

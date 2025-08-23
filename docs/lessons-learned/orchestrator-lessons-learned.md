@@ -1,5 +1,7 @@
 # Main Agent Orchestration Lessons Learned
 
+<!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
+
 ## 🚨 IMPORTANT: Main Agent IS the Orchestrator 🚨
 **The main agent coordinates complex workflows. There is NO orchestrator sub-agent.**
 - For complex multi-agent work → Use `/orchestrator` command
@@ -67,6 +69,14 @@ BEFORE starting work:
 3. For DTO/API work: Verify NSwag auto-generation in domain-layer-architecture.md lines 725-997
 4. Document your findings with specific line references before proposing solutions
 ```
+
+## Lessons Learned Validation
+
+**Problem**: Agents add status reports and celebrations to lessons learned files instead of prevention patterns.
+**Solution**: Use LESSONS-LEARNED-VALIDATION-CHECKLIST.md to enforce strict format compliance.
+
+**Problem**: Lessons learned files become project documentation instead of mistake prevention.
+**Solution**: Reject any lessons learned updates containing "Successfully completed", "MAJOR SUCCESS", or project timelines.
 
 ---
 

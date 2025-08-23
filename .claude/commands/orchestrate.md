@@ -268,19 +268,27 @@ Context: [Current project phase and feature description]
 
 #### Critical Agent Knowledge
 - **Sub-agents don't read CLAUDE.md** - Include essential constraints in delegation prompts
-- **Mandatory lessons learned reading** - Each agent must read their specific lessons file and should update that file with lessons learned as these lessons are discovered. 
+- **Mandatory lessons learned reading** - Each agent must read their specific lessons file and should update that file with lessons learned as these lessons are discovered
+- **STRICT LESSONS LEARNED FORMAT** - Agents MUST follow /docs/lessons-learned/LESSONS-LEARNED-TEMPLATE.md - NO status reports, NO celebrations, ONLY prevention patterns
 - **Docker operations** - Include Docker guide references for any containerization work
 
 ### Worktree Workflow Integration
 
 **CRITICAL**: All development now uses git worktrees for complete session isolation.
 
+**🔴 UNDERSTANDING: A worktree IS the branch - not a copy! 🔴**
+- The worktree creates THE branch in its own directory
+- The branch exists ONLY in that worktree
+- Main repo stays on development/master and NEVER switches branches
+- Removing the worktree removes the branch entirely
+
 #### Worktree Creation (Phase 1)
 ```
 Task: git-manager
-Prompt: Create worktree for feature development:
-- Worktree path: ../witchcityrope-worktrees/feature-[YYYY-MM-DD]-[description]
-- Branch name: feature/[YYYY-MM-DD]-[description]
+Prompt: Create THE feature branch AS a worktree:
+- Create branch AND worktree in one command: git worktree add ../witchcityrope-worktrees/feature-[YYYY-MM-DD]-[description] -b feature/[YYYY-MM-DD]-[description]
+- This creates THE branch feature/[YYYY-MM-DD]-[description] that exists ONLY in the worktree
+- Main repo remains on development/master (unchanged)
 - Setup environment files (.env, appsettings.json)
 - Install dependencies (npm install)
 - Return worktree path for delegation context
@@ -311,7 +319,8 @@ All git operations must be delegated to git-manager:
 1. **Worktree Creation:**
    ```
    Task: git-manager
-   Prompt: Create worktree from main: ../witchcityrope-worktrees/feature-[YYYY-MM-DD]-[description]
+   Prompt: Create THE feature branch AS a worktree (not from a branch, AS the branch!)
+   Command: git worktree add ../witchcityrope-worktrees/feature-[YYYY-MM-DD]-[description] -b feature/[YYYY-MM-DD]-[description]
    ```
 
 2. **Commits:**
@@ -328,13 +337,26 @@ All git operations must be delegated to git-manager:
 
 ## Lessons Learned Documentation
 
-Each sub-agent must document lessons learned in their respective areas:
+### STRICT FORMAT ENFORCEMENT
+**CRITICAL**: The orchestrator has ABSOLUTE AUTHORITY to reject lessons learned that violate format rules.
 
-- **Requirements agents**: Document requirement gathering improvements
-- **Design agents**: Document design pattern discoveries
-- **Implementation agents**: Document coding challenges and solutions
-- **Testing agents**: Document test strategy improvements
-- **All agents**: Document workflow efficiency improvements
+#### Validation Process (MANDATORY)
+1. **Check format compliance** using `/docs/lessons-learned/LESSONS-LEARNED-VALIDATION-CHECKLIST.md`
+2. **REJECT if contains**: Status reports, celebrations, project history, implementation guides
+3. **REQUIRE rewrite** if violations found - BLOCK workflow until compliant
+4. **Template enforcement**: All updates MUST follow `/docs/lessons-learned/LESSONS-LEARNED-TEMPLATE.md`
+
+#### Allowed Content (ONLY)
+- **Prevention patterns**: What went wrong and how to prevent it
+- **Mistakes to avoid**: Common errors and their solutions
+- **Brief problem/solution pairs**: Maximum 2 sentences each
+
+#### Forbidden Content (INSTANT REJECTION)
+- ❌ "Successfully completed" entries
+- ❌ "MAJOR SUCCESS" or achievement reports
+- ❌ Project timelines or history
+- ❌ Implementation tutorials
+- ❌ Code examples > 3 lines
 
 The orchestrator consolidates all lessons learned into:
 - `/.claude/workflow-data/improvements/[date].md`

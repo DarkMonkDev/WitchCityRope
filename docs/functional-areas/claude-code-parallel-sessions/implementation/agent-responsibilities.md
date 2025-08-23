@@ -4,9 +4,24 @@
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
+## 🔴 CRITICAL UNDERSTANDING: Worktrees ARE Branches 🔴
+
+**EVERY AGENT MUST UNDERSTAND:**
+- A worktree IS the branch - not a copy of a branch
+- When git-manager creates a worktree, it creates THE branch in its own directory
+- The branch exists ONLY in the worktree directory
+- The main repo NEVER switches branches - it stays on development/master
+- Removing the worktree removes the branch entirely
+
+### ❌ WRONG Mental Model:
+"Create a branch, then create a worktree from it" - NO! This is redundant!
+
+### ✅ CORRECT Mental Model:
+"Create a worktree AS the branch" - The worktree IS where the branch lives!
+
 ## Executive Summary
 
-This document defines the responsibility matrix for git worktree management across all AI agents in the WitchCityRope development workflow. It establishes clear ownership boundaries, prevents conflicts, and ensures coordinated worktree lifecycle management.
+This document defines the responsibility matrix for git worktree management across all AI agents in the WitchCityRope development workflow. It establishes clear ownership boundaries, prevents conflicts, and ensures coordinated worktree lifecycle management. All agents must understand that worktrees ARE branches, not copies.
 
 ## Primary Responsibility Matrix
 
@@ -14,9 +29,9 @@ This document defines the responsibility matrix for git worktree management acro
 
 | Operation | Primary Agent | Secondary Agent | Backup Agent | Forbidden Agents |
 |-----------|---------------|-----------------|--------------|------------------|
-| **Create Worktrees** | git-manager | - | orchestrator | ALL others |
-| **Manage Worktrees** | git-manager | librarian (docs) | orchestrator | ALL development agents |
-| **Clean Up Worktrees** | git-manager | - | orchestrator | ALL others |
+| **Create Worktrees (AS branches)** | git-manager | - | orchestrator | ALL others |
+| **Manage Worktrees (THE branches)** | git-manager | librarian (docs) | orchestrator | ALL development agents |
+| **Clean Up Worktrees (removes branches)** | git-manager | - | orchestrator | ALL others |
 | **Monitor Worktrees** | git-manager | librarian (registry) | orchestrator | ALL others |
 
 ### Supporting Operations
@@ -33,8 +48,9 @@ This document defines the responsibility matrix for git worktree management acro
 ### Git Manager Agent (PRIMARY OWNER)
 
 #### Core Responsibilities
-1. **Worktree Creation**
-   - Create new worktrees with proper naming conventions
+1. **Worktree Creation (Creates THE Branch)**
+   - Create THE branch AS a worktree (not from a branch, AS the branch!)
+   - Use command: `git worktree add ../path -b branch-name` (creates branch IN worktree)
    - Set up environment files (.env.local, .env)
    - Install Node.js dependencies (npm install)
    - Verify environment functionality
@@ -63,9 +79,11 @@ This document defines the responsibility matrix for git worktree management acro
 ##### Worktree Creation Function
 ```bash
 # Function: create_ai_worktree
+# Purpose: Creates THE branch AS a worktree (branch exists ONLY in worktree)
+# Command: git worktree add ../path -b branch-name (ONE command creates both!)
 # Input: branch-name, work-type (feature|bugfix|hotfix)
-# Output: worktree path, environment status, ready signal
-# Dependencies: main repo access, environment files
+# Output: worktree path (where THE branch lives), environment status, ready signal
+# Dependencies: main repo access (stays on development), environment files
 ```
 
 ##### Worktree Status Function
@@ -78,9 +96,11 @@ This document defines the responsibility matrix for git worktree management acro
 ##### MANDATORY Cleanup Function (Phase 5)
 ```bash
 # Function: cleanup_merged_worktrees_finalization
+# Purpose: Remove worktree (which removes THE branch - it only existed there!)
+# Command: git worktree remove ../path (removes BOTH worktree AND branch)
 # Trigger: Part of Phase 5 workflow completion
 # Input: branch name, merge confirmation
-# Output: cleanup success/failure, directory removal status
+# Output: cleanup success/failure, branch gone, directory removed
 # Dependencies: merge detection, safety verification, workflow completion
 ```
 
@@ -93,10 +113,11 @@ This document defines the responsibility matrix for git worktree management acro
 
 #### Core Responsibilities
 1. **Worktree Workflow Integration**
-   - Request worktree creation from git-manager
-   - Coordinate agent working directories
+   - Request worktree creation from git-manager (creates THE branch AS worktree)
+   - Understand: the branch lives ONLY in that worktree directory
+   - Coordinate agent working directories (where branches live)
    - Manage worktree context in delegations
-   - Trigger cleanup after successful merges
+   - Trigger cleanup after successful merges (removes branch AND worktree)
 
 2. **Agent Coordination**
    - Pass worktree context to all delegated agents
@@ -119,7 +140,8 @@ Prompt: [specific instructions]
 
 Worktree Context:
 - Working Directory: /home/chad/repos/witchcityrope-worktrees/[worktree-name]
-- Branch: [branch-name]
+- Branch: [branch-name] (exists ONLY in this worktree directory!)
+- Main Repo: Stays on development/master (NEVER switches branches)
 - Environment: [environment-status]
 
 Required Verification:
@@ -237,7 +259,7 @@ Required Checks:
 
 | Agent | Awareness Level | Specific Knowledge Required |
 |-------|----------------|---------------------------|
-| **git-manager** | EXPERT | Full worktree lifecycle, git internals, cleanup procedures |
+| **git-manager** | EXPERT | Worktrees ARE branches concept, full lifecycle, git internals, cleanup |
 | **orchestrator** | ADVANCED | Workflow integration, delegation context, coordination |
 | **librarian** | INTERMEDIATE | Documentation tracking, file registry, lifecycle events |
 | **react-developer** | BASIC | Working directory verification, environment setup |
@@ -250,9 +272,11 @@ Required Checks:
 ### Agent Training Requirements
 
 #### Expert Level (git-manager)
+- **CRITICAL**: Understand worktrees ARE branches (not copies)
+- Create branches AS worktrees in one command
 - Complete git worktree functionality
 - Automation script development
-- Cleanup procedures and safety checks
+- Cleanup removes both worktree AND branch
 - Environment synchronization
 - Recovery procedures
 
