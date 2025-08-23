@@ -27,6 +27,19 @@
 - **Use standardized CSS classes, NOT inline styles**
 - **Follow Design System v7 for all styling decisions**
 
+## 🚨 CRITICAL: WORKTREE WORKFLOW MANDATORY 🚨
+
+**All development MUST happen in git worktrees, NOT main repository**
+- Working directory MUST be: `/home/chad/repos/witchcityrope-worktrees/[feature-name]`
+- NEVER work in: `/home/chad/repos/witchcityrope-react`
+- Verify worktree context before ANY operations
+
+### Worktree Verification Checklist
+- [ ] Run `pwd` to confirm in worktree directory
+- [ ] Check for .env file presence
+- [ ] Verify node_modules exists
+- [ ] Test `npm run dev` starts successfully
+
 ## 🚨 CRITICAL: FILE PLACEMENT RULES - ZERO TOLERANCE 🚨
 
 ### NEVER Create Files in Project Root
@@ -444,3 +457,75 @@ Using standardized CSS classes ensures:
 
 *This file is maintained by the react-developer agent. Add new lessons immediately when discovered.*
 *Last updated: 2025-08-22 - Added critical CSS standards lesson*
+
+## COMPREHENSIVE LESSONS FROM FRONTEND DEVELOPMENT
+**NOTE**: The following lessons were consolidated from frontend-lessons-learned.md
+
+---
+
+## 🚨 CRITICAL: useEffect Infinite Loop Fix 🚨
+**Date**: 2025-08-19
+**Category**: React Hooks Critical Bug
+**Severity**: Critical
+
+### Context
+Fixed "Maximum update depth exceeded" error that occurred when visiting any test page. The error was caused by an infinite loop in the App.tsx useEffect dependency array.
+
+### What We Learned
+- **useEffect Dependency Arrays with Zustand**: Functions returned from Zustand stores get recreated on every state update
+- **Infinite Loop Pattern**: useEffect → function call → state update → re-render → new function reference → useEffect runs again
+- **Auth Check Pattern**: Authentication checks should typically run only once on app mount, not on every auth state change
+- **Empty Dependency Array**: Use `[]` when effect should only run once on mount
+- **Function Reference Stability**: Zustand store actions are NOT stable references across renders
+
+### Action Items
+- [ ] NEVER put Zustand actions in useEffect dependency arrays
+- [ ] USE empty dependency arrays `[]` for mount-only effects
+- [ ] CHECK all useEffect hooks for proper dependencies
+- [ ] AVOID auth state checks in effects unless specifically needed
+
+### Tags
+#critical #react-hooks #useeffect #zustand #infinite-loop
+
+---
+
+## 🚨 CRITICAL: Zustand Selector Infinite Loop Fix 🚨
+**Date**: 2025-08-19
+**Category**: Zustand Critical Bug
+**Severity**: Critical - Root Cause
+
+### Context
+Fixed the ACTUAL root cause of "Maximum update depth exceeded" error. The infinite loop was caused by Zustand selectors that return new objects on every render, causing all components using those selectors to re-render infinitely.
+
+### What We Learned
+- **Object Selector Anti-Pattern**: Zustand selectors that return new objects (`{ user: state.user, isAuthenticated: state.isAuthenticated }`) create new references on every render
+- **Infinite Re-render Loop**: New object references cause React to think state changed → re-render → new object → re-render → crash
+- **Individual Selectors Solution**: Use separate selector hooks for each property to return stable primitive values
+- **8+ Components Affected**: All components using auth selectors had to be updated to prevent the infinite loop
+- **Reference Equality**: React uses Object.is() for reference equality - new objects always fail this check
+- **Zustand Behavior**: Store updates trigger ALL selectors to re-run, including those returning computed objects
+
+### Correct Pattern:
+```typescript
+// ✅ CORRECT - Individual selectors for primitive values
+const user = useAuthStore(state => state.user);
+const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+
+// ❌ WRONG - Object selector creates new reference every render
+const { user, isAuthenticated } = useAuthStore(state => ({ 
+  user: state.user, 
+  isAuthenticated: state.isAuthenticated 
+}));
+```
+
+### Action Items
+- [ ] NEVER use object selectors in Zustand hooks
+- [ ] ALWAYS use individual selectors for each property
+- [ ] CHECK all existing Zustand selectors for object returns
+- [ ] REFACTOR any object selectors found
+- [ ] UNDERSTAND reference equality in React
+
+### Tags
+#critical #zustand #selectors #infinite-loop #react-performance
+
+---

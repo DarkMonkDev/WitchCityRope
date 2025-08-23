@@ -25,6 +25,19 @@
 - **Create contract tests that verify DTO alignment automatically**
 - **Use auto-generated test data from SeedDataService (7 accounts + 12 events)**
 
+## 🚨 CRITICAL: WORKTREE WORKFLOW MANDATORY 🚨
+
+**All development MUST happen in git worktrees, NOT main repository**
+- Working directory MUST be: `/home/chad/repos/witchcityrope-worktrees/[feature-name]`
+- NEVER work in: `/home/chad/repos/witchcityrope-react`
+- Verify worktree context before ANY operations
+
+### Worktree Verification Checklist
+- [ ] Run `pwd` to confirm in worktree directory
+- [ ] Check for .env file presence
+- [ ] Verify test database configuration
+- [ ] Confirm test isolation from other worktrees
+
 ## 🚨 CRITICAL: FILE PLACEMENT RULES - ZERO TOLERANCE 🚨
 
 ### NEVER Create Files in Project Root

@@ -155,8 +155,8 @@ When `/orchestrate` is invoked:
 
 1. **Determine work type** (feature/bug/hotfix/docs/refactor)
 2. **Invoke librarian** to check master index and get exact paths
-3. **Invoke git-manager** to create feature branch: `feature/[YYYY-MM-DD]-[description]`
-4. **Invoke librarian** to create scope folder structure:
+3. **Invoke git-manager** to create worktree: `git worktree add ../witchcityrope-worktrees/feature-[YYYY-MM-DD]-[description] -b feature/[YYYY-MM-DD]-[description]`
+4. **Invoke librarian** to create scope folder structure in worktree:
    ```
    /docs/functional-areas/[feature-name]/new-work/[YYYY-MM-DD]-[description]/
    ├── requirements/
@@ -271,13 +271,47 @@ Context: [Current project phase and feature description]
 - **Mandatory lessons learned reading** - Each agent must read their specific lessons file and should update that file with lessons learned as these lessons are discovered. 
 - **Docker operations** - Include Docker guide references for any containerization work
 
+### Worktree Workflow Integration
+
+**CRITICAL**: All development now uses git worktrees for complete session isolation.
+
+#### Worktree Creation (Phase 1)
+```
+Task: git-manager
+Prompt: Create worktree for feature development:
+- Worktree path: ../witchcityrope-worktrees/feature-[YYYY-MM-DD]-[description]
+- Branch name: feature/[YYYY-MM-DD]-[description]
+- Setup environment files (.env, appsettings.json)
+- Install dependencies (npm install)
+- Return worktree path for delegation context
+```
+
+#### Working Directory Context
+All agent delegations MUST include worktree context:
+```
+Task: [agent-name]
+Prompt: [instructions]
+Working Directory: /home/chad/repos/witchcityrope-worktrees/feature-[YYYY-MM-DD]-[description]
+```
+
+#### Worktree Cleanup (Phase 5 - MANDATORY)
+```
+Task: git-manager
+Prompt: MANDATORY cleanup after PR merge:
+- Verify PR merged to main
+- Remove worktree: git worktree remove [path]
+- Delete directory: rm -rf [directory]
+- Prune worktree list: git worktree prune
+- Report cleanup completion
+```
+
 ### Git Workflow (Via Delegation)
 All git operations must be delegated to git-manager:
 
-1. **Branch Creation:**
+1. **Worktree Creation:**
    ```
    Task: git-manager
-   Prompt: Create feature branch from main: feature/[YYYY-MM-DD]-[description]
+   Prompt: Create worktree from main: ../witchcityrope-worktrees/feature-[YYYY-MM-DD]-[description]
    ```
 
 2. **Commits:**

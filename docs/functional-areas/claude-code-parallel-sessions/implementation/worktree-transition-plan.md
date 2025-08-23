@@ -129,10 +129,11 @@ This document provides a comprehensive implementation plan for transitioning the
 
 ### Pre-Migration Assessment
 
-#### 2.1 Branch Inventory (To be updated at migration time)
-**Current Active Branches (Estimated 3-4):**
-- `feature/2025-08-22-api-architecture-modernization`
-- Additional branches to be identified at migration time
+#### 2.1 Branch Inventory
+**Current Branch Status:**
+- **3 MERGED BRANCHES**: Ready for migration to worktree history
+- **1 UNMERGED BRANCH**: `feature/2025-08-12-user-management-redesign` (requires active migration)
+- **CURRENT BRANCH**: `feature/2025-08-22-api-architecture-modernization` (ready for merge)
 
 #### 2.2 Migration Decision Matrix
 For each existing branch:
@@ -339,10 +340,10 @@ If migration encounters issues:
 #### 4.2 Cleanup Workflow After PR Merge
 
 ##### 4.2.1 Trigger Points
-**Automatic Cleanup Triggers:**
-1. **After Merge to Main**: When orchestrator completes finalization
+**MANDATORY Cleanup Triggers:**
+1. **IMMEDIATE AFTER MERGE**: Part of Phase 5 finalization workflow
 2. **Manual Trigger**: When git-manager detects merged branches
-3. **Scheduled Cleanup**: Daily automated cleanup scan
+3. **NO SCHEDULED CLEANUP**: Cleanup happens during workflow completion ONLY
 
 ##### 4.2.2 Cleanup Process Steps
 1. **Merge Detection**
@@ -362,9 +363,9 @@ If migration encounters issues:
    - Check for uncommitted changes in worktree
    - Confirm no active processes in worktree
 
-4. **Cleanup Execution**
+4. **MANDATORY Cleanup Execution** (Phase 5 Finalization)
    ```bash
-   # Remove worktree
+   # Remove worktree IMMEDIATELY after PR merge
    git worktree remove ../witchcityrope-worktrees/[worktree-name]
    
    # Remove branch
@@ -373,7 +374,8 @@ If migration encounters issues:
 
 5. **Documentation Update**
    - Log cleanup in file registry
-   - Update orchestrator on cleanup completion
+   - Report cleanup completion to orchestrator
+   - WORKFLOW CANNOT COMPLETE until cleanup verified
 
 ### Preventing Folder Accumulation
 
@@ -385,22 +387,22 @@ If migration encounters issues:
 - Count number of active worktrees
 - Alert when thresholds exceeded
 
-**Thresholds:**
-- **Warning**: >5 active worktrees
-- **Critical**: >10 active worktrees
-- **Disk Space**: >10GB total worktree space
+**Prevention Thresholds:**
+- **Target**: <3 active worktrees (immediate cleanup prevents accumulation)
+- **Warning**: >5 active worktrees (indicates cleanup failures)
+- **Critical**: >10 active worktrees (emergency cleanup required)
 
 ##### 4.3.2 Proactive Cleanup
-**Daily Cleanup Tasks:**
-1. **Stale Branch Detection**
-   - Identify branches older than 30 days
-   - Flag inactive worktrees
-   - Suggest cleanup to orchestrator
+**Workflow Finalization Tasks:**
+1. **Immediate Post-Merge Cleanup** (MANDATORY)
+   - Remove worktree within minutes of merge
+   - No accumulation allowed
+   - Part of Phase 5 completion requirements
 
-2. **Orphaned Worktree Detection**
+2. **Orphaned Worktree Detection** (As needed)
    - Find worktrees without corresponding branches
    - Identify corrupted worktree states
-   - Automatic cleanup with safety checks
+   - Manual cleanup with safety checks
 
 ##### 4.3.3 Emergency Cleanup Procedures
 **When Cleanup Fails:**

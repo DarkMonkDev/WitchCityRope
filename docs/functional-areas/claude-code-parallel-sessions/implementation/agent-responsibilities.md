@@ -46,12 +46,12 @@ This document defines the responsibility matrix for git worktree management acro
    - Manage worktree status and health
    - Coordinate with librarian for documentation
 
-3. **Cleanup Operations**
-   - Detect merged branches requiring cleanup
-   - Remove worktrees safely after merge
+3. **MANDATORY Cleanup Operations** (Phase 5 Finalization)
+   - Detect merged branches requiring IMMEDIATE cleanup
+   - Remove worktrees as part of workflow completion
    - Clean up associated directories and files
    - Update git repository state
-   - Report cleanup completion
+   - Report cleanup completion BEFORE workflow ends
 
 4. **Environment Synchronization**
    - Ensure environment files are current across worktrees
@@ -75,12 +75,13 @@ This document defines the responsibility matrix for git worktree management acro
 # Dependencies: git worktree list, branch analysis
 ```
 
-##### Cleanup Function
+##### MANDATORY Cleanup Function (Phase 5)
 ```bash
-# Function: cleanup_merged_worktrees
-# Input: safety checks enabled/disabled
-# Output: cleaned worktrees, remaining active, errors
-# Dependencies: merge detection, safety verification
+# Function: cleanup_merged_worktrees_finalization
+# Trigger: Part of Phase 5 workflow completion
+# Input: branch name, merge confirmation
+# Output: cleanup success/failure, directory removal status
+# Dependencies: merge detection, safety verification, workflow completion
 ```
 
 #### Coordination Requirements
@@ -296,15 +297,16 @@ Required Checks:
 4. **Development Agent** → **Orchestrator**: Report completion
 5. **Orchestrator**: Verify work completed in correct context
 
-### Cleanup Protocol
+### MANDATORY Cleanup Protocol (Phase 5 Finalization)
 
-1. **Orchestrator**: Detect work completion and merge
-2. **Orchestrator** → **Git Manager**: Request worktree cleanup
-3. **Git Manager**: Verify merge completion and safety
-4. **Git Manager**: Remove worktree and clean up
-5. **Git Manager** → **Orchestrator**: Report cleanup completion
-6. **Orchestrator** → **Librarian**: Document cleanup
-7. **Librarian**: Update file registry
+1. **Orchestrator**: Confirm PR merge and begin Phase 5 finalization
+2. **Orchestrator** → **Git Manager**: MANDATORY cleanup delegation
+3. **Git Manager**: Verify merge and perform IMMEDIATE cleanup
+4. **Git Manager**: Remove worktree directory immediately
+5. **Git Manager** → **Orchestrator**: Report cleanup SUCCESS (required)
+6. **Orchestrator**: CANNOT complete workflow until cleanup confirmed
+7. **Orchestrator** → **Librarian**: Document cleanup completion
+8. **Librarian**: Update file registry with ARCHIVED status
 
 ## Conflict Resolution
 
@@ -317,7 +319,7 @@ Required Checks:
 **Resolution**: Request through orchestrator → git-manager for environment sync.
 
 #### Scenario: Cleanup Uncertainty
-**Resolution**: git-manager has final authority on cleanup decisions. Safety checks mandatory.
+**Resolution**: git-manager has final authority BUT cleanup is MANDATORY in Phase 5. No worktree can remain after workflow completion.
 
 ### Communication Protocols
 
@@ -334,8 +336,8 @@ Required Checks:
 ## Success Metrics
 
 ### Agent Performance Metrics
-- **git-manager**: Worktree creation time <5 minutes, cleanup success rate >95%
-- **orchestrator**: Successful agent coordination in worktree context >98%
+- **git-manager**: Worktree creation time <5 minutes, **MANDATORY cleanup success rate 100%**
+- **orchestrator**: Successful agent coordination in worktree context >98%, **Phase 5 cleanup delegation 100%**
 - **librarian**: Complete documentation of all worktree operations 100%
 - **development agents**: Working directory accuracy 100%, environment verification success >95%
 
@@ -345,8 +347,8 @@ Required Checks:
 - **Workflow Integration**: Seamless worktree integration without workflow delays
 
 ### System Health Metrics
-- **Worktree Accumulation**: <10 active worktrees maximum
-- **Cleanup Efficiency**: Merged branches cleaned up within 24 hours
+- **Worktree Accumulation**: <3 active worktrees target (ZERO accumulation goal)
+- **Cleanup Efficiency**: **IMMEDIATE cleanup within workflow completion**
 - **Environment Consistency**: >98% environment sync success rate
 - **Documentation Accuracy**: 100% worktree operations documented
 
