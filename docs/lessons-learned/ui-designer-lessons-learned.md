@@ -1430,4 +1430,49 @@ Create a companion `.md` file explaining:
 
 ---
 
+## Form Design Patterns (2025-08-23)
+
+### Context
+Critical design patterns learned from form implementation requiring precise visual coordination between floating labels, placeholders, and user feedback systems.
+
+### Form Design Requirements Precision
+- **Specify exact visual behavior** - "hide placeholder by default, show when focused AND empty"
+- **Include all input types** - TextInput, PasswordInput, Textarea components
+- **Describe edge cases** - empty states, focused states, with helper text
+- **Provide visual examples** when possible to prevent misunderstandings
+- **Define success criteria** for testing and validation
+
+### Floating Label Design Patterns
+- **Floating labels position relative to input containers** - NOT form groups
+- **Helper text separation** - design separate containers to prevent positioning conflicts
+- **Focus state visual feedback** - border colors AND outline removal are different requirements
+- **Smooth transitions** - 0.2s ease-in-out for professional appearance
+- **Brand consistency** - use project color palette for focus states
+
+### Form Field Highlighting Strategies
+- **Multi-layered approach** - border changes, placeholder visibility, label animation
+- **Component-specific considerations** - password inputs have different CSS targeting requirements
+- **Performance optimization** - CSS-only solutions preferred over React state management
+- **Accessibility compliance** - ensure all visual feedback works for keyboard navigation
+
+### Communication Patterns for Form Design
+- **Avoid vague requirements** - "Fix placeholder visibility" leads to misunderstands
+- **Specify component types** - list all input components that need the behavior
+- **Include edge case handling** - describe behavior for different states
+- **Provide visual mockups** - screenshots prevent interpretation errors
+- **Define clear acceptance criteria** - what constitutes successful implementation
+
+### Action Items
+- [ ] COMMUNICATE form design requirements with specific visual descriptions
+- [ ] SPECIFY behavior for all relevant input types in designs
+- [ ] DESIGN for floating label and helper text interaction patterns
+- [ ] INCLUDE focus state specifications in all form designs
+- [ ] PROVIDE edge case handling guidance in design specifications
+- [ ] TEST design concepts across different input component types
+
+### Reference
+For detailed form implementation patterns, see: `/docs/lessons-learned/form-implementation-lessons.md`
+
+---
+
 *Remember: Wireframes are communication tools. Clear annotations and consistency are more valuable than pixel perfection. For OAuth flows, prioritize security and compliance over complexity. For Docker designs, focus on developer experience and clear service communication patterns. For modern forms, balance sophistication with performance and accessibility - create designs that are both beautiful and functional. Advanced form effects should enhance the user experience, not overwhelm it. Design variations should provide stakeholder comfort through progressive options, allowing selection based on desired impact, timeline, and community feedback. Events pages require sophisticated discovery mechanisms while maintaining design system coherence across all page types. ALWAYS create interactive wireframes when possible - stakeholders need to experience designs, not imagine them. Integrate stakeholder feedback immediately and provide progressive variation options for decision-making comfort. For Gothic elegant designs, remember that underline animations are essential and beloved - feature them prominently while avoiding any mouse-following or box-moving effects that stakeholders hate. When stakeholders reject design directions, immediately return to approved foundations with minimal, targeted refinements. Document specific rules for loved vs. hated UI elements to prevent future mistakes.*

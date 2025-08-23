@@ -529,3 +529,57 @@ const { user, isAuthenticated } = useAuthStore(state => ({
 #critical #zustand #selectors #infinite-loop #react-performance
 
 ---
+
+## 🚨 CRITICAL: Form Implementation Patterns
+**Date**: 2025-08-23
+**Category**: Form Components
+**Severity**: Critical
+
+### Context
+Critical patterns learned from complex form implementation work requiring precise component usage, CSS targeting, and user experience optimization.
+
+### Framework-First Component Usage
+- **ALWAYS use framework components** (MantineTextInput, MantinePasswordInput) - NEVER create custom HTML
+- **Use framework styling APIs** (styles prop) rather than wrapping in custom HTML
+- **Leverage built-in accessibility** and validation integration
+- **Avoid custom HTML** wrapped in framework-styled containers
+
+### Floating Label Implementation
+- **Position labels relative to input containers** - NOT form groups that include helper text
+- **Create isolated input containers** for consistent label positioning
+- **Helper text affects container height** - separate from positioning calculations
+- **Use CSS transitions** for smooth label movement animations
+
+### CSS Targeting for Framework Components
+- **Target framework internal classes** - `.mantine-TextInput-input`, `.mantine-PasswordInput-input`
+- **Password inputs need special selectors** - additional data attributes and wrapper targeting
+- **Test all input types individually** - don't assume text input patterns work everywhere
+- **Use `!important` sparingly** - only when overriding framework defaults
+
+### Placeholder and Label Coordination
+- **Hide placeholders by default** when using floating labels
+- **Show placeholders only when focused AND empty** - prevents visual conflicts
+- **Use CSS-only solutions** when possible for better performance
+- **Include smooth transitions** for professional appearance
+
+### Focus State Visual Feedback
+- **Implement both outline removal AND border color changes** - separate concerns
+- **Target actual input elements** - not wrapper divs
+- **Use brand colors** for focus border states (`var(--mantine-color-wcr-6)`)
+- **Add smooth transitions** for professional appearance
+
+### Action Items
+- [ ] ALWAYS check framework components before creating custom HTML
+- [ ] USE isolated input containers for floating label positioning
+- [ ] TARGET framework internal classes for reliable styling
+- [ ] TEST all input types (text, password, textarea) individually
+- [ ] IMPLEMENT both focus outline removal and border changes
+- [ ] COMMUNICATE requirements precisely to prevent circular fixes
+
+### Tags
+#critical #forms #framework-components #css-targeting #user-experience
+
+### Reference
+For detailed form implementation patterns, see: `/docs/lessons-learned/form-implementation-lessons.md`
+
+---
