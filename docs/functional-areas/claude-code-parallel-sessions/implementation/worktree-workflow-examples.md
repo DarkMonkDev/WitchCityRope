@@ -23,11 +23,11 @@ git branch --show-current
 # Output: development
 
 # 2. Create THE feature branch AS a worktree (one command!)
-git worktree add ../witchcityrope-worktrees/feature-2025-08-23-auth -b feature/2025-08-23-auth
+git worktree add .worktrees/feature-2025-08-23-auth -b feature/2025-08-23-auth
 # This creates THE branch feature/2025-08-23-auth that exists ONLY in the worktree
 
 # 3. Work happens in the worktree (where THE branch lives)
-cd ../witchcityrope-worktrees/feature-2025-08-23-auth
+cd .worktrees/feature-2025-08-23-auth
 git branch --show-current
 # Output: feature/2025-08-23-auth (THE branch is HERE)
 
@@ -39,7 +39,7 @@ git push -u origin feature/2025-08-23-auth
 
 # 5. After PR is merged, cleanup removes BOTH worktree AND branch
 cd /home/chad/repos/witchcityrope-react  # Back to main repo
-git worktree remove ../witchcityrope-worktrees/feature-2025-08-23-auth
+git worktree remove .worktrees/feature-2025-08-23-auth
 # The branch feature/2025-08-23-auth is GONE - it only existed in the worktree!
 
 # 6. Main repo is STILL on development (never changed!)
@@ -75,21 +75,21 @@ Task: git-manager
 Prompt: Create worktree for new authentication feature
 
 # Git-manager executes (creates THE branch AS worktree)
-git worktree add ../witchcityrope-worktrees/feature-2025-08-23-auth -b feature/2025-08-23-auth
+git worktree add .worktrees/feature-2025-08-23-auth -b feature/2025-08-23-auth
 
 # Setup environment
-cd ../witchcityrope-worktrees/feature-2025-08-23-auth
-cp ../../witchcityrope-react/.env .
+cd .worktrees/feature-2025-08-23-auth
+cp ../.env .
 npm install
 
-# Report back: "Feature branch feature/2025-08-23-auth created and exists in worktree at ../witchcityrope-worktrees/feature-2025-08-23-auth"
+# Report back: "Feature branch feature/2025-08-23-auth created and exists in worktree at .worktrees/feature-2025-08-23-auth"
 ```
 
 #### ❌ WRONG Way
 ```bash
 # ❌ Creating branch first
 git checkout -b feature/auth  # NO! Switches main repo
-git worktree add ../worktrees/auth feature/auth  # NO! Branch already exists
+git worktree add .worktrees/auth feature/auth  # NO! Branch already exists
 
 # ❌ Using wrong mental model
 # Thinking: "I need to create a branch, then make a worktree from it"
@@ -101,13 +101,13 @@ git worktree add ../worktrees/auth feature/auth  # NO! Branch already exists
 #### ✅ CORRECT Way
 ```bash
 # Feature 1: Authentication (creates THE branch in worktree)
-git worktree add ../witchcityrope-worktrees/feature-auth -b feature/auth
+git worktree add .worktrees/feature-auth -b feature/auth
 
 # Feature 2: User Profile (creates THE branch in worktree)
-git worktree add ../witchcityrope-worktrees/feature-profile -b feature/profile
+git worktree add .worktrees/feature-profile -b feature/profile
 
 # Feature 3: Event System (creates THE branch in worktree)
-git worktree add ../witchcityrope-worktrees/feature-events -b feature/events
+git worktree add .worktrees/feature-events -b feature/events
 
 # Main repo check - still on development!
 cd /home/chad/repos/witchcityrope-react
@@ -140,7 +140,7 @@ git checkout -b feature/events  # NO! Main repo switched again
 cd /home/chad/repos/witchcityrope-react
 
 # Remove the worktree (this removes THE branch too!)
-git worktree remove ../witchcityrope-worktrees/feature-auth
+git worktree remove .worktrees/feature-auth
 
 # Verify branch is gone (it only existed in the worktree)
 git branch -a | grep feature/auth
@@ -157,7 +157,7 @@ git branch -d feature/auth  # NO! Branch doesn't exist here
 # Error: branch 'feature/auth' not found
 
 # ❌ Forgetting that removing worktree removes the branch
-rm -rf ../witchcityrope-worktrees/feature-auth  # NO! Use git worktree remove
+rm -rf .worktrees/feature-auth  # NO! Use git worktree remove
 # Now you have orphaned git references
 
 # ❌ Trying to checkout the branch to delete it
@@ -177,7 +177,7 @@ Description: Create feature branch for authentication
 Prompt: |
   Create THE feature branch AS a worktree for authentication work:
   - Branch name: feature/2025-08-23-authentication
-  - Worktree location: ../witchcityrope-worktrees/feature-2025-08-23-authentication
+  - Worktree location: .worktrees/feature-2025-08-23-authentication
   - Use single command: git worktree add [path] -b [branch]
   - This creates THE branch that exists ONLY in the worktree
   - Setup environment files and dependencies
@@ -205,7 +205,7 @@ Description: Implement authentication UI
 Prompt: |
   Implement authentication UI components.
   
-  Working Directory: /home/chad/repos/witchcityrope-worktrees/feature-2025-08-23-auth
+  Working Directory: /home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-23-auth
   Branch: feature/2025-08-23-auth (exists ONLY in this worktree)
   
   First verify:
@@ -236,7 +236,7 @@ git branch --show-current
 # Expected: development or master (NEVER a feature branch)
 
 # 2. Each worktree has its own branch
-cd ../witchcityrope-worktrees/feature-auth
+cd .worktrees/feature-auth
 git branch --show-current
 # Expected: feature/auth (THE branch lives here)
 
@@ -249,8 +249,8 @@ git branch | grep feature/
 git worktree list
 # Expected:
 # /home/chad/repos/witchcityrope-react              abc123 [development]
-# /home/chad/repos/witchcityrope-worktrees/feature-auth  def456 [feature/auth]
-# /home/chad/repos/witchcityrope-worktrees/feature-profile  ghi789 [feature/profile]
+# /home/chad/repos/witchcityrope-react/.worktrees/feature-auth  def456 [feature/auth]
+# /home/chad/repos/witchcityrope-react/.worktrees/feature-profile  ghi789 [feature/profile]
 ```
 
 ## Common Mistakes and Fixes
@@ -272,7 +272,7 @@ git checkout development  # Reset main to development
 **Cause**: Trying to delete branch that exists in worktree
 **Fix**: Remove the worktree - this removes the branch too!
 ```bash
-git worktree remove ../witchcityrope-worktrees/[name]
+git worktree remove .worktrees/[name]
 ```
 
 ### Mistake 4: "Worktree add says branch already exists"
@@ -280,7 +280,7 @@ git worktree remove ../witchcityrope-worktrees/[name]
 **Fix**: 
 ```bash
 # If branch exists, create worktree WITHOUT -b flag
-git worktree add ../witchcityrope-worktrees/existing-branch existing-branch
+git worktree add .worktrees/existing-branch existing-branch
 # Then NEVER use git checkout in main repo again
 ```
 

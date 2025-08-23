@@ -181,11 +181,12 @@ For each branch identified:
 3. **Conversion Process** (For branches to convert)
    ```bash
    # For existing branch - move THE branch to a worktree (branch now lives ONLY in worktree)
-   git worktree add ../witchcityrope-worktrees/[branch-name] [branch-name]
+   git worktree add .worktrees/[branch-name] [branch-name]
    
    # Setup environment in worktree
-   cd ../witchcityrope-worktrees/[branch-name]
-   cp ../../witchcityrope-react/.env.local . 2>/dev/null || true
+   cd .worktrees/[branch-name]
+   cp ../.env.local . 2>/dev/null || true
+   cp ../.env . 2>/dev/null || true
    npm install
    ```
 
@@ -215,7 +216,7 @@ If migration encounters issues:
 2. **Worktree Removal**
    ```bash
    # Remove problematic worktree
-   git worktree remove ../witchcityrope-worktrees/[branch-name]
+   git worktree remove .worktrees/[branch-name]
    ```
 
 3. **Documentation Update**
@@ -231,13 +232,16 @@ If migration encounters issues:
 
 **Directory Structure:**
 ```
-/home/chad/repos/
-├── witchcityrope-react/              # Main repository
-└── witchcityrope-worktrees/          # Worktrees directory
-    ├── feature-[YYYY-MM-DD]-[name]/  # Feature development
-    ├── bugfix-[YYYY-MM-DD]-[name]/   # Bug fixes
+/home/chad/repos/witchcityrope-react/
+├── .git/                              # Shared git database
+├── src/                               # Main repository source
+├── docs/                              # Main repository docs
+├── .claude/                           # Agent definitions
+└── .worktrees/                        # Worktrees directory (hidden)
+    ├── feature-[YYYY-MM-DD]-[name]/   # Feature development
+    ├── bugfix-[YYYY-MM-DD]-[name]/    # Bug fixes
     ├── enhancement-[YYYY-MM-DD]-[name]/ # UI improvements
-    └── hotfix-[YYYY-MM-DD]-[name]/   # Emergency fixes
+    └── hotfix-[YYYY-MM-DD]-[name]/    # Emergency fixes
 ```
 
 #### 3.2 Agent Implementation Assignments
@@ -384,7 +388,7 @@ If migration encounters issues:
 4. **MANDATORY Cleanup Execution** (Phase 5 Finalization)
    ```bash
    # Remove worktree IMMEDIATELY after PR merge (this removes THE branch too!)
-   git worktree remove ../witchcityrope-worktrees/[worktree-name]
+   git worktree remove .worktrees/[worktree-name]
    
    # Branch is already gone - it existed ONLY in the worktree!
    # No separate branch deletion needed
@@ -432,7 +436,7 @@ If migration encounters issues:
 2. **Force Cleanup (Last Resort)**
    ```bash
    # Force remove worktree directory
-   rm -rf ../witchcityrope-worktrees/[worktree-name]
+   rm -rf .worktrees/[worktree-name]
    git worktree prune
    ```
 

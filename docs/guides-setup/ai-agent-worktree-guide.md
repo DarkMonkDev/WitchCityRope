@@ -28,23 +28,23 @@
 # Start new workflow - delegate to git-manager
 Task: git-manager
 Prompt: Create worktree for feature/2025-08-23-user-authentication
-Path: ../witchcityrope-worktrees/feature-2025-08-23-user-authentication
+Path: .worktrees/feature-2025-08-23-user-authentication
 
 # Include in ALL delegations
-Working Directory: /home/chad/repos/witchcityrope-worktrees/feature-2025-08-23-user-authentication
+Working Directory: /home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-23-user-authentication
 ```
 
 ### For Git-Manager Agent
 ```bash
 # Create THE feature branch AS a worktree (one command creates both!)
-git worktree add ../witchcityrope-worktrees/feature-[date]-[name] -b feature/[date]-[name]
+git worktree add .worktrees/feature-[date]-[name] -b feature/[date]-[name]
 # The branch feature/[date]-[name] now exists ONLY in that worktree directory
 
 # List worktrees (shows where each branch lives)
 git worktree list
 
 # Remove after PR merge (Phase 5) - removes BOTH worktree AND branch
-git worktree remove ../witchcityrope-worktrees/feature-[date]-[name]
+git worktree remove .worktrees/feature-[date]-[name]
 # No need for rm -rf - worktree remove handles it
 # The branch is gone - it only existed in the worktree!
 git worktree prune
@@ -53,7 +53,7 @@ git worktree prune
 ### For Development Agents (React/Backend/Test)
 ```bash
 # FIRST: Verify working directory
-pwd  # Should show: /home/chad/repos/witchcityrope-worktrees/[feature-name]
+pwd  # Should show: /home/chad/repos/witchcityrope-react/.worktrees/[feature-name]
 
 # Check for environment files
 ls -la .env  # Must exist
@@ -67,12 +67,12 @@ ls -la node_modules  # Must exist
 ### Immediate Setup (After Worktree Creation)
 1. **Change to worktree directory**
    ```bash
-   cd ../witchcityrope-worktrees/feature-[name]
+   cd .worktrees/feature-[name]
    ```
 
 2. **Copy environment files**
    ```bash
-   cp ../../witchcityrope-react/.env .
+   cp ../.env .
    ```
 
 3. **Install dependencies**
@@ -106,9 +106,9 @@ PORT=5174 npm run dev
 ### Problem: "Cannot remove worktree"
 **Solution**: Check for uncommitted changes:
 ```bash
-git -C ../witchcityrope-worktrees/[name] status
-git -C ../witchcityrope-worktrees/[name] stash  # If changes exist
-git worktree remove ../witchcityrope-worktrees/[name]
+git -C .worktrees/[name] status
+git -C .worktrees/[name] stash  # If changes exist
+git worktree remove .worktrees/[name]
 ```
 
 ## Working Directory Verification
@@ -119,10 +119,10 @@ git worktree remove ../witchcityrope-worktrees/[name]
 pwd
 
 # Expected format:
-# /home/chad/repos/witchcityrope-worktrees/[feature-name]
+# /home/chad/repos/witchcityrope-react/.worktrees/[feature-name]
 
 # If in wrong directory:
-cd /home/chad/repos/witchcityrope-worktrees/[feature-name]
+cd /home/chad/repos/witchcityrope-react/.worktrees/[feature-name]
 ```
 
 ## Cleanup Procedures (MANDATORY Phase 5)
@@ -135,12 +135,12 @@ cd /home/chad/repos/witchcityrope-worktrees/[feature-name]
 
 2. **Remove worktree**
    ```bash
-   git worktree remove ../witchcityrope-worktrees/[feature-name]
+   git worktree remove .worktrees/[feature-name]
    ```
 
-3. **Delete directory**
+3. **Delete directory if needed**
    ```bash
-   rm -rf ../witchcityrope-worktrees/[feature-name]
+   rm -rf .worktrees/[feature-name]  # Usually not needed
    ```
 
 4. **Prune references**
@@ -151,7 +151,7 @@ cd /home/chad/repos/witchcityrope-worktrees/[feature-name]
 5. **Verify cleanup**
    ```bash
    git worktree list  # Should not show removed worktree
-   ls ../witchcityrope-worktrees/  # Directory should be gone
+   ls .worktrees/  # Directory should be gone
    ```
 
 ## Agent-Specific Requirements
@@ -184,17 +184,17 @@ cd /home/chad/repos/witchcityrope-react
 git branch --show-current  # Shows: development (NEVER changes!)
 
 # 2. Create feature branch AS a worktree
-git worktree add ../witchcityrope-worktrees/feature-auth -b feature/auth
+git worktree add .worktrees/feature-auth -b feature/auth
 # This creates THE branch feature/auth that lives ONLY in the worktree
 
 # 3. Work in the worktree (the branch IS there)
-cd ../witchcityrope-worktrees/feature-auth
+cd .worktrees/feature-auth
 git branch --show-current  # Shows: feature/auth
 # Make changes, commit, push
 
 # 4. After PR merged, cleanup removes branch AND worktree
 cd /home/chad/repos/witchcityrope-react
-git worktree remove ../witchcityrope-worktrees/feature-auth
+git worktree remove .worktrees/feature-auth
 # Branch feature/auth is GONE - it only existed in the worktree!
 ```
 
@@ -203,7 +203,7 @@ git worktree remove ../witchcityrope-worktrees/feature-auth
 ```bash
 # ❌ WRONG - Don't create branch first
 git checkout -b feature/auth  # NO! This switches main repo
-git worktree add ../worktrees/auth feature/auth  # NO! Redundant!
+git worktree add .worktrees/auth feature/auth  # NO! Redundant!
 
 # ❌ WRONG - Don't switch branches in main repo
 cd /home/chad/repos/witchcityrope-react
@@ -213,10 +213,12 @@ git checkout feature/something  # NO! Main repo stays on development!
 ## Directory Structure
 
 ```
-/home/chad/repos/
-├── witchcityrope-react/           # Main repo (STAYS ON DEVELOPMENT/MASTER)
-│   └── .git/                      # Shared git database
-└── witchcityrope-worktrees/       # Each worktree IS a branch
+/home/chad/repos/witchcityrope-react/
+├── .git/                          # Shared git database
+├── src/                           # Main repo source (STAYS ON DEVELOPMENT/MASTER)
+├── docs/                          # Main repo documentation
+├── .claude/                       # Agent definitions
+└── .worktrees/                    # Each worktree IS a branch (hidden directory)
     ├── feature-2025-08-23-auth/   # THE feature/auth branch lives HERE
     ├── bugfix-2025-08-23-login/   # THE bugfix/login branch lives HERE
     └── hotfix-2025-08-23-api/     # THE hotfix/api branch lives HERE
@@ -224,8 +226,8 @@ git checkout feature/something  # NO! Main repo stays on development!
 
 ## Success Indicators
 
-✅ **Good**: Working in `/home/chad/repos/witchcityrope-worktrees/[name]`
-❌ **Bad**: Working in `/home/chad/repos/witchcityrope-react`
+✅ **Good**: Working in `/home/chad/repos/witchcityrope-react/.worktrees/[name]`
+❌ **Bad**: Working in `/home/chad/repos/witchcityrope-react` root
 
 ✅ **Good**: Each worktree has its own .env and node_modules
 ❌ **Bad**: Sharing environment files between worktrees
@@ -238,11 +240,11 @@ git checkout feature/something  # NO! Main repo stays on development!
 ### If worktree gets corrupted
 ```bash
 # Force remove
-rm -rf ../witchcityrope-worktrees/[name]
+rm -rf .worktrees/[name]
 git worktree prune
 
 # Recreate if needed
-git worktree add ../witchcityrope-worktrees/[name] -b feature/[name]
+git worktree add .worktrees/[name] -b feature/[name]
 ```
 
 ### If multiple agents in same directory

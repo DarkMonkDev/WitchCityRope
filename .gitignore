@@ -47,3 +47,6 @@ lerna-debug.log*
 # Misc
 *.pem
 .cache
+
+# Git worktrees
+.worktrees/

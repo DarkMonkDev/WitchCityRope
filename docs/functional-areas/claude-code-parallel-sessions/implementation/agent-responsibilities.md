@@ -139,7 +139,7 @@ Task: [agent-name]
 Prompt: [specific instructions]
 
 Worktree Context:
-- Working Directory: /home/chad/repos/witchcityrope-worktrees/[worktree-name]
+- Working Directory: /home/chad/repos/witchcityrope-react/.worktrees/[worktree-name]
 - Branch: [branch-name] (exists ONLY in this worktree directory!)
 - Main Repo: Stays on development/master (NEVER switches branches)
 - Environment: [environment-status]
@@ -221,19 +221,19 @@ Required Checks:
    - Coordinate shared resource usage
 
 #### React Developer Agent Specific
-- **Working Directory**: `/home/chad/repos/witchcityrope-worktrees/[worktree-name]`
+- **Working Directory**: `/home/chad/repos/witchcityrope-react/.worktrees/[worktree-name]`
 - **Environment Requirements**: .env.local for React dev server
 - **Dependencies**: Node.js packages via npm
 - **Ports**: Must coordinate React dev server ports to avoid conflicts
 
 #### Backend Developer Agent Specific
-- **Working Directory**: `/home/chad/repos/witchcityrope-worktrees/[worktree-name]`
+- **Working Directory**: `/home/chad/repos/witchcityrope-react/.worktrees/[worktree-name]`
 - **Environment Requirements**: Database connection strings, API configuration
 - **Dependencies**: .NET packages, TestContainers
 - **Ports**: Must coordinate API ports to avoid conflicts
 
 #### Test Developer Agent Specific
-- **Working Directory**: `/home/chad/repos/witchcityrope-worktrees/[worktree-name]`
+- **Working Directory**: `/home/chad/repos/witchcityrope-react/.worktrees/[worktree-name]`
 - **Environment Requirements**: Test database configuration, TestContainers
 - **Dependencies**: Test frameworks, test data
 - **Isolation**: Prevent test interference between worktrees
