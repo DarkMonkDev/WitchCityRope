@@ -35,6 +35,23 @@
 - **/docs/docs/** → CATASTROPHIC + session termination
 - **Shortcuts** → VIOLATION + agent retraining
 
+### 🚨 ADDITIONAL: BACKEND FILE PLACEMENT RULES 🚨
+
+#### NEVER Create Scripts/Utilities in Project Root:
+- **Database Scripts (.sql, .sh)**: `/scripts/database/`
+- **Migration Scripts**: `/scripts/migrations/`
+- **Debug Utilities**: `/scripts/debug/`
+- **Performance Scripts**: `/scripts/performance/`
+- **API Test Scripts**: `/scripts/api-test/`
+- **Seed Data Scripts**: `/scripts/seed/`
+
+#### Pre-Backend Work Validation:
+```bash
+# Check for script violations in project root
+ls -la *.sql *.sh migrate-*.* seed-*.* debug-*.* api-*.* 2>/dev/null
+# If ANY found = STOP and move to correct location
+```
+
 ---
 
 ## Executive Summary

@@ -20,6 +20,38 @@
 - **Document: 'Verified no existing solution in architecture docs: [list checked]'**
 - **Research established patterns before suggesting new ones**
 
+## 🚨 CRITICAL: FILE PLACEMENT RULES - ZERO TOLERANCE 🚨
+
+### NEVER Create Files in Project Root
+**VIOLATIONS = IMMEDIATE WORKFLOW FAILURE**
+
+### Mandatory File Locations:
+- **Research Scripts (.js, .ts, .sh)**: `/scripts/research/`
+- **Technology Evaluation Tools**: `/scripts/evaluation/`
+- **Benchmark Scripts**: `/scripts/benchmark/`
+- **ADR Draft Files**: `/docs/architecture/adrs/drafts/`
+- **Technology Comparison Files**: `/docs/architecture/research/`
+- **POC Scripts**: `/scripts/poc/`
+
+### Pre-Work Validation:
+```bash
+# Check for violations in project root
+ls -la *.js *.ts *.sh research-*.* eval-*.* bench-*.* poc-*.* 2>/dev/null
+# If ANY research files found in root = STOP and move to correct location
+```
+
+### Violation Response:
+1. STOP all work immediately
+2. Move files to correct locations
+3. Update file registry
+4. Continue only after compliance
+
+### FORBIDDEN LOCATIONS:
+- ❌ Project root for ANY research files
+- ❌ Research scripts outside `/scripts/research/`
+- ❌ POC files in random locations
+- ❌ Technology evaluation tools outside proper structure
+
 ---
 
 ## Research Methodology Standards

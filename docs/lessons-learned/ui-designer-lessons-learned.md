@@ -49,6 +49,38 @@
 - **Reference Mantine v7 patterns from existing research**
 - **All designs must accommodate API response structure (not idealized data)**
 
+## 🚨 CRITICAL: FILE PLACEMENT RULES - ZERO TOLERANCE 🚨
+
+### NEVER Create Files in Project Root
+**VIOLATIONS = IMMEDIATE WORKFLOW FAILURE**
+
+### Mandatory File Locations:
+- **HTML Wireframes**: `/docs/design/wireframes/`
+- **Design Prototypes**: `/docs/functional-areas/[area]/wireframes/`
+- **CSS Test Files**: `/docs/design/test-styles/`
+- **Design Assets**: `/docs/design/assets/`
+- **Style Guides**: `/docs/design/current/`
+- **Animation Examples**: `/docs/design/animations/`
+
+### Pre-Work Validation:
+```bash
+# Check for violations in project root
+ls -la *.html *.css design-*.* wireframe-*.* style-*.* 2>/dev/null
+# If ANY design files found in root = STOP and move to correct location
+```
+
+### Violation Response:
+1. STOP all work immediately
+2. Move files to correct locations
+3. Update file registry
+4. Continue only after compliance
+
+### FORBIDDEN LOCATIONS:
+- ❌ Project root for ANY design files
+- ❌ Random HTML files outside design structure
+- ❌ Style experiments in wrong locations
+- ❌ Wireframes outside designated folders
+
 ---
 
 ## Overview

@@ -21,6 +21,45 @@
 - **Simple tuple return patterns (bool Success, T? Response, string Error)**
 - **NO MediatR, CQRS, or complex architectural patterns**
 
+## 🚨 CRITICAL: FILE PLACEMENT RULES - ZERO TOLERANCE 🚨
+
+### NEVER Create Files in Project Root
+**VIOLATIONS = IMMEDIATE WORKFLOW FAILURE**
+
+### Mandatory File Locations:
+- **Database Scripts (.sql, .sh)**: `/scripts/database/`
+- **Migration Scripts**: `/scripts/migrations/`
+- **Debug Utilities**: `/scripts/debug/`
+- **Performance Scripts**: `/scripts/performance/`
+- **API Test Scripts**: `/scripts/api-test/`
+- **Seed Data Scripts**: `/scripts/seed/`
+- **Backup Scripts**: `/scripts/backup/`
+
+### Pre-Work Validation:
+```bash
+# Check for violations in project root
+ls -la *.sql *.sh migrate-*.* seed-*.* debug-*.* api-*.* 2>/dev/null
+# If ANY backend scripts found in root = STOP and move to correct location
+```
+
+### Violation Response:
+1. STOP all work immediately
+2. Move files to correct locations
+3. Update file registry
+4. Continue only after compliance
+
+### FORBIDDEN LOCATIONS:
+- ❌ Project root for ANY backend scripts
+- ❌ Database files outside `/scripts/database/`
+- ❌ Migration files outside proper structure
+- ❌ Debug utilities in random locations
+
+### ARCHITECTURE COMPLIANCE:
+- All scripts must follow Simple Vertical Slice patterns
+- NO complex architectural pattern scripts
+- Database scripts must use Entity Framework migrations
+- Performance scripts must target specific features
+
 ---
 
 ## 🚨 CRITICAL: Simple Vertical Slice Architecture Implementation (2025-08-22) 🚨

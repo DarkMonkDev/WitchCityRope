@@ -35,6 +35,22 @@
 - **/docs/docs/** → CATASTROPHIC + session termination
 - **Shortcuts** → VIOLATION + agent retraining
 
+### 🚨 ADDITIONAL: TEST FILE PLACEMENT RULES 🚨
+
+#### NEVER Create Test Files in Project Root:
+- **Test Files (.test.*, .spec.*)**: `/tests/` or appropriate subdirectory
+- **Test HTML Files**: `/tests/` or `/docs/design/wireframes/`
+- **Test Utilities**: `/tests/utils/`
+- **Test Components**: `/tests/components/`
+- **Test Scripts**: `/scripts/test/`
+
+#### Pre-Test Work Validation:
+```bash
+# Check for test file violations in project root
+ls -la *.test.* *.spec.* *.html test-*.* debug-*.* 2>/dev/null
+# If ANY test files found in root = STOP and move to correct location
+```
+
 ---
 
 ## Executive Summary

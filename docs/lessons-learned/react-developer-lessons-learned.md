@@ -27,6 +27,39 @@
 - **Use standardized CSS classes, NOT inline styles**
 - **Follow Design System v7 for all styling decisions**
 
+## 🚨 CRITICAL: FILE PLACEMENT RULES - ZERO TOLERANCE 🚨
+
+### NEVER Create Files in Project Root
+**VIOLATIONS = IMMEDIATE WORKFLOW FAILURE**
+
+### Mandatory File Locations:
+- **Debug Scripts (.js, .ts, .sh)**: `/scripts/debug/`
+- **Build Scripts**: `/scripts/build/`
+- **Development Utilities**: `/scripts/dev/`
+- **Test Components**: `/tests/components/`
+- **Performance Scripts**: `/scripts/performance/`
+- **Component Generator Scripts**: `/scripts/generate/`
+- **React Utilities**: `/apps/web/src/utils/`
+
+### Pre-Work Validation:
+```bash
+# Check for violations in project root
+ls -la *.js *.ts *.sh debug-*.* build-*.* dev-*.* 2>/dev/null
+# If ANY scripts found in root = STOP and move to correct location
+```
+
+### Violation Response:
+1. STOP all work immediately
+2. Move files to correct locations
+3. Update file registry
+4. Continue only after compliance
+
+### FORBIDDEN LOCATIONS:
+- ❌ Project root for ANY scripts or utilities
+- ❌ Random creation of debug files
+- ❌ Test files outside `/tests/`
+- ❌ Build artifacts in wrong locations
+
 ---
 
 ## 🚨 CRITICAL: API Architecture Changes Awareness (2025-08-22) 🚨

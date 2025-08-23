@@ -25,6 +25,38 @@
 - **Create contract tests that verify DTO alignment automatically**
 - **Use auto-generated test data from SeedDataService (7 accounts + 12 events)**
 
+## 🚨 CRITICAL: FILE PLACEMENT RULES - ZERO TOLERANCE 🚨
+
+### NEVER Create Files in Project Root
+**VIOLATIONS = IMMEDIATE WORKFLOW FAILURE**
+
+### Mandatory File Locations:
+- **Test Files (.test.*, .spec.*)**: `/tests/` or appropriate subdirectory
+- **Test HTML Files**: `/tests/` or `/docs/design/wireframes/`
+- **Test Utilities**: `/tests/utils/`
+- **Test Components**: `/tests/components/`
+- **Test Scripts**: `/scripts/test/`
+- **Debug Test Scripts**: `/scripts/debug/`
+
+### Pre-Work Validation:
+```bash
+# Check for violations in project root
+ls -la *.test.* *.spec.* *.html test-*.* debug-*.* 2>/dev/null
+# If ANY test files found in root = STOP and move to correct location
+```
+
+### Violation Response:
+1. STOP all work immediately
+2. Move files to correct locations
+3. Update file registry
+4. Continue only after compliance
+
+### FORBIDDEN LOCATIONS:
+- ❌ Project root for ANY test files
+- ❌ `/apps/` for test utilities
+- ❌ `/src/` for test scripts
+- ❌ Random folders for test HTML files
+
 ---
 
 ## 🚨 CRITICAL: Simple Vertical Slice Testing Patterns (2025-08-22) 🚨
