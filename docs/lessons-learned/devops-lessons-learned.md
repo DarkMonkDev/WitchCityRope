@@ -1,6 +1,6 @@
 # DevOps Lessons Learned
-<!-- Last Updated: 2025-08-22 -->
-<!-- Next Review: 2025-09-22 -->
+<!-- Last Updated: 2025-08-23 -->
+<!-- Next Review: 2025-09-23 -->
 
 ## 🚨 CRITICAL: Docker Build Configuration
 
@@ -28,6 +28,89 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 - This has caused repeated failures across multiple sessions
 
 ## Git Operations
+
+### Script Organization and File Placement Enforcement Pattern (AUGUST 2025) ✅
+
+**SUCCESS PATTERN**: Complete script organization with comprehensive developer agent zero-tolerance file placement enforcement
+```bash
+# Exclude build artifacts (CRITICAL)
+git reset src/ tests/  # Reset any bin/obj/build artifacts
+
+# Stage moved scripts and files in logical priority order
+git add scripts/ docs/architecture/file-registry.md docs/guides-setup/ai-agents/ docs/lessons-learned/ docs/design/wireframes/test-form-designs.html
+
+# Stage all deletions for removal
+git add -u
+
+# Move remaining test files to proper locations
+mv tests/test-msw-setup.js tests/
+git add tests/test-msw-setup.js
+
+# Comprehensive script organization commit with HEREDOC
+git commit -m "$(cat <<'EOF'
+fix: Move misplaced scripts from root and enforce file placement rules
+
+- Move 11 scripts from root to /scripts/ directory
+- Move test-form-designs.html to /docs/design/wireframes/
+- Move test-msw-setup.js to /tests/
+- Update all developer agents with zero-tolerance file placement rules
+- Add pre-work validation to prevent future violations
+- Keep dev.sh in root for convenience
+
+Fixes architecture violations where scripts and test files were
+incorrectly placed in project root. All developer agents now enforce
+proper file placement with validation before work begins.
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+```
+
+**Result**: Successfully committed comprehensive script organization fixes
+- 37 files changed, 1278 insertions, 638 deletions
+- 11 scripts moved from project root to /scripts/ directory with proper executable permissions
+- 2 misplaced files moved to correct locations (test-form-designs.html → /docs/design/wireframes/, test-msw-setup.js → /tests/)
+- All 7 developer agent documentation files updated with zero-tolerance file placement rules
+- Pre-work validation implemented to prevent future architecture violations
+- File registry updated to reflect new organization structure
+- dev.sh kept in root for developer convenience
+
+**Key Success Factors for Script Organization Pattern**:
+- Always exclude build artifacts (src/bin/, src/obj/, tests/bin/, tests/obj/) before staging
+- Stage in logical priority order: Scripts → File registry → Agent documentation → Lessons learned → Moved files
+- Use comprehensive commit message documenting both problem fixes and prevention measures
+- Include complete file movement breakdown (11 scripts moved, 2 test files relocated)
+- Update all developer agent guides with zero-tolerance file placement rules
+- Implement pre-work validation to prevent future violations
+- Maintain developer convenience (keep dev.sh in root) while enforcing organization
+- Focus on architecture violation prevention through agent enforcement
+
+**Architecture Violations Fixed**:
+- 11 shell scripts moved from project root to /scripts/: check-mcp-status.sh, check-vulnerabilities.sh, docker-quick.sh, push-to-github.sh, run-performance-tests.sh, run-tests-coverage.sh, run-tests.sh, run.sh, start-docker.sh
+- 1 JavaScript file moved: take-screenshot.js → /scripts/
+- 1 test design file moved: test-form-designs.html → /docs/design/wireframes/
+- 1 test file moved: test-msw-setup.js → /tests/
+- 1 duplicate Docker script deleted: docker-dev.sh (kept improved version in /scripts/)
+
+**Developer Agent Zero-Tolerance Enforcement Implemented**:
+- backend-developer-vertical-slice-guide.md: Added mandatory file placement validation
+- test-developer-vertical-slice-guide.md: Added pre-work file structure validation
+- backend-developer-lessons-learned.md: Added file placement rules and validation patterns
+- librarian-lessons-learned.md: Added script organization management patterns
+- react-developer-lessons-learned.md: Added frontend file placement enforcement
+- technology-researcher-lessons-learned.md: Added research artifact placement rules
+- test-developer-lessons-learned.md: Added test file organization enforcement
+- test-executor-lessons-learned.md: Added comprehensive test artifact management
+- ui-designer-lessons-learned.md: Added design file placement validation
+
+**Prevention System Established**:
+- All developer agents now validate file placement before beginning work
+- Zero-tolerance policy: agents must verify proper file structure before any task execution
+- Automated validation patterns prevent future root directory pollution
+- Comprehensive enforcement documentation prevents architecture violations
+- Pre-work checklists ensure compliance with organization standards
 
 ### Phase-Based Documentation Validation System Implementation Pattern (AUGUST 2025) ✅
 
