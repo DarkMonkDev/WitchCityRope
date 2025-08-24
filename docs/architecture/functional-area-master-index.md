@@ -18,7 +18,7 @@ This master index is maintained by the librarian agent to provide quick lookups 
 | **Database Initialization** | `/docs/functional-areas/database-initialization/` | **IMPLEMENTATION COMPLETE** ✅ | **Complete database auto-initialization system** - Reduces setup time from 2-4 hours to under 5 minutes with automated migrations, comprehensive seed data, and real PostgreSQL testing via TestContainers | **COMPLETE** | 2025-08-22 |
 | ~~**Authentication-Identity**~~ | `/docs/_archive/authentication-identity-legacy-2025-08-12/` | **ARCHIVED** | Legacy authentication docs - ARCHIVED to prevent confusion | Archived | 2025-08-12 |
 | **Design Refresh** | `/docs/functional-areas/design-refresh/` | `/docs/functional-areas/design-refresh/new-work/2025-08-20-modernization/` | Design system modernization with edgy/modern aesthetic, homepage navigation refresh, 5 design iterations, documentation reorganization | Phase 1 - Requirements | 2025-08-20 |
-| **Events Management** | `/docs/functional-areas/events/` | N/A | Event creation, RSVP, ticketing, admin management | Active | 2025-08-22 |
+| **Events Management** | `/docs/functional-areas/events/` | `/docs/functional-areas/events/new-work/2025-08-24-events-management/` | **ACTIVE DEVELOPMENT** - React migration from Blazor implementation - Event creation, RSVP, ticketing, admin management | **Phase 1 - Requirements** | 2025-08-24 |
 | **Homepage** | `/docs/functional-areas/homepage/` | N/A | Landing page and main navigation entry point with complete workflow structure and design assets | Enhanced | 2025-08-19 |
 | **Payment (PayPal/Venmo)** | `/docs/functional-areas/payment-paypal-venmo/` | N/A | Payment processing integration | Planning | 2025-08-12 |
 | **User Management** | `/docs/functional-areas/user-management/` | `/docs/functional-areas/user-management/new-work/2025-08-12-admin-screen/` | Admin user management, member profiles, vetting status | In Development | 2025-08-12 |
@@ -46,6 +46,17 @@ This master index is maintained by the librarian agent to provide quick lookups 
 - **Completion Date**: 2025-08-22
 - **Cleanup Date**: 2025-08-23
 - **Next Steps**: Legacy controller cleanup recommended for Week 8 after production stability confirmation
+
+### 🚀 ACTIVE: Events Management React Migration
+- **Current Work**: `/docs/functional-areas/events/new-work/2025-08-24-events-management/`
+- **Status**: Phase 1 - Requirements Analysis (STARTED)
+- **Objective**: Complete migration of Events Management system from Blazor to React + TypeScript
+- **Context**: Nearly-complete Blazor implementation available for reference, substantial existing documentation
+- **Technology Stack**: React 18 + TypeScript + Mantine v7 + TanStack Query + NSwag types
+- **Quality Gates**: Requirements 5% → 95%, Design 0% → 90%, Implementation 0% → 85%, Testing 0% → 100%
+- **Next Human Review**: After requirements analysis completion
+- **Key Assets**: Existing API layer, comprehensive wireframes, business logic documentation
+- **Session**: 2025-08-24 (Started)
 
 ### 🎨 ACTIVE: Design Refresh Modernization
 - **Current Work**: `/docs/functional-areas/design-refresh/new-work/2025-08-20-modernization/`

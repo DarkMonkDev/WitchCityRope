@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-in - Rope Basics Workshop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            /* Design System v7 Colors */
+            --color-burgundy: #880124;
+            --color-burgundy-dark: #660018;
+            --color-rose-gold: #B76D75;
+            --color-electric: #9D4EDD;
+            --color-amber: #FFBF00;
+            --color-midnight: #1A1A2E;
+            --color-charcoal: #2B2B2B;
+            --color-cream: #FAF6F2;
+            --color-ivory: #FFF8F0;
+            --color-success: #228B22;
+            --color-warning: #DAA520;
+            --color-error: #DC143C;
+            
+            /* Typography */
+            --font-display: 'Bodoni Moda', serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 16px;
+            --space-md: 24px;
+            --space-lg: 32px;
+            --space-xl: 40px;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--color-charcoal);
+            background: var(--color-cream);
+        }
+        
+        /* Compact Header with Stats */
+        .header-bar {
+            background: var(--color-burgundy);
+            color: white;
+            padding: var(--space-sm) var(--space-lg);
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: var(--space-lg);
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .event-info h1 {
+            font-family: var(--font-display);
+            font-size: 1.5rem; /* Reduced from 1.8rem */
+            font-weight: 400;
+            margin-bottom: 4px; /* Reduced from var(--space-xs) */
+        }
+        
+        .event-time {
+            font-family: var(--font-heading);
+            font-size: 0.8rem; /* Reduced from 0.9rem */
+            opacity: 0.9;
+        }
+        
+        /* Inline Stats */
+        .header-stats {
+            display: flex;
+            gap: var(--space-lg);
+            justify-content: center;
+        }
+        
+        .header-stat {
+            text-align: center;
+            min-width: 80px;
+        }
+        
+        .header-stat-number {
+            font-family: var(--font-display);
+            font-size: 1.8rem; /* Reduced from 2.5rem */
+            font-weight: 700;
+            color: white;
+            margin-bottom: 2px; /* Reduced from var(--space-xs) */
+        }
+        
+        .header-stat-label {
+            font-family: var(--font-heading);
+            font-size: 0.7rem; /* Reduced from 0.85rem */
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        
+        .exit-btn {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+            padding: var(--space-sm) var(--space-lg);
+            border-radius: 12px 6px 12px 6px; /* Signature asymmetric corners */
+            cursor: pointer;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+        
+        .exit-btn:hover {
+            background: white;
+            color: var(--color-burgundy);
+            border-radius: 6px 12px 6px 12px; /* Signature corner morphing */
+        }
+        
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--space-md); /* Reduced from var(--space-lg) */
+        }
+        
+        /* Controls Bar */
+        .controls-bar {
+            background: white;
+            padding: var(--space-sm) var(--space-md); /* Reduced padding */
+            border-radius: 12px;
+            margin-bottom: var(--space-sm); /* Reduced from var(--space-md) */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .search-box {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: var(--space-sm) var(--space-xl) var(--space-sm) var(--space-md);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 8px;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--color-burgundy);
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: var(--space-sm);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-charcoal);
+            opacity: 0.6;
+        }
+        
+        .filter-tabs {
+            display: flex;
+            gap: var(--space-sm);
+        }
+        
+        .filter-tab {
+            padding: var(--space-sm) var(--space-md);
+            border: none;
+            background: var(--color-cream);
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-charcoal);
+            transition: all 0.3s ease;
+        }
+        
+        .filter-tab.active {
+            background: var(--color-burgundy);
+            color: white;
+        }
+        
+        .filter-tab:hover:not(.active) {
+            background: rgba(136, 1, 36, 0.1);
+        }
+        
+        /* Compact Attendee Table */
+        .attendee-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: var(--color-burgundy);
+            color: white;
+            padding: var(--space-sm) var(--space-md); /* Reduced from var(--space-md) */
+            text-align: left;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+        
+        th:first-child {
+            padding-left: var(--space-md); /* Slightly more for first column */
+        }
+        
+        th:hover {
+            background: var(--color-burgundy-dark);
+        }
+        
+        .sort-indicator {
+            display: inline-block;
+            margin-left: var(--space-sm);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.75rem;
+        }
+        
+        th.sort-active .sort-indicator {
+            color: white;
+        }
+        
+        /* Compact table rows */
+        td {
+            padding: var(--space-sm) var(--space-md); /* Reduced from var(--space-md) */
+            border-bottom: 1px solid rgba(183, 109, 117, 0.2);
+            vertical-align: middle;
+            line-height: 1.3; /* Reduced line height for compactness */
+        }
+        
+        /* Subtle alternating row backgrounds */
+        tbody tr:nth-child(even) {
+            background: rgba(250, 246, 242, 0.3); /* Very subtle cream alternating */
+        }
+        
+        tr:hover {
+            background: rgba(136, 1, 36, 0.08) !important; /* Stronger hover, overrides alternating */
+        }
+        
+        /* Name Column */
+        .attendee-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding-left: var(--space-sm); /* Reduced from var(--space-md) */
+        }
+        
+        .attendee-name {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-burgundy);
+            font-size: 1rem; /* Slightly reduced from 1.05rem */
+        }
+        
+        .attendee-pronouns {
+            font-size: 0.8rem; /* Reduced from 0.85rem */
+            color: var(--color-charcoal);
+            opacity: 0.7;
+        }
+        
+        /* Status Badges - Slightly more compact */
+        .status-badge {
+            display: inline-block;
+            padding: 3px var(--space-xs); /* Reduced vertical padding */
+            border-radius: 12px;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 0.7rem; /* Reduced from 0.75rem */
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .payment-paid {
+            background: rgba(34, 139, 34, 0.2);
+            color: var(--color-success);
+        }
+        
+        .payment-unpaid {
+            background: rgba(220, 20, 60, 0.2);
+            color: var(--color-error);
+        }
+        
+        .payment-comp {
+            background: rgba(157, 78, 221, 0.2);
+            color: var(--color-electric);
+        }
+        
+        .waiver-signed {
+            background: rgba(34, 139, 34, 0.2);
+            color: var(--color-success);
+        }
+        
+        .waiver-not-signed {
+            background: rgba(220, 20, 60, 0.2);
+            color: var(--color-error);
+        }
+        
+        /* Actions Column */
+        .check-in-btn {
+            background: linear-gradient(135deg, var(--color-electric) 0%, #7B2CBF 100%);
+            color: white;
+            border: none;
+            padding: 6px var(--space-sm); /* Reduced from var(--space-sm) var(--space-md) */
+            border-radius: 12px 6px 12px 6px; /* Signature asymmetric corners */
+            cursor: pointer;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            font-size: 0.7rem; /* Reduced from 0.8rem */
+            box-shadow: 0 2px 8px rgba(157, 78, 221, 0.3);
+        }
+        
+        .check-in-btn:hover {
+            border-radius: 6px 12px 6px 12px; /* Signature corner morphing */
+            transform: scale(1.05);
+        }
+        
+        .checked-in-text {
+            color: var(--color-success);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 0.85rem; /* Slightly reduced */
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header-bar {
+                grid-template-columns: 1fr;
+                gap: var(--space-sm);
+                text-align: center;
+            }
+            
+            .header-stats {
+                order: 2;
+                flex-wrap: wrap;
+                gap: var(--space-md);
+                justify-content: center;
+            }
+            
+            .header-actions {
+                order: 3;
+                justify-content: center;
+                margin-top: var(--space-sm);
+            }
+            
+            .header-stat {
+                flex: 1;
+                min-width: 70px;
+            }
+            
+            .header-stat-number {
+                font-size: 1.5rem;
+            }
+            
+            .controls-bar {
+                flex-direction: column;
+                gap: var(--space-sm);
+                align-items: stretch;
+            }
+            
+            .search-box {
+                max-width: 100%;
+            }
+            
+            .attendee-table {
+                overflow-x: auto;
+            }
+            
+            table {
+                min-width: 600px;
+            }
+            
+            th:first-child,
+            .attendee-info {
+                padding-left: var(--space-sm);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Compact Header with Inline Stats -->
+    <div class="header-bar">
+        <div class="event-info">
+            <h1>Rope Basics Workshop - Check-in</h1>
+            <div class="event-time">Saturday, March 15, 2024 • 2:00 PM - 5:00 PM</div>
+        </div>
+        
+        <div class="header-stats">
+            <div class="header-stat">
+                <div class="header-stat-number" id="not-arrived">8</div>
+                <div class="header-stat-label">Not Arrived</div>
+            </div>
+            <div class="header-stat">
+                <div class="header-stat-number" id="total-registered">12</div>
+                <div class="header-stat-label">Total</div>
+            </div>
+            <div class="header-stat">
+                <div class="header-stat-number" id="need-waiver">2</div>
+                <div class="header-stat-label">Need Waiver</div>
+            </div>
+            <div class="header-stat">
+                <div class="header-stat-number" id="time-left">1:42:15</div>
+                <div class="header-stat-label">Time Left</div>
+            </div>
+        </div>
+        
+        <div class="header-actions">
+            <button class="exit-btn" onclick="exitCheckin()">Exit Check-in</button>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Search and Filters -->
+        <div class="controls-bar">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Search by name..." onkeyup="searchAttendees(this.value)">
+                <span class="search-icon">🔍</span>
+            </div>
+            <div class="filter-tabs">
+                <button class="filter-tab active" onclick="filterAttendees('all')">All (12)</button>
+                <button class="filter-tab" onclick="filterAttendees('not-arrived')">Not Arrived (8)</button>
+                <button class="filter-tab" onclick="filterAttendees('need-waiver')">Need Waiver (2)</button>
+            </div>
+        </div>
+        
+        <!-- Compact Attendee Table -->
+        <div class="attendee-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)">
+                            Name <span class="sort-indicator">↕</span>
+                        </th>
+                        <th onclick="sortTable(1)">
+                            Payment <span class="sort-indicator">↕</span>
+                        </th>
+                        <th onclick="sortTable(2)">
+                            Waiver <span class="sort-indicator">↕</span>
+                        </th>
+                        <th onclick="sortTable(3)">
+                            Status <span class="sort-indicator">↕</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr data-status="checked-in" data-payment="paid" data-waiver="signed">
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Alex Chen</span>
+                                <span class="attendee-pronouns">they/them</span>
+                            </div>
+                        </td>
+                        <td><span class="status-badge payment-paid">Paid</span></td>
+                        <td><span class="status-badge waiver-signed">Signed</span></td>
+                        <td><span class="checked-in-text">✓ Checked In</span></td>
+                    </tr>
+                    <tr data-status="not-arrived" data-payment="paid" data-waiver="signed">
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Ashley Martinez</span>
+                                <span class="attendee-pronouns">she/her</span>
+                            </div>
+                        </td>
+                        <td><span class="status-badge payment-paid">Paid</span></td>
+                        <td><span class="status-badge waiver-signed">Signed</span></td>
+                        <td><button class="check-in-btn" onclick="checkInAttendee(this)">Check In</button></td>
+                    </tr>
+                    <tr data-status="checked-in" data-payment="paid" data-waiver="signed">
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Chris Smith</span>
+                                <span class="attendee-pronouns">he/him</span>
+                            </div>
+                        </td>
+                        <td><span class="status-badge payment-paid">Paid</span></td>
+                        <td><span class="status-badge waiver-signed">Signed</span></td>
+                        <td><span class="checked-in-text">✓ Checked In</span></td>
+                    </tr>
+                    <tr data-status="not-arrived" data-payment="paid" data-waiver="signed">
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Jamie Davis</span>
+                                <span class="attendee-pronouns">they/them</span>
+                            </div>
+                        </td>
+                        <td><span class="status-badge payment-paid">Paid</span></td>
+                        <td><span class="status-badge waiver-signed">Signed</span></td>
+                        <td><button class="check-in-btn" onclick="checkInAttendee(this)">Check In</button></td>
+                    </tr>
+                    <tr data-status="not-arrived" data-payment="paid" data-waiver="not-signed">
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Kelly Wilson</span>
+                                <span class="attendee-pronouns">she/they</span>
+                            </div>
+                        </td>
+                        <td><span class="status-badge payment-paid">Paid</span></td>
+                        <td><span class="status-badge waiver-not-signed">Not Signed</span></td>
+                        <td><button class="check-in-btn" onclick="checkInAttendee(this)">Check In</button></td>
+                    </tr>
+                    <tr data-status="not-arrived" data-payment="paid" data-waiver="not-signed">
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Morgan Davis</span>
+                                <span class="attendee-pronouns">she/her</span>
+                            </div>
+                        </td>
+                        <td><span class="status-badge payment-paid">Paid</span></td>
+                        <td><span class="status-badge waiver-not-signed">Not Signed</span></td>
+                        <td><button class="check-in-btn" onclick="checkInAttendee(this)">Check In</button></td>
+                    </tr>
+                    <tr data-status="checked-in" data-payment="comp" data-waiver="signed">
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">River Moon</span>
+                                <span class="attendee-pronouns">they/them</span>
+                            </div>
+                        </td>
+                        <td><span class="status-badge payment-comp">Comp</span></td>
+                        <td><span class="status-badge waiver-signed">Signed</span></td>
+                        <td><span class="checked-in-text">✓ Checked In</span></td>
+                    </tr>
+                    <tr data-status="not-arrived" data-payment="paid" data-waiver="signed">
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Sam Taylor</span>
+                                <span class="attendee-pronouns">xe/xir</span>
+                            </div>
+                        </td>
+                        <td><span class="status-badge payment-paid">Paid</span></td>
+                        <td><span class="status-badge waiver-signed">Signed</span></td>
+                        <td><button class="check-in-btn" onclick="checkInAttendee(this)">Check In</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        // Countdown Timer
+        function updateCountdown() {
+            const eventTime = new Date('2024-03-15T14:00:00');
+            const now = new Date();
+            const diff = eventTime - now;
+            
+            if (diff > 0) {
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                const timeString = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                document.getElementById('time-left').textContent = timeString;
+            } else {
+                document.getElementById('time-left').textContent = '0:00:00';
+            }
+        }
+        
+        // Update countdown every second
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+        
+        // Check-in functionality
+        function checkInAttendee(button) {
+            const row = button.closest('tr');
+            const actionCell = row.querySelector('td:last-child');
+            
+            // Update action button to checked in status
+            actionCell.innerHTML = '<span class="checked-in-text">✓ Checked In</span>';
+            
+            // Update row data status
+            row.setAttribute('data-status', 'checked-in');
+            
+            // Update stats
+            updateStats();
+        }
+        
+        function updateStats() {
+            const rows = document.querySelectorAll('tbody tr');
+            let notArrived = 0;
+            let needWaiver = 0;
+            
+            rows.forEach(row => {
+                const status = row.getAttribute('data-status');
+                const waiver = row.getAttribute('data-waiver');
+                
+                if (status === 'not-arrived') {
+                    notArrived++;
+                }
+                if (waiver === 'not-signed') {
+                    needWaiver++;
+                }
+            });
+            
+            document.getElementById('not-arrived').textContent = notArrived;
+            document.getElementById('need-waiver').textContent = needWaiver;
+            
+            // Update filter tab counts
+            const allTab = document.querySelector('.filter-tab');
+            const notArrivedTab = document.querySelectorAll('.filter-tab')[1];
+            const needWaiverTab = document.querySelectorAll('.filter-tab')[2];
+            
+            allTab.textContent = `All (${rows.length})`;
+            notArrivedTab.textContent = `Not Arrived (${notArrived})`;
+            needWaiverTab.textContent = `Need Waiver (${needWaiver})`;
+        }
+        
+        // Filter functionality
+        function filterAttendees(filter) {
+            // Update active tab
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const status = row.getAttribute('data-status');
+                const waiver = row.getAttribute('data-waiver');
+                let show = false;
+                
+                switch(filter) {
+                    case 'all':
+                        show = true;
+                        break;
+                    case 'not-arrived':
+                        show = status === 'not-arrived';
+                        break;
+                    case 'need-waiver':
+                        show = waiver === 'not-signed';
+                        break;
+                }
+                
+                row.style.display = show ? '' : 'none';
+            });
+        }
+        
+        // Search functionality
+        function searchAttendees(query) {
+            const rows = document.querySelectorAll('tbody tr');
+            const lowercaseQuery = query.toLowerCase();
+            
+            rows.forEach(row => {
+                const name = row.querySelector('.attendee-name').textContent.toLowerCase();
+                const pronouns = row.querySelector('.attendee-pronouns').textContent.toLowerCase();
+                
+                const matches = name.includes(lowercaseQuery) || pronouns.includes(lowercaseQuery);
+                row.style.display = matches ? '' : 'none';
+            });
+        }
+        
+        // Table sorting functionality
+        let sortOrder = {};
+        
+        function sortTable(columnIndex) {
+            const table = document.querySelector('table');
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const headers = table.querySelectorAll('th');
+            
+            // Determine sort direction
+            const currentOrder = sortOrder[columnIndex] || 'asc';
+            const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+            sortOrder[columnIndex] = newOrder;
+            
+            // Update all indicators
+            headers.forEach((header, index) => {
+                header.classList.remove('sort-active');
+                const indicator = header.querySelector('.sort-indicator');
+                if (index === columnIndex) {
+                    header.classList.add('sort-active');
+                    indicator.textContent = newOrder === 'asc' ? '↑' : '↓';
+                } else {
+                    indicator.textContent = '↕';
+                }
+            });
+            
+            // Sort rows
+            rows.sort((a, b) => {
+                let aValue, bValue;
+                
+                switch (columnIndex) {
+                    case 0: // Name column
+                        aValue = a.querySelector('.attendee-name').textContent;
+                        bValue = b.querySelector('.attendee-name').textContent;
+                        break;
+                    case 1: // Payment column
+                        aValue = a.querySelectorAll('td')[1].textContent;
+                        bValue = b.querySelectorAll('td')[1].textContent;
+                        break;
+                    case 2: // Waiver column
+                        aValue = a.querySelectorAll('td')[2].textContent;
+                        bValue = b.querySelectorAll('td')[2].textContent;
+                        break;
+                    case 3: // Status column
+                        aValue = a.querySelectorAll('td')[3].textContent;
+                        bValue = b.querySelectorAll('td')[3].textContent;
+                        break;
+                }
+                
+                if (newOrder === 'asc') {
+                    return aValue.localeCompare(bValue);
+                } else {
+                    return bValue.localeCompare(aValue);
+                }
+            });
+            
+            // Re-append sorted rows
+            rows.forEach(row => tbody.appendChild(row));
+        }
+        
+        function exitCheckin() {
+            if (confirm('Are you sure you want to exit check-in mode?')) {
+                // In real app, would navigate away
+                console.log('Exiting check-in mode');
+            }
+        }
+        
+        // Initialize stats on page load
+        updateStats();
+    </script>
+</body>
+</html>

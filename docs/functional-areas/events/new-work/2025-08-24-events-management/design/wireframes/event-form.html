@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Event - WitchCityRope Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            /* Design System v7 Colors */
+            --color-burgundy: #880124;
+            --color-burgundy-dark: #660018;
+            --color-rose-gold: #B76D75;
+            --color-electric: #9D4EDD;
+            --color-amber: #FFBF00;
+            --color-midnight: #1A1A2E;
+            --color-charcoal: #2B2B2B;
+            --color-cream: #FAF6F2;
+            --color-ivory: #FFF8F0;
+            --color-success: #228B22;
+            --color-warning: #DAA520;
+            --color-error: #DC143C;
+            
+            /* Typography */
+            --font-display: 'Bodoni Moda', serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 16px;
+            --space-md: 24px;
+            --space-lg: 32px;
+            --space-xl: 40px;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--color-cream);
+            color: var(--color-charcoal);
+            line-height: 1.6;
+        }
+        
+        /* Admin Header */
+        .admin-header {
+            background: var(--color-midnight);
+            color: white;
+            padding: var(--space-sm) var(--space-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .admin-logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .admin-badge {
+            background: var(--color-burgundy);
+            padding: 4px var(--space-sm);
+            border-radius: 4px;
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .admin-user {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-family: var(--font-heading);
+            font-weight: 500;
+        }
+        
+        /* Sidebar */
+        .admin-layout {
+            display: flex;
+            min-height: calc(100vh - 68px);
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: white;
+            border-right: 2px solid var(--color-rose-gold);
+            padding: var(--space-md) 0;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
+            color: var(--color-charcoal);
+            text-decoration: none;
+            font-family: var(--font-heading);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .sidebar-item::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--color-burgundy), transparent);
+            transition: width 0.3s ease;
+        }
+        
+        .sidebar-item:hover::after {
+            width: 80%;
+        }
+        
+        .sidebar-item.active {
+            background: rgba(136, 1, 36, 0.1);
+            color: var(--color-burgundy);
+            border-left: 3px solid var(--color-burgundy);
+            padding-left: calc(var(--space-md) - 3px);
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: var(--space-xl);
+            max-width: 1200px;
+        }
+        
+        .page-header {
+            margin-bottom: var(--space-xl);
+        }
+        
+        .page-title {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 400;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-sm);
+        }
+        
+        .back-nav {
+            margin-bottom: var(--space-md);
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            color: var(--color-charcoal);
+            text-decoration: none;
+            font-family: var(--font-heading);
+            font-weight: 500;
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            background: rgba(136, 1, 36, 0.1);
+            color: var(--color-burgundy);
+        }
+        
+        /* Tabs Container */
+        .tabs-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            background: var(--color-cream);
+            border-bottom: 2px solid var(--color-rose-gold);
+        }
+        
+        .tab-button {
+            flex: 0 0 auto;
+            padding: var(--space-md) var(--space-lg);
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--color-charcoal);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            position: relative;
+        }
+        
+        .tab-button::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--color-burgundy), transparent);
+            transition: width 0.3s ease;
+        }
+        
+        .tab-button:hover::after {
+            width: 80%;
+        }
+        
+        .tab-button.active {
+            color: var(--color-burgundy);
+            border-bottom-color: var(--color-burgundy);
+            background: white;
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            padding: var(--space-xl);
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Form Sections */
+        .form-section {
+            margin-bottom: var(--space-xl);
+            padding-bottom: var(--space-xl);
+            border-bottom: 1px solid rgba(183, 109, 117, 0.3);
+        }
+        
+        .form-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-md);
+        }
+        
+        /* Form Groups */
+        .form-group {
+            margin-bottom: var(--space-md);
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: var(--space-xs);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-charcoal);
+            font-size: 0.9rem;
+        }
+        
+        .required {
+            color: var(--color-error);
+            margin-left: 4px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: var(--space-sm);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 8px;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+            background: white;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--color-burgundy);
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: var(--space-sm);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 8px;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            min-height: 120px;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+            background: white;
+        }
+        
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--color-burgundy);
+        }
+        
+        .form-help {
+            font-size: 0.85rem;
+            color: var(--color-charcoal);
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+        
+        /* Event Type Toggle */
+        .event-type-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-md);
+        }
+        
+        .type-option {
+            padding: var(--space-md);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .type-option:hover {
+            border-color: var(--color-burgundy);
+        }
+        
+        .type-option.active {
+            border-color: var(--color-burgundy);
+            background: rgba(136, 1, 36, 0.1);
+        }
+        
+        .type-option-title {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--color-burgundy);
+            margin-bottom: 4px;
+        }
+        
+        .type-option-desc {
+            font-size: 0.85rem;
+            color: var(--color-charcoal);
+            opacity: 0.8;
+        }
+        
+        /* Venue Selection */
+        .venue-selection {
+            display: flex;
+            gap: var(--space-sm);
+            align-items: end;
+        }
+        
+        .venue-dropdown {
+            flex: 1;
+        }
+        
+        /* DateTime Grid */
+        .datetime-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: var(--space-md);
+        }
+        
+        /* Pricing Fields */
+        .pricing-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-md);
+        }
+        
+        /* Radio Groups */
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .radio-option input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--color-burgundy);
+        }
+        
+        .radio-label {
+            cursor: pointer;
+            font-family: var(--font-heading);
+            font-weight: 500;
+        }
+        
+        /* Pricing Unit Toggle */
+        .pricing-unit-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-md);
+        }
+        
+        .unit-option {
+            padding: var(--space-sm);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            font-family: var(--font-heading);
+            font-weight: 500;
+        }
+        
+        .unit-option:hover {
+            border-color: var(--color-burgundy);
+        }
+        
+        .unit-option.active {
+            border-color: var(--color-burgundy);
+            background: rgba(136, 1, 36, 0.1);
+            color: var(--color-burgundy);
+        }
+        
+        /* Email Template Grid */
+        .email-template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-md);
+            margin-bottom: var(--space-lg);
+        }
+        
+        .template-card {
+            padding: var(--space-md);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .template-card:hover {
+            border-color: var(--color-burgundy);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .template-card.active {
+            border-color: var(--color-burgundy);
+            background: rgba(136, 1, 36, 0.05);
+        }
+        
+        .template-title {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-burgundy);
+            margin-bottom: 4px;
+        }
+        
+        .template-desc {
+            font-size: 0.85rem;
+            color: var(--color-charcoal);
+            opacity: 0.7;
+        }
+        
+        .template-trigger {
+            font-size: 0.8rem;
+            color: var(--color-electric);
+            font-weight: 500;
+            margin-top: 4px;
+        }
+        
+        /* Volunteer Position Form */
+        .volunteer-position-form {
+            background: var(--color-ivory);
+            padding: var(--space-md);
+            border-radius: 8px;
+            margin-bottom: var(--space-md);
+            border: 2px solid var(--color-rose-gold);
+        }
+        
+        .volunteer-position-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: var(--space-sm);
+            align-items: end;
+        }
+        
+        .volunteer-position-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto auto;
+            gap: var(--space-sm);
+            align-items: center;
+            padding: var(--space-sm);
+            background: white;
+            border-radius: 6px;
+            margin-bottom: var(--space-sm);
+            border: 1px solid rgba(183, 109, 117, 0.2);
+        }
+        
+        .position-title {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-burgundy);
+        }
+        
+        .position-time {
+            font-size: 0.85rem;
+            color: var(--color-charcoal);
+        }
+        
+        .position-needed {
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .position-assigned {
+            text-align: center;
+            font-size: 0.85rem;
+        }
+        
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: var(--space-md);
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .data-table th {
+            background: var(--color-burgundy);
+            color: white;
+            padding: var(--space-sm) var(--space-md);
+            text-align: left;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .data-table td {
+            padding: var(--space-sm) var(--space-md);
+            border-bottom: 1px solid rgba(183, 109, 117, 0.2);
+            font-size: 0.9rem;
+        }
+        
+        .data-table tr:hover {
+            background: rgba(136, 1, 36, 0.05);
+        }
+        
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 4px var(--space-sm);
+            border-radius: 12px;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-confirmed {
+            background: rgba(34, 139, 34, 0.2);
+            color: var(--color-success);
+        }
+        
+        .status-pending {
+            background: rgba(218, 165, 32, 0.2);
+            color: var(--color-warning);
+        }
+        
+        .status-cancelled {
+            background: rgba(220, 20, 60, 0.2);
+            color: var(--color-error);
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: var(--space-sm) var(--space-md);
+            border-radius: 12px 6px 12px 6px; /* Signature asymmetric corners */
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        
+        .btn:hover {
+            border-radius: 6px 12px 6px 12px; /* Signature corner morphing */
+            transform: scale(1.02);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-electric) 0%, #7B2CBF 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(157, 78, 221, 0.4);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--color-charcoal);
+            border: 2px solid var(--color-rose-gold);
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--color-burgundy);
+            background: rgba(136, 1, 36, 0.1);
+        }
+        
+        .btn-sm {
+            padding: 6px var(--space-sm);
+            font-size: 0.8rem;
+        }
+        
+        /* Form Footer */
+        .form-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: var(--space-xl);
+            padding: var(--space-lg);
+            background: var(--color-cream);
+            border-top: 2px solid var(--color-rose-gold);
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: var(--space-xl);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-md);
+        }
+        
+        .modal-title {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-burgundy);
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--color-charcoal);
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .admin-layout {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 2px solid var(--color-rose-gold);
+            }
+            
+            .main-content {
+                padding: var(--space-md);
+            }
+            
+            .tab-content {
+                padding: var(--space-md);
+            }
+            
+            .datetime-grid,
+            .pricing-fields {
+                grid-template-columns: 1fr;
+            }
+            
+            .event-type-toggle,
+            .pricing-unit-toggle {
+                grid-template-columns: 1fr;
+            }
+            
+            .venue-selection {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .email-template-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .volunteer-position-grid,
+            .volunteer-position-row {
+                grid-template-columns: 1fr;
+                gap: var(--space-xs);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Admin Header -->
+    <div class="admin-header">
+        <div class="admin-logo">
+            WitchCityRope
+            <span class="admin-badge">ADMIN</span>
+        </div>
+        <div class="admin-user">
+            <span>River Moon</span>
+            <span style="color: #ccc;">•</span>
+            <a href="#" style="color: #ccc; text-decoration: none;">Logout</a>
+        </div>
+    </div>
+    
+    <!-- Main Layout -->
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <a href="#" class="sidebar-item">
+                <span>🏠</span> Dashboard
+            </a>
+            <a href="#" class="sidebar-item active">
+                <span>📅</span> Events
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>🎓</span> Vetting Queue
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>⚠️</span> Incident Reports
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>👥</span> Members
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>👨‍🏫</span> Teachers
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>💰</span> Financial Reports
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>⚙️</span> Settings
+            </a>
+        </nav>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Back Navigation -->
+            <div class="back-nav">
+                <a href="#" class="back-link">
+                    <span>←</span> Back to Events
+                </a>
+            </div>
+            
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">Create New Event</h1>
+            </div>
+            
+            <!-- Tabs Container -->
+            <div class="tabs-container">
+                <!-- Tab Navigation -->
+                <div class="tab-nav">
+                    <button class="tab-button active" onclick="switchTab('basic-info')">Basic Info</button>
+                    <button class="tab-button" onclick="switchTab('tickets-orders')">Tickets/Orders</button>
+                    <button class="tab-button" onclick="switchTab('emails')">Emails</button>
+                    <button class="tab-button" onclick="switchTab('volunteers-staff')">Volunteers/Staff</button>
+                </div>
+                
+                <!-- Basic Info Tab -->
+                <div id="basic-info" class="tab-content active">
+                    <form>
+                        <!-- Event Details -->
+                        <div class="form-section">
+                            <h2 class="section-title">Event Details</h2>
+                            
+                            <!-- Event Type -->
+                            <div class="form-group">
+                                <label class="form-label">Event Type <span class="required">*</span></label>
+                                <div class="event-type-toggle">
+                                    <div class="type-option active" onclick="selectEventType(this, 'class')">
+                                        <div class="type-option-title">Class</div>
+                                        <div class="type-option-desc">Educational workshop requiring payment</div>
+                                    </div>
+                                    <div class="type-option" onclick="selectEventType(this, 'social')">
+                                        <div class="type-option-title">Social Event</div>
+                                        <div class="type-option-desc">Community gathering with volunteers</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Event Title -->
+                            <div class="form-group">
+                                <label class="form-label">Event Title <span class="required">*</span></label>
+                                <input type="text" class="form-input" placeholder="e.g., Rope Basics Workshop">
+                            </div>
+                            
+                            <!-- Description -->
+                            <div class="form-group">
+                                <label class="form-label">Description <span class="required">*</span></label>
+                                <textarea class="form-textarea" placeholder="Describe what attendees will learn or do at this event..."></textarea>
+                                <p class="form-help">This will be visible on the event page. Use clear, descriptive language.</p>
+                            </div>
+                            
+                            <!-- Teacher Assignment (Classes Only) -->
+                            <div class="form-group" id="teacher-section">
+                                <label class="form-label">Teachers <span class="required">*</span></label>
+                                <select class="form-input" style="max-width: 400px;">
+                                    <option>Select teachers...</option>
+                                    <option>River Moon</option>
+                                    <option>Sky Chen</option>
+                                    <option>Sage Williams</option>
+                                    <option>Luna Martinez</option>
+                                </select>
+                                <p class="form-help">Multiple teachers can be selected for classes</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Schedule & Venue -->
+                        <div class="form-section">
+                            <h2 class="section-title">Schedule & Venue</h2>
+                            
+                            <div class="datetime-grid">
+                                <div class="form-group">
+                                    <label class="form-label">Date <span class="required">*</span></label>
+                                    <input type="date" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Start Time <span class="required">*</span></label>
+                                    <input type="time" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Duration <span class="required">*</span></label>
+                                    <select class="form-input">
+                                        <option value="">Select duration</option>
+                                        <option value="1">1 hour</option>
+                                        <option value="1.5">1.5 hours</option>
+                                        <option value="2">2 hours</option>
+                                        <option value="3">3 hours</option>
+                                        <option value="4">4 hours</option>
+                                        <option value="5">5 hours</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Venue Selection -->
+                            <div class="form-group">
+                                <label class="form-label">Venue <span class="required">*</span></label>
+                                <div class="venue-selection">
+                                    <div class="venue-dropdown">
+                                        <select class="form-input">
+                                            <option>Select venue...</option>
+                                            <option>Salem Community Center</option>
+                                            <option>Witch City Studio</option>
+                                            <option>Private Venue (Downtown)</option>
+                                            <option>Outdoor Pavilion (Seasonal)</option>
+                                        </select>
+                                    </div>
+                                    <button type="button" class="btn btn-secondary" onclick="openVenueModal()">Manage Venues</button>
+                                </div>
+                                <p class="form-help">The exact address will only be shown to ticket holders</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Capacity & Registration -->
+                        <div class="form-section">
+                            <h2 class="section-title">Capacity & Registration</h2>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Maximum Capacity <span class="required">*</span></label>
+                                <input type="number" class="form-input" placeholder="60" style="max-width: 200px;">
+                                <p class="form-help">Typical events have 12-60 attendees</p>
+                            </div>
+                            
+                            <!-- Registration Times - Dynamic Labels -->
+                            <div id="class-registration" style="display: block;">
+                                <div class="form-group">
+                                    <label class="form-label">Ticket Sales Start</label>
+                                    <input type="datetime-local" class="form-input" style="max-width: 300px;">
+                                    <p class="form-help">Leave blank to open ticket sales immediately</p>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Ticket Sales End</label>
+                                    <input type="datetime-local" class="form-input" style="max-width: 300px;">
+                                    <p class="form-help">Leave blank to allow sales until event starts</p>
+                                </div>
+                            </div>
+                            
+                            <div id="social-registration" style="display: none;">
+                                <div class="form-group">
+                                    <label class="form-label">RSVP Opens</label>
+                                    <input type="datetime-local" class="form-input" style="max-width: 300px;">
+                                    <p class="form-help">Leave blank to open RSVPs immediately</p>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">RSVP Closes</label>
+                                    <input type="datetime-local" class="form-input" style="max-width: 300px;">
+                                    <p class="form-help">Leave blank to allow RSVPs until event starts</p>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Tickets/Orders Tab -->
+                <div id="tickets-orders" class="tab-content">
+                    <!-- Pricing Section -->
+                    <div class="form-section">
+                        <h2 class="section-title">Pricing & Ticket Types</h2>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Pricing Type <span class="required">*</span></label>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="pricing" value="fixed" checked onchange="togglePricingFields()">
+                                    <span class="radio-label">Fixed Price</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="pricing" value="sliding" onchange="togglePricingFields()">
+                                    <span class="radio-label">Sliding Scale</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="pricing" value="free" onchange="togglePricingFields()">
+                                    <span class="radio-label">Free Event</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div id="pricing-options" style="display: block;">
+                            <div class="form-group">
+                                <label class="form-label">Pricing Unit</label>
+                                <div class="pricing-unit-toggle">
+                                    <div class="unit-option active" onclick="selectPricingUnit(this, 'person')">
+                                        Per Person
+                                    </div>
+                                    <div class="unit-option" onclick="selectPricingUnit(this, 'couple')">
+                                        Per Couple
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="fixed-pricing" class="pricing-fields">
+                                <div class="form-group">
+                                    <label class="form-label">Price <span class="required">*</span></label>
+                                    <input type="number" class="form-input" placeholder="35" min="0" step="5">
+                                    <p class="form-help" id="price-help">Price per person</p>
+                                </div>
+                            </div>
+                            
+                            <div id="sliding-pricing" class="pricing-fields" style="display: none;">
+                                <div class="form-group">
+                                    <label class="form-label">Minimum Price <span class="required">*</span></label>
+                                    <input type="number" class="form-input" placeholder="25" min="0" step="5">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Maximum Price <span class="required">*</span></label>
+                                    <input type="number" class="form-input" placeholder="45" min="0" step="5">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Refund Cutoff</label>
+                            <select class="form-input" style="max-width: 300px;">
+                                <option value="48">48 hours before event</option>
+                                <option value="72">72 hours before event</option>
+                                <option value="24">24 hours before event</option>
+                                <option value="0">No refunds</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Current Tickets -->
+                    <div class="form-section" id="tickets-section">
+                        <h2 class="section-title">Current Tickets</h2>
+                        
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Ticket #</th>
+                                    <th>Attendee</th>
+                                    <th>Ticket Type</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>#1047</td>
+                                    <td>Alex Thompson</td>
+                                    <td>Standard</td>
+                                    <td><span class="status-badge status-confirmed">Confirmed</span></td>
+                                    <td>Jan 15, 2025</td>
+                                    <td>$35.00</td>
+                                    <td><button class="btn btn-secondary btn-sm">View</button></td>
+                                </tr>
+                                <tr>
+                                    <td>#1048</td>
+                                    <td>Morgan Lee & Partner</td>
+                                    <td>Couples</td>
+                                    <td><span class="status-badge status-confirmed">Confirmed</span></td>
+                                    <td>Jan 16, 2025</td>
+                                    <td>$60.00</td>
+                                    <td><button class="btn btn-secondary btn-sm">View</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- RSVPs Section (Social Events) -->
+                    <div class="form-section" id="rsvps-section" style="display: none;">
+                        <h2 class="section-title">Current RSVPs</h2>
+                        
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>RSVP #</th>
+                                    <th>Attendee</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>#R001</td>
+                                    <td>Sam Davis</td>
+                                    <td>Individual</td>
+                                    <td><span class="status-badge status-confirmed">Confirmed</span></td>
+                                    <td>Jan 15, 2025</td>
+                                    <td><button class="btn btn-secondary btn-sm">View</button></td>
+                                </tr>
+                                <tr>
+                                    <td>#R002</td>
+                                    <td>Taylor & Alex</td>
+                                    <td>Couple</td>
+                                    <td><span class="status-badge status-pending">Pending</span></td>
+                                    <td>Jan 16, 2025</td>
+                                    <td><button class="btn btn-secondary btn-sm">View</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Emails Tab -->
+                <div id="emails" class="tab-content">
+                    <!-- Email Templates -->
+                    <div class="form-section">
+                        <h2 class="section-title">Automated Email Templates</h2>
+                        <p class="form-help" style="margin-bottom: var(--space-md);">Configure emails that are sent automatically based on triggers</p>
+                        
+                        <div class="email-template-grid">
+                            <div class="template-card active" onclick="selectTemplate(this, 'purchase-confirmation')">
+                                <div class="template-title">Purchase Confirmation</div>
+                                <div class="template-desc">Sent immediately when ticket is purchased</div>
+                                <div class="template-trigger">Trigger: Immediate</div>
+                            </div>
+                            
+                            <div class="template-card" onclick="selectTemplate(this, 'event-reminder')">
+                                <div class="template-title">Event Reminder</div>
+                                <div class="template-desc">Reminder sent before the event</div>
+                                <div class="template-trigger">Trigger: X days before</div>
+                            </div>
+                            
+                            <div class="template-card" onclick="selectTemplate(this, 'refund-notification')">
+                                <div class="template-title">Refund Notification</div>
+                                <div class="template-desc">Sent when refund is processed</div>
+                                <div class="template-trigger">Trigger: Refund processed</div>
+                            </div>
+                            
+                            <div class="template-card" onclick="selectTemplate(this, 'volunteer-reminder')">
+                                <div class="template-title">Volunteer Reminder</div>
+                                <div class="template-desc">Reminder for volunteer duties</div>
+                                <div class="template-trigger">Trigger: X days before</div>
+                            </div>
+                        </div>
+                        
+                        <div id="template-editor">
+                            <div class="form-group">
+                                <label class="form-label">Trigger Settings</label>
+                                <div id="reminder-settings" style="display: none;">
+                                    <select class="form-input" style="max-width: 300px;">
+                                        <option value="1">1 day before event</option>
+                                        <option value="2">2 days before event</option>
+                                        <option value="3">3 days before event</option>
+                                        <option value="7">1 week before event</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Email Subject</label>
+                                <input type="text" class="form-input" id="email-subject" value="Registration Confirmed: {event_name}">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Email Content</label>
+                                <textarea class="form-textarea" id="email-content" style="min-height: 200px;">Hi {attendee_name},
+
+Your registration for {event_name} has been confirmed!
+
+Event Details:
+Date: {event_date}
+Time: {event_time}
+Location: {venue_name}
+
+We look forward to seeing you there!
+
+Best,
+The Witch City Rope Team</textarea>
+                                <p class="form-help">Available variables: {attendee_name}, {event_name}, {event_date}, {event_time}, {venue_name}, {venue_address}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Ad-hoc Emails -->
+                    <div class="form-section">
+                        <h2 class="section-title">Send Ad-hoc Emails</h2>
+                        <p class="form-help" style="margin-bottom: var(--space-md);">Send one-time emails to specific groups</p>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Recipients</label>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="recipients" value="all-tickets" checked>
+                                    <span class="radio-label">All Ticket Holders</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="recipients" value="all-rsvps">
+                                    <span class="radio-label">All RSVPs</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="recipients" value="volunteers">
+                                    <span class="radio-label">All Volunteers</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Subject Line</label>
+                            <input type="text" class="form-input" placeholder="Important update about your event">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Message</label>
+                            <textarea class="form-textarea" style="min-height: 150px;" placeholder="Write your message here..."></textarea>
+                        </div>
+                        
+                        <button class="btn btn-secondary">Send Email</button>
+                    </div>
+                </div>
+                
+                <!-- Volunteers/Staff Tab -->
+                <div id="volunteers-staff" class="tab-content">
+                    <div class="form-section">
+                        <h2 class="section-title">Volunteer Position Management</h2>
+                        <p class="form-help" style="margin-bottom: var(--space-md);">Define volunteer positions and manage assignments</p>
+                        
+                        <!-- Add New Position -->
+                        <div class="volunteer-position-form">
+                            <h3 style="margin-bottom: var(--space-sm); color: var(--color-burgundy);">Add New Position</h3>
+                            <div class="volunteer-position-grid">
+                                <div class="form-group">
+                                    <label class="form-label">Position Title</label>
+                                    <input type="text" class="form-input" placeholder="e.g., Door Monitor">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Start Time</label>
+                                    <input type="time" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">End Time</label>
+                                    <input type="time" class="form-input">
+                                </div>
+                                <button class="btn btn-primary" style="align-self: end;">Add Position</button>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-textarea" placeholder="Describe the volunteer duties..." style="min-height: 80px;"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Number of People Needed</label>
+                                <input type="number" class="form-input" placeholder="2" min="1" style="max-width: 100px;">
+                            </div>
+                        </div>
+                        
+                        <!-- Current Positions -->
+                        <div class="form-section">
+                            <h3 style="margin-bottom: var(--space-md); color: var(--color-burgundy);">Current Volunteer Positions</h3>
+                            
+                            <div class="volunteer-position-row">
+                                <div>
+                                    <div class="position-title">Door Monitor</div>
+                                    <div class="position-time">6:00 PM - 7:00 PM</div>
+                                </div>
+                                <div class="position-time">Check IDs, welcome members</div>
+                                <div class="position-needed">2 needed</div>
+                                <div class="position-assigned">
+                                    <div style="color: var(--color-success);">✓ Jamie Davis</div>
+                                    <div style="color: var(--color-warning);">○ 1 more needed</div>
+                                </div>
+                                <button class="btn btn-secondary btn-sm">Manage</button>
+                            </div>
+                            
+                            <div class="volunteer-position-row">
+                                <div>
+                                    <div class="position-title">Safety Monitor</div>
+                                    <div class="position-time">7:00 PM - 10:00 PM</div>
+                                </div>
+                                <div class="position-time">Monitor play areas, handle incidents</div>
+                                <div class="position-needed">3 needed</div>
+                                <div class="position-assigned">
+                                    <div style="color: var(--color-success);">✓ Sam Singh</div>
+                                    <div style="color: var(--color-success);">✓ Alex Chen</div>
+                                    <div style="color: var(--color-warning);">○ 1 more needed</div>
+                                </div>
+                                <button class="btn btn-secondary btn-sm">Manage</button>
+                            </div>
+                            
+                            <div class="volunteer-position-row">
+                                <div>
+                                    <div class="position-title">Setup Crew</div>
+                                    <div class="position-time">6:00 PM - 7:00 PM</div>
+                                </div>
+                                <div class="position-time">Arrange furniture, setup equipment</div>
+                                <div class="position-needed">4 needed</div>
+                                <div class="position-assigned">
+                                    <div style="color: var(--color-error);">⚠ 4 positions open</div>
+                                </div>
+                                <button class="btn btn-secondary btn-sm">Manage</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="form-footer">
+                    <button type="button" class="btn btn-secondary">Save as Draft</button>
+                    <button type="submit" class="btn btn-primary">Create Event</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Venue Management Modal -->
+    <div class="modal-overlay" id="venue-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Manage Venues</h3>
+                <button class="close-btn" onclick="closeVenueModal()">&times;</button>
+            </div>
+            
+            <div class="form-section">
+                <h4 style="margin-bottom: var(--space-sm); color: var(--color-burgundy);">Add New Venue</h4>
+                
+                <div class="form-group">
+                    <label class="form-label">Venue Name <span class="required">*</span></label>
+                    <input type="text" class="form-input" placeholder="e.g., Salem Community Center">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Address <span class="required">*</span></label>
+                    <input type="text" class="form-input" placeholder="123 Main St, Salem, MA 01970">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Directions/Notes</label>
+                    <textarea class="form-textarea" placeholder="Additional directions, parking info, entrance details..." style="min-height: 100px;"></textarea>
+                    <p class="form-help">This information will be included in confirmation emails</p>
+                </div>
+                
+                <button class="btn btn-primary">Add Venue</button>
+            </div>
+            
+            <div class="form-section">
+                <h4 style="margin-bottom: var(--space-sm); color: var(--color-burgundy);">Existing Venues</h4>
+                
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Venue Name</th>
+                            <th>Address</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Salem Community Center</td>
+                            <td>123 Main St, Salem, MA</td>
+                            <td><button class="btn btn-secondary btn-sm">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>Witch City Studio</td>
+                            <td>456 Essex St, Salem, MA</td>
+                            <td><button class="btn btn-secondary btn-sm">Edit</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabId).classList.add('active');
+            
+            // Mark button as active
+            event.target.classList.add('active');
+        }
+        
+        function selectEventType(element, type) {
+            // Remove active from all options
+            document.querySelectorAll('.type-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            // Add active to selected
+            element.classList.add('active');
+            
+            // Show/hide sections based on type
+            const teacherSection = document.getElementById('teacher-section');
+            const classRegistration = document.getElementById('class-registration');
+            const socialRegistration = document.getElementById('social-registration');
+            const ticketsSection = document.getElementById('tickets-section');
+            const rsvpsSection = document.getElementById('rsvps-section');
+            
+            if (type === 'class') {
+                teacherSection.style.display = 'block';
+                classRegistration.style.display = 'block';
+                socialRegistration.style.display = 'none';
+                ticketsSection.style.display = 'block';
+                rsvpsSection.style.display = 'none';
+            } else {
+                teacherSection.style.display = 'none';
+                classRegistration.style.display = 'none';
+                socialRegistration.style.display = 'block';
+                ticketsSection.style.display = 'none';
+                rsvpsSection.style.display = 'block';
+            }
+        }
+        
+        function selectPricingUnit(element, unit) {
+            document.querySelectorAll('.unit-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            element.classList.add('active');
+            
+            const helpText = document.getElementById('price-help');
+            helpText.textContent = unit === 'person' ? 'Price per person' : 'Price per couple (2 people)';
+        }
+        
+        function togglePricingFields() {
+            const pricingType = document.querySelector('input[name="pricing"]:checked').value;
+            const pricingOptions = document.getElementById('pricing-options');
+            const fixedPricing = document.getElementById('fixed-pricing');
+            const slidingPricing = document.getElementById('sliding-pricing');
+            
+            if (pricingType === 'free') {
+                pricingOptions.style.display = 'none';
+            } else {
+                pricingOptions.style.display = 'block';
+                
+                if (pricingType === 'fixed') {
+                    fixedPricing.style.display = 'grid';
+                    slidingPricing.style.display = 'none';
+                } else if (pricingType === 'sliding') {
+                    fixedPricing.style.display = 'none';
+                    slidingPricing.style.display = 'grid';
+                }
+            }
+        }
+        
+        function selectTemplate(element, templateType) {
+            document.querySelectorAll('.template-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            element.classList.add('active');
+            
+            const reminderSettings = document.getElementById('reminder-settings');
+            const emailSubject = document.getElementById('email-subject');
+            const emailContent = document.getElementById('email-content');
+            
+            // Show/hide reminder settings
+            if (templateType === 'event-reminder' || templateType === 'volunteer-reminder') {
+                reminderSettings.style.display = 'block';
+            } else {
+                reminderSettings.style.display = 'none';
+            }
+            
+            // Update template content
+            switch (templateType) {
+                case 'purchase-confirmation':
+                    emailSubject.value = 'Registration Confirmed: {event_name}';
+                    emailContent.value = `Hi {attendee_name},
+
+Your registration for {event_name} has been confirmed!
+
+Event Details:
+Date: {event_date}
+Time: {event_time}
+Location: {venue_name}
+
+We look forward to seeing you there!
+
+Best,
+The Witch City Rope Team`;
+                    break;
+                case 'event-reminder':
+                    emailSubject.value = 'Reminder: {event_name} is tomorrow!';
+                    emailContent.value = `Hi {attendee_name},
+
+This is a friendly reminder that {event_name} is happening tomorrow!
+
+Event Details:
+Date: {event_date}
+Time: {event_time}
+Location: {venue_name}
+Address: {venue_address}
+
+See you there!
+
+Best,
+The Witch City Rope Team`;
+                    break;
+                case 'refund-notification':
+                    emailSubject.value = 'Refund Processed: {event_name}';
+                    emailContent.value = `Hi {attendee_name},
+
+Your refund for {event_name} has been processed.
+
+Refund amount: {refund_amount}
+Processing time: 3-5 business days
+
+If you have any questions, please contact us.
+
+Best,
+The Witch City Rope Team`;
+                    break;
+                case 'volunteer-reminder':
+                    emailSubject.value = 'Volunteer Reminder: {event_name}';
+                    emailContent.value = `Hi {attendee_name},
+
+Thank you for volunteering at {event_name}!
+
+Your volunteer details:
+Position: {volunteer_position}
+Time: {volunteer_start_time} - {volunteer_end_time}
+Location: {venue_name}
+
+Please arrive 15 minutes before your shift starts.
+
+Best,
+The Witch City Rope Team`;
+                    break;
+            }
+        }
+        
+        function openVenueModal() {
+            document.getElementById('venue-modal').style.display = 'flex';
+        }
+        
+        function closeVenueModal() {
+            document.getElementById('venue-modal').style.display = 'none';
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('venue-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeVenueModal();
+            }
+        });
+    </script>
+</body>
+</html>

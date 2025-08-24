@@ -2,6 +2,31 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 CRITICAL: WORKTREE COMPLIANCE - MANDATORY 🚨
+
+### ALL WORK MUST BE IN THE SPECIFIED WORKTREE DIRECTORY
+
+**VIOLATION = CATASTROPHIC FAILURE**
+
+When given a Working Directory like:
+`/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management`
+
+**YOU MUST:**
+- Write ALL files to paths within the worktree directory
+- NEVER write to `/home/chad/repos/witchcityrope-react/` main repository
+- ALWAYS use the full worktree path in file operations
+- VERIFY you're in the correct directory before ANY file operation
+
+**Example:**
+- ✅ CORRECT: `/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/docs/...`
+- ❌ WRONG: `/home/chad/repos/witchcityrope-react/docs/...`
+
+**Why This Matters:**
+- Worktrees isolate feature branches
+- Writing to main repo pollutes other branches
+- Can cause merge conflicts and lost work
+- BREAKS the entire development workflow
+
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 
 ### Critical Architecture Documents (MUST READ BEFORE ANY WORK):
