@@ -25,6 +25,7 @@
             --color-success: #228B22;
             --color-warning: #DAA520;
             --color-error: #DC143C;
+            --color-stone: #8B8680;
             
             /* Typography */
             --font-display: 'Bodoni Moda', serif;
@@ -578,6 +579,119 @@
             color: var(--color-burgundy);
         }
         
+        /* Email Template Management - NEW STYLES FOR IMPROVED WORKFLOW */
+        .currently-selected-templates {
+            margin-bottom: var(--space-xl);
+        }
+        
+        .template-cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-md);
+            margin-bottom: var(--space-md);
+        }
+        
+        .template-card {
+            padding: var(--space-md);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            min-width: 220px;
+            flex: 1;
+            max-width: 300px;
+        }
+        
+        .template-card:hover {
+            border-color: var(--color-burgundy);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(136, 1, 36, 0.15);
+        }
+        
+        .template-card.active {
+            border-color: var(--color-burgundy);
+            background: rgba(136, 1, 36, 0.05);
+            box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.15);
+        }
+        
+        .template-card-name {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-burgundy);
+            margin-bottom: 4px;
+            font-size: 1rem;
+        }
+        
+        .template-card-trigger {
+            font-size: 0.85rem;
+            color: var(--color-stone);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .template-remove-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: var(--color-error);
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .template-remove-btn:hover {
+            background: #b91c1c;
+            transform: scale(1.1);
+        }
+        
+        .add-template-section {
+            margin-bottom: var(--space-xl);
+            padding: var(--space-md);
+            background: var(--color-ivory);
+            border-radius: 8px;
+            border: 2px solid var(--color-rose-gold);
+        }
+        
+        .add-template-controls {
+            display: flex;
+            gap: var(--space-md);
+            align-items: end;
+        }
+        
+        .template-dropdown {
+            flex: 1;
+            max-width: 400px;
+        }
+        
+        .template-editor-section {
+            background: var(--color-ivory);
+            border-radius: 8px;
+            border: 2px solid var(--color-rose-gold);
+            padding: var(--space-md);
+        }
+        
+        .editor-header {
+            margin-bottom: var(--space-md);
+            padding-bottom: var(--space-sm);
+            border-bottom: 1px solid rgba(183, 109, 117, 0.3);
+        }
+        
+        .currently-editing {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-burgundy);
+            font-size: 1.1rem;
+        }
+        
         /* Email Recipient Dropdown */
         .recipient-dropdown {
             margin-bottom: var(--space-md);
@@ -601,54 +715,6 @@
             box-shadow: 0 0 0 3px rgba(183, 109, 117, 0.3);
             transform: translateY(-2px);
             background: white;
-        }
-        
-        /* Email Template Grid */
-        .email-template-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: var(--space-md);
-            margin-bottom: var(--space-lg);
-        }
-        
-        .template-card {
-            padding: var(--space-md);
-            border: 2px solid var(--color-rose-gold);
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .template-card:hover {
-            border-color: var(--color-burgundy);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        
-        .template-card.active {
-            border-color: var(--color-burgundy);
-            background: rgba(136, 1, 36, 0.05);
-        }
-        
-        .template-title {
-            font-family: var(--font-heading);
-            font-weight: 600;
-            color: var(--color-burgundy);
-            margin-bottom: 4px;
-        }
-        
-        .template-desc {
-            font-size: 0.85rem;
-            color: var(--color-charcoal);
-            opacity: 0.7;
-        }
-        
-        .template-trigger {
-            font-size: 0.8rem;
-            color: var(--color-electric);
-            font-weight: 500;
-            margin-top: 4px;
         }
         
         /* Volunteer Position Form */
@@ -891,7 +957,7 @@
             background: white;
             border-radius: 12px;
             padding: var(--space-xl);
-            max-width: 500px;
+            max-width: 600px;
             width: 90%;
             max-height: 80vh;
             overflow-y: auto;
@@ -956,10 +1022,6 @@
                 align-items: stretch;
             }
             
-            .email-template-grid {
-                grid-template-columns: 1fr;
-            }
-            
             .volunteer-position-grid {
                 grid-template-columns: 1fr;
                 gap: var(--space-xs);
@@ -973,6 +1035,19 @@
             .tinymce-btn-group {
                 margin-bottom: var(--space-xs);
                 margin-right: 0;
+            }
+            
+            .template-cards-container {
+                flex-direction: column;
+            }
+            
+            .template-card {
+                max-width: none;
+            }
+            
+            .add-template-controls {
+                flex-direction: column;
+                align-items: stretch;
             }
         }
     </style>
@@ -1396,123 +1471,128 @@
                     </div>
                 </div>
                 
-                <!-- Emails Tab -->
+                <!-- Emails Tab - UPDATED WITH IMPROVED WORKFLOW -->
                 <div id="emails" class="tab-content">
-                    <!-- Email Templates -->
-                    <div class="form-section">
-                        <h2 class="section-title">Automated Email Templates</h2>
-                        <p class="form-help" style="margin-bottom: var(--space-md);">Configure emails that are sent automatically based on triggers</p>
+                    <!-- Currently Selected Templates -->
+                    <div class="form-section currently-selected-templates">
+                        <h2 class="section-title">Currently Selected Templates</h2>
+                        <p class="form-help" style="margin-bottom: var(--space-lg);">Click on a template card to edit it below. Use the X button to remove templates from this event.</p>
                         
-                        <div class="email-template-grid">
-                            <div class="template-card active" onclick="selectTemplate(this, 'purchase-confirmation')">
-                                <div class="template-title">Purchase Confirmation</div>
-                                <div class="template-desc">Sent immediately when ticket is purchased</div>
-                                <div class="template-trigger">Trigger: Immediate</div>
+                        <div class="template-cards-container">
+                            <!-- Always required - Confirmation Email -->
+                            <div class="template-card active" onclick="selectTemplate(this, 'confirmation')" data-template-id="confirmation">
+                                <button class="template-remove-btn" onclick="removeTemplate(event, 'confirmation')" disabled title="Required template">×</button>
+                                <div class="template-card-name">Confirmation Email</div>
+                                <div class="template-card-trigger">Sent immediately when ticket is purchased</div>
                             </div>
                             
-                            <div class="template-card" onclick="selectTemplate(this, 'event-reminder')">
-                                <div class="template-title">Event Reminder</div>
-                                <div class="template-desc">Reminder sent before the event</div>
-                                <div class="template-trigger">Trigger: X days before</div>
+                            <!-- Currently enabled templates -->
+                            <div class="template-card" onclick="selectTemplate(this, 'reminder-1day')" data-template-id="reminder-1day">
+                                <button class="template-remove-btn" onclick="removeTemplate(event, 'reminder-1day')">×</button>
+                                <div class="template-card-name">Reminder - 1 Day Before</div>
+                                <div class="template-card-trigger">Sent 1 day before event start</div>
                             </div>
                             
-                            <div class="template-card" onclick="selectTemplate(this, 'refund-notification')">
-                                <div class="template-title">Refund Notification</div>
-                                <div class="template-desc">Sent when refund is processed</div>
-                                <div class="template-trigger">Trigger: Refund processed</div>
+                            <div class="template-card" onclick="selectTemplate(this, 'cancellation')" data-template-id="cancellation">
+                                <button class="template-remove-btn" onclick="removeTemplate(event, 'cancellation')">×</button>
+                                <div class="template-card-name">Cancellation Notice</div>
+                                <div class="template-card-trigger">Sent when event is cancelled</div>
                             </div>
-                            
-                            <div class="template-card" onclick="selectTemplate(this, 'volunteer-reminder')">
-                                <div class="template-title">Volunteer Reminder</div>
-                                <div class="template-desc">Reminder for volunteer duties</div>
-                                <div class="template-trigger">Trigger: X days before</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Add Template Section -->
+                    <div class="form-section add-template-section">
+                        <h2 class="section-title">Add Email Template</h2>
+                        <p class="form-help" style="margin-bottom: var(--space-md);">Select a template from the dropdown to add it to this event.</p>
+                        
+                        <div class="add-template-controls">
+                            <div class="form-group template-dropdown">
+                                <select class="form-input" id="available-templates">
+                                    <option value="">Select a template to add...</option>
+                                    <option value="reminder-1week">Reminder - 1 Week Before</option>
+                                    <option value="waitlist">Waitlist Notification</option>
+                                    <option value="survey">Post-Event Survey</option>
+                                    <option value="schedule-change">Schedule Change Alert</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" onclick="addTemplate()" id="add-template-btn" disabled>Add Email Template</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Template Editor Section -->
+                    <div class="form-section template-editor-section">
+                        <div class="editor-header">
+                            <div class="currently-editing">Currently Editing: Confirmation Email</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="floating-input-wrapper">
+                                <input type="text" class="floating-input has-value" placeholder=" " value="Welcome to {event} - Registration Confirmed!">
+                                <label class="floating-label">Email Subject</label>
                             </div>
                         </div>
                         
-                        <div id="template-editor">
-                            <div class="form-group">
-                                <div id="reminder-settings" style="display: none;">
-                                    <select class="form-input" style="max-width: 300px;">
-                                        <option value="1">1 day before event</option>
-                                        <option value="2">2 days before event</option>
-                                        <option value="3">3 days before event</option>
-                                        <option value="7">1 week before event</option>
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Email Content</label>
+                            <div class="tinymce-container">
+                                <div class="tinymce-toolbar">
+                                    <!-- Full toolbar for email editing -->
+                                    <select class="tinymce-dropdown">
+                                        <option>Paragraph</option>
+                                        <option>Heading 1</option>
+                                        <option>Heading 2</option>
+                                        <option>Heading 3</option>
                                     </select>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <div class="floating-input-wrapper">
-                                    <input type="text" class="floating-input" placeholder=" " id="email-subject" value="Registration Confirmed: {event_name}">
-                                    <label class="floating-label">Email Subject</label>
-                                </div>
-                            </div>
-                            
-                            <!-- Email Content with Enhanced TinyMCE Editor -->
-                            <div class="form-group">
-                                <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Email Content</label>
-                                <div class="tinymce-container">
-                                    <div class="tinymce-toolbar">
-                                        <!-- Email-specific toolbar -->
-                                        <select class="tinymce-dropdown">
-                                            <option>Paragraph</option>
-                                            <option>Heading 1</option>
-                                            <option>Heading 2</option>
-                                            <option>Heading 3</option>
-                                        </select>
-                                        
-                                        <div class="tinymce-btn-group">
-                                            <button type="button" class="tinymce-btn" title="Bold"><strong>B</strong></button>
-                                            <button type="button" class="tinymce-btn" title="Italic"><em>I</em></button>
-                                            <button type="button" class="tinymce-btn" title="Underline"><u>U</u></button>
-                                        </div>
-                                        
-                                        <div class="tinymce-btn-group">
-                                            <button type="button" class="tinymce-btn" title="Text Color">A</button>
-                                            <button type="button" class="tinymce-btn" title="Background Color">🎨</button>
-                                        </div>
-                                        
-                                        <div class="tinymce-btn-group">
-                                            <button type="button" class="tinymce-btn" title="Bullet List">•</button>
-                                            <button type="button" class="tinymce-btn" title="Numbered List">1.</button>
-                                        </div>
-                                        
-                                        <div class="tinymce-btn-group">
-                                            <button type="button" class="tinymce-btn" title="Insert Link">🔗</button>
-                                            <button type="button" class="tinymce-btn" title="Insert Image">🖼️</button>
-                                            <button type="button" class="tinymce-btn" title="Insert Table">📊</button>
-                                        </div>
-                                        
-                                        <div class="tinymce-btn-group">
-                                            <button type="button" class="tinymce-btn" title="Undo">↶</button>
-                                            <button type="button" class="tinymce-btn" title="Redo">↷</button>
-                                        </div>
-                                        
-                                        <button type="button" class="tinymce-btn" title="Variables">{ }</button>
+                                    
+                                    <div class="tinymce-btn-group">
+                                        <button type="button" class="tinymce-btn" title="Bold"><strong>B</strong></button>
+                                        <button type="button" class="tinymce-btn" title="Italic"><em>I</em></button>
+                                        <button type="button" class="tinymce-btn" title="Underline"><u>U</u></button>
                                     </div>
                                     
-                                    <div class="tinymce-editor" contenteditable="true" id="email-content">Hi {attendee_name},
-
-Your registration for {event_name} has been confirmed!
-
-Event Details:
-Date: {event_date}
-Time: {event_time}
-Location: {venue_name}
-
-We look forward to seeing you there!
-
-Best,
-The Witch City Rope Team</div>
-                                    
-                                    <div class="tinymce-statusbar">
-                                        <span>Path: body › p</span>
-                                        <div class="resize-handle"></div>
+                                    <div class="tinymce-btn-group">
+                                        <button type="button" class="tinymce-btn" title="Bullet List">•</button>
+                                        <button type="button" class="tinymce-btn" title="Numbered List">1.</button>
                                     </div>
+                                    
+                                    <div class="tinymce-btn-group">
+                                        <button type="button" class="tinymce-btn" title="Insert Link">🔗</button>
+                                        <button type="button" class="tinymce-btn" title="Insert Table">📊</button>
+                                    </div>
+                                    
+                                    <div class="tinymce-btn-group">
+                                        <button type="button" class="tinymce-btn" title="Undo">↶</button>
+                                        <button type="button" class="tinymce-btn" title="Redo">↷</button>
+                                    </div>
+                                    
+                                    <button type="button" class="tinymce-btn" title="Variables">{ }</button>
+                                    <button type="button" class="tinymce-btn" title="Source Code">{ }</button>
                                 </div>
-                                <p class="form-help">Available variables: {attendee_name}, {event_name}, {event_date}, {event_time}, {venue_name}, {venue_address}</p>
+                                
+                                <div class="tinymce-editor" contenteditable="true" style="min-height: 300px;">
+                                    <p><strong>Hi {name},</strong></p>
+                                    <p>Your registration for <strong>{event}</strong> has been confirmed!</p>
+                                    <p><strong>Event Details:</strong></p>
+                                    <ul>
+                                        <li><strong>Date:</strong> {date}</li>
+                                        <li><strong>Time:</strong> {time}</li>
+                                        <li><strong>Venue:</strong> {venue}</li>
+                                        <li><strong>Address:</strong> {venue_address}</li>
+                                    </ul>
+                                    <p>We're excited to see you there!</p>
+                                    <p>Best regards,<br>WitchCityRope Team</p>
+                                </div>
+                                
+                                <div class="tinymce-statusbar">
+                                    <span>Path: body › p</span>
+                                    <div class="resize-handle"></div>
+                                </div>
                             </div>
+                            <p class="form-help">Available variables: {name}, {event}, {date}, {time}, {venue}, {venue_address}</p>
                         </div>
+                        
+                        <button class="btn btn-primary">Save Changes</button>
                     </div>
                     
                     <!-- Ad-hoc Emails -->
@@ -1757,6 +1837,15 @@ The Witch City Rope Team</div>
     </div>
     
     <script>
+        // Global variables for template management
+        let currentlyEditingTemplate = 'confirmation';
+        let availableTemplates = [
+            { id: 'reminder-1week', name: 'Reminder - 1 Week Before', trigger: 'Sent 1 week before event start' },
+            { id: 'waitlist', name: 'Waitlist Notification', trigger: 'Sent when spot opens on waitlist' },
+            { id: 'survey', name: 'Post-Event Survey', trigger: 'Sent 1 day after event ends' },
+            { id: 'schedule-change', name: 'Schedule Change Alert', trigger: 'Sent manually when event details change' }
+        ];
+        
         function switchTab(tabId) {
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => {
@@ -1816,21 +1905,180 @@ The Witch City Rope Team</div>
             }
         }
         
-        function selectTemplate(element, templateType) {
+        // NEW EMAIL TEMPLATE MANAGEMENT FUNCTIONS
+        function selectTemplate(cardElement, templateId) {
+            // Remove active class from all template cards
             document.querySelectorAll('.template-card').forEach(card => {
                 card.classList.remove('active');
             });
-            element.classList.add('active');
             
-            const reminderSettings = document.getElementById('reminder-settings');
+            // Add active class to selected card
+            cardElement.classList.add('active');
             
-            // Show/hide reminder settings
-            if (templateType === 'event-reminder' || templateType === 'volunteer-reminder') {
-                reminderSettings.style.display = 'block';
-            } else {
-                reminderSettings.style.display = 'none';
+            // Update the editor section
+            currentlyEditingTemplate = templateId;
+            updateTemplateEditor(templateId);
+        }
+        
+        function removeTemplate(event, templateId) {
+            // Prevent the card click event from firing
+            event.stopPropagation();
+            
+            // Don't allow removing the confirmation template
+            if (templateId === 'confirmation') {
+                alert('Confirmation email is required and cannot be removed.');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to remove this email template from this event?')) {
+                // Remove the template card
+                const templateCard = document.querySelector(`[data-template-id="${templateId}"]`);
+                if (templateCard) {
+                    templateCard.remove();
+                }
+                
+                // Add the template back to the available options
+                addTemplateToDropdown(templateId);
+                
+                // If this was the currently editing template, switch to confirmation
+                if (currentlyEditingTemplate === templateId) {
+                    const confirmationCard = document.querySelector('[data-template-id="confirmation"]');
+                    if (confirmationCard) {
+                        selectTemplate(confirmationCard, 'confirmation');
+                    }
+                }
             }
         }
+        
+        function addTemplate() {
+            const dropdown = document.getElementById('available-templates');
+            const selectedValue = dropdown.value;
+            
+            if (!selectedValue) return;
+            
+            // Find the template data
+            const templateData = availableTemplates.find(t => t.id === selectedValue);
+            if (!templateData) return;
+            
+            // Create new template card
+            const templateCardsContainer = document.querySelector('.template-cards-container');
+            const newCard = document.createElement('div');
+            newCard.className = 'template-card';
+            newCard.setAttribute('data-template-id', selectedValue);
+            newCard.onclick = () => selectTemplate(newCard, selectedValue);
+            
+            newCard.innerHTML = `
+                <button class="template-remove-btn" onclick="removeTemplate(event, '${selectedValue}')">×</button>
+                <div class="template-card-name">${templateData.name}</div>
+                <div class="template-card-trigger">${templateData.trigger}</div>
+            `;
+            
+            templateCardsContainer.appendChild(newCard);
+            
+            // Remove from dropdown
+            const optionToRemove = dropdown.querySelector(`option[value="${selectedValue}"]`);
+            if (optionToRemove) {
+                optionToRemove.remove();
+            }
+            
+            // Reset dropdown and disable button
+            dropdown.value = '';
+            document.getElementById('add-template-btn').disabled = true;
+            
+            // Auto-select the newly added template
+            selectTemplate(newCard, selectedValue);
+        }
+        
+        function addTemplateToDropdown(templateId) {
+            const templateData = availableTemplates.find(t => t.id === templateId);
+            if (!templateData) return;
+            
+            const dropdown = document.getElementById('available-templates');
+            const option = document.createElement('option');
+            option.value = templateId;
+            option.textContent = templateData.name;
+            dropdown.appendChild(option);
+        }
+        
+        function updateTemplateEditor(templateId) {
+            const editorHeader = document.querySelector('.currently-editing');
+            const subjectInput = document.querySelector('.template-editor-section .floating-input');
+            const contentEditor = document.querySelector('.template-editor-section .tinymce-editor');
+            
+            // Template data would normally come from the server
+            const templateData = {
+                'confirmation': {
+                    name: 'Confirmation Email',
+                    subject: 'Welcome to {event} - Registration Confirmed!',
+                    content: `<p><strong>Hi {name},</strong></p>
+                            <p>Your registration for <strong>{event}</strong> has been confirmed!</p>
+                            <p><strong>Event Details:</strong></p>
+                            <ul>
+                                <li><strong>Date:</strong> {date}</li>
+                                <li><strong>Time:</strong> {time}</li>
+                                <li><strong>Venue:</strong> {venue}</li>
+                                <li><strong>Address:</strong> {venue_address}</li>
+                            </ul>
+                            <p>We're excited to see you there!</p>
+                            <p>Best regards,<br>WitchCityRope Team</p>`
+                },
+                'reminder-1day': {
+                    name: 'Reminder - 1 Day Before',
+                    subject: 'Tomorrow: {event} at {time}',
+                    content: `<p>Hi {name},</p>
+                            <p>Just a friendly reminder that <strong>{event}</strong> is tomorrow!</p>
+                            <p><strong>Details:</strong></p>
+                            <ul>
+                                <li><strong>Date:</strong> {date}</li>
+                                <li><strong>Time:</strong> {time}</li>
+                                <li><strong>Location:</strong> {venue}</li>
+                            </ul>
+                            <p>See you there!</p>`
+                },
+                'cancellation': {
+                    name: 'Cancellation Notice',
+                    subject: 'Important: {event} has been cancelled',
+                    content: `<p>Dear {name},</p>
+                            <p>We're sorry to inform you that <strong>{event}</strong> scheduled for {date} has been cancelled.</p>
+                            <p>If you purchased a ticket, you will receive a full refund within 3-5 business days.</p>
+                            <p>We apologize for any inconvenience.</p>
+                            <p>Best regards,<br>WitchCityRope Team</p>`
+                }
+            };
+            
+            const template = templateData[templateId] || {
+                name: 'Template Name',
+                subject: 'Subject line...',
+                content: '<p>Email content...</p>'
+            };
+            
+            // Update editor header
+            editorHeader.textContent = `Currently Editing: ${template.name}`;
+            
+            // Update subject input
+            subjectInput.value = template.subject;
+            subjectInput.classList.add('has-value');
+            
+            // Update content editor
+            contentEditor.innerHTML = template.content;
+        }
+        
+        // Event listeners for template management
+        document.addEventListener('DOMContentLoaded', function() {
+            // Enable/disable add template button based on dropdown selection
+            const availableTemplatesDropdown = document.getElementById('available-templates');
+            const addTemplateBtn = document.getElementById('add-template-btn');
+            
+            availableTemplatesDropdown.addEventListener('change', function() {
+                addTemplateBtn.disabled = !this.value;
+            });
+            
+            // Initialize with confirmation template selected
+            const confirmationCard = document.querySelector('[data-template-id="confirmation"]');
+            if (confirmationCard) {
+                selectTemplate(confirmationCard, 'confirmation');
+            }
+        });
         
         // TinyMCE Editor Functions
         function formatText(command, value) {
@@ -1891,7 +2139,7 @@ The Witch City Rope Team</div>
             document.getElementById('venue-modal').style.display = 'none';
         }
         
-        // Close modal when clicking outside
+        // Close modals when clicking outside
         document.getElementById('venue-modal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeVenueModal();
