@@ -129,6 +129,105 @@
 - Grouped form elements in ivory containers
 - Proper spacing hierarchy using CSS variables
 
+### Event Session Matrix Pattern - Complex Ticket Management
+**Problem**: Need to support multi-day events with different ticket types (series passes, individual days, etc.)
+**Solution**: Event Session Matrix approach implemented in event-form.html
+**Key Components**:
+
+1. **Event Sessions Section**: Define individual sessions (Day 1, Day 2, etc.)
+   - Session cards with date, time, capacity
+   - Dynamic add/remove functionality
+   - Editable session names (e.g., "Day 1: Fundamentals")
+
+2. **Ticket Types Section**: Multiple ticket types referencing sessions
+   - Series passes include multiple sessions
+   - Individual session tickets
+   - Clear session inclusion display (✓ Day 1 ✓ Day 2)
+   - Price ranges, quantities, sale periods
+
+3. **Capacity Overview Sidebar**: Real-time capacity visualization
+   - Progress bars for each session
+   - Color-coded warnings (burgundy → warning → error)
+   - Clear capacity allocation display
+   - Sticky positioning for reference
+
+4. **Template Selection**: Quick setup patterns
+   - Single Session Event
+   - Multi-Day Series  
+   - Tiered Pricing
+
+**CSS Classes**:
+```css
+.session-card, .ticket-type-card {
+    background: white;
+    border: 2px solid var(--color-rose-gold);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+.session-card:hover, .ticket-type-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(136, 1, 36, 0.15);
+}
+.capacity-overview {
+    background: var(--color-ivory);
+    position: sticky;
+    top: var(--space-md);
+}
+```
+
+**Layout Pattern**:
+- Two-column layout: main content + sidebar
+- Responsive: stack on mobile
+- Grid template: `1fr 300px` → `1fr` on mobile
+
+### Public-Facing Event Session Matrix - Customer Experience
+**Problem**: Customers need to understand multi-session events and select appropriate tickets
+**Solution**: Smart capacity display and ticket selection interface
+
+**Key Patterns**:
+
+1. **Event Details Page - Registration Card**:
+   - **Capacity Warning**: Highlight bottleneck sessions prominently
+   - **Session Availability Display**: Show per-session capacity with color coding
+   - **Ticket Type Selection**: Interactive cards showing included sessions
+   - **Smart Unavailability**: Gray out tickets when constituent sessions are full
+   - **Dynamic Button Text**: Update based on selected ticket type
+
+2. **Events List - Smart Spots Display**:
+   - **Single Session**: Standard "8/20" format
+   - **Multi-Session**: Show bottleneck with context "5/20 (Day 2)"
+   - **Card Badges**: Visual indicators for series events
+   - **Table View**: Include constraint info in spots column
+
+**CSS Patterns**:
+```css
+.multi-session-spots {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+.spots-constraint {
+    font-size: 12px;
+    font-style: italic;
+    color: var(--color-stone);
+}
+.ticket-type-option.unavailable {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: var(--color-stone);
+}
+.capacity-warning {
+    background: linear-gradient(135deg, rgba(220, 20, 60, 0.1), rgba(218, 165, 32, 0.1));
+    border: 2px solid var(--color-warning);
+}
+```
+
+**UX Benefits**:
+- Clear understanding of what's included in each ticket
+- Immediate visibility of capacity constraints
+- Prevents confusion about which sessions are available
+- Smart warnings guide purchase decisions
+
 ## Quality Validation Checklist
 
 ### Pre-Delivery Validation
@@ -152,6 +251,21 @@
 - [ ] Input focus animations (translateY + glow)
 - [ ] Logo hover scale + underline
 - [ ] Floating labels on ALL text inputs
+
+### Complex Form Validation
+- [ ] Event Session Matrix pattern correctly implemented
+- [ ] Capacity overview shows real-time calculations
+- [ ] Session-ticket relationships clearly displayed
+- [ ] Template selection provides appropriate defaults
+- [ ] Mobile responsiveness for complex layouts
+
+### Public-Facing Session Matrix Validation
+- [ ] Multi-session events show bottleneck sessions clearly
+- [ ] Ticket selection interface is intuitive
+- [ ] Unavailable tickets are properly disabled with explanations
+- [ ] Capacity warnings are prominent and actionable
+- [ ] Button text updates based on selection
+- [ ] Mobile responsive ticket selection
 
 ## File Organization
 
@@ -177,6 +291,10 @@
 8. **DON'T** use purple buttons - amber and burgundy only
 9. **DON'T** skip floating label animations on form inputs
 10. **DON'T** use basic text editors - require Tiptap v2 with full features
+11. **DON'T** forget sticky positioning for capacity overview sidebars
+12. **DON'T** neglect session-ticket relationship clarity in complex forms
+13. **DON'T** show generic capacity for multi-session events - always show the constraint
+14. **DON'T** allow ticket purchases when constituent sessions are full
 
 ## Stakeholder Communication
 

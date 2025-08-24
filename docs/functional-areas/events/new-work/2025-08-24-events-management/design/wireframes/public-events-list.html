@@ -632,6 +632,26 @@
             color: var(--color-error);
         }
         
+        /* Multi-session spots indicator */
+        .multi-session-spots {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        
+        .spots-main {
+            font-family: var(--font-heading);
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .spots-constraint {
+            font-size: 12px;
+            font-style: italic;
+            color: var(--color-stone);
+            margin-top: 2px;
+        }
+        
         .event-status {
             font-size: 14px;
             font-weight: 600;
@@ -752,6 +772,11 @@
         
         .event-type-badge.advanced {
             background: var(--color-burgundy);
+            color: var(--color-ivory);
+        }
+        
+        .event-type-badge.series {
+            background: var(--color-electric);
             color: var(--color-ivory);
         }
         
@@ -1005,6 +1030,10 @@
                 font-size: 0.75rem;
                 padding: 4px 8px;
             }
+            
+            .multi-session-spots {
+                align-items: center;
+            }
         }
     </style>
 </head>
@@ -1073,7 +1102,7 @@
     <main class="main-container">
         <!-- Event Grid -->
         <div class="event-grid" id="cardView">
-            <!-- Event Card 1 - Public Class -->
+            <!-- Event Card 1 - Single Session Public Class -->
             <div class="event-card">
                 <div class="event-image">
                     <h3 class="event-image-title">Introduction to Rope Bondage</h3>
@@ -1093,7 +1122,31 @@
                 </div>
             </div>
             
-            <!-- Event Card 2 - Member Only Event (Guest View) -->
+            <!-- Event Card 2 - Multi-Session Series -->
+            <div class="event-card">
+                <div class="event-image">
+                    <span class="event-type-badge series">3-Day Series</span>
+                    <h3 class="event-image-title">3-Day Rope Intensive Series</h3>
+                </div>
+                <div class="event-content">
+                    <div class="event-date">February 15-17 • Various Times</div>
+                    <p class="event-description">Comprehensive 3-day series covering fundamentals to advanced techniques. Multiple ticket options available.</p>
+                    <div class="event-details">
+                    </div>
+                    <div class="event-footer">
+                        <span class="event-price">From $65-225</span>
+                        <div class="multi-session-spots">
+                            <span class="spots-main spots-low">5/20</span>
+                            <span class="spots-constraint">(Day 2)</span>
+                        </div>
+                    </div>
+                    <div class="event-actions">
+                        <a href="event-detail-visual.html" class="btn btn-primary">View Options</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Event Card 3 - Member Only Event (Guest View) -->
             <div class="event-card">
                 <div class="event-image">
                     <h3 class="event-image-title">February Rope Jam</h3>
@@ -1112,7 +1165,7 @@
                 </div>
             </div>
             
-            <!-- Event Card 3 - Public Class with Limited Spots -->
+            <!-- Event Card 4 - Public Class with Limited Spots -->
             <div class="event-card">
                 <div class="event-image">
                     <h3 class="event-image-title">Intermediate Suspension Workshop</h3>
@@ -1132,27 +1185,31 @@
                 </div>
             </div>
             
-            <!-- Event Card 4 - Public Class -->
+            <!-- Event Card 5 - Weekend Workshop Series -->
             <div class="event-card">
                 <div class="event-image">
-                    <h3 class="event-image-title">Floor Work Fundamentals</h3>
+                    <span class="event-type-badge series">Weekend Series</span>
+                    <h3 class="event-image-title">Weekend Floor Work Intensive</h3>
                 </div>
                 <div class="event-content">
-                    <div class="event-date">Saturday, March 8 • 7:00 PM</div>
-                    <p class="event-description">Master the art of floor-based bondage. Perfect for those wanting to build strong foundational skills.</p>
+                    <div class="event-date">March 8-9 • Sat 2PM, Sun 1PM</div>
+                    <p class="event-description">Deep dive into floor-based techniques over two days. Build strong foundations with hands-on practice.</p>
                     <div class="event-details">
                     </div>
                     <div class="event-footer">
-                        <span class="event-price">$35-65 sliding scale</span>
-                        <span class="event-spots medium">12/30</span>
+                        <span class="event-price">$85-150 series</span>
+                        <div class="multi-session-spots">
+                            <span class="spots-main spots-medium">12/30</span>
+                            <span class="spots-constraint">(Sunday)</span>
+                        </div>
                     </div>
                     <div class="event-actions">
-                        <a href="event-detail-visual.html" class="btn btn-primary">Learn More</a>
+                        <a href="event-detail-visual.html" class="btn btn-primary">View Options</a>
                     </div>
                 </div>
             </div>
             
-            <!-- Event Card 5 - Sold Out Public Class -->
+            <!-- Event Card 6 - Sold Out Public Class -->
             <div class="event-card" style="opacity: 0.8;">
                 <div class="event-image">
                     <h3 class="event-image-title">Rope Safety & Anatomy</h3>
@@ -1167,12 +1224,12 @@
                         <span class="event-spots low">0/20</span>
                     </div>
                     <div class="event-actions">
-                        <a href="event-detail-visual.html" class="btn btn-primary">Learn More</a>
+                        <a href="event-detail-visual.html" class="btn btn-waitlist">Join Waitlist</a>
                     </div>
                 </div>
             </div>
             
-            <!-- Event Card 6 - Member Event (Member View) -->
+            <!-- Event Card 7 - Member Event (Member View) -->
             <div class="event-card" style="border: 2px solid var(--color-rose-gold);">
                 <div class="event-image">
                     <h3 class="event-image-title">March Rope Jam</h3>
@@ -1190,7 +1247,7 @@
                 </div>
             </div>
             
-            <!-- Event Card 7 - Past Event -->
+            <!-- Event Card 8 - Past Multi-Session Event -->
             <div class="event-card" style="opacity: 0.6;">
                 <div class="event-image">
                     <span class="event-type-badge advanced">Advanced</span>
@@ -1211,28 +1268,9 @@
                     </div>
                 </div>
             </div>
-            
-            <!-- Event Card 8 - Another Member Only Event (Guest View) -->
-            <div class="event-card">
-                <div class="event-image">
-                    <h3 class="event-image-title">April Rope Social</h3>
-                </div>
-                <div class="event-content">
-                    <div class="event-date">Saturday, April 5 • 6:00 PM</div>
-                    <p class="event-description" style="opacity: 0.7; font-style: italic;">Social evening for vetted community members. Practice, connect, and learn in a relaxed atmosphere...</p>
-                    <div class="event-footer">
-                        <span class="event-price">Free with RSVP</span>
-                        <span class="event-spots high">18/25</span>
-                    </div>
-                    <div class="event-actions">
-                        <a href="auth-login-register-visual.html" class="btn btn-secondary">Login</a>
-                        <a href="vetting-application.html" class="btn btn-primary">Become a Member</a>
-                    </div>
-                </div>
-            </div>
         </div>
 
-        <!-- Event List View - UPDATED TO INCLUDE SPOTS COLUMN -->
+        <!-- Event List View - UPDATED TO INCLUDE MULTI-SESSION SPOTS -->
         <div class="events-table-container hidden" id="listView">
             <table class="events-table">
                 <thead>
@@ -1259,6 +1297,16 @@
                         </td>
                     </tr>
                     <tr>
+                        <td class="event-date-col">Feb 15-17</td>
+                        <td class="event-time-col">Various</td>
+                        <td class="event-title-col">3-Day Rope Intensive Series</td>
+                        <td class="event-price-col">From $65</td>
+                        <td class="event-spots-col spots-low">5/20 (Day 2)</td>
+                        <td class="actions-column">
+                            <button class="action-btn">View Options</button>
+                        </td>
+                    </tr>
+                    <tr>
                         <td class="event-date-col">Sat, Feb 22</td>
                         <td class="event-time-col">6:00 PM</td>
                         <td class="event-title-col">February Rope Jam</td>
@@ -1279,13 +1327,13 @@
                         </td>
                     </tr>
                     <tr>
-                        <td class="event-date-col">Sat, Mar 8</td>
-                        <td class="event-time-col">7:00 PM</td>
-                        <td class="event-title-col">Floor Work Fundamentals</td>
-                        <td class="event-price-col">$35-65</td>
-                        <td class="event-spots-col spots-medium">12/30</td>
+                        <td class="event-date-col">Mar 8-9</td>
+                        <td class="event-time-col">Weekend</td>
+                        <td class="event-title-col">Weekend Floor Work Intensive</td>
+                        <td class="event-price-col">$85-150</td>
+                        <td class="event-spots-col spots-medium">12/30 (Sunday)</td>
                         <td class="actions-column">
-                            <button class="action-btn">Learn More</button>
+                            <button class="action-btn">View Options</button>
                         </td>
                     </tr>
                     <tr>
@@ -1295,7 +1343,7 @@
                         <td class="event-price-col">$35-65</td>
                         <td class="event-spots-col spots-low">0/20</td>
                         <td class="actions-column">
-                            <button class="action-btn">Learn More</button>
+                            <button class="action-btn">Waitlist</button>
                         </td>
                     </tr>
                     <tr>
@@ -1316,16 +1364,6 @@
                         <td class="event-spots-col" style="color: var(--color-stone);">Past Event</td>
                         <td class="actions-column">
                             <button class="action-btn">Learn More</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="event-date-col">Sat, Apr 5</td>
-                        <td class="event-time-col">6:00 PM</td>
-                        <td class="event-title-col">April Rope Social</td>
-                        <td class="event-price-col">Free</td>
-                        <td class="event-spots-col spots-high">18/25</td>
-                        <td class="actions-column">
-                            <button class="action-btn">Login</button>
                         </td>
                     </tr>
                 </tbody>

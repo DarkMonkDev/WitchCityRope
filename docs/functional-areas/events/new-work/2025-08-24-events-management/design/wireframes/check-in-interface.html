@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Check-in - Rope Basics Workshop</title>
+    <title>Event Check-In (Kiosk Mode) - Rope Basics Workshop</title>
     <style>
         * {
             margin: 0;
@@ -25,6 +25,7 @@
             --color-success: #228B22;
             --color-warning: #DAA520;
             --color-error: #DC143C;
+            --color-dusty-rose: #B59DA6; /* For kiosk mode */
             
             /* Typography */
             --font-display: 'Bodoni Moda', serif;
@@ -39,12 +40,79 @@
             --space-xl: 40px;
         }
         
+        /* Kiosk Mode Body with Border */
         body {
             font-family: var(--font-body);
             font-size: 16px;
             line-height: 1.6;
             color: var(--color-charcoal);
             background: var(--color-cream);
+            /* Subtle border around entire viewport to show "locked in" feeling */
+            border: 3px solid var(--color-burgundy);
+            min-height: 100vh;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+        }
+        
+        /* Kiosk Mode Header Bar */
+        .kiosk-header {
+            background: linear-gradient(135deg, var(--color-dusty-rose) 0%, var(--color-rose-gold) 100%);
+            color: var(--color-charcoal);
+            padding: var(--space-xs) var(--space-lg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-bottom: 1px solid var(--color-burgundy);
+            height: 40px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .kiosk-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .kiosk-station {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        
+        .lock-icon {
+            font-size: 1rem;
+        }
+        
+        .kiosk-timer {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 2px var(--space-xs);
+            border-radius: 4px;
+            font-family: var(--font-heading);
+            font-weight: 700;
+        }
+        
+        .kiosk-right {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            font-size: 0.8rem;
+        }
+        
+        .secure-indicator {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            background: rgba(34, 139, 34, 0.2);
+            padding: 2px var(--space-xs);
+            border-radius: 4px;
+            color: var(--color-success);
+            font-weight: 600;
+        }
+        
+        .station-name {
+            color: var(--color-burgundy);
+            font-weight: 700;
         }
         
         /* Compact Header with Stats */
@@ -107,31 +175,26 @@
             justify-content: flex-end;
         }
         
+        /* Remove exit button in kiosk mode - no navigation away from page */
         .exit-btn {
-            background: transparent;
-            border: 2px solid white;
-            color: white;
-            padding: var(--space-sm) var(--space-lg);
-            border-radius: 12px 6px 12px 6px; /* Signature asymmetric corners */
-            cursor: pointer;
-            font-family: var(--font-heading);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
+            display: none;
         }
         
-        .exit-btn:hover {
-            background: white;
-            color: var(--color-burgundy);
-            border-radius: 6px 12px 6px 12px; /* Signature corner morphing */
+        /* Kiosk mode locked indicator where exit button was */
+        .kiosk-locked {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+            text-align: center;
+            font-style: italic;
         }
         
-        /* Main Content */
+        /* Main Content - Adjusted for kiosk bars */
         .main-content {
             max-width: 1200px;
             margin: 0 auto;
             padding: var(--space-sm); /* Reduced from var(--space-lg) */
+            /* Add bottom padding to account for status bar */
+            padding-bottom: 50px;
         }
         
         /* Controls Bar */
@@ -542,8 +605,65 @@
             background: rgba(136, 1, 36, 0.1);
         }
         
+        /* Kiosk Mode Status Bar */
+        .kiosk-status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 3px; /* Account for body border */
+            right: 3px; /* Account for body border */
+            background: linear-gradient(135deg, var(--color-charcoal) 0%, var(--color-midnight) 100%);
+            color: rgba(255, 255, 255, 0.8);
+            padding: var(--space-xs) var(--space-lg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--color-burgundy);
+            height: 30px;
+            font-size: 0.8rem;
+            z-index: 100;
+        }
+        
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            font-family: var(--font-heading);
+            font-weight: 600;
+        }
+        
+        .event-code {
+            background: rgba(183, 109, 117, 0.3);
+            padding: 2px var(--space-xs);
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .session-id {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px var(--space-xs);
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
         /* Mobile Responsive */
         @media (max-width: 768px) {
+            .kiosk-header {
+                flex-direction: column;
+                height: auto;
+                padding: var(--space-xs);
+                gap: var(--space-xs);
+            }
+            
+            .kiosk-left, .kiosk-right {
+                font-size: 0.8rem;
+            }
+            
             .header-bar {
                 grid-template-columns: 1fr;
                 gap: var(--space-sm);
@@ -594,11 +714,38 @@
             .attendee-info {
                 padding-left: var(--space-sm);
             }
+            
+            .kiosk-status-bar {
+                flex-direction: column;
+                height: auto;
+                padding: var(--space-xs);
+                gap: var(--space-xs);
+                text-align: center;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Compact Header with Inline Stats -->
+    <!-- Kiosk Mode Header Bar -->
+    <div class="kiosk-header">
+        <div class="kiosk-left">
+            <div class="kiosk-station">
+                <span class="lock-icon">🔒</span>
+                <span>KIOSK MODE - Check-In Station: <span class="station-name">Front Desk 1</span></span>
+            </div>
+            <div class="kiosk-timer">
+                Session expires in: <span id="session-timer">3:47:12</span>
+            </div>
+        </div>
+        <div class="kiosk-right">
+            <div class="secure-indicator">
+                <span>🔐</span>
+                <span>Secure Check-In Session</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Compact Header with Stats -->
     <div class="header-bar">
         <div class="event-info">
             <h1>Rope Basics Workshop - Check-in</h1>
@@ -625,7 +772,10 @@
         </div>
         
         <div class="header-actions">
-            <button class="exit-btn" onclick="exitCheckin()">Exit Check-in</button>
+            <div class="kiosk-locked">
+                <span>🔒</span> Locked Session<br>
+                <small>No navigation available</small>
+            </div>
         </div>
     </div>
     
@@ -757,6 +907,17 @@
         </div>
     </div>
     
+    <!-- Kiosk Mode Status Bar -->
+    <div class="kiosk-status-bar">
+        <div class="status-left">
+            <span>For assistance, contact event organizer</span>
+        </div>
+        <div class="status-right">
+            <span>Event Code: <span class="event-code">WCR-RB-2024-03-15</span></span>
+            <span>Kiosk Session ID: <span class="session-id">KIOSK-FD1-7B42</span></span>
+        </div>
+    </div>
+    
     <!-- Check-in Modal -->
     <div class="modal-overlay" id="checkin-modal">
         <div class="modal-content">
@@ -798,7 +959,27 @@
     </div>
     
     <script>
-        // Countdown Timer
+        // Session Timer Countdown (different from event countdown)
+        function updateSessionTimer() {
+            // Session expires 4 hours from now
+            const sessionEnd = new Date(Date.now() + (4 * 60 * 60 * 1000)); // 4 hours from now
+            const now = new Date();
+            const diff = sessionEnd - now;
+            
+            if (diff > 0) {
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                const timeString = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                document.getElementById('session-timer').textContent = timeString;
+            } else {
+                document.getElementById('session-timer').textContent = '0:00:00';
+            }
+        }
+        
+        // Event Countdown Timer
         function updateCountdown() {
             const eventTime = new Date('2024-03-15T14:00:00');
             const now = new Date();
@@ -817,8 +998,10 @@
             }
         }
         
-        // Update countdown every second
+        // Update timers every second
+        setInterval(updateSessionTimer, 1000);
         setInterval(updateCountdown, 1000);
+        updateSessionTimer();
         updateCountdown();
         
         // Check-in Modal Functions
@@ -1034,13 +1217,6 @@
             rows.forEach(row => tbody.appendChild(row));
         }
         
-        function exitCheckin() {
-            if (confirm('Are you sure you want to exit check-in mode?')) {
-                // In real app, would navigate away
-                console.log('Exiting check-in mode');
-            }
-        }
-        
         // Close modal when clicking outside
         document.getElementById('checkin-modal').addEventListener('click', function(e) {
             if (e.target === this) {
@@ -1050,6 +1226,17 @@
         
         // Initialize stats on page load
         updateStats();
+        
+        // Prevent right-click and other kiosk mode security measures
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', function(e) {
+            // Disable F12, Ctrl+Shift+I, Ctrl+U, etc.
+            if (e.keyCode === 123 || // F12
+                (e.ctrlKey && e.shiftKey && e.keyCode === 73) || // Ctrl+Shift+I
+                (e.ctrlKey && e.keyCode === 85)) { // Ctrl+U
+                e.preventDefault();
+            }
+        });
     </script>
 </body>
 </html>
