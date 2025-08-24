@@ -322,61 +322,120 @@
             background: white;
         }
         
-        /* Tiptap v2 Editor Styling */
-        .tiptap-editor {
-            width: 100%;
-            min-height: 200px;
-            padding: var(--space-sm);
+        /* TinyMCE Editor Container */
+        .tinymce-container {
             border: 2px solid var(--color-rose-gold);
             border-radius: 12px;
-            background: var(--color-cream);
-            font-family: var(--font-body);
-            font-size: 1rem;
+            background: white;
+            overflow: hidden;
             transition: all 0.3s ease;
-            resize: vertical;
-            color: var(--color-charcoal);
         }
         
-        .tiptap-editor:focus {
-            outline: none;
+        .tinymce-container:focus-within {
             border-color: var(--color-burgundy);
             box-shadow: 0 0 0 3px rgba(183, 109, 117, 0.3);
             transform: translateY(-2px);
-            background: white;
         }
         
-        .tiptap-toolbar {
-            margin-bottom: var(--space-xs);
-            padding: var(--space-sm);
-            background: var(--color-ivory);
-            border: 2px solid var(--color-rose-gold);
-            border-bottom: none;
-            border-radius: 12px 12px 0 0;
+        /* Enhanced TinyMCE Toolbar */
+        .tinymce-toolbar {
+            background: #f8f9fa;
+            border-bottom: 1px solid #e3e6ea;
+            padding: var(--space-xs) var(--space-sm);
             display: flex;
-            gap: var(--space-xs);
             flex-wrap: wrap;
+            gap: 4px;
+            align-items: center;
         }
         
-        .tiptap-btn {
-            padding: 6px 10px;
-            border: 1px solid var(--color-rose-gold);
+        .tinymce-btn-group {
+            display: flex;
+            border: 1px solid #e3e6ea;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-right: var(--space-xs);
+        }
+        
+        .tinymce-btn {
+            padding: 6px 8px;
+            border: none;
             background: white;
-            border-radius: 6px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             font-family: var(--font-heading);
             font-weight: 500;
+            color: #495057;
+            min-width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        .tiptap-btn:hover {
+        .tinymce-btn:hover {
+            background: #e9ecef;
+        }
+        
+        .tinymce-btn.active {
             background: var(--color-burgundy);
             color: white;
         }
         
-        .tiptap-btn.active {
-            background: var(--color-burgundy);
-            color: white;
+        .tinymce-btn-group .tinymce-btn + .tinymce-btn {
+            border-left: 1px solid #e3e6ea;
+        }
+        
+        /* TinyMCE Dropdown */
+        .tinymce-dropdown {
+            padding: 4px 8px;
+            border: 1px solid #e3e6ea;
+            border-radius: 4px;
+            background: white;
+            font-size: 0.8rem;
+            font-family: var(--font-body);
+            color: #495057;
+            margin-right: var(--space-xs);
+            min-width: 120px;
+        }
+        
+        /* TinyMCE Editor Area */
+        .tinymce-editor {
+            width: 100%;
+            min-height: 200px;
+            padding: var(--space-md);
+            border: none;
+            background: white;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--color-charcoal);
+            resize: vertical;
+            outline: none;
+        }
+        
+        .tinymce-editor:empty:before {
+            content: attr(data-placeholder);
+            color: #999;
+            font-style: italic;
+        }
+        
+        /* TinyMCE Status Bar */
+        .tinymce-statusbar {
+            background: #f8f9fa;
+            border-top: 1px solid #e3e6ea;
+            padding: 4px var(--space-sm);
+            font-size: 0.75rem;
+            color: #6c757d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .resize-handle {
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(-45deg, transparent 0%, transparent 40%, #ccc 40%, #ccc 43%, transparent 43%, transparent 46%, #ccc 46%, #ccc 49%, transparent 49%);
+            cursor: nw-resize;
         }
         
         .form-help {
@@ -440,6 +499,13 @@
         
         /* Compact grid for Schedule/Venue section */
         .schedule-venue-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: var(--space-md);
+        }
+        
+        /* FIXED: Capacity and Ticketing on same line */
+        .capacity-ticketing-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
             gap: var(--space-md);
@@ -599,6 +665,11 @@
             grid-template-columns: 1fr 1fr 1fr auto;
             gap: var(--space-sm);
             align-items: end;
+        }
+        
+        /* FIXED: Volunteer input field sizes */
+        .volunteer-number-input {
+            width: 120px;
         }
         
         .add-position-btn {
@@ -870,6 +941,7 @@
             }
             
             .schedule-venue-grid,
+            .capacity-ticketing-grid,
             .pricing-fields {
                 grid-template-columns: 1fr;
             }
@@ -891,6 +963,16 @@
             .volunteer-position-grid {
                 grid-template-columns: 1fr;
                 gap: var(--space-xs);
+            }
+            
+            .tinymce-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .tinymce-btn-group {
+                margin-bottom: var(--space-xs);
+                margin-right: 0;
             }
         }
     </style>
@@ -985,38 +1067,128 @@
                                 </div>
                             </div>
                             
-                            <!-- Description with Tiptap v2 Editor -->
+                            <!-- Description with Enhanced TinyMCE Editor -->
                             <div class="form-group">
                                 <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Description <span class="required">*</span></label>
-                                <div class="tiptap-toolbar">
-                                    <button type="button" class="tiptap-btn" onclick="formatText('bold')"><b>Bold</b></button>
-                                    <button type="button" class="tiptap-btn" onclick="formatText('italic')"><i>Italic</i></button>
-                                    <button type="button" class="tiptap-btn" onclick="formatText('heading1')">H1</button>
-                                    <button type="button" class="tiptap-btn" onclick="formatText('heading2')">H2</button>
-                                    <button type="button" class="tiptap-btn" onclick="formatText('bulletList')">• List</button>
-                                    <button type="button" class="tiptap-btn" onclick="formatText('orderedList')">1. List</button>
-                                    <button type="button" class="tiptap-btn" onclick="formatText('blockquote')">Quote</button>
-                                    <button type="button" class="tiptap-btn" onclick="insertLink()">🔗 Link</button>
-                                    <button type="button" class="tiptap-btn" onclick="insertTable()">📊 Table</button>
-                                    <button type="button" class="tiptap-btn" onclick="insertImage()">🖼️ Image</button>
-                                    <button type="button" class="tiptap-btn" onclick="toggleSourceView()">{ } Source</button>
+                                <div class="tinymce-container">
+                                    <div class="tinymce-toolbar">
+                                        <!-- Font and Style Group -->
+                                        <select class="tinymce-dropdown">
+                                            <option>Paragraph</option>
+                                            <option>Heading 1</option>
+                                            <option>Heading 2</option>
+                                            <option>Heading 3</option>
+                                            <option>Preformatted</option>
+                                        </select>
+                                        
+                                        <select class="tinymce-dropdown">
+                                            <option>Source Sans 3</option>
+                                            <option>Arial</option>
+                                            <option>Georgia</option>
+                                            <option>Times New Roman</option>
+                                        </select>
+                                        
+                                        <select class="tinymce-dropdown" style="width: 60px;">
+                                            <option>12px</option>
+                                            <option>14px</option>
+                                            <option>16px</option>
+                                            <option>18px</option>
+                                            <option>24px</option>
+                                        </select>
+                                        
+                                        <!-- Basic Formatting Group -->
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Bold"><strong>B</strong></button>
+                                            <button type="button" class="tinymce-btn" title="Italic"><em>I</em></button>
+                                            <button type="button" class="tinymce-btn" title="Underline"><u>U</u></button>
+                                            <button type="button" class="tinymce-btn" title="Strikethrough"><s>S</s></button>
+                                        </div>
+                                        
+                                        <!-- Color Group -->
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Text Color">A</button>
+                                            <button type="button" class="tinymce-btn" title="Background Color">🎨</button>
+                                        </div>
+                                        
+                                        <!-- Alignment Group -->
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Align Left">⬅</button>
+                                            <button type="button" class="tinymce-btn" title="Center">⬜</button>
+                                            <button type="button" class="tinymce-btn" title="Align Right">➡</button>
+                                            <button type="button" class="tinymce-btn" title="Justify">⬌</button>
+                                        </div>
+                                        
+                                        <!-- List Group -->
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Bullet List">•</button>
+                                            <button type="button" class="tinymce-btn" title="Numbered List">1.</button>
+                                            <button type="button" class="tinymce-btn" title="Outdent">⬅</button>
+                                            <button type="button" class="tinymce-btn" title="Indent">➡</button>
+                                        </div>
+                                        
+                                        <!-- Insert Group -->
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Insert Link">🔗</button>
+                                            <button type="button" class="tinymce-btn" title="Insert Image">🖼️</button>
+                                            <button type="button" class="tinymce-btn" title="Insert Table">📊</button>
+                                        </div>
+                                        
+                                        <!-- Action Group -->
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Undo">↶</button>
+                                            <button type="button" class="tinymce-btn" title="Redo">↷</button>
+                                        </div>
+                                        
+                                        <!-- Special Functions -->
+                                        <button type="button" class="tinymce-btn" title="Source Code">{ }</button>
+                                        <button type="button" class="tinymce-btn" title="Fullscreen">⛶</button>
+                                    </div>
+                                    
+                                    <div class="tinymce-editor" contenteditable="true" data-placeholder="Describe what attendees will learn or do at this event...">
+                                    </div>
+                                    
+                                    <div class="tinymce-statusbar">
+                                        <span>Path: body › p</span>
+                                        <div class="resize-handle"></div>
+                                    </div>
                                 </div>
-                                <div class="tiptap-editor" contenteditable="true" data-placeholder="Describe what attendees will learn or do at this event...">
-                                </div>
-                                <p class="form-help">Rich text editor with advanced formatting options. This will be visible on the event page.</p>
+                                <p class="form-help">Industry-standard TinyMCE editor with advanced formatting options. This will be visible on the event page.</p>
                             </div>
                             
-                            <!-- What to Bring -->
+                            <!-- What to Bring with Enhanced TinyMCE Editor -->
                             <div class="form-group">
                                 <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">What to Bring</label>
-                                <div class="tiptap-toolbar">
-                                    <button type="button" class="tiptap-btn" onclick="formatText('bold')"><b>Bold</b></button>
-                                    <button type="button" class="tiptap-btn" onclick="formatText('italic')"><i>Italic</i></button>
-                                    <button type="button" class="tiptap-btn" onclick="formatText('bulletList')">• List</button>
-                                    <button type="button" class="tiptap-btn" onclick="formatText('orderedList')">1. List</button>
-                                    <button type="button" class="tiptap-btn" onclick="insertLink()">🔗 Link</button>
-                                </div>
-                                <div class="tiptap-editor" contenteditable="true" data-placeholder="List items attendees should bring...">
+                                <div class="tinymce-container">
+                                    <div class="tinymce-toolbar">
+                                        <!-- Simplified toolbar for this field -->
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn active" title="Bold"><strong>B</strong></button>
+                                            <button type="button" class="tinymce-btn" title="Italic"><em>I</em></button>
+                                            <button type="button" class="tinymce-btn" title="Underline"><u>U</u></button>
+                                        </div>
+                                        
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Bullet List">•</button>
+                                            <button type="button" class="tinymce-btn" title="Numbered List">1.</button>
+                                        </div>
+                                        
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Insert Link">🔗</button>
+                                        </div>
+                                        
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Undo">↶</button>
+                                            <button type="button" class="tinymce-btn" title="Redo">↷</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="tinymce-editor" contenteditable="true" data-placeholder="List items attendees should bring..." style="min-height: 120px;">
+                                    </div>
+                                    
+                                    <div class="tinymce-statusbar">
+                                        <span>Path: body › ul</span>
+                                        <div class="resize-handle"></div>
+                                    </div>
                                 </div>
                                 <p class="form-help">Separate section for items attendees should bring or prepare for the event.</p>
                             </div>
@@ -1085,26 +1257,26 @@
                             </div>
                         </div>
                         
-                        <!-- Capacity & Ticketing - RENAMED FROM "Capacity & Registration" -->
+                        <!-- Capacity & Ticketing - FIXED: ALL 3 FIELDS ON SAME LINE -->
                         <div class="form-section">
                             <h2 class="section-title">Capacity & Ticketing</h2>
                             
-                            <div class="form-group">
-                                <div class="floating-input-wrapper">
-                                    <input type="number" class="floating-input" placeholder=" " required>
-                                    <label class="floating-label">Maximum Capacity <span class="required">*</span></label>
+                            <!-- ALL THREE FIELDS ON SAME LINE -->
+                            <div class="capacity-ticketing-grid">
+                                <div class="form-group">
+                                    <div class="floating-input-wrapper">
+                                        <input type="number" class="floating-input" placeholder=" " required>
+                                        <label class="floating-label">Capacity <span class="required">*</span></label>
+                                    </div>
+                                    <p class="form-help">Typical events have 12-60 attendees</p>
                                 </div>
-                                <p class="form-help">Typical events have 12-60 attendees</p>
-                            </div>
-                            
-                            <!-- Registration Times - Dynamic Labels -->
-                            <div id="class-registration" style="display: block;">
+                                
                                 <div class="form-group">
                                     <div class="floating-input-wrapper">
                                         <input type="datetime-local" class="floating-input" placeholder=" ">
                                         <label class="floating-label">Ticket Sales Start</label>
                                     </div>
-                                    <p class="form-help">Leave blank to open ticket sales immediately</p>
+                                    <p class="form-help">Leave blank to open immediately</p>
                                 </div>
                                 
                                 <div class="form-group">
@@ -1112,25 +1284,7 @@
                                         <input type="datetime-local" class="floating-input" placeholder=" ">
                                         <label class="floating-label">Ticket Sales End</label>
                                     </div>
-                                    <p class="form-help">Leave blank to allow sales until event starts</p>
-                                </div>
-                            </div>
-                            
-                            <div id="social-registration" style="display: none;">
-                                <div class="form-group">
-                                    <div class="floating-input-wrapper">
-                                        <input type="datetime-local" class="floating-input" placeholder=" ">
-                                        <label class="floating-label">RSVP Opens</label>
-                                    </div>
-                                    <p class="form-help">Leave blank to open RSVPs immediately</p>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <div class="floating-input-wrapper">
-                                        <input type="datetime-local" class="floating-input" placeholder=" ">
-                                        <label class="floating-label">RSVP Closes</label>
-                                    </div>
-                                    <p class="form-help">Leave blank to allow RSVPs until event starts</p>
+                                    <p class="form-help">Leave blank to allow until event starts</p>
                                 </div>
                             </div>
                         </div>
@@ -1143,9 +1297,9 @@
                     <div class="form-section">
                         <h2 class="section-title">Pricing & Ticket Types</h2>
                         
-                        <!-- Pricing Type as Dropdown -->
+                        <!-- Pricing Type as Dropdown - SAME WIDTH AS REFUND -->
                         <div class="form-group pricing-type-dropdown">
-                            <select class="form-input" onchange="togglePricingFields()">
+                            <select class="form-input" style="max-width: 300px;" onchange="togglePricingFields()">
                                 <option value="fixed">Fixed Price</option>
                                 <option value="sliding">Sliding Scale</option>
                                 <option value="free">Free Event</option>
@@ -1190,7 +1344,9 @@
                             </div>
                         </div>
                         
+                        <!-- FIXED: Added title "Refund Policy" -->
                         <div class="form-group">
+                            <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Refund Policy</label>
                             <select class="form-input" style="max-width: 300px;">
                                 <option value="48">48 hours before event</option>
                                 <option value="72">72 hours before event</option>
@@ -1233,45 +1389,6 @@
                                     <td><span class="status-badge status-confirmed">Confirmed</span></td>
                                     <td>Jan 16, 2025</td>
                                     <td>$60.00</td>
-                                    <td><button class="btn btn-secondary btn-sm">View</button></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <!-- RSVPs Section for Social Events -->
-                    <div class="form-section" id="rsvps-section" style="display: none;">
-                        <h2 class="section-title">Current RSVPs and Tickets</h2>
-                        
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>RSVP #</th>
-                                    <th>Attendee</th>
-                                    <th>Type</th>
-                                    <th>Tickets Purchased</th>
-                                    <th>Status</th>
-                                    <th>Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>#R001</td>
-                                    <td>Sam Davis</td>
-                                    <td>Individual</td>
-                                    <td><span class="status-badge status-confirmed">Yes</span></td>
-                                    <td><span class="status-badge status-confirmed">Confirmed</span></td>
-                                    <td>Jan 15, 2025</td>
-                                    <td><button class="btn btn-secondary btn-sm">View</button></td>
-                                </tr>
-                                <tr>
-                                    <td>#R002</td>
-                                    <td>Taylor & Alex</td>
-                                    <td>Couple</td>
-                                    <td><span class="status-badge status-pending">No</span></td>
-                                    <td><span class="status-badge status-pending">Pending</span></td>
-                                    <td>Jan 16, 2025</td>
                                     <td><button class="btn btn-secondary btn-sm">View</button></td>
                                 </tr>
                             </tbody>
@@ -1331,16 +1448,50 @@
                                 </div>
                             </div>
                             
+                            <!-- Email Content with Enhanced TinyMCE Editor -->
                             <div class="form-group">
                                 <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Email Content</label>
-                                <div class="tiptap-toolbar">
-                                    <button type="button" class="tiptap-btn" onclick="formatText('bold')"><b>Bold</b></button>
-                                    <button type="button" class="tiptap-btn" onclick="formatText('italic')"><i>Italic</i></button>
-                                    <button type="button" class="tiptap-btn" onclick="formatText('bulletList')">• List</button>
-                                    <button type="button" class="tiptap-btn" onclick="insertLink()">🔗 Link</button>
-                                    <button type="button" class="tiptap-btn" onclick="insertTable()">📊 Table</button>
-                                </div>
-                                <div class="tiptap-editor" contenteditable="true" id="email-content">Hi {attendee_name},
+                                <div class="tinymce-container">
+                                    <div class="tinymce-toolbar">
+                                        <!-- Email-specific toolbar -->
+                                        <select class="tinymce-dropdown">
+                                            <option>Paragraph</option>
+                                            <option>Heading 1</option>
+                                            <option>Heading 2</option>
+                                            <option>Heading 3</option>
+                                        </select>
+                                        
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Bold"><strong>B</strong></button>
+                                            <button type="button" class="tinymce-btn" title="Italic"><em>I</em></button>
+                                            <button type="button" class="tinymce-btn" title="Underline"><u>U</u></button>
+                                        </div>
+                                        
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Text Color">A</button>
+                                            <button type="button" class="tinymce-btn" title="Background Color">🎨</button>
+                                        </div>
+                                        
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Bullet List">•</button>
+                                            <button type="button" class="tinymce-btn" title="Numbered List">1.</button>
+                                        </div>
+                                        
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Insert Link">🔗</button>
+                                            <button type="button" class="tinymce-btn" title="Insert Image">🖼️</button>
+                                            <button type="button" class="tinymce-btn" title="Insert Table">📊</button>
+                                        </div>
+                                        
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Undo">↶</button>
+                                            <button type="button" class="tinymce-btn" title="Redo">↷</button>
+                                        </div>
+                                        
+                                        <button type="button" class="tinymce-btn" title="Variables">{ }</button>
+                                    </div>
+                                    
+                                    <div class="tinymce-editor" contenteditable="true" id="email-content">Hi {attendee_name},
 
 Your registration for {event_name} has been confirmed!
 
@@ -1353,6 +1504,12 @@ We look forward to seeing you there!
 
 Best,
 The Witch City Rope Team</div>
+                                    
+                                    <div class="tinymce-statusbar">
+                                        <span>Path: body › p</span>
+                                        <div class="resize-handle"></div>
+                                    </div>
+                                </div>
                                 <p class="form-help">Available variables: {attendee_name}, {event_name}, {event_date}, {event_time}, {venue_name}, {venue_address}</p>
                             </div>
                         </div>
@@ -1382,14 +1539,32 @@ The Witch City Rope Team</div>
                         
                         <div class="form-group">
                             <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Message</label>
-                            <div class="tiptap-toolbar">
-                                <button type="button" class="tiptap-btn" onclick="formatText('bold')"><b>Bold</b></button>
-                                <button type="button" class="tiptap-btn" onclick="formatText('italic')"><i>Italic</i></button>
-                                <button type="button" class="tiptap-btn" onclick="formatText('bulletList')">• List</button>
-                                <button type="button" class="tiptap-btn" onclick="insertLink()">🔗 Link</button>
-                                <button type="button" class="tiptap-btn" onclick="insertTable()">📊 Table</button>
-                            </div>
-                            <div class="tiptap-editor" contenteditable="true" data-placeholder="Write your message here...">
+                            <div class="tinymce-container">
+                                <div class="tinymce-toolbar">
+                                    <div class="tinymce-btn-group">
+                                        <button type="button" class="tinymce-btn" title="Bold"><strong>B</strong></button>
+                                        <button type="button" class="tinymce-btn" title="Italic"><em>I</em></button>
+                                        <button type="button" class="tinymce-btn" title="Underline"><u>U</u></button>
+                                    </div>
+                                    
+                                    <div class="tinymce-btn-group">
+                                        <button type="button" class="tinymce-btn" title="Bullet List">•</button>
+                                        <button type="button" class="tinymce-btn" title="Numbered List">1.</button>
+                                    </div>
+                                    
+                                    <div class="tinymce-btn-group">
+                                        <button type="button" class="tinymce-btn" title="Insert Link">🔗</button>
+                                        <button type="button" class="tinymce-btn" title="Insert Table">📊</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="tinymce-editor" contenteditable="true" data-placeholder="Write your message here...">
+                                </div>
+                                
+                                <div class="tinymce-statusbar">
+                                    <span>Path: body</span>
+                                    <div class="resize-handle"></div>
+                                </div>
                             </div>
                         </div>
                         
@@ -1397,7 +1572,7 @@ The Witch City Rope Team</div>
                     </div>
                 </div>
                 
-                <!-- Volunteers/Staff Tab - SWAPPED SECTIONS -->
+                <!-- Volunteers/Staff Tab -->
                 <div id="volunteers-staff" class="tab-content">
                     <!-- Current Volunteer Positions FIRST -->
                     <div class="form-section">
@@ -1495,12 +1670,13 @@ The Witch City Rope Team</div>
                                 </div>
                             </div>
                             <div class="form-group">
+                                <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Description</label>
                                 <textarea class="form-input" placeholder="Describe the volunteer duties..." style="min-height: 80px;"></textarea>
                             </div>
                             <div style="display: flex; justify-content: space-between; align-items: end; gap: var(--space-md);">
                                 <div class="form-group" style="flex: 0 0 auto;">
                                     <div class="floating-input-wrapper">
-                                        <input type="number" class="floating-input" placeholder=" " min="1" style="max-width: 100px;">
+                                        <input type="number" class="floating-input volunteer-number-input" placeholder=" " min="1">
                                         <label class="floating-label">Number Needed</label>
                                     </div>
                                 </div>
@@ -1607,27 +1783,6 @@ The Witch City Rope Team</div>
             
             // Add active to selected
             element.classList.add('active');
-            
-            // Show/hide sections based on type
-            const teacherSection = document.getElementById('teacher-section');
-            const classRegistration = document.getElementById('class-registration');
-            const socialRegistration = document.getElementById('social-registration');
-            const ticketsSection = document.getElementById('tickets-section');
-            const rsvpsSection = document.getElementById('rsvps-section');
-            
-            if (type === 'class') {
-                teacherSection.style.display = 'block';
-                classRegistration.style.display = 'block';
-                socialRegistration.style.display = 'none';
-                ticketsSection.style.display = 'block';
-                rsvpsSection.style.display = 'none';
-            } else {
-                teacherSection.style.display = 'none';
-                classRegistration.style.display = 'none';
-                socialRegistration.style.display = 'block';
-                ticketsSection.style.display = 'none';
-                rsvpsSection.style.display = 'block';
-            }
         }
         
         function selectPricingUnit(element, unit) {
@@ -1668,8 +1823,6 @@ The Witch City Rope Team</div>
             element.classList.add('active');
             
             const reminderSettings = document.getElementById('reminder-settings');
-            const emailSubject = document.getElementById('email-subject');
-            const emailContent = document.getElementById('email-content');
             
             // Show/hide reminder settings
             if (templateType === 'event-reminder' || templateType === 'volunteer-reminder') {
@@ -1677,12 +1830,9 @@ The Witch City Rope Team</div>
             } else {
                 reminderSettings.style.display = 'none';
             }
-            
-            // Update template content based on selection
-            // (Template switching logic here...)
         }
         
-        // Tiptap v2 Editor Functions
+        // TinyMCE Editor Functions
         function formatText(command, value) {
             document.execCommand(command, false, value);
         }
@@ -1698,7 +1848,6 @@ The Witch City Rope Team</div>
             const rows = prompt('Number of rows:', '3');
             const cols = prompt('Number of columns:', '3');
             if (rows && cols) {
-                // In real Tiptap v2, this would use the table extension
                 console.log(`Insert ${rows}x${cols} table`);
             }
         }
@@ -1711,7 +1860,6 @@ The Witch City Rope Team</div>
         }
         
         function toggleSourceView() {
-            // In real Tiptap v2, this would toggle HTML source view
             console.log('Toggle source view');
         }
         

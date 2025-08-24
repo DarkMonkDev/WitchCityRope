@@ -3,33 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rope Basics Workshop - WitchCityRope</title>
+    <title>Introduction to Rope Bondage - Witch City Rope</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,700;6..96,900&family=Montserrat:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;600&family=Satisfy&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         :root {
-            /* Design System v7 Colors */
+            /* Sensual Primary Colors */
             --color-burgundy: #880124;
             --color-burgundy-dark: #660018;
+            --color-burgundy-light: #9F1D35;
+            
+            /* Warm Metallics */
             --color-rose-gold: #B76D75;
+            --color-copper: #B87333;
+            --color-brass: #C9A961;
+            
+            /* CTA Accent Colors */
             --color-electric: #9D4EDD;
+            --color-electric-dark: #7B2CBF;
             --color-amber: #FFBF00;
+            --color-amber-dark: #FF8C00;
+            
+            /* Supporting Tones */
+            --color-dusty-rose: #D4A5A5;
+            --color-plum: #614B79;
             --color-midnight: #1A1A2E;
+            
+            /* Warm Neutrals */
             --color-charcoal: #2B2B2B;
-            --color-cream: #FAF6F2;
+            --color-smoke: #4A4A4A;
+            --color-stone: #8B8680;
+            --color-taupe: #B8B0A8;
             --color-ivory: #FFF8F0;
+            --color-cream: #FAF6F2;
+            
+            /* Status Colors */
             --color-success: #228B22;
             --color-warning: #DAA520;
             --color-error: #DC143C;
+            --color-info: #4169E1;
             
             /* Typography */
             --font-display: 'Bodoni Moda', serif;
             --font-heading: 'Montserrat', sans-serif;
             --font-body: 'Source Sans 3', sans-serif;
+            --font-accent: 'Satisfy', cursive;
             
             /* Spacing */
             --space-xs: 8px;
@@ -37,49 +54,144 @@
             --space-md: 24px;
             --space-lg: 32px;
             --space-xl: 40px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
         }
         
         body {
             font-family: var(--font-body);
-            background: var(--color-cream);
-            color: var(--color-charcoal);
             line-height: 1.6;
+            color: var(--color-charcoal);
+            background-color: var(--color-cream);
+            overflow-x: hidden;
         }
         
-        /* Navigation Header */
-        .header-nav {
+        /* Subtle rope pattern background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.03;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40,40 L80,80 L40,120 L80,160' stroke='%23880124' stroke-width='1' fill='none' opacity='0.5'/%3E%3Cpath d='M80,40 L120,80 L80,120 L120,160' stroke='%23880124' stroke-width='1' fill='none' opacity='0.5'/%3E%3Cpath d='M120,40 L160,80 L120,120 L160,160' stroke='%23880124' stroke-width='1' fill='none' opacity='0.5'/%3E%3C/svg%3E");
+            background-size: 200px 200px;
+            z-index: -1;
+        }
+        
+        /* Utility Bar */
+        .utility-bar {
             background: var(--color-midnight);
-            color: white;
-            padding: var(--space-md) var(--space-xl);
+            padding: 12px 40px;
+            font-size: 13px;
+            color: var(--color-taupe);
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .logo {
-            font-family: var(--font-display);
-            font-size: 2rem;
-            font-weight: 700;
-            color: white;
-            text-decoration: none;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: var(--space-lg);
-        }
-        
-        .nav-link {
-            color: white;
-            text-decoration: none;
             font-family: var(--font-heading);
-            font-weight: 500;
-            transition: color 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .utility-bar a {
+            color: var(--color-taupe);
+            text-decoration: none;
+            margin-left: var(--space-lg);
+            transition: all 0.3s ease;
             position: relative;
         }
         
-        .nav-link::after {
+        .utility-bar a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--color-rose-gold);
+            transition: width 0.3s ease;
+        }
+        
+        .utility-bar a:hover {
+            color: var(--color-rose-gold);
+        }
+        
+        .utility-bar a:hover::after {
+            width: 100%;
+        }
+        
+        .utility-bar a.incident-link {
+            color: var(--color-brass);
+            font-weight: 600;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: rgba(255, 248, 240, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            padding: var(--space-sm) 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+        
+        .header.scrolled {
+            padding: 12px 40px;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.12);
+        }
+        
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--color-burgundy);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            transition: all 0.3s ease;
+        }
+        
+        .logo:hover {
+            color: var(--color-burgundy-light);
+            transform: scale(1.02);
+        }
+        
+        .nav {
+            display: flex;
+            gap: var(--space-xl);
+            align-items: center;
+        }
+        
+        .nav-item {
+            color: var(--color-charcoal);
+            text-decoration: none;
+            font-family: var(--font-heading);
+            font-weight: 500;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-item::before {
             content: '';
             position: absolute;
             bottom: -4px;
@@ -87,734 +199,1042 @@
             transform: translateX(-50%);
             width: 0;
             height: 2px;
-            background: linear-gradient(90deg, transparent, var(--color-amber), transparent);
+            background: var(--color-burgundy);
             transition: width 0.3s ease;
         }
         
-        .nav-link:hover::after {
+        .nav-item:hover {
+            color: var(--color-burgundy);
+        }
+        
+        .nav-item:hover::before {
             width: 100%;
         }
         
-        .nav-link.active {
-            color: var(--color-amber);
-        }
-        
-        .nav-link.active::after {
-            width: 100%;
-        }
-        
-        /* Event Header - UPDATED DESIGN */
-        .event-header {
-            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-burgundy-dark) 80%, var(--color-midnight) 100%);
-            color: white;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .event-hero {
-            padding: var(--space-xl);
-            position: relative;
-            z-index: 2;
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: var(--space-xl);
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .event-hero-content {
-            z-index: 3;
-        }
-        
-        .event-badges {
-            display: flex;
-            gap: var(--space-sm);
-            margin-bottom: var(--space-md);
-        }
-        
-        .event-badge {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 6px var(--space-md);
-            border-radius: 20px;
+        /* Luxury Button Styles */
+        .btn {
+            padding: 14px 32px;
+            border-radius: 4px;
+            text-decoration: none;
             font-family: var(--font-heading);
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 14px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
+            transition: all 0.4s ease;
+            display: inline-block;
+            cursor: pointer;
+            border: none;
+            position: relative;
+            overflow: hidden;
         }
         
-        .event-badge.featured {
-            background: rgba(255, 191, 0, 0.9);
-            color: var(--color-charcoal);
-            border-color: var(--color-amber);
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+            color: var(--color-midnight);
+            box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+            font-weight: 700;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(255, 191, 0, 0.5);
+            background: linear-gradient(135deg, var(--color-amber-dark) 0%, var(--color-amber) 100%);
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+        
+        /* Alternative primary button with electric purple */
+        .btn-primary-alt {
+            background: linear-gradient(135deg, var(--color-electric) 0%, var(--color-electric-dark) 100%);
+            color: var(--color-ivory);
+            box-shadow: 0 4px 15px rgba(157, 78, 221, 0.4);
+            font-weight: 700;
+        }
+        
+        .btn-primary-alt:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(157, 78, 221, 0.5);
+            background: linear-gradient(135deg, var(--color-electric-dark) 0%, var(--color-electric) 100%);
+        }
+        
+        /* Mobile Menu Toggle */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+        }
+        
+        .mobile-menu-toggle span {
+            display: block;
+            width: 28px;
+            height: 2px;
+            background: var(--color-burgundy);
+            margin: 6px 0;
+            transition: all 0.3s ease;
+        }
+        
+        /* Breadcrumb */
+        .breadcrumb {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--space-md) var(--space-xl) 0;
+            display: flex;
+            gap: var(--space-sm);
+            font-size: 14px;
+            color: var(--color-stone);
+        }
+        
+        .breadcrumb a {
+            color: var(--color-burgundy);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .breadcrumb a:hover {
+            color: var(--color-burgundy-dark);
+            text-decoration: underline;
+        }
+        
+        /* Main Container */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--space-xl);
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: var(--space-xl);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .utility-bar {
+                padding: 10px 20px;
+                font-size: 11px;
+            }
+            
+            .header {
+                padding: var(--space-sm) 20px;
+            }
+            
+            .logo {
+                font-size: 28px;
+            }
+            
+            .nav {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(255, 248, 240, 0.98);
+                flex-direction: column;
+                padding: var(--space-md);
+                gap: var(--space-md);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            }
+            
+            .nav.active {
+                display: flex;
+            }
+            
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .breadcrumb {
+                padding: var(--space-sm) 20px 0;
+                font-size: 12px;
+            }
+            
+            .main-container {
+                padding: var(--space-md);
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Event Hero */
+        .event-hero {
+            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
+            border-radius: 24px;
+            padding: var(--space-3xl);
+            margin-bottom: var(--space-xl);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .event-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(45deg);
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .event-type-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+            color: var(--color-midnight);
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: var(--space-md);
+            box-shadow: 0 2px 10px rgba(255, 191, 0, 0.3);
         }
         
         .event-title {
-            font-family: var(--font-display);
-            font-size: 3rem;
-            font-weight: 600;
-            margin-bottom: var(--space-sm);
+            font-family: var(--font-heading);
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--color-ivory);
+            margin-bottom: var(--space-md);
             line-height: 1.2;
         }
         
-        .event-subtitle {
-            font-size: 1.3rem;
-            opacity: 0.9;
-            margin-bottom: var(--space-lg);
-            font-weight: 300;
-        }
-        
-        .event-meta-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        .event-meta {
+            display: flex;
             gap: var(--space-lg);
+            flex-wrap: wrap;
+            color: var(--color-dusty-rose);
+            font-size: 20px;
         }
         
-        .meta-item {
+        .event-meta-item {
             display: flex;
             align-items: center;
-            gap: var(--space-md);
+            gap: var(--space-xs);
         }
         
-        .meta-icon {
-            width: 48px;
-            height: 48px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-        
-        .meta-content h4 {
-            font-family: var(--font-heading);
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.8;
-            margin-bottom: 4px;
-        }
-        
-        .meta-content p {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-        
-        .event-cta-section {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            padding: var(--space-xl);
-            text-align: center;
-            min-width: 300px;
-        }
-        
-        .price-display {
-            margin-bottom: var(--space-lg);
-        }
-        
-        .event-price {
-            font-family: var(--font-display);
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: white;
-            margin-bottom: var(--space-xs);
-        }
-        
-        .price-note {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-        
-        .availability-info {
-            background: rgba(34, 139, 34, 0.2);
-            border: 1px solid rgba(34, 139, 34, 0.4);
-            color: #90EE90;
-            padding: var(--space-sm);
-            border-radius: 8px;
-            margin-bottom: var(--space-lg);
-            font-weight: 600;
-        }
-        
-        .main-cta-btn {
-            background: linear-gradient(135deg, var(--color-amber) 0%, #DAA520 100%);
-            color: var(--color-charcoal);
-            border: none;
-            padding: var(--space-md) var(--space-xl);
-            border-radius: 16px 8px 16px 8px;
-            font-family: var(--font-heading);
-            font-weight: 700;
-            font-size: 1.1rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-            box-shadow: 0 8px 25px rgba(255, 191, 0, 0.4);
-        }
-        
-        .main-cta-btn:hover {
-            border-radius: 8px 16px 8px 16px;
-            transform: scale(1.02);
-            box-shadow: 0 12px 35px rgba(255, 191, 0, 0.6);
-        }
-        
-        /* Main Content */
-        .main-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: var(--space-xl);
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: var(--space-xl);
-        }
-        
+        /* Content Section */
         .content-section {
-            background: white;
-            padding: var(--space-xl);
+            background: var(--color-ivory);
             border-radius: 16px;
+            padding: var(--space-xl);
             margin-bottom: var(--space-lg);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid rgba(183, 109, 117, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .content-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 30%, rgba(183, 109, 117, 0.05) 50%, transparent 70%);
+            transform: rotate(45deg);
+            transition: all 0.5s;
+            opacity: 0;
+        }
+        
+        .content-section:hover::before {
+            animation: shimmer 0.5s ease;
+            opacity: 1;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: rotate(45deg) translateX(-100%); }
+            100% { transform: rotate(45deg) translateX(100%); }
         }
         
         .section-title {
-            font-family: var(--font-display);
-            font-size: 2rem;
-            font-weight: 600;
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 700;
             color: var(--color-burgundy);
-            margin-bottom: var(--space-lg);
-            position: relative;
-            padding-bottom: var(--space-sm);
-        }
-        
-        .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 60px;
-            height: 3px;
-            background: linear-gradient(90deg, var(--color-burgundy), var(--color-rose-gold));
-        }
-        
-        .event-description {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            margin-bottom: var(--space-lg);
-        }
-        
-        .event-description p {
             margin-bottom: var(--space-md);
         }
         
-        .event-description p:last-child {
-            margin-bottom: 0;
+        .description-text {
+            font-size: 17px;
+            line-height: 1.8;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-md);
         }
         
-        /* What to Bring Section */
-        .bring-list {
+        /* What to Expect List */
+        .expect-list {
             list-style: none;
-            padding-left: 0;
+            margin-top: var(--space-md);
         }
         
-        .bring-list li {
+        .expect-item {
             display: flex;
-            align-items: flex-start;
             gap: var(--space-sm);
-            margin-bottom: var(--space-sm);
-            font-size: 1.1rem;
+            margin-bottom: var(--space-md);
+            align-items: flex-start;
         }
         
-        .bring-list li::before {
-            content: "✓";
-            color: var(--color-success);
-            font-weight: 700;
-            font-size: 1.2rem;
+        .expect-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--color-burgundy);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-ivory);
+            flex-shrink: 0;
             margin-top: 2px;
         }
         
-        /* Teacher Section */
-        .teacher-card {
-            display: flex;
-            gap: var(--space-lg);
-            align-items: center;
-            padding: var(--space-lg);
-            background: var(--color-ivory);
+        /* Prerequisites */
+        .prereq-box {
+            background: linear-gradient(135deg, var(--color-cream) 0%, var(--color-ivory) 100%);
+            border: 2px solid var(--color-taupe);
             border-radius: 12px;
-            margin-bottom: var(--space-lg);
+            padding: var(--space-md);
+            margin-top: var(--space-md);
+        }
+        
+        .prereq-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-sm);
+            color: var(--color-smoke);
+        }
+        
+        /* Teacher Section */
+        .teacher-box {
+            display: flex;
+            gap: var(--space-md);
+            align-items: center;
+            margin-top: var(--space-lg);
+            padding: var(--space-lg);
+            background: var(--color-cream);
+            border-radius: 12px;
         }
         
         .teacher-avatar {
             width: 80px;
             height: 80px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--color-rose-gold), var(--color-burgundy));
+            background: linear-gradient(135deg, var(--color-plum) 0%, var(--color-burgundy) 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-family: var(--font-heading);
+            color: var(--color-ivory);
+            font-size: 32px;
             font-weight: 700;
-            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(136, 1, 36, 0.3);
+            border: 2px solid var(--color-rose-gold);
         }
         
         .teacher-info h3 {
             font-family: var(--font-heading);
-            font-size: 1.3rem;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .teacher-bio {
+            color: var(--color-stone);
+            font-size: 15px;
+        }
+        
+        /* Registration Card */
+        .registration-card {
+            background: var(--color-ivory);
+            border-radius: 16px;
+            padding: var(--space-lg);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 100px;
+            border: 1px solid rgba(183, 109, 117, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .registration-card:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            border-color: rgba(183, 109, 117, 0.2);
+        }
+        
+        .price-section {
+            text-align: center;
+            padding-bottom: var(--space-lg);
+            border-bottom: 1px solid var(--color-taupe);
+            margin-bottom: var(--space-lg);
+        }
+        
+        .price-label {
+            font-size: 14px;
+            color: var(--color-stone);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .price-range {
+            font-family: var(--font-heading);
+            font-size: 36px;
             font-weight: 700;
             color: var(--color-burgundy);
             margin-bottom: var(--space-xs);
         }
         
-        .teacher-title {
-            font-weight: 600;
-            color: var(--color-rose-gold);
-            margin-bottom: var(--space-sm);
+        .price-note {
+            font-size: 14px;
+            color: var(--color-stone);
+            font-style: italic;
         }
         
-        .teacher-bio {
-            line-height: 1.6;
-            color: var(--color-charcoal);
-        }
-        
-        /* Sidebar */
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-lg);
-        }
-        
-        .sidebar-card {
-            background: white;
-            padding: var(--space-lg);
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        }
-        
-        .sidebar-title {
-            font-family: var(--font-heading);
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--color-burgundy);
-            margin-bottom: var(--space-md);
-        }
-        
-        /* Event Details */
-        .detail-item {
+        /* Registration Details */
+        .reg-detail {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: var(--space-sm) 0;
-            border-bottom: 1px solid rgba(183, 109, 117, 0.2);
-            margin-bottom: var(--space-sm);
+            padding: 4px 0;
+            border-bottom: 1px solid var(--color-cream);
         }
         
-        .detail-item:last-child {
+        .reg-detail:last-child {
             border-bottom: none;
-            margin-bottom: 0;
         }
         
-        .detail-label {
+        .reg-label {
+            color: var(--color-stone);
+            font-size: 15px;
+        }
+        
+        .reg-value {
             font-weight: 600;
             color: var(--color-charcoal);
         }
         
-        .detail-value {
-            color: var(--color-burgundy);
-            font-weight: 600;
+        .reg-value.available {
+            color: var(--color-success);
         }
         
-        /* Related Events */
-        .related-event {
-            display: flex;
-            gap: var(--space-sm);
-            padding: var(--space-sm);
-            border: 1px solid rgba(183, 109, 117, 0.2);
+        .reg-value.limited {
+            color: var(--color-warning);
+        }
+        
+        /* CTA Button */
+        .btn-register {
+            width: 100%;
+            padding: var(--space-md);
+            margin-top: 4px;
+            background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+            color: var(--color-midnight);
+            border: none;
             border-radius: 8px;
-            margin-bottom: var(--space-sm);
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-register::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(255, 191, 0, 0.5);
+            background: linear-gradient(135deg, var(--color-amber-dark) 0%, var(--color-amber) 100%);
+        }
+        
+        .btn-register:hover::before {
+            left: 100%;
+        }
+        
+        /* Couple Options */
+        .couple-option {
+            background: var(--color-cream);
+            border-radius: 8px;
+            padding: var(--space-md);
+            margin-top: var(--space-md);
+        }
+        
+        .couple-option h4 {
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .couple-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-burgundy);
+        }
+        
+        /* Sliding Scale Slider */
+        .slider-container {
+            margin-bottom: var(--space-lg);
+            margin-top: var(--space-lg);
+            padding: var(--space-md);
+            background: var(--color-cream);
+            border-radius: 12px;
+        }
+        
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: var(--space-sm);
+        }
+        
+        .slider-label {
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-charcoal);
+        }
+        
+        .slider-value {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--color-burgundy);
+        }
+        
+        .slider-wrapper {
+            position: relative;
+            margin-bottom: var(--space-sm);
+        }
+        
+        .price-slider {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(to right, var(--color-taupe) 0%, var(--color-taupe) 100%);
+            border-radius: 4px;
+            outline: none;
             cursor: pointer;
         }
         
-        .related-event:hover {
-            background: var(--color-ivory);
-            border-color: var(--color-rose-gold);
+        .price-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-burgundy-dark) 100%);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(136, 1, 36, 0.4);
+            border: 3px solid var(--color-ivory);
+            transition: all 0.3s ease;
         }
         
-        .related-event-date {
+        .price-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(136, 1, 36, 0.5);
+        }
+        
+        .price-slider::-moz-range-thumb {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-burgundy-dark) 100%);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(136, 1, 36, 0.4);
+            border: 3px solid var(--color-ivory);
+            transition: all 0.3s ease;
+        }
+        
+        .price-slider::-moz-range-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(136, 1, 36, 0.5);
+        }
+        
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: var(--color-stone);
             font-family: var(--font-heading);
-            font-weight: 600;
-            font-size: 0.8rem;
-            color: var(--color-rose-gold);
-            min-width: 60px;
+            font-weight: 500;
         }
         
-        .related-event-info h4 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--color-burgundy);
-            margin-bottom: 2px;
-        }
-        
-        .related-event-price {
-            font-size: 0.8rem;
-            color: var(--color-charcoal);
-            opacity: 0.7;
-        }
-        
-        /* Contact/Support */
-        .support-info {
-            background: var(--color-ivory);
-            padding: var(--space-md);
+        .slider-help {
+            font-size: 14px;
+            color: var(--color-stone);
+            margin-top: var(--space-sm);
+            padding: var(--space-sm);
+            background: rgba(183, 109, 117, 0.08);
             border-radius: 8px;
-            text-align: center;
+            line-height: 1.5;
+            font-style: italic;
+            margin-bottom: 24px
         }
         
-        .support-info p {
+        /* Remaining Tickets */
+        .tickets-remaining {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-md);
+            padding: var(--space-sm);
+            background: var(--color-cream);
+            border-radius: 8px;
+        }
+        
+        .tickets-text {
+            font-size: 14px;
+            color: var(--color-stone);
+            font-weight: 500;
+        }
+        
+        .tickets-count {
+            color: var(--color-burgundy);
+            font-weight: 700;
+        }
+        
+        .capacity-bar {
+            flex: 1;
+            height: 6px;
+            background: var(--color-taupe);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .capacity-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--color-burgundy) 0%, var(--color-rose-gold) 100%);
+            transition: width 0.3s ease;
+        }
+        
+        /* Share Section */
+        .share-section {
+            text-align: center;
+            margin-top: var(--space-lg);
+            padding-top: var(--space-lg);
+            border-top: 1px solid var(--color-taupe);
+        }
+        
+        .share-text {
+            font-size: 14px;
+            color: var(--color-stone);
             margin-bottom: var(--space-sm);
         }
         
-        .support-email {
-            color: var(--color-burgundy);
-            text-decoration: none;
-            font-weight: 600;
-        }
-        
-        .support-email:hover {
-            text-decoration: underline;
-        }
-        
-        /* Footer */
-        .footer {
-            background: var(--color-midnight);
-            color: white;
-            text-align: center;
-            padding: var(--space-xl);
-            margin-top: var(--space-xl);
-        }
-        
-        .footer-links {
+        .share-buttons {
             display: flex;
             justify-content: center;
-            gap: var(--space-lg);
-            margin-bottom: var(--space-lg);
+            gap: var(--space-sm);
         }
         
-        .footer-link {
-            color: white;
+        .share-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--color-cream);
+            border: 2px solid var(--color-taupe);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-burgundy);
             text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .share-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: var(--color-burgundy);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s ease;
+        }
+        
+        .share-btn:hover {
+            color: var(--color-ivory);
+            border-color: var(--color-burgundy);
+            transform: scale(1.1);
+        }
+        
+        .share-btn:hover::before {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .share-btn span {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Related Events */
+        .related-section {
+            margin-top: var(--space-2xl);
+        }
+        
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: var(--space-lg);
+            margin-top: var(--space-lg);
+        }
+        
+        .related-card {
+            background: var(--color-ivory);
+            border-radius: 12px;
+            padding: var(--space-md);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid rgba(183, 109, 117, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .related-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 30%, rgba(183, 109, 117, 0.1) 50%, transparent 70%);
+            transform: rotate(45deg);
+            transition: all 0.5s;
+            opacity: 0;
+        }
+        
+        .related-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            border-color: var(--color-rose-gold);
+        }
+        
+        .related-card:hover::before {
+            animation: shimmer 0.5s ease;
+            opacity: 1;
+        }
+        
+        .related-date {
+            font-size: 14px;
+            color: var(--color-burgundy);
+            font-weight: 600;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .related-title {
             font-family: var(--font-heading);
-            font-weight: 500;
-            transition: color 0.3s ease;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-xs);
         }
         
-        .footer-link:hover {
-            color: var(--color-amber);
-        }
-        
-        .footer-text {
-            opacity: 0.7;
-            font-size: 0.9rem;
-        }
-        
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .header-nav {
-                flex-direction: column;
-                gap: var(--space-md);
-                padding: var(--space-md);
-            }
-            
-            .nav-links {
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: var(--space-md);
-            }
-            
-            .event-hero {
-                grid-template-columns: 1fr;
-                text-align: center;
-                padding: var(--space-lg);
-            }
-            
-            .event-title {
-                font-size: 2.2rem;
-            }
-            
-            .main-content {
-                grid-template-columns: 1fr;
-                padding: var(--space-md);
-                gap: var(--space-lg);
-            }
-            
-            .event-meta-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .teacher-card {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .footer-links {
-                flex-direction: column;
-                gap: var(--space-md);
-            }
+        .related-price {
+            color: var(--color-stone);
+            font-size: 16px;
         }
     </style>
 </head>
 <body>
-    <!-- Navigation Header -->
-    <nav class="header-nav">
-        <a href="#" class="logo">WitchCityRope</a>
-        <div class="nav-links">
-            <a href="#" class="nav-link active">Events</a>
-            <a href="#" class="nav-link">Community</a>
-            <a href="#" class="nav-link">Learn</a>
-            <a href="#" class="nav-link">About</a>
-            <a href="#" class="nav-link">Login</a>
-        </div>
-    </nav>
+    <!-- Utility Bar -->
+    <div class="utility-bar">
+        <a href="#" class="incident-link">Report an Incident</a>
+        <a href="#">Private Lessons</a>
+        <a href="#">Contact</a>
+    </div>
     
-    <!-- Event Header - UPDATED DESIGN -->
-    <section class="event-header">
-        <div class="event-hero">
-            <div class="event-hero-content">
-                <div class="event-badges">
-                    <span class="event-badge featured">Featured</span>
-                    <span class="event-badge">Workshop</span>
-                    <span class="event-badge">Beginner Friendly</span>
-                </div>
-                
-                <h1 class="event-title">Introduction to Rope Bondage</h1>
-                <p class="event-subtitle">Learn the fundamentals in a safe, supportive environment</p>
-                
-                <div class="event-meta-grid">
-                    <div class="meta-item">
-                        <div class="meta-icon">📅</div>
-                        <div class="meta-content">
-                            <h4>Date & Time</h4>
-                            <p>Saturday, March 15 • 2:00 PM - 5:00 PM</p>
-                        </div>
-                    </div>
-                    
-                    <div class="meta-item">
-                        <div class="meta-icon">📍</div>
-                        <div class="meta-content">
-                            <h4>Venue</h4>
-                            <p>Salem Community Center</p>
-                        </div>
-                    </div>
-                    
-                    <div class="meta-item">
-                        <div class="meta-icon">👥</div>
-                        <div class="meta-content">
-                            <h4>Capacity</h4>
-                            <p>15 of 25 spots taken</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="event-cta-section">
-                <div class="price-display">
-                    <div class="event-price">$35</div>
-                    <div class="price-note">per person</div>
-                </div>
-                
-                <div class="availability-info">
-                    ✓ 10 spots available
-                </div>
-                
-                <button class="main-cta-btn" onclick="purchaseTicket()">
-                    Purchase Ticket
-                </button>
-            </div>
-        </div>
-    </section>
+    <!-- Header -->
+    <header class="header" id="header">
+        <a href="landing-page-visual-v2.html" class="logo">WITCH CITY ROPE</a>
+        <nav class="nav">
+            <a href="event-list-visual.html" class="nav-item">Events & Classes</a>
+            <a href="vetting-application.html" class="nav-item">How to Join</a>
+            <a href="#" class="nav-item">Resources</a>
+            <a href="auth-login-register-visual.html" class="btn btn-primary">Login</a>
+        </nav>
+        <button class="mobile-menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
+    
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a href="landing-page-visual-v2.html">Home</a>
+        <span>/</span>
+        <a href="event-list-visual.html">Classes</a>
+        <span>/</span>
+        <span>Introduction to Rope Bondage</span>
+    </div>
     
     <!-- Main Content -->
-    <main class="main-content">
-        <!-- Primary Content -->
-        <div class="primary-content">
-            <!-- Event Description -->
-            <section class="content-section">
-                <h2 class="section-title">About This Workshop</h2>
-                <div class="event-description">
-                    <p>
-                        Join us for an comprehensive introduction to rope bondage in a welcoming, educational environment. 
-                        This workshop is perfect for complete beginners who want to explore the beautiful art of rope bondage with proper technique and safety.
-                    </p>
-                    <p>
-                        You'll learn fundamental knots, basic safety protocols, and simple but elegant tie patterns. 
-                        We emphasize consent, communication, and creating positive experiences for both partners.
-                    </p>
-                    <p>
-                        No prior experience is necessary, and all are welcome regardless of relationship status. 
-                        We provide all materials and maintain a respectful, educational atmosphere throughout.
-                    </p>
+    <main class="main-container">
+        <!-- Left Column -->
+        <div>
+            <!-- Event Hero -->
+            <section class="event-hero">
+                <div class="hero-content">                   
+                    <h1 class="event-title">Introduction to Rope Bondage</h1>
+                    <div class="event-meta">
+                        <div class="event-meta-item">
+                            📅 Saturday, February 15, 2025
+                        </div>
+                        <div class="event-meta-item">
+                            🕐 7:00 PM - 9:30 PM EST
+                        </div>                        
+                    </div>
                 </div>
             </section>
             
-            <!-- What to Bring -->
+            <!-- About This Class -->
             <section class="content-section">
-                <h2 class="section-title">What to Bring</h2>
-                <ul class="bring-list">
-                    <li>Comfortable clothing that allows for movement</li>
-                    <li>Water bottle to stay hydrated</li>
-                    <li>Notebook for taking notes (optional)</li>
-                    <li>Any medical information relevant to physical activity</li>
-                    <li>Open mind and respectful attitude</li>
-                </ul>
-                <p style="margin-top: var(--space-md); font-style: italic; color: var(--color-rose-gold);">
-                    All rope and practice materials will be provided by WitchCityRope.
+                <h2 class="section-title">About This Class</h2>
+                <p class="description-text">
+                    Welcome to your journey into the art of rope bondage! This foundational class is designed for complete beginners 
+                    and those looking to strengthen their fundamental skills. In a supportive, inclusive environment, you'll learn 
+                    essential safety protocols, basic ties, and communication techniques that form the foundation of responsible rope practice.
                 </p>
+                <p class="description-text">
+                    Our experienced instructors will guide you through hands-on practice, ensuring you feel confident and comfortable 
+                    with each technique. Whether you're attending solo or with a partner, you'll find a welcoming community ready to 
+                    support your learning journey.
+                </p>
+           
+                <h2 class="section-title">What You'll Learn</h2>
+                <ul class="expect-list">
+                    <li class="expect-item">
+                        <div class="expect-icon">✓</div>
+                        <div>
+                            <strong>Safety First:</strong> Risk awareness, nerve locations, circulation checks, and emergency procedures
+                        </div>
+                    </li>
+                    <li class="expect-item">
+                        <div class="expect-icon">✓</div>
+                        <div>
+                            <strong>Essential Knots:</strong> Single column tie, two column tie, and basic chest harness
+                        </div>
+                    </li>
+                    <li class="expect-item">
+                        <div class="expect-icon">✓</div>
+                        <div>
+                            <strong>Communication Skills:</strong> Negotiation, consent practices, and check-in protocols
+                        </div>
+                    </li>
+                    <li class="expect-item">
+                        <div class="expect-icon">✓</div>
+                        <div>
+                            <strong>Rope Handling:</strong> Proper care, storage, and preparation of rope
+                        </div>
+                    </li>
+                    <li class="expect-item">
+                        <div class="expect-icon">✓</div>
+                        <div>
+                            <strong>Practice Time:</strong> Guided hands-on practice with instructor support
+                        </div>
+                    </li>
+                </ul>
+            
+                <h2 class="section-title">Prerequisites & What to Bring</h2>
+                
+                    <h4 style="font-family: var(--font-heading); margin-bottom: var(--space-md);">Prerequisites</h4>
+                    <div class="prereq-item">
+                        <span>✓</span>
+                        <span>Must be 21+ years of age</span>
+                    </div>
+                    <div class="prereq-item">
+                        <span>✓</span>
+                        <span>No prior experience necessary - this is a beginner class!</span>
+                    </div>
+                    <div class="prereq-item">
+                        <span>✓</span>
+                        <span>Open mind and willingness to learn</span>
+                    </div>
+                
+                
+                
+                    <h4 style="font-family: var(--font-heading); margin-bottom: var(--space-md);">What to Bring</h4>
+                    <div class="prereq-item">
+                        <span>•</span>
+                        <span>4-6 pieces of 8mm rope (available for purchase at venue)</span>
+                    </div>
+                    <div class="prereq-item">
+                        <span>•</span>
+                        <span>Comfortable clothing that allows movement</span>
+                    </div>
+                    <div class="prereq-item">
+                        <span>•</span>
+                        <span>Water bottle and snacks</span>
+                    </div>
+                    <div class="prereq-item">
+                        <span>•</span>
+                        <span>Notebook for taking notes (optional)</span>
+                    </div>
+               
             </section>
             
-            <!-- Instructor -->
+            <!-- About Your Instructor -->
             <section class="content-section">
-                <h2 class="section-title">Your Instructor</h2>
-                <div class="teacher-card">
-                    <div class="teacher-avatar">RM</div>
+                <h2 class="section-title">About Your Instructor</h2>
+                <div class="teacher-box">
+                    <div class="teacher-avatar">AR</div>
                     <div class="teacher-info">
-                        <h3>River Moon</h3>
-                        <div class="teacher-title">Lead Instructor & Community Founder</div>
+                        <h3>Alex Rivers</h3>
                         <p class="teacher-bio">
-                            River has been practicing and teaching rope for over 8 years, with a focus on creating 
-                            safe, inclusive learning environments. They're passionate about making rope accessible 
-                            to people of all backgrounds and experience levels.
+                            Alex has been teaching rope bondage for over 8 years and is passionate about creating 
+                            inclusive, safety-focused learning environments. Known for their patient teaching style 
+                            and emphasis on consent culture, Alex makes learning accessible for all skill levels.
                         </p>
                     </div>
                 </div>
             </section>
+            
+            <!-- Important Policies -->
+            <section class="content-section">
+                <h2 class="section-title">Important Policies</h2>
+                <p class="description-text">
+                    <strong>Refund Policy:</strong> Full refund available up to 48 hours before the event. No refunds within 48 hours of start time.
+                </p>
+                <p class="description-text">
+                    <strong>Age Requirement:</strong> All participants must be 21 or older.
+                </p>
+                <p class="description-text">
+                    <strong>Code of Conduct:</strong> All attendees must follow our <a href="#" style="color: var(--color-burgundy); text-decoration: underline;">Code of Conduct</a>.
+                </p>
+            </section>
         </div>
         
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <!-- Event Details -->
-            <div class="sidebar-card">
-                <h3 class="sidebar-title">Event Details</h3>
-                <div class="detail-item">
-                    <span class="detail-label">Duration</span>
-                    <span class="detail-value">3 hours</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Experience Level</span>
-                    <span class="detail-value">Beginner</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Age Requirement</span>
-                    <span class="detail-value">18+</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Cancellation</span>
-                    <span class="detail-value">48h refund</span>
-                </div>
-            </div>
-            
-            <!-- Related Events -->
-            <div class="sidebar-card">
-                <h3 class="sidebar-title">Related Events</h3>
+        <!-- Right Column - Registration Card -->
+        <aside>
+            <div class="registration-card">
+                <div class="price-section">
+                    <div class="price-label">Sliding Scale Pricing</div>
+                    <div class="price-range">$35 - $65</div>
+                    <div class="price-note">Pay what you can afford</div>
+               
                 
-                <div class="related-event" onclick="viewEvent('advanced-shibari')">
-                    <div class="related-event-date">Mar 16</div>
-                    <div class="related-event-info">
-                        <h4>Advanced Shibari Techniques</h4>
-                        <div class="related-event-price">$45 per person</div>
+                <!-- Remaining Tickets -->
+                <div class="tickets-remaining">
+                    <span class="tickets-text"><span class="tickets-count">8</span> of 20 spots available</span>
+                    <div class="capacity-bar">
+                        <div class="capacity-fill" style="width: 60%;"></div>
+                    </div>
+                </div>
+
+                 <button class="btn-register">Purchase Tickets</button>
+                 </div>
+               
+                    <div class="slider-help">
+                        We use sliding scale pricing to make our classes accessible. Pay what you can afford within this range - no questions asked.
+                    </div>
+                
+                <div class="reg-details">
+                    <div class="reg-detail">
+                        <span class="reg-label">Date</span>
+                        <span class="reg-value">Feb 15, 2025</span>
+                    </div>
+                    <div class="reg-detail">
+                        <span class="reg-label">Time</span>
+                        <span class="reg-value">7:00 PM - 9:30 PM</span>
+                    </div>
+                    <div class="reg-detail">
+                        <span class="reg-label">Duration</span>
+                        <span class="reg-value">2.5 hours</span>
+                    </div>
+                    <div class="reg-detail">
+                        <span class="reg-label">Location</span>
+                        <span class="reg-value">Salem Studio</span>
+                    </div>
+                    <div class="reg-detail">
+                        <span class="reg-label">Capacity</span>
+                        <span class="reg-value">20 students</span>
+                    </div>
+                    <div class="reg-detail">
+                        <span class="reg-label">Available Spots</span>
+                        <span class="reg-value available">8 spots left</span>
                     </div>
                 </div>
                 
-                <div class="related-event" onclick="viewEvent('social-night')">
-                    <div class="related-event-date">Mar 21</div>
-                    <div class="related-event-info">
-                        <h4>Community Social & Practice</h4>
-                        <div class="related-event-price">Free RSVP</div>
-                    </div>
-                </div>
-                
-                <div class="related-event" onclick="viewEvent('intensive-weekend')">
-                    <div class="related-event-date">Mar 22-23</div>
-                    <div class="related-event-info">
-                        <h4>Rope Intensive Weekend</h4>
-                        <div class="related-event-price">$120-180 sliding scale</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Support -->
-            <div class="sidebar-card">
-                <h3 class="sidebar-title">Questions?</h3>
-                <div class="support-info">
-                    <p>Need help or have questions about this event?</p>
-                    <p>Contact us at:</p>
-                    <a href="mailto:events@witchcityrope.com" class="support-email">
-                        events@witchcityrope.com
-                    </a>
-                </div>
+               
             </div>
         </aside>
     </main>
     
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-links">
-            <a href="#" class="footer-link">Community Guidelines</a>
-            <a href="#" class="footer-link">Privacy Policy</a>
-            <a href="#" class="footer-link">Contact Us</a>
-            <a href="#" class="footer-link">Venue Info</a>
-        </div>
-        <p class="footer-text">
-            © 2024 WitchCityRope. A safe, inclusive community for rope bondage education in Salem, MA.
-        </p>
-    </footer>
-    
     <script>
-        function purchaseTicket() {
-            // In a real application, this would redirect to the payment flow
-            alert('Redirecting to secure ticket purchase...');
-            console.log('Purchase ticket for: Introduction to Rope Bondage');
-        }
-        
-        function viewEvent(eventId) {
-            console.log('Navigate to event:', eventId);
-            // In a real application, would navigate to the event details page
-        }
-        
-        // Add smooth scrolling for any internal links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth'
-                    });
-                }
-            });
+        // Add header scroll effect
+        window.addEventListener('scroll', function() {
+            const header = document.getElementById('header');
+            if (window.scrollY > 100) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
         });
         
-        // Handle CTA button interactions
-        document.addEventListener('DOMContentLoaded', function() {
-            // Track engagement
-            console.log('Event details page loaded for: Introduction to Rope Bondage');
-            
-            // Add click tracking for related events
-            document.querySelectorAll('.related-event').forEach(event => {
-                event.addEventListener('click', function() {
-                    const eventTitle = this.querySelector('h4').textContent;
-                    console.log('Interest in related event:', eventTitle);
-                });
+        // Mobile menu toggle
+        const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+        const nav = document.querySelector('.nav');
+        
+        if (mobileMenuToggle) {
+            mobileMenuToggle.addEventListener('click', function() {
+                nav.classList.toggle('active');
             });
-        });
+        }
+        
+        // Slider functionality
+        const slider = document.getElementById('priceSlider');
+        const sliderValue = document.querySelector('.slider-value');
+        
+        if (slider) {
+            slider.addEventListener('input', function() {
+                sliderValue.textContent = '$' + this.value;
+            });
+        }
     </script>
 </body>
 </html>

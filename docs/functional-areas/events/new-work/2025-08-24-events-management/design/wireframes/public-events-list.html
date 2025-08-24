@@ -3,25 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upcoming Events - WitchCityRope</title>
+    <title>Classes & Meetups - Witch City Rope</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,700;6..96,900&family=Montserrat:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;600&family=Satisfy&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         :root {
-            /* Design System v7 Colors */
+            /* Sensual Primary Colors */
             --color-burgundy: #880124;
             --color-burgundy-dark: #660018;
+            --color-burgundy-light: #9F1D35;
+            
+            /* Warm Metallics */
             --color-rose-gold: #B76D75;
+            --color-copper: #B87333;
+            --color-brass: #C9A961;
+            
+            /* CTA Accent Colors */
             --color-electric: #9D4EDD;
+            --color-electric-dark: #7B2CBF;
             --color-amber: #FFBF00;
+            --color-amber-dark: #FF8C00;
+            
+            /* Supporting Tones */
+            --color-dusty-rose: #D4A5A5;
+            --color-plum: #614B79;
             --color-midnight: #1A1A2E;
+            
+            /* Warm Neutrals */
             --color-charcoal: #2B2B2B;
-            --color-cream: #FAF6F2;
+            --color-smoke: #4A4A4A;
+            --color-stone: #8B8680;
+            --color-taupe: #B8B0A8;
             --color-ivory: #FFF8F0;
+            --color-cream: #FAF6F2;
+            
+            /* Status Colors */
             --color-success: #228B22;
             --color-warning: #DAA520;
             --color-error: #DC143C;
@@ -30,6 +45,7 @@
             --font-display: 'Bodoni Moda', serif;
             --font-heading: 'Montserrat', sans-serif;
             --font-body: 'Source Sans 3', sans-serif;
+            --font-accent: 'Satisfy', cursive;
             
             /* Spacing */
             --space-xs: 8px;
@@ -37,49 +53,144 @@
             --space-md: 24px;
             --space-lg: 32px;
             --space-xl: 40px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
         }
         
         body {
             font-family: var(--font-body);
-            background: var(--color-cream);
-            color: var(--color-charcoal);
             line-height: 1.6;
+            color: var(--color-charcoal);
+            background-color: var(--color-cream);
+            overflow-x: hidden;
         }
         
-        /* Navigation */
-        .header-nav {
+        /* Subtle rope pattern background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.03;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40,40 L80,80 L40,120 L80,160' stroke='%23880124' stroke-width='1' fill='none' opacity='0.5'/%3E%3Cpath d='M80,40 L120,80 L80,120 L120,160' stroke='%23880124' stroke-width='1' fill='none' opacity='0.5'/%3E%3Cpath d='M120,40 L160,80 L120,120 L160,160' stroke='%23880124' stroke-width='1' fill='none' opacity='0.5'/%3E%3C/svg%3E");
+            background-size: 200px 200px;
+            z-index: -1;
+        }
+        
+        /* Utility Bar */
+        .utility-bar {
             background: var(--color-midnight);
-            color: white;
-            padding: var(--space-md) var(--space-lg); /* Reduced from xl */
+            padding: 12px 40px;
+            font-size: 13px;
+            color: var(--color-taupe);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            font-family: var(--font-heading);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .utility-bar a {
+            color: var(--color-taupe);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            margin-left: var(--space-lg);
+        }
+        
+        .utility-bar a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--color-rose-gold);
+            transition: width 0.3s ease;
+        }
+        
+        .utility-bar a:hover {
+            color: var(--color-rose-gold);
+        }
+        
+        .utility-bar a:hover::after {
+            width: 100%;
+        }
+        
+        .utility-bar a.incident-link {
+            color: var(--color-brass);
+            font-weight: 600;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: rgba(255, 248, 240, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            padding: var(--space-sm) 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+        
+        .header.scrolled {
+            padding: 12px 40px;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.12);
         }
         
         .logo {
-            font-family: var(--font-display);
-            font-size: 2rem;
-            font-weight: 700;
-            color: white;
+            font-family: var(--font-heading);
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--color-burgundy);
             text-decoration: none;
+            letter-spacing: -0.5px;
+            transition: all 0.3s ease;
         }
         
-        .nav-links {
+        .logo:hover {
+            color: var(--color-burgundy-light);
+            transform: scale(1.02);
+        }
+        
+        .nav {
             display: flex;
-            gap: var(--space-lg);
+            gap: var(--space-xl);
+            align-items: center;
         }
         
-        .nav-link {
-            color: white;
+        .nav-item {
+            color: var(--color-charcoal);
             text-decoration: none;
             font-family: var(--font-heading);
             font-weight: 500;
-            transition: color 0.3s ease;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
             position: relative;
         }
         
-        .nav-link::after {
+        .nav-item::before {
             content: '';
             position: absolute;
             bottom: -4px;
@@ -87,894 +198,1125 @@
             transform: translateX(-50%);
             width: 0;
             height: 2px;
-            background: linear-gradient(90deg, transparent, var(--color-amber), transparent);
+            background: var(--color-burgundy);
             transition: width 0.3s ease;
         }
         
-        .nav-link:hover::after,
-        .nav-link.active::after {
+        .nav-item:hover {
+            color: var(--color-burgundy);
+        }
+        
+        .nav-item:hover::before {
             width: 100%;
         }
         
-        .nav-link.active {
-            color: var(--color-amber);
+        /* Mobile Menu Toggle */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
         }
         
-        /* Hero Section - REDUCED HEIGHT */
-        .hero-section {
-            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-burgundy-dark) 100%);
-            color: white;
-            text-align: center;
-            padding: var(--space-lg) var(--space-md); /* Reduced from var(--space-xl) */
+        .mobile-menu-toggle span {
+            display: block;
+            width: 28px;
+            height: 2px;
+            background: var(--color-burgundy);
+            margin: 6px 0;
+            transition: all 0.3s ease;
         }
         
-        .hero-title {
-            font-family: var(--font-display);
-            font-size: 2.5rem; /* Reduced from 3.5rem */
-            font-weight: 400;
-            margin-bottom: var(--space-sm); /* Reduced from var(--space-md) */
-        }
-        
-        .hero-subtitle {
-            font-family: var(--font-body);
-            font-size: 1.1rem; /* Reduced from 1.3rem */
-            opacity: 0.9;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        /* Main Content */
-        .main-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: var(--space-lg) var(--space-md); /* Reduced from var(--space-xl) */
-        }
-        
-        /* Filters Section */
-        .filters-section {
-            background: white;
-            padding: var(--space-md); /* Reduced from var(--space-lg) */
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            margin-bottom: var(--space-lg); /* Reduced from var(--space-xl) */
-        }
-        
-        .filters-title {
+        /* Luxury Button Styles */
+        .btn {
+            padding: 14px 32px;
+            border-radius: 4px;
+            text-decoration: none;
             font-family: var(--font-heading);
-            font-size: 1.2rem;
             font-weight: 600;
-            color: var(--color-burgundy);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: all 0.4s ease;
+            display: inline-block;
+            cursor: pointer;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+            color: var(--color-midnight);
+            box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+            font-weight: 700;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(255, 191, 0, 0.5);
+            background: linear-gradient(135deg, var(--color-amber-dark) 0%, var(--color-amber) 100%);
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+        
+        /* Alternative primary button with electric purple */
+        .btn-primary-alt {
+            background: linear-gradient(135deg, var(--color-electric) 0%, var(--color-electric-dark) 100%);
+            color: var(--color-ivory);
+            box-shadow: 0 4px 15px rgba(157, 78, 221, 0.4);
+            font-weight: 700;
+        }
+        
+        .btn-primary-alt:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(157, 78, 221, 0.5);
+            background: linear-gradient(135deg, var(--color-electric-dark) 0%, var(--color-electric) 100%);
+        }
+        
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
+            padding: calc(var(--space-3xl) * 0.75) var(--space-xl);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(45deg);
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .hero h1 {
+            font-family: var(--font-heading);
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--color-ivory);
             margin-bottom: var(--space-md);
         }
         
-        .filter-options {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--space-md);
-        }
-        
-        .filter-group label {
-            display: block;
-            margin-bottom: var(--space-xs);
-            font-family: var(--font-heading);
-            font-weight: 500;
-            color: var(--color-charcoal);
-        }
-        
-        .filter-select {
-            width: 100%;
-            padding: var(--space-sm);
-            border: 2px solid var(--color-rose-gold);
-            border-radius: 12px;
-            background: var(--color-cream);
-            font-family: var(--font-body);
-            font-size: 1rem;
-            color: var(--color-charcoal);
-            transition: all 0.3s ease;
-        }
-        
-        .filter-select:focus {
-            outline: none;
-            border-color: var(--color-burgundy);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(136, 1, 36, 0.2);
-        }
-        
-        /* Events Grid */
-        .events-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: var(--space-lg);
+        .hero p {
+            font-size: 20px;
+            color: var(--color-dusty-rose);
             margin-bottom: var(--space-xl);
         }
         
+        /* Filter Bar */
+        .filter-bar {
+            background: var(--color-ivory);
+            padding: var(--space-md) var(--space-xl);
+            border-bottom: 1px solid var(--color-taupe);
+            position: sticky;
+            top: 80px;
+            z-index: 90;
+        }
+        
+        .filter-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--space-md);
+        }
+        
+        .filter-tabs {
+            display: flex;
+            gap: var(--space-sm);
+        }
+        
+        .filter-tab {
+            padding: var(--space-xs) var(--space-md);
+            background: transparent;
+            border: 2px solid var(--color-taupe);
+            border-radius: 25px;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-charcoal);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .filter-tab::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--color-burgundy);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+        
+        .filter-tab.active {
+            background: var(--color-burgundy);
+            color: var(--color-ivory);
+            border-color: var(--color-burgundy);
+        }
+        
+        .filter-tab:hover:not(.active) {
+            border-color: var(--color-burgundy);
+            color: var(--color-burgundy);
+        }
+        
+        .filter-tab:hover:not(.active)::before {
+            left: 0;
+        }
+        
+        .filter-tab:hover:not(.active) {
+            color: var(--color-ivory);
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: var(--space-md);
+            align-items: center;
+        }
+        
+        .search-box {
+            position: relative;
+        }
+        
+        .search-input {
+            padding: var(--space-xs) var(--space-md);
+            padding-left: var(--space-xl);
+            border: 2px solid var(--color-taupe);
+            border-radius: 25px;
+            font-family: var(--font-body);
+            font-size: 14px;
+            width: 250px;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--color-burgundy);
+            width: 300px;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-stone);
+        }
+        
+        /* View Toggle */
+        .view-toggle {
+            display: flex;
+            gap: var(--space-sm);
+            background: var(--color-cream);
+            border-radius: 25px;
+            padding: 4px;
+        }
+        
+        .view-btn {
+            padding: var(--space-xs) var(--space-md);
+            background: transparent;
+            border: none;
+            border-radius: 20px;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-charcoal);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .view-btn.active {
+            background: var(--color-burgundy);
+            color: var(--color-ivory);
+        }
+        
+        /* Main Content */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--space-xl);
+        }
+        
+        /* Event Grid */
+        .event-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: var(--space-lg);
+            margin-bottom: var(--space-2xl);
+        }
+        
+        .event-grid.hidden {
+            display: none;
+        }
+        
+        /* Event Card */
         .event-card {
-            background: white;
+            background: var(--color-ivory);
             border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             transition: all 0.3s ease;
-            border: 2px solid transparent;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(183, 109, 117, 0.1);
+            position: relative;
+            height: 100%;
+        }
+        
+        .event-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 30%, rgba(183, 109, 117, 0.1) 50%, transparent 70%);
+            transform: rotate(45deg);
+            transition: all 0.5s;
+            opacity: 0;
         }
         
         .event-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 16px 48px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
             border-color: var(--color-rose-gold);
         }
         
+        .event-card:hover::before {
+            animation: shimmer 0.5s ease;
+            opacity: 1;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: rotate(45deg) translateX(-100%); }
+            100% { transform: rotate(45deg) translateX(100%); }
+        }
+        
         .event-image {
-            width: 100%;
-            height: 200px;
-            background: linear-gradient(135deg, var(--color-rose-gold) 0%, var(--color-burgundy) 100%);
+            height: 100px;
+            background: linear-gradient(135deg, var(--color-plum) 0%, var(--color-burgundy) 100%);
+            position: relative;
+            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-family: var(--font-display);
-            font-size: 2rem;
-            font-weight: 400;
-            position: relative;
+            padding: var(--space-md);
         }
         
-        .event-type-badge {
+        .event-image::before {
+            content: '';
             position: absolute;
-            top: var(--space-sm);
-            right: var(--space-sm);
-            background: rgba(255, 255, 255, 0.9);
-            color: var(--color-burgundy);
-            padding: 4px var(--space-sm);
-            border-radius: 12px;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10,50 Q30,20 50,50 T90,50' stroke='%23FFFFFF' stroke-width='0.5' fill='none' opacity='0.2'/%3E%3C/svg%3E");
+            background-size: 200px 200px;
+        }
+        
+        .event-image-title {
             font-family: var(--font-heading);
-            font-weight: 600;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--color-ivory);
+            line-height: 1.3;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
         
         .event-content {
-            padding: var(--space-lg);
+            padding: var(--space-md) var(--space-lg);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
         
         .event-date {
             font-family: var(--font-heading);
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--color-rose-gold);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: var(--space-sm);
-        }
-        
-        .event-title {
-            font-family: var(--font-display);
-            font-size: 1.5rem;
-            font-weight: 600;
+            font-size: 16px;
+            font-weight: 700;
             color: var(--color-burgundy);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             margin-bottom: var(--space-sm);
-            line-height: 1.3;
         }
         
         .event-description {
-            color: var(--color-charcoal);
-            opacity: 0.8;
-            margin-bottom: var(--space-md);
+            color: var(--color-stone);
+            font-size: 15px;
             line-height: 1.6;
-        }
-        
-        .event-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             margin-bottom: var(--space-md);
-            font-size: 0.9rem;
-        }
-        
-        .event-time,
-        .event-capacity {
-            display: flex;
-            align-items: center;
-            gap: var(--space-xs);
-            color: var(--color-charcoal);
-            opacity: 0.7;
-        }
-        
-        .teacher-info {
-            display: flex;
-            align-items: center;
-            gap: var(--space-sm);
-            margin-bottom: var(--space-md);
-            padding: var(--space-sm);
-            background: var(--color-ivory);
-            border-radius: 8px;
-        }
-        
-        .teacher-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--color-rose-gold);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-family: var(--font-heading);
-            font-weight: 600;
-        }
-        
-        .teacher-details {
             flex: 1;
         }
         
-        .teacher-name {
-            font-family: var(--font-heading);
-            font-weight: 600;
-            color: var(--color-burgundy);
-            font-size: 0.9rem;
+        .event-details {
+            display: flex;
+            gap: var(--space-md);
+            font-size: 14px;
+            color: var(--color-smoke);
+            margin-bottom: var(--space-sm);
+            flex-wrap: wrap;
         }
         
-        .teacher-title {
-            font-size: 0.8rem;
-            color: var(--color-charcoal);
-            opacity: 0.7;
+        .event-detail {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
         }
         
-        .pricing-info {
+        .event-footer {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: var(--space-md);
+            padding-top: var(--space-sm);
+            margin-top: auto;
+            border-top: 1px solid var(--color-taupe);
         }
         
         .event-price {
             font-family: var(--font-heading);
-            font-size: 1.2rem;
+            font-size: 18px;
             font-weight: 700;
             color: var(--color-burgundy);
         }
         
-        .price-type {
-            font-size: 0.75rem;
-            color: var(--color-charcoal);
-            opacity: 0.6;
+        .event-status {
+            font-size: 14px;
+            font-weight: 600;
         }
         
-        .capacity-info {
-            font-size: 0.85rem;
-            color: var(--color-charcoal);
-            opacity: 0.7;
-        }
-        
-        .spots-available {
+        .event-status.available {
             color: var(--color-success);
-            font-weight: 600;
         }
         
-        .spots-limited {
+        .event-status.limited {
             color: var(--color-warning);
-            font-weight: 600;
         }
         
-        .spots-full {
+        .event-status.full {
             color: var(--color-error);
-            font-weight: 600;
         }
         
-        /* Action Buttons - FIXED COLORS */
+        /* Event Actions */
         .event-actions {
             display: flex;
             gap: var(--space-sm);
-        }
-        
-        .btn {
-            padding: var(--space-sm) var(--space-md);
-            border-radius: 12px 6px 12px 6px; /* Signature asymmetric corners */
-            font-family: var(--font-heading);
-            font-weight: 600;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: var(--space-xs);
-            flex: 1;
+            margin-top: var(--space-md);
             justify-content: center;
+            padding-bottom: var(--space-xs);
         }
         
-        .btn:hover {
-            border-radius: 6px 12px 6px 12px; /* Signature corner morphing */
-            transform: scale(1.02);
+        .event-card .btn {
+            padding: 10px 24px;
+            font-size: 13px;
+            letter-spacing: 1px;
         }
         
-        /* PRIMARY BUTTON - AMBER GRADIENT (NO PURPLE!) */
-        .btn-primary {
-            background: linear-gradient(135deg, var(--color-amber) 0%, #DAA520 100%);
-            color: var(--color-charcoal);
-            box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
-        }
-        
-        /* SECONDARY BUTTON - BURGUNDY OUTLINE */
         .btn-secondary {
-            background: white;
+            background: transparent;
             color: var(--color-burgundy);
             border: 2px solid var(--color-burgundy);
+            box-shadow: none;
         }
         
         .btn-secondary:hover {
             background: var(--color-burgundy);
-            color: white;
+            color: var(--color-ivory);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(136, 1, 36, 0.3);
         }
         
-        /* DISABLED/FULL BUTTON */
         .btn-disabled {
-            background: rgba(43, 43, 43, 0.1);
-            color: rgba(43, 43, 43, 0.4);
+            background: var(--color-stone);
+            color: var(--color-ivory);
             cursor: not-allowed;
-            border: 2px solid rgba(43, 43, 43, 0.2);
+            opacity: 0.6;
+            box-shadow: none;
         }
         
         .btn-disabled:hover {
             transform: none;
-            border-radius: 12px 6px 12px 6px;
+            box-shadow: none;
+            background: var(--color-stone);
         }
         
-        /* Special Event Cards */
-        .event-card.featured {
-            border: 2px solid var(--color-amber);
+        .btn-waitlist {
+            background: var(--color-copper);
+            color: var(--color-ivory);
+            box-shadow: 0 4px 15px rgba(184, 115, 51, 0.3);
         }
         
-        .event-card.featured .event-image {
-            background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-burgundy) 100%);
+        .btn-waitlist:hover {
+            background: var(--color-brass);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(184, 115, 51, 0.4);
         }
         
-        .event-card.social .event-image {
-            background: linear-gradient(135deg, var(--color-electric) 0%, var(--color-burgundy) 100%);
-        }
-        
-        .event-card.full {
-            opacity: 0.7;
-        }
-        
-        .event-card.full .event-image {
-            background: linear-gradient(135deg, rgba(43, 43, 43, 0.6) 0%, rgba(43, 43, 43, 0.8) 100%);
-        }
-        
-        /* Newsletter Section */
-        .newsletter-section {
-            background: linear-gradient(135deg, var(--color-midnight) 0%, var(--color-burgundy-dark) 100%);
-            color: white;
+        /* Member Login Prompt */
+        .member-prompt {
+            background: linear-gradient(135deg, var(--color-ivory) 0%, var(--color-cream) 100%);
+            border: 2px dashed var(--color-rose-gold);
+            border-radius: 8px;
+            padding: var(--space-md);
             text-align: center;
-            padding: var(--space-xl);
-            border-radius: 16px;
-            margin-bottom: var(--space-xl);
-        }
-        
-        .newsletter-title {
-            font-family: var(--font-display);
-            font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: var(--space-sm);
-        }
-        
-        .newsletter-text {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            margin-bottom: var(--space-lg);
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .newsletter-form {
-            display: flex;
-            gap: var(--space-sm);
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        
-        .newsletter-input {
-            flex: 1;
-            padding: var(--space-sm) var(--space-md);
-            border: none;
-            border-radius: 12px;
-            font-family: var(--font-body);
-            font-size: 1rem;
-            background: white;
+            margin-top: var(--space-md);
             color: var(--color-charcoal);
+            font-size: 14px;
         }
         
-        .newsletter-btn {
-            background: linear-gradient(135deg, var(--color-amber) 0%, #DAA520 100%);
-            color: var(--color-charcoal);
-            border: none;
-            padding: var(--space-sm) var(--space-lg);
-            border-radius: 12px 6px 12px 6px;
-            font-family: var(--font-heading);
+        .member-prompt a {
+            color: var(--color-burgundy);
             font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
+            text-decoration: none;
             transition: all 0.3s ease;
         }
         
-        .newsletter-btn:hover {
-            border-radius: 6px 12px 6px 12px;
-            transform: scale(1.02);
+        .member-prompt a:hover {
+            color: var(--color-burgundy-light);
+            text-decoration: underline;
         }
         
-        /* Footer */
-        .footer {
-            background: var(--color-midnight);
-            color: white;
-            text-align: center;
-            padding: var(--space-xl);
-        }
-        
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: var(--space-lg);
-            margin-bottom: var(--space-lg);
-        }
-        
-        .footer-link {
-            color: white;
-            text-decoration: none;
+        /* Event Type Badge */
+        .event-type-badge {
+            position: absolute;
+            top: var(--space-sm);
+            right: var(--space-sm);
+            background: var(--color-amber);
+            color: var(--color-midnight);
+            padding: 4px 12px;
+            border-radius: 20px;
             font-family: var(--font-heading);
-            font-weight: 500;
-            transition: color 0.3s ease;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 2;
         }
         
-        .footer-link:hover {
-            color: var(--color-amber);
+        .event-type-badge.intermediate {
+            background: var(--color-copper);
+            color: var(--color-ivory);
         }
         
-        .footer-text {
-            opacity: 0.7;
-            font-size: 0.9rem;
+        .event-type-badge.advanced {
+            background: var(--color-burgundy);
+            color: var(--color-ivory);
         }
         
-        /* Mobile Responsive */
+        /* List View */
+        .event-list {
+            background: var(--color-ivory);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid rgba(183, 109, 117, 0.1);
+        }
+        
+        .event-list.hidden {
+            display: none;
+        }
+        
+        .event-list-header {
+            background: rgba(183, 109, 117, 0.05);
+            padding: var(--space-md) var(--space-lg);
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 120px;
+            gap: var(--space-md);
+            font-family: var(--font-heading);
+            font-weight: 700;
+            color: var(--color-charcoal);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--color-taupe);
+        }
+        
+        .event-list-header > div:nth-child(2) {
+            cursor: pointer;
+            position: relative;
+            user-select: none;
+        }
+        
+        .event-list-header > div:nth-child(2)::after {
+            content: ' ↕';
+            opacity: 0.5;
+            font-size: 12px;
+        }
+        
+        .event-list-row {
+            padding: var(--space-md) var(--space-lg);
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 120px;
+            gap: var(--space-md);
+            align-items: center;
+            border-bottom: 1px solid var(--color-cream);
+            transition: all 0.3s ease;
+        }
+        
+        .event-list-row:nth-child(even) {
+            background: rgba(183, 109, 117, 0.04);
+        }
+        
+        .event-list-row:hover {
+            background: rgba(183, 109, 117, 0.08);
+            transform: translateX(2px);
+        }
+        
+        .event-list-row:last-child {
+            border-bottom: none;
+        }
+        
+        .event-list-title {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            color: var(--color-charcoal);
+            font-size: 16px;
+        }
+        
+        .event-list-description {
+            color: var(--color-stone);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        
+        .event-list-date {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-burgundy);
+            font-size: 14px;
+        }
+        
+        .event-list-price {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            color: var(--color-burgundy);
+            font-size: 16px;
+        }
+        
+        .event-list-availability {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .event-list-availability.available {
+            color: var(--color-success);
+        }
+        
+        .event-list-availability.limited {
+            color: var(--color-warning);
+        }
+        
+        .event-list-availability.full {
+            color: var(--color-error);
+        }
+        
+        .event-list .btn {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: var(--space-3xl);
+            color: var(--color-stone);
+        }
+        
+        .empty-icon {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--color-ivory) 0%, var(--color-cream) 100%);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--space-lg);
+            font-size: 48px;
+            color: var(--color-burgundy);
+            box-shadow: 0 4px 15px rgba(183, 109, 117, 0.2);
+        }
+        
+        .empty-title {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-sm);
+        }
+        
+        .empty-text {
+            font-size: 18px;
+            margin-bottom: var(--space-xl);
+        }
+        
+        /* Responsive */
         @media (max-width: 768px) {
-            .header-nav {
+            .utility-bar {
+                padding: 10px 20px;
+                font-size: 11px;
+            }
+            
+            .header {
+                padding: var(--space-sm) 20px;
+            }
+            
+            .logo {
+                font-size: 28px;
+            }
+            .header-content {
                 flex-direction: column;
                 gap: var(--space-md);
             }
             
-            .nav-links {
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: var(--space-md);
-            }
-            
-            .hero-title {
-                font-size: 2rem;
-            }
-            
-            .main-content {
+            .nav {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(255, 248, 240, 0.98);
+                flex-direction: column;
                 padding: var(--space-md);
-            }
-            
-            .events-grid {
-                grid-template-columns: 1fr;
                 gap: var(--space-md);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             }
             
-            .filter-options {
+            .nav.active {
+                display: flex;
+            }
+            
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .hero h1 {
+                font-size: 36px;
+            }
+            
+            .filter-content {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-input {
+                width: 100%;
+            }
+            
+            .event-grid {
                 grid-template-columns: 1fr;
             }
             
-            .newsletter-form {
-                flex-direction: column;
+            .event-list-header,
+            .event-list-row {
+                grid-template-columns: 1fr;
+                gap: var(--space-xs);
             }
             
-            .footer-links {
+            .event-list-header {
+                display: none;
+            }
+            
+            .event-list-row {
                 flex-direction: column;
-                gap: var(--space-md);
+                align-items: flex-start;
+                padding: var(--space-md);
             }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation Header -->
-    <nav class="header-nav">
-        <a href="#" class="logo">WitchCityRope</a>
-        <div class="nav-links">
-            <a href="#" class="nav-link active">Events</a>
-            <a href="#" class="nav-link">Community</a>
-            <a href="#" class="nav-link">Learn</a>
-            <a href="#" class="nav-link">About</a>
-            <a href="#" class="nav-link">Login</a>
-        </div>
-    </nav>
+    <!-- Utility Bar -->
+    <div class="utility-bar">
+        <a href="#" class="incident-link">Report an Incident</a>
+        <a href="#">Private Lessons</a>
+        <a href="#">Contact</a>
+    </div>
     
-    <!-- Hero Section - REDUCED HEIGHT -->
-    <section class="hero-section">
-        <h1 class="hero-title">Upcoming Events</h1>
-        <p class="hero-subtitle">Join our community for workshops, social events, and rope education in Salem, Massachusetts</p>
+    <!-- Header -->
+    <header class="header" id="header">
+        <a href="landing-page-visual-v2.html" class="logo">WITCH CITY ROPE</a>
+        <nav class="nav">
+            <a href="event-list-visual.html" class="nav-item">Events & Classes</a>
+            <a href="vetting-application.html" class="nav-item">How to Join</a>
+            <a href="#" class="nav-item">Resources</a>
+            <a href="auth-login-register-visual.html" class="btn btn-primary">Login</a>
+        </nav>
+        <button class="mobile-menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
+    
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Explore Classes & Meetups</h1>
+            <p>Learn rope bondage in a safe, inclusive environment with experienced instructors</p>
+        </div>
     </section>
     
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div class="filter-content">
+            <div class="filter-tabs">
+                <button class="filter-tab">Show Past Classes</button>
+            </div>
+            
+            <div class="filter-controls">
+                <div class="view-toggle">
+                    <button class="view-btn active" onclick="showCardView()">Card View</button>
+                    <button class="view-btn" onclick="showListView()">List View</button>
+                </div>
+                
+                <div class="search-box">
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                    </svg>
+                    <input type="text" class="search-input" placeholder="Search events...">
+                </div>
+                
+                <select style="padding: var(--space-xs) var(--space-md); border: 2px solid var(--color-taupe); border-radius: 25px; font-family: var(--font-body); font-size: 14px; background: var(--color-ivory); color: var(--color-charcoal); cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.borderColor='var(--color-burgundy)'" onmouseout="this.style.borderColor='var(--color-taupe)'">
+                    <option>Sort by Date</option>
+                    <option>Sort by Price</option>
+                    <option>Sort by Availability</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
     <!-- Main Content -->
-    <main class="main-content">
-        <!-- Filters Section -->
-        <section class="filters-section">
-            <h2 class="filters-title">Find Your Event</h2>
-            <div class="filter-options">
-                <div class="filter-group">
-                    <label for="event-type">Event Type</label>
-                    <select id="event-type" class="filter-select">
-                        <option value="">All Events</option>
-                        <option value="workshop">Workshops</option>
-                        <option value="social">Social Events</option>
-                        <option value="intensive">Intensives</option>
-                    </select>
+    <main class="main-container">
+        <!-- Event Grid -->
+        <div class="event-grid" id="cardView">
+            <!-- Event Card 1 - Public Class -->
+            <div class="event-card">
+                <div class="event-image">
+                    <h3 class="event-image-title">Introduction to Rope Bondage</h3>
                 </div>
-                <div class="filter-group">
-                    <label for="experience-level">Experience Level</label>
-                    <select id="experience-level" class="filter-select">
-                        <option value="">All Levels</option>
-                        <option value="beginner">Beginner</option>
-                        <option value="intermediate">Intermediate</option>
-                        <option value="advanced">Advanced</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="date-range">Date Range</label>
-                    <select id="date-range" class="filter-select">
-                        <option value="">Anytime</option>
-                        <option value="this-week">This Week</option>
-                        <option value="next-week">Next Week</option>
-                        <option value="this-month">This Month</option>
-                    </select>
+                <div class="event-content">
+                    <div class="event-date">Saturday, February 15 • 7:00 PM</div>
+                    <p class="event-description">Perfect for beginners! Learn basic ties, safety protocols, and communication skills in a supportive environment.</p>
+                    <div class="event-details">
+                    </div>
+                    <div class="event-footer">
+                        <span class="event-price">$35-65 sliding scale</span>
+                        <span class="event-status available">8 spots left</span>
+                    </div>
+                    <div class="event-actions">
+                        <a href="event-detail-visual.html" class="btn btn-primary">Learn More</a>
+                    </div>
                 </div>
             </div>
-        </section>
-        
-        <!-- Events Grid -->
-        <section class="events-grid">
-            <!-- Featured Workshop Event -->
-            <article class="event-card featured">
-                <div class="event-image">
-                    <span class="event-type-badge">Featured</span>
-                    Rope Basics
-                </div>
-                <div class="event-content">
-                    <div class="event-date">Saturday, March 15 • 2:00 PM - 5:00 PM</div>
-                    <h3 class="event-title">Introduction to Rope Bondage</h3>
-                    <p class="event-description">
-                        Learn the fundamentals of rope bondage in a safe, supportive environment. 
-                        Perfect for complete beginners who want to explore this beautiful art form.
-                    </p>
-                    
-                    <div class="event-meta">
-                        <div class="event-time">⏰ 3 hours</div>
-                        <div class="event-capacity">👥 15/25 spots</div>
-                    </div>
-                    
-                    <div class="teacher-info">
-                        <div class="teacher-avatar">RM</div>
-                        <div class="teacher-details">
-                            <div class="teacher-name">River Moon</div>
-                            <div class="teacher-title">Lead Instructor</div>
-                        </div>
-                    </div>
-                    
-                    <div class="pricing-info">
-                        <div class="event-price">
-                            $35 <span class="price-type">per person</span>
-                        </div>
-                        <div class="capacity-info">
-                            <span class="spots-available">10 spots available</span>
-                        </div>
-                    </div>
-                    
-                    <div class="event-actions">
-                        <button class="btn btn-primary">Learn More</button>
-                    </div>
-                </div>
-            </article>
             
-            <!-- Advanced Workshop -->
-            <article class="event-card">
+            <!-- Event Card 2 - Member Only Event (Guest View) -->
+            <div class="event-card">
                 <div class="event-image">
-                    <span class="event-type-badge">Workshop</span>
-                    Advanced Shibari
+                    <h3 class="event-image-title">February Rope Jam</h3>
                 </div>
                 <div class="event-content">
-                    <div class="event-date">Sunday, March 16 • 1:00 PM - 4:00 PM</div>
-                    <h3 class="event-title">Advanced Shibari Techniques</h3>
-                    <p class="event-description">
-                        Dive deep into complex shibari patterns and transitions. Prerequisite: 
-                        Completion of intermediate workshops or equivalent experience.
-                    </p>
-                    
-                    <div class="event-meta">
-                        <div class="event-time">⏰ 3 hours</div>
-                        <div class="event-capacity">👥 3/15 spots</div>
+                    <div class="event-date">Saturday, February 22 • 6:00 PM</div>
+                    <p class="event-description" style="opacity: 0.7; font-style: italic;">Monthly practice space for vetted members. Join our community for...</p>
+                    <div class="event-footer">
+                        <span class="event-price">Free with RSVP</span>
+                        <span class="event-status available">Open</span>
                     </div>
-                    
-                    <div class="teacher-info">
-                        <div class="teacher-avatar">SC</div>
-                        <div class="teacher-details">
-                            <div class="teacher-name">Sky Chen</div>
-                            <div class="teacher-title">Shibari Master</div>
-                        </div>
-                    </div>
-                    
-                    <div class="pricing-info">
-                        <div class="event-price">
-                            $45 <span class="price-type">per person</span>
-                        </div>
-                        <div class="capacity-info">
-                            <span class="spots-limited">12 spots available</span>
-                        </div>
-                    </div>
-                    
                     <div class="event-actions">
-                        <button class="btn btn-primary">Learn More</button>
+                        <a href="auth-login-register-visual.html" class="btn btn-secondary">Login</a>
+                        <a href="vetting-application.html" class="btn btn-primary">Become a Member</a>
                     </div>
                 </div>
-            </article>
+            </div>
             
-            <!-- Social Event -->
-            <article class="event-card social">
+            <!-- Event Card 3 - Public Class with Limited Spots -->
+            <div class="event-card">
                 <div class="event-image">
-                    <span class="event-type-badge">Social</span>
-                    Community Night
+                    <h3 class="event-image-title">Intermediate Suspension Workshop</h3>
                 </div>
                 <div class="event-content">
-                    <div class="event-date">Friday, March 21 • 7:00 PM - 10:00 PM</div>
-                    <h3 class="event-title">Community Social & Practice Night</h3>
-                    <p class="event-description">
-                        Join fellow rope enthusiasts for an evening of practice, connection, and community. 
-                        All skill levels welcome. Light refreshments provided.
-                    </p>
-                    
-                    <div class="event-meta">
-                        <div class="event-time">⏰ 3 hours</div>
-                        <div class="event-capacity">👥 27/60 spots</div>
+                    <div class="event-date">Saturday, March 1 • 2:00 PM</div>
+                    <p class="event-description">Take your skills to new heights! Learn suspension basics with focus on safety and proper technique.</p>
+                    <div class="event-details">
                     </div>
-                    
-                    <div class="pricing-info">
-                        <div class="event-price">
-                            Free <span class="price-type">RSVP required</span>
-                        </div>
-                        <div class="capacity-info">
-                            <span class="spots-available">33 spots available</span>
-                        </div>
+                    <div class="event-footer">
+                        <span class="event-price">$65-95 per person</span>
+                        <span class="event-status limited">Only 2 spots left!</span>
                     </div>
-                    
                     <div class="event-actions">
-                        <button class="btn btn-primary">Learn More</button>
+                        <a href="event-detail-visual.html" class="btn btn-primary">Learn More</a>
                     </div>
                 </div>
-            </article>
+            </div>
             
-            <!-- Intensive Weekend -->
-            <article class="event-card">
+            <!-- Event Card 4 - Public Class -->
+            <div class="event-card">
                 <div class="event-image">
-                    <span class="event-type-badge">Intensive</span>
-                    Weekend Retreat
+                    <h3 class="event-image-title">Floor Work Fundamentals</h3>
                 </div>
                 <div class="event-content">
-                    <div class="event-date">Sat-Sun, March 22-23 • 10:00 AM - 6:00 PM</div>
-                    <h3 class="event-title">Rope Intensive Weekend</h3>
-                    <p class="event-description">
-                        Immersive two-day experience covering fundamentals through intermediate techniques. 
-                        Includes meals and comprehensive learning materials.
-                    </p>
-                    
-                    <div class="event-meta">
-                        <div class="event-time">⏰ 2 days</div>
-                        <div class="event-capacity">👥 2/12 spots</div>
+                    <div class="event-date">Saturday, March 8 • 7:00 PM</div>
+                    <p class="event-description">Master the art of floor-based bondage. Perfect for those wanting to build strong foundational skills.</p>
+                    <div class="event-details">
                     </div>
-                    
-                    <div class="teacher-info">
-                        <div class="teacher-avatar">RM</div>
-                        <div class="teacher-details">
-                            <div class="teacher-name">River Moon & Sky Chen</div>
-                            <div class="teacher-title">Co-Instructors</div>
-                        </div>
+                    <div class="event-footer">
+                        <span class="event-price">$35-65 sliding scale</span>
+                        <span class="event-status available">12 spots left</span>
                     </div>
-                    
-                    <div class="pricing-info">
-                        <div class="event-price">
-                            $120-180 <span class="price-type">sliding scale</span>
-                        </div>
-                        <div class="capacity-info">
-                            <span class="spots-limited">10 spots available</span>
-                        </div>
-                    </div>
-                    
                     <div class="event-actions">
-                        <button class="btn btn-primary">Learn More</button>
+                        <a href="event-detail-visual.html" class="btn btn-primary">Learn More</a>
                     </div>
                 </div>
-            </article>
+            </div>
             
-            <!-- Full Event Example -->
-            <article class="event-card full">
+            <!-- Event Card 5 - Sold Out Public Class -->
+            <div class="event-card" style="opacity: 0.8;">
                 <div class="event-image">
-                    <span class="event-type-badge">Full</span>
-                    Safety Workshop
+                    <h3 class="event-image-title">Rope Safety & Anatomy</h3>
                 </div>
                 <div class="event-content">
-                    <div class="event-date">Saturday, March 8 • 2:00 PM - 4:00 PM</div>
-                    <h3 class="event-title">Rope Safety & Risk Awareness</h3>
-                    <p class="event-description">
-                        Essential workshop covering safety protocols, risk management, and emergency procedures. 
-                        Required for all community members.
-                    </p>
-                    
-                    <div class="event-meta">
-                        <div class="event-time">⏰ 2 hours</div>
-                        <div class="event-capacity">👥 20/20 spots</div>
+                    <div class="event-date">Saturday, March 15 • 2:00 PM</div>
+                    <p class="event-description">Essential knowledge for all rope practitioners. Learn anatomy, nerve paths, and emergency procedures.</p>
+                    <div class="event-details">
                     </div>
-                    
-                    <div class="teacher-info">
-                        <div class="teacher-avatar">SW</div>
-                        <div class="teacher-details">
-                            <div class="teacher-name">Sage Williams</div>
-                            <div class="teacher-title">Safety Instructor</div>
-                        </div>
+                    <div class="event-footer">
+                        <span class="event-price">$35-65 sliding scale</span>
+                        <span class="event-status full">Sold Out</span>
                     </div>
-                    
-                    <div class="pricing-info">
-                        <div class="event-price">
-                            $25 <span class="price-type">per person</span>
-                        </div>
-                        <div class="capacity-info">
-                            <span class="spots-full">Event Full</span>
-                        </div>
-                    </div>
-                    
                     <div class="event-actions">
-                        <button class="btn btn-secondary">Join Waitlist</button>
+                        <a href="event-detail-visual.html" class="btn btn-primary">Learn More</a>
                     </div>
                 </div>
-            </article>
+            </div>
             
-            <!-- Beginner Workshop -->
-            <article class="event-card">
+            <!-- Event Card 6 - Member Event (Member View) -->
+            <div class="event-card" style="border: 2px solid var(--color-rose-gold);">
                 <div class="event-image">
-                    <span class="event-type-badge">Workshop</span>
-                    Beginner Friendly
+                    <h3 class="event-image-title">March Rope Jam</h3>
                 </div>
                 <div class="event-content">
-                    <div class="event-date">Saturday, March 29 • 1:00 PM - 4:00 PM</div>
-                    <h3 class="event-title">Single Column Ties & Basics</h3>
-                    <p class="event-description">
-                        Master the foundation of rope bondage with single column ties, basic safety, 
-                        and simple but beautiful patterns. No experience required.
-                    </p>
-                    
-                    <div class="event-meta">
-                        <div class="event-time">⏰ 3 hours</div>
-                        <div class="event-capacity">👥 8/20 spots</div>
+                    <div class="event-date">Saturday, March 22 • 6:00 PM</div>
+                    <p class="event-description">Monthly practice space for vetted members. Bring your rope and practice partners for a social evening. Light refreshments provided.</p>
+                    <div class="event-footer">
+                        <span class="event-price">Free with RSVP • $10-20 at door</span>
+                        <span class="event-status available">Open</span>
                     </div>
-                    
-                    <div class="teacher-info">
-                        <div class="teacher-avatar">LM</div>
-                        <div class="teacher-details">
-                            <div class="teacher-name">Luna Martinez</div>
-                            <div class="teacher-title">Workshop Leader</div>
-                        </div>
-                    </div>
-                    
-                    <div class="pricing-info">
-                        <div class="event-price">
-                            $30 <span class="price-type">per person</span>
-                        </div>
-                        <div class="capacity-info">
-                            <span class="spots-available">12 spots available</span>
-                        </div>
-                    </div>
-                    
                     <div class="event-actions">
-                        <button class="btn btn-primary">Learn More</button>
+                        <a href="event-detail-visual.html" class="btn btn-primary">Learn More</a>
                     </div>
                 </div>
-            </article>
-        </section>
-        
-        <!-- Newsletter Signup -->
-        <section class="newsletter-section">
-            <h2 class="newsletter-title">Stay Connected</h2>
-            <p class="newsletter-text">
-                Get notified about new events, workshops, and community updates. 
-                We respect your privacy and never share your information.
-            </p>
-            <form class="newsletter-form">
-                <input type="email" class="newsletter-input" placeholder="Enter your email" required>
-                <button type="submit" class="newsletter-btn">Subscribe</button>
-            </form>
-        </section>
+            </div>
+            
+            <!-- Event Card 7 - Past Event -->
+            <div class="event-card" style="opacity: 0.6;">
+                <div class="event-image">
+                    <span class="event-type-badge advanced">Advanced</span>
+                    <h3 class="event-image-title">Advanced Rope Intensive</h3>
+                </div>
+                <div class="event-content">
+                    <div class="event-date">Saturday, January 25 • 1:00 PM</div>
+                    <p class="event-description">Full-day intensive workshop for experienced practitioners. Complex patterns and advanced techniques.</p>
+                    <div class="event-details">
+                        <span class="event-detail">📚 Advanced Level</span>
+                    </div>
+                    <div class="event-footer">
+                        <span class="event-price">$95-125 per person</span>
+                        <span class="event-status full">Event Passed</span>
+                    </div>
+                    <div class="event-actions">
+                        <a href="event-detail-visual.html" class="btn btn-primary">Learn More</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Event Card 8 - Another Member Only Event (Guest View) -->
+            <div class="event-card">
+                <div class="event-image">
+                    <h3 class="event-image-title">April Rope Social</h3>
+                </div>
+                <div class="event-content">
+                    <div class="event-date">Saturday, April 5 • 6:00 PM</div>
+                    <p class="event-description" style="opacity: 0.7; font-style: italic;">Social evening for vetted community members. Practice, connect, and learn in a relaxed atmosphere...</p>
+                    <div class="event-footer">
+                        <span class="event-price">Free with RSVP</span>
+                        <span class="event-status available">Open</span>
+                    </div>
+                    <div class="event-actions">
+                        <a href="auth-login-register-visual.html" class="btn btn-secondary">Login</a>
+                        <a href="vetting-application.html" class="btn btn-primary">Become a Member</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event List View -->
+        <div class="event-list hidden" id="listView">
+            <div class="event-list-header">
+                <div>Details</div>
+                <div>Date</div>
+                <div>Price</div>
+                <div>Availability</div>
+                <div>Action</div>
+            </div>
+            
+            <div class="event-list-row">
+                <div>
+                    <div class="event-list-title">Introduction to Rope Bondage</div>
+                    <div class="event-list-description">Perfect for beginners! Learn basic ties, safety protocols, and communication skills in a supportive environment.</div>
+                </div>
+                <div class="event-list-date">Feb 15, 2025<br>7:00 PM</div>
+                <div class="event-list-price">$35-65</div>
+                <div class="event-list-availability available">8 spots left</div>
+                <div><a href="event-detail-visual.html" class="btn btn-primary">Learn More</a></div>
+            </div>
+            
+            <div class="event-list-row">
+                <div>
+                    <div class="event-list-title">February Rope Jam</div>
+                    <div class="event-list-description">Monthly practice space for vetted members. Join our community for...</div>
+                </div>
+                <div class="event-list-date">Feb 22, 2025<br>6:00 PM</div>
+                <div class="event-list-price">Free</div>
+                <div class="event-list-availability available">Open</div>
+                <div><a href="auth-login-register-visual.html" class="btn btn-secondary">Login</a></div>
+            </div>
+            
+            <div class="event-list-row">
+                <div>
+                    <div class="event-list-title">Intermediate Suspension Workshop</div>
+                    <div class="event-list-description">Take your skills to new heights! Learn suspension basics with focus on safety and proper technique.</div>
+                </div>
+                <div class="event-list-date">Mar 1, 2025<br>2:00 PM</div>
+                <div class="event-list-price">$65-95</div>
+                <div class="event-list-availability limited">2 spots left</div>
+                <div><a href="event-detail-visual.html" class="btn btn-primary">Learn More</a></div>
+            </div>
+            
+            <div class="event-list-row">
+                <div>
+                    <div class="event-list-title">Floor Work Fundamentals</div>
+                    <div class="event-list-description">Master the art of floor-based bondage. Perfect for those wanting to build strong foundational skills.</div>
+                </div>
+                <div class="event-list-date">Mar 8, 2025<br>7:00 PM</div>
+                <div class="event-list-price">$35-65</div>
+                <div class="event-list-availability available">12 spots left</div>
+                <div><a href="event-detail-visual.html" class="btn btn-primary">Learn More</a></div>
+            </div>
+            
+            <div class="event-list-row">
+                <div>
+                    <div class="event-list-title">Rope Safety & Anatomy</div>
+                    <div class="event-list-description">Essential knowledge for all rope practitioners. Learn anatomy, nerve paths, and emergency procedures.</div>
+                </div>
+                <div class="event-list-date">Mar 15, 2025<br>2:00 PM</div>
+                <div class="event-list-price">$35-65</div>
+                <div class="event-list-availability full">Sold Out</div>
+                <div><a href="event-detail-visual.html" class="btn btn-primary">Learn More</a></div>
+            </div>
+            
+            <div class="event-list-row">
+                <div>
+                    <div class="event-list-title">March Rope Jam</div>
+                    <div class="event-list-description">Monthly practice space for vetted members. Bring your rope and practice partners for a social evening.</div>
+                </div>
+                <div class="event-list-date">Mar 22, 2025<br>6:00 PM</div>
+                <div class="event-list-price">Free</div>
+                <div class="event-list-availability available">Open</div>
+                <div><a href="event-detail-visual.html" class="btn btn-primary">Learn More</a></div>
+            </div>
+            
+            <div class="event-list-row">
+                <div>
+                    <div class="event-list-title">Advanced Rope Intensive</div>
+                    <div class="event-list-description">Full-day intensive workshop for experienced practitioners. Complex patterns and advanced techniques.</div>
+                </div>
+                <div class="event-list-date">Jan 25, 2025<br>1:00 PM</div>
+                <div class="event-list-price">$95-125</div>
+                <div class="event-list-availability full">Event Passed</div>
+                <div><a href="event-detail-visual.html" class="btn btn-primary">Learn More</a></div>
+            </div>
+            
+            <div class="event-list-row">
+                <div>
+                    <div class="event-list-title">April Rope Social</div>
+                    <div class="event-list-description">Social evening for vetted community members. Practice, connect, and learn in a relaxed atmosphere...</div>
+                </div>
+                <div class="event-list-date">Apr 5, 2025<br>6:00 PM</div>
+                <div class="event-list-price">Free</div>
+                <div class="event-list-availability available">Open</div>
+                <div><a href="auth-login-register-visual.html" class="btn btn-secondary">Login</a></div>
+            </div>
+        </div>
     </main>
     
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-links">
-            <a href="#" class="footer-link">Community Guidelines</a>
-            <a href="#" class="footer-link">Privacy Policy</a>
-            <a href="#" class="footer-link">Contact Us</a>
-            <a href="#" class="footer-link">Venue Info</a>
-        </div>
-        <p class="footer-text">
-            © 2024 WitchCityRope. A safe, inclusive community for rope bondage education in Salem, MA.
-        </p>
-    </footer>
-    
     <script>
-        // Filter functionality
-        function initializeFilters() {
-            const filterSelects = document.querySelectorAll('.filter-select');
-            
-            filterSelects.forEach(select => {
-                select.addEventListener('change', applyFilters);
-            });
-        }
-        
-        function applyFilters() {
-            const eventType = document.getElementById('event-type').value;
-            const experienceLevel = document.getElementById('experience-level').value;
-            const dateRange = document.getElementById('date-range').value;
-            
-            const eventCards = document.querySelectorAll('.event-card');
-            
-            eventCards.forEach(card => {
-                let shouldShow = true;
-                
-                // Filter by event type
-                if (eventType) {
-                    const badge = card.querySelector('.event-type-badge');
-                    if (badge) {
-                        const cardType = badge.textContent.toLowerCase();
-                        if (eventType === 'workshop' && !cardType.includes('workshop') && cardType !== 'featured') {
-                            shouldShow = false;
-                        } else if (eventType === 'social' && cardType !== 'social') {
-                            shouldShow = false;
-                        } else if (eventType === 'intensive' && cardType !== 'intensive') {
-                            shouldShow = false;
-                        }
-                    }
-                }
-                
-                card.style.display = shouldShow ? 'block' : 'none';
-            });
-        }
-        
-        // Event actions
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeFilters();
-            
-            // Handle button clicks
-            document.querySelectorAll('.btn').forEach(button => {
-                button.addEventListener('click', function(e) {
-                    if (this.classList.contains('btn-disabled')) {
-                        e.preventDefault();
-                        return;
-                    }
-                    
-                    const eventTitle = this.closest('.event-card').querySelector('.event-title').textContent;
-                    console.log('Learn more about:', eventTitle);
-                    
-                    // In a real app, would navigate to event details
-                });
-            });
-            
-            // Newsletter form
-            document.querySelector('.newsletter-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const email = this.querySelector('.newsletter-input').value;
-                console.log('Subscribe email:', email);
-                alert('Thank you for subscribing! You\'ll receive updates about upcoming events.');
-                this.reset();
-            });
+        // Add header scroll effect
+        window.addEventListener('scroll', function() {
+            const header = document.getElementById('header');
+            if (window.scrollY > 100) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
         });
+        
+        // Mobile menu toggle
+        const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+        const nav = document.querySelector('.nav');
+        
+        if (mobileMenuToggle) {
+            mobileMenuToggle.addEventListener('click', function() {
+                nav.classList.toggle('active');
+            });
+        }
+        
+        // View toggle functionality
+        function showCardView() {
+            document.getElementById('cardView').classList.remove('hidden');
+            document.getElementById('listView').classList.add('hidden');
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+        
+        function showListView() {
+            document.getElementById('cardView').classList.add('hidden');
+            document.getElementById('listView').classList.remove('hidden');
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
     </script>
 </body>
 </html>
