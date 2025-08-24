@@ -736,129 +736,103 @@
             color: var(--color-ivory);
         }
         
-        /* Events Table - UPDATED TO MATCH ADMIN STYLING */
-        .events-table-container {
-            background: white;
-            border-radius: 12px;
+        /* List View */
+        .event-list {
+            background: var(--color-ivory);
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid rgba(183, 109, 117, 0.1);
         }
         
-        .events-table-container.hidden {
+        .event-list.hidden {
             display: none;
         }
         
-        .events-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .events-table th {
-            background: var(--color-burgundy);
-            color: white;
-            padding: var(--space-md);
-            text-align: left;
-            font-family: var(--font-heading);
-            font-weight: 600;
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            position: relative;
-            height: 50px;
-        }
-        
-        /* Only Date column is sortable */
-        .events-table th.sortable {
-            cursor: pointer;
-            user-select: none;
-        }
-        
-        .events-table th.sortable:hover {
-            background: var(--color-burgundy-dark);
-        }
-        
-        .sort-indicator {
-            margin-left: var(--space-xs);
-            opacity: 0.7;
-            transition: opacity 0.3s ease;
-        }
-        
-        .events-table th.sortable:hover .sort-indicator {
-            opacity: 1;
-        }
-        
-        .events-table td {
-            padding: var(--space-md);
-            border-bottom: 1px solid rgba(183, 109, 117, 0.2);
-            vertical-align: middle;
-            font-size: 1.1rem;
-        }
-        
-        /* More contrasted alternating row backgrounds */
-        .events-table tbody tr:nth-child(even) {
-            background: rgba(250, 246, 242, 0.8);
-        }
-        
-        .events-table tr:hover {
-            background: rgba(136, 1, 36, 0.08) !important;
-        }
-        
-        /* Column widths and styles */
-        .event-date-col {
-            font-family: var(--font-body);
-            font-weight: 600;
-            color: var(--color-charcoal);
-            width: 15%;
-        }
-        
-        .event-time-col {
-            font-family: var(--font-body);
-            font-weight: 500;
-            color: var(--color-charcoal);
-            width: 15%;
-        }
-        
-        .event-title-col {
-            font-family: var(--font-heading);
-            font-weight: 600;
-            color: var(--color-burgundy);
-            font-size: 1.2rem;
-            width: 35%;
-        }
-        
-        .event-price-col {
+        .event-list-header {
+            background: var(--color-cream);
+            padding: var(--space-md) var(--space-lg);
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 120px;
+            gap: var(--space-md);
             font-family: var(--font-heading);
             font-weight: 700;
-            color: var(--color-burgundy);
-            font-size: 1.3rem;
-            width: 15%;
-            text-align: center;
+            color: var(--color-charcoal);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
-        .actions-column {
-            width: 20%;
-            text-align: center;
-        }
-        
-        .action-btn {
-            background: var(--color-cream);
-            border: 2px solid var(--color-rose-gold);
-            color: var(--color-burgundy);
-            padding: 6px 12px;
-            margin: 0 4px;
-            border-radius: 8px 4px 8px 4px;
-            font-family: var(--font-heading);
-            font-weight: 500;
-            font-size: 0.85rem;
-            cursor: pointer;
+        .event-list-row {
+            padding: var(--space-md) var(--space-lg);
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 120px;
+            gap: var(--space-md);
+            align-items: center;
+            border-bottom: 1px solid var(--color-cream);
             transition: all 0.3s ease;
         }
         
-        .action-btn:hover {
-            border-radius: 4px 8px 4px 8px;
-            background: var(--color-burgundy);
-            color: white;
-            transform: scale(1.05);
+        .event-list-row:nth-child(even) {
+            background: rgba(183, 109, 117, 0.03);
+        }
+        
+        .event-list-row:hover {
+            background: rgba(183, 109, 117, 0.1);
+            transform: scale(1.005);
+        }
+        
+        .event-list-row:last-child {
+            border-bottom: none;
+        }
+        
+        .event-list-title {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            color: var(--color-charcoal);
+            font-size: 16px;
+        }
+        
+        .event-list-description {
+            color: var(--color-stone);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        
+        .event-list-date {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-burgundy);
+            font-size: 14px;
+        }
+        
+        .event-list-price {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            color: var(--color-burgundy);
+            font-size: 16px;
+        }
+        
+        .event-list-availability {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .event-list-availability.available {
+            color: var(--color-success);
+        }
+        
+        .event-list-availability.limited {
+            color: var(--color-warning);
+        }
+        
+        .event-list-availability.full {
+            color: var(--color-error);
+        }
+        
+        .event-list .btn {
+            padding: 8px 16px;
+            font-size: 12px;
         }
         
         /* Empty State */
@@ -953,18 +927,20 @@
                 grid-template-columns: 1fr;
             }
             
-            .events-table-container {
-                overflow-x: auto;
+            .event-list-header,
+            .event-list-row {
+                grid-template-columns: 1fr;
+                gap: var(--space-xs);
             }
             
-            .events-table {
-                min-width: 800px;
+            .event-list-header {
+                display: none;
             }
             
-            .action-btn {
-                margin: 2px;
-                font-size: 0.75rem;
-                padding: 4px 8px;
+            .event-list-row {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: var(--space-md);
             }
         }
     </style>
@@ -1043,6 +1019,7 @@
                     <div class="event-date">Saturday, February 15 • 7:00 PM</div>
                     <p class="event-description">Perfect for beginners! Learn basic ties, safety protocols, and communication skills in a supportive environment.</p>
                     <div class="event-details">
+                        <span class="event-detail">📚 Beginner</span>
                     </div>
                     <div class="event-footer">
                         <span class="event-price">$35-65 sliding scale</span>
@@ -1076,12 +1053,14 @@
             <!-- Event Card 3 - Public Class with Limited Spots -->
             <div class="event-card">
                 <div class="event-image">
+                    <span class="event-type-badge intermediate">Intermediate</span>
                     <h3 class="event-image-title">Intermediate Suspension Workshop</h3>
                 </div>
                 <div class="event-content">
                     <div class="event-date">Saturday, March 1 • 2:00 PM</div>
                     <p class="event-description">Take your skills to new heights! Learn suspension basics with focus on safety and proper technique.</p>
                     <div class="event-details">
+                        <span class="event-detail">📚 Intermediate</span>
                     </div>
                     <div class="event-footer">
                         <span class="event-price">$65-95 per person</span>
@@ -1102,6 +1081,7 @@
                     <div class="event-date">Saturday, March 8 • 7:00 PM</div>
                     <p class="event-description">Master the art of floor-based bondage. Perfect for those wanting to build strong foundational skills.</p>
                     <div class="event-details">
+                        <span class="event-detail">📚 All Levels</span>
                     </div>
                     <div class="event-footer">
                         <span class="event-price">$35-65 sliding scale</span>
@@ -1122,6 +1102,7 @@
                     <div class="event-date">Saturday, March 15 • 2:00 PM</div>
                     <p class="event-description">Essential knowledge for all rope practitioners. Learn anatomy, nerve paths, and emergency procedures.</p>
                     <div class="event-details">
+                        <span class="event-detail">📚 All Levels</span>
                     </div>
                     <div class="event-footer">
                         <span class="event-price">$35-65 sliding scale</span>
@@ -1193,95 +1174,103 @@
             </div>
         </div>
 
-        <!-- Event List View - UPDATED TO USE TABLE STRUCTURE -->
-        <div class="events-table-container hidden" id="listView">
-            <table class="events-table">
-                <thead>
-                    <tr>
-                        <th class="sortable" onclick="sortTable(0)">
-                            Date <span class="sort-indicator">↕</span>
-                        </th>
-                        <th>Time</th>
-                        <th>Event</th>
-                        <th>Price</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="event-date-col">Sat, Feb 15</td>
-                        <td class="event-time-col">7:00 PM</td>
-                        <td class="event-title-col">Introduction to Rope Bondage</td>
-                        <td class="event-price-col">$35-65</td>
-                        <td class="actions-column">
-                            <button class="action-btn">Learn More</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="event-date-col">Sat, Feb 22</td>
-                        <td class="event-time-col">6:00 PM</td>
-                        <td class="event-title-col">February Rope Jam</td>
-                        <td class="event-price-col">Free</td>
-                        <td class="actions-column">
-                            <button class="action-btn">Login</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="event-date-col">Sat, Mar 1</td>
-                        <td class="event-time-col">2:00 PM</td>
-                        <td class="event-title-col">Intermediate Suspension Workshop</td>
-                        <td class="event-price-col">$65-95</td>
-                        <td class="actions-column">
-                            <button class="action-btn">Learn More</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="event-date-col">Sat, Mar 8</td>
-                        <td class="event-time-col">7:00 PM</td>
-                        <td class="event-title-col">Floor Work Fundamentals</td>
-                        <td class="event-price-col">$35-65</td>
-                        <td class="actions-column">
-                            <button class="action-btn">Learn More</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="event-date-col">Sat, Mar 15</td>
-                        <td class="event-time-col">2:00 PM</td>
-                        <td class="event-title-col">Rope Safety & Anatomy</td>
-                        <td class="event-price-col">$35-65</td>
-                        <td class="actions-column">
-                            <button class="action-btn">Learn More</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="event-date-col">Sat, Mar 22</td>
-                        <td class="event-time-col">6:00 PM</td>
-                        <td class="event-title-col">March Rope Jam</td>
-                        <td class="event-price-col">Free</td>
-                        <td class="actions-column">
-                            <button class="action-btn">Learn More</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="event-date-col">Sat, Jan 25</td>
-                        <td class="event-time-col">1:00 PM</td>
-                        <td class="event-title-col">Advanced Rope Intensive</td>
-                        <td class="event-price-col">$95-125</td>
-                        <td class="actions-column">
-                            <button class="action-btn">Learn More</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="event-date-col">Sat, Apr 5</td>
-                        <td class="event-time-col">6:00 PM</td>
-                        <td class="event-title-col">April Rope Social</td>
-                        <td class="event-price-col">Free</td>
-                        <td class="actions-column">
-                            <button class="action-btn">Login</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <!-- Event List View -->
+        <div class="event-list hidden" id="listView">
+            <div class="event-list-header">
+                <div>Event</div>
+                <div>Date</div>
+                <div>Price</div>
+                <div>Availability</div>
+                <div>Action</div>
+            </div>
+            
+            <div class="event-list-row">
+                <div>
+                    <div class="event-list-title">Introduction to Rope Bondage</div>
+                    <div class="event-list-description">Perfect for beginners! Learn basic ties, safety protocols, and communication skills in a supportive environment.</div>
+                </div>
+                <div class="event-list-date">Feb 15, 2025<br>7:00 PM</div>
+                <div class="event-list-price">$35-65</div>
+                <div class="event-list-availability available">8 spots left</div>
+                <div><a href="event-detail-visual.html" class="btn btn-primary">Learn More</a></div>
+            </div>
+            
+            <div class="event-list-row">
+                <div>
+                    <div class="event-list-title">February Rope Jam</div>
+                    <div class="event-list-description">Monthly practice space for vetted members. Join our community for...</div>
+                </div>
+                <div class="event-list-date">Feb 22, 2025<br>6:00 PM</div>
+                <div class="event-list-price">Free</div>
+                <div class="event-list-availability available">Open</div>
+                <div><a href="auth-login-register-visual.html" class="btn btn-secondary">Login</a></div>
+            </div>
+            
+            <div class="event-list-row">
+                <div>
+                    <div class="event-list-title">Intermediate Suspension Workshop</div>
+                    <div class="event-list-description">Take your skills to new heights! Learn suspension basics with focus on safety and proper technique.</div>
+                </div>
+                <div class="event-list-date">Mar 1, 2025<br>2:00 PM</div>
+                <div class="event-list-price">$65-95</div>
+                <div class="event-list-availability limited">2 spots left</div>
+                <div><a href="event-detail-visual.html" class="btn btn-primary">Learn More</a></div>
+            </div>
+            
+            <div class="event-list-row">
+                <div>
+                    <div class="event-list-title">Floor Work Fundamentals</div>
+                    <div class="event-list-description">Master the art of floor-based bondage. Perfect for those wanting to build strong foundational skills.</div>
+                </div>
+                <div class="event-list-date">Mar 8, 2025<br>7:00 PM</div>
+                <div class="event-list-price">$35-65</div>
+                <div class="event-list-availability available">12 spots left</div>
+                <div><a href="event-detail-visual.html" class="btn btn-primary">Learn More</a></div>
+            </div>
+            
+            <div class="event-list-row">
+                <div>
+                    <div class="event-list-title">Rope Safety & Anatomy</div>
+                    <div class="event-list-description">Essential knowledge for all rope practitioners. Learn anatomy, nerve paths, and emergency procedures.</div>
+                </div>
+                <div class="event-list-date">Mar 15, 2025<br>2:00 PM</div>
+                <div class="event-list-price">$35-65</div>
+                <div class="event-list-availability full">Sold Out</div>
+                <div><a href="event-detail-visual.html" class="btn btn-primary">Learn More</a></div>
+            </div>
+            
+            <div class="event-list-row">
+                <div>
+                    <div class="event-list-title">March Rope Jam</div>
+                    <div class="event-list-description">Monthly practice space for vetted members. Bring your rope and practice partners for a social evening.</div>
+                </div>
+                <div class="event-list-date">Mar 22, 2025<br>6:00 PM</div>
+                <div class="event-list-price">Free</div>
+                <div class="event-list-availability available">Open</div>
+                <div><a href="event-detail-visual.html" class="btn btn-primary">Learn More</a></div>
+            </div>
+            
+            <div class="event-list-row">
+                <div>
+                    <div class="event-list-title">Advanced Rope Intensive</div>
+                    <div class="event-list-description">Full-day intensive workshop for experienced practitioners. Complex patterns and advanced techniques.</div>
+                </div>
+                <div class="event-list-date">Jan 25, 2025<br>1:00 PM</div>
+                <div class="event-list-price">$95-125</div>
+                <div class="event-list-availability full">Event Passed</div>
+                <div><a href="event-detail-visual.html" class="btn btn-primary">Learn More</a></div>
+            </div>
+            
+            <div class="event-list-row">
+                <div>
+                    <div class="event-list-title">April Rope Social</div>
+                    <div class="event-list-description">Social evening for vetted community members. Practice, connect, and learn in a relaxed atmosphere...</div>
+                </div>
+                <div class="event-list-date">Apr 5, 2025<br>6:00 PM</div>
+                <div class="event-list-price">Free</div>
+                <div class="event-list-availability available">Open</div>
+                <div><a href="auth-login-register-visual.html" class="btn btn-secondary">Login</a></div>
+            </div>
         </div>
     </main>
     
@@ -1320,64 +1309,6 @@
             document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
         }
-        
-        let sortOrder = {};
-        
-        function sortTable(columnIndex) {
-            const table = document.querySelector('.events-table');
-            const tbody = table.querySelector('tbody');
-            const rows = Array.from(tbody.querySelectorAll('tr'));
-            const headers = table.querySelectorAll('th.sortable');
-            
-            // Determine sort direction
-            const currentOrder = sortOrder[columnIndex] || 'asc';
-            const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
-            sortOrder[columnIndex] = newOrder;
-            
-            // Update sort indicators for sortable headers only
-            headers.forEach((header) => {
-                const indicator = header.querySelector('.sort-indicator');
-                if (indicator) {
-                    if (header.onclick.toString().includes(`sortTable(${columnIndex})`)) {
-                        indicator.textContent = newOrder === 'asc' ? '↑' : '↓';
-                    } else {
-                        indicator.textContent = '↕';
-                    }
-                }
-            });
-            
-            // Sort rows
-            rows.sort((a, b) => {
-                let aValue, bValue;
-                const cells = a.querySelectorAll('td');
-                const bCells = b.querySelectorAll('td');
-                
-                switch (columnIndex) {
-                    case 0: // Date
-                        aValue = cells[0].textContent;
-                        bValue = bCells[0].textContent;
-                        break;
-                }
-                
-                if (typeof aValue === 'string') {
-                    return newOrder === 'asc' ? 
-                        aValue.localeCompare(bValue) : 
-                        bValue.localeCompare(aValue);
-                } else {
-                    return newOrder === 'asc' ? aValue - bValue : bValue - aValue;
-                }
-            });
-            
-            // Re-append sorted rows
-            rows.forEach(row => tbody.appendChild(row));
-        }
-        
-        // Action button functionality
-        document.querySelectorAll('.action-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                console.log('Action:', this.textContent);
-            });
-        });
     </script>
 </body>
 </html>
