@@ -1,0 +1,128 @@
+<!-- COMMIT: 224450744630d87b9866b9edcf09d5bd614ae35b -->
+<!-- DATE: 2025-08-24 18:52:07 -0400 -->
+<!-- MESSAGE: design: Simplify event form UI for better usability while maintaining Event Session Matrix architecture -->
+<!-- VERSION: 5 (Most Recent) -->
+
+                <!-- Volunteers/Staff Tab -->
+                <div id="volunteers-staff" class="tab-content">
+                    <!-- Volunteer Positions -->
+                    <div class="form-section">
+                        <h2 class="section-title">Volunteer Positions</h2>
+                        <p class="form-help" style="margin-bottom: var(--space-lg);">Define volunteer roles needed for this event</p>
+                        
+                        <div class="volunteer-positions">
+                            <!-- Position 1 -->
+                            <div style="background: white; border: 2px solid var(--color-rose-gold); border-radius: 8px; padding: var(--space-md); margin-bottom: var(--space-md);">
+                                <div class="volunteer-position-grid">
+                                    <div class="form-group">
+                                        <div class="floating-input-wrapper">
+                                            <input type="text" class="floating-input has-value" placeholder=" " value="Setup Assistant">
+                                            <label class="floating-label">Position Title</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="floating-input-wrapper">
+                                            <input type="number" class="floating-input has-value" placeholder=" " value="2" min="1">
+                                            <label class="floating-label">Positions Needed</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="floating-input-wrapper">
+                                            <input type="text" class="floating-input has-value" placeholder=" " value="6:00 PM - 7:00 PM">
+                                            <label class="floating-label">Time Commitment</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="floating-input-wrapper">
+                                        <textarea class="floating-input has-value" placeholder=" " rows="2">Help set up equipment, arrange seating, prepare materials</textarea>
+                                        <label class="floating-label">Description</label>
+                                    </div>
+                                </div>
+                                <button class="btn btn-secondary btn-sm">Remove Position</button>
+                            </div>
+                            
+                            <!-- Position 2 -->
+                            <div style="background: white; border: 2px solid var(--color-rose-gold); border-radius: 8px; padding: var(--space-md); margin-bottom: var(--space-md);">
+                                <div class="volunteer-position-grid">
+                                    <div class="form-group">
+                                        <div class="floating-input-wrapper">
+                                            <input type="text" class="floating-input has-value" placeholder=" " value="Registration Desk">
+                                            <label class="floating-label">Position Title</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="floating-input-wrapper">
+                                            <input type="number" class="floating-input has-value" placeholder=" " value="1" min="1">
+                                            <label class="floating-label">Positions Needed</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="floating-input-wrapper">
+                                            <input type="text" class="floating-input has-value" placeholder=" " value="6:30 PM - 7:15 PM">
+                                            <label class="floating-label">Time Commitment</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="floating-input-wrapper">
+                                        <textarea class="floating-input has-value" placeholder=" " rows="2">Check in attendees, distribute materials, answer basic questions</textarea>
+                                        <label class="floating-label">Description</label>
+                                    </div>
+                                </div>
+                                <button class="btn btn-secondary btn-sm">Remove Position</button>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary">Add Volunteer Position</button>
+                    </div>
+                    
+                    <!-- Staff Assignments -->
+                    <div class="form-section">
+                        <h2 class="section-title">Staff Assignments</h2>
+                        <p class="form-help" style="margin-bottom: var(--space-md);">Assign specific staff members to roles</p>
+                        
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Event Coordinator</label>
+                            <select class="form-select">
+                                <option value="">Select coordinator...</option>
+                                <option value="river-moon" selected>River Moon</option>
+                                <option value="sage-blackthorne">Sage Blackthorne</option>
+                                <option value="phoenix-rose">Phoenix Rose</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Safety Monitor</label>
+                            <select class="form-select">
+                                <option value="">Select safety monitor...</option>
+                                <option value="sage-blackthorne" selected>Sage Blackthorne</option>
+                                <option value="phoenix-rose">Phoenix Rose</option>
+                                <option value="willow-craft">Willow Craft</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Technical Support</label>
+                            <select class="form-select">
+                                <option value="">Select technical support...</option>
+                                <option value="phoenix-rose">Phoenix Rose</option>
+                                <option value="willow-craft" selected>Willow Craft</option>
+                                <option value="raven-night">Raven Night</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Special Instructions -->
+                    <div class="form-section">
+                        <h2 class="section-title">Special Instructions</h2>
+                        
+                        <div class="form-group">
+                            <div class="floating-input-wrapper">
+                                <textarea class="floating-input" placeholder=" " rows="4"></textarea>
+                                <label class="floating-label">Volunteer/Staff Notes</label>
+                            </div>
+                            <p class="form-help">Any special instructions, equipment needs, or important information for volunteers and staff</p>
+                        </div>
+                    </div>
+                </div>
