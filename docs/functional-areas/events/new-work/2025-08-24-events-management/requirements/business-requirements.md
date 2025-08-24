@@ -1,11 +1,11 @@
 # Business Requirements: Events Management System
 <!-- Last Updated: 2025-08-24 -->
-<!-- Version: 2.1 -->
+<!-- Version: 2.2 -->
 <!-- Owner: Business Requirements Agent -->
-<!-- Status: Updated Based on Wireframe Refinements -->
+<!-- Status: Event Types Corrected - Classes/Workshops Unified -->
 
 ## Executive Summary
-The Events Management System provides comprehensive event lifecycle management for WitchCityRope, enabling Event Organizers to create, manage, and track workshops, classes, performances, and social events while supporting member registration, payment processing, and attendance tracking with automated refund capabilities.
+The Events Management System provides comprehensive event lifecycle management for WitchCityRope, enabling Event Organizers to create, manage, and track classes, social events, and performances while supporting member registration, payment processing, and attendance tracking with automated refund capabilities.
 
 ## Business Context
 ### Problem Statement
@@ -37,7 +37,7 @@ WitchCityRope currently lacks a centralized system for managing events from crea
 - Given I am logged in as an Event Organizer
 - When I access the events management section
 - Then I can view, edit, and manage ALL events in the system
-- And I can create new events of any type (Class, Workshop, Performance, Social)
+- And I can create new events of any type (Class, Social Event, Performance)
 - And I can set pricing, capacity, vetting requirements, and refund policies
 - And I can manage attendee lists and handle registrations
 
@@ -116,7 +116,10 @@ WitchCityRope currently lacks a centralized system for managing events from crea
    - View their registration history
 
 ### Event Management Rules
-1. **Event Types**: Classes, Workshops, Social Events (Performances in future phase)
+1. **Event Types**: 
+   - **Classes** (all educational events including workshops, tutorials, skill-building sessions)
+   - **Social Events** (community gatherings, parties, munches)
+   - **Performances** (future phase - demonstrations, shows, exhibitions)
 2. **Vetting Requirements**: Can be set per event (Public, Members Only, Vetted Only)
 3. **Capacity Management**: Hard limits with waitlist functionality
 4. **Pricing**: Single price per event (per person OR per couple), payment at door for social events only
@@ -199,7 +202,7 @@ WitchCityRope currently lacks a centralized system for managing events from crea
 
 ### Scenario 1: Event Creation and Management (Happy Path)
 1. Event Organizer logs in and accesses event management
-2. Creates new workshop with capacity 20, vetted members only
+2. Creates new class with capacity 20, vetted members only
 3. Sets single price $35 per person, 48-hour refund window
 4. Selects predefined venue and adds specific directions
 5. Event goes live, members can purchase tickets
@@ -208,7 +211,7 @@ WitchCityRope currently lacks a centralized system for managing events from crea
 8. Post-event: reviews attendance and financial reports
 
 ### Scenario 2: Automatic Refund Processing
-1. Member registers for workshop 5 days in advance
+1. Member registers for class 5 days in advance
 2. 36 hours before event (within 48-hour refund window)
 3. Member cancels registration through system
 4. System automatically processes refund to original payment method
@@ -216,7 +219,7 @@ WitchCityRope currently lacks a centralized system for managing events from crea
 6. Waitlist member automatically notified of available spot
 
 ### Scenario 3: Teacher Change Request
-1. Teacher realizes they need to modify workshop content
+1. Teacher realizes they need to modify class content
 2. Teacher contacts Event Organizer via message system
 3. Event Organizer reviews request and makes necessary changes
 4. Event Organizer confirms changes with Teacher
@@ -279,3 +282,4 @@ WitchCityRope currently lacks a centralized system for managing events from crea
 - [x] Payment processing options documented for future phases
 - [x] Payment at door clarified (cash OR digital)
 - [x] Credit card security explicitly addressed
+- [x] Event types corrected - Classes unified (workshops are classes)
