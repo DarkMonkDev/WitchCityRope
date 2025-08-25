@@ -98,11 +98,10 @@ export const router = createBrowserRouter([
         loader: authLoader
       },
       
-      // Admin routes - authentication required
+      // Demo routes - no authentication required for demos
       {
         path: "admin/event-session-matrix-demo",
-        element: <EventSessionMatrixDemo />,
-        loader: authLoader
+        element: <EventSessionMatrixDemo />
       }
     ]
   }

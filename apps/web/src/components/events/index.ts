@@ -4,5 +4,5 @@ export { EventTicketTypesGrid, type EventTicketType } from './EventTicketTypesGr
 export { EventForm, type EventFormData } from './EventForm';
 
 // Re-export existing event components for consistency
-export { default as EventCard } from '../EventCard';
-export { default as EventsList } from '../EventsList';
+export { EventCard } from '../EventCard';
+export { EventsList } from '../EventsList';

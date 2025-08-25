@@ -1,15 +1,40 @@
 // types/api.types.ts
-// Use generated types from @witchcityrope/shared-types
-import type { UserDto } from '@witchcityrope/shared-types'
+// TODO: Use generated types from @witchcityrope/shared-types when package is available
+// Temporarily using inline types to fix import failures
 
-export type { 
-  UserDto, 
-  UserRole, 
-  EventDto,
-  EventType,
-  EventStatus,
-  EventListResponse
-} from '@witchcityrope/shared-types'
+// UserDto type definition (matches API)
+export interface UserDto {
+  id?: string;
+  email?: string;
+  sceneName?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  roles?: string[];
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  lastLoginAt?: string | null;
+}
+
+export type UserRole = 'Admin' | 'Teacher' | 'VettedMember' | 'GeneralMember' | 'Guest';
+
+export interface EventDto {
+  id?: string;
+  title?: string;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
+  maxAttendees?: number;
+  currentAttendees?: number;
+}
+
+export type EventType = 'Workshop' | 'Social' | 'Performance' | 'Other';
+export type EventStatus = 'Draft' | 'Published' | 'Cancelled' | 'Completed';
+
+export interface EventListResponse {
+  events: EventDto[];
+  totalCount: number;
+}
 
 export interface ApiError {
   message: string

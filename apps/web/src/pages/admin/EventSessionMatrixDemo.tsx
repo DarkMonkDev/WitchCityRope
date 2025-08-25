@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, Title, Paper, Button, Group } from '@mantine/core';
+import { Container, Title, Paper, Group } from '@mantine/core';
 import { EventForm, EventFormData, EventSession, EventTicketType } from '../../components/events';
 import { notifications } from '@mantine/notifications';
 
@@ -130,15 +130,13 @@ export const EventSessionMatrixDemo: React.FC = () => {
       ) : (
         <Paper p="xl" ta="center">
           <Title order={2} c="dimmed" mb="md">Form Cancelled</Title>
-          <Button
+          <button
+            type="button"
+            className="btn btn-primary"
             onClick={() => setShowForm(true)}
-            style={{
-              backgroundColor: 'var(--mantine-color-amber-6)',
-              color: 'var(--mantine-color-gray-9)',
-            }}
           >
             Show Form Again
-          </Button>
+          </button>
         </Paper>
       )}
     </Container>

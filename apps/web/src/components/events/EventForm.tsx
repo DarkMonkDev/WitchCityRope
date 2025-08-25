@@ -3,7 +3,6 @@ import {
   Card,
   Tabs,
   TextInput,
-  Button,
   Group,
   Text,
   Radio,
@@ -23,7 +22,6 @@ import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import Superscript from '@tiptap/extension-superscript';
 import SubScript from '@tiptap/extension-subscript';
-import { IconBold, IconItalic, IconUnderline } from '@tabler/icons-react';
 
 import { EventSessionsGrid, EventSession } from './EventSessionsGrid';
 import { EventTicketTypesGrid, EventTicketType } from './EventTicketTypesGrid';
@@ -84,17 +82,31 @@ export const EventForm: React.FC<EventFormProps> = ({
     },
   });
 
-  // Rich text editors
+  // Rich text editor configurations
+  const editorExtensions = [
+    StarterKit.configure({
+      // StarterKit includes basic formatting but not Link or Underline
+      // No need to disable anything, just add what we need
+    }),
+    Underline, // StarterKit doesn't include underline, so safe to add
+    Link.configure({
+      openOnClick: false,
+      HTMLAttributes: {
+        class: 'rich-text-link',
+      },
+    }),
+    Superscript,
+    SubScript, 
+    Highlight.configure({
+      multicolor: true,
+    }),
+    TextAlign.configure({ 
+      types: ['heading', 'paragraph'] 
+    }),
+  ];
+
   const fullDescriptionEditor = useEditor({
-    extensions: [
-      StarterKit,
-      Underline,
-      Link,
-      Superscript,
-      SubScript,
-      Highlight,
-      TextAlign.configure({ types: ['heading', 'paragraph'] }),
-    ],
+    extensions: editorExtensions,
     content: form.values.fullDescription,
     onUpdate: ({ editor }) => {
       form.setFieldValue('fullDescription', editor.getHTML());
@@ -102,15 +114,7 @@ export const EventForm: React.FC<EventFormProps> = ({
   });
 
   const policiesEditor = useEditor({
-    extensions: [
-      StarterKit,
-      Underline,
-      Link,
-      Superscript,
-      SubScript,
-      Highlight,
-      TextAlign.configure({ types: ['heading', 'paragraph'] }),
-    ],
+    extensions: editorExtensions,
     content: form.values.policies,
     onUpdate: ({ editor }) => {
       form.setFieldValue('policies', editor.getHTML());
@@ -260,10 +264,13 @@ export const EventForm: React.FC<EventFormProps> = ({
 
                 {/* Full Description */}
                 <div style={{ marginBottom: 'var(--mantine-spacing-md)' }}>
-                  <Text size="sm" fw={500} mb="xs">
-                    Full Event Description <span style={{ color: 'red' }}>*</span>
+                  <Text size="sm" fw={500} mb={5}>
+                    Full Event Description <Text component="span" c="red">*</Text>
                   </Text>
-                  <RichTextEditor editor={fullDescriptionEditor} style={{ minHeight: '200px' }}>
+                  <Text size="xs" c="dimmed" mb="xs">
+                    This detailed description will be visible on the public events page
+                  </Text>
+                  <RichTextEditor editor={fullDescriptionEditor}>
                     <RichTextEditor.Toolbar sticky stickyOffset={60}>
                       <RichTextEditor.ControlsGroup>
                         <RichTextEditor.Bold />
@@ -272,7 +279,6 @@ export const EventForm: React.FC<EventFormProps> = ({
                         <RichTextEditor.Strikethrough />
                         <RichTextEditor.ClearFormatting />
                         <RichTextEditor.Highlight />
-                        <RichTextEditor.Code />
                       </RichTextEditor.ControlsGroup>
 
                       <RichTextEditor.ControlsGroup>
@@ -295,21 +301,40 @@ export const EventForm: React.FC<EventFormProps> = ({
                         <RichTextEditor.Link />
                         <RichTextEditor.Unlink />
                       </RichTextEditor.ControlsGroup>
+
+                      <RichTextEditor.ControlsGroup>
+                        <RichTextEditor.AlignLeft />
+                        <RichTextEditor.AlignCenter />
+                        <RichTextEditor.AlignJustify />
+                        <RichTextEditor.AlignRight />
+                      </RichTextEditor.ControlsGroup>
+
+                      <RichTextEditor.ControlsGroup>
+                        <RichTextEditor.Undo />
+                        <RichTextEditor.Redo />
+                      </RichTextEditor.ControlsGroup>
                     </RichTextEditor.Toolbar>
 
-                    <RichTextEditor.Content />
+                    <RichTextEditor.Content 
+                      style={{ minHeight: '200px' }}
+                    />
                   </RichTextEditor>
-                  <Text size="xs" c="dimmed" mt="xs">
-                    This detailed description will be visible on the public events page
-                  </Text>
+                  {form.errors.fullDescription && (
+                    <Text size="xs" c="red" mt={5}>
+                      {form.errors.fullDescription}
+                    </Text>
+                  )}
                 </div>
 
                 {/* Policies & Procedures */}
                 <div style={{ marginBottom: 'var(--mantine-spacing-md)' }}>
-                  <Text size="sm" fw={500} mb="xs">
+                  <Text size="sm" fw={500} mb={5}>
                     Policies & Procedures
                   </Text>
-                  <RichTextEditor editor={policiesEditor} style={{ minHeight: '150px' }}>
+                  <Text size="xs" c="dimmed" mb="xs">
+                    Studio-specific policies, prerequisites, safety requirements, etc. (managed by studio/admin, teachers cannot edit)
+                  </Text>
+                  <RichTextEditor editor={policiesEditor}>
                     <RichTextEditor.Toolbar sticky stickyOffset={60}>
                       <RichTextEditor.ControlsGroup>
                         <RichTextEditor.Bold />
@@ -317,7 +342,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                         <RichTextEditor.Underline />
                         <RichTextEditor.Strikethrough />
                         <RichTextEditor.ClearFormatting />
-                        <RichTextEditor.Code />
+                        <RichTextEditor.Highlight />
                       </RichTextEditor.ControlsGroup>
 
                       <RichTextEditor.ControlsGroup>
@@ -332,19 +357,37 @@ export const EventForm: React.FC<EventFormProps> = ({
                         <RichTextEditor.Hr />
                         <RichTextEditor.BulletList />
                         <RichTextEditor.OrderedList />
+                        <RichTextEditor.Subscript />
+                        <RichTextEditor.Superscript />
                       </RichTextEditor.ControlsGroup>
 
                       <RichTextEditor.ControlsGroup>
                         <RichTextEditor.Link />
                         <RichTextEditor.Unlink />
                       </RichTextEditor.ControlsGroup>
+
+                      <RichTextEditor.ControlsGroup>
+                        <RichTextEditor.AlignLeft />
+                        <RichTextEditor.AlignCenter />
+                        <RichTextEditor.AlignJustify />
+                        <RichTextEditor.AlignRight />
+                      </RichTextEditor.ControlsGroup>
+
+                      <RichTextEditor.ControlsGroup>
+                        <RichTextEditor.Undo />
+                        <RichTextEditor.Redo />
+                      </RichTextEditor.ControlsGroup>
                     </RichTextEditor.Toolbar>
 
-                    <RichTextEditor.Content />
+                    <RichTextEditor.Content 
+                      style={{ minHeight: '150px' }}
+                    />
                   </RichTextEditor>
-                  <Text size="xs" c="dimmed" mt="xs">
-                    Studio-specific policies, prerequisites, safety requirements, etc. (managed by studio/admin, teachers cannot edit)
-                  </Text>
+                  {form.errors.policies && (
+                    <Text size="xs" c="red" mt={5}>
+                      {form.errors.policies}
+                    </Text>
+                  )}
                 </div>
               </div>
 
@@ -361,9 +404,9 @@ export const EventForm: React.FC<EventFormProps> = ({
                     required
                     {...form.getInputProps('venueId')}
                   />
-                  <Button variant="outline" color="burgundy">
+                  <button type="button" className="btn btn-secondary">
                     Add Venue
-                  </Button>
+                  </button>
                 </Group>
               </div>
 
@@ -383,19 +426,16 @@ export const EventForm: React.FC<EventFormProps> = ({
 
               {/* Save Buttons */}
               <Group justify="flex-end" mt="xl">
-                <Button variant="outline" color="burgundy" onClick={onCancel}>
+                <button type="button" className="btn btn-secondary" onClick={onCancel}>
                   Cancel
-                </Button>
-                <Button
+                </button>
+                <button
                   type="submit"
-                  loading={isSubmitting}
-                  style={{
-                    backgroundColor: 'var(--mantine-color-amber-6)',
-                    color: 'var(--mantine-color-gray-9)',
-                  }}
+                  className="btn btn-primary"
+                  disabled={isSubmitting}
                 >
-                  Save Draft
-                </Button>
+                  {isSubmitting ? 'Saving...' : 'Save Draft'}
+                </button>
               </Group>
             </Stack>
           </Tabs.Panel>

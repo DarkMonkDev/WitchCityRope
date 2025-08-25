@@ -610,3 +610,195 @@ Critical patterns learned from complex form implementation work requiring precis
 For detailed form implementation patterns, see: `/docs/lessons-learned/form-implementation-lessons.md`
 
 ---
+
+## 🚨 CRITICAL: Vite Hot Reload Port Configuration Fix 🚨
+**Date**: 2025-08-25
+**Category**: Development Environment
+**Severity**: Critical
+
+### Context
+Event Session Matrix demo page was constantly reloading every 2-4 seconds due to Vite WebSocket connection failures. The issue was caused by port mismatch between dev server and HMR configuration.
+
+### What We Learned
+- **Root Cause**: Vite config specified port 5173 but dev server ran on port 5174
+- **WebSocket Error**: `WebSocket connection to 'ws://0.0.0.0:24678/?token=...' failed: Error during WebSocket handshake: Unexpected response code: 400`
+- **Reload Behavior**: Failed WebSocket connection triggered `[vite] server connection lost. Polling for restart...`
+- **Port Alignment Critical**: HMR port must be consistent with dev server configuration
+
+### Action Items
+- [ ] ALWAYS align Vite config port with command-line port parameter
+- [ ] USE different HMR port (24679) to avoid conflicts with existing services
+- [ ] SET `strictPort: false` to allow port flexibility during development
+- [ ] TEST WebSocket connection with browser dev tools before deployment
+
+### Impact
+Proper port configuration eliminates constant page reloading, enabling normal development workflow and form testing.
+
+### Required Vite Config Pattern:
+```typescript
+// vite.config.ts
+server: {
+  host: '0.0.0.0',
+  port: 5174, // Match command line port
+  strictPort: false, // Allow flexibility
+  
+  hmr: {
+    port: 24679, // Unique HMR port
+    host: '0.0.0.0',
+    clientPort: 24679, // Match HMR port
+  },
+}
+```
+
+### Debugging Commands:
+```bash
+# Check WebSocket connection in browser dev tools
+# Look for: [vite] connecting... followed by [vite] connected.
+# Error patterns: WebSocket handshake failures, connection lost messages
+```
+
+### Tags
+#critical #vite #hmr #websocket #development-environment
+
+---
+
+## 🚨 CRITICAL: Mantine v7 Rich Text Editor Implementation 🚨
+**Date**: 2025-08-25
+**Category**: Rich Text Editor
+**Severity**: Critical
+
+### Context
+EventForm required rich text editors for fullDescription and policies fields. Needed to implement @mantine/tiptap v7 compatible with existing Mantine v7.17.8 setup.
+
+### What We Learned
+- **Package Compatibility**: `@mantine/tiptap@7.17.8` matches Mantine core version exactly
+- **Required Dependencies**: TipTap core extensions needed separately from @mantine/tiptap
+- **Extension Configuration**: StarterKit conflicts with individual extensions require proper configuration
+- **Form Integration**: Rich text editors need manual form value synchronization with Mantine Form
+
+### Action Items
+- [ ] ALWAYS match @mantine/tiptap version with @mantine/core version
+- [ ] INSTALL required TipTap extensions: @tiptap/react, @tiptap/starter-kit, extensions
+- [ ] CONFIGURE StarterKit to avoid extension conflicts
+- [ ] SYNC editor content with form values using onUpdate callback
+- [ ] IMPLEMENT proper validation for rich text content
+
+### Impact
+Proper rich text editor implementation provides professional content editing experience while maintaining form validation and submission workflow.
+
+### Required Package Installation:
+```bash
+npm install @mantine/tiptap@7.17.8 @tiptap/react @tiptap/starter-kit @tiptap/extension-link @tiptap/extension-highlight @tiptap/extension-underline @tiptap/extension-text-align @tiptap/extension-superscript @tiptap/extension-subscript
+```
+
+### Implementation Pattern:
+```typescript
+// Extension configuration
+const editorExtensions = [
+  StarterKit.configure({
+    // Basic formatting included, no conflicts
+  }),
+  Underline, // Not in StarterKit, safe to add
+  Link.configure({
+    openOnClick: false,
+    HTMLAttributes: { class: 'rich-text-link' },
+  }),
+  Superscript,
+  SubScript,
+  Highlight.configure({ multicolor: true }),
+  TextAlign.configure({ types: ['heading', 'paragraph'] }),
+];
+
+// Editor with form sync
+const editor = useEditor({
+  extensions: editorExtensions,
+  content: form.values.fieldName,
+  onUpdate: ({ editor }) => {
+    form.setFieldValue('fieldName', editor.getHTML());
+  },
+});
+
+// RichTextEditor component
+<RichTextEditor editor={editor}>
+  <RichTextEditor.Toolbar sticky stickyOffset={60}>
+    {/* Toolbar controls */}
+  </RichTextEditor.Toolbar>
+  <RichTextEditor.Content style={{ minHeight: '200px' }} />
+</RichTextEditor>
+```
+
+### Tags
+#critical #rich-text-editor #mantine-v7 #tiptap #form-integration
+
+---
+
+## 🚨 CRITICAL: Button Text Cutoff Fix - Use Standard CSS Classes 🚨
+**Date**: 2025-08-25
+**Category**: UI Button Styling
+**Severity**: Critical
+
+### Context
+Event Session Matrix demo page had critical button text cutoff issues affecting all buttons. Users could not read button text properly due to top/bottom text being cut off.
+
+### Root Cause
+Using Mantine Button components with inline styles instead of standardized CSS button classes caused text positioning and height calculation issues.
+
+### What We Learned
+- **Mantine Button + Inline Styles = Text Cutoff**: Combining Mantine Button components with custom inline styles breaks text positioning
+- **Standard CSS Classes Work Perfectly**: Using `.btn`, `.btn-primary`, `.btn-secondary` classes from `/apps/web/src/index.css` eliminates all text cutoff issues
+- **Animation Classes Work**: Standard button classes include proper corner morphing and hover animations
+- **Table Action Buttons**: Use `.table-action-btn` class for small buttons in data tables
+
+### Fixed Implementation Pattern:
+```typescript
+// ✅ CORRECT - Use standardized CSS button classes  
+<button type="button" className="btn btn-primary">
+  Primary Action
+</button>
+
+<button type="button" className="btn btn-secondary">
+  Secondary Action  
+</button>
+
+<button type="button" className="table-action-btn">
+  <IconEdit size={14} style={{ marginRight: '4px' }} />
+  Edit
+</button>
+
+// ❌ WRONG - Mantine Button with inline styles causes text cutoff
+<Button 
+  style={{
+    backgroundColor: 'var(--mantine-color-amber-6)',
+    color: 'var(--mantine-color-gray-9)',
+  }}
+>
+  Text Gets Cut Off
+</Button>
+```
+
+### Action Items
+- [ ] ALWAYS use standard CSS button classes instead of Mantine Button with inline styles
+- [ ] CHECK `/apps/web/src/index.css` for available button classes before creating buttons
+- [ ] USE `.btn .btn-primary` for primary CTA buttons with amber gradient and animations
+- [ ] USE `.btn .btn-secondary` for secondary buttons with burgundy outline and hover fill
+- [ ] USE `.table-action-btn` for small buttons in data tables
+- [ ] NEVER mix Mantine Button components with custom inline styling for text-bearing buttons
+
+### Impact
+Standard CSS button classes provide:
+- No text cutoff issues (proper height and line-height)
+- Professional corner morphing animations on hover
+- Consistent styling across entire application  
+- Better accessibility and focus states
+- Proper gradient backgrounds and transitions
+
+### Verification
+Playwright tests confirm:
+- ✅ Button text is fully visible (no cutoff)
+- ✅ Hover animations work correctly
+- ✅ All button styling is consistent
+
+### Tags
+#critical #button-styling #text-cutoff #mantine-vs-css #standardized-classes
+
+---

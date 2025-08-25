@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, Button, Text, Group, ActionIcon } from '@mantine/core';
+import { Table, Text, Group, ActionIcon } from '@mantine/core';
 import { IconEdit, IconTrash } from '@tabler/icons-react';
 
 export interface EventSession {
@@ -110,20 +110,14 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
           {sessions.map((session) => (
             <Table.Tr key={session.id}>
               <Table.Td>
-                <Button
-                  size="xs"
-                  variant="subtle"
-                  color="burgundy"
-                  leftSection={<IconEdit size={14} />}
+                <button
+                  type="button"
+                  className="table-action-btn"
                   onClick={() => onEditSession(session.id)}
-                  style={{
-                    backgroundColor: 'var(--mantine-color-gray-0)',
-                    border: '1px solid var(--mantine-color-burgundy-3)',
-                    color: 'var(--mantine-color-burgundy-6)',
-                  }}
                 >
+                  <IconEdit size={14} style={{ marginRight: '4px' }} />
                   Edit
-                </Button>
+                </button>
               </Table.Td>
               <Table.Td>
                 <Text fw={700} size="sm">
@@ -179,17 +173,13 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
       </Table>
 
       <Group mt="md" justify="space-between" align="center">
-        <Button
-          leftSection="+"
+        <button
+          type="button"
+          className="btn btn-primary"
           onClick={onAddSession}
-          style={{
-            backgroundColor: 'var(--mantine-color-amber-6)',
-            color: 'var(--mantine-color-gray-9)',
-            borderRadius: '12px 6px 12px 6px',
-          }}
         >
-          Add Session
-        </Button>
+          + Add Session
+        </button>
         
         <Text size="xs" c="dimmed" fs="italic">
           💡 Tip: Click Edit to modify session details in a modal dialog.
