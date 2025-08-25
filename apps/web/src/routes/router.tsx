@@ -14,6 +14,7 @@ import MantineFormTest from '../pages/MantineFormTest';
 import ApiValidationV2Simple from '../pages/ApiValidationV2Simple';
 import ApiConnectionTest from '../pages/ApiConnectionTest';
 import { TestMSWPage } from '../pages/TestMSWPage';
+import { EventSessionMatrixDemo } from '../pages/admin/EventSessionMatrixDemo';
 import { RootLayout } from '../components/layout/RootLayout';
 import { RootErrorBoundary } from '../components/errors/RootErrorBoundary';
 import { authLoader } from './loaders/authLoader';
@@ -67,6 +68,10 @@ export const router = createBrowserRouter([
       { 
         path: "test-msw", 
         element: <TestMSWPage /> 
+      },
+      {
+        path: "admin/event-session-matrix-demo",
+        element: <EventSessionMatrixDemo />
       },
       
       // Protected routes - authentication required

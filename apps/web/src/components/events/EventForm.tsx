@@ -48,6 +48,8 @@ export const EventForm: React.FC<EventFormProps> = ({
   isSubmitting = false,
 }) => {
   const [activeTab, setActiveTab] = useState<string>('basic-info');
+  const [showAdHocEmailForm, setShowAdHocEmailForm] = useState(false);
+  const [selectedAdHocSessions, setSelectedAdHocSessions] = useState<string[]>([]);
 
   // Form state management
   const form = useForm<EventFormData>({
@@ -211,6 +213,17 @@ export const EventForm: React.FC<EventFormProps> = ({
                   placeholder="Enter event title"
                   required
                   mb="md"
+                  className="form-input-animated"
+                  styles={{
+                    input: {
+                      borderColor: 'var(--color-burgundy)',
+                      transition: 'all 0.2s ease-in-out',
+                      '&:focus': {
+                        borderColor: 'var(--color-burgundy)',
+                        boxShadow: '0 0 0 1px var(--color-burgundy)'
+                      }
+                    }
+                  }}
                   {...form.getInputProps('title')}
                 />
 
@@ -222,6 +235,17 @@ export const EventForm: React.FC<EventFormProps> = ({
                   required
                   maxLength={160}
                   mb="md"
+                  className="form-input-animated"
+                  styles={{
+                    input: {
+                      borderColor: 'var(--color-burgundy)',
+                      transition: 'all 0.2s ease-in-out',
+                      '&:focus': {
+                        borderColor: 'var(--color-burgundy)',
+                        boxShadow: '0 0 0 1px var(--color-burgundy)'
+                      }
+                    }
+                  }}
                   {...form.getInputProps('shortDescription')}
                 />
 
@@ -260,6 +284,17 @@ export const EventForm: React.FC<EventFormProps> = ({
                     placeholder="Select venue..."
                     data={venues}
                     required
+                    className="form-input-animated"
+                    styles={{
+                      input: {
+                        borderColor: 'var(--color-burgundy)',
+                        transition: 'all 0.2s ease-in-out',
+                        '&:focus': {
+                          borderColor: 'var(--color-burgundy)',
+                          boxShadow: '0 0 0 1px var(--color-burgundy)'
+                        }
+                      }
+                    }}
                     {...form.getInputProps('venueId')}
                   />
                   <button type="button" className="btn btn-secondary">
@@ -278,6 +313,17 @@ export const EventForm: React.FC<EventFormProps> = ({
                   placeholder="Choose teachers for this event"
                   data={availableTeachers}
                   searchable
+                  className="form-input-animated"
+                  styles={{
+                    input: {
+                      borderColor: 'var(--color-burgundy)',
+                      transition: 'all 0.2s ease-in-out',
+                      '&:focus': {
+                        borderColor: 'var(--color-burgundy)',
+                        boxShadow: '0 0 0 1px var(--color-burgundy)'
+                      }
+                    }
+                  }}
                   {...form.getInputProps('teacherIds')}
                 />
               </div>
@@ -330,8 +376,8 @@ export const EventForm: React.FC<EventFormProps> = ({
           </Tabs.Panel>
 
           {/* Emails Tab */}
-          <Tabs.Panel value="emails" pt="xl">
-            <Stack gap="xl">
+          <Tabs.Panel value="emails" pt="xl" style={{ overflow: 'hidden' }}>
+            <Stack gap="xl" style={{ position: 'relative', zIndex: 1 }}>
               <Title order={2} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
                 Email Templates
               </Title>
@@ -397,6 +443,123 @@ export const EventForm: React.FC<EventFormProps> = ({
                   </Group>
                 </Card>
               </div>
+              
+              {/* Ad-Hoc Email */}
+              <div>
+                <Title order={3} c="gray.8" mb="md">Send Ad-Hoc Email</Title>
+                <Card withBorder p="md" radius="md">
+                  {!showAdHocEmailForm ? (
+                    <>
+                      <Text mb="md" fw={500}>Send Custom Email to Specific Sessions</Text>
+                      <Text size="sm" c="dimmed" mb="lg">
+                        Send a targeted message to participants of specific event sessions.
+                      </Text>
+                      <Group>
+                        <button 
+                          type="button" 
+                          className="btn btn-primary"
+                          onClick={() => setShowAdHocEmailForm(true)}
+                        >
+                          Send Ad-Hoc Email
+                        </button>
+                      </Group>
+                    </>
+                  ) : (
+                    <Stack gap="md">
+                      <Text mb="md" fw={500}>Compose Ad-Hoc Email</Text>
+                      
+                      {/* Target Sessions Selector */}
+                      <div>
+                        <Text size="sm" fw={600} mb="xs">Target Sessions <Text component="span" c="red" size="sm">*</Text></Text>
+                        <MultiSelect
+                          placeholder="Select sessions to send email to..."
+                          data={form.values.sessions.map(session => ({
+                            value: session.id,
+                            label: `${session.sessionIdentifier}: ${session.name} (${session.registeredCount} registered)`
+                          }))}
+                          value={selectedAdHocSessions}
+                          onChange={setSelectedAdHocSessions}
+                          className="form-input-animated"
+                          styles={{
+                            input: {
+                              borderColor: 'var(--color-burgundy)',
+                              transition: 'all 0.2s ease-in-out',
+                              '&:focus': {
+                                borderColor: 'var(--color-burgundy)',
+                                boxShadow: '0 0 0 1px var(--color-burgundy)'
+                              }
+                            }
+                          }}
+                        />
+                      </div>
+                      
+                      <TextInput
+                        label="Email Subject"
+                        placeholder="Enter email subject..."
+                        required
+                        className="form-input-animated"
+                        styles={{
+                          input: {
+                            borderColor: 'var(--color-burgundy)',
+                            transition: 'all 0.2s ease-in-out',
+                            '&:focus': {
+                              borderColor: 'var(--color-burgundy)',
+                              boxShadow: '0 0 0 1px var(--color-burgundy)'
+                            }
+                          }
+                        }}
+                      />
+                      
+                      <Textarea
+                        label="Email Message"
+                        placeholder="Enter your custom email message..."
+                        required
+                        minRows={4}
+                        className="form-input-animated"
+                        styles={{
+                          input: {
+                            borderColor: 'var(--color-burgundy)',
+                            transition: 'all 0.2s ease-in-out',
+                            '&:focus': {
+                              borderColor: 'var(--color-burgundy)',
+                              boxShadow: '0 0 0 1px var(--color-burgundy)'
+                            }
+                          }
+                        }}
+                      />
+                      
+                      <Group justify="flex-end">
+                        <button 
+                          type="button" 
+                          className="btn btn-secondary"
+                          onClick={() => {
+                            setShowAdHocEmailForm(false);
+                            setSelectedAdHocSessions([]);
+                          }}
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          type="button" 
+                          className="btn btn-primary"
+                          disabled={selectedAdHocSessions.length === 0}
+                        >
+                          Send Ad-Hoc Email
+                        </button>
+                      </Group>
+                      
+                      {selectedAdHocSessions.length > 0 && (
+                        <Text size="sm" c="dimmed" ta="center">
+                          Will be sent to {selectedAdHocSessions.reduce((total, sessionId) => {
+                            const session = form.values.sessions.find(s => s.id === sessionId);
+                            return total + (session?.registeredCount || 0);
+                          }, 0)} registered participants
+                        </Text>
+                      )}
+                    </Stack>
+                  )}
+                </Card>
+              </div>
             </Stack>
           </Tabs.Panel>
 
@@ -416,18 +579,51 @@ export const EventForm: React.FC<EventFormProps> = ({
                       <TextInput
                         label="Position Name"
                         placeholder="e.g., Setup Assistant, Greeter, etc."
+                        className="form-input-animated"
+                        styles={{
+                          input: {
+                            borderColor: 'var(--color-burgundy)',
+                            transition: 'all 0.2s ease-in-out',
+                            '&:focus': {
+                              borderColor: 'var(--color-burgundy)',
+                              boxShadow: '0 0 0 1px var(--color-burgundy)'
+                            }
+                          }
+                        }}
                       />
                       <TextInput
                         label="Number Needed"
                         placeholder="1"
                         type="number"
                         min={1}
+                        className="form-input-animated"
+                        styles={{
+                          input: {
+                            borderColor: 'var(--color-burgundy)',
+                            transition: 'all 0.2s ease-in-out',
+                            '&:focus': {
+                              borderColor: 'var(--color-burgundy)',
+                              boxShadow: '0 0 0 1px var(--color-burgundy)'
+                            }
+                          }
+                        }}
                       />
                     </Group>
                     <Textarea
                       label="Position Description"
                       placeholder="Describe the responsibilities and requirements for this volunteer position..."
                       minRows={2}
+                      className="form-input-animated"
+                      styles={{
+                        input: {
+                          borderColor: 'var(--color-burgundy)',
+                          transition: 'all 0.2s ease-in-out',
+                          '&:focus': {
+                            borderColor: 'var(--color-burgundy)',
+                            boxShadow: '0 0 0 1px var(--color-burgundy)'
+                          }
+                        }
+                      }}
                     />
                     <Group justify="flex-start">
                       <button type="button" className="btn btn-primary">Add Position</button>

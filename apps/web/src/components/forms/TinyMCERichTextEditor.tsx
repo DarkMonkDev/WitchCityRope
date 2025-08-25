@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Editor } from '@tinymce/tinymce-react';
-import { Text, Box } from '@mantine/core';
+import { Text, Box, Alert } from '@mantine/core';
 
 interface TinyMCERichTextEditorProps {
   value: string;
@@ -31,6 +31,15 @@ export const TinyMCERichTextEditor: React.FC<TinyMCERichTextEditorProps> = ({
   height = 300,
   placeholder = 'Start typing...'
 }) => {
+  const [apiKeyMissing, setApiKeyMissing] = useState(false);
+  const apiKey = import.meta.env.VITE_TINYMCE_API_KEY;
+
+  useEffect(() => {
+    if (!apiKey) {
+      console.warn('TinyMCE API key not found. Some features may be limited.');
+      setApiKeyMissing(true);
+    }
+  }, [apiKey]);
   return (
     <Box mb="md">
       {label && (
@@ -42,6 +51,12 @@ export const TinyMCERichTextEditor: React.FC<TinyMCERichTextEditorProps> = ({
         <Text size="xs" c="dimmed" mb="xs">
           {description}
         </Text>
+      )}
+      
+      {apiKeyMissing && (
+        <Alert color="orange" mb="xs" title="Configuration Notice">
+          TinyMCE API key not configured. Using basic functionality. Set VITE_TINYMCE_API_KEY in your .env file.
+        </Alert>
       )}
       
       <Editor
@@ -91,7 +106,7 @@ export const TinyMCERichTextEditor: React.FC<TinyMCERichTextEditorProps> = ({
           paste_block_drop: true,
           paste_data_images: false
         }}
-        // No API key needed for basic functionality
+        apiKey={apiKey}
       />
       
       {error && (

@@ -585,3 +585,85 @@ Critical patterns learned from complex form implementation work requiring precis
 For detailed form implementation patterns, see: `/docs/lessons-learned/form-implementation-lessons.md`
 
 ---
+
+## 🚨 CRITICAL: TinyMCE API Key Secure Configuration 🚨
+**Date**: 2025-08-25
+**Category**: Security & Configuration
+**Severity**: CRITICAL
+
+### Context
+Implemented secure TinyMCE API key configuration following security best practices to enable premium features while maintaining security standards.
+
+### What We Learned
+- **NEVER hardcode API keys** in source code - security vulnerability
+- **ALWAYS use environment variables** for sensitive configuration
+- **Environment files must be gitignored** to prevent API key exposure
+- **Provide .env.example** with placeholders for new developers
+- **Component graceful degradation** when API key is missing shows professional UX
+
+### Action Items
+- [x] STORE API key in `.env.development` and `.env.production`
+- [x] CREATE `.env.example` with placeholder for new developers
+- [x] ENSURE `.env` files are in `.gitignore`
+- [x] IMPLEMENT graceful handling when API key is missing
+- [x] ADD warning alert when API key is not configured
+- [x] DOCUMENT setup process for other developers
+
+### Secure Implementation Pattern:
+```typescript
+// ✅ CORRECT - Use environment variable
+const apiKey = import.meta.env.VITE_TINYMCE_API_KEY;
+
+// Component handles missing key gracefully
+const [apiKeyMissing, setApiKeyMissing] = useState(false);
+
+useEffect(() => {
+  if (!apiKey) {
+    console.warn('TinyMCE API key not found. Some features may be limited.');
+    setApiKeyMissing(true);
+  }
+}, [apiKey]);
+
+// Show warning to developers
+{apiKeyMissing && (
+  <Alert color="orange" mb="xs" title="Configuration Notice">
+    TinyMCE API key not configured. Set VITE_TINYMCE_API_KEY in your .env file.
+  </Alert>
+)}
+
+// Pass to TinyMCE Editor
+<Editor apiKey={apiKey} {...props} />
+
+// ❌ WRONG - Hardcoded in source code
+<Editor apiKey="actual_key_here" />
+```
+
+### Security Checklist:
+```bash
+# ✅ Environment files gitignored
+.env
+.env.local
+.env.development.local
+.env.production.local
+
+# ✅ Example file for new developers
+VITE_TINYMCE_API_KEY=your_api_key_here
+
+# ✅ Component handles missing configuration gracefully
+const apiKey = import.meta.env.VITE_TINYMCE_API_KEY;
+```
+
+### Impact
+Secure API key configuration enables TinyMCE premium features while:
+- Protecting sensitive configuration from source control
+- Providing clear setup instructions for new developers  
+- Gracefully handling missing configuration
+- Following industry security best practices
+
+### Reference
+Complete setup guide: `/docs/guides-setup/tinymce-api-key-setup.md`
+
+### Tags
+#critical #security #api-keys #environment-variables #tinymce #configuration
+
+---
