@@ -16,6 +16,7 @@ import ApiConnectionTest from '../pages/ApiConnectionTest';
 import { TestMSWPage } from '../pages/TestMSWPage';
 import { EventSessionMatrixDemo } from '../pages/admin/EventSessionMatrixDemo';
 import { EventFormTestPage } from '../pages/EventFormTestPage';
+import TestTinyMCE from '../pages/TestTinyMCE';
 import { RootLayout } from '../components/layout/RootLayout';
 import { RootErrorBoundary } from '../components/errors/RootErrorBoundary';
 import { authLoader } from './loaders/authLoader';
@@ -69,6 +70,10 @@ export const router = createBrowserRouter([
       { 
         path: "test-msw", 
         element: <TestMSWPage /> 
+      },
+      { 
+        path: "test-tinymce", 
+        element: <TestTinyMCE /> 
       },
       
       // Protected routes - authentication required

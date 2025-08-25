@@ -38,6 +38,17 @@ import { Editor } from '@tinymce/tinymce-react';
 />
 ```
 
+## TinyMCE CDN Loading and Debugging
+
+**Problem**: Misinterpreting 307 redirects as TinyMCE loading failures
+**Solution**: 307 redirects from TinyMCE CDN are NORMAL - they route to optimal edge servers
+**Key Points**:
+- TinyMCE takes 3-5 seconds to initialize from CDN
+- Network 307 redirects are expected behavior, not errors  
+- Use Playwright to verify actual functionality vs network logs
+- API key `3f628sek98zponk2rt5ncrkc2n5lj9ghobeppfskrjvkpmqp` works correctly
+**Debug Command**: `npx playwright test tests/playwright/tinymce-debug.spec.ts --headed`
+
 ## Wireframe Adherence
 
 **Problem**: Adding sections not in wireframe (Staff Assignments) 
