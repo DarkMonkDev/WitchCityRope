@@ -12,16 +12,13 @@ import {
   Title,
   Divider,
   MultiSelect,
+  Button,
+  Badge,
+  Table,
+  ActionIcon,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { RichTextEditor, Link } from '@mantine/tiptap';
-import { useEditor } from '@tiptap/react';
-import Highlight from '@tiptap/extension-highlight';
-import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import TextAlign from '@tiptap/extension-text-align';
-import Superscript from '@tiptap/extension-superscript';
-import SubScript from '@tiptap/extension-subscript';
+import { Editor } from '@tinymce/tinymce-react';
 
 import { EventSessionsGrid, EventSession } from './EventSessionsGrid';
 import { EventTicketTypesGrid, EventTicketType } from './EventTicketTypesGrid';
@@ -82,44 +79,21 @@ export const EventForm: React.FC<EventFormProps> = ({
     },
   });
 
-  // Rich text editor configurations
-  const editorExtensions = [
-    StarterKit.configure({
-      // StarterKit includes basic formatting but not Link or Underline
-      // No need to disable anything, just add what we need
-    }),
-    Underline, // StarterKit doesn't include underline, so safe to add
-    Link.configure({
-      openOnClick: false,
-      HTMLAttributes: {
-        class: 'rich-text-link',
-      },
-    }),
-    Superscript,
-    SubScript, 
-    Highlight.configure({
-      multicolor: true,
-    }),
-    TextAlign.configure({ 
-      types: ['heading', 'paragraph'] 
-    }),
-  ];
-
-  const fullDescriptionEditor = useEditor({
-    extensions: editorExtensions,
-    content: form.values.fullDescription,
-    onUpdate: ({ editor }) => {
-      form.setFieldValue('fullDescription', editor.getHTML());
-    },
-  });
-
-  const policiesEditor = useEditor({
-    extensions: editorExtensions,
-    content: form.values.policies,
-    onUpdate: ({ editor }) => {
-      form.setFieldValue('policies', editor.getHTML());
-    },
-  });
+  // TinyMCE configuration
+  const tinyMCEConfig = {
+    height: 300,
+    menubar: false,
+    plugins: [
+      'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+      'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+      'insertdatetime', 'media', 'table', 'help', 'wordcount'
+    ],
+    toolbar: 'undo redo | blocks | ' +
+      'bold italic forecolor | alignleft aligncenter ' +
+      'alignright alignjustify | bullist numlist outdent indent | ' +
+      'removeformat | help',
+    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 14px }'
+  };
 
   // Mock data for dropdowns
   const venues = [
@@ -270,55 +244,12 @@ export const EventForm: React.FC<EventFormProps> = ({
                   <Text size="xs" c="dimmed" mb="xs">
                     This detailed description will be visible on the public events page
                   </Text>
-                  <RichTextEditor editor={fullDescriptionEditor}>
-                    <RichTextEditor.Toolbar sticky stickyOffset={60}>
-                      <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.Bold />
-                        <RichTextEditor.Italic />
-                        <RichTextEditor.Underline />
-                        <RichTextEditor.Strikethrough />
-                        <RichTextEditor.ClearFormatting />
-                        <RichTextEditor.Highlight />
-                      </RichTextEditor.ControlsGroup>
-
-                      <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.H1 />
-                        <RichTextEditor.H2 />
-                        <RichTextEditor.H3 />
-                        <RichTextEditor.H4 />
-                      </RichTextEditor.ControlsGroup>
-
-                      <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.Blockquote />
-                        <RichTextEditor.Hr />
-                        <RichTextEditor.BulletList />
-                        <RichTextEditor.OrderedList />
-                        <RichTextEditor.Subscript />
-                        <RichTextEditor.Superscript />
-                      </RichTextEditor.ControlsGroup>
-
-                      <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.Link />
-                        <RichTextEditor.Unlink />
-                      </RichTextEditor.ControlsGroup>
-
-                      <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.AlignLeft />
-                        <RichTextEditor.AlignCenter />
-                        <RichTextEditor.AlignJustify />
-                        <RichTextEditor.AlignRight />
-                      </RichTextEditor.ControlsGroup>
-
-                      <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.Undo />
-                        <RichTextEditor.Redo />
-                      </RichTextEditor.ControlsGroup>
-                    </RichTextEditor.Toolbar>
-
-                    <RichTextEditor.Content 
-                      style={{ minHeight: '200px' }}
-                    />
-                  </RichTextEditor>
+                  <Editor
+                    apiKey="no-api-key"
+                    init={tinyMCEConfig}
+                    initialValue={form.values.fullDescription}
+                    onEditorChange={(content) => form.setFieldValue('fullDescription', content)}
+                  />
                   {form.errors.fullDescription && (
                     <Text size="xs" c="red" mt={5}>
                       {form.errors.fullDescription}
@@ -334,55 +265,12 @@ export const EventForm: React.FC<EventFormProps> = ({
                   <Text size="xs" c="dimmed" mb="xs">
                     Studio-specific policies, prerequisites, safety requirements, etc. (managed by studio/admin, teachers cannot edit)
                   </Text>
-                  <RichTextEditor editor={policiesEditor}>
-                    <RichTextEditor.Toolbar sticky stickyOffset={60}>
-                      <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.Bold />
-                        <RichTextEditor.Italic />
-                        <RichTextEditor.Underline />
-                        <RichTextEditor.Strikethrough />
-                        <RichTextEditor.ClearFormatting />
-                        <RichTextEditor.Highlight />
-                      </RichTextEditor.ControlsGroup>
-
-                      <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.H1 />
-                        <RichTextEditor.H2 />
-                        <RichTextEditor.H3 />
-                        <RichTextEditor.H4 />
-                      </RichTextEditor.ControlsGroup>
-
-                      <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.Blockquote />
-                        <RichTextEditor.Hr />
-                        <RichTextEditor.BulletList />
-                        <RichTextEditor.OrderedList />
-                        <RichTextEditor.Subscript />
-                        <RichTextEditor.Superscript />
-                      </RichTextEditor.ControlsGroup>
-
-                      <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.Link />
-                        <RichTextEditor.Unlink />
-                      </RichTextEditor.ControlsGroup>
-
-                      <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.AlignLeft />
-                        <RichTextEditor.AlignCenter />
-                        <RichTextEditor.AlignJustify />
-                        <RichTextEditor.AlignRight />
-                      </RichTextEditor.ControlsGroup>
-
-                      <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.Undo />
-                        <RichTextEditor.Redo />
-                      </RichTextEditor.ControlsGroup>
-                    </RichTextEditor.Toolbar>
-
-                    <RichTextEditor.Content 
-                      style={{ minHeight: '150px' }}
-                    />
-                  </RichTextEditor>
+                  <Editor
+                    apiKey="no-api-key"
+                    init={{...tinyMCEConfig, height: 150}}
+                    initialValue={form.values.policies}
+                    onEditorChange={(content) => form.setFieldValue('policies', content)}
+                  />
                   {form.errors.policies && (
                     <Text size="xs" c="red" mt={5}>
                       {form.errors.policies}
@@ -477,7 +365,83 @@ export const EventForm: React.FC<EventFormProps> = ({
               <Title order={2} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
                 Email Templates
               </Title>
-              <Text c="dimmed">Email template management will be implemented here.</Text>
+              
+              <Stack gap="lg">
+                {/* Registration Confirmation Email */}
+                <Card withBorder p="md">
+                  <Title order={4} mb="sm">Registration Confirmation Email</Title>
+                  <Text size="sm" c="dimmed" mb="md">
+                    Sent automatically when someone registers for this event
+                  </Text>
+                  
+                  <TextInput
+                    label="Subject Line"
+                    placeholder="Your registration for {EVENT_TITLE} is confirmed!"
+                    defaultValue="Your registration for {EVENT_TITLE} is confirmed!"
+                    mb="md"
+                  />
+                  
+                  <div>
+                    <Text size="sm" fw={500} mb={5}>Email Body</Text>
+                    <Text size="xs" c="dimmed" mb="xs">
+                      Use {'{EVENT_TITLE}'}, {'{PARTICIPANT_NAME}'}, {'{SESSION_DATES}'} as placeholders
+                    </Text>
+                    <Editor
+                      apiKey="no-api-key"
+                      init={{...tinyMCEConfig, height: 200}}
+                      initialValue="<p>Dear {PARTICIPANT_NAME},</p><p>Thank you for registering for <strong>{EVENT_TITLE}</strong>!</p><p><strong>Session Details:</strong><br/>{SESSION_DATES}</p><p>We look forward to seeing you there!</p>"
+                    />
+                  </div>
+                </Card>
+
+                {/* Event Reminder Email */}
+                <Card withBorder p="md">
+                  <Title order={4} mb="sm">Event Reminder Email</Title>
+                  <Text size="sm" c="dimmed" mb="md">
+                    Sent 24 hours before the event starts
+                  </Text>
+                  
+                  <TextInput
+                    label="Subject Line"
+                    placeholder="Reminder: {EVENT_TITLE} is tomorrow!"
+                    defaultValue="Reminder: {EVENT_TITLE} is tomorrow!"
+                    mb="md"
+                  />
+                  
+                  <div>
+                    <Text size="sm" fw={500} mb={5}>Email Body</Text>
+                    <Editor
+                      apiKey="no-api-key"
+                      init={{...tinyMCEConfig, height: 200}}
+                      initialValue="<p>Hello {PARTICIPANT_NAME},</p><p>This is a friendly reminder that <strong>{EVENT_TITLE}</strong> starts tomorrow!</p><p><strong>What to bring:</strong><br/>- Comfortable clothes<br/>- Water bottle<br/>- Positive attitude</p><p>See you there!</p>"
+                    />
+                  </div>
+                </Card>
+
+                {/* Cancellation Email */}
+                <Card withBorder p="md">
+                  <Title order={4} mb="sm">Event Cancellation Email</Title>
+                  <Text size="sm" c="dimmed" mb="md">
+                    Sent if the event needs to be cancelled
+                  </Text>
+                  
+                  <TextInput
+                    label="Subject Line"
+                    placeholder="Important: {EVENT_TITLE} has been cancelled"
+                    defaultValue="Important: {EVENT_TITLE} has been cancelled"
+                    mb="md"
+                  />
+                  
+                  <div>
+                    <Text size="sm" fw={500} mb={5}>Email Body</Text>
+                    <Editor
+                      apiKey="no-api-key"
+                      init={{...tinyMCEConfig, height: 200}}
+                      initialValue="<p>Dear {PARTICIPANT_NAME},</p><p>We regret to inform you that <strong>{EVENT_TITLE}</strong> has been cancelled.</p><p><strong>Reason:</strong> [To be filled in when needed]</p><p>You will receive a full refund within 3-5 business days.</p><p>We apologize for any inconvenience.</p>"
+                    />
+                  </div>
+                </Card>
+              </Stack>
             </Stack>
           </Tabs.Panel>
 
@@ -485,9 +449,170 @@ export const EventForm: React.FC<EventFormProps> = ({
           <Tabs.Panel value="volunteers-staff" pt="xl">
             <Stack gap="xl">
               <Title order={2} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
-                Volunteer Positions
+                Volunteer Positions & Staff Assignments
               </Title>
-              <Text c="dimmed">Volunteer position management will be implemented here.</Text>
+              
+              <Stack gap="lg">
+                {/* Volunteer Positions */}
+                <Card withBorder p="md">
+                  <Group justify="space-between" mb="md">
+                    <Title order={4}>Volunteer Positions Needed</Title>
+                    <Button size="sm" variant="light" color="burgundy">
+                      Add Position
+                    </Button>
+                  </Group>
+                  
+                  <Table striped highlightOnHover>
+                    <Table.Thead>
+                      <Table.Tr>
+                        <Table.Th>Position</Table.Th>
+                        <Table.Th>Needed</Table.Th>
+                        <Table.Th>Filled</Table.Th>
+                        <Table.Th>Session</Table.Th>
+                        <Table.Th>Time</Table.Th>
+                        <Table.Th>Actions</Table.Th>
+                      </Table.Tr>
+                    </Table.Thead>
+                    <Table.Tbody>
+                      <Table.Tr>
+                        <Table.Td>Setup Crew</Table.Td>
+                        <Table.Td>3</Table.Td>
+                        <Table.Td>
+                          <Badge color="green" variant="light">2/3</Badge>
+                        </Table.Td>
+                        <Table.Td>All Sessions</Table.Td>
+                        <Table.Td>6:00 PM - 6:30 PM</Table.Td>
+                        <Table.Td>
+                          <Group gap="xs">
+                            <Button size="xs" variant="light">Edit</Button>
+                            <Button size="xs" variant="light" color="red">Delete</Button>
+                          </Group>
+                        </Table.Td>
+                      </Table.Tr>
+                      <Table.Tr>
+                        <Table.Td>Safety Monitor</Table.Td>
+                        <Table.Td>2</Table.Td>
+                        <Table.Td>
+                          <Badge color="red" variant="light">0/2</Badge>
+                        </Table.Td>
+                        <Table.Td>S1, S2, S3</Table.Td>
+                        <Table.Td>During sessions</Table.Td>
+                        <Table.Td>
+                          <Group gap="xs">
+                            <Button size="xs" variant="light">Edit</Button>
+                            <Button size="xs" variant="light" color="red">Delete</Button>
+                          </Group>
+                        </Table.Td>
+                      </Table.Tr>
+                      <Table.Tr>
+                        <Table.Td>Cleanup Crew</Table.Td>
+                        <Table.Td>2</Table.Td>
+                        <Table.Td>
+                          <Badge color="yellow" variant="light">1/2</Badge>
+                        </Table.Td>
+                        <Table.Td>All Sessions</Table.Td>
+                        <Table.Td>9:00 PM - 9:30 PM</Table.Td>
+                        <Table.Td>
+                          <Group gap="xs">
+                            <Button size="xs" variant="light">Edit</Button>
+                            <Button size="xs" variant="light" color="red">Delete</Button>
+                          </Group>
+                        </Table.Td>
+                      </Table.Tr>
+                    </Table.Tbody>
+                  </Table>
+                </Card>
+
+                {/* Staff Assignments */}
+                <Card withBorder p="md">
+                  <Group justify="space-between" mb="md">
+                    <Title order={4}>Staff Assignments</Title>
+                    <Button size="sm" variant="light" color="burgundy">
+                      Assign Staff
+                    </Button>
+                  </Group>
+                  
+                  <Table striped highlightOnHover>
+                    <Table.Thead>
+                      <Table.Tr>
+                        <Table.Th>Staff Member</Table.Th>
+                        <Table.Th>Role</Table.Th>
+                        <Table.Th>Sessions</Table.Th>
+                        <Table.Th>Responsibilities</Table.Th>
+                        <Table.Th>Actions</Table.Th>
+                      </Table.Tr>
+                    </Table.Thead>
+                    <Table.Tbody>
+                      <Table.Tr>
+                        <Table.Td>
+                          <div>
+                            <Text fw={500}>River Moon</Text>
+                            <Text size="sm" c="dimmed">Lead Instructor</Text>
+                          </div>
+                        </Table.Td>
+                        <Table.Td>
+                          <Badge color="burgundy" variant="filled">Primary Teacher</Badge>
+                        </Table.Td>
+                        <Table.Td>S1, S2, S3</Table.Td>
+                        <Table.Td>
+                          <Text size="sm">
+                            • Lead instruction<br/>
+                            • Safety oversight<br/>
+                            • Student questions
+                          </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Group gap="xs">
+                            <Button size="xs" variant="light">Edit</Button>
+                            <Button size="xs" variant="light" color="red">Remove</Button>
+                          </Group>
+                        </Table.Td>
+                      </Table.Tr>
+                      <Table.Tr>
+                        <Table.Td>
+                          <div>
+                            <Text fw={500}>Sage Blackthorne</Text>
+                            <Text size="sm" c="dimmed">Assistant Instructor</Text>
+                          </div>
+                        </Table.Td>
+                        <Table.Td>
+                          <Badge color="blue" variant="filled">Co-Teacher</Badge>
+                        </Table.Td>
+                        <Table.Td>S2, S3</Table.Td>
+                        <Table.Td>
+                          <Text size="sm">
+                            • Individual guidance<br/>
+                            • Advanced techniques<br/>
+                            • Equipment setup
+                          </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Group gap="xs">
+                            <Button size="xs" variant="light">Edit</Button>
+                            <Button size="xs" variant="light" color="red">Remove</Button>
+                          </Group>
+                        </Table.Td>
+                      </Table.Tr>
+                    </Table.Tbody>
+                  </Table>
+                </Card>
+
+                {/* Special Requirements */}
+                <Card withBorder p="md">
+                  <Title order={4} mb="md">Special Requirements & Notes</Title>
+                  <div>
+                    <Text size="sm" fw={500} mb={5}>Staff Requirements</Text>
+                    <Text size="xs" c="dimmed" mb="xs">
+                      Additional notes for staff and volunteer coordination
+                    </Text>
+                    <Editor
+                      apiKey="no-api-key"
+                      init={{...tinyMCEConfig, height: 150}}
+                      initialValue="<p><strong>Setup Requirements:</strong></p><ul><li>Tables and chairs for 20 participants</li><li>Rope bundles organized by skill level</li><li>Safety equipment check</li></ul><p><strong>During Event:</strong></p><ul><li>Monitor participant safety at all times</li><li>Assist with complex ties</li><li>Answer questions about techniques</li></ul>"
+                    />
+                  </div>
+                </Card>
+              </Stack>
             </Stack>
           </Tabs.Panel>
         </Tabs>

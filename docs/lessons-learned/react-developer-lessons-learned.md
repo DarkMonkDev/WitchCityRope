@@ -27,6 +27,80 @@ When given a Working Directory like:
 - Can cause merge conflicts and lost work
 - BREAKS the entire development workflow
 
+## 🚨 CRITICAL: MANDATORY PLAYWRIGHT TESTING REQUIREMENTS 🚨
+
+### ALL REACT IMPLEMENTATIONS REQUIRE VISUAL VERIFICATION
+
+**NO EXCEPTIONS - IMPLEMENTATION IS NOT COMPLETE WITHOUT PLAYWRIGHT TESTS**
+
+**MANDATORY TESTING CHECKLIST:**
+- [ ] **Visual Verification**: Playwright test with screenshot confirmation required for ALL implementations
+- [ ] **Functionality Testing**: All interactive elements must be tested (buttons, forms, navigation)
+- [ ] **Cross-Browser Compatibility**: Test in Chromium (minimum) with Playwright
+- [ ] **Responsive Design**: Test at multiple viewport sizes if applicable
+- [ ] **Error State Testing**: Test error scenarios and edge cases
+- [ ] **Performance Validation**: Ensure no obvious performance issues
+- [ ] **Accessibility Check**: Basic accessibility validation through Playwright
+
+**IMPLEMENTATION WORKFLOW:**
+1. Build React component/feature
+2. Write Playwright test with visual verification
+3. Take screenshots of working implementation
+4. Test all interactive functionality
+5. Verify responsive behavior if applicable
+6. ONLY THEN commit implementation
+
+**Required Playwright Test Pattern:**
+```typescript
+// Example: verify-[feature-name]-implementation.spec.ts
+import { test, expect } from '@playwright/test';
+
+test.describe('[Feature Name] Implementation Verification', () => {
+  test('should display and function correctly', async ({ page }) => {
+    await page.goto('/path/to/feature');
+    
+    // Visual verification - MANDATORY
+    await expect(page).toHaveScreenshot('[feature-name]-implementation.png');
+    
+    // Functionality testing - MANDATORY
+    await page.click('[data-testid="interactive-element"]');
+    await expect(page.locator('[data-testid="result"]')).toBeVisible();
+    
+    // Error testing - REQUIRED
+    await page.fill('[data-testid="input"]', 'invalid-data');
+    await expect(page.locator('[data-testid="error-message"]')).toBeVisible();
+  });
+  
+  test('should be responsive', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 }); // Mobile
+    await page.goto('/path/to/feature');
+    await expect(page).toHaveScreenshot('[feature-name]-mobile.png');
+  });
+});
+```
+
+**TEST FILES LOCATION:**
+- All Playwright tests: `/tests/playwright/[feature-name].spec.ts`
+- Screenshots automatically saved to: `/tests/playwright/[feature-name]-test-results/`
+
+**VIOLATION CONSEQUENCES:**
+- Implementation commits WITHOUT Playwright tests will be considered incomplete
+- No deployment without visual verification
+- Code review rejection for missing test coverage
+
+### Action Items
+- [ ] **NEVER commit React implementations without Playwright visual verification**
+- [ ] **ALWAYS include screenshot comparison tests**
+- [ ] **TEST all interactive elements and edge cases**
+- [ ] **VERIFY responsive behavior when applicable**
+- [ ] **VALIDATE error states and loading states**
+- [ ] **CHECK accessibility basics through Playwright tools**
+
+### Tags
+#critical #mandatory-testing #playwright #visual-verification #implementation-standards
+
+---
+
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 
 ### Critical Architecture Documents (MUST READ BEFORE ANY WORK):
@@ -483,7 +557,7 @@ Using standardized CSS classes ensures:
 ---
 
 *This file is maintained by the react-developer agent. Add new lessons immediately when discovered.*
-*Last updated: 2025-08-22 - Added critical CSS standards lesson*
+*Last updated: 2025-08-25 - Added mandatory Playwright testing requirements*
 
 ## COMPREHENSIVE LESSONS FROM FRONTEND DEVELOPMENT
 **NOTE**: The following lessons were consolidated from frontend-lessons-learned.md
@@ -662,73 +736,71 @@ server: {
 
 ---
 
-## 🚨 CRITICAL: Mantine v7 Rich Text Editor Implementation 🚨
+## 🚨 CRITICAL: TinyMCE vs TipTap Implementation Standards 🚨
 **Date**: 2025-08-25
 **Category**: Rich Text Editor
 **Severity**: Critical
 
 ### Context
-EventForm required rich text editors for fullDescription and policies fields. Needed to implement @mantine/tiptap v7 compatible with existing Mantine v7.17.8 setup.
+EventForm originally used TipTap but was migrated to TinyMCE for UI standards compliance and better user experience. TinyMCE provides professional-grade rich text editing with comprehensive toolbar and features.
 
 ### What We Learned
-- **Package Compatibility**: `@mantine/tiptap@7.17.8` matches Mantine core version exactly
-- **Required Dependencies**: TipTap core extensions needed separately from @mantine/tiptap
-- **Extension Configuration**: StarterKit conflicts with individual extensions require proper configuration
-- **Form Integration**: Rich text editors need manual form value synchronization with Mantine Form
+- **UI Standards Compliance**: TinyMCE chosen over TipTap for better professional appearance
+- **Package Requirements**: `@tinymce/tinymce-react` package required for React integration
+- **Configuration Complexity**: TinyMCE requires proper toolbar, plugins, and content styling configuration
+- **Form Integration**: Rich text editors need manual form value synchronization with onChange handlers
+- **Content Styling**: TinyMCE content needs CSS styling for proper appearance
 
 ### Action Items
-- [ ] ALWAYS match @mantine/tiptap version with @mantine/core version
-- [ ] INSTALL required TipTap extensions: @tiptap/react, @tiptap/starter-kit, extensions
-- [ ] CONFIGURE StarterKit to avoid extension conflicts
-- [ ] SYNC editor content with form values using onUpdate callback
-- [ ] IMPLEMENT proper validation for rich text content
+- [ ] ALWAYS use TinyMCE (@tinymce/tinymce-react) for rich text editing, NOT TipTap
+- [ ] INSTALL TinyMCE React package: `npm install @tinymce/tinymce-react`
+- [ ] CONFIGURE comprehensive toolbar with essential formatting options
+- [ ] SYNC editor content with form values using onChange callback
+- [ ] STYLE TinyMCE content with proper CSS classes for professional appearance
 
 ### Impact
-Proper rich text editor implementation provides professional content editing experience while maintaining form validation and submission workflow.
+TinyMCE provides professional rich text editing experience with:
+- Comprehensive formatting toolbar
+- Professional UI appearance
+- Better user experience than TipTap
+- Robust content handling and validation
+- Industry-standard rich text editing capabilities
 
-### Required Package Installation:
-```bash
-npm install @mantine/tiptap@7.17.8 @tiptap/react @tiptap/starter-kit @tiptap/extension-link @tiptap/extension-highlight @tiptap/extension-underline @tiptap/extension-text-align @tiptap/extension-superscript @tiptap/extension-subscript
+### Required TinyMCE Implementation Pattern:
+```typescript
+import { Editor } from '@tinymce/tinymce-react';
+
+// TinyMCE configuration
+<Editor
+  value={form.values.fieldName}
+  onEditorChange={(content) => {
+    form.setFieldValue('fieldName', content);
+  }}
+  init={{
+    height: 300,
+    menubar: false,
+    toolbar: 'undo redo | blocks | bold italic underline strikethrough | link | bullist numlist | indent outdent | removeformat',
+    plugins: 'advlist autolink lists link charmap preview anchor textcolor colorpicker',
+    content_style: `
+      body { 
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 14px;
+        color: #333;
+        line-height: 1.6;
+      }
+    `,
+    branding: false,
+  }}
+/>
 ```
 
-### Implementation Pattern:
-```typescript
-// Extension configuration
-const editorExtensions = [
-  StarterKit.configure({
-    // Basic formatting included, no conflicts
-  }),
-  Underline, // Not in StarterKit, safe to add
-  Link.configure({
-    openOnClick: false,
-    HTMLAttributes: { class: 'rich-text-link' },
-  }),
-  Superscript,
-  SubScript,
-  Highlight.configure({ multicolor: true }),
-  TextAlign.configure({ types: ['heading', 'paragraph'] }),
-];
-
-// Editor with form sync
-const editor = useEditor({
-  extensions: editorExtensions,
-  content: form.values.fieldName,
-  onUpdate: ({ editor }) => {
-    form.setFieldValue('fieldName', editor.getHTML());
-  },
-});
-
-// RichTextEditor component
-<RichTextEditor editor={editor}>
-  <RichTextEditor.Toolbar sticky stickyOffset={60}>
-    {/* Toolbar controls */}
-  </RichTextEditor.Toolbar>
-  <RichTextEditor.Content style={{ minHeight: '200px' }} />
-</RichTextEditor>
+### Package Installation:
+```bash
+npm install @tinymce/tinymce-react
 ```
 
 ### Tags
-#critical #rich-text-editor #mantine-v7 #tiptap #form-integration
+#critical #rich-text-editor #tinymce #ui-standards #form-integration
 
 ---
 
