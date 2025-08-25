@@ -13,9 +13,27 @@ namespace WitchCityRope.Infrastructure
     {
         public WitchCityRopeDbContext CreateDbContext(string[] args)
         {
-            // Build configuration
+            // Try to find API project configuration files
+            var currentDir = Directory.GetCurrentDirectory();
+            var apiProjectPath = Path.Combine(currentDir, "..", "WitchCityRope.Api");
+            
+            // If Infrastructure project is current directory, look for API project
+            if (!Directory.Exists(apiProjectPath))
+            {
+                // Try relative path from Infrastructure project to Api project
+                apiProjectPath = Path.Combine(currentDir, "..", "WitchCityRope.Api");
+                if (!Directory.Exists(apiProjectPath))
+                {
+                    // Fallback to current directory
+                    apiProjectPath = currentDir;
+                }
+            }
+
+            // Build configuration from API project directory if it exists
+            var configPath = Directory.Exists(apiProjectPath) ? apiProjectPath : currentDir;
+            
             var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
+                .SetBasePath(configPath)
                 .AddJsonFile("appsettings.json", optional: true)
                 .AddJsonFile("appsettings.Development.json", optional: true)
                 .AddEnvironmentVariables()
@@ -25,7 +43,7 @@ namespace WitchCityRope.Infrastructure
             var optionsBuilder = new DbContextOptionsBuilder<WitchCityRopeDbContext>();
             
             var connectionString = configuration.GetConnectionString("DefaultConnection") 
-                ?? "Host=localhost;Database=witchcityrope_db;Username=postgres;Password=your_password_here";
+                ?? "Host=localhost;Port=5433;Database=witchcityrope_dev;Username=postgres;Password=devpass123";
             
             optionsBuilder.UseNpgsql(connectionString);
 

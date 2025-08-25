@@ -70,9 +70,9 @@ namespace WitchCityRope.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_EventSessions", x => x.Id);
                     table.UniqueConstraint("AK_EventSessions_EventId_SessionIdentifier", x => new { x.EventId, x.SessionIdentifier });
-                    table.CheckConstraint("CK_EventSessions_Capacity", "Capacity > 0");
-                    table.CheckConstraint("CK_EventSessions_RegisteredCount", "RegisteredCount >= 0");
-                    table.CheckConstraint("CK_EventSessions_RegisteredCount_LTE_Capacity", "RegisteredCount <= Capacity");
+                    table.CheckConstraint("CK_EventSessions_Capacity", "\"Capacity\" > 0");
+                    table.CheckConstraint("CK_EventSessions_RegisteredCount", "\"RegisteredCount\" >= 0");
+                    table.CheckConstraint("CK_EventSessions_RegisteredCount_LTE_Capacity", "\"RegisteredCount\" <= \"Capacity\"");
                     table.ForeignKey(
                         name: "FK_EventSessions_Events_EventId",
                         column: x => x.EventId,
@@ -101,10 +101,10 @@ namespace WitchCityRope.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_EventTicketTypes", x => x.Id);
-                    table.CheckConstraint("CK_EventTicketTypes_MaxPrice", "MaxPrice >= 0");
-                    table.CheckConstraint("CK_EventTicketTypes_MinPrice", "MinPrice >= 0");
-                    table.CheckConstraint("CK_EventTicketTypes_Price_Range", "MinPrice <= MaxPrice");
-                    table.CheckConstraint("CK_EventTicketTypes_QuantityAvailable", "QuantityAvailable IS NULL OR QuantityAvailable > 0");
+                    table.CheckConstraint("CK_EventTicketTypes_MaxPrice", "\"MaxPrice\" >= 0");
+                    table.CheckConstraint("CK_EventTicketTypes_MinPrice", "\"MinPrice\" >= 0");
+                    table.CheckConstraint("CK_EventTicketTypes_Price_Range", "\"MinPrice\" <= \"MaxPrice\"");
+                    table.CheckConstraint("CK_EventTicketTypes_QuantityAvailable", "\"QuantityAvailable\" IS NULL OR \"QuantityAvailable\" > 0");
                     table.ForeignKey(
                         name: "FK_EventTicketTypes_Events_EventId",
                         column: x => x.EventId,

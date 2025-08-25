@@ -74,10 +74,10 @@ namespace WitchCityRope.Infrastructure.Data.Configurations
             builder.HasIndex(ett => ett.SalesEndDate);
 
             // Constraints
-            builder.HasCheckConstraint("CK_EventTicketTypes_MinPrice", "MinPrice >= 0");
-            builder.HasCheckConstraint("CK_EventTicketTypes_MaxPrice", "MaxPrice >= 0");
-            builder.HasCheckConstraint("CK_EventTicketTypes_Price_Range", "MinPrice <= MaxPrice");
-            builder.HasCheckConstraint("CK_EventTicketTypes_QuantityAvailable", "QuantityAvailable IS NULL OR QuantityAvailable > 0");
+            builder.HasCheckConstraint("CK_EventTicketTypes_MinPrice", "\"MinPrice\" >= 0");
+            builder.HasCheckConstraint("CK_EventTicketTypes_MaxPrice", "\"MaxPrice\" >= 0");
+            builder.HasCheckConstraint("CK_EventTicketTypes_Price_Range", "\"MinPrice\" <= \"MaxPrice\"");
+            builder.HasCheckConstraint("CK_EventTicketTypes_QuantityAvailable", "\"QuantityAvailable\" IS NULL OR \"QuantityAvailable\" > 0");
         }
     }
 }

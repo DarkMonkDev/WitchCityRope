@@ -160,11 +160,11 @@ namespace WitchCityRope.Infrastructure.Migrations
 
                     b.ToTable("EventSessions", null, t =>
                         {
-                            t.HasCheckConstraint("CK_EventSessions_Capacity", "Capacity > 0");
+                            t.HasCheckConstraint("CK_EventSessions_Capacity", "\"Capacity\" > 0");
 
-                            t.HasCheckConstraint("CK_EventSessions_RegisteredCount", "RegisteredCount >= 0");
+                            t.HasCheckConstraint("CK_EventSessions_RegisteredCount", "\"RegisteredCount\" >= 0");
 
-                            t.HasCheckConstraint("CK_EventSessions_RegisteredCount_LTE_Capacity", "RegisteredCount <= Capacity");
+                            t.HasCheckConstraint("CK_EventSessions_RegisteredCount_LTE_Capacity", "\"RegisteredCount\" <= \"Capacity\"");
                         });
                 });
 
@@ -230,13 +230,13 @@ namespace WitchCityRope.Infrastructure.Migrations
 
                     b.ToTable("EventTicketTypes", null, t =>
                         {
-                            t.HasCheckConstraint("CK_EventTicketTypes_MaxPrice", "MaxPrice >= 0");
+                            t.HasCheckConstraint("CK_EventTicketTypes_MaxPrice", "\"MaxPrice\" >= 0");
 
-                            t.HasCheckConstraint("CK_EventTicketTypes_MinPrice", "MinPrice >= 0");
+                            t.HasCheckConstraint("CK_EventTicketTypes_MinPrice", "\"MinPrice\" >= 0");
 
-                            t.HasCheckConstraint("CK_EventTicketTypes_Price_Range", "MinPrice <= MaxPrice");
+                            t.HasCheckConstraint("CK_EventTicketTypes_Price_Range", "\"MinPrice\" <= \"MaxPrice\"");
 
-                            t.HasCheckConstraint("CK_EventTicketTypes_QuantityAvailable", "QuantityAvailable IS NULL OR QuantityAvailable > 0");
+                            t.HasCheckConstraint("CK_EventTicketTypes_QuantityAvailable", "\"QuantityAvailable\" IS NULL OR \"QuantityAvailable\" > 0");
                         });
                 });
 

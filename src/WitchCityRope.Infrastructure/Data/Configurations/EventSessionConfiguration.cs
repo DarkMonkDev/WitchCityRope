@@ -70,9 +70,9 @@ namespace WitchCityRope.Infrastructure.Data.Configurations
             builder.HasIndex(es => new { es.Date, es.StartTime });
 
             // Constraints
-            builder.HasCheckConstraint("CK_EventSessions_Capacity", "Capacity > 0");
-            builder.HasCheckConstraint("CK_EventSessions_RegisteredCount", "RegisteredCount >= 0");
-            builder.HasCheckConstraint("CK_EventSessions_RegisteredCount_LTE_Capacity", "RegisteredCount <= Capacity");
+            builder.HasCheckConstraint("CK_EventSessions_Capacity", "\"Capacity\" > 0");
+            builder.HasCheckConstraint("CK_EventSessions_RegisteredCount", "\"RegisteredCount\" >= 0");
+            builder.HasCheckConstraint("CK_EventSessions_RegisteredCount_LTE_Capacity", "\"RegisteredCount\" <= \"Capacity\"");
         }
     }
 }
