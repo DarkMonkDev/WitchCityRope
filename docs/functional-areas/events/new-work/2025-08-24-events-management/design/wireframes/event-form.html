@@ -396,7 +396,7 @@
         }
         
         /* UPDATED: Standardized Data Tables with Burgundy Headers */
-        .data-table {
+        .data-table, .data-grid {
             width: 100%;
             background: white;
             border-radius: 12px;
@@ -405,7 +405,7 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
         
-        .data-table th {
+        .data-table th, .data-grid th {
             background: var(--color-burgundy);
             color: white;
             padding: var(--space-md);
@@ -418,7 +418,7 @@
             border-bottom: none;
         }
         
-        .data-table td {
+        .data-table td, .data-grid td {
             padding: var(--space-md);
             border-bottom: 1px solid rgba(183, 109, 117, 0.2);
             vertical-align: middle;
@@ -426,15 +426,15 @@
         }
         
         /* More contrasted alternating row backgrounds */
-        .data-table tbody tr:nth-child(even) {
+        .data-table tbody tr:nth-child(even), .data-grid tbody tr:nth-child(even) {
             background: rgba(250, 246, 242, 0.8);
         }
         
-        .data-table tbody tr:hover {
+        .data-table tbody tr:hover, .data-grid tbody tr:hover {
             background: rgba(136, 1, 36, 0.08) !important;
         }
         
-        .data-table tbody tr:last-child td {
+        .data-table tbody tr:last-child td, .data-grid tbody tr:last-child td {
             border-bottom: none;
         }
         
@@ -902,6 +902,64 @@
             color: var(--color-charcoal);
         }
         
+        /* Volunteer Position Styles */
+        .volunteer-position-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-md);
+            align-items: end;
+        }
+        
+        .volunteer-position-form {
+            background: white;
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 8px;
+            padding: var(--space-md);
+            margin-bottom: var(--space-md);
+        }
+        
+        .position-title {
+            font-weight: 600;
+            color: var(--color-burgundy);
+        }
+        
+        .position-time {
+            color: var(--color-stone);
+            font-size: 0.9rem;
+        }
+        
+        .position-needed {
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .position-assigned {
+            font-size: 0.9rem;
+        }
+        
+        .volunteer-number-input {
+            width: 120px;
+        }
+        
+        .add-position-btn {
+            background: linear-gradient(135deg, var(--color-amber), #DAA520);
+            border: none;
+            color: var(--color-charcoal);
+            padding: var(--space-sm) var(--space-md);
+            border-radius: 12px 6px 12px 6px;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .add-position-btn:hover {
+            border-radius: 6px 12px 6px 12px;
+            box-shadow: 0 4px 12px rgba(255, 191, 0, 0.3);
+        }
+        
         /* Mobile Responsive */
         @media (max-width: 768px) {
             .admin-layout {
@@ -965,12 +1023,12 @@
                 align-items: stretch;
             }
 
-            .data-table {
+            .data-table, .data-grid {
                 font-size: 0.8rem;
             }
 
-            .data-table th,
-            .data-table td {
+            .data-table th, .data-grid th,
+            .data-table td, .data-grid td {
                 padding: var(--space-xs) var(--space-sm);
             }
         }
@@ -1715,126 +1773,127 @@
                     </div>
                 </div>
                 
-                <!-- Volunteers/Staff Tab -->
+                <!-- Volunteers/Staff Tab - UPDATED WITH CORRECT VERSION AND SESSION DROPDOWN -->
                 <div id="volunteers-staff" class="tab-content">
-                    <!-- Volunteer Positions -->
+                    <!-- Current Volunteer Positions FIRST -->
                     <div class="form-section">
-                        <h2 class="section-title">Volunteer Positions</h2>
-                        <p class="form-help" style="margin-bottom: var(--space-lg);">Define volunteer roles needed for this event</p>
+                        <h2 class="section-title">Current Volunteer Positions</h2>
                         
-                        <div class="volunteer-positions">
-                            <!-- Position 1 -->
-                            <div style="background: white; border: 2px solid var(--color-rose-gold); border-radius: 8px; padding: var(--space-md); margin-bottom: var(--space-md);">
-                                <div class="volunteer-position-grid">
-                                    <div class="form-group">
-                                        <div class="floating-input-wrapper">
-                                            <input type="text" class="floating-input has-value" placeholder=" " value="Setup Assistant">
-                                            <label class="floating-label">Position Title</label>
-                                        </div>
+                        <table class="data-grid">
+                            <thead>
+                                <tr>
+                                    <th>Position</th>
+                                    <th>Time</th>
+                                    <th>Description</th>
+                                    <th>Needed</th>
+                                    <th>Assigned</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="position-title">Door Monitor</div>
+                                    </td>
+                                    <td>
+                                        <div class="position-time">6:00 PM - 7:00 PM</div>
+                                    </td>
+                                    <td>Check IDs, welcome members</td>
+                                    <td class="position-needed">2</td>
+                                    <td class="position-assigned">
+                                        <div style="color: var(--color-success);">✓ Jamie Davis</div>
+                                        <div style="color: var(--color-warning);">○ 1 more needed</div>
+                                    </td>
+                                    <td><button class="btn btn-secondary btn-sm">Manage</button></td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        <div class="position-title">Safety Monitor</div>
+                                    </td>
+                                    <td>
+                                        <div class="position-time">7:00 PM - 10:00 PM</div>
+                                    </td>
+                                    <td>Monitor play areas, handle incidents</td>
+                                    <td class="position-needed">3</td>
+                                    <td class="position-assigned">
+                                        <div style="color: var(--color-success);">✓ Sam Singh</div>
+                                        <div style="color: var(--color-success);">✓ Alex Chen</div>
+                                        <div style="color: var(--color-warning);">○ 1 more needed</div>
+                                    </td>
+                                    <td><button class="btn btn-secondary btn-sm">Manage</button></td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        <div class="position-title">Setup Crew</div>
+                                    </td>
+                                    <td>
+                                        <div class="position-time">6:00 PM - 7:00 PM</div>
+                                    </td>
+                                    <td>Arrange furniture, setup equipment</td>
+                                    <td class="position-needed">4</td>
+                                    <td class="position-assigned">
+                                        <div style="color: var(--color-error);">⚠ 4 positions open</div>
+                                    </td>
+                                    <td><button class="btn btn-secondary btn-sm">Manage</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Volunteer Position Management LAST -->
+                    <div class="form-section">
+                        <h2 class="section-title">Volunteer Position Management</h2>
+                        <p class="form-help" style="margin-bottom: var(--space-md);">Define volunteer positions and manage assignments</p>
+                        
+                        <!-- Add New Position -->
+                        <div class="volunteer-position-form">
+                            <h3 style="margin-bottom: var(--space-sm); color: var(--color-burgundy);">Add New Position</h3>
+                            <div class="volunteer-position-grid">
+                                <div class="form-group">
+                                    <div class="floating-input-wrapper">
+                                        <input type="text" class="floating-input" placeholder=" ">
+                                        <label class="floating-label">Position Name</label>
                                     </div>
-                                    <div class="form-group">
-                                        <div class="floating-input-wrapper">
-                                            <input type="number" class="floating-input has-value" placeholder=" " value="2" min="1">
-                                            <label class="floating-label">Positions Needed</label>
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <div class="floating-input-wrapper">
-                                            <input type="text" class="floating-input has-value" placeholder=" " value="6:00 PM - 7:00 PM">
-                                            <label class="floating-label">Time Commitment</label>
-                                        </div>
+                                </div>
+                                <!-- ADDED: Session Dropdown -->
+                                <div class="form-group">
+                                    <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Session</label>
+                                    <select class="form-select">
+                                        <option value="">Select session...</option>
+                                        <option value="day-1">Day 1: Fundamentals</option>
+                                        <option value="day-2">Day 2: Advanced Techniques</option>
+                                        <option value="day-3">Day 3: Integration & Practice</option>
+                                        <option value="all">All Sessions</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <div class="floating-input-wrapper">
+                                        <input type="time" class="floating-input" placeholder=" ">
+                                        <label class="floating-label">Start Time</label>
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <div class="floating-input-wrapper">
-                                        <textarea class="floating-input has-value" placeholder=" " rows="2">Help set up equipment, arrange seating, prepare materials</textarea>
-                                        <label class="floating-label">Description</label>
+                                        <input type="time" class="floating-input" placeholder=" ">
+                                        <label class="floating-label">End Time</label>
                                     </div>
                                 </div>
-                                <button class="btn btn-secondary btn-sm">Remove Position</button>
                             </div>
-                            
-                            <!-- Position 2 -->
-                            <div style="background: white; border: 2px solid var(--color-rose-gold); border-radius: 8px; padding: var(--space-md); margin-bottom: var(--space-md);">
-                                <div class="volunteer-position-grid">
-                                    <div class="form-group">
-                                        <div class="floating-input-wrapper">
-                                            <input type="text" class="floating-input has-value" placeholder=" " value="Registration Desk">
-                                            <label class="floating-label">Position Title</label>
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <div class="floating-input-wrapper">
-                                            <input type="number" class="floating-input has-value" placeholder=" " value="1" min="1">
-                                            <label class="floating-label">Positions Needed</label>
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <div class="floating-input-wrapper">
-                                            <input type="text" class="floating-input has-value" placeholder=" " value="6:30 PM - 7:15 PM">
-                                            <label class="floating-label">Time Commitment</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
+                            <div class="form-group">
+                                <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Description</label>
+                                <textarea class="form-input" placeholder="Describe the volunteer duties..." style="min-height: 80px;"></textarea>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: end; gap: var(--space-md);">
+                                <div class="form-group" style="flex: 0 0 auto;">
                                     <div class="floating-input-wrapper">
-                                        <textarea class="floating-input has-value" placeholder=" " rows="2">Check in attendees, distribute materials, answer basic questions</textarea>
-                                        <label class="floating-label">Description</label>
+                                        <input type="number" class="floating-input volunteer-number-input" placeholder=" " min="1">
+                                        <label class="floating-label">Number Needed</label>
                                     </div>
                                 </div>
-                                <button class="btn btn-secondary btn-sm">Remove Position</button>
+                                <button class="add-position-btn">Add Position</button>
                             </div>
-                        </div>
-                        
-                        <button class="btn btn-primary">Add Volunteer Position</button>
-                    </div>
-                    
-                    <!-- Staff Assignments -->
-                    <div class="form-section">
-                        <h2 class="section-title">Staff Assignments</h2>
-                        <p class="form-help" style="margin-bottom: var(--space-md);">Assign specific staff members to roles</p>
-                        
-                        <div class="form-group">
-                            <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Event Coordinator</label>
-                            <select class="form-select">
-                                <option value="">Select coordinator...</option>
-                                <option value="river-moon" selected>River Moon</option>
-                                <option value="sage-blackthorne">Sage Blackthorne</option>
-                                <option value="phoenix-rose">Phoenix Rose</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Safety Monitor</label>
-                            <select class="form-select">
-                                <option value="">Select safety monitor...</option>
-                                <option value="sage-blackthorne" selected>Sage Blackthorne</option>
-                                <option value="phoenix-rose">Phoenix Rose</option>
-                                <option value="willow-craft">Willow Craft</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Technical Support</label>
-                            <select class="form-select">
-                                <option value="">Select technical support...</option>
-                                <option value="phoenix-rose">Phoenix Rose</option>
-                                <option value="willow-craft" selected>Willow Craft</option>
-                                <option value="raven-night">Raven Night</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <!-- Special Instructions -->
-                    <div class="form-section">
-                        <h2 class="section-title">Special Instructions</h2>
-                        
-                        <div class="form-group">
-                            <div class="floating-input-wrapper">
-                                <textarea class="floating-input" placeholder=" " rows="4"></textarea>
-                                <label class="floating-label">Volunteer/Staff Notes</label>
-                            </div>
-                            <p class="form-help">Any special instructions, equipment needs, or important information for volunteers and staff</p>
                         </div>
                     </div>
                 </div>
