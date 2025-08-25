@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/home/chad/repos/witchcityrope-react/apps/api/WitchCityRope.Api.csproj": {}
+    "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/apps/api/WitchCityRope.Api.csproj": {}
   },
   "projects": {
-    "/home/chad/repos/witchcityrope-react/apps/api/WitchCityRope.Api.csproj": {
+    "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/apps/api/WitchCityRope.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/chad/repos/witchcityrope-react/apps/api/WitchCityRope.Api.csproj",
+        "projectUniqueName": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/apps/api/WitchCityRope.Api.csproj",
         "projectName": "WitchCityRope.Api",
-        "projectPath": "/home/chad/repos/witchcityrope-react/apps/api/WitchCityRope.Api.csproj",
+        "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/apps/api/WitchCityRope.Api.csproj",
         "packagesPath": "/home/chad/.nuget/packages/",
-        "outputPath": "/home/chad/repos/witchcityrope-react/apps/api/obj/",
+        "outputPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/apps/api/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/chad/.nuget/NuGet/NuGet.Config"

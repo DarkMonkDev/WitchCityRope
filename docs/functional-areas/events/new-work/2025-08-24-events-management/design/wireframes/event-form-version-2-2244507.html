@@ -1,4 +1,10 @@
-<!DOCTYPE html>
+<!--
+Commit Hash: 2244507
+Commit Date: 2025-08-24
+Commit Message: design: Simplify event form UI for better usability while maintaining Event Session Matrix architecture
+Version: Simplified UI version with streamlined Event Session Matrix
+Contains: Volunteers/Staff tab with simplified UI design
+--><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -325,201 +331,66 @@
         .btn-sm {
             padding: var(--space-xs) var(--space-sm);
             font-size: 0.85rem;
-            min-width: 80px;
+            min-width: 120px;
         }
         
-        /* Teacher Card Styles */
-        .teacher-cards-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--space-md);
-            margin-bottom: var(--space-md);
-        }
-        
-        .teacher-card {
-            padding: var(--space-md);
-            border: 2px solid var(--color-rose-gold);
-            border-radius: 8px;
-            background: white;
-            position: relative;
-            min-width: 220px;
-            flex: 1;
-            max-width: 300px;
-            transition: all 0.3s ease;
-        }
-        
-        .teacher-card:hover {
-            border-color: var(--color-burgundy);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(136, 1, 36, 0.15);
-        }
-        
-        .teacher-card-name {
-            font-family: var(--font-heading);
-            font-weight: 600;
-            color: var(--color-burgundy);
-            margin-bottom: 4px;
-            font-size: 1rem;
-        }
-        
-        .teacher-remove-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 24px;
-            height: 24px;
-            border: none;
-            background: var(--color-error);
-            color: white;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
-        
-        .teacher-remove-btn:hover {
-            background: #b91c1c;
-            transform: scale(1.1);
-        }
-        
-        .add-teacher-controls {
-            display: flex;
-            gap: var(--space-sm);
-            align-items: end;
-        }
-        
-        .teacher-dropdown {
-            flex: 1;
-        }
-        
-        /* UPDATED: Standardized Data Tables with Burgundy Headers */
+        /* Data Tables */
         .data-table {
             width: 100%;
             background: white;
             border-radius: 12px;
+            border: 2px solid var(--color-rose-gold);
             border-collapse: collapse;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: var(--space-sm) var(--space-md);
+            text-align: left;
+            border-bottom: 1px solid rgba(183, 109, 117, 0.2);
         }
         
         .data-table th {
-            background: var(--color-burgundy);
-            color: white;
-            padding: var(--space-md);
-            text-align: left;
+            background: var(--color-ivory);
             font-family: var(--font-heading);
             font-weight: 600;
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-bottom: none;
+            color: var(--color-burgundy);
+            border-bottom: 2px solid var(--color-rose-gold);
         }
         
-        .data-table td {
-            padding: var(--space-md);
-            border-bottom: 1px solid rgba(183, 109, 117, 0.2);
-            vertical-align: middle;
-            font-size: 1rem;
+        .data-table tbody tr {
+            transition: all 0.2s ease;
         }
         
-        /* More contrasted alternating row backgrounds */
         .data-table tbody tr:nth-child(even) {
-            background: rgba(250, 246, 242, 0.8);
+            background: rgba(250, 246, 242, 0.5);
         }
         
         .data-table tbody tr:hover {
-            background: rgba(136, 1, 36, 0.08) !important;
+            background: rgba(136, 1, 36, 0.05);
         }
         
         .data-table tbody tr:last-child td {
             border-bottom: none;
         }
         
-        /* UPDATED: Inline Edit Styles with Better Visual Cues */
+        /* Inline Edit Styles */
         .inline-edit {
             background: transparent;
-            border: 2px solid transparent;
-            padding: 4px 6px;
+            border: none;
+            padding: 2px 4px;
             font-family: var(--font-body);
             color: var(--color-charcoal);
             cursor: text;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-            min-width: 60px;
-        }
-        
-        .inline-edit:hover {
-            background: rgba(136, 1, 36, 0.05);
-            border-color: rgba(136, 1, 36, 0.2);
         }
         
         .inline-edit:focus {
             background: white;
-            border-color: var(--color-burgundy);
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(136, 1, 36, 0.15);
-        }
-        
-        /* Visual indicator for editable cells */
-        .editable-cell {
-            position: relative;
-            cursor: pointer;
-        }
-        
-        .editable-cell:hover::after {
-            content: '✏️';
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            font-size: 0.7rem;
-            opacity: 0.6;
-        }
-        
-        /* Action buttons in tables */
-        .table-action-btn {
-            background: var(--color-cream);
-            border: 1px solid var(--color-rose-gold);
-            color: var(--color-burgundy);
-            padding: 4px 8px;
-            margin: 0 2px;
+            border: 1px solid var(--color-burgundy);
             border-radius: 4px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .table-action-btn:hover {
-            background: var(--color-burgundy);
-            color: white;
-        }
-        
-        .table-action-btn.delete-btn {
-            background: var(--color-error);
-            border-color: var(--color-error);
-            color: white;
-        }
-        
-        .table-action-btn.delete-btn:hover {
-            background: #b91c1c;
-        }
-        
-        .table-action-btn.save-btn {
-            background: var(--color-success);
-            border-color: var(--color-success);
-            color: white;
-            display: none;
-        }
-        
-        .table-action-btn.save-btn:hover {
-            background: #1f7a1f;
-        }
-        
-        /* Show save button when row is being edited */
-        .editing .table-action-btn.save-btn {
-            display: inline-block;
+            outline: none;
         }
         
         /* Status Badges */
@@ -652,6 +523,13 @@
             gap: var(--space-md);
         }
         
+        /* FIXED: Capacity and Ticketing on same line */
+        .capacity-ticketing-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: var(--space-md);
+        }
+        
         /* Pricing Fields */
         .pricing-fields {
             display: grid;
@@ -719,6 +597,29 @@
             color: var(--color-burgundy);
         }
 
+        /* Quick Event Template - Simplified */
+        .quick-template-dropdown {
+            display: flex;
+            gap: var(--space-sm);
+            align-items: center;
+            margin-bottom: var(--space-lg);
+            padding: var(--space-md);
+            background: var(--color-ivory);
+            border-radius: 8px;
+            border: 2px solid var(--color-rose-gold);
+        }
+        
+        .quick-template-dropdown label {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-burgundy);
+            white-space: nowrap;
+        }
+        
+        .quick-template-dropdown select {
+            flex: 1;
+        }
+        
         /* Email Template Management - Simplified */
         .add-template-controls {
             display: flex;
@@ -923,6 +824,7 @@
             }
             
             .schedule-venue-grid,
+            .capacity-ticketing-grid,
             .pricing-fields {
                 grid-template-columns: 1fr;
             }
@@ -972,6 +874,11 @@
             .data-table th,
             .data-table td {
                 padding: var(--space-xs) var(--space-sm);
+            }
+
+            .quick-template-dropdown {
+                flex-direction: column;
+                align-items: stretch;
             }
         }
     </style>
@@ -1066,18 +973,9 @@
                                 </div>
                             </div>
                             
-                            <!-- Short Description -->
+                            <!-- Description with Enhanced TinyMCE Editor -->
                             <div class="form-group">
-                                <div class="floating-input-wrapper">
-                                    <input type="text" class="floating-input" placeholder=" " required>
-                                    <label class="floating-label">Short Description <span class="required">*</span></label>
-                                </div>
-                                <p class="form-help">Brief description for cards and grid views (160 characters max)</p>
-                            </div>
-                            
-                            <!-- Full Description with Enhanced TinyMCE Editor -->
-                            <div class="form-group">
-                                <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Full Event Description <span class="required">*</span></label>
+                                <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Event Description <span class="required">*</span></label>
                                 <div class="tinymce-container">
                                     <div class="tinymce-toolbar">
                                         <!-- TinyMCE Toolbar -->
@@ -1118,60 +1016,32 @@
                                         <button type="button" class="tinymce-btn" title="Source Code">{ }</button>
                                     </div>
                                     
-                                    <div class="tinymce-editor" contenteditable="true" data-placeholder="Enter detailed event description..." style="min-height: 200px;"></div>
+                                    <div class="tinymce-editor" contenteditable="true" data-placeholder="Enter event description..." style="min-height: 200px;"></div>
                                     
                                     <div class="tinymce-statusbar">
                                         <span>Path: body › p</span>
                                         <div class="resize-handle"></div>
                                     </div>
                                 </div>
-                                <p class="form-help">This detailed description will be visible on the public events page</p>
+                                <p class="form-help">This description will be visible on the public events page</p>
                             </div>
                             
-                            <!-- Policies & Procedures (replaces Prerequisites and Safety) -->
+                            <!-- Prerequisites -->
                             <div class="form-group">
-                                <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Policies & Procedures</label>
-                                <div class="tinymce-container">
-                                    <div class="tinymce-toolbar">
-                                        <select class="tinymce-dropdown">
-                                            <option>Paragraph</option>
-                                            <option>Heading 1</option>
-                                            <option>Heading 2</option>
-                                            <option>Heading 3</option>
-                                        </select>
-                                        
-                                        <div class="tinymce-btn-group">
-                                            <button type="button" class="tinymce-btn" title="Bold"><strong>B</strong></button>
-                                            <button type="button" class="tinymce-btn" title="Italic"><em>I</em></button>
-                                            <button type="button" class="tinymce-btn" title="Underline"><u>U</u></button>
-                                        </div>
-                                        
-                                        <div class="tinymce-btn-group">
-                                            <button type="button" class="tinymce-btn" title="Bullet List">•</button>
-                                            <button type="button" class="tinymce-btn" title="Numbered List">1.</button>
-                                        </div>
-                                        
-                                        <div class="tinymce-btn-group">
-                                            <button type="button" class="tinymce-btn" title="Insert Link">🔗</button>
-                                            <button type="button" class="tinymce-btn" title="Insert Table">📊</button>
-                                        </div>
-                                        
-                                        <div class="tinymce-btn-group">
-                                            <button type="button" class="tinymce-btn" title="Undo">↶</button>
-                                            <button type="button" class="tinymce-btn" title="Redo">↷</button>
-                                        </div>
-                                        
-                                        <button type="button" class="tinymce-btn" title="Source Code">{ }</button>
-                                    </div>
-                                    
-                                    <div class="tinymce-editor" contenteditable="true" data-placeholder="Enter studio policies, safety requirements, prerequisites, etc..." style="min-height: 150px;"></div>
-                                    
-                                    <div class="tinymce-statusbar">
-                                        <span>Path: body › p</span>
-                                        <div class="resize-handle"></div>
-                                    </div>
+                                <div class="floating-input-wrapper">
+                                    <input type="text" class="floating-input" placeholder=" ">
+                                    <label class="floating-label">Prerequisites</label>
                                 </div>
-                                <p class="form-help">Studio-specific policies, prerequisites, safety requirements, etc. (managed by studio/admin, teachers cannot edit)</p>
+                                <p class="form-help">Any experience or requirements needed (optional)</p>
+                            </div>
+                            
+                            <!-- Safety Considerations -->
+                            <div class="form-group">
+                                <div class="floating-input-wrapper">
+                                    <textarea class="floating-input" placeholder=" " rows="3"></textarea>
+                                    <label class="floating-label">Safety Considerations</label>
+                                </div>
+                                <p class="form-help">Important safety information for attendees</p>
                             </div>
                         </div>
                         
@@ -1222,35 +1092,93 @@
                             </div>
                         </div>
                         
-                        <!-- Teachers/Instructors with Card Pattern -->
+                        <!-- Capacity, Ticketing & Pricing -->
                         <div class="form-section">
-                            <h2 class="section-title">Teachers/Instructors</h2>
+                            <h2 class="section-title">Capacity, Ticketing & Pricing</h2>
                             
-                            <!-- Teacher Cards Container -->
-                            <div class="teacher-cards-container">
-                                <!-- Selected Teachers (using same pattern as email templates) -->
-                                <div class="teacher-card">
-                                    <button class="teacher-remove-btn" onclick="removeTeacher(event, 'river-moon')">×</button>
-                                    <div class="teacher-card-name">River Moon</div>
+                            <div class="capacity-ticketing-grid">
+                                <!-- Capacity -->
+                                <div class="form-group">
+                                    <div class="floating-input-wrapper">
+                                        <input type="number" class="floating-input" placeholder=" " min="1" required>
+                                        <label class="floating-label">Capacity <span class="required">*</span></label>
+                                    </div>
+                                    <p class="form-help">Maximum attendees</p>
                                 </div>
                                 
-                                <div class="teacher-card">
-                                    <button class="teacher-remove-btn" onclick="removeTeacher(event, 'sage-blackthorne')">×</button>
-                                    <div class="teacher-card-name">Sage Blackthorne</div>
+                                <!-- Registration Type -->
+                                <div class="form-group">
+                                    <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Registration Type</label>
+                                    <div class="radio-group">
+                                        <div class="radio-option">
+                                            <input type="radio" name="registration-type" value="paid" id="paid" checked>
+                                            <label class="radio-label" for="paid">Paid Event (requires ticket purchase)</label>
+                                        </div>
+                                        <div class="radio-option">
+                                            <input type="radio" name="registration-type" value="rsvp" id="rsvp">
+                                            <label class="radio-label" for="rsvp">RSVP Only (free event)</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Waitlist -->
+                                <div class="form-group">
+                                    <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Waitlist</label>
+                                    <div class="radio-group">
+                                        <div class="radio-option">
+                                            <input type="radio" name="waitlist" value="enabled" id="waitlist-enabled" checked>
+                                            <label class="radio-label" for="waitlist-enabled">Enable waitlist when full</label>
+                                        </div>
+                                        <div class="radio-option">
+                                            <input type="radio" name="waitlist" value="disabled" id="waitlist-disabled">
+                                            <label class="radio-label" for="waitlist-disabled">No waitlist (close registration)</label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             
-                            <!-- Add Teacher Controls -->
-                            <div class="add-teacher-controls">
-                                <div class="teacher-dropdown">
-                                    <select class="form-select" id="available-teachers">
-                                        <option value="">Select teacher...</option>
-                                        <option value="phoenix-rose">Phoenix Rose</option>
-                                        <option value="willow-craft">Willow Craft</option>
-                                        <option value="raven-night">Raven Night</option>
+                            <!-- Pricing Structure (for paid events) -->
+                            <div class="pricing-structure" id="pricing-section">
+                                <!-- Pricing Type Selection -->
+                                <div class="form-group pricing-type-dropdown">
+                                    <select class="form-select" onchange="showPricingFields(this.value)">
+                                        <option value="sliding-scale">Sliding Scale</option>
+                                        <option value="tiered">Tiered Pricing</option>
+                                        <option value="fixed">Fixed Price</option>
                                     </select>
                                 </div>
-                                <button type="button" class="btn btn-primary" onclick="addTeacher()" id="add-teacher-btn" disabled>Add Teacher</button>
+                                
+                                <!-- Pricing Fields -->
+                                <div class="pricing-fields">
+                                    <!-- Sliding Scale Fields (default) -->
+                                    <div class="form-group">
+                                        <div class="floating-input-wrapper">
+                                            <input type="number" class="floating-input" placeholder=" " min="0" step="0.01">
+                                            <label class="floating-label">Minimum Price ($)</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="floating-input-wrapper">
+                                            <input type="number" class="floating-input" placeholder=" " min="0" step="0.01">
+                                            <label class="floating-label">Suggested Price ($)</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Teachers/Instructors -->
+                        <div class="form-section">
+                            <h2 class="section-title">Teachers/Instructors</h2>
+                            
+                            <div class="form-group">
+                                <select class="form-select" multiple>
+                                    <option value="river-moon">River Moon</option>
+                                    <option value="sage-blackthorne">Sage Blackthorne</option>
+                                    <option value="phoenix-rose">Phoenix Rose</option>
+                                    <option value="willow-craft">Willow Craft</option>
+                                </select>
+                                <p class="form-help">Hold Ctrl/Cmd to select multiple teachers</p>
                             </div>
                         </div>
                         
@@ -1262,265 +1190,177 @@
                     </form>
                 </div>
                 
-                <!-- UPDATED: Tickets/Orders Tab with Fixed Column Order -->
+                <!-- Tickets/Orders Tab - UPDATED WITH DATA GRIDS -->
                 <div id="tickets-orders" class="tab-content">
-                    <!-- Event Sessions - DATA GRID with Fixed Column Order -->
+                    <!-- Quick Event Template - Simplified to Top Dropdown -->
+                    <div class="quick-template-dropdown">
+                        <label>Quick Setup:</label>
+                        <select class="form-select" onchange="applyTemplate(this.value)">
+                            <option value="">Choose a template...</option>
+                            <option value="single-day">Single Day Event</option>
+                            <option value="multi-day">Multi-Day Event</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Event Sessions - DATA GRID -->
                     <div class="form-section">
                         <h2 class="section-title">Event Sessions</h2>
-                        <p class="form-help" style="margin-bottom: var(--space-lg);">Define the individual sessions for your event. Click in any cell to edit directly. The system auto-detects single vs multi-day events based on session count.</p>
-
-                        <!-- NOTE: Consider Social Events - but don't implement yet -->
-                        <!-- Social events need RSVP tracking and may not need multi-session complexity -->
+                        <p class="form-help" style="margin-bottom: var(--space-lg);">Define the individual sessions for your event. Click in cells to edit values directly.</p>
 
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>Edit</th>
                                     <th>Session Name</th>
                                     <th>Date</th>
                                     <th>Start Time</th>
                                     <th>End Time</th>
                                     <th>Capacity</th>
                                     <th>Sold</th>
-                                    <th>Delete</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>
-                                        <button class="table-action-btn save-btn" onclick="saveSession(this)" title="Save Changes">💾</button>
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" value="Day 1: Fundamentals" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" type="date" value="2025-02-15" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" type="time" value="19:00" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" type="time" value="21:00" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" type="number" value="20" min="1" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
+                                    <td><input class="inline-edit" value="Day 1: Fundamentals" style="width: 100%;" /></td>
+                                    <td><input class="inline-edit" type="date" value="2025-02-15" /></td>
+                                    <td><input class="inline-edit" type="time" value="19:00" /></td>
+                                    <td><input class="inline-edit" type="time" value="21:00" /></td>
+                                    <td><input class="inline-edit" type="number" value="20" style="width: 60px;" /></td>
                                     <td><strong>8</strong></td>
                                     <td>
-                                        <button class="table-action-btn delete-btn" onclick="deleteSession(this)" title="Delete Session">🗑️</button>
+                                        <button class="btn btn-secondary btn-sm">Edit</button>
+                                        <button class="btn btn-secondary btn-sm" style="background: var(--color-error); border-color: var(--color-error); color: white;">Delete</button>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>
-                                        <button class="table-action-btn save-btn" onclick="saveSession(this)" title="Save Changes">💾</button>
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" value="Day 2: Advanced Techniques" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" type="date" value="2025-02-16" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" type="time" value="19:00" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" type="time" value="21:00" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" type="number" value="20" min="1" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
+                                    <td><input class="inline-edit" value="Day 2: Advanced Techniques" style="width: 100%;" /></td>
+                                    <td><input class="inline-edit" type="date" value="2025-02-16" /></td>
+                                    <td><input class="inline-edit" type="time" value="19:00" /></td>
+                                    <td><input class="inline-edit" type="time" value="21:00" /></td>
+                                    <td><input class="inline-edit" type="number" value="20" style="width: 60px;" /></td>
                                     <td><strong style="color: var(--color-warning);">15</strong></td>
                                     <td>
-                                        <button class="table-action-btn delete-btn" onclick="deleteSession(this)" title="Delete Session">🗑️</button>
+                                        <button class="btn btn-secondary btn-sm">Edit</button>
+                                        <button class="btn btn-secondary btn-sm" style="background: var(--color-error); border-color: var(--color-error); color: white;">Delete</button>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>
-                                        <button class="table-action-btn save-btn" onclick="saveSession(this)" title="Save Changes">💾</button>
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" value="Day 3: Integration & Practice" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" type="date" value="2025-02-17" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" type="time" value="19:00" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" type="time" value="21:00" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" type="number" value="20" min="1" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
+                                    <td><input class="inline-edit" value="Day 3: Integration & Practice" style="width: 100%;" /></td>
+                                    <td><input class="inline-edit" type="date" value="2025-02-17" /></td>
+                                    <td><input class="inline-edit" type="time" value="19:00" /></td>
+                                    <td><input class="inline-edit" type="time" value="21:00" /></td>
+                                    <td><input class="inline-edit" type="number" value="20" style="width: 60px;" /></td>
                                     <td><strong>8</strong></td>
                                     <td>
-                                        <button class="table-action-btn delete-btn" onclick="deleteSession(this)" title="Delete Session">🗑️</button>
+                                        <button class="btn btn-secondary btn-sm">Edit</button>
+                                        <button class="btn btn-secondary btn-sm" style="background: var(--color-error); border-color: var(--color-error); color: white;">Delete</button>
                                     </td>
-                                </tr>
-                                <!-- Empty row for adding new sessions -->
-                                <tr class="new-row">
-                                    <td>
-                                        <button class="table-action-btn save-btn" onclick="saveNewSession(this)" title="Save New Session">💾</button>
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" placeholder="Enter session name..." onfocus="startNewSession(this)" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" type="date" onfocus="startNewSession(this)" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" type="time" onfocus="startNewSession(this)" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" type="time" onfocus="startNewSession(this)" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" type="number" placeholder="20" min="1" onfocus="startNewSession(this)" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td><em style="color: var(--color-stone);">New</em></td>
-                                    <td><!-- No delete for new row --></td>
                                 </tr>
                             </tbody>
                         </table>
                         
-                        <div style="margin-top: var(--space-sm); font-size: 0.9rem; color: var(--color-stone); font-style: italic;">
-                            💡 Tip: Click any cell to edit, press Enter to save, Escape to cancel. Use the + row at bottom to add new sessions.
-                        </div>
+                        <button class="btn btn-primary" style="margin-top: var(--space-md);" onclick="addSession()">Add Session</button>
                     </div>
 
-                    <!-- Ticket Types - DATA GRID with Fixed Columns -->
+                    <!-- Ticket Types - DATA GRID -->
                     <div class="form-section">
                         <h2 class="section-title">Ticket Types</h2>
-                        <p class="form-help" style="margin-bottom: var(--space-lg);">Configure different ticket options for your event. Each ticket type can include multiple sessions. Click Edit to modify complex settings.</p>
+                        <p class="form-help" style="margin-bottom: var(--space-lg);">Configure different ticket options for your event. Each ticket type can include multiple sessions.</p>
 
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>Edit</th>
                                     <th>Ticket Name</th>
-                                    <th>Type</th>
                                     <th>Sessions Included</th>
                                     <th>Price Range</th>
                                     <th>Quantity</th>
-                                    <th>Sales End</th>
-                                    <th>Delete</th>
+                                    <th>Sale Period</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>
-                                        <button class="table-action-btn" onclick="editTicketType(1)">✏️ Edit</button>
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" value="Full 3-Day Series Pass" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td>Single</td>
+                                    <td><strong>Full 3-Day Series Pass</strong></td>
                                     <td><span style="color: var(--color-success);">✓ Day 1</span> <span style="color: var(--color-success);">✓ Day 2</span> <span style="color: var(--color-success);">✓ Day 3</span></td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" value="$120 - $150" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" type="number" value="15" min="1" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td>Feb 17</td>
+                                    <td>$120 - $150</td>
+                                    <td>15 tickets</td>
+                                    <td>Now until event start</td>
                                     <td>
-                                        <button class="table-action-btn delete-btn" onclick="deleteTicketType(1)">🗑️</button>
+                                        <button class="btn btn-secondary btn-sm" onclick="editTicketType(1)">Edit</button>
+                                        <button class="btn btn-secondary btn-sm" style="background: var(--color-error); border-color: var(--color-error); color: white;">Delete</button>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>
-                                        <button class="table-action-btn" onclick="editTicketType(2)">✏️ Edit</button>
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" value="Day 1: Fundamentals Only" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td>Single</td>
+                                    <td><strong>Day 1: Fundamentals Only</strong></td>
                                     <td><span style="color: var(--color-success);">✓ Day 1</span></td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" value="$45 - $60" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" type="number" value="10" min="1" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td>Feb 15</td>
+                                    <td>$45 - $60</td>
+                                    <td>10 tickets</td>
+                                    <td>Now until Feb 15</td>
                                     <td>
-                                        <button class="table-action-btn delete-btn" onclick="deleteTicketType(2)">🗑️</button>
+                                        <button class="btn btn-secondary btn-sm" onclick="editTicketType(2)">Edit</button>
+                                        <button class="btn btn-secondary btn-sm" style="background: var(--color-error); border-color: var(--color-error); color: white;">Delete</button>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>
-                                        <button class="table-action-btn" onclick="editTicketType(3)">✏️ Edit</button>
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" value="Weekend Pass (Days 2-3)" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td>Couples</td>
+                                    <td><strong>Weekend Pass (Days 2-3)</strong></td>
                                     <td><span style="color: var(--color-success);">✓ Day 2</span> <span style="color: var(--color-success);">✓ Day 3</span></td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" value="$80 - $100" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td class="editable-cell" onclick="enableEdit(this)">
-                                        <input class="inline-edit" type="number" value="8" min="1" onblur="disableEdit(this)" onkeydown="handleKeyPress(event)" />
-                                    </td>
-                                    <td>Feb 16</td>
+                                    <td>$80 - $100</td>
+                                    <td>8 tickets</td>
+                                    <td>Now until Feb 16</td>
                                     <td>
-                                        <button class="table-action-btn delete-btn" onclick="deleteTicketType(3)">🗑️</button>
+                                        <button class="btn btn-secondary btn-sm" onclick="editTicketType(3)">Edit</button>
+                                        <button class="btn btn-secondary btn-sm" style="background: var(--color-error); border-color: var(--color-error); color: white;">Delete</button>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
 
-                        <button class="btn btn-primary" style="margin-top: var(--space-md);" onclick="addTicketType()">➕ Add Ticket Type</button>
-                        
-                        <div style="margin-top: var(--space-sm); font-size: 0.9rem; color: var(--color-stone); font-style: italic;">
-                            💡 Tip: Click Edit for complex settings like session selection and sale periods. Simple fields can be edited inline.
-                        </div>
+                        <button class="btn btn-primary" style="margin-top: var(--space-md);" onclick="addTicketType()">Add Ticket Type</button>
                     </div>
 
-                    <!-- Recent Orders - Standardized Table -->
+                    <!-- Recent Orders -->
                     <div class="form-section">
                         <h2 class="section-title">Recent Orders</h2>
                         
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>Actions</th>
                                     <th>Order #</th>
                                     <th>Customer</th>
                                     <th>Ticket Type</th>
                                     <th>Sessions</th>
                                     <th>Status</th>
                                     <th>Amount</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td><button class="table-action-btn" onclick="viewOrder(1047)">👁️ View</button></td>
-                                    <td><strong>#1047</strong></td>
+                                    <td>#1047</td>
                                     <td>Alex Thompson</td>
                                     <td>Full 3-Day Series Pass</td>
                                     <td>Day 1, Day 2, Day 3</td>
                                     <td><span class="status-badge status-confirmed">Confirmed</span></td>
-                                    <td><strong>$135.00</strong></td>
+                                    <td>$135.00</td>
+                                    <td><button class="btn btn-secondary btn-sm">View</button></td>
                                 </tr>
                                 <tr>
-                                    <td><button class="table-action-btn" onclick="viewOrder(1048)">👁️ View</button></td>
-                                    <td><strong>#1048</strong></td>
+                                    <td>#1048</td>
                                     <td>Morgan Lee</td>
                                     <td>Day 1: Fundamentals Only</td>
                                     <td>Day 1</td>
                                     <td><span class="status-badge status-confirmed">Confirmed</span></td>
-                                    <td><strong>$50.00</strong></td>
+                                    <td>$50.00</td>
+                                    <td><button class="btn btn-secondary btn-sm">View</button></td>
                                 </tr>
                                 <tr>
-                                    <td><button class="table-action-btn" onclick="viewOrder(1049)">👁️ View</button></td>
-                                    <td><strong>#1049</strong></td>
+                                    <td>#1049</td>
                                     <td>Sam Chen</td>
                                     <td>Weekend Pass (Days 2-3)</td>
                                     <td>Day 2, Day 3</td>
                                     <td><span class="status-badge status-pending">Pending</span></td>
-                                    <td><strong>$90.00</strong></td>
+                                    <td>$90.00</td>
+                                    <td><button class="btn btn-secondary btn-sm">View</button></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1842,7 +1682,7 @@
         </main>
     </div>
     
-    <!-- JavaScript for Tab Functionality and Inline Editing -->
+    <!-- JavaScript for Tab Functionality -->
     <script>
         function switchTab(tabId) {
             // Hide all tab contents
@@ -1870,137 +1710,29 @@
             
             // Show/hide pricing section based on event type
             const pricingSection = document.getElementById('pricing-section');
-            if (pricingSection) {
-                if (type === 'class') {
-                    pricingSection.style.display = 'block';
-                } else {
-                    pricingSection.style.display = 'none';
-                }
+            if (type === 'class') {
+                pricingSection.style.display = 'block';
+            } else {
+                pricingSection.style.display = 'none';
             }
         }
         
-        // Teacher management functions
-        function addTeacher() {
-            const select = document.getElementById('available-teachers');
-            if (select.value) {
-                alert('Add ' + select.options[select.selectedIndex].text + ' teacher functionality would be implemented here');
-                select.value = '';
-                document.getElementById('add-teacher-btn').disabled = true;
-            }
-        }
-        
-        function removeTeacher(event, teacherId) {
-            event.stopPropagation();
-            alert('Remove teacher ' + teacherId + ' functionality would be implemented here');
-        }
-        
-        // Enable/disable add teacher button based on dropdown selection
-        document.addEventListener('DOMContentLoaded', function() {
-            const teacherSelect = document.getElementById('available-teachers');
-            if (teacherSelect) {
-                teacherSelect.addEventListener('change', function() {
-                    document.getElementById('add-teacher-btn').disabled = !this.value;
-                });
-            }
-        });
-        
-        // Inline editing functionality
-        function enableEdit(cell) {
-            const input = cell.querySelector('.inline-edit');
-            if (input) {
-                input.focus();
-                input.select();
-                cell.parentElement.classList.add('editing');
-            }
-        }
-        
-        function disableEdit(input) {
-            const row = input.closest('tr');
-            row.classList.remove('editing');
-        }
-        
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                event.target.blur(); // This will trigger disableEdit
-                // Auto-save functionality would go here
-            } else if (event.key === 'Escape') {
-                event.preventDefault();
-                // Restore original value functionality would go here
-                event.target.blur();
-            }
-        }
-        
-        function startNewSession(input) {
-            const row = input.closest('tr');
-            row.classList.add('editing');
-        }
-        
-        function saveSession(button) {
-            const row = button.closest('tr');
-            row.classList.remove('editing');
-            // Save functionality would be implemented here
-            alert('Session saved! (This would save to backend)');
-        }
-        
-        function saveNewSession(button) {
-            const row = button.closest('tr');
-            // Validation and save logic would go here
-            alert('New session created! (This would create new session in backend)');
-            
-            // Add a new empty row for the next session
-            const tbody = row.parentElement;
-            const newRow = row.cloneNode(true);
-            // Clear the inputs in the new row
-            newRow.querySelectorAll('.inline-edit').forEach(input => {
-                input.value = '';
-                if (input.type === 'number') input.placeholder = '20';
-                if (input.type === 'text') input.placeholder = 'Enter session name...';
-            });
-            tbody.appendChild(newRow);
-            
-            // Convert current row to normal session row
-            row.classList.remove('new-row');
-            const saveBtn = row.querySelector('.save-btn');
-            saveBtn.onclick = () => saveSession(saveBtn);
-            
-            // Add delete button to last column
-            const deleteCell = row.cells[row.cells.length - 1];
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'table-action-btn delete-btn';
-            deleteBtn.innerHTML = '🗑️';
-            deleteBtn.title = 'Delete Session';
-            deleteBtn.onclick = () => deleteSession(deleteBtn);
-            deleteCell.appendChild(deleteBtn);
-            
-            // Update sold count
-            row.cells[6].innerHTML = '<strong>0</strong>';
-        }
-        
-        function deleteSession(button) {
-            if (confirm('Are you sure you want to delete this session?')) {
-                const row = button.closest('tr');
-                row.remove();
-                alert('Session deleted! (This would delete from backend)');
-            }
-        }
-        
-        function editTicketType(id) {
-            alert(`Edit ticket type ${id} in modal with full form fields (sessions multi-select, sale periods, etc.)`);
+        function addSession() {
+            alert('Add new session functionality would be implemented here');
         }
         
         function addTicketType() {
-            alert('Add new ticket type in modal with full form');
+            alert('Add new ticket type functionality would be implemented here');
         }
         
-        function deleteTicketType(id) {
-            if (confirm('Are you sure you want to delete this ticket type?')) {
-                alert(`Delete ticket type ${id} functionality would be implemented here`);
+        function editTicketType(id) {
+            alert('Edit ticket type ' + id + ' functionality would be implemented here');
+        }
+        
+        function applyTemplate(template) {
+            if (template) {
+                alert('Apply ' + template + ' template functionality would be implemented here');
             }
-        }
-        
-        function viewOrder(orderId) {
-            alert(`View order ${orderId} details functionality would be implemented here`);
         }
         
         function selectTemplate(element, templateId) {
@@ -2029,13 +1761,8 @@
         }
         
         // Enable/disable add template button based on dropdown selection
-        document.addEventListener('DOMContentLoaded', function() {
-            const templateSelect = document.getElementById('available-templates');
-            if (templateSelect) {
-                templateSelect.addEventListener('change', function() {
-                    document.getElementById('add-template-btn').disabled = !this.value;
-                });
-            }
+        document.getElementById('available-templates').addEventListener('change', function() {
+            document.getElementById('add-template-btn').disabled = !this.value;
         });
         
         // Initialize floating labels for pre-filled inputs

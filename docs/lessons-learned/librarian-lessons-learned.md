@@ -39,9 +39,24 @@ When given a Working Directory like:
 
 **Never create files in project root** - Only README, PROGRESS, ARCHITECTURE, CLAUDE belong there.
 
+**Never create files in worktree root** - ALL files must go in proper subdirectories under docs/.
+
 **Use functional areas structure** - All feature documentation goes in `/docs/functional-areas/[feature]/`.
 
 **Check master index before searching** - Always consult `/docs/architecture/functional-area-master-index.md` first when agents ask for files.
+
+## 🚨 CRITICAL: File Extraction and Analysis Placement 🚨
+
+**When extracting versions or creating analysis files:**
+- **Wireframe versions** → `/docs/functional-areas/[feature]/new-work/[date-feature]/design/wireframes/`
+- **Analysis documents** → `/docs/functional-areas/[feature]/new-work/[date-feature]/requirements/`
+- **NEVER in root** → Not in `/` or `/home/chad/repos/witchcityrope-react/.worktrees/[branch]/`
+- **ALWAYS in proper subfolder** → Follow the established structure without exception
+
+**Example for Events Management:**
+- ❌ WRONG: `/volunteers-tab-version-1.html`
+- ❌ WRONG: `/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/volunteers-tab-version-1.html`
+- ✅ CORRECT: `/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/docs/functional-areas/events/new-work/2025-08-24-events-management/design/wireframes/volunteers-tab-version-1.html`
 
 ## Content Quality Standards
 
