@@ -1184,9 +1184,9 @@
                     </form>
                 </div>
                 
-                <!-- UPDATED: Tickets/Orders Tab with Fixed Changes -->
+                <!-- UPDATED: Tickets/Orders Tab with Session/Name Column Updates and Delete Column -->
                 <div id="tickets-orders" class="tab-content">
-                    <!-- Event Sessions - NO INLINE EDITING -->
+                    <!-- Event Sessions - Updated Column Structure -->
                     <div class="form-section">
                         <h2 class="section-title">Event Sessions</h2>
                         <p class="form-help" style="margin-bottom: var(--space-lg);">Define the individual sessions for your event. Click Edit to modify session details. The system auto-detects single vs multi-day events based on session count.</p>
@@ -1195,12 +1195,14 @@
                             <thead>
                                 <tr>
                                     <th>Actions</th>
-                                    <th>Session Name</th>
+                                    <th>S#</th>
+                                    <th>Name</th>
                                     <th>Date</th>
                                     <th>Start Time</th>
                                     <th>End Time</th>
                                     <th>Capacity</th>
                                     <th>Sold</th>
+                                    <th>Delete</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1208,34 +1210,46 @@
                                     <td>
                                         <button class="table-action-btn" onclick="editSession(1)">✏️ Edit</button>
                                     </td>
-                                    <td>S1</td>
+                                    <td><strong>S1</strong></td>
+                                    <td>Fundamentals Day</td>
                                     <td>Feb 15, 2025</td>
                                     <td>7:00 PM</td>
                                     <td>9:00 PM</td>
                                     <td>20</td>
                                     <td><strong>8</strong></td>
+                                    <td>
+                                        <button class="table-action-btn delete-btn" onclick="deleteSession(1)">🗑️</button>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>
                                         <button class="table-action-btn" onclick="editSession(2)">✏️ Edit</button>
                                     </td>
-                                    <td>S2</td>
+                                    <td><strong>S2</strong></td>
+                                    <td>Intermediate Practice</td>
                                     <td>Feb 16, 2025</td>
                                     <td>7:00 PM</td>
                                     <td>9:00 PM</td>
                                     <td>20</td>
                                     <td><strong style="color: var(--color-warning);">15</strong></td>
+                                    <td>
+                                        <button class="table-action-btn delete-btn" onclick="deleteSession(2)">🗑️</button>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>
                                         <button class="table-action-btn" onclick="editSession(3)">✏️ Edit</button>
                                     </td>
-                                    <td>S3</td>
+                                    <td><strong>S3</strong></td>
+                                    <td>Advanced Techniques</td>
                                     <td>Feb 17, 2025</td>
                                     <td>7:00 PM</td>
                                     <td>9:00 PM</td>
                                     <td>20</td>
                                     <td><strong>8</strong></td>
+                                    <td>
+                                        <button class="table-action-btn delete-btn" onclick="deleteSession(3)">🗑️</button>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1567,16 +1581,17 @@
                     </div>
                 </div>
                 
-                <!-- Volunteers/Staff Tab - UPDATED WITH CORRECT VERSION AND SESSION DROPDOWN -->
+                <!-- UPDATED: Volunteers/Staff Tab - Changed title and added Sessions column -->
                 <div id="volunteers-staff" class="tab-content">
-                    <!-- Current Volunteer Positions FIRST -->
+                    <!-- Volunteer Positions FIRST - Updated title and Sessions column -->
                     <div class="form-section">
-                        <h2 class="section-title">Current Volunteer Positions</h2>
+                        <h2 class="section-title">Volunteer Positions</h2>
                         
                         <table class="data-grid">
                             <thead>
                                 <tr>
                                     <th>Position</th>
+                                    <th>Sessions</th>
                                     <th>Time</th>
                                     <th>Description</th>
                                     <th>Needed</th>
@@ -1589,6 +1604,7 @@
                                     <td>
                                         <div class="position-title">Door Monitor</div>
                                     </td>
+                                    <td><strong>S1, S2</strong></td>
                                     <td>
                                         <div class="position-time">6:00 PM - 7:00 PM</div>
                                     </td>
@@ -1605,6 +1621,7 @@
                                     <td>
                                         <div class="position-title">Safety Monitor</div>
                                     </td>
+                                    <td><strong>All</strong></td>
                                     <td>
                                         <div class="position-time">7:00 PM - 10:00 PM</div>
                                     </td>
@@ -1622,6 +1639,7 @@
                                     <td>
                                         <div class="position-title">Setup Crew</div>
                                     </td>
+                                    <td><strong>S1</strong></td>
                                     <td>
                                         <div class="position-time">6:00 PM - 7:00 PM</div>
                                     </td>
@@ -1764,6 +1782,12 @@
         
         function addSession() {
             alert('Add new session in modal with full form');
+        }
+        
+        function deleteSession(sessionId) {
+            if (confirm('Are you sure you want to delete this session?')) {
+                alert(`Delete session ${sessionId} functionality would be implemented here`);
+            }
         }
         
         function editTicketType(id) {
