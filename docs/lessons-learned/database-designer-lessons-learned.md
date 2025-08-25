@@ -44,6 +44,76 @@ When given a Working Directory like:
 
 ---
 
+## 🚨 CRITICAL: Event Session Matrix Migration Patterns (NEW) 🚨
+**Date**: 2025-08-25
+**Category**: Database Migration
+**Severity**: Critical
+
+### Context
+The Event Session Matrix migration is a complex database transformation that converts a simple Event->Registration model to a sophisticated Event->Sessions->TicketTypes->Orders architecture for advanced ticketing scenarios.
+
+### What We Learned
+- **Complex migration requires careful phasing**: Schema changes → Data migration → Constraint addition → Validation
+- **PostgreSQL constraint naming is critical**: All constraints must be explicitly named to avoid conflicts
+- **Data preservation during architecture changes**: Original registration data must be preserved during transformation
+- **CASCADE vs RESTRICT decisions matter**: Carefully choose deletion behavior for data integrity
+- **Performance indexing strategy**: Index creation should happen after data migration for better performance
+- **Migration validation is essential**: Comprehensive validation queries prevent data corruption
+
+### Critical Migration Patterns
+```sql
+-- ✅ CORRECT - Explicit constraint naming for PostgreSQL
+CONSTRAINT "CHK_EventSessions_Capacity" CHECK ("Capacity" > 0),
+CONSTRAINT "UQ_EventSessions_EventId_SessionIdentifier" 
+    UNIQUE ("EventId", "SessionIdentifier"),
+
+-- ✅ CORRECT - Proper foreign key with appropriate CASCADE behavior
+CONSTRAINT "FK_EventSessions_Events" FOREIGN KEY ("EventId") 
+    REFERENCES "Events"("Id") ON DELETE CASCADE,
+
+-- ✅ CORRECT - Data preservation during architecture change
+INSERT INTO "Orders" (
+    "Id", "UserId", "EventId", "OrderNumber", "Status", "TotalAmount"
+)
+SELECT 
+    r."Id", -- Preserve registration ID as order ID
+    r."UserId", r."EventId", 
+    CONCAT('REG-', r."Id"::text), -- Traceable order numbers
+    CASE WHEN r."Status" = 'Confirmed' THEN 'Confirmed' ELSE 'Pending' END,
+    COALESCE(r."SelectedPriceAmount", 0.00)
+FROM "Registrations" r;
+
+-- ✅ CORRECT - Comprehensive validation after migration
+SELECT e."Id", e."Title", COUNT(es."Id") as session_count
+FROM "Events" e
+LEFT JOIN "EventSessions" es ON e."Id" = es."EventId"
+WHERE e."IsPublished" = TRUE
+GROUP BY e."Id", e."Title"
+HAVING COUNT(es."Id") = 0; -- Should return no rows
+```
+
+### Database Developer Action Items
+- [x] CREATE explicit constraint names for all PostgreSQL constraints
+- [x] IMPLEMENT phased migration approach: Schema → Data → Constraints → Validation
+- [x] PRESERVE original data with traceable migration paths
+- [x] DESIGN proper CASCADE/RESTRICT foreign key behaviors
+- [x] INCLUDE comprehensive validation queries in migration scripts
+- [ ] TEST rollback procedures on staging data before production
+- [ ] MONITOR migration performance and transaction log growth
+- [ ] DOCUMENT post-migration Entity Framework configuration requirements
+
+### Migration Architecture Principles
+1. **Schema First**: Create all new tables before data migration
+2. **Data Preservation**: Never lose original data during transformation
+3. **Validation Essential**: Every migration must include integrity checks
+4. **Performance Aware**: Index creation timing affects migration speed
+5. **Rollback Ready**: Every migration must have tested rollback procedures
+
+### Tags
+#critical #database-migration #event-session-matrix #postgresql #data-preservation #validation
+
+---
+
 ## 🚨 CRITICAL: Database Auto-Initialization Pattern (NEW SYSTEM) 🚨
 **Date**: 2025-08-22
 **Category**: Database Management

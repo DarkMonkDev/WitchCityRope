@@ -12,12 +12,16 @@ namespace WitchCityRope.Core.Entities
     /// - Events have capacity limits
     /// - Events support sliding scale pricing
     /// - Events must have at least one organizer
+    /// - Events can have multiple sessions with different capacities
+    /// - Events can have multiple ticket types with different pricing
     /// </summary>
     public class Event
     {
         private readonly List<Registration> _registrations = new();
         private readonly List<User> _organizers = new();
         private readonly List<Money> _pricingTiers = new();
+        private readonly List<EventSession> _sessions = new();
+        private readonly List<EventTicketType> _ticketTypes = new();
 
         // Private constructor for EF Core
         private Event() 
@@ -93,6 +97,16 @@ namespace WitchCityRope.Core.Entities
         /// Sliding scale pricing tiers for the event
         /// </summary>
         public IReadOnlyCollection<Money> PricingTiers => _pricingTiers.AsReadOnly();
+
+        /// <summary>
+        /// Sessions within this event (S1, S2, S3, etc.)
+        /// </summary>
+        public IReadOnlyCollection<EventSession> Sessions => _sessions.AsReadOnly();
+
+        /// <summary>
+        /// Ticket types available for this event
+        /// </summary>
+        public IReadOnlyCollection<EventTicketType> TicketTypes => _ticketTypes.AsReadOnly();
 
         /// <summary>
         /// Gets the number of confirmed registrations
@@ -232,6 +246,153 @@ namespace WitchCityRope.Core.Entities
             _pricingTiers.Clear();
             _pricingTiers.AddRange(pricingTiers);
             UpdatedAt = DateTime.UtcNow;
+        }
+
+        /// <summary>
+        /// Adds a session to the event
+        /// </summary>
+        public void AddSession(EventSession session)
+        {
+            if (session == null)
+                throw new ArgumentNullException(nameof(session));
+
+            if (_sessions.Any(s => s.SessionIdentifier == session.SessionIdentifier))
+                throw new DomainException($"Session with identifier '{session.SessionIdentifier}' already exists");
+
+            // Check for session time overlaps on the same date
+            var overlappingSession = _sessions.FirstOrDefault(s => s.OverlapsWith(session));
+            if (overlappingSession != null)
+                throw new DomainException($"Session '{session.SessionIdentifier}' overlaps with existing session '{overlappingSession.SessionIdentifier}'");
+
+            _sessions.Add(session);
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        /// <summary>
+        /// Removes a session from the event
+        /// </summary>
+        public void RemoveSession(string sessionIdentifier)
+        {
+            var session = _sessions.FirstOrDefault(s => s.SessionIdentifier == sessionIdentifier);
+            if (session == null)
+                throw new DomainException($"Session '{sessionIdentifier}' not found");
+
+            // Check if any ticket types reference this session
+            var referencingTicketTypes = _ticketTypes.Where(tt => 
+                tt.TicketTypeSessions.Any(tts => tts.SessionIdentifier == sessionIdentifier));
+            
+            if (referencingTicketTypes.Any())
+            {
+                var ticketTypeNames = string.Join(", ", referencingTicketTypes.Select(tt => tt.Name));
+                throw new DomainException($"Cannot remove session '{sessionIdentifier}' because it is referenced by ticket types: {ticketTypeNames}");
+            }
+
+            _sessions.Remove(session);
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        /// <summary>
+        /// Gets a session by its identifier
+        /// </summary>
+        public EventSession? GetSession(string sessionIdentifier)
+        {
+            return _sessions.FirstOrDefault(s => s.SessionIdentifier == sessionIdentifier);
+        }
+
+        /// <summary>
+        /// Adds a ticket type to the event
+        /// </summary>
+        public void AddTicketType(EventTicketType ticketType)
+        {
+            if (ticketType == null)
+                throw new ArgumentNullException(nameof(ticketType));
+
+            if (_ticketTypes.Any(tt => tt.Name == ticketType.Name))
+                throw new DomainException($"Ticket type with name '{ticketType.Name}' already exists");
+
+            // Validate that all referenced sessions exist
+            var sessionIdentifiers = ticketType.GetIncludedSessionIdentifiers();
+            var existingSessionIds = _sessions.Select(s => s.SessionIdentifier).ToHashSet();
+            
+            var missingSessionIds = sessionIdentifiers.Where(id => !existingSessionIds.Contains(id)).ToList();
+            if (missingSessionIds.Any())
+            {
+                throw new DomainException($"Ticket type references non-existent sessions: {string.Join(", ", missingSessionIds)}");
+            }
+
+            _ticketTypes.Add(ticketType);
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        /// <summary>
+        /// Removes a ticket type from the event
+        /// </summary>
+        public void RemoveTicketType(Guid ticketTypeId)
+        {
+            var ticketType = _ticketTypes.FirstOrDefault(tt => tt.Id == ticketTypeId);
+            if (ticketType == null)
+                throw new DomainException("Ticket type not found");
+
+            _ticketTypes.Remove(ticketType);
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        /// <summary>
+        /// Gets a ticket type by its ID
+        /// </summary>
+        public EventTicketType? GetTicketType(Guid ticketTypeId)
+        {
+            return _ticketTypes.FirstOrDefault(tt => tt.Id == ticketTypeId);
+        }
+
+        /// <summary>
+        /// Calculates the available capacity for a specific ticket type based on its included sessions
+        /// </summary>
+        public int CalculateTicketTypeAvailability(EventTicketType ticketType)
+        {
+            if (ticketType == null)
+                return 0;
+
+            var includedSessionIds = ticketType.GetIncludedSessionIdentifiers();
+            if (!includedSessionIds.Any())
+                return 0;
+
+            // Find the minimum available capacity across all included sessions
+            var availableCapacities = new List<int>();
+            foreach (var sessionId in includedSessionIds)
+            {
+                var session = GetSession(sessionId);
+                if (session != null)
+                {
+                    availableCapacities.Add(session.GetAvailableSpots());
+                }
+            }
+
+            return availableCapacities.Any() ? availableCapacities.Min() : 0;
+        }
+
+        /// <summary>
+        /// Checks if the event supports session-based ticketing
+        /// </summary>
+        public bool HasSessions()
+        {
+            return _sessions.Any();
+        }
+
+        /// <summary>
+        /// Checks if the event has ticket types configured
+        /// </summary>
+        public bool HasTicketTypes()
+        {
+            return _ticketTypes.Any();
+        }
+
+        /// <summary>
+        /// Gets the total capacity across all sessions (for reporting purposes)
+        /// </summary>
+        public int GetTotalSessionCapacity()
+        {
+            return _sessions.Sum(s => s.Capacity);
         }
 
         private void ValidateDates(DateTime startDate, DateTime endDate)

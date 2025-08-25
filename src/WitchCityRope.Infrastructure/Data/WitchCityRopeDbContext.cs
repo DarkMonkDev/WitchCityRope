@@ -16,6 +16,9 @@ namespace WitchCityRope.Infrastructure.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<Event> Events { get; set; }
+        public DbSet<EventSession> EventSessions { get; set; }
+        public DbSet<EventTicketType> EventTicketTypes { get; set; }
+        public DbSet<EventTicketTypeSession> EventTicketTypeSessions { get; set; }
         public DbSet<Registration> Registrations { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<VettingApplication> VettingApplications { get; set; }
@@ -30,6 +33,9 @@ namespace WitchCityRope.Infrastructure.Data
             // Apply configurations
             modelBuilder.ApplyConfiguration(new UserConfiguration());
             modelBuilder.ApplyConfiguration(new EventConfiguration());
+            modelBuilder.ApplyConfiguration(new EventSessionConfiguration());
+            modelBuilder.ApplyConfiguration(new EventTicketTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new EventTicketTypeSessionConfiguration());
             modelBuilder.ApplyConfiguration(new RegistrationConfiguration());
             modelBuilder.ApplyConfiguration(new PaymentConfiguration());
             modelBuilder.ApplyConfiguration(new VettingApplicationConfiguration());
@@ -53,9 +59,10 @@ namespace WitchCityRope.Infrastructure.Data
         private void UpdateAuditFields()
         {
             var entries = ChangeTracker.Entries()
-                .Where(e => e.Entity is User || e.Entity is Event || e.Entity is Registration || 
-                           e.Entity is Payment || e.Entity is VettingApplication || e.Entity is IncidentReport ||
-                           e.Entity is UserAuthentication || e.Entity is RefreshToken);
+                .Where(e => e.Entity is User || e.Entity is Event || e.Entity is EventSession || 
+                           e.Entity is EventTicketType || e.Entity is EventTicketTypeSession ||
+                           e.Entity is Registration || e.Entity is Payment || e.Entity is VettingApplication || 
+                           e.Entity is IncidentReport || e.Entity is UserAuthentication || e.Entity is RefreshToken);
 
             foreach (var entry in entries)
             {
