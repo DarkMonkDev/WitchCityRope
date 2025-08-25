@@ -566,8 +566,8 @@ public static class EndpointExtensions
             {
                 id = user.Id.ToString(),
                 email = user.Email.Value,
-                firstName = user.FirstName ?? "",
-                lastName = user.LastName ?? "",
+                firstName = user.SceneName?.Value ?? "",
+                lastName = "",
                 avatarUrl = (string?)null,
                 roles = new List<string> { user.Role.ToString() }
             });

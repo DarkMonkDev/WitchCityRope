@@ -132,12 +132,13 @@ namespace WitchCityRope.Api.Features.Auth.Services
             var verificationToken = GenerateVerificationToken();
 
             // Create user authentication record
-            var userAuth = new UserAuthenticationDto
+            var userAuth = new UserAuthentication
             {
                 UserId = user.Id,
                 PasswordHash = passwordHash,
                 EmailVerified = false,
                 EmailVerificationToken = verificationToken,
+                EmailVerificationTokenCreatedAt = DateTime.UtcNow,
                 PronouncedName = request.PronouncedName,
                 Pronouns = request.Pronouns,
                 LastLoginAt = null
