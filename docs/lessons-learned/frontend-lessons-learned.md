@@ -49,6 +49,37 @@ import { Editor } from '@tinymce/tinymce-react';
 - API key `3f628sek98zponk2rt5ncrkc2n5lj9ghobeppfskrjvkpmqp` works correctly
 **Debug Command**: `npx playwright test tests/playwright/tinymce-debug.spec.ts --headed`
 
+## TinyMCE v8 Plugin Compatibility - CRITICAL FIX
+
+**Problem**: TinyMCE v8 deprecated `textcolor` and `colorpicker` plugins causing console errors
+**Solution**: Remove deprecated plugins from all Editor configurations
+**Before**:
+```typescript
+plugins: 'advlist autolink lists link charmap preview anchor textcolor colorpicker'
+```
+**After**:
+```typescript
+apiKey="3f628sek98zponk2rt5ncrkc2n5lj9ghobeppfskrjvkpmqp"
+plugins: 'advlist autolink lists link charmap preview anchor'
+```
+**Action**: Always check TinyMCE migration docs when upgrading versions
+
+## Missing CSS Classes Console Debugging
+
+**Problem**: Using undefined CSS classes causes silent failures and missing styles
+**Solution**: Replace all custom CSS classes with proper Mantine components
+**Examples**:
+```typescript
+// ❌ WRONG - Undefined CSS classes
+<button className="btn btn-primary">Add Session</button>
+<button className="table-action-btn">Edit</button>
+
+// ✅ CORRECT - Mantine components
+<Button variant="filled" color="burgundy">Add Session</Button>
+<Button size="compact-xs" variant="light" leftSection={<IconEdit />}>Edit</Button>
+```
+**Debug Method**: Use Playwright console error capture to find all undefined classes
+
 ## Wireframe Adherence
 
 **Problem**: Adding sections not in wireframe (Staff Assignments) 

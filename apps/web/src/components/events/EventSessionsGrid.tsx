@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, Text, Group, ActionIcon } from '@mantine/core';
+import { Table, Text, Group, ActionIcon, Button } from '@mantine/core';
 import { IconEdit, IconTrash } from '@tabler/icons-react';
 
 export interface EventSession {
@@ -110,14 +110,15 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
           {sessions.map((session) => (
             <Table.Tr key={session.id}>
               <Table.Td>
-                <button
-                  type="button"
-                  className="table-action-btn"
+                <Button
+                  size="compact-xs"
+                  variant="light"
+                  color="burgundy"
+                  leftSection={<IconEdit size={14} />}
                   onClick={() => onEditSession(session.id)}
                 >
-                  <IconEdit size={14} style={{ marginRight: '4px' }} />
                   Edit
-                </button>
+                </Button>
               </Table.Td>
               <Table.Td>
                 <Text fw={700} size="sm">
@@ -173,13 +174,20 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
       </Table>
 
       <Group mt="md" justify="space-between" align="center">
-        <button
-          type="button"
-          className="btn btn-primary"
+        <Button
+          variant="filled"
+          color="burgundy"
           onClick={onAddSession}
+          style={{
+            background: 'linear-gradient(135deg, var(--mantine-color-amber-6), #DAA520)',
+            border: 'none',
+            color: 'var(--mantine-color-dark-9)',
+            borderRadius: '12px 6px 12px 6px',
+            fontWeight: 600,
+          }}
         >
           + Add Session
-        </button>
+        </Button>
         
         <Text size="xs" c="dimmed" fs="italic">
           💡 Tip: Click Edit to modify session details in a modal dialog.

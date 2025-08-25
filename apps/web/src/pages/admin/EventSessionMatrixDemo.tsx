@@ -130,13 +130,18 @@ export const EventSessionMatrixDemo: React.FC = () => {
       ) : (
         <Paper p="xl" ta="center">
           <Title order={2} c="dimmed" mb="md">Form Cancelled</Title>
-          <button
-            type="button"
-            className="btn btn-primary"
+          <Button
             onClick={() => setShowForm(true)}
+            style={{
+              background: 'linear-gradient(135deg, var(--mantine-color-amber-6), #DAA520)',
+              border: 'none',
+              color: 'var(--mantine-color-dark-9)',
+              borderRadius: '12px 6px 12px 6px',
+              fontWeight: 600,
+            }}
           >
             Show Form Again
-          </button>
+          </Button>
         </Paper>
       )}
     </Container>

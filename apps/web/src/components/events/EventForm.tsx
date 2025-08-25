@@ -288,12 +288,13 @@ export const EventForm: React.FC<EventFormProps> = ({
                     This detailed description will be visible on the public events page
                   </Text>
                   <Editor
+                    apiKey="3f628sek98zponk2rt5ncrkc2n5lj9ghobeppfskrjvkpmqp"
                     value={form.values.fullDescription}
                     onEditorChange={(content) => form.setFieldValue('fullDescription', content)}
                     init={{
                       height: 300,
                       menubar: false,
-                      plugins: 'advlist autolink lists link charmap preview anchor textcolor colorpicker',
+                      plugins: 'advlist autolink lists link charmap preview anchor',
                       toolbar: 'undo redo | blocks | bold italic underline strikethrough | link | bullist numlist | indent outdent | removeformat',
                       content_style: `
                         body { 
@@ -322,12 +323,13 @@ export const EventForm: React.FC<EventFormProps> = ({
                     Studio-specific policies, prerequisites, safety requirements, etc. (managed by studio/admin, teachers cannot edit)
                   </Text>
                   <Editor
+                    apiKey="3f628sek98zponk2rt5ncrkc2n5lj9ghobeppfskrjvkpmqp"
                     value={form.values.policies}
                     onEditorChange={(content) => form.setFieldValue('policies', content)}
                     init={{
                       height: 150,
                       menubar: false,
-                      plugins: 'advlist autolink lists link charmap preview anchor textcolor colorpicker',
+                      plugins: 'advlist autolink lists link charmap preview anchor',
                       toolbar: 'undo redo | blocks | bold italic underline strikethrough | link | bullist numlist | indent outdent | removeformat',
                       content_style: `
                         body { 
@@ -361,9 +363,9 @@ export const EventForm: React.FC<EventFormProps> = ({
                     required
                     {...form.getInputProps('venueId')}
                   />
-                  <button type="button" className="btn btn-secondary">
+                  <Button variant="outline" color="burgundy">
                     Add Venue
-                  </button>
+                  </Button>
                 </Group>
               </div>
 
@@ -645,6 +647,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                     Available variables: {'{name}'}, {'{event}'}, {'{date}'}, {'{time}'}, {'{venue}'}, {'{venue_address}'}
                   </Text>
                   <Editor
+                    apiKey="3f628sek98zponk2rt5ncrkc2n5lj9ghobeppfskrjvkpmqp"
                     value={getTemplateContent()}
                     onEditorChange={(content) => {
                       // Update content logic - will be implemented when form state is connected
@@ -653,7 +656,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                     init={{
                       height: 300,
                       menubar: false,
-                      plugins: 'advlist autolink lists link charmap preview anchor textcolor colorpicker',
+                      plugins: 'advlist autolink lists link charmap preview anchor',
                       toolbar: 'undo redo | blocks | bold italic underline strikethrough | link | bullist numlist | indent outdent | removeformat',
                       content_style: `
                         body { 
