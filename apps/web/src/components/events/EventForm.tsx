@@ -191,7 +191,7 @@ export const EventForm: React.FC<EventFormProps> = ({
   };
 
   return (
-    <Card shadow="md" radius="lg" p="xl" style={{ backgroundColor: 'white' }}>
+    <Card shadow="md" radius="lg" p="xl" style={{ backgroundColor: 'white' }} data-testid="event-form">
       <form onSubmit={handleSubmit}>
         <Tabs value={activeTab} onChange={setActiveTab} variant="pills" radius="md">
           <Tabs.List
@@ -204,7 +204,7 @@ export const EventForm: React.FC<EventFormProps> = ({
             <Tabs.Tab value="basic-info">Basic Info</Tabs.Tab>
             <Tabs.Tab value="tickets-orders">Tickets/Orders</Tabs.Tab>
             <Tabs.Tab value="emails">Emails</Tabs.Tab>
-            <Tabs.Tab value="volunteers-staff">Volunteers/Staff</Tabs.Tab>
+            <Tabs.Tab value="volunteers">Volunteers</Tabs.Tab>
           </Tabs.List>
 
           {/* Basic Info Tab */}
@@ -287,11 +287,24 @@ export const EventForm: React.FC<EventFormProps> = ({
                   <Text size="xs" c="dimmed" mb="xs">
                     This detailed description will be visible on the public events page
                   </Text>
-                  <Textarea
-                    rows={6}
+                  <Editor
                     value={form.values.fullDescription}
-                    onChange={(event) => form.setFieldValue('fullDescription', event.currentTarget.value)}
-                    placeholder="Enter detailed event description..."
+                    onEditorChange={(content) => form.setFieldValue('fullDescription', content)}
+                    init={{
+                      height: 300,
+                      menubar: false,
+                      plugins: 'advlist autolink lists link charmap preview anchor textcolor colorpicker',
+                      toolbar: 'undo redo | blocks | bold italic underline strikethrough | link | bullist numlist | indent outdent | removeformat',
+                      content_style: `
+                        body { 
+                          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+                          font-size: 14px;
+                          color: #333;
+                          line-height: 1.6;
+                        }
+                      `,
+                      branding: false,
+                    }}
                   />
                   {form.errors.fullDescription && (
                     <Text size="xs" c="red" mt={5}>
@@ -308,11 +321,24 @@ export const EventForm: React.FC<EventFormProps> = ({
                   <Text size="xs" c="dimmed" mb="xs">
                     Studio-specific policies, prerequisites, safety requirements, etc. (managed by studio/admin, teachers cannot edit)
                   </Text>
-                  <Textarea
-                    rows={4}
+                  <Editor
                     value={form.values.policies}
-                    onChange={(event) => form.setFieldValue('policies', event.currentTarget.value)}
-                    placeholder="Enter studio policies, safety requirements, prerequisites, etc..."
+                    onEditorChange={(content) => form.setFieldValue('policies', content)}
+                    init={{
+                      height: 150,
+                      menubar: false,
+                      plugins: 'advlist autolink lists link charmap preview anchor textcolor colorpicker',
+                      toolbar: 'undo redo | blocks | bold italic underline strikethrough | link | bullist numlist | indent outdent | removeformat',
+                      content_style: `
+                        body { 
+                          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+                          font-size: 14px;
+                          color: #333;
+                          line-height: 1.6;
+                        }
+                      `,
+                      branding: false,
+                    }}
                   />
                   {form.errors.policies && (
                     <Text size="xs" c="red" mt={5}>
@@ -357,16 +383,24 @@ export const EventForm: React.FC<EventFormProps> = ({
 
               {/* Save Buttons */}
               <Group justify="flex-end" mt="xl">
-                <button type="button" className="btn btn-secondary" onClick={onCancel}>
+                <Button variant="outline" color="burgundy" onClick={onCancel} style={{ minWidth: '120px', height: '48px', fontWeight: 600 }}>
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  className="btn btn-primary"
-                  disabled={isSubmitting}
+                  loading={isSubmitting}
+                  style={{
+                    background: 'linear-gradient(135deg, var(--mantine-color-amber-6), #DAA520)',
+                    border: 'none',
+                    color: 'var(--mantine-color-dark-9)',
+                    borderRadius: '12px 6px 12px 6px',
+                    fontWeight: 600,
+                    minWidth: '140px',
+                    height: '48px',
+                  }}
                 >
                   {isSubmitting ? 'Saving...' : 'Save Draft'}
-                </button>
+                </Button>
               </Group>
             </Stack>
           </Tabs.Panel>
@@ -547,7 +581,11 @@ export const EventForm: React.FC<EventFormProps> = ({
                   ]}
                   style={{ flex: 1 }}
                 />
-                <Button color="burgundy" disabled>Add Email Template</Button>
+                <Button color="burgundy" disabled style={{
+                  minWidth: '160px',
+                  height: '48px',
+                  fontWeight: 600,
+                }}>Add Email Template</Button>
               </Group>
 
               {/* Unified Editor Section */}
@@ -632,17 +670,25 @@ export const EventForm: React.FC<EventFormProps> = ({
 
                 <Group mt="md">
                   {activeEmailTemplate === 'ad-hoc' ? (
-                    <Button color="burgundy">Send Email</Button>
+                    <Button color="burgundy" style={{
+                      minWidth: '120px',
+                      height: '48px',
+                      fontWeight: 600,
+                    }}>Send Email</Button>
                   ) : (
-                    <Button color="burgundy">Save Changes</Button>
+                    <Button color="burgundy" style={{
+                      minWidth: '140px',
+                      height: '48px',
+                      fontWeight: 600,
+                    }}>Save Changes</Button>
                   )}
                 </Group>
               </div>
             </Stack>
           </Tabs.Panel>
 
-          {/* Volunteers/Staff Tab - EXACT WIREFRAME MATCH */}
-          <Tabs.Panel value="volunteers-staff" pt="xl">
+          {/* Volunteers Tab - EXACT WIREFRAME MATCH */}
+          <Tabs.Panel value="volunteers" pt="xl">
             <Stack gap="xl">
               {/* Volunteer Positions - EXACT TABLE STRUCTURE FROM WIREFRAME */}
               <div>
@@ -797,21 +843,76 @@ export const EventForm: React.FC<EventFormProps> = ({
                 </Button>
               </div>
 
-              {/* Staff Assignments Section - Below Volunteer Positions */}
+              {/* Volunteer Position Edit Form - From Wireframe */}
               <div>
                 <Title order={3} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
-                  Staff Assignments
+                  Volunteer Position Management
                 </Title>
                 
                 <Text size="sm" c="dimmed" mb="md">
-                  Staff assignments for the volunteer positions above
+                  Define volunteer positions and manage assignments
                 </Text>
 
-                {/* Staff assignment content would go here - this section is less detailed in the wireframe */}
-                <Card withBorder p="md" style={{ backgroundColor: 'rgba(250, 246, 242, 0.5)' }}>
-                  <Text c="dimmed" ta="center" style={{ fontStyle: 'italic' }}>
-                    Staff assignment interface would be implemented here based on the volunteer positions defined above.
-                  </Text>
+                {/* Add New Position Form */}
+                <Card withBorder p="md" style={{ backgroundColor: 'white', marginBottom: 'var(--mantine-spacing-md)' }}>
+                  <Title order={4} c="burgundy" mb="md">Add New Position</Title>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 'var(--mantine-spacing-sm)', marginBottom: 'var(--mantine-spacing-md)', alignItems: 'end' }}>
+                    <TextInput
+                      label="Position Name"
+                      placeholder="Enter position name"
+                    />
+                    <Select
+                      label="Session"
+                      placeholder="Select session..."
+                      data={[
+                        { value: 's1', label: 'S1' },
+                        { value: 's2', label: 'S2' },
+                        { value: 's3', label: 'S3' },
+                        { value: 'all', label: 'All Sessions' },
+                      ]}
+                    />
+                    <TextInput
+                      type="time"
+                      label="Start Time"
+                      placeholder="Start time"
+                    />
+                    <TextInput
+                      type="time"
+                      label="End Time"
+                      placeholder="End time"
+                    />
+                  </div>
+                  
+                  <Textarea
+                    label="Description"
+                    placeholder="Describe the volunteer duties..."
+                    minRows={3}
+                    mb="md"
+                  />
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', gap: 'var(--mantine-spacing-md)' }}>
+                    <TextInput
+                      type="number"
+                      label="Number Needed"
+                      placeholder="1"
+                      min={1}
+                      style={{ width: '120px' }}
+                    />
+                    <Button
+                      style={{
+                        background: 'linear-gradient(135deg, var(--mantine-color-amber-6), #DAA520)',
+                        border: 'none',
+                        color: 'var(--mantine-color-dark-9)',
+                        borderRadius: '12px 6px 12px 6px',
+                        fontWeight: 600,
+                        minWidth: '140px',
+                        height: '48px',
+                      }}
+                    >
+                      Add Position
+                    </Button>
+                  </div>
                 </Card>
               </div>
             </Stack>
