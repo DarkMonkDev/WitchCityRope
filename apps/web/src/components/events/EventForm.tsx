@@ -52,6 +52,7 @@ export const EventForm: React.FC<EventFormProps> = ({
   isSubmitting = false,
 }) => {
   const [activeTab, setActiveTab] = useState<string>('basic-info');
+  const [activeEmailTemplate, setActiveEmailTemplate] = useState<string>('confirmation');
 
   // Form state management
   const form = useForm<EventFormData>({
@@ -79,21 +80,21 @@ export const EventForm: React.FC<EventFormProps> = ({
     },
   });
 
-  // TinyMCE configuration
-  const tinyMCEConfig = {
-    height: 300,
-    menubar: false,
-    plugins: [
-      'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-      'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-      'insertdatetime', 'media', 'table', 'help', 'wordcount'
-    ],
-    toolbar: 'undo redo | blocks | ' +
-      'bold italic forecolor | alignleft aligncenter ' +
-      'alignright alignjustify | bullist numlist outdent indent | ' +
-      'removeformat | help',
-    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 14px }'
-  };
+  // TinyMCE configuration (commented out - using simple textarea for now)
+  // const tinyMCEConfig = {
+  //   height: 300,
+  //   menubar: false,
+  //   plugins: [
+  //     'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+  //     'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+  //     'insertdatetime', 'media', 'table', 'help', 'wordcount'
+  //   ],
+  //   toolbar: 'undo redo | blocks | ' +
+  //     'bold italic forecolor | alignleft aligncenter ' +
+  //     'alignright alignjustify | bullist numlist outdent indent | ' +
+  //     'removeformat | help',
+  //   content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 14px }'
+  // };
 
   // Mock data for dropdowns
   const venues = [
@@ -146,6 +147,48 @@ export const EventForm: React.FC<EventFormProps> = ({
   const handleSubmit = form.onSubmit((values) => {
     onSubmit(values);
   });
+
+  // Email template helper functions
+  const getActiveTemplateTitle = () => {
+    switch (activeEmailTemplate) {
+      case 'ad-hoc':
+        return 'Ad-Hoc Email';
+      case 'confirmation':
+        return 'Confirmation Email';
+      case 'reminder-1day':
+        return 'Reminder - 1 Day Before';
+      case 'cancellation':
+        return 'Cancellation Notice';
+      default:
+        return 'Unknown Template';
+    }
+  };
+
+  const getTemplateSubject = () => {
+    switch (activeEmailTemplate) {
+      case 'confirmation':
+        return 'Welcome to {event} - Registration Confirmed!';
+      case 'reminder-1day':
+        return 'Reminder: {event} starts tomorrow!';
+      case 'cancellation':
+        return 'Important: {event} has been cancelled';
+      default:
+        return '';
+    }
+  };
+
+  const getTemplateContent = () => {
+    switch (activeEmailTemplate) {
+      case 'confirmation':
+        return '<p><strong>Hi {name},</strong></p><p>Your registration for <strong>{event}</strong> has been confirmed!</p><p><strong>Event Details:</strong></p><ul><li><strong>Date:</strong> {date}</li><li><strong>Time:</strong> {time}</li><li><strong>Venue:</strong> {venue}</li><li><strong>Address:</strong> {venue_address}</li></ul><p>We\'re excited to see you there!</p><p>Best regards,<br>WitchCityRope Team</p>';
+      case 'reminder-1day':
+        return '<p>Hello {name},</p><p>This is a friendly reminder that <strong>{event}</strong> starts tomorrow!</p><p><strong>What to bring:</strong><br/>- Comfortable clothes<br/>- Water bottle<br/>- Positive attitude</p><p>See you there!</p>';
+      case 'cancellation':
+        return '<p>Dear {name},</p><p>We regret to inform you that <strong>{event}</strong> has been cancelled.</p><p><strong>Reason:</strong> [To be filled in when needed]</p><p>You will receive a full refund within 3-5 business days.</p><p>We apologize for any inconvenience.</p>';
+      default:
+        return '';
+    }
+  };
 
   return (
     <Card shadow="md" radius="lg" p="xl" style={{ backgroundColor: 'white' }}>
@@ -244,11 +287,11 @@ export const EventForm: React.FC<EventFormProps> = ({
                   <Text size="xs" c="dimmed" mb="xs">
                     This detailed description will be visible on the public events page
                   </Text>
-                  <Editor
-                    apiKey="no-api-key"
-                    init={tinyMCEConfig}
-                    initialValue={form.values.fullDescription}
-                    onEditorChange={(content) => form.setFieldValue('fullDescription', content)}
+                  <Textarea
+                    rows={6}
+                    value={form.values.fullDescription}
+                    onChange={(event) => form.setFieldValue('fullDescription', event.currentTarget.value)}
+                    placeholder="Enter detailed event description..."
                   />
                   {form.errors.fullDescription && (
                     <Text size="xs" c="red" mt={5}>
@@ -265,11 +308,11 @@ export const EventForm: React.FC<EventFormProps> = ({
                   <Text size="xs" c="dimmed" mb="xs">
                     Studio-specific policies, prerequisites, safety requirements, etc. (managed by studio/admin, teachers cannot edit)
                   </Text>
-                  <Editor
-                    apiKey="no-api-key"
-                    init={{...tinyMCEConfig, height: 150}}
-                    initialValue={form.values.policies}
-                    onEditorChange={(content) => form.setFieldValue('policies', content)}
+                  <Textarea
+                    rows={4}
+                    value={form.values.policies}
+                    onChange={(event) => form.setFieldValue('policies', event.currentTarget.value)}
+                    placeholder="Enter studio policies, safety requirements, prerequisites, etc..."
                   />
                   {form.errors.policies && (
                     <Text size="xs" c="red" mt={5}>
@@ -359,260 +402,418 @@ export const EventForm: React.FC<EventFormProps> = ({
             </Stack>
           </Tabs.Panel>
 
-          {/* Emails Tab */}
+          {/* Emails Tab - EXACT WIREFRAME MATCH */}
           <Tabs.Panel value="emails" pt="xl">
             <Stack gap="xl">
               <Title order={2} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
                 Email Templates
               </Title>
               
-              <Stack gap="lg">
-                {/* Registration Confirmation Email */}
-                <Card withBorder p="md">
-                  <Title order={4} mb="sm">Registration Confirmation Email</Title>
-                  <Text size="sm" c="dimmed" mb="md">
-                    Sent automatically when someone registers for this event
-                  </Text>
-                  
-                  <TextInput
-                    label="Subject Line"
-                    placeholder="Your registration for {EVENT_TITLE} is confirmed!"
-                    defaultValue="Your registration for {EVENT_TITLE} is confirmed!"
-                    mb="md"
-                  />
-                  
-                  <div>
-                    <Text size="sm" fw={500} mb={5}>Email Body</Text>
-                    <Text size="xs" c="dimmed" mb="xs">
-                      Use {'{EVENT_TITLE}'}, {'{PARTICIPANT_NAME}'}, {'{SESSION_DATES}'} as placeholders
-                    </Text>
-                    <Editor
-                      apiKey="no-api-key"
-                      init={{...tinyMCEConfig, height: 200}}
-                      initialValue="<p>Dear {PARTICIPANT_NAME},</p><p>Thank you for registering for <strong>{EVENT_TITLE}</strong>!</p><p><strong>Session Details:</strong><br/>{SESSION_DATES}</p><p>We look forward to seeing you there!</p>"
-                    />
-                  </div>
+              <Text size="sm" c="dimmed" mb="lg">
+                Click on a template card to edit it below, or select "Send Ad-Hoc Email" to send one-time messages.
+              </Text>
+              
+              {/* Template Cards Container - EXACT WIREFRAME MATCH */}
+              <Group gap="md" style={{ flexWrap: 'wrap' }}>
+                {/* Send Ad-Hoc Email Card - Always Present */}
+                <Card
+                  withBorder
+                  p="md"
+                  style={{
+                    cursor: 'pointer',
+                    borderColor: activeEmailTemplate === 'ad-hoc' ? 'var(--mantine-color-burgundy-6)' : 'var(--mantine-color-rose-3)',
+                    backgroundColor: activeEmailTemplate === 'ad-hoc' ? 'rgba(136, 1, 36, 0.05)' : 'white',
+                    minWidth: '220px',
+                    flex: 1,
+                    maxWidth: '300px',
+                    position: 'relative',
+                    transition: 'all 0.3s ease',
+                  }}
+                  onClick={() => setActiveEmailTemplate('ad-hoc')}
+                >
+                  <Text fw={600} c="burgundy" mb={4}>Send Ad-Hoc Email</Text>
+                  <Text size="sm" c="stone" mb="xs">Send one-time messages to specific groups</Text>
+                  <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>Any recipients</Text>
                 </Card>
 
-                {/* Event Reminder Email */}
-                <Card withBorder p="md">
-                  <Title order={4} mb="sm">Event Reminder Email</Title>
-                  <Text size="sm" c="dimmed" mb="md">
-                    Sent 24 hours before the event starts
-                  </Text>
-                  
-                  <TextInput
-                    label="Subject Line"
-                    placeholder="Reminder: {EVENT_TITLE} is tomorrow!"
-                    defaultValue="Reminder: {EVENT_TITLE} is tomorrow!"
-                    mb="md"
-                  />
-                  
-                  <div>
-                    <Text size="sm" fw={500} mb={5}>Email Body</Text>
-                    <Editor
-                      apiKey="no-api-key"
-                      init={{...tinyMCEConfig, height: 200}}
-                      initialValue="<p>Hello {PARTICIPANT_NAME},</p><p>This is a friendly reminder that <strong>{EVENT_TITLE}</strong> starts tomorrow!</p><p><strong>What to bring:</strong><br/>- Comfortable clothes<br/>- Water bottle<br/>- Positive attitude</p><p>See you there!</p>"
-                    />
-                  </div>
+                {/* Confirmation Email Card - Required, cannot be removed */}
+                <Card
+                  withBorder
+                  p="md"
+                  style={{
+                    cursor: 'pointer',
+                    borderColor: activeEmailTemplate === 'confirmation' ? 'var(--mantine-color-burgundy-6)' : 'var(--mantine-color-rose-3)',
+                    backgroundColor: activeEmailTemplate === 'confirmation' ? 'rgba(136, 1, 36, 0.05)' : 'white',
+                    minWidth: '220px',
+                    flex: 1,
+                    maxWidth: '300px',
+                    position: 'relative',
+                    transition: 'all 0.3s ease',
+                  }}
+                  onClick={() => setActiveEmailTemplate('confirmation')}
+                >
+                  <ActionIcon
+                    size="sm"
+                    radius="xl"
+                    color="red"
+                    style={{ position: 'absolute', top: 8, right: 8, opacity: 0.5 }}
+                    disabled
+                    title="Required template"
+                  >
+                    ×
+                  </ActionIcon>
+                  <Text fw={600} c="burgundy" mb={4}>Confirmation Email</Text>
+                  <Text size="sm" c="stone" mb="xs">Sent immediately when ticket is purchased</Text>
+                  <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>All sessions</Text>
                 </Card>
 
-                {/* Cancellation Email */}
-                <Card withBorder p="md">
-                  <Title order={4} mb="sm">Event Cancellation Email</Title>
-                  <Text size="sm" c="dimmed" mb="md">
-                    Sent if the event needs to be cancelled
+                {/* Reminder - 1 Day Before Card */}
+                <Card
+                  withBorder
+                  p="md"
+                  style={{
+                    cursor: 'pointer',
+                    borderColor: activeEmailTemplate === 'reminder-1day' ? 'var(--mantine-color-burgundy-6)' : 'var(--mantine-color-rose-3)',
+                    backgroundColor: activeEmailTemplate === 'reminder-1day' ? 'rgba(136, 1, 36, 0.05)' : 'white',
+                    minWidth: '220px',
+                    flex: 1,
+                    maxWidth: '300px',
+                    position: 'relative',
+                    transition: 'all 0.3s ease',
+                  }}
+                  onClick={() => setActiveEmailTemplate('reminder-1day')}
+                >
+                  <ActionIcon
+                    size="sm"
+                    radius="xl"
+                    color="red"
+                    style={{ position: 'absolute', top: 8, right: 8 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Remove template logic
+                    }}
+                  >
+                    ×
+                  </ActionIcon>
+                  <Text fw={600} c="burgundy" mb={4}>Reminder - 1 Day Before</Text>
+                  <Text size="sm" c="stone" mb="xs">Sent 1 day before event start</Text>
+                  <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>S1 attendees only</Text>
+                </Card>
+
+                {/* Cancellation Notice Card */}
+                <Card
+                  withBorder
+                  p="md"
+                  style={{
+                    cursor: 'pointer',
+                    borderColor: activeEmailTemplate === 'cancellation' ? 'var(--mantine-color-burgundy-6)' : 'var(--mantine-color-rose-3)',
+                    backgroundColor: activeEmailTemplate === 'cancellation' ? 'rgba(136, 1, 36, 0.05)' : 'white',
+                    minWidth: '220px',
+                    flex: 1,
+                    maxWidth: '300px',
+                    position: 'relative',
+                    transition: 'all 0.3s ease',
+                  }}
+                  onClick={() => setActiveEmailTemplate('cancellation')}
+                >
+                  <ActionIcon
+                    size="sm"
+                    radius="xl"
+                    color="red"
+                    style={{ position: 'absolute', top: 8, right: 8 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Remove template logic
+                    }}
+                  >
+                    ×
+                  </ActionIcon>
+                  <Text fw={600} c="burgundy" mb={4}>Cancellation Notice</Text>
+                  <Text size="sm" c="stone" mb="xs">Sent when event is cancelled</Text>
+                  <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>All sessions</Text>
+                </Card>
+              </Group>
+              
+              {/* Add Template Controls */}
+              <Group align="end" gap="sm">
+                <Select
+                  label=""
+                  placeholder="Select template to add..."
+                  data={[
+                    { value: 'reminder-1week', label: 'Reminder - 1 Week Before' },
+                    { value: 'waitlist', label: 'Waitlist Notification' },
+                    { value: 'survey', label: 'Post-Event Survey' },
+                    { value: 'schedule-change', label: 'Schedule Change Alert' },
+                  ]}
+                  style={{ flex: 1 }}
+                />
+                <Button color="burgundy" disabled>Add Email Template</Button>
+              </Group>
+
+              {/* Unified Editor Section */}
+              <div style={{ marginTop: 'var(--mantine-spacing-xl)' }}>
+                <div style={{ marginBottom: 'var(--mantine-spacing-md)' }}>
+                  <Text fw={600} c="burgundy">
+                    Currently Editing: {getActiveTemplateTitle()}
                   </Text>
-                  
-                  <TextInput
-                    label="Subject Line"
-                    placeholder="Important: {EVENT_TITLE} has been cancelled"
-                    defaultValue="Important: {EVENT_TITLE} has been cancelled"
+                </div>
+
+                {/* Recipient Group (shown for ad-hoc) */}
+                {activeEmailTemplate === 'ad-hoc' && (
+                  <Select
+                    label="Recipient Group"
+                    data={[
+                      { value: 'all-tickets', label: 'All Ticket Holders' },
+                      { value: 'all-rsvps', label: 'All RSVPs' },
+                      { value: 'volunteers', label: 'All Volunteers' },
+                      { value: 'everyone', label: 'Everyone' },
+                      { value: 'teachers', label: 'Teachers' },
+                      { value: 'session-s1', label: 'S1 Attendees' },
+                      { value: 'session-s2', label: 'S2 Attendees' },
+                      { value: 'session-s3', label: 'S3 Attendees' },
+                    ]}
                     mb="md"
                   />
-                  
-                  <div>
-                    <Text size="sm" fw={500} mb={5}>Email Body</Text>
-                    <Editor
-                      apiKey="no-api-key"
-                      init={{...tinyMCEConfig, height: 200}}
-                      initialValue="<p>Dear {PARTICIPANT_NAME},</p><p>We regret to inform you that <strong>{EVENT_TITLE}</strong> has been cancelled.</p><p><strong>Reason:</strong> [To be filled in when needed]</p><p>You will receive a full refund within 3-5 business days.</p><p>We apologize for any inconvenience.</p>"
-                    />
-                  </div>
-                </Card>
-              </Stack>
+                )}
+
+                {/* Target Sessions (shown for templates) */}
+                {activeEmailTemplate !== 'ad-hoc' && (
+                  <MultiSelect
+                    label="Target Sessions"
+                    description="Which sessions should trigger this email? Hold Ctrl/Cmd for multiple selections."
+                    data={[
+                      { value: 'all', label: 'All Sessions' },
+                      { value: 's1', label: 'S1' },
+                      { value: 's2', label: 'S2' },
+                      { value: 's3', label: 'S3' },
+                    ]}
+                    defaultValue={['all']}
+                    mb="md"
+                  />
+                )}
+
+                <TextInput
+                  label="Subject Line"
+                  value={getTemplateSubject()}
+                  onChange={(event) => {
+                    // Update subject logic
+                  }}
+                  mb="md"
+                />
+
+                <div>
+                  <Text size="sm" fw={500} mb={5}>Email Content</Text>
+                  <Text size="xs" c="dimmed" mb="xs">
+                    Available variables: {'{name}'}, {'{event}'}, {'{date}'}, {'{time}'}, {'{venue}'}, {'{venue_address}'}
+                  </Text>
+                  <Editor
+                    value={getTemplateContent()}
+                    onEditorChange={(content) => {
+                      // Update content logic - will be implemented when form state is connected
+                      console.log('Content changed:', content);
+                    }}
+                    init={{
+                      height: 300,
+                      menubar: false,
+                      plugins: 'advlist autolink lists link charmap preview anchor textcolor colorpicker',
+                      toolbar: 'undo redo | blocks | bold italic underline strikethrough | link | bullist numlist | indent outdent | removeformat',
+                      content_style: `
+                        body { 
+                          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+                          font-size: 14px;
+                          color: #333;
+                          line-height: 1.6;
+                        }
+                      `,
+                      branding: false,
+                    }}
+                  />
+                </div>
+
+                <Group mt="md">
+                  {activeEmailTemplate === 'ad-hoc' ? (
+                    <Button color="burgundy">Send Email</Button>
+                  ) : (
+                    <Button color="burgundy">Save Changes</Button>
+                  )}
+                </Group>
+              </div>
             </Stack>
           </Tabs.Panel>
 
-          {/* Volunteers/Staff Tab */}
+          {/* Volunteers/Staff Tab - EXACT WIREFRAME MATCH */}
           <Tabs.Panel value="volunteers-staff" pt="xl">
             <Stack gap="xl">
-              <Title order={2} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
-                Volunteer Positions & Staff Assignments
-              </Title>
-              
-              <Stack gap="lg">
-                {/* Volunteer Positions */}
-                <Card withBorder p="md">
-                  <Group justify="space-between" mb="md">
-                    <Title order={4}>Volunteer Positions Needed</Title>
-                    <Button size="sm" variant="light" color="burgundy">
-                      Add Position
-                    </Button>
-                  </Group>
-                  
-                  <Table striped highlightOnHover>
-                    <Table.Thead>
-                      <Table.Tr>
-                        <Table.Th>Position</Table.Th>
-                        <Table.Th>Needed</Table.Th>
-                        <Table.Th>Filled</Table.Th>
-                        <Table.Th>Session</Table.Th>
-                        <Table.Th>Time</Table.Th>
-                        <Table.Th>Actions</Table.Th>
-                      </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                      <Table.Tr>
-                        <Table.Td>Setup Crew</Table.Td>
-                        <Table.Td>3</Table.Td>
-                        <Table.Td>
-                          <Badge color="green" variant="light">2/3</Badge>
-                        </Table.Td>
-                        <Table.Td>All Sessions</Table.Td>
-                        <Table.Td>6:00 PM - 6:30 PM</Table.Td>
-                        <Table.Td>
-                          <Group gap="xs">
-                            <Button size="xs" variant="light">Edit</Button>
-                            <Button size="xs" variant="light" color="red">Delete</Button>
-                          </Group>
-                        </Table.Td>
-                      </Table.Tr>
-                      <Table.Tr>
-                        <Table.Td>Safety Monitor</Table.Td>
-                        <Table.Td>2</Table.Td>
-                        <Table.Td>
-                          <Badge color="red" variant="light">0/2</Badge>
-                        </Table.Td>
-                        <Table.Td>S1, S2, S3</Table.Td>
-                        <Table.Td>During sessions</Table.Td>
-                        <Table.Td>
-                          <Group gap="xs">
-                            <Button size="xs" variant="light">Edit</Button>
-                            <Button size="xs" variant="light" color="red">Delete</Button>
-                          </Group>
-                        </Table.Td>
-                      </Table.Tr>
-                      <Table.Tr>
-                        <Table.Td>Cleanup Crew</Table.Td>
-                        <Table.Td>2</Table.Td>
-                        <Table.Td>
-                          <Badge color="yellow" variant="light">1/2</Badge>
-                        </Table.Td>
-                        <Table.Td>All Sessions</Table.Td>
-                        <Table.Td>9:00 PM - 9:30 PM</Table.Td>
-                        <Table.Td>
-                          <Group gap="xs">
-                            <Button size="xs" variant="light">Edit</Button>
-                            <Button size="xs" variant="light" color="red">Delete</Button>
-                          </Group>
-                        </Table.Td>
-                      </Table.Tr>
-                    </Table.Tbody>
-                  </Table>
-                </Card>
+              {/* Volunteer Positions - EXACT TABLE STRUCTURE FROM WIREFRAME */}
+              <div>
+                <Title order={2} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
+                  Volunteer Positions
+                </Title>
+                
+                <Table
+                  striped
+                  highlightOnHover
+                  style={{
+                    backgroundColor: 'white',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                  }}
+                >
+                  <Table.Thead style={{ backgroundColor: 'var(--mantine-color-burgundy-6)' }}>
+                    <Table.Tr>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Edit
+                      </Table.Th>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Position
+                      </Table.Th>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Sessions
+                      </Table.Th>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Time
+                      </Table.Th>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Description
+                      </Table.Th>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Needed
+                      </Table.Th>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Assigned
+                      </Table.Th>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Delete
+                      </Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {/* Door Monitor Row */}
+                    <Table.Tr>
+                      <Table.Td>
+                        <ActionIcon size="sm" color="burgundy" variant="light">
+                          ✏️
+                        </ActionIcon>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text fw={600} c="burgundy">Door Monitor</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text fw={600}>S1, S2</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="sm" c="stone">6:00 PM - 7:00 PM</Text>
+                      </Table.Td>
+                      <Table.Td>Check IDs, welcome members</Table.Td>
+                      <Table.Td style={{ textAlign: 'center', fontWeight: 600 }}>2</Table.Td>
+                      <Table.Td>
+                        <div>
+                          <Text size="sm" c="green">✓ Jamie Davis</Text>
+                          <Text size="sm" c="yellow">○ 1 more needed</Text>
+                        </div>
+                      </Table.Td>
+                      <Table.Td>
+                        <ActionIcon size="sm" color="red">
+                          🗑️
+                        </ActionIcon>
+                      </Table.Td>
+                    </Table.Tr>
 
-                {/* Staff Assignments */}
-                <Card withBorder p="md">
-                  <Group justify="space-between" mb="md">
-                    <Title order={4}>Staff Assignments</Title>
-                    <Button size="sm" variant="light" color="burgundy">
-                      Assign Staff
-                    </Button>
-                  </Group>
-                  
-                  <Table striped highlightOnHover>
-                    <Table.Thead>
-                      <Table.Tr>
-                        <Table.Th>Staff Member</Table.Th>
-                        <Table.Th>Role</Table.Th>
-                        <Table.Th>Sessions</Table.Th>
-                        <Table.Th>Responsibilities</Table.Th>
-                        <Table.Th>Actions</Table.Th>
-                      </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                      <Table.Tr>
-                        <Table.Td>
-                          <div>
-                            <Text fw={500}>River Moon</Text>
-                            <Text size="sm" c="dimmed">Lead Instructor</Text>
-                          </div>
-                        </Table.Td>
-                        <Table.Td>
-                          <Badge color="burgundy" variant="filled">Primary Teacher</Badge>
-                        </Table.Td>
-                        <Table.Td>S1, S2, S3</Table.Td>
-                        <Table.Td>
-                          <Text size="sm">
-                            • Lead instruction<br/>
-                            • Safety oversight<br/>
-                            • Student questions
-                          </Text>
-                        </Table.Td>
-                        <Table.Td>
-                          <Group gap="xs">
-                            <Button size="xs" variant="light">Edit</Button>
-                            <Button size="xs" variant="light" color="red">Remove</Button>
-                          </Group>
-                        </Table.Td>
-                      </Table.Tr>
-                      <Table.Tr>
-                        <Table.Td>
-                          <div>
-                            <Text fw={500}>Sage Blackthorne</Text>
-                            <Text size="sm" c="dimmed">Assistant Instructor</Text>
-                          </div>
-                        </Table.Td>
-                        <Table.Td>
-                          <Badge color="blue" variant="filled">Co-Teacher</Badge>
-                        </Table.Td>
-                        <Table.Td>S2, S3</Table.Td>
-                        <Table.Td>
-                          <Text size="sm">
-                            • Individual guidance<br/>
-                            • Advanced techniques<br/>
-                            • Equipment setup
-                          </Text>
-                        </Table.Td>
-                        <Table.Td>
-                          <Group gap="xs">
-                            <Button size="xs" variant="light">Edit</Button>
-                            <Button size="xs" variant="light" color="red">Remove</Button>
-                          </Group>
-                        </Table.Td>
-                      </Table.Tr>
-                    </Table.Tbody>
-                  </Table>
-                </Card>
+                    {/* Safety Monitor Row */}
+                    <Table.Tr>
+                      <Table.Td>
+                        <ActionIcon size="sm" color="burgundy" variant="light">
+                          ✏️
+                        </ActionIcon>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text fw={600} c="burgundy">Safety Monitor</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text fw={600}>All</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="sm" c="stone">7:00 PM - 10:00 PM</Text>
+                      </Table.Td>
+                      <Table.Td>Monitor play areas, handle incidents</Table.Td>
+                      <Table.Td style={{ textAlign: 'center', fontWeight: 600 }}>3</Table.Td>
+                      <Table.Td>
+                        <div>
+                          <Text size="sm" c="green">✓ Sam Singh</Text>
+                          <Text size="sm" c="green">✓ Alex Chen</Text>
+                          <Text size="sm" c="yellow">○ 1 more needed</Text>
+                        </div>
+                      </Table.Td>
+                      <Table.Td>
+                        <ActionIcon size="sm" color="red">
+                          🗑️
+                        </ActionIcon>
+                      </Table.Td>
+                    </Table.Tr>
 
-                {/* Special Requirements */}
-                <Card withBorder p="md">
-                  <Title order={4} mb="md">Special Requirements & Notes</Title>
-                  <div>
-                    <Text size="sm" fw={500} mb={5}>Staff Requirements</Text>
-                    <Text size="xs" c="dimmed" mb="xs">
-                      Additional notes for staff and volunteer coordination
-                    </Text>
-                    <Editor
-                      apiKey="no-api-key"
-                      init={{...tinyMCEConfig, height: 150}}
-                      initialValue="<p><strong>Setup Requirements:</strong></p><ul><li>Tables and chairs for 20 participants</li><li>Rope bundles organized by skill level</li><li>Safety equipment check</li></ul><p><strong>During Event:</strong></p><ul><li>Monitor participant safety at all times</li><li>Assist with complex ties</li><li>Answer questions about techniques</li></ul>"
-                    />
-                  </div>
+                    {/* Setup Crew Row */}
+                    <Table.Tr>
+                      <Table.Td>
+                        <ActionIcon size="sm" color="burgundy" variant="light">
+                          ✏️
+                        </ActionIcon>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text fw={600} c="burgundy">Setup Crew</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text fw={600}>S1</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="sm" c="stone">6:00 PM - 7:00 PM</Text>
+                      </Table.Td>
+                      <Table.Td>Arrange furniture, setup equipment</Table.Td>
+                      <Table.Td style={{ textAlign: 'center', fontWeight: 600 }}>4</Table.Td>
+                      <Table.Td>
+                        <Text size="sm" c="red">⚠ 4 positions open</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <ActionIcon size="sm" color="red">
+                          🗑️
+                        </ActionIcon>
+                      </Table.Td>
+                    </Table.Tr>
+                  </Table.Tbody>
+                </Table>
+
+                {/* Add Position Button - Below Table as per wireframe */}
+                <Button
+                  mt="md"
+                  style={{
+                    background: 'linear-gradient(135deg, var(--mantine-color-amber-6), #DAA520)',
+                    border: 'none',
+                    color: 'var(--mantine-color-dark-9)',
+                    borderRadius: '12px 6px 12px 6px',
+                    fontWeight: 600,
+                  }}
+                >
+                  Add Position
+                </Button>
+              </div>
+
+              {/* Staff Assignments Section - Below Volunteer Positions */}
+              <div>
+                <Title order={3} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
+                  Staff Assignments
+                </Title>
+                
+                <Text size="sm" c="dimmed" mb="md">
+                  Staff assignments for the volunteer positions above
+                </Text>
+
+                {/* Staff assignment content would go here - this section is less detailed in the wireframe */}
+                <Card withBorder p="md" style={{ backgroundColor: 'rgba(250, 246, 242, 0.5)' }}>
+                  <Text c="dimmed" ta="center" style={{ fontStyle: 'italic' }}>
+                    Staff assignment interface would be implemented here based on the volunteer positions defined above.
+                  </Text>
                 </Card>
-              </Stack>
+              </div>
             </Stack>
           </Tabs.Panel>
         </Tabs>
