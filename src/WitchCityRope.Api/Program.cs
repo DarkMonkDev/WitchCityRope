@@ -13,6 +13,7 @@ using WitchCityRope.Api.Features.Auth.Models;
 using WitchCityRope.Core.Exceptions;
 using WitchCityRope.Api.Interfaces;
 using WitchCityRope.Api.Features.Events.Models;
+using WitchCityRope.Api.Features.Events.Endpoints;
 using WitchCityRope.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -283,6 +284,11 @@ public static class EndpointExtensions
         .RequireAuthorization("RequireOrganizer")
         .WithName("CreateEvent")
         .WithOpenApi();
+
+        // Event Session Matrix endpoints
+        group.MapCreateEventEndpoint();
+        group.MapGetEventWithSessionsEndpoint();
+        group.MapGetEventAvailabilityEndpoint();
 
         group.MapPut("/events/{id:guid}", async (
             Guid id,
