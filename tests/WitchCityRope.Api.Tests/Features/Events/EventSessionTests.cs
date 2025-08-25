@@ -56,9 +56,9 @@ namespace WitchCityRope.Api.Tests.Features.Events
 
             // Assert - Sessions should be atomic capacity units
             eventWithSessions.Sessions.Should().HaveCount(3);
-            eventWithSessions.Sessions.Should().Contain(s => s.SessionName == "S1" && s.Capacity == 20);
-            eventWithSessions.Sessions.Should().Contain(s => s.SessionName == "S2" && s.Capacity == 25);
-            eventWithSessions.Sessions.Should().Contain(s => s.SessionName == "S3" && s.Capacity == 18);
+            eventWithSessions.Sessions.Should().Contain(s => s.SessionIdentifier == "S1" && s.Capacity == 20);
+            eventWithSessions.Sessions.Should().Contain(s => s.SessionIdentifier == "S2" && s.Capacity == 25);
+            eventWithSessions.Sessions.Should().Contain(s => s.SessionIdentifier == "S3" && s.Capacity == 18);
             
             // Each session should have unique capacity
             var sessionCapacities = eventWithSessions.Sessions.Select(s => s.Capacity).ToList();

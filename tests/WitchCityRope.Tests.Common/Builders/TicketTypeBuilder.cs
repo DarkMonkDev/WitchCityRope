@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WitchCityRope.Core;
 using WitchCityRope.Core.Enums;
 
 namespace WitchCityRope.Tests.Common.Builders

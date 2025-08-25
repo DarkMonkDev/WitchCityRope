@@ -51,7 +51,7 @@ namespace WitchCityRope.Tests.Common.Fixtures
             {
                 DbAdapter = DbAdapter.Postgres,
                 SchemasToInclude = new[] { "public" },
-                TablesToIgnore = new[] { "__EFMigrationsHistory" },
+                TablesToIgnore = new Respawn.Graph.Table[] { "__EFMigrationsHistory" },
                 WithReseed = true // Reset identity columns for consistent test data
             });
         }

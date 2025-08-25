@@ -11,6 +11,11 @@ namespace WitchCityRope.Core.Enums
         Workshop,
 
         /// <summary>
+        /// Educational class (alias for Workshop, used in tests)
+        /// </summary>
+        Class = Workshop,
+
+        /// <summary>
         /// Social gathering or munch
         /// </summary>
         Social,

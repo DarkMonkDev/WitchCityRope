@@ -70,20 +70,16 @@ namespace WitchCityRope.Tests.Common.Builders
             ValidateCapacity();
             ValidateTimes();
 
-            return new EventSession
-            {
-                Id = Guid.NewGuid(),
-                SessionName = _sessionName,
-                DisplayName = _displayName,
-                SessionDate = _sessionDate,
-                StartTime = _startTime,
-                EndTime = _endTime,
-                Capacity = _capacity,
-                IsRequired = _isRequired,
-                RegisteredAttendees = 0, // Start with no registrations
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+            // Use actual Core.Entities.EventSession
+            return new EventSession(
+                eventId: Guid.NewGuid(), // Temporary ID for tests
+                sessionIdentifier: _sessionName,
+                name: _displayName,
+                date: _sessionDate,
+                startTime: _startTime,
+                endTime: _endTime,
+                capacity: _capacity,
+                isRequired: _isRequired);
         }
 
         private void ValidateCapacity()
@@ -103,28 +99,5 @@ namespace WitchCityRope.Tests.Common.Builders
     /// Domain entity representing Event Session (TDD target model)
     /// This is the structure the tests expect to exist after implementation
     /// </summary>
-    public class EventSession
-    {
-        public Guid Id { get; set; }
-        public string SessionName { get; set; } = null!; // S1, S2, S3, etc.
-        public string DisplayName { get; set; } = null!; // "Friday Workshop", "Saturday Workshop"
-        public DateTime SessionDate { get; set; }
-        public TimeSpan StartTime { get; set; }
-        public TimeSpan EndTime { get; set; }
-        public int Capacity { get; set; }
-        public bool IsRequired { get; set; } // For prerequisite handling
-        public int RegisteredAttendees { get; set; } = 0; // Track current registrations
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-
-        public int GetAvailableCapacity()
-        {
-            return Capacity - RegisteredAttendees;
-        }
-
-        public bool HasAvailableCapacity(int requestedQuantity = 1)
-        {
-            return GetAvailableCapacity() >= requestedQuantity;
-        }
-    }
+    // NOTE: This test model will be replaced by the actual Core.Entities.EventSession during implementation
 }

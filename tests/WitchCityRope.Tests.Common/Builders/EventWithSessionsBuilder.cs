@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WitchCityRope.Core;
 using WitchCityRope.Core.Entities;
 using WitchCityRope.Core.Enums;
 using WitchCityRope.Core.ValueObjects;
@@ -126,7 +127,7 @@ namespace WitchCityRope.Tests.Common.Builders
 
         private void ValidateTicketTypeSessionReferences(List<EventSession> sessions, List<TicketType> ticketTypes)
         {
-            var sessionNames = sessions.Select(s => s.SessionName).ToHashSet();
+            var sessionNames = sessions.Select(s => s.SessionIdentifier).ToHashSet();
             
             foreach (var ticketType in ticketTypes)
             {
@@ -164,7 +165,7 @@ namespace WitchCityRope.Tests.Common.Builders
                 return 0;
 
             // Find the sessions this ticket type includes
-            var includedSessions = Sessions.Where(s => ticketType.IncludedSessions.Contains(s.SessionName)).ToList();
+            var includedSessions = Sessions.Where(s => ticketType.IncludedSessions.Contains(s.SessionIdentifier)).ToList();
             
             if (!includedSessions.Any())
                 return 0;
@@ -172,7 +173,7 @@ namespace WitchCityRope.Tests.Common.Builders
             // Calculate available capacity for each session
             var availabilityPerSession = includedSessions.Select(session =>
             {
-                var usedCapacity = CalculateUsedCapacityForSession(session.SessionName);
+                var usedCapacity = CalculateUsedCapacityForSession(session.SessionIdentifier);
                 return session.Capacity - usedCapacity;
             });
 
@@ -206,8 +207,8 @@ namespace WitchCityRope.Tests.Common.Builders
             // Track capacity consumption for each session (simplified for TDD)
             foreach (var sessionName in ticketType.IncludedSessions)
             {
-                var session = Sessions.First(s => s.SessionName == sessionName);
-                session.RegisteredAttendees += quantity;
+                var session = Sessions.First(s => s.SessionIdentifier == sessionName);
+                session.IncrementRegisteredCount(quantity);
             }
 
             return registration;
@@ -229,8 +230,8 @@ namespace WitchCityRope.Tests.Common.Builders
 
         private int CalculateUsedCapacityForSession(string sessionName)
         {
-            var session = Sessions.FirstOrDefault(s => s.SessionName == sessionName);
-            return session?.RegisteredAttendees ?? 0;
+            var session = Sessions.FirstOrDefault(s => s.SessionIdentifier == sessionName);
+            return session?.RegisteredCount ?? 0;
         }
     }
 }
