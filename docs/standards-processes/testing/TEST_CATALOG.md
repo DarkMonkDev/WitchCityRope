@@ -1,6 +1,6 @@
 # WitchCityRope Test Catalog
-<!-- Last Updated: 2025-08-13 -->
-<!-- Version: 1.0 -->
+<!-- Last Updated: 2025-08-25 -->
+<!-- Version: 1.1 -->
 <!-- Owner: Testing Team -->
 <!-- Status: Active -->
 
@@ -8,14 +8,81 @@
 This catalog provides a comprehensive inventory of all tests in the WitchCityRope project, organized by type and location. This is the single source of truth for understanding our test coverage.
 
 ## Quick Reference
-- **Unit Tests**: ~75 tests files across Core/API/Web projects
-- **Integration Tests**: 133 tests (PostgreSQL with TestContainers)
+- **Unit Tests**: ~97 test files across Core/API/Web projects (+22 Event Session Matrix)
+- **React Component Tests**: ~40 test files (+20 Event Session Matrix)
+- **Integration Tests**: 141 tests (PostgreSQL with TestContainers) (+8 Event Session Matrix)
 - **E2E Tests**: 45 Playwright test spec files (Migrated from Puppeteer)
 - **Performance Tests**: Basic load testing infrastructure
 
 **Status**: Major migration completed January 2025 - All Puppeteer tests migrated to Playwright
 
 ## Recent Additions (August 2025)
+
+### Event Session Matrix TDD Test Suite - 2025-08-25
+**Added**: Complete TDD test infrastructure for Event Session Matrix implementation
+**Purpose**: Test-driven development foundation for complex event ticketing system
+**Context**: Created comprehensive test suite BEFORE implementation following pure TDD principles
+
+**Files Created**:
+- ✅ `/tests/WitchCityRope.Api.Tests/Features/Events/EventSessionTests.cs` - Backend API unit tests (22 tests)
+- ✅ `/apps/web/src/components/events/__tests__/EventSessionForm.test.tsx` - React component tests (20 tests)  
+- ✅ `/tests/integration/events/EventSessionMatrixIntegrationTests.cs` - Full-stack integration tests (8 tests)
+- ✅ `/docs/functional-areas/events/new-work/2025-08-24-events-management/implementation/test-plan.md` - Complete test plan
+
+**Test Coverage - Backend API (22 TDD Tests)**:
+- **Event Session Creation**: Multi-session event creation (S1, S2, S3), capacity validation, time overlap prevention
+- **Ticket Type Session Mapping**: Session inclusion logic, validation of session references, ticket type constraints
+- **Capacity Calculations**: Single-session availability, multi-session limiting factors, cross-session capacity tracking
+- **RSVP vs Ticket Handling**: Social event free RSVP mode, class event payment requirements, zero-price handling
+- **Complex Scenarios**: Real-world workshop series, mixed ticket registrations, availability edge cases
+
+**Test Coverage - React Components (20 TDD Tests)**:
+- **Session Management UI**: Session CRUD operations, capacity validation, time conflict detection
+- **Ticket Configuration**: Session selection interface, mapping validation, ticket type creation
+- **Capacity Display**: Real-time availability calculations, capacity warnings, session imbalance alerts
+- **RSVP Mode Toggle**: Social event toggles, payment field hiding, class event restrictions
+- **Form Validation**: Complete form submission, session requirements, ticket type requirements
+- **Accessibility**: ARIA labels, keyboard navigation, screen reader support
+
+**Test Coverage - Integration Tests (8 TDD Tests)**:
+- **End-to-End Event Creation**: Full API workflow for events with sessions and ticket types
+- **Session Availability API**: Real capacity calculations with database integration
+- **Registration Workflows**: RSVP registration flow, paid ticket registration, payment processing
+- **Complex Registration Scenarios**: Multi-user registrations, cross-session capacity consumption
+- **Error Handling**: Overbooked session prevention, validation error responses
+
+**TDD Implementation Strategy**:
+- ✅ **Red Phase Complete**: All 50 tests written and properly failing
+- ⏳ **Green Phase**: Implementation needed to make tests pass
+- ⏳ **Refactor Phase**: Performance and code quality optimization
+
+**Key Architecture Tested**:
+```
+Event Session Matrix Architecture:
+├── Event (metadata container)
+├── Sessions (atomic capacity units)
+│   ├── S1: Friday Workshop (Capacity: 20)
+│   ├── S2: Saturday Workshop (Capacity: 25) 
+│   └── S3: Sunday Workshop (Capacity: 18)
+└── Ticket Types (session bundles)
+    ├── Full Series Pass → Includes S1,S2,S3
+    ├── Weekend Pass → Includes S2,S3
+    └── Friday Only → Includes S1
+```
+
+**Core Business Rules Tested**:
+- Sessions are atomic units of capacity (not ticket types)
+- Ticket availability limited by most constrained session
+- RSVP mode for social events (no payment required)
+- Payment processing required for all class events (even $0)
+- Cross-session capacity tracking for multi-session tickets
+
+**Benefits for Development**:
+- ✅ Complete requirements captured in executable tests
+- ✅ Clear implementation guidance through failing tests
+- ✅ API contracts defined through test expectations
+- ✅ Complex business logic validated before implementation
+- ✅ Regression prevention for core ticketing functionality
 
 ### Dashboard Pages Comprehensive Test Suite - 2025-08-22
 **Added**: Complete test coverage for React dashboard pages following existing testing patterns
