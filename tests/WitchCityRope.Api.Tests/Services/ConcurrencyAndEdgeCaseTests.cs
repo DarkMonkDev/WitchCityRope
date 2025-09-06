@@ -26,9 +26,6 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         _dbContext = MockHelpers.CreateInMemoryDbContext();
         _eventService = new EventService(
             _dbContext,
-            MockHelpers.CreateUserContextMock().Object,
-            MockHelpers.CreatePaymentServiceMock().Object,
-            MockHelpers.CreateNotificationServiceMock().Object,
             MockHelpers.CreateSlugGeneratorMock().Object);
         
         _testDataBuilder = new TestDataBuilder(_dbContext);
@@ -141,9 +138,6 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
 
         var eventServiceWithPaymentDelay = new EventService(
             _dbContext,
-            MockHelpers.CreateUserContextMock().Object,
-            paymentServiceMock.Object,
-            MockHelpers.CreateNotificationServiceMock().Object,
             MockHelpers.CreateSlugGeneratorMock().Object);
 
         // Act

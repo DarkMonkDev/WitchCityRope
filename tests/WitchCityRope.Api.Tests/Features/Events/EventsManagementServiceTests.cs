@@ -159,14 +159,11 @@ public class EventsManagementServiceTests : IDisposable
     private User CreateTestUser(string email, UserRole role)
     {
         return new User(
-            id: Guid.NewGuid(),
-            email: Email.Create(email),
-            passwordHash: "hashedpassword",
+            encryptedLegalName: "encrypted-legal-name",
             sceneName: SceneName.Create($"Scene-{email.Split('@')[0]}"),
-            role: role,
-            isActive: true,
-            isVetted: role == UserRole.Organizer || role == UserRole.Administrator,
-            dateJoined: DateTime.UtcNow
+            email: EmailAddress.Create(email),
+            dateOfBirth: DateTime.UtcNow.AddYears(-25),
+            role: role
         );
     }
 

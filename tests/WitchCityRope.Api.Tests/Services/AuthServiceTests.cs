@@ -109,8 +109,7 @@ public class AuthServiceTests
     {
         // Arrange
         var request = new LoginRequest { Email = "test@example.com", Password = "Password123!" };
-        var user = CreateValidUserWithAuth();
-        user.IsActive = false;
+        var user = CreateValidUserWithAuth(isActive: false);
 
         _userRepositoryMock.Setup(x => x.GetByEmailAsync(request.Email))
             .ReturnsAsync(user);
@@ -128,8 +127,7 @@ public class AuthServiceTests
     {
         // Arrange
         var request = new LoginRequest { Email = "test@example.com", Password = "Password123!" };
-        var user = CreateValidUserWithAuth();
-        user.EmailVerified = false;
+        var user = CreateValidUserWithAuth(emailVerified: false);
 
         _userRepositoryMock.Setup(x => x.GetByEmailAsync(request.Email))
             .ReturnsAsync(user);
@@ -337,8 +335,7 @@ public class AuthServiceTests
             UserId = userId,
             ExpiresAt = DateTime.UtcNow.AddDays(1)
         };
-        var user = CreateValidUserWithAuth();
-        user.Id = userId;
+        var user = CreateValidUserWithAuth(userId: userId);
 
         var newToken = new JwtToken { Token = "new-jwt-token", ExpiresAt = DateTime.UtcNow.AddHours(1) };
         var newRefreshToken = "new-refresh-token";
@@ -433,9 +430,7 @@ public class AuthServiceTests
             UserId = userId,
             ExpiresAt = DateTime.UtcNow.AddDays(1)
         };
-        var user = CreateValidUserWithAuth();
-        user.Id = userId;
-        user.IsActive = false;
+        var user = CreateValidUserWithAuth(userId: userId, isActive: false);
 
         _userRepositoryMock.Setup(x => x.GetRefreshTokenInfoAsync(refreshToken))
             .ReturnsAsync(tokenInfo);
@@ -452,29 +447,48 @@ public class AuthServiceTests
 
     #region Helper Methods
 
-    private UserWithAuth CreateValidUserWithAuth()
+    private UserWithAuth CreateValidUserWithAuth(
+        Guid? userId = null, 
+        bool isActive = true, 
+        bool emailVerified = true,
+        string email = "test@example.com")
     {
-        var user = new UserWithAuth
+        // Create a proper User entity first
+        var user = new User(
+            encryptedLegalName: "encrypted-legal-name",
+            sceneName: SceneName.Create("TestUser"),
+            email: EmailAddress.Create(email),
+            dateOfBirth: DateTime.UtcNow.AddYears(-25),
+            role: UserRole.Member
+        );
+
+        // Set the properties that tests expect if needed
+        if (userId.HasValue)
         {
-            Id = Guid.NewGuid(),
-            EncryptedLegalName = "encrypted-name",
-            SceneName = new SceneName("TestUser"),
-            Email = new EmailAddress("test@example.com"),
-            DateOfBirth = DateTime.UtcNow.AddYears(-25),
-            Role = UserRole.Member,
-            IsActive = true,
-            EmailVerified = true,
+            // For tests, we need to set the ID via reflection since it's private set
+            var idProperty = typeof(User).GetProperty(nameof(User.Id));
+            idProperty?.SetValue(user, userId.Value);
+        }
+        
+        if (!isActive)
+        {
+            // For tests, set IsActive via reflection
+            var isActiveProperty = typeof(User).GetProperty(nameof(User.IsActive));
+            isActiveProperty?.SetValue(user, isActive);
+        }
+
+        // Create UserWithAuth with the User entity
+        var userWithAuth = new UserWithAuth
+        {
+            User = user,
             PasswordHash = "hashed-password",
+            EmailVerified = emailVerified,
             PronouncedName = "Test",
             Pronouns = "they/them",
             LastLoginAt = DateTime.UtcNow.AddDays(-1)
         };
 
-        // Set up the properties from the base User class
-        user.GetType().GetProperty("CreatedAt")?.SetValue(user, DateTime.UtcNow.AddMonths(-1));
-        user.GetType().GetProperty("UpdatedAt")?.SetValue(user, DateTime.UtcNow.AddDays(-5));
-
-        return user;
+        return userWithAuth;
     }
 
     #endregion
