@@ -15,9 +15,13 @@ import ApiValidationV2Simple from '../pages/ApiValidationV2Simple';
 import ApiConnectionTest from '../pages/ApiConnectionTest';
 import { TestMSWPage } from '../pages/TestMSWPage';
 import { EventSessionMatrixDemo } from '../pages/admin/EventSessionMatrixDemo';
-import { EventsManagementApiDemo } from '../pages/admin/EventsManagementApiDemo';
+// import { EventsManagementApiDemo } from '../pages/admin/EventsManagementApiDemo';
+// import { EventsManagementApiDemoMinimal } from '../pages/admin/EventsManagementApiDemo.minimal';
+import { EventsManagementApiDemoTest } from '../pages/admin/EventsManagementApiDemo.test';
+// import { EventsManagementApiDemoDebug } from '../pages/admin/EventsManagementApiDemo.debug';
 import { EventFormTestPage } from '../pages/EventFormTestPage';
 import TestTinyMCE from '../pages/TestTinyMCE';
+import { NavigationTestPage } from '../pages/NavigationTestPage';
 import { RootLayout } from '../components/layout/RootLayout';
 import { RootErrorBoundary } from '../components/errors/RootErrorBoundary';
 import { authLoader } from './loaders/authLoader';
@@ -76,6 +80,10 @@ export const router = createBrowserRouter([
         path: "test-tinymce", 
         element: <TestTinyMCE /> 
       },
+      { 
+        path: "navigation-test", 
+        element: <NavigationTestPage /> 
+      },
       
       // Protected routes - authentication required
       // All dashboard routes use DashboardLayout in each page component
@@ -112,12 +120,17 @@ export const router = createBrowserRouter([
       },
       {
         path: "admin/events-management-api-demo",
-        element: <EventsManagementApiDemo />
+        element: <EventsManagementApiDemoTest />
       },
       {
         path: "event-form-test",
         element: <EventFormTestPage />
       }
     ]
+  },
+  // Test route OUTSIDE of RootLayout to bypass Navigation/UtilityBar
+  {
+    path: "/test-no-layout",
+    element: <EventsManagementApiDemoTest />
   }
 ]);
