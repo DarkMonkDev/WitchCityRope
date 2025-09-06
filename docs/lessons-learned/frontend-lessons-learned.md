@@ -101,3 +101,38 @@ plugins: 'advlist autolink lists link charmap preview anchor'
 
 **Problem**: Missing volunteer position edit form at bottom of tab
 **Solution**: Follow wireframe layout exactly, including all sections and forms
+
+## Constant Page Reloading Issue - API Demo Pages
+
+**Problem**: Pages with TanStack Query hooks constantly reload when queries fail or are misconfigured
+**Root Causes**:
+1. API client 401 interceptor redirecting demo pages that don't need auth
+2. TanStack Query hooks enabled for non-existent endpoints causing error loops
+3. Import path errors in auth store causing module resolution failures
+4. Missing query optimization settings like `refetchOnMount: false`
+
+**Solution**:
+```typescript
+// 1. Fix API client to exclude demo pages from auth redirects
+if (response?.status === 401) {
+  const isOnDemoPage = window.location.pathname.includes('/demo') || 
+                      window.location.pathname.includes('/admin/events-management-api-demo')
+  if (!window.location.pathname.includes('/login') && !isOnDemoPage) {
+    window.location.href = '/login'
+  }
+}
+
+// 2. Disable queries for non-existent endpoints
+const { data } = useQuery({
+  enabled: false, // Disable for demo endpoints that don't exist yet
+  staleTime: 5 * 60 * 1000,
+  gcTime: 10 * 60 * 1000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false, // Prevent unnecessary refetches
+})
+
+// 3. Fix import paths in auth store
+const { apiClient } = await import('../lib/api/client'); // Not ../api/client
+```
+
+**Action**: Always check browser console and network tab for failed API calls when debugging reload issues

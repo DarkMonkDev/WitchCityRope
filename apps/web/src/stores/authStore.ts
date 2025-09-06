@@ -101,8 +101,8 @@ const useAuthStore = create<AuthStore>()(
               }
               
               // Import api client dynamically to avoid circular dependency
-              const { api } = await import('../api/client');
-              const response = await api.get('/api/auth/user');
+              const { apiClient } = await import('../lib/api/client');
+              const response = await apiClient.get('/api/auth/user');
               
               // Handle nested response structure: { success: true, data: {...} }
               const user = response.data.data || response.data;

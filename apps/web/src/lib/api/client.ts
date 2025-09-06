@@ -53,8 +53,12 @@ apiClient.interceptors.response.use(
       localStorage.removeItem('auth_token')
       queryClient.clear()
       
-      // Only redirect if not already on login page
-      if (!window.location.pathname.includes('/login')) {
+      // Only redirect if not already on login page or a demo page
+      const isOnDemoPage = window.location.pathname.includes('/demo') || 
+                          window.location.pathname.includes('/admin/events-management-api-demo') ||
+                          window.location.pathname.includes('/admin/event-session-matrix-demo')
+      
+      if (!window.location.pathname.includes('/login') && !isOnDemoPage) {
         window.location.href = '/login'
       }
     }

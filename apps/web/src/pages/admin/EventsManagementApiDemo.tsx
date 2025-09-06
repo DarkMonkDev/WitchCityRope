@@ -47,25 +47,25 @@ export const EventsManagementApiDemo: React.FC = () => {
     error: legacyDetailsError 
   } = useLegacyEventDetails(selectedEventId || '', !!selectedEventId && activeTab === 'current-api');
   
-  // Future API (Events Management DTOs - for demonstration)
+  // Future API (Events Management DTOs - for demonstration) - DISABLED to prevent errors
   const { 
     data: events, 
     isLoading: eventsLoading, 
     error: eventsError,
     refetch: refetchEvents
-  } = useEventsManagement({}, { enabled: activeTab === 'future-api' });
+  } = useEventsManagement({}, { enabled: false }); // Disabled - endpoints don't exist yet
   
   const { 
     data: eventDetails, 
     isLoading: detailsLoading, 
     error: detailsError 
-  } = useEventDetails(selectedEventId || '', !!selectedEventId && activeTab === 'future-api');
+  } = useEventDetails(selectedEventId || '', false); // Disabled - endpoints don't exist yet
   
   const { 
     data: eventAvailability, 
     isLoading: availabilityLoading, 
     error: availabilityError 
-  } = useEventAvailability(selectedEventId || '', !!selectedEventId && activeTab === 'future-api');
+  } = useEventAvailability(selectedEventId || '', false); // Disabled - endpoints don't exist yet
 
   const handleEventSelect = (eventId: string) => {
     setSelectedEventId(eventId === selectedEventId ? null : eventId);
@@ -176,7 +176,8 @@ export const EventsManagementApiDemo: React.FC = () => {
 
             <Tabs.Panel value="future-api" pt="md">
               <Alert icon={<IconInfoCircle size="1rem" />} color="orange" mb="md">
-                <strong>Future Events Management API:</strong> This shows the TypeScript types and hooks ready for the new EventSummaryDto, EventDetailsDto, and EventAvailabilityDto endpoints.
+                <strong>Future Events Management API:</strong> This shows the TypeScript types and hooks ready for the new EventSummaryDto, EventDetailsDto, and EventAvailabilityDto endpoints. 
+                <br /><strong>Note:</strong> API calls are disabled to prevent errors since these endpoints are not yet implemented.
               </Alert>
               
               {eventsLoading && (
