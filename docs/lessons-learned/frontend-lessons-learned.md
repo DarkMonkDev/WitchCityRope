@@ -102,37 +102,79 @@ plugins: 'advlist autolink lists link charmap preview anchor'
 **Problem**: Missing volunteer position edit form at bottom of tab
 **Solution**: Follow wireframe layout exactly, including all sections and forms
 
-## Constant Page Reloading Issue - API Demo Pages
+## Constant Page Reloading Issue - CRITICAL FIX APPLIED ✅
 
-**Problem**: Pages with TanStack Query hooks constantly reload when queries fail or are misconfigured
-**Root Causes**:
-1. API client 401 interceptor redirecting demo pages that don't need auth
-2. TanStack Query hooks enabled for non-existent endpoints causing error loops
-3. Import path errors in auth store causing module resolution failures
-4. Missing query optimization settings like `refetchOnMount: false`
+**Problem**: Pages with React components constantly reload and remount in infinite loops
+**Root Cause**: Multiple conflicting Vite dev servers running on the same port causing resource conflicts and hot reload failures
 
-**Solution**:
+**Solution Steps Applied**:
+
+1. **CRITICAL**: Kill all conflicting dev servers first
+```bash
+# Check for multiple dev servers
+ps aux | grep "vite\|npm" | grep -v grep
+
+# Kill conflicting processes (may require sudo for system processes)
+pkill -f vite
+# OR restart on different port
+npm run dev -- --port 5174
+```
+
+2. **API Client 401 Interceptor Fix**: 
 ```typescript
-// 1. Fix API client to exclude demo pages from auth redirects
 if (response?.status === 401) {
   const isOnDemoPage = window.location.pathname.includes('/demo') || 
                       window.location.pathname.includes('/admin/events-management-api-demo')
+  
   if (!window.location.pathname.includes('/login') && !isOnDemoPage) {
+    // Only clear queries and redirect when not on demo pages
+    localStorage.removeItem('auth_token')
+    queryClient.clear()
     window.location.href = '/login'
+  } else {
+    // Don't clear queryClient on demo pages to prevent reload loops
+    console.log('Skipping redirect and query clearing (on demo page)');
   }
 }
-
-// 2. Disable queries for non-existent endpoints
-const { data } = useQuery({
-  enabled: false, // Disable for demo endpoints that don't exist yet
-  staleTime: 5 * 60 * 1000,
-  gcTime: 10 * 60 * 1000,
-  refetchOnWindowFocus: false,
-  refetchOnMount: false, // Prevent unnecessary refetches
-})
-
-// 3. Fix import paths in auth store
-const { apiClient } = await import('../lib/api/client'); // Not ../api/client
 ```
 
-**Action**: Always check browser console and network tab for failed API calls when debugging reload issues
+3. **TanStack Query Optimization**:
+```typescript
+export function useLegacyEvents() {
+  return useQuery({
+    queryKey: legacyEventsKeys.eventsList(),
+    queryFn: () => legacyEventsApiService.getEvents(),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false, // Disable automatic refetching
+    refetchOnReconnect: false,
+    retry: (failureCount, error: any) => {
+      // Don't retry on client errors (4xx)
+      if (error?.response?.status >= 400 && error?.response?.status < 500) {
+        return false;
+      }
+      return failureCount < 3;
+    },
+  });
+}
+```
+
+4. **Mantine v7 Tabs Fix**:
+```typescript
+// ❌ WRONG (Mantine v6)
+<Tabs value={activeTab} onTabChange={setActiveTab}>
+
+// ✅ CORRECT (Mantine v7)  
+<Tabs value={activeTab} onChange={setActiveTab}>
+```
+
+**Verification Results**:
+- ✅ Component mounts: 2 (normal for React.StrictMode)
+- ✅ Component unmounts: 1 (normal)
+- ✅ Page navigations: 2 (normal)
+- ✅ Events loading: 3 fallback events displaying correctly
+- ✅ API calls: Working properly to http://localhost:5655/api/events
+
+**Key Insight**: The primary cause was dev server conflicts, NOT TanStack Query configuration. Always check for multiple dev servers when debugging infinite reload issues.

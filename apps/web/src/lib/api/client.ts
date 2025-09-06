@@ -49,17 +49,25 @@ apiClient.interceptors.response.use(
     })
     
     if (response?.status === 401) {
-      // Clear auth state and redirect to login
-      localStorage.removeItem('auth_token')
-      queryClient.clear()
+      console.log('🔍 401 Response intercepted. Current path:', window.location.pathname);
       
       // Only redirect if not already on login page or a demo page
       const isOnDemoPage = window.location.pathname.includes('/demo') || 
                           window.location.pathname.includes('/admin/events-management-api-demo') ||
                           window.location.pathname.includes('/admin/event-session-matrix-demo')
       
+      console.log('🔍 Is on demo page?', isOnDemoPage);
+      console.log('🔍 Is on login page?', window.location.pathname.includes('/login'));
+      
       if (!window.location.pathname.includes('/login') && !isOnDemoPage) {
+        console.log('🔍 Redirecting to login...');
+        // Clear auth state only when redirecting
+        localStorage.removeItem('auth_token')
+        queryClient.clear()
         window.location.href = '/login'
+      } else {
+        console.log('🔍 Skipping redirect and query clearing (on login or demo page)');
+        // Don't clear queryClient on demo pages to prevent reload loops
       }
     }
     

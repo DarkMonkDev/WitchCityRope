@@ -5,7 +5,7 @@
  * @created 2025-09-06
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Container, 
   Title, 
@@ -32,8 +32,24 @@ import type { LegacyEventDto } from '../../api/services/legacyEventsApi.service'
 export const EventsManagementApiDemo: React.FC = () => {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('current-api');
+
+  // Debug logging for component lifecycle
+  useEffect(() => {
+    console.log('🔍 EventsManagementApiDemo component mounted');
+    return () => {
+      console.log('🔍 EventsManagementApiDemo component unmounted');
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log('🔍 ActiveTab changed to:', activeTab);
+  }, [activeTab]);
+
+  useEffect(() => {
+    console.log('🔍 SelectedEventId changed to:', selectedEventId);
+  }, [selectedEventId]);
   
-  // Current API (working)
+  // Re-enable legacy events API (should work now that dev server is stable)
   const { 
     data: legacyEvents, 
     isLoading: legacyEventsLoading, 
@@ -47,25 +63,19 @@ export const EventsManagementApiDemo: React.FC = () => {
     error: legacyDetailsError 
   } = useLegacyEventDetails(selectedEventId || '', !!selectedEventId && activeTab === 'current-api');
   
-  // Future API (Events Management DTOs - for demonstration) - DISABLED to prevent errors
-  const { 
-    data: events, 
-    isLoading: eventsLoading, 
-    error: eventsError,
-    refetch: refetchEvents
-  } = useEventsManagement({}, { enabled: false }); // Disabled - endpoints don't exist yet
+  // Future API queries - DISABLED
+  const events = null;
+  const eventsLoading = false;
+  const eventsError = null;
+  const refetchEvents = () => console.log('Refetch disabled for debugging');
   
-  const { 
-    data: eventDetails, 
-    isLoading: detailsLoading, 
-    error: detailsError 
-  } = useEventDetails(selectedEventId || '', false); // Disabled - endpoints don't exist yet
+  const eventDetails = null;
+  const detailsLoading = false;
+  const detailsError = null;
   
-  const { 
-    data: eventAvailability, 
-    isLoading: availabilityLoading, 
-    error: availabilityError 
-  } = useEventAvailability(selectedEventId || '', false); // Disabled - endpoints don't exist yet
+  const eventAvailability = null;
+  const availabilityLoading = false;
+  const availabilityError = null;
 
   const handleEventSelect = (eventId: string) => {
     setSelectedEventId(eventId === selectedEventId ? null : eventId);
@@ -81,7 +91,7 @@ export const EventsManagementApiDemo: React.FC = () => {
         {/* API Selector */}
         <Paper shadow="sm" radius="md" p="lg">
           <Title order={2} c="burgundy" mb="md">API Integration Demo</Title>
-          <Tabs value={activeTab} onTabChange={setActiveTab}>
+          <Tabs value={activeTab} onChange={setActiveTab}>
             <Tabs.List>
               <Tabs.Tab value="current-api">Current API (Working)</Tabs.Tab>
               <Tabs.Tab value="future-api">Future Events Management API</Tabs.Tab>
