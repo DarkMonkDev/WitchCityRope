@@ -238,3 +238,34 @@ useEffect(() => {
 - ✅ Demo pages work without auth loops
 
 **Prevention Strategy**: Always add guards and logging to auth-related operations to prevent infinite loops and concurrent calls.
+
+## useEffect Infinite Render Loop - CRITICAL FIX ✅
+
+**Problem**: `useEffect` without proper dependencies causing "Maximum update depth exceeded" errors
+**Root Cause**: Using useEffect to update state without dependency array causes re-runs on every render
+
+**Example Error**:
+```typescript
+// ❌ WRONG - Causes infinite loop
+useEffect(() => {
+  setRenderCount(renderCount + 1); // Updates state, triggers re-render, runs effect again
+});
+```
+
+**Solution**: Always include proper dependency array for useEffect
+```typescript
+// ✅ CORRECT - Runs only once on mount
+useEffect(() => {
+  setRenderCount(prev => {
+    const newCount = prev + 1;
+    console.log('Component render count:', newCount);
+    return newCount;
+  });
+}, []); // Empty dependency array for mount-only effect
+```
+
+**Key Learning**: When accessing variables in useEffect that should be in scope, use the setState callback pattern with proper dependency arrays to avoid infinite loops.
+
+**Files Fixed**:
+- `/apps/web/src/pages/NavigationTestPage.tsx` - Fixed useEffect infinite loop
+- `/apps/web/src/routes/router.tsx` - Fixed demo route pointing to correct component

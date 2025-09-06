@@ -15,7 +15,7 @@ import ApiValidationV2Simple from '../pages/ApiValidationV2Simple';
 import ApiConnectionTest from '../pages/ApiConnectionTest';
 import { TestMSWPage } from '../pages/TestMSWPage';
 import { EventSessionMatrixDemo } from '../pages/admin/EventSessionMatrixDemo';
-// import { EventsManagementApiDemo } from '../pages/admin/EventsManagementApiDemo';
+import { EventsManagementApiDemo } from '../pages/admin/EventsManagementApiDemo';
 // import { EventsManagementApiDemoMinimal } from '../pages/admin/EventsManagementApiDemo.minimal';
 import { EventsManagementApiDemoTest } from '../pages/admin/EventsManagementApiDemo.test';
 // import { EventsManagementApiDemoDebug } from '../pages/admin/EventsManagementApiDemo.debug';
@@ -120,7 +120,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "admin/events-management-api-demo",
-        element: <EventsManagementApiDemoTest />
+        element: <EventsManagementApiDemo />
       },
       {
         path: "event-form-test",

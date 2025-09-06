@@ -24,11 +24,14 @@ export const NavigationTestPage: React.FC = () => {
     };
   }, []);
 
-  // Track renders
+  // Track renders - FIXED: Added empty dependency array to prevent infinite loop
   useEffect(() => {
-    setRenderCount(prev => prev + 1);
-    console.log('🧪 NavigationTestPage render count:', renderCount + 1);
-  });
+    setRenderCount(prev => {
+      const newCount = prev + 1;
+      console.log('🧪 NavigationTestPage render count:', newCount);
+      return newCount;
+    });
+  }, []);
 
   return (
     <Container size="md" py="xl">
