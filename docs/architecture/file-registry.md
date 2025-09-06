@@ -8,6 +8,13 @@
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-01-20 | /src/WitchCityRope.Api/Features/Events/DTOs/EventSummaryDto.cs | CREATED | DTO for event summary information matching backend integration requirements | Events Management System backend API implementation | ACTIVE | - |
+| 2025-01-20 | /src/WitchCityRope.Api/Features/Events/DTOs/EventDetailsDto.cs | CREATED | DTO for complete event details including sessions and ticket types | Events Management System backend API implementation | ACTIVE | - |
+| 2025-01-20 | /src/WitchCityRope.Api/Features/Events/Services/EventsManagementService.cs | CREATED | Service implementing Event Session Matrix API requirements with tuple return patterns | Events Management System backend API implementation | ACTIVE | - |
+| 2025-01-20 | /src/WitchCityRope.Api/Features/Events/Endpoints/EventsManagementEndpoints.cs | CREATED | Minimal API endpoints for GET /api/events, GET /api/events/{id}, GET /api/events/{id}/availability | Events Management System backend API implementation | ACTIVE | - |
+| 2025-01-20 | /src/WitchCityRope.Api/Features/Events/EventsServiceExtensions.cs | MODIFIED | Added EventsManagementService registration for dependency injection | Events Management System backend API implementation | ACTIVE | - |
+| 2025-01-20 | /src/WitchCityRope.Api/Infrastructure/ApiConfiguration.cs | MODIFIED | Added EventsManagementService registration in AddApplicationServices method | Events Management System backend API implementation | ACTIVE | - |
+| 2025-01-20 | /src/WitchCityRope.Api/Program.cs | MODIFIED | Added MapEventsManagementEndpoints() to register new Event Session Matrix endpoints | Events Management System backend API implementation | ACTIVE | - |
 | 2025-08-24 | ALL agent lessons learned files | MODIFIED | Added CRITICAL worktree compliance section to ALL agent lessons learned files to prevent writing to wrong directories in worktree workflows | Librarian Agent - Critical Worktree Compliance Fix | ACTIVE | N/A |
 | 2025-08-24 | /docs/lessons-learned/react-developer-lessons-learned.md | MODIFIED | Added critical worktree compliance section at top | Librarian Agent - Critical Worktree Compliance Fix | ACTIVE | N/A |
 | 2025-08-24 | /docs/lessons-learned/backend-developer-lessons-learned.md | MODIFIED | Added critical worktree compliance section at top | Librarian Agent - Critical Worktree Compliance Fix | ACTIVE | N/A |

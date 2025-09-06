@@ -241,6 +241,7 @@ public static class ApiConfiguration
         services.AddScoped<IAuthService, Features.Auth.Services.AuthService>();
         services.AddScoped<Services.IUserService, Services.UserService>();
         services.AddScoped<IEventService, Features.Events.Services.EventService>();
+        services.AddScoped<Features.Events.Services.EventsManagementService>();
         services.AddScoped<IRegistrationService, Services.RegistrationService>();
         services.AddScoped<IPaymentService, Services.PaymentService>();
         services.AddScoped<ISafetyService, Services.SafetyService>();

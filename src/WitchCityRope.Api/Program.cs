@@ -289,6 +289,9 @@ public static class EndpointExtensions
         group.MapCreateEventEndpoint();
         group.MapGetEventWithSessionsEndpoint();
         group.MapGetEventAvailabilityEndpoint();
+        
+        // Events Management API endpoints (new Event Session Matrix APIs)
+        group.MapEventsManagementEndpoints();
 
         group.MapPut("/events/{id:guid}", async (
             Guid id,

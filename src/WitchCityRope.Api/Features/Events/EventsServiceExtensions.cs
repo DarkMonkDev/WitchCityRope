@@ -8,8 +8,11 @@ public static class EventsServiceExtensions
 {
     public static IServiceCollection AddEventsFeature(this IServiceCollection services)
     {
-        // Register the EventService
+        // Register the legacy EventService (for backward compatibility)
         services.AddScoped<Interfaces.IEventService, EventService>();
+        
+        // Register the new EventsManagementService (for Event Session Matrix APIs)
+        services.AddScoped<EventsManagementService>();
 
         return services;
     }
