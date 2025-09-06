@@ -118,3 +118,11 @@ When given a Working Directory like:
 
 **Problem**: Agents don't understand difference between lessons learned and progress reports.
 **Solution**: Enforce strict template with validation checklist for orchestrator reviews.
+
+## Progress Update Patterns
+
+**Update both main and functional area progress files** - When major milestones complete, update both /PROGRESS.md and the specific functional area progress file to maintain consistency.
+
+**Use specific commit references** - Include exact commit hashes when documenting implementation completions for traceability.
+
+**Document next steps clearly** - Always specify what the next phase requires and which team/agent should handle it.
