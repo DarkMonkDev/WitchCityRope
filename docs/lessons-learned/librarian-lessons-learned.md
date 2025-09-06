@@ -126,3 +126,7 @@ When given a Working Directory like:
 **Use specific commit references** - Include exact commit hashes when documenting implementation completions for traceability.
 
 **Document next steps clearly** - Always specify what the next phase requires and which team/agent should handle it.
+
+**Mark completed phases with checkmarks and progress percentages** - Use visual indicators (✅ COMPLETE, 100%) to show clear completion status.
+
+**Create implementation plans as deliverables** - When testing reveals gaps, document comprehensive implementation strategies with time estimates and pre-written tests.
