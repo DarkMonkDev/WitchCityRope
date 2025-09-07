@@ -22,6 +22,8 @@ import { Editor } from '@tinymce/tinymce-react';
 
 import { EventSessionsGrid, EventSession } from './EventSessionsGrid';
 import { EventTicketTypesGrid, EventTicketType } from './EventTicketTypesGrid';
+import { SessionFormModal } from './SessionFormModal';
+import { TicketTypeFormModal, EventTicketType as ModalTicketType } from './TicketTypeFormModal';
 
 export interface EventFormData {
   // Basic Info
@@ -53,6 +55,12 @@ export const EventForm: React.FC<EventFormProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<string>('basic-info');
   const [activeEmailTemplate, setActiveEmailTemplate] = useState<string>('confirmation');
+
+  // Modal state management
+  const [sessionModalOpen, setSessionModalOpen] = useState(false);
+  const [ticketModalOpen, setTicketModalOpen] = useState(false);
+  const [editingSession, setEditingSession] = useState<EventSession | null>(null);
+  const [editingTicketType, setEditingTicketType] = useState<EventTicketType | null>(null);
 
   // Form state management
   const form = useForm<EventFormData>({
@@ -114,8 +122,11 @@ export const EventForm: React.FC<EventFormProps> = ({
 
   // Session management handlers
   const handleEditSession = (sessionId: string) => {
-    // This would open a modal in the real implementation
-    console.log('Edit session:', sessionId);
+    const session = form.values.sessions.find(s => s.id === sessionId);
+    if (session) {
+      setEditingSession(session);
+      setSessionModalOpen(true);
+    }
   };
 
   const handleDeleteSession = (sessionId: string) => {
@@ -124,14 +135,36 @@ export const EventForm: React.FC<EventFormProps> = ({
   };
 
   const handleAddSession = () => {
-    // This would open a modal in the real implementation
-    console.log('Add new session');
+    setEditingSession(null);
+    setSessionModalOpen(true);
+  };
+
+  const handleSessionSubmit = (sessionData: Omit<EventSession, 'id'>) => {
+    if (editingSession) {
+      // Update existing session
+      const updatedSessions = form.values.sessions.map(session =>
+        session.id === editingSession.id
+          ? { ...sessionData, id: editingSession.id }
+          : session
+      );
+      form.setFieldValue('sessions', updatedSessions);
+    } else {
+      // Add new session
+      const newSession: EventSession = {
+        ...sessionData,
+        id: crypto.randomUUID()
+      };
+      form.setFieldValue('sessions', [...form.values.sessions, newSession]);
+    }
   };
 
   // Ticket type management handlers
   const handleEditTicketType = (ticketTypeId: string) => {
-    // This would open a modal in the real implementation
-    console.log('Edit ticket type:', ticketTypeId);
+    const ticketType = form.values.ticketTypes.find(t => t.id === ticketTypeId);
+    if (ticketType) {
+      setEditingTicketType(ticketType);
+      setTicketModalOpen(true);
+    }
   };
 
   const handleDeleteTicketType = (ticketTypeId: string) => {
@@ -140,8 +173,54 @@ export const EventForm: React.FC<EventFormProps> = ({
   };
 
   const handleAddTicketType = () => {
-    // This would open a modal in the real implementation
-    console.log('Add new ticket type');
+    setEditingTicketType(null);
+    setTicketModalOpen(true);
+  };
+
+  const handleTicketTypeSubmit = (ticketTypeData: Omit<ModalTicketType, 'id'>) => {
+    // Convert from modal format to grid format
+    const gridFormatTicketType: Omit<EventTicketType, 'id'> = {
+      name: ticketTypeData.name,
+      type: 'Single', // Default, could be enhanced to support couples later
+      sessionIdentifiers: ticketTypeData.sessionsIncluded,
+      minPrice: ticketTypeData.price,
+      maxPrice: ticketTypeData.price,
+      quantityAvailable: ticketTypeData.quantityAvailable,
+      salesEndDate: undefined, // Could be enhanced later
+    };
+
+    if (editingTicketType) {
+      // Update existing ticket type
+      const updatedTicketTypes = form.values.ticketTypes.map(ticketType =>
+        ticketType.id === editingTicketType.id
+          ? { ...gridFormatTicketType, id: editingTicketType.id }
+          : ticketType
+      );
+      form.setFieldValue('ticketTypes', updatedTicketTypes);
+    } else {
+      // Add new ticket type
+      const newTicketType: EventTicketType = {
+        ...gridFormatTicketType,
+        id: crypto.randomUUID()
+      };
+      form.setFieldValue('ticketTypes', [...form.values.ticketTypes, newTicketType]);
+    }
+  };
+
+  // Convert grid format to modal format for editing
+  const convertTicketTypeForModal = (ticketType: EventTicketType): ModalTicketType => {
+    return {
+      id: ticketType.id,
+      name: ticketType.name,
+      description: '', // Not stored in grid format currently
+      price: ticketType.minPrice,
+      sessionsIncluded: ticketType.sessionIdentifiers,
+      quantityAvailable: ticketType.quantityAvailable || 100,
+      quantitySold: 0, // Not tracked in current grid format
+      allowMultiplePurchase: true, // Default value
+      isEarlyBird: false, // Default value
+      earlyBirdDiscount: undefined,
+    };
   };
 
   const handleSubmit = form.onSubmit((values) => {
@@ -922,6 +1001,30 @@ export const EventForm: React.FC<EventFormProps> = ({
           </Tabs.Panel>
         </Tabs>
       </form>
+
+      {/* Session Form Modal */}
+      <SessionFormModal
+        opened={sessionModalOpen}
+        onClose={() => {
+          setSessionModalOpen(false);
+          setEditingSession(null);
+        }}
+        onSubmit={handleSessionSubmit}
+        session={editingSession}
+        existingSessions={form.values.sessions}
+      />
+
+      {/* Ticket Type Form Modal */}
+      <TicketTypeFormModal
+        opened={ticketModalOpen}
+        onClose={() => {
+          setTicketModalOpen(false);
+          setEditingTicketType(null);
+        }}
+        onSubmit={handleTicketTypeSubmit}
+        ticketType={editingTicketType ? convertTicketTypeForModal(editingTicketType) : null}
+        availableSessions={form.values.sessions}
+      />
     </Card>
   );
 };

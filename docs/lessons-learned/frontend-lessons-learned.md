@@ -335,3 +335,70 @@ test.beforeEach(async ({ page }) => {
 - `/apps/web/src/pages/events/PublicEventsPage.tsx` - Public events listing
 - `/apps/web/src/pages/events/EventDetailsPage.tsx` - Individual event details
 - `/apps/web/src/pages/admin/AdminEventsPage.tsx` - Admin event management
+
+## EventForm Modal Integration - Phase 3 Sessions & Tickets ✅
+
+**Problem**: EventForm handlers for sessions and ticket types were placeholder console.log statements
+**Solution**: Integrated SessionFormModal and TicketTypeFormModal components with proper CRUD operations
+
+**Implementation**:
+```tsx
+// Modal state management
+const [sessionModalOpen, setSessionModalOpen] = useState(false);
+const [ticketModalOpen, setTicketModalOpen] = useState(false);
+const [editingSession, setEditingSession] = useState<EventSession | null>(null);
+const [editingTicketType, setEditingTicketType] = useState<EventTicketType | null>(null);
+
+// Session handlers with modal integration
+const handleAddSession = () => {
+  setEditingSession(null);
+  setSessionModalOpen(true);
+};
+
+const handleEditSession = (sessionId: string) => {
+  const session = form.values.sessions.find(s => s.id === sessionId);
+  if (session) {
+    setEditingSession(session);
+    setSessionModalOpen(true);
+  }
+};
+
+const handleSessionSubmit = (sessionData: Omit<EventSession, 'id'>) => {
+  if (editingSession) {
+    // Update existing session
+    const updatedSessions = form.values.sessions.map(session =>
+      session.id === editingSession.id
+        ? { ...sessionData, id: editingSession.id }
+        : session
+    );
+    form.setFieldValue('sessions', updatedSessions);
+  } else {
+    // Add new session with crypto.randomUUID()
+    const newSession: EventSession = {
+      ...sessionData,
+      id: crypto.randomUUID()
+    };
+    form.setFieldValue('sessions', [...form.values.sessions, newSession]);
+  }
+};
+```
+
+**Key Patterns Applied**:
+- ✅ Used crypto.randomUUID() for generating unique IDs
+- ✅ Proper modal state management with editing vs adding modes
+- ✅ Interface alignment between grid and modal components
+- ✅ Form state updates using Mantine form.setFieldValue()
+- ✅ Modal components rendered at end of form JSX
+
+**Interface Mismatch Resolution**:
+- Created separate EventTicketType interface in TicketTypeFormModal.tsx
+- Conversion functions between grid format and modal format
+- Grid format: sessionIdentifiers, minPrice, maxPrice
+- Modal format: sessionsIncluded, price, description, etc.
+
+**Files Modified**:
+- `/apps/web/src/components/events/EventForm.tsx` - Added modal integration
+- `/apps/web/src/components/events/TicketTypeFormModal.tsx` - Fixed interface definition
+- `/apps/web/src/components/events/SessionFormModal.tsx` - Removed unsupported 'creatable' prop
+
+**Critical Learning**: Always verify interface compatibility between modal forms and display grids. Create conversion functions when interfaces don't align perfectly.
