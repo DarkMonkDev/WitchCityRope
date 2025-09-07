@@ -102,36 +102,44 @@ export const EventForm: React.FC<EventFormProps> = ({
     { value: 'raven-night', label: 'Raven Night' },
   ];
 
-  // Session management handlers
+  // Session management handlers - These would integrate with API hooks in a full implementation
   const handleEditSession = (sessionId: string) => {
-    // This would open a modal in the real implementation
+    // This would open a modal with session editing form connected to useUpdateEventSession hook
     console.log('Edit session:', sessionId);
+    // TODO: Implement modal with useUpdateEventSession hook
   };
 
   const handleDeleteSession = (sessionId: string) => {
+    // For now, update local form state - in full implementation would call useDeleteEventSession
     const updatedSessions = form.values.sessions.filter(session => session.id !== sessionId);
     form.setFieldValue('sessions', updatedSessions);
+    // TODO: Call deleteEventSession.mutate(sessionId) when connected to API
   };
 
   const handleAddSession = () => {
-    // This would open a modal in the real implementation
+    // This would open a modal with session creation form connected to useCreateEventSession hook
     console.log('Add new session');
+    // TODO: Implement modal with useCreateEventSession hook
   };
 
-  // Ticket type management handlers
+  // Ticket type management handlers - These would integrate with API hooks in a full implementation
   const handleEditTicketType = (ticketTypeId: string) => {
-    // This would open a modal in the real implementation
+    // This would open a modal with ticket type editing form connected to useUpdateEventTicketType hook
     console.log('Edit ticket type:', ticketTypeId);
+    // TODO: Implement modal with useUpdateEventTicketType hook
   };
 
   const handleDeleteTicketType = (ticketTypeId: string) => {
+    // For now, update local form state - in full implementation would call useDeleteEventTicketType
     const updatedTicketTypes = form.values.ticketTypes.filter(ticket => ticket.id !== ticketTypeId);
     form.setFieldValue('ticketTypes', updatedTicketTypes);
+    // TODO: Call deleteEventTicketType.mutate(ticketTypeId) when connected to API
   };
 
   const handleAddTicketType = () => {
-    // This would open a modal in the real implementation
+    // This would open a modal with ticket type creation form connected to useCreateEventTicketType hook
     console.log('Add new ticket type');
+    // TODO: Implement modal with useCreateEventTicketType hook
   };
 
   const handleSubmit = form.onSubmit((values) => {
@@ -256,7 +264,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                   required
                   value={form.values.fullDescription}
                   onChange={handleFullDescriptionChange}
-                  error={form.errors.fullDescription}
+                  error={form.errors.fullDescription?.toString()}
                   height={200}
                   placeholder="Enter detailed description of the event..."
                 />
@@ -267,7 +275,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                   description="Studio-specific policies, prerequisites, safety requirements, etc. (managed by studio/admin, teachers cannot edit)"
                   value={form.values.policies}
                   onChange={handlePoliciesChange}
-                  error={form.errors.policies}
+                  error={form.errors.policies?.toString()}
                   height={150}
                   placeholder="Enter policies and procedures..."
                 />

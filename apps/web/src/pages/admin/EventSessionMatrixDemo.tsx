@@ -1,95 +1,61 @@
 import React, { useState } from 'react';
-import { Container, Title, Paper, Group } from '@mantine/core';
+import { Container, Title, Paper, Group, Loader, Alert, Text } from '@mantine/core';
 import { EventForm, EventFormData, EventSession, EventTicketType } from '../../components/events';
 import { notifications } from '@mantine/notifications';
+import { 
+  useEventSessionMatrix, 
+  useCreateEventSession, 
+  useUpdateEventSession, 
+  useDeleteEventSession,
+  useCreateEventTicketType,
+  useUpdateEventTicketType,
+  useDeleteEventTicketType
+} from '../../lib/api/hooks/useEventSessions';
+import { 
+  convertEventSessionFromDto, 
+  convertEventTicketTypeFromDto,
+  convertEventSessionToCreateDto,
+  convertEventTicketTypeToCreateDto
+} from '../../lib/api/utils/eventSessionConversion';
 
-// Mock data for demonstration
-const mockSessions: EventSession[] = [
-  {
-    id: '1',
-    sessionIdentifier: 'S1',
-    name: 'Fundamentals Day',
-    date: '2025-02-15',
-    startTime: '19:00',
-    endTime: '21:00',
-    capacity: 20,
-    registeredCount: 8,
-  },
-  {
-    id: '2',
-    sessionIdentifier: 'S2',
-    name: 'Intermediate Practice',
-    date: '2025-02-16',
-    startTime: '19:00',
-    endTime: '21:00',
-    capacity: 20,
-    registeredCount: 15,
-  },
-  {
-    id: '3',
-    sessionIdentifier: 'S3',
-    name: 'Advanced Techniques',
-    date: '2025-02-17',
-    startTime: '19:00',
-    endTime: '21:00',
-    capacity: 20,
-    registeredCount: 8,
-  },
-];
-
-const mockTicketTypes: EventTicketType[] = [
-  {
-    id: '1',
-    name: 'Full 3-Day Series Pass',
-    type: 'Single',
-    sessionIdentifiers: ['S1', 'S2', 'S3'],
-    minPrice: 120,
-    maxPrice: 150,
-    quantityAvailable: 15,
-    salesEndDate: '2025-02-17',
-  },
-  {
-    id: '2',
-    name: 'Day 1: Fundamentals Only',
-    type: 'Single',
-    sessionIdentifiers: ['S1'],
-    minPrice: 45,
-    maxPrice: 60,
-    quantityAvailable: 10,
-    salesEndDate: '2025-02-15',
-  },
-  {
-    id: '3',
-    name: 'Weekend Pass (Days 2-3)',
-    type: 'Couples',
-    sessionIdentifiers: ['S2', 'S3'],
-    minPrice: 80,
-    maxPrice: 100,
-    quantityAvailable: 8,
-    salesEndDate: '2025-02-16',
-  },
-];
-
-const mockInitialData: Partial<EventFormData> = {
-  eventType: 'class',
-  title: 'Rope Bondage Intensive: 3-Day Series',
-  shortDescription: 'Comprehensive rope bondage workshop covering fundamentals through advanced techniques',
-  fullDescription: '<p><strong>Join us for an intensive 3-day rope bondage series!</strong></p><p>This comprehensive workshop will take you from the basics through advanced techniques.</p>',
-  policies: '<p><strong>Prerequisites:</strong> Basic rope handling experience recommended</p><p><strong>Safety:</strong> All safety equipment provided</p>',
-  venueId: 'main-studio',
-  teacherIds: ['river-moon', 'sage-blackthorne'],
-  sessions: mockSessions,
-  ticketTypes: mockTicketTypes,
-};
+// Demo event ID - in a real application this would come from route params or props
+const DEMO_EVENT_ID = 'demo-event-123';
 
 export const EventSessionMatrixDemo: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(true);
 
+  // Load real data from API
+  const { 
+    sessions: sessionsData, 
+    ticketTypes: ticketTypesData, 
+    isLoading, 
+    hasError 
+  } = useEventSessionMatrix(DEMO_EVENT_ID);
+
+  // Convert API DTOs to component format
+  const sessions: EventSession[] = Array.isArray(sessionsData) ? sessionsData.map(convertEventSessionFromDto) : [];
+  const ticketTypes: EventTicketType[] = Array.isArray(ticketTypesData) ? ticketTypesData.map(dto => 
+    convertEventTicketTypeFromDto(dto, sessions)
+  ) : [];
+
+  // Mock data for basic event info (in real app this would come from event API)
+  const mockInitialData: Partial<EventFormData> = {
+    eventType: 'class',
+    title: 'Rope Bondage Intensive: 3-Day Series',
+    shortDescription: 'Comprehensive rope bondage workshop covering fundamentals through advanced techniques',
+    fullDescription: '<p><strong>Join us for an intensive 3-day rope bondage series!</strong></p><p>This comprehensive workshop will take you from the basics through advanced techniques.</p>',
+    policies: '<p><strong>Prerequisites:</strong> Basic rope handling experience recommended</p><p><strong>Safety:</strong> All safety equipment provided</p>',
+    venueId: 'main-studio',
+    teacherIds: ['river-moon', 'sage-blackthorne'],
+    sessions,
+    ticketTypes,
+  };
+
   const handleSubmit = async (data: EventFormData) => {
     setIsSubmitting(true);
     
-    // Simulate API call
+    // Simulate API call - in real implementation this would save to backend
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     console.log('Form submitted with data:', data);
@@ -112,11 +78,63 @@ export const EventSessionMatrixDemo: React.FC = () => {
     });
   };
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <Container size="xl" py="xl">
+        <Title order={1} ta="center" mb="xl" c="burgundy">
+          Event Session Matrix Demo
+        </Title>
+        <Paper p="xl" ta="center">
+          <Loader size="lg" color="burgundy" />
+          <Text mt="md" c="dimmed">Loading event session matrix data...</Text>
+        </Paper>
+      </Container>
+    );
+  }
+
+  // Error state
+  if (hasError) {
+    return (
+      <Container size="xl" py="xl">
+        <Title order={1} ta="center" mb="xl" c="burgundy">
+          Event Session Matrix Demo
+        </Title>
+        <Alert color="red" mb="xl">
+          <Text fw={600}>Unable to load session matrix data</Text>
+          <Text size="sm" mt="xs">
+            This demo requires backend API endpoints to be available. 
+            The form will work with mock data if you proceed.
+          </Text>
+        </Alert>
+        <Paper p="xl" ta="center">
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => window.location.reload()}
+          >
+            Retry Loading
+          </button>
+        </Paper>
+      </Container>
+    );
+  }
+
   return (
     <Container size="xl" py="xl">
       <Title order={1} ta="center" mb="xl" c="burgundy">
         Event Session Matrix Demo
       </Title>
+
+      {/* API Status Indicator */}
+      <Alert color="green" mb="xl">
+        <Group>
+          <Text fw={600}>✅ Connected to Backend API</Text>
+          <Text size="sm">
+            Sessions: {sessions.length} | Ticket Types: {ticketTypes.length}
+          </Text>
+        </Group>
+      </Alert>
 
       {showForm ? (
         <Paper shadow="sm" radius="md">

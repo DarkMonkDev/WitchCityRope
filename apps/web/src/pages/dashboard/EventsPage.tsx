@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Title, Text, Paper, Grid, Loader, Alert, Stack, Badge } from '@mantine/core';
-import { useEvents } from '../../features/events/api/queries';
+import { useEvents } from '../../lib/api/hooks/useEvents';
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
 import type { EventDto } from '@witchcityrope/shared-types';
 
@@ -61,7 +61,7 @@ export const EventsPage: React.FC = () => {
 
   // For now, show all events - in the future this would be filtered to user's registered events
   // TODO: Add API endpoint to get user's registered events only
-  const userEvents = events ? events.map(formatEventDisplay) : [];
+  const userEvents = Array.isArray(events) ? events.map(formatEventDisplay) : [];
   
   // Separate upcoming and past events
   const upcomingEvents = userEvents.filter(event => !event.isPast);

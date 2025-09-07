@@ -503,8 +503,107 @@ Using standardized CSS classes ensures:
 
 ---
 
+## 🚨 CRITICAL: Event Session Matrix API Integration Patterns 🚨
+**Date**: 2025-09-07
+**Category**: API Integration
+**Severity**: CRITICAL
+
+### Context
+Successfully implemented Phase 3 frontend integration for Event Session Matrix, connecting existing demo UI to 8 new backend API endpoints. Discovered critical patterns for React Query + TypeScript integration.
+
+### What We Learned
+**MANDATORY API INTEGRATION PATTERN**: Read `/docs/functional-areas/events/new-work/2025-08-24-events-management/handoffs/phase3-frontend-to-testing.md` for complete implementation patterns
+
+**KEY FRONTEND PATTERNS**:
+- **Type Conversion Layer**: Always create conversion utilities between backend DTOs and frontend interfaces
+- **Composite React Query Hooks**: Use composite hooks like `useEventSessionMatrix` for complex related data
+- **Graceful Degradation**: Always implement loading and error states with fallback options
+- **Optimistic Updates**: Use React Query mutations with rollback for better UX
+
+**API CLIENT ARCHITECTURE**:
+```typescript
+// ✅ CORRECT: Separate service layer from hooks
+// /lib/api/services/eventSessions.ts - Pure API functions
+// /lib/api/hooks/useEventSessions.ts - React Query wrappers
+// /lib/api/utils/eventSessionConversion.ts - Type conversion
+// /lib/api/types/eventSession.types.ts - TypeScript definitions
+
+// ✅ CORRECT: Type conversion pattern
+export function convertEventSessionFromDto(dto: EventSessionDto): EventSession {
+  const startDateTime = new Date(dto.startDateTime)
+  const endDateTime = new Date(dto.endDateTime)
+  
+  return {
+    id: dto.id,
+    sessionIdentifier: dto.sessionIdentifier,
+    name: dto.name,
+    date: startDateTime.toISOString().split('T')[0], // YYYY-MM-DD format
+    startTime: startDateTime.toTimeString().slice(0, 5), // HH:MM format
+    endTime: endDateTime.toTimeString().slice(0, 5),
+    capacity: dto.capacity,
+    registeredCount: dto.registeredCount
+  }
+}
+```
+
+**REACT QUERY INTEGRATION PATTERNS**:
+```typescript
+// ✅ CORRECT: Composite hook pattern for related data
+export function useEventSessionMatrix(eventId: string, enabled: boolean = true) {
+  const sessionsQuery = useEventSessions(eventId, enabled)
+  const ticketTypesQuery = useEventTicketTypes(eventId, enabled)
+  
+  return {
+    sessions: sessionsQuery.data || [],
+    ticketTypes: ticketTypesQuery.data || [],
+    isLoading: sessionsQuery.isLoading || ticketTypesQuery.isLoading,
+    hasError: !!sessionsQuery.error || !!ticketTypesQuery.error,
+    refetchAll: async () => {
+      await Promise.all([
+        sessionsQuery.refetch(),
+        ticketTypesQuery.refetch()
+      ])
+    }
+  }
+}
+
+// ✅ CORRECT: Smart cache invalidation
+export function useCreateEventSession(eventId: string) {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: (sessionData: CreateEventSessionDto) => 
+      eventSessionsApi.createSession(eventId, sessionData),
+    onSuccess: () => {
+      // Invalidate sessions for this event
+      queryClient.invalidateQueries({ 
+        queryKey: [...eventKeys.detail(eventId), 'sessions'] 
+      })
+    },
+  })
+}
+```
+
+### Action Items
+- [x] **ALWAYS create type conversion utilities** between backend DTOs and frontend components
+- [x] **USE composite hooks** for related data loading (sessions + ticket types)
+- [x] **IMPLEMENT graceful degradation** with loading states and error boundaries
+- [x] **PRESERVE existing UI** - never recreate working components, only connect to APIs
+- [x] **APPLY optimistic updates** with proper rollback for better user experience
+- [x] **SEPARATE concerns** - services, hooks, utils, and types in different files
+- [ ] **EXTEND with modals** - implement CRUD modals using established hooks
+- [ ] **ADD real-time updates** - WebSocket integration for live data
+
+### Impact
+This pattern enables rapid development of complex API integrations while maintaining type safety and excellent user experience. The Event Session Matrix demo went from mock data to full backend integration in a single implementation session.
+
+### Tags
+#critical #api-integration #react-query #typescript #event-session-matrix #backend-integration
+
+---
+
 *This file is maintained by the react-developer agent. Add new lessons immediately when discovered.*
-*Last updated: 2025-08-22 - Added critical CSS standards lesson*
+*Last updated: 2025-09-07 - Added critical Event Session Matrix API integration patterns*
 
 ## COMPREHENSIVE LESSONS FROM FRONTEND DEVELOPMENT
 **NOTE**: The following lessons were consolidated from frontend-lessons-learned.md
