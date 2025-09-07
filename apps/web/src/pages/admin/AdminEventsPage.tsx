@@ -1,7 +1,10 @@
-import React from 'react';
-import { Box, Title, Text, Paper, Grid, Button, Loader, Alert, Badge, ActionIcon } from '@mantine/core';
+import React, { useState } from 'react';
+import { Box, Title, Text, Paper, Grid, Button, Loader, Alert, Badge, ActionIcon, Modal } from '@mantine/core';
 import { IconEdit, IconTrash, IconPlus, IconEye } from '@tabler/icons-react';
+import { notifications } from '@mantine/notifications';
 import { useEvents } from '../../features/events/api/queries';
+import { useCreateEvent, useUpdateEvent, useDeleteEvent } from '../../features/events/api/mutations';
+import { EventForm, type EventFormData } from '../../components/events/EventForm';
 import type { EventDto } from '@witchcityrope/shared-types';
 
 // Helper function to format event dates and status
@@ -56,31 +59,124 @@ const formatEventDisplay = (event: EventDto) => {
  */
 export const AdminEventsPage: React.FC = () => {
   const { data: events, isLoading, error } = useEvents();
+  
+  // Modal state management
+  const [eventModalOpen, setEventModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<EventDto | null>(null);
+  const [eventToDelete, setEventToDelete] = useState<EventDto | null>(null);
+
+  // Mutations
+  const createEventMutation = useCreateEvent();
+  const updateEventMutation = useUpdateEvent();
+  const deleteEventMutation = useDeleteEvent();
+
+  // Helper function to convert EventFormData to API format
+  const convertFormDataToApiFormat = (formData: EventFormData) => {
+    // Convert the form data to the format expected by the API
+    return {
+      title: formData.title,
+      description: formData.fullDescription,
+      // Map the form dates to API format - you may need to adjust this based on your actual API structure
+      startDate: formData.sessions?.[0]?.startTime || new Date().toISOString(),
+      endDate: formData.sessions?.[0]?.endTime || new Date().toISOString(),
+      maxAttendees: formData.sessions?.[0]?.capacity || 0,
+      location: formData.venueId,
+    };
+  };
 
   const handleCreateEvent = () => {
-    // TODO: Navigate to event creation form
-    console.log('Create new event');
-    alert('Event creation form coming soon!');
+    setEditingEvent(null);
+    setEventModalOpen(true);
   };
 
   const handleEditEvent = (eventId: string) => {
-    // TODO: Navigate to event edit form
-    console.log('Edit event:', eventId);
-    alert(`Edit event ${eventId} - Form coming soon!`);
+    const eventToEdit = events?.find(e => e.id === eventId);
+    if (eventToEdit) {
+      setEditingEvent(eventToEdit);
+      setEventModalOpen(true);
+    }
   };
 
   const handleDeleteEvent = (eventId: string) => {
-    // TODO: Implement event deletion with confirmation
-    console.log('Delete event:', eventId);
-    if (confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
-      alert(`Delete event ${eventId} - API call coming soon!`);
+    const eventToDelete = events?.find(e => e.id === eventId);
+    if (eventToDelete) {
+      setEventToDelete(eventToDelete);
+      setDeleteModalOpen(true);
     }
   };
 
   const handleViewEvent = (eventId: string) => {
-    // TODO: Navigate to public event view
-    console.log('View event:', eventId);
     window.open(`/events/${eventId}`, '_blank');
+  };
+
+  const handleSubmitEvent = async (formData: EventFormData) => {
+    try {
+      const apiData = convertFormDataToApiFormat(formData);
+      
+      if (editingEvent) {
+        // Update existing event
+        await updateEventMutation.mutateAsync({
+          id: editingEvent.id!,
+          data: apiData
+        });
+        notifications.show({
+          title: 'Success',
+          message: 'Event updated successfully!',
+          color: 'green',
+        });
+      } else {
+        // Create new event
+        await createEventMutation.mutateAsync(apiData);
+        notifications.show({
+          title: 'Success', 
+          message: 'Event created successfully!',
+          color: 'green',
+        });
+      }
+      
+      setEventModalOpen(false);
+      setEditingEvent(null);
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: editingEvent 
+          ? 'Failed to update event. Please try again.'
+          : 'Failed to create event. Please try again.',
+        color: 'red',
+      });
+    }
+  };
+
+  const handleCancelEvent = () => {
+    setEventModalOpen(false);
+    setEditingEvent(null);
+  };
+
+  const confirmDeleteEvent = async () => {
+    if (!eventToDelete?.id) return;
+    
+    try {
+      await deleteEventMutation.mutateAsync(eventToDelete.id);
+      notifications.show({
+        title: 'Success',
+        message: 'Event deleted successfully!',
+        color: 'green',
+      });
+      setDeleteModalOpen(false);
+      setEventToDelete(null);
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to delete event. Please try again.',
+        color: 'red',
+      });
+    }
+  };
+
+  const cancelDeleteEvent = () => {
+    setDeleteModalOpen(false);
+    setEventToDelete(null);
   };
 
   // Process events for admin view
@@ -376,6 +472,97 @@ export const AdminEventsPage: React.FC = () => {
           </Button>
         </Paper>
       )}
+
+      {/* Event Create/Edit Modal */}
+      <Modal
+        opened={eventModalOpen}
+        onClose={handleCancelEvent}
+        title={editingEvent ? 'Edit Event' : 'Create New Event'}
+        size="xl"
+        centered
+        styles={{
+          title: {
+            fontFamily: "'Montserrat', sans-serif",
+            fontSize: '24px',
+            fontWeight: 700,
+            color: '#880124',
+          },
+        }}
+      >
+        <EventForm
+          initialData={editingEvent ? {
+            title: editingEvent.title || '',
+            shortDescription: editingEvent.description || '',
+            fullDescription: editingEvent.description || '',
+            policies: '',
+            venueId: '',
+            teacherIds: [],
+            sessions: [],
+            ticketTypes: [],
+            eventType: 'class'
+          } : undefined}
+          onSubmit={handleSubmitEvent}
+          onCancel={handleCancelEvent}
+          isSubmitting={createEventMutation.isPending || updateEventMutation.isPending}
+        />
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        opened={deleteModalOpen}
+        onClose={cancelDeleteEvent}
+        title="Confirm Delete"
+        size="md"
+        centered
+        styles={{
+          title: {
+            fontFamily: "'Montserrat', sans-serif",
+            fontSize: '20px',
+            fontWeight: 700,
+            color: '#DC143C',
+          },
+        }}
+      >
+        <Box p="md">
+          <Text mb="md" style={{ fontSize: '16px', lineHeight: 1.6 }}>
+            Are you sure you want to delete the event "<strong>{eventToDelete?.title}</strong>"?
+          </Text>
+          <Text mb="xl" style={{ fontSize: '14px', color: '#8B8680' }}>
+            This action cannot be undone. All registrations and associated data will be permanently removed.
+          </Text>
+          
+          <Box style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+            <Button
+              variant="outline"
+              onClick={cancelDeleteEvent}
+              style={{
+                borderColor: '#8B8680',
+                color: '#8B8680',
+                fontWeight: 600,
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmDeleteEvent}
+              loading={deleteEventMutation.isPending}
+              style={{
+                background: '#DC143C',
+                color: 'white',
+                fontWeight: 600,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#B91C3C';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#DC143C';
+              }}
+            >
+              {deleteEventMutation.isPending ? 'Deleting...' : 'Delete Event'}
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
     </Box>
   );
 };
