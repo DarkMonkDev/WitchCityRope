@@ -402,3 +402,73 @@ const handleSessionSubmit = (sessionData: Omit<EventSession, 'id'>) => {
 - `/apps/web/src/components/events/SessionFormModal.tsx` - Removed unsupported 'creatable' prop
 
 **Critical Learning**: Always verify interface compatibility between modal forms and display grids. Create conversion functions when interfaces don't align perfectly.
+
+## CRITICAL FIX: Events Management Phase 4 - Wrong Business Rules Implementation ✅
+
+**Problem**: Implemented generic "registration" system ignoring documented business rules that Classes and Social Events work differently
+**Root Cause**: Failed to research requirements before implementation, ignored existing documentation
+**Solution**: Fixed to implement proper event-type-aware system
+
+**Business Rules Applied**:
+1. **Classes (eventType: 'class')**: 
+   - ONLY ticket purchase (paid), NO RSVP
+   - Show "Buy Tickets" button only
+   - Display "Tickets Sold" table only
+
+2. **Social Events (eventType: 'social')**: 
+   - BOTH RSVP (free) AND optional ticket purchase
+   - Show BOTH "RSVP" and "Buy Tickets" buttons
+   - Display BOTH "RSVP" table AND "Tickets Sold" table
+   - RSVP table shows members + whether they bought tickets
+
+**Implementation Fixed**:
+```typescript
+// Event type detection
+const eventType = event.eventType || 'class';
+const isClass = eventType === 'class';
+const isSocialEvent = eventType === 'social';
+
+// Classes: Ticket purchase only
+{isClass && (
+  <Button onClick={handleOpenTicketPurchase} leftSection={<IconTicket />}>
+    Buy Tickets
+  </Button>
+)}
+
+// Social Events: Both RSVP and tickets
+{isSocialEvent && (
+  <>
+    <Button onClick={handleOpenRSVP} leftSection={<IconUsers />}>
+      RSVP (Free)
+    </Button>
+    <Button onClick={handleOpenTicketPurchase} leftSection={<IconTicket />}>
+      Buy Tickets
+    </Button>
+  </>
+)}
+```
+
+**Files Fixed**:
+- ✅ `/apps/web/src/pages/events/EventDetailsPage.tsx` - Removed EventRegistrationModal import, added event-type logic
+- ✅ `/apps/web/src/features/events/api/mutations.ts` - Renamed useRegisterForEvent → usePurchaseTicket, added useRSVPForEvent
+- ✅ `/apps/web/src/pages/events/PublicEventsPage.tsx` - Fixed "Registration Open" → event-type-aware status
+- ✅ `/apps/web/src/types/api.types.ts` - Added eventType field to Event interface
+
+**Components Created**:
+- ✅ `/apps/web/src/components/events/EventTicketPurchaseModal.tsx` - For Classes AND Social Events ticket purchase
+- ✅ `/apps/web/src/components/events/EventRSVPModal.tsx` - For Social Events free RSVP only
+
+**Terminology Fixed**: 
+- ❌ ~~"Registration"~~ (wrong/generic)
+- ✅ **"Ticket Purchase"** for Classes
+- ✅ **"RSVP"** for Social Events (free)
+- ✅ **"Buy Tickets"** for Social Events (optional upgrade)
+
+**Prevention Strategy**: 
+1. **ALWAYS research requirements FIRST** - Never code without understanding business rules
+2. **Check existing documentation** for business logic and terminology
+3. **Use business-requirements agent** when in doubt about rules
+4. **Test against business requirements** not just technical functionality
+5. **Verify event type handling** in ALL components
+
+**Key Learning**: Business requirements research is MANDATORY before any implementation. Generic solutions often violate specific business rules.

@@ -8,6 +8,13 @@
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-01-20 | `/apps/web/src/components/events/EventTicketPurchaseModal.tsx` | CREATED | Modal for purchasing tickets for Classes and Social Events | Events Management Phase 4 Fix | ACTIVE | N/A |
+| 2025-01-20 | `/apps/web/src/components/events/EventRSVPModal.tsx` | CREATED | Modal for free RSVP to Social Events only | Events Management Phase 4 Fix | ACTIVE | N/A |
+| 2025-01-20 | `/apps/web/src/features/events/api/mutations.ts` | MODIFIED | Renamed useRegisterForEvent to usePurchaseTicket, added RSVP mutations | Events Management Phase 4 Fix | ACTIVE | N/A |
+| 2025-01-20 | `/apps/web/src/pages/events/EventDetailsPage.tsx` | MODIFIED | Fixed event-type-aware UI logic for Classes vs Social Events | Events Management Phase 4 Fix | ACTIVE | N/A |
+| 2025-01-20 | `/apps/web/src/pages/events/PublicEventsPage.tsx` | MODIFIED | Fixed terminology from "Registration Open" to event-type-aware status | Events Management Phase 4 Fix | ACTIVE | N/A |
+| 2025-01-20 | `/apps/web/src/types/api.types.ts` | MODIFIED | Added eventType, status, and date fields to Event interface | Events Management Phase 4 Fix | ACTIVE | N/A |
+| 2025-01-20 | `/docs/lessons-learned/frontend-lessons-learned.md` | MODIFIED | Documented critical fix for Phase 4 wrong business rules | Events Management Phase 4 Fix | ACTIVE | N/A |
 | 2025-01-20 | /src/WitchCityRope.Api/Features/Events/DTOs/EventSummaryDto.cs | CREATED | DTO for event summary information matching backend integration requirements | Events Management System backend API implementation | ACTIVE | - |
 | 2025-01-20 | /src/WitchCityRope.Api/Features/Events/DTOs/EventDetailsDto.cs | CREATED | DTO for complete event details including sessions and ticket types | Events Management System backend API implementation | ACTIVE | - |
 | 2025-01-20 | /src/WitchCityRope.Api/Features/Events/Services/EventsManagementService.cs | CREATED | Service implementing Event Session Matrix API requirements with tuple return patterns | Events Management System backend API implementation | ACTIVE | - |

@@ -56,6 +56,11 @@ export interface Event {
   instructorId: string
   instructor?: UserDto  // Made optional for compatibility
   attendees?: UserDto[] // Made optional for compatibility
+  eventType?: 'class' | 'social' // Event type for determining UI logic
+  status?: 'Draft' | 'Published' | 'Cancelled' | 'Completed' // Event status
+  startDateTime?: string // Alternative date field
+  endDateTime?: string // Alternative date field
+  capacity?: number // Alternative to maxAttendees
 }
 
 export interface EventRegistration {

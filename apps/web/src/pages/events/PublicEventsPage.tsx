@@ -40,6 +40,13 @@ const formatEventDisplay = (event: EventDto) => {
     statusColor = '#DAA520';
   }
 
+  // Determine appropriate status text based on event type
+  const eventType = event.eventType || 'class';
+  let actionStatus = 'Closed';
+  if (event.status === 'Published') {
+    actionStatus = eventType === 'class' ? 'Tickets Available' : 'RSVP & Tickets';
+  }
+
   return {
     ...event,
     formattedDate: formatDate(startDate),
@@ -47,7 +54,7 @@ const formatEventDisplay = (event: EventDto) => {
     status,
     statusColor,
     isPast: endDate < now,
-    registrationStatus: event.status === 'Published' ? 'Open' : 'Closed'
+    actionStatus
   };
 };
 
@@ -254,7 +261,7 @@ export const PublicEventsPage: React.FC = () => {
                         textTransform: 'uppercase'
                       }}
                     >
-                      Registration Open
+                      {event.actionStatus}
                     </Box>
                   </Box>
                 </Box>
