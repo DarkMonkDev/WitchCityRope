@@ -48,10 +48,19 @@ test.describe('Events Complete Workflow - End-to-End', () => {
   test.beforeEach(async ({ page }) => {
     // Clear authentication state for each test
     await page.context().clearCookies();
-    await page.evaluate(() => {
-      localStorage.clear();
-      sessionStorage.clear();
-    });
+    
+    // Navigate to a page first to avoid localStorage security error
+    await page.goto('http://localhost:5174/');
+    
+    // Now safely clear storage
+    try {
+      await page.evaluate(() => {
+        localStorage.clear();
+        sessionStorage.clear();
+      });
+    } catch (error) {
+      console.log('⚠️ Could not clear localStorage/sessionStorage:', error);
+    }
 
     networkRequests = [];
 

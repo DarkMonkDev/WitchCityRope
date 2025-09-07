@@ -26,6 +26,11 @@ import { RootLayout } from '../components/layout/RootLayout';
 import { RootErrorBoundary } from '../components/errors/RootErrorBoundary';
 import { authLoader } from './loaders/authLoader';
 
+// Events system pages
+import { PublicEventsPage } from '../pages/events/PublicEventsPage';
+import { EventDetailsPage } from '../pages/events/EventDetailsPage';
+import { AdminEventsPage } from '../pages/admin/AdminEventsPage';
+
 /**
  * React Router v7 configuration following validated patterns
  * Reference: /docs/functional-areas/routing-validation/requirements/functional-specification.md
@@ -48,6 +53,16 @@ export const router = createBrowserRouter([
       { 
         path: "register", 
         element: <RegisterPage /> 
+      },
+      
+      // Events system routes
+      {
+        path: "events",
+        element: <PublicEventsPage />
+      },
+      {
+        path: "events/:id",
+        element: <EventDetailsPage />
       },
       
       // Test/Development routes (public for now)
@@ -110,6 +125,13 @@ export const router = createBrowserRouter([
       {
         path: "dashboard/membership",
         element: <MembershipPage />,
+        loader: authLoader
+      },
+      
+      // Admin routes - authentication and admin role required
+      {
+        path: "admin/events",
+        element: <AdminEventsPage />,
         loader: authLoader
       },
       

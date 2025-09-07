@@ -29,10 +29,12 @@ export class LegacyEventsApiService {
    */
   async getEvents(): Promise<LegacyEventDto[]> {
     try {
+      console.log('🔍 LegacyEventsApiService.getEvents() called');
       const response = await apiClient.get('/api/events');
+      console.log('🔍 API response received:', response.status, response.data?.length, 'events');
       return response.data || [];
     } catch (error) {
-      console.error('Failed to fetch events:', error);
+      console.error('🔍 Failed to fetch events:', error);
       throw new Error('Failed to fetch events');
     }
   }
