@@ -70,4 +70,130 @@ public class EventsController : ControllerBase
         var response = await _eventService.RegisterForEventAsync(request);
         return Ok(response);
     }
+
+    #region Event Session Management
+
+    /// <summary>
+    /// Create a new session for an event
+    /// </summary>
+    [HttpPost("{eventId}/sessions")]
+    [Authorize(Roles = "Organizer,Admin")]
+    public async Task<ActionResult<EventSessionDto>> CreateEventSession(
+        Guid eventId,
+        [FromBody] CreateEventSessionRequest request)
+    {
+        var result = await _eventService.CreateEventSessionAsync(eventId, request);
+        
+        if (!result.Success)
+            return BadRequest(result.Message);
+
+        return Created($"/api/events/{eventId}/sessions/{result.Session!.Id}", result.Session);
+    }
+
+    /// <summary>
+    /// Update an existing event session
+    /// </summary>
+    [HttpPut("sessions/{sessionId}")]
+    [Authorize(Roles = "Organizer,Admin")]
+    public async Task<ActionResult<EventSessionDto>> UpdateEventSession(
+        Guid sessionId,
+        [FromBody] UpdateEventSessionRequest request)
+    {
+        var result = await _eventService.UpdateEventSessionAsync(sessionId, request);
+        
+        if (!result.Success)
+            return BadRequest(result.Message);
+
+        return Ok(result.Session);
+    }
+
+    /// <summary>
+    /// Delete an event session
+    /// </summary>
+    [HttpDelete("sessions/{sessionId}")]
+    [Authorize(Roles = "Organizer,Admin")]
+    public async Task<ActionResult> DeleteEventSession(Guid sessionId)
+    {
+        var result = await _eventService.DeleteEventSessionAsync(sessionId);
+        
+        if (!result.Success)
+            return BadRequest(result.Message);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Get all sessions for an event
+    /// </summary>
+    [HttpGet("{eventId}/sessions")]
+    public async Task<ActionResult<ICollection<EventSessionDto>>> GetEventSessions(Guid eventId)
+    {
+        var sessions = await _eventService.GetEventSessionsAsync(eventId);
+        return Ok(sessions);
+    }
+
+    #endregion
+
+    #region Event Ticket Type Management
+
+    /// <summary>
+    /// Create a new ticket type for an event
+    /// </summary>
+    [HttpPost("{eventId}/ticket-types")]
+    [Authorize(Roles = "Organizer,Admin")]
+    public async Task<ActionResult<EventTicketTypeDto>> CreateEventTicketType(
+        Guid eventId,
+        [FromBody] CreateEventTicketTypeRequest request)
+    {
+        var result = await _eventService.CreateEventTicketTypeAsync(eventId, request);
+        
+        if (!result.Success)
+            return BadRequest(result.Message);
+
+        return Created($"/api/events/{eventId}/ticket-types/{result.TicketType!.Id}", result.TicketType);
+    }
+
+    /// <summary>
+    /// Update an existing event ticket type
+    /// </summary>
+    [HttpPut("ticket-types/{ticketTypeId}")]
+    [Authorize(Roles = "Organizer,Admin")]
+    public async Task<ActionResult<EventTicketTypeDto>> UpdateEventTicketType(
+        Guid ticketTypeId,
+        [FromBody] UpdateEventTicketTypeRequest request)
+    {
+        var result = await _eventService.UpdateEventTicketTypeAsync(ticketTypeId, request);
+        
+        if (!result.Success)
+            return BadRequest(result.Message);
+
+        return Ok(result.TicketType);
+    }
+
+    /// <summary>
+    /// Delete an event ticket type
+    /// </summary>
+    [HttpDelete("ticket-types/{ticketTypeId}")]
+    [Authorize(Roles = "Organizer,Admin")]
+    public async Task<ActionResult> DeleteEventTicketType(Guid ticketTypeId)
+    {
+        var result = await _eventService.DeleteEventTicketTypeAsync(ticketTypeId);
+        
+        if (!result.Success)
+            return BadRequest(result.Message);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Get all ticket types for an event
+    /// </summary>
+    [HttpGet("{eventId}/ticket-types")]
+    public async Task<ActionResult<ICollection<EventTicketTypeDto>>> GetEventTicketTypes(Guid eventId)
+    {
+        var ticketTypes = await _eventService.GetEventTicketTypesAsync(eventId);
+        return Ok(ticketTypes);
+    }
+
+    #endregion
 }

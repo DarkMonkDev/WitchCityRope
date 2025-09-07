@@ -1,0 +1,8 @@
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.E2E.Tests/bin/Debug/net9.0/.msCoverageSourceRootsMapping_WitchCityRope.E2E.Tests
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.E2E.Tests/bin/Debug/net9.0/CoverletSourceRootsMapping_WitchCityRope.E2E.Tests
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.E2E.Tests/obj/Debug/net9.0/WitchCityRope.E2E.Tests.csproj.AssemblyReference.cache
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.E2E.Tests/obj/Debug/net9.0/WitchCityRope.E2E.Tests.GeneratedMSBuildEditorConfig.editorconfig
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.E2E.Tests/obj/Debug/net9.0/WitchCityRope.E2E.Tests.AssemblyInfoInputs.cache
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.E2E.Tests/obj/Debug/net9.0/WitchCityRope.E2E.Tests.AssemblyInfo.cs
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.E2E.Tests/obj/Debug/net9.0/WitchCityRope.E2E.Tests.csproj.CoreCompileInputs.cache
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.E2E.Tests/obj/Debug/net9.0/WitchCityRope.E2E.Tests.sourcelink.json

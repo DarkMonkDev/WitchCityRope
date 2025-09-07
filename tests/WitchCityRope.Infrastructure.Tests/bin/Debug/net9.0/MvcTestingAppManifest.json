@@ -1,0 +1,5 @@
+{
+  "WitchCityRope.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/home\/chad\/repos\/witchcityrope-react\/src\/WitchCityRope.Core",
+  "WitchCityRope.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/home\/chad\/repos\/witchcityrope-react\/src\/WitchCityRope.Infrastructure",
+  "WitchCityRope.Tests.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/home\/chad\/repos\/witchcityrope-react\/tests\/WitchCityRope.Tests.Common"
+}

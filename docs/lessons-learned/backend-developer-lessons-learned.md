@@ -49,6 +49,46 @@
 4. **Files Modified**: Exact paths and purposes
 5. **Validation Steps**: How to verify the work
 
+## Entity Framework Navigation Property Configuration
+
+**Problem**: EF Core creates duplicate EventId1 properties when navigation properties are configured in multiple places  
+**Solution**: Configure navigation properties in ONE place only  
+**Example**: Configure `Event.Sessions` in EventConfiguration, NOT in EventSessionConfiguration  
+
+```csharp
+// ✅ CORRECT - In EventConfiguration.cs
+builder.HasMany(e => e.Sessions)
+    .WithOne(s => s.Event)
+    .HasForeignKey(s => s.EventId);
+
+// ❌ WRONG - Don't duplicate in EventSessionConfiguration.cs
+// Creates duplicate EventId1 properties
+```
+
+## PostgreSQL Enum Storage Pattern
+
+**Problem**: Enum values should be stored as integers in PostgreSQL for performance  
+**Solution**: Use explicit conversion in EF configuration  
+**Example**: 
+```csharp
+builder.Property(e => e.TicketType)
+    .IsRequired()
+    .HasConversion<int>(); // Store enum as int
+```
+
+## Complex Junction Entity Management
+
+**Problem**: Many-to-many with additional properties requires careful transaction handling  
+**Solution**: Use explicit transactions for ticket type session updates  
+**Example**:
+```csharp
+using var transaction = await _dbContext.Database.BeginTransactionAsync();
+// Remove existing inclusions
+// Add new inclusions
+await _dbContext.SaveChangesAsync();
+await transaction.CommitAsync();
+```
+
 ### 🤝 WHO NEEDS YOUR HANDOFFS
 - **Frontend Developers**: API contracts, endpoint changes
 - **Test Developers**: Integration points, test requirements

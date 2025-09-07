@@ -11,6 +11,8 @@ namespace WitchCityRope.Core.Entities
         public DateTime? LastPasswordChangeAt { get; set; }
         public int FailedLoginAttempts { get; set; }
         public DateTime? LockedOutUntil { get; set; }
+        public string? EmailVerificationToken { get; set; }
+        public DateTime EmailVerificationTokenCreatedAt { get; set; } = DateTime.UtcNow;
         
         // Navigation property
         public User User { get; set; } = null!;

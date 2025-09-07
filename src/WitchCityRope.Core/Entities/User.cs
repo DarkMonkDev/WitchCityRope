@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using WitchCityRope.Core.Enums;
 using WitchCityRope.Core.ValueObjects;
 
@@ -71,6 +72,18 @@ namespace WitchCityRope.Core.Entities
         /// Display name derived from scene name
         /// </summary>
         public string DisplayName => SceneName?.Value ?? "Unknown";
+        
+        /// <summary>
+        /// First name for compatibility (derived from scene name)
+        /// </summary>
+        public string? FirstName => SceneName?.Value?.Split(' ').FirstOrDefault();
+        
+        /// <summary>
+        /// Last name for compatibility (derived from scene name)
+        /// </summary>
+        public string? LastName => SceneName?.Value?.Contains(' ') == true 
+            ? string.Join(" ", SceneName.Value.Split(' ').Skip(1))
+            : null;
         
         /// <summary>
         /// Phonetic pronunciation of the user's name

@@ -635,4 +635,368 @@ public class EventService : IEventService
         };
     }
 
+    #region Event Session Management
+
+    public async Task<(bool Success, string Message, Features.Events.Models.EventSessionDto? Session)> CreateEventSessionAsync(Guid eventId, Features.Events.Models.CreateEventSessionRequest request)
+    {
+        try
+        {
+            // Validate the event exists
+            var @event = await _dbContext.Events
+                .Include(e => e.Sessions)
+                .FirstOrDefaultAsync(e => e.Id == eventId);
+
+            if (@event == null)
+                return (false, "Event not found", null);
+
+            // Validate session identifier is unique within the event
+            if (@event.Sessions.Any(s => s.SessionIdentifier.Equals(request.SessionIdentifier, StringComparison.OrdinalIgnoreCase)))
+                return (false, $"Session identifier '{request.SessionIdentifier}' already exists for this event", null);
+
+            // Create new session
+            var session = new Core.Entities.EventSession(
+                @event,
+                request.SessionIdentifier,
+                request.Name,
+                request.StartDateTime,
+                request.EndDateTime,
+                request.Capacity
+            );
+
+            // Add session to event
+            @event.AddSession(session);
+            _dbContext.EventSessions.Add(session);
+
+            await _dbContext.SaveChangesAsync();
+
+            // Create DTO for response
+            var sessionDto = new Features.Events.Models.EventSessionDto
+            {
+                Id = session.Id,
+                EventId = session.EventId,
+                SessionIdentifier = session.SessionIdentifier,
+                Name = session.Name,
+                StartDateTime = session.StartDateTime,
+                EndDateTime = session.EndDateTime,
+                Capacity = session.Capacity,
+                IsActive = session.IsActive,
+                CreatedAt = session.CreatedAt,
+                UpdatedAt = session.UpdatedAt
+            };
+
+            return (true, "Session created successfully", sessionDto);
+        }
+        catch (Exception ex)
+        {
+            return (false, ex.Message, null);
+        }
+    }
+
+    public async Task<(bool Success, string Message, Features.Events.Models.EventSessionDto? Session)> UpdateEventSessionAsync(Guid sessionId, Features.Events.Models.UpdateEventSessionRequest request)
+    {
+        try
+        {
+            var session = await _dbContext.EventSessions
+                .FirstOrDefaultAsync(s => s.Id == sessionId);
+
+            if (session == null)
+                return (false, "Session not found", null);
+
+            // Update session details
+            session.UpdateDetails(
+                request.Name,
+                request.StartDateTime,
+                request.EndDateTime,
+                request.Capacity
+            );
+
+            await _dbContext.SaveChangesAsync();
+
+            // Create DTO for response
+            var sessionDto = new Features.Events.Models.EventSessionDto
+            {
+                Id = session.Id,
+                EventId = session.EventId,
+                SessionIdentifier = session.SessionIdentifier,
+                Name = session.Name,
+                StartDateTime = session.StartDateTime,
+                EndDateTime = session.EndDateTime,
+                Capacity = session.Capacity,
+                IsActive = session.IsActive,
+                CreatedAt = session.CreatedAt,
+                UpdatedAt = session.UpdatedAt
+            };
+
+            return (true, "Session updated successfully", sessionDto);
+        }
+        catch (Exception ex)
+        {
+            return (false, ex.Message, null);
+        }
+    }
+
+    public async Task<(bool Success, string Message)> DeleteEventSessionAsync(Guid sessionId)
+    {
+        try
+        {
+            var session = await _dbContext.EventSessions
+                .Include(s => s.TicketTypeInclusions)
+                .FirstOrDefaultAsync(s => s.Id == sessionId);
+
+            if (session == null)
+                return (false, "Session not found");
+
+            // Check if session is included in any ticket types
+            if (session.TicketTypeInclusions.Any())
+                return (false, "Cannot delete session that is included in ticket types");
+
+            // Soft delete by deactivating
+            session.Deactivate();
+            await _dbContext.SaveChangesAsync();
+
+            return (true, "Session deleted successfully");
+        }
+        catch (Exception ex)
+        {
+            return (false, ex.Message);
+        }
+    }
+
+    public async Task<ICollection<Features.Events.Models.EventSessionDto>> GetEventSessionsAsync(Guid eventId)
+    {
+        var sessions = await _dbContext.EventSessions
+            .Where(s => s.EventId == eventId && s.IsActive)
+            .OrderBy(s => s.SessionIdentifier)
+            .Select(s => new Features.Events.Models.EventSessionDto
+            {
+                Id = s.Id,
+                EventId = s.EventId,
+                SessionIdentifier = s.SessionIdentifier,
+                Name = s.Name,
+                StartDateTime = s.StartDateTime,
+                EndDateTime = s.EndDateTime,
+                Capacity = s.Capacity,
+                IsActive = s.IsActive,
+                CreatedAt = s.CreatedAt,
+                UpdatedAt = s.UpdatedAt
+            })
+            .ToListAsync();
+
+        return sessions;
+    }
+
+    #endregion
+
+    #region Event Ticket Type Management
+
+    public async Task<(bool Success, string Message, Features.Events.Models.EventTicketTypeDto? TicketType)> CreateEventTicketTypeAsync(Guid eventId, Features.Events.Models.CreateEventTicketTypeRequest request)
+    {
+        using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        
+        try
+        {
+            // Validate the event exists and load sessions
+            var @event = await _dbContext.Events
+                .Include(e => e.Sessions.Where(s => s.IsActive))
+                .Include(e => e.TicketTypes)
+                .FirstOrDefaultAsync(e => e.Id == eventId);
+
+            if (@event == null)
+                return (false, "Event not found", null);
+
+            // Validate ticket type name is unique within the event
+            if (@event.TicketTypes.Any(tt => tt.Name.Equals(request.Name, StringComparison.OrdinalIgnoreCase)))
+                return (false, $"Ticket type with name '{request.Name}' already exists for this event", null);
+
+            // Validate all included session identifiers exist
+            var includedSessions = @event.Sessions
+                .Where(s => request.IncludedSessionIdentifiers.Contains(s.SessionIdentifier))
+                .ToList();
+
+            if (includedSessions.Count != request.IncludedSessionIdentifiers.Count)
+            {
+                var missing = request.IncludedSessionIdentifiers.Except(includedSessions.Select(s => s.SessionIdentifier));
+                return (false, $"Session identifiers not found: {string.Join(", ", missing)}", null);
+            }
+
+            // Create new ticket type
+            var ticketType = new Core.Entities.EventTicketType(
+                @event,
+                request.Name,
+                request.TicketType,
+                request.MinPrice,
+                request.MaxPrice,
+                request.QuantityAvailable,
+                request.SalesEndDateTime
+            );
+
+            // Add session inclusions
+            foreach (var session in includedSessions)
+            {
+                ticketType.AddSessionInclusion(session);
+            }
+
+            // Add ticket type to event
+            @event.AddTicketType(ticketType);
+            _dbContext.EventTicketTypes.Add(ticketType);
+
+            await _dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            // Create DTO for response
+            var ticketTypeDto = await CreateTicketTypeDto(ticketType);
+
+            return (true, "Ticket type created successfully", ticketTypeDto);
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return (false, ex.Message, null);
+        }
+    }
+
+    public async Task<(bool Success, string Message, Features.Events.Models.EventTicketTypeDto? TicketType)> UpdateEventTicketTypeAsync(Guid ticketTypeId, Features.Events.Models.UpdateEventTicketTypeRequest request)
+    {
+        using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        
+        try
+        {
+            var ticketType = await _dbContext.EventTicketTypes
+                .Include(tt => tt.Event.Sessions.Where(s => s.IsActive))
+                .Include(tt => tt.SessionInclusions)
+                    .ThenInclude(si => si.EventSession)
+                .FirstOrDefaultAsync(tt => tt.Id == ticketTypeId);
+
+            if (ticketType == null)
+                return (false, "Ticket type not found", null);
+
+            // Validate all included session identifiers exist
+            var availableSessions = ticketType.Event.Sessions.ToList();
+            var includedSessions = availableSessions
+                .Where(s => request.IncludedSessionIdentifiers.Contains(s.SessionIdentifier))
+                .ToList();
+
+            if (includedSessions.Count != request.IncludedSessionIdentifiers.Count)
+            {
+                var missing = request.IncludedSessionIdentifiers.Except(includedSessions.Select(s => s.SessionIdentifier));
+                return (false, $"Session identifiers not found: {string.Join(", ", missing)}", null);
+            }
+
+            // Update ticket type details
+            ticketType.UpdateDetails(
+                request.Name,
+                request.MinPrice,
+                request.MaxPrice,
+                request.QuantityAvailable,
+                request.SalesEndDateTime
+            );
+
+            // Remove existing session inclusions and add new ones
+            var existingInclusions = ticketType.SessionInclusions.ToList();
+            foreach (var inclusion in existingInclusions)
+            {
+                _dbContext.EventTicketTypeSessions.Remove(inclusion);
+            }
+
+            // Add new session inclusions
+            foreach (var session in includedSessions)
+            {
+                var inclusion = new Core.Entities.EventTicketTypeSession(ticketType, session);
+                _dbContext.EventTicketTypeSessions.Add(inclusion);
+            }
+
+            await _dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            // Create DTO for response
+            var ticketTypeDto = await CreateTicketTypeDto(ticketType, includedSessions);
+
+            return (true, "Ticket type updated successfully", ticketTypeDto);
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return (false, ex.Message, null);
+        }
+    }
+
+    public async Task<(bool Success, string Message)> DeleteEventTicketTypeAsync(Guid ticketTypeId)
+    {
+        try
+        {
+            var ticketType = await _dbContext.EventTicketTypes
+                .Include(tt => tt.Registrations)
+                .FirstOrDefaultAsync(tt => tt.Id == ticketTypeId);
+
+            if (ticketType == null)
+                return (false, "Ticket type not found");
+
+            // Check if ticket type has confirmed registrations
+            if (ticketType.GetConfirmedRegistrationCount() > 0)
+                return (false, "Cannot delete ticket type with confirmed registrations");
+
+            // Soft delete by deactivating
+            ticketType.Deactivate();
+            await _dbContext.SaveChangesAsync();
+
+            return (true, "Ticket type deleted successfully");
+        }
+        catch (Exception ex)
+        {
+            return (false, ex.Message);
+        }
+    }
+
+    public async Task<ICollection<Features.Events.Models.EventTicketTypeDto>> GetEventTicketTypesAsync(Guid eventId)
+    {
+        var ticketTypes = await _dbContext.EventTicketTypes
+            .Include(tt => tt.SessionInclusions)
+                .ThenInclude(si => si.EventSession)
+            .Where(tt => tt.EventId == eventId && tt.IsActive)
+            .OrderBy(tt => tt.Name)
+            .ToListAsync();
+
+        var ticketTypeDtos = new List<Features.Events.Models.EventTicketTypeDto>();
+        
+        foreach (var ticketType in ticketTypes)
+        {
+            var dto = await CreateTicketTypeDto(ticketType);
+            ticketTypeDtos.Add(dto);
+        }
+
+        return ticketTypeDtos;
+    }
+
+    private async Task<Features.Events.Models.EventTicketTypeDto> CreateTicketTypeDto(Core.Entities.EventTicketType ticketType, ICollection<Core.Entities.EventSession>? sessions = null)
+    {
+        // If sessions not provided, load them
+        if (sessions == null)
+        {
+            var sessionIds = ticketType.SessionInclusions.Select(si => si.EventSessionId).ToList();
+            sessions = await _dbContext.EventSessions
+                .Where(s => sessionIds.Contains(s.Id))
+                .ToListAsync();
+        }
+
+        return new Features.Events.Models.EventTicketTypeDto
+        {
+            Id = ticketType.Id,
+            EventId = ticketType.EventId,
+            Name = ticketType.Name,
+            TicketType = ticketType.TicketType,
+            MinPrice = ticketType.MinPrice,
+            MaxPrice = ticketType.MaxPrice,
+            QuantityAvailable = ticketType.QuantityAvailable,
+            SalesEndDateTime = ticketType.SalesEndDateTime,
+            IsActive = ticketType.IsActive,
+            CreatedAt = ticketType.CreatedAt,
+            UpdatedAt = ticketType.UpdatedAt,
+            IncludedSessions = sessions.Select(s => s.SessionIdentifier).ToList(),
+            AvailableQuantity = ticketType.GetAvailableQuantity(),
+            SalesOpen = ticketType.AreSalesOpen()
+        };
+    }
+
+    #endregion
+
 }

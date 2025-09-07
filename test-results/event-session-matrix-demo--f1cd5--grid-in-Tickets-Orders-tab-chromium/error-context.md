@@ -1,0 +1,187 @@
+# Page snapshot
+
+```yaml
+- link "Report an Incident":
+  - /url: /incident-report
+- link "Private Lessons":
+  - /url: /private-lessons
+- link "Contact":
+  - /url: /contact
+- banner:
+  - link "WITCH CITY ROPE":
+    - /url: /
+  - link "Events & Classes":
+    - /url: /events
+  - link "How to Join":
+    - /url: /join
+  - link "Resources":
+    - /url: /resources
+  - link "Login":
+    - /url: /login
+- main:
+  - heading "Event Session Matrix Demo" [level=1]
+  - tablist:
+    - tab "Basic Info"
+    - tab "Tickets/Orders" [selected]
+    - tab "Emails"
+    - tab "Volunteers"
+  - tabpanel "Tickets/Orders":
+    - heading "Event Sessions" [level=2]
+    - paragraph: Define the individual sessions for your event. Click Edit to modify session details. The system auto-detects single vs multi-day events based on session count.
+    - table:
+      - rowgroup:
+        - row "Actions S# Name Date Start Time End Time Capacity Sold Delete":
+          - cell "Actions"
+          - cell "S#"
+          - cell "Name"
+          - cell "Date"
+          - cell "Start Time"
+          - cell "End Time"
+          - cell "Capacity"
+          - cell "Sold"
+          - cell "Delete"
+      - rowgroup:
+        - row "Edit S1 Fundamentals Day Feb 14, 2025 7:00 PM 9:00 PM 20 8":
+          - cell "Edit":
+            - button "Edit":
+              - img
+              - text: Edit
+          - cell "S1":
+            - paragraph: S1
+          - cell "Fundamentals Day":
+            - paragraph: Fundamentals Day
+          - cell "Feb 14, 2025":
+            - paragraph: Feb 14, 2025
+          - cell "7:00 PM":
+            - paragraph: 7:00 PM
+          - cell "9:00 PM":
+            - paragraph: 9:00 PM
+          - cell "20":
+            - paragraph: "20"
+          - cell "8":
+            - paragraph: "8"
+          - cell:
+            - button:
+              - img
+        - row "Edit S2 Intermediate Practice Feb 15, 2025 7:00 PM 9:00 PM 20 15":
+          - cell "Edit":
+            - button "Edit":
+              - img
+              - text: Edit
+          - cell "S2":
+            - paragraph: S2
+          - cell "Intermediate Practice":
+            - paragraph: Intermediate Practice
+          - cell "Feb 15, 2025":
+            - paragraph: Feb 15, 2025
+          - cell "7:00 PM":
+            - paragraph: 7:00 PM
+          - cell "9:00 PM":
+            - paragraph: 9:00 PM
+          - cell "20":
+            - paragraph: "20"
+          - cell "15":
+            - paragraph: "15"
+          - cell:
+            - button:
+              - img
+        - row "Edit S3 Advanced Techniques Feb 16, 2025 7:00 PM 9:00 PM 20 8":
+          - cell "Edit":
+            - button "Edit":
+              - img
+              - text: Edit
+          - cell "S3":
+            - paragraph: S3
+          - cell "Advanced Techniques":
+            - paragraph: Advanced Techniques
+          - cell "Feb 16, 2025":
+            - paragraph: Feb 16, 2025
+          - cell "7:00 PM":
+            - paragraph: 7:00 PM
+          - cell "9:00 PM":
+            - paragraph: 9:00 PM
+          - cell "20":
+            - paragraph: "20"
+          - cell "8":
+            - paragraph: "8"
+          - cell:
+            - button:
+              - img
+    - button "+ Add Session"
+    - paragraph: "💡 Tip: Click Edit to modify session details in a modal dialog."
+    - heading "Ticket Types" [level=2]
+    - paragraph: Configure different ticket options for your event. Each ticket type can include multiple sessions. Click Edit to modify complex settings.
+    - table:
+      - rowgroup:
+        - row "Edit Ticket Name Type Sessions Included Price Range Quantity Sales End Delete":
+          - cell "Edit"
+          - cell "Ticket Name"
+          - cell "Type"
+          - cell "Sessions Included"
+          - cell "Price Range"
+          - cell "Quantity"
+          - cell "Sales End"
+          - cell "Delete"
+      - rowgroup:
+        - row "Edit Full 3-Day Series Pass Single S1, S2, S3 $120 - $150 15 Feb 16":
+          - cell "Edit":
+            - button "Edit":
+              - img
+              - text: Edit
+          - cell "Full 3-Day Series Pass":
+            - paragraph: Full 3-Day Series Pass
+          - cell "Single"
+          - cell "S1, S2, S3":
+            - paragraph: S1, S2, S3
+          - cell "$120 - $150":
+            - paragraph: $120 - $150
+          - cell "15":
+            - paragraph: "15"
+          - cell "Feb 16":
+            - paragraph: Feb 16
+          - cell:
+            - button:
+              - img
+        - 'row "Edit Day 1: Fundamentals Only Single S1 $45 - $60 10 Feb 14"':
+          - cell "Edit":
+            - button "Edit":
+              - img
+              - text: Edit
+          - 'cell "Day 1: Fundamentals Only"':
+            - paragraph: "Day 1: Fundamentals Only"
+          - cell "Single"
+          - cell "S1":
+            - paragraph: S1
+          - cell "$45 - $60":
+            - paragraph: $45 - $60
+          - cell "10":
+            - paragraph: "10"
+          - cell "Feb 14":
+            - paragraph: Feb 14
+          - cell:
+            - button:
+              - img
+        - row "Edit Weekend Pass (Days 2-3) Couples S2, S3 $80 - $100 8 Feb 15":
+          - cell "Edit":
+            - button "Edit":
+              - img
+              - text: Edit
+          - cell "Weekend Pass (Days 2-3)":
+            - paragraph: Weekend Pass (Days 2-3)
+          - cell "Couples"
+          - cell "S2, S3":
+            - paragraph: S2, S3
+          - cell "$80 - $100":
+            - paragraph: $80 - $100
+          - cell "8":
+            - paragraph: "8"
+          - cell "Feb 15":
+            - paragraph: Feb 15
+          - cell:
+            - button:
+              - img
+    - button "+ Add Ticket Type"
+    - paragraph: "💡 Tip: Click Edit for complex settings like session selection and sale periods. Simple fields can be edited inline."
+- button "Open Tanstack query devtools":
+  - img
+```

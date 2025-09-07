@@ -88,6 +88,7 @@ namespace WitchCityRope.Tests.Common.Builders
                 _user,
                 _event,
                 _selectedPrice,
+                null, // EventTicketType - null for legacy registrations
                 _dietaryRestrictions,
                 _accessibilityNeeds
             );

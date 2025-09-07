@@ -22,6 +22,10 @@ namespace WitchCityRope.Infrastructure.Data.Configurations
             builder.Property(r => r.EventId)
                 .IsRequired();
 
+            // Optional EventTicketTypeId for new session-based registrations
+            builder.Property(r => r.EventTicketTypeId)
+                .IsRequired(false);
+
             // Configure Money value object for SelectedPrice
             builder.OwnsOne(r => r.SelectedPrice, money =>
             {
