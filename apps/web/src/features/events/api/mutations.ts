@@ -221,8 +221,13 @@ export function useRSVPForEvent() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: async (rsvpData: RSVPData): Promise<{ id: string; eventId: string; willAttend: boolean }> => {
-      const response = await api.post(`/api/events/${rsvpData.eventId}/rsvp`, rsvpData)
+    mutationFn: async (rsvpData: RSVPData): Promise<{ id: string; eventId: string; confirmationCode: string; status: string }> => {
+      // Use the correct events-management endpoint for RSVP
+      const response = await api.post(`/api/events-management/${rsvpData.eventId}/rsvp`, {
+        dietaryRestrictions: '',
+        emergencyContactName: '',
+        emergencyContactPhone: ''
+      })
       return response.data
     },
     onMutate: async (rsvpData) => {
@@ -262,8 +267,9 @@ export function useCancelRSVP() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: async ({ eventId, rsvpId }: { eventId: string; rsvpId: string }): Promise<void> => {
-      await api.delete(`/api/events/${eventId}/rsvp/${rsvpId}`)
+    mutationFn: async ({ eventId }: { eventId: string }): Promise<void> => {
+      // Use the correct events-management endpoint for canceling RSVP
+      await api.delete(`/api/events-management/${eventId}/rsvp`)
     },
     onMutate: async ({ eventId, rsvpId }) => {
       // Cancel outgoing refetches

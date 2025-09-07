@@ -90,6 +90,20 @@ When given a Working Directory like:
 
 **Consolidate duplicate content** - When finding similar documents, merge and archive duplicates immediately.
 
+## 🚨 MASSIVE DUPLICATE IMPLEMENTATION DETECTION 🚨
+
+**Events System Duplicate Crisis**: During investigation on 2025-09-07, discovered **MASSIVE duplicate implementations** of Events Management system:
+- **34+ React components** already built (RSVP modals, ticket purchase, admin forms, etc.)
+- **Multiple API service layers** (eventsManagement.service.ts, legacyEventsApi.service.ts)
+- **Complete backend API** with GET endpoints operational
+- **Extensive testing infrastructure** with 18 E2E tests
+- **Full TDD implementation plan** with 50 pre-written tests
+- **Working demo pages** at localhost already functional
+
+**ROOT CAUSE**: Agents didn't check existing implementations before creating new ones. The system is in Phase 5 (Implementation) with substantial existing work available.
+
+**PREVENTION**: ALWAYS check functional area master index and existing codebase before any development work. Use search tools to find existing implementations.
+
 ## Critical Pattern Recognition
 
 **Lessons learned files getting bloated** - Keep them concise and actionable, avoid turning into project documentation or implementation guides. Target 50-75 lines maximum per file.

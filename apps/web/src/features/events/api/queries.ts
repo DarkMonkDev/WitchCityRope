@@ -48,3 +48,23 @@ export function useInfiniteEvents(filters: EventFilters = {}) {
     staleTime: 2 * 60 * 1000, // 2 minutes
   })
 }
+
+// Query for checking user's attendance status (RSVP or ticket)
+export function useEventAttendanceStatus(eventId: string) {
+  return useQuery({
+    queryKey: ['event-attendance', eventId],
+    queryFn: async () => {
+      const response = await api.get(`/api/events-management/${eventId}/attendance`)
+      return response.data as {
+        hasRSVP: boolean
+        hasTicket: boolean
+        rsvp: { id: string; confirmationCode: string; status: string } | null
+        ticket: { id: string; confirmationCode: string; status: string } | null
+        canRSVP: boolean
+        canPurchaseTicket: boolean
+      }
+    },
+    enabled: !!eventId,
+    staleTime: 1 * 60 * 1000, // 1 minute
+  })
+}

@@ -3,6 +3,7 @@ using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Features.Events.DTOs;
 using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,8 +20,8 @@ public static class EventsManagementEndpoints
     /// </summary>
     public static RouteGroupBuilder MapEventsManagementEndpoints(this RouteGroupBuilder group)
     {
-        // GET /api/events - List published events
-        group.MapGet("/events", GetPublishedEventsAsync)
+        // GET /api/events-management - List published events
+        group.MapGet("/events-management", GetPublishedEventsAsync)
             .WithName("GetPublishedEvents")
             .WithTags("Events")
             .WithOpenApi(operation =>

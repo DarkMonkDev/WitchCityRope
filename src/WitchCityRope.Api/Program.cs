@@ -226,40 +226,40 @@ public static class EndpointExtensions
         .WithOpenApi();
 
         // Event endpoints
-        group.MapGet("/events", async (
-            int page,
-            int pageSize,
-            string? search,
-            IEventService eventService,
-            IMemoryCache cache) =>
-        {
-            var cacheKey = $"events_{page}_{pageSize}_{search}";
-            
-            if (cache.TryGetValue<PagedResult<EventDto>>(cacheKey, out var cachedResult))
-            {
-                return Results.Ok(cachedResult);
-            }
+        //         group.MapGet("/events", async (
+        //             int page,
+        //             int pageSize,
+        //             string? search,
+        //             IEventService eventService,
+        //             IMemoryCache cache) =>
+        //         {
+        //             var cacheKey = $"events_{page}_{pageSize}_{search}";
+        //             
+        //             if (cache.TryGetValue<PagedResult<EventDto>>(cacheKey, out var cachedResult))
+        //             {
+        //                 return Results.Ok(cachedResult);
+        //             }
+        // 
+        //             var result = await eventService.GetEventsAsync(page, pageSize, search);
+        //             
+        //             cache.Set(cacheKey, result, TimeSpan.FromMinutes(5));
+        //             
+        //             return Results.Ok(result);
+        //         })
+        //         .WithName("ListEvents")
+        //         .WithOpenApi();
 
-            var result = await eventService.GetEventsAsync(page, pageSize, search);
-            
-            cache.Set(cacheKey, result, TimeSpan.FromMinutes(5));
-            
-            return Results.Ok(result);
-        })
-        .WithName("ListEvents")
-        .WithOpenApi();
-
-        group.MapGet("/events/{id:guid}", async (
-            Guid id,
-            IEventService eventService) =>
-        {
-            var eventDetails = await eventService.GetEventByIdAsync(id);
-            return eventDetails is null 
-                ? Results.NotFound() 
-                : Results.Ok(eventDetails);
-        })
-        .WithName("GetEventById")
-        .WithOpenApi();
+        //         group.MapGet("/events/{id:guid}", async (
+        //             Guid id,
+        //             IEventService eventService) =>
+        //         {
+        //             var eventDetails = await eventService.GetEventByIdAsync(id);
+        //             return eventDetails is null 
+        //                 ? Results.NotFound() 
+        //                 : Results.Ok(eventDetails);
+        //         })
+        //         .WithName("GetEventById")
+        //         .WithOpenApi();
 
         group.MapPost("/events", async (
             CreateEventRequest request,
@@ -288,7 +288,7 @@ public static class EndpointExtensions
         // Event Session Matrix endpoints
         group.MapCreateEventEndpoint();
         group.MapGetEventWithSessionsEndpoint();
-        group.MapGetEventAvailabilityEndpoint();
+        // group.MapGetEventAvailabilityEndpoint(); // Commented out to fix duplicate endpoint name with EventsManagementEndpoints
         
         // Events Management API endpoints (new Event Session Matrix APIs)
         group.MapEventsManagementEndpoints();
