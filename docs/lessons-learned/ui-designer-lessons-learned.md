@@ -4,6 +4,52 @@
 <!-- Last Updated: 2025-08-20 -->
 <!-- Next Review: 2025-09-20 -->
 
+## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+
+**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
+
+### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
+- **END of design phase** - BEFORE ending session
+- **COMPLETION of wireframes/mockups** - Document design decisions
+- **DISCOVERY of UX issues** - Share immediately
+- **VALIDATION of user flows** - Document interaction patterns
+
+### 📁 WHERE TO SAVE HANDOFFS
+**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Naming**: `ui-designer-YYYY-MM-DD-handoff.md`
+**Template**: `/docs/standards-processes/agent-handoff-template.md`
+
+### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
+1. **Design Decisions**: Why specific UI choices were made
+2. **User Flow Validation**: Approved interaction patterns
+3. **Component Specifications**: Detailed UI component requirements
+4. **Accessibility Requirements**: ARIA labels and keyboard navigation
+5. **Responsive Behavior**: Mobile and tablet layout specifications
+
+### 🤝 WHO NEEDS YOUR HANDOFFS
+- **React Developers**: Component implementation requirements
+- **Test Developers**: UI test scenarios and interaction patterns
+- **Business Requirements**: User experience feedback and validation
+- **Future UI Designers**: Design pattern consistency
+
+### ⚠️ MANDATORY READING BEFORE STARTING
+**ALWAYS READ EXISTING HANDOFFS FIRST**:
+1. Check `/docs/functional-areas/[feature]/handoffs/` for previous design work
+2. Read ALL handoff documents in the functional area
+3. Understand design patterns already established
+4. Build on existing UI consistency - don't create conflicting patterns
+
+### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
+**Why this matters**:
+- React developers build wrong UI components
+- User experience becomes inconsistent
+- Design system violations accumulate
+- Major UI rework required after development
+
+**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
+
+---
+
 ## 🚨 MANDATORY: Use v7 Design System Standards (2025-08-20)
 
 ### Critical Design Authority

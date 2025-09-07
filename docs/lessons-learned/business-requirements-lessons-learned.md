@@ -1,5 +1,51 @@
 # Business Requirements Lessons Learned
 
+## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+
+**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
+
+### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
+- **END of requirements gathering phase** - BEFORE ending session
+- **COMPLETION of business analysis** - Document critical business rules
+- **DISCOVERY of stakeholder conflicts** - Share immediately
+- **VALIDATION of user stories** - Document acceptance criteria
+
+### 📁 WHERE TO SAVE HANDOFFS
+**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Naming**: `business-requirements-YYYY-MM-DD-handoff.md`
+**Template**: `/docs/standards-processes/agent-handoff-template.md`
+
+### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
+1. **Business Rules**: Non-negotiable constraints and validations
+2. **User Stories**: Validated and prioritized requirements
+3. **Edge Cases**: Unusual scenarios that impact design
+4. **Stakeholder Decisions**: Approved choices and rationale
+5. **Data Requirements**: Entity relationships and validation rules
+
+### 🤝 WHO NEEDS YOUR HANDOFFS
+- **UI Designers**: User flows and interaction requirements
+- **Database Designers**: Entity relationships and constraints
+- **Backend Developers**: Business logic and validation rules
+- **Test Developers**: Acceptance criteria and edge cases
+
+### ⚠️ MANDATORY READING BEFORE STARTING
+**ALWAYS READ EXISTING HANDOFFS FIRST**:
+1. Check `/docs/functional-areas/[feature]/handoffs/` for previous requirements work
+2. Read ALL handoff documents in the functional area
+3. Understand business decisions already made
+4. Build on validated requirements - don't restart analysis
+
+### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
+**Why this matters**:
+- Design and development work on wrong requirements
+- Critical business rules get lost
+- User experience becomes inconsistent
+- Major rework required after implementation
+
+**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
+
+---
+
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 
 ### Critical Architecture Documents (MUST READ BEFORE ANY WORK):

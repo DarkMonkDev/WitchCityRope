@@ -27,6 +27,52 @@
 - **Import from @witchcityrope/shared-types only**
 - **Add comprehensive OpenAPI annotations - these generate frontend types**
 
+## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+
+**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
+
+### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
+- **END of your work phase** - BEFORE ending session
+- **COMPLETION of major tasks** - Document critical findings
+- **DISCOVERY of important issues** - Share immediately
+- **WORKFLOW CHANGES** - Update process documentation
+
+### 📁 WHERE TO SAVE HANDOFFS
+**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Naming**: `backend-developer-YYYY-MM-DD-handoff.md`
+**Template**: `/docs/standards-processes/agent-handoff-template.md`
+
+### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
+1. **Most Important Discovery**: What the next agent MUST know
+2. **Implementation Gotchas**: Specific pitfalls to avoid
+3. **Dependencies**: What needs to be done first
+4. **Files Modified**: Exact paths and purposes
+5. **Validation Steps**: How to verify the work
+
+### 🤝 WHO NEEDS YOUR HANDOFFS
+- **Frontend Developers**: API contracts, endpoint changes
+- **Test Developers**: Integration points, test requirements
+- **Database Designers**: Schema changes, migration needs
+- **DevOps**: Deployment requirements, configuration changes
+
+### ⚠️ MANDATORY READING BEFORE STARTING
+**ALWAYS READ EXISTING HANDOFFS FIRST**:
+1. Check `/docs/functional-areas/[feature]/handoffs/` for previous agent work
+2. Read ALL handoff documents in the functional area
+3. Understand what's been done and what failed
+4. Build on previous work - don't duplicate efforts
+
+### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
+**Why this matters**:
+- Next agents will duplicate your work
+- Critical discoveries get lost
+- Implementation failures cascade through workflow
+- Team loses weeks of development time
+
+**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
+
+---
+
 ## 🚨 CRITICAL: WORKTREE WORKFLOW MANDATORY 🚨
 
 **All development MUST happen in git worktrees, NOT main repository**

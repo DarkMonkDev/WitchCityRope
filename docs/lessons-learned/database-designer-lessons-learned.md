@@ -1,5 +1,51 @@
 # Database Developer Lessons Learned
 
+## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+
+**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
+
+### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
+- **END of database design phase** - BEFORE ending session
+- **COMPLETION of schema changes** - Document migration impacts
+- **DISCOVERY of data integrity issues** - Share immediately
+- **VALIDATION of entity relationships** - Document constraints
+
+### 📁 WHERE TO SAVE HANDOFFS
+**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Naming**: `database-designer-YYYY-MM-DD-handoff.md`
+**Template**: `/docs/standards-processes/agent-handoff-template.md`
+
+### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
+1. **Schema Changes**: Tables, columns, indexes, and constraints
+2. **Migration Scripts**: EF Core migrations and custom SQL needed
+3. **Data Relationships**: Foreign keys and business rule constraints
+4. **Performance Impact**: Index strategies and query optimization
+5. **Data Integrity**: Validation rules and referential integrity
+
+### 🤝 WHO NEEDS YOUR HANDOFFS
+- **Backend Developers**: Entity models and DbContext changes
+- **Business Requirements**: Data validation and constraint feedback
+- **Test Developers**: Database test scenarios and data setup
+- **DevOps**: Migration deployment requirements
+
+### ⚠️ MANDATORY READING BEFORE STARTING
+**ALWAYS READ EXISTING HANDOFFS FIRST**:
+1. Check `/docs/functional-areas/[feature]/handoffs/` for previous database work
+2. Read ALL handoff documents in the functional area
+3. Understand schema changes already made
+4. Build on existing data model - don't create conflicting schemas
+
+### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
+**Why this matters**:
+- Backend developers create incompatible entity models
+- Migration scripts fail in production
+- Data integrity constraints conflict
+- Database performance degrades from poor indexing
+
+**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
+
+---
+
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 
 ### Critical Reference Documents (MUST READ BEFORE ANY WORK):

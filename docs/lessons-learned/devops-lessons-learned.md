@@ -1,6 +1,6 @@
 # DevOps Lessons Learned
-<!-- Last Updated: 2025-08-23 -->
-<!-- Next Review: 2025-09-23 -->
+<!-- Last Updated: 2025-08-25 -->
+<!-- Next Review: 2025-09-25 -->
 
 ## 🚨 CRITICAL: Docker Build Configuration
 
@@ -26,6 +26,69 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 - Production build tries to run `dotnet watch` on compiled DLLs → FAILS
 - Development build mounts source code and enables hot reload → WORKS
 - This has caused repeated failures across multiple sessions
+
+## 🚨 CRITICAL: API Key Security - Environment Variable Management (AUGUST 2025) ✅
+
+### NEVER Commit API Keys to Version Control
+
+**CRITICAL SECURITY ISSUE**: API keys in .env files were being tracked by git and almost committed!
+
+**Problem**: The .gitignore didn't exclude `.env.development` and `.env.production` files containing real TinyMCE API keys.
+
+**Solution**: Complete environment variable security system
+```bash
+# ❌ WRONG - .gitignore missing critical exclusions
+.env
+.env.local
+.env.development.local
+.env.production.local
+
+# ✅ CORRECT - Complete .gitignore coverage
+.env
+.env.local
+.env.development          # ← CRITICAL: Added
+.env.production           # ← CRITICAL: Added  
+.env.development.local
+.env.production.local
+```
+
+**Emergency Security Fix Pattern**:
+```bash
+# 1. Update .gitignore to exclude sensitive .env files
+git add apps/web/.gitignore
+
+# 2. Remove sensitive files from git tracking (if accidentally tracked)
+git rm --cached apps/web/.env.development apps/web/.env.production
+
+# 3. Stage only safe files (.env.example with placeholders)
+git add apps/web/.env.example
+
+# 4. Verify NO actual API keys in staged files
+git diff --cached apps/web/.env.example  # Should show "your_api_key_here"
+
+# 5. Commit securely with security documentation
+git commit -m "security: Prevent API key exposure in version control"
+```
+
+**API Key Configuration System**:
+- **Development**: API key in `apps/web/.env.development` (git ignored)
+- **Production**: API key in `apps/web/.env.production` (git ignored)  
+- **Template**: Placeholder in `apps/web/.env.example` (committed)
+- **Documentation**: Setup guide in `/docs/guides-setup/tinymce-api-key-setup.md`
+
+**Key Success Factors**:
+- Always exclude BOTH `.env.development` and `.env.production` in .gitignore
+- Create `.env.example` with placeholder values (`your_api_key_here`)
+- Use `git rm --cached` to remove accidentally tracked sensitive files
+- Verify staged content before commit using `git diff --cached`
+- Document the security pattern for future developers
+- Never commit files containing actual API keys or secrets
+
+**When This Pattern Applies**:
+- Any environment variables containing API keys, tokens, or secrets
+- TinyMCE API keys, database passwords, authentication secrets
+- Third-party service credentials and configuration
+- Any sensitive configuration that varies between environments
 
 ## Git Operations
 
@@ -179,8 +242,10 @@ EOF
 - Complete 5-phase validation framework with mandatory workflow blocking
 - Sacred Six documents protection preventing critical misplacements
 - Archive consolidation eliminating duplicate folder confusion
-- Zero-tolerance enforcement system preventing future violations
-- Librarian granted workflow blocking authority on structure violations
+- Zero-tolerance enforcement system implemented in CLAUDE.md and all agent guides
+- Automated validation script created for session startup checks
+- Comprehensive enforcement documentation created
+- Emergency procedures documented in librarian lessons learned
 
 **Key Success Factors for Phase-Based Validation System Pattern**:
 - Always exclude build artifacts (bin/obj files) before staging - they should never be committed
@@ -1756,10 +1821,83 @@ git push origin master
 - Document future prevention strategies and architectural alignment
 - Push immediately after commit to preserve milestone in remote repository
 
+### Secure API Key Management Success Pattern (AUGUST 2025) ✅
+
+**SUCCESS PATTERN**: Complete environment-based API key security implementation preventing accidental exposure
+```bash
+# 1. Update .gitignore to exclude sensitive .env files (CRITICAL)
+# Add .env.development and .env.production to .gitignore 
+git add apps/web/.gitignore
+
+# 2. Remove sensitive files from git tracking if accidentally tracked
+git rm --cached apps/web/.env.development apps/web/.env.production
+
+# 3. Create secure template with placeholders only
+git add apps/web/.env.example  # Contains "your_api_key_here" placeholder
+
+# 4. Stage implementation updates and documentation
+git add apps/web/src/components/forms/TinyMCERichTextEditor.tsx
+git add apps/web/src/components/events/EventForm.tsx
+git add docs/guides-setup/tinymce-api-key-setup.md
+git add docs/lessons-learned/react-developer-lessons-learned.md
+
+# 5. Verify NO actual API keys in staged files
+git diff --cached apps/web/.env.example  # Should show "your_api_key_here"
+
+# 6. Commit securely with comprehensive security documentation
+git commit -m "$(cat <<'EOF'
+feat: Secure TinyMCE API key configuration and UI fixes
+
+- Implemented secure environment-based API key configuration
+- Created setup documentation and .env.example template
+- Fixed Ad-Hoc Email Target Sessions visibility
+- Applied WitchCityRope brand colors to all input fields
+- Fixed scroll issue on Emails tab
+- Added proper error handling for missing API key
+- Updated lessons learned with security patterns
+
+Security: API keys stored in environment variables, never in source code
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+
+# 7. Follow up with additional security commit for complete cleanup
+git rm --cached apps/web/.env.production  # If any files still tracked
+git commit -m "security: Remove .env.production from git tracking to prevent API key exposure"
+```
+
+**Result**: Successfully implemented secure API key configuration system
+- TinyMCE API keys properly isolated in environment variables
+- .gitignore updated to prevent future tracking of sensitive .env files
+- Template file (.env.example) created with safe placeholder values
+- Documentation created for proper setup by developers
+- Comprehensive UI fixes and brand color implementation
+- Security patterns documented in lessons learned for future compliance
+
+**Key Success Factors for Secure API Key Management Pattern**:
+- Always update .gitignore FIRST to exclude sensitive files (.env.development, .env.production)
+- Use `git rm --cached` to remove accidentally tracked sensitive files
+- Create .env.example with ONLY placeholder values (your_api_key_here)
+- Verify staged content using `git diff --cached` before commit
+- Document setup process for other developers in guides-setup/
+- Update lessons learned with security patterns for agent compliance
+- Never commit files containing actual API keys, tokens, or secrets
+- Use environment-based configuration for all sensitive data
+
+**When This Pattern Applies**:
+- Any API keys (TinyMCE, Google, AWS, payment processors)
+- Database passwords and connection strings with credentials
+- Authentication tokens and JWT secrets  
+- Third-party service credentials and API keys
+- Any configuration that varies between development/production environments
+
 **Branch Management**
-**Current**: Working on `master` branch
-**Note**: Repository uses `master` not `main` as primary branch
-**Strategy**: Solo development with feature branches for isolation, merge to master when complete
+**Current**: Working on `main` branch
+**Note**: Repository uses `main` not `master` as primary branch  
+**Strategy**: Solo development with feature branches for isolation, merge to main when complete
 
 ## Docker Development
 

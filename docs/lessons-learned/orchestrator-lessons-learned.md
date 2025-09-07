@@ -8,6 +8,52 @@
 - For single agent work → Use Task tool with specific agent type
 - Sub-agents CANNOT call other sub-agents
 
+## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+
+**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
+
+### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
+- **END of orchestration phase** - BEFORE ending session
+- **COMPLETION of workflow coordination** - Document agent assignments
+- **DISCOVERY of workflow issues** - Share immediately
+- **VALIDATION of phase completions** - Document quality gates
+
+### 📁 WHERE TO SAVE HANDOFFS
+**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Naming**: `orchestrator-YYYY-MM-DD-handoff.md`
+**Template**: `/docs/standards-processes/agent-handoff-template.md`
+
+### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
+1. **Workflow Status**: Which phases completed and what's pending
+2. **Agent Assignments**: Who worked on what and coordination issues
+3. **Quality Gate Results**: What passed validation and what didn't
+4. **Cross-Agent Dependencies**: Integration points and handoff requirements
+5. **Stakeholder Decisions**: Approvals needed and decisions made
+
+### 🤝 WHO NEEDS YOUR HANDOFFS
+- **Future Orchestrators**: Workflow continuation and phase management
+- **All Sub-Agents**: Context for their phase assignments
+- **Project Stakeholders**: Status updates and decision requirements
+- **Quality Assurance**: Validation checklists and compliance status
+
+### ⚠️ MANDATORY READING BEFORE STARTING
+**ALWAYS READ EXISTING HANDOFFS FIRST**:
+1. Check `/docs/functional-areas/[feature]/handoffs/` for previous orchestration work
+2. Read ALL handoff documents from all agents
+3. Understand workflow state and agent outputs
+4. Build on existing progress - don't restart completed phases
+
+### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
+**Why this matters**:
+- Workflow coordination breaks down
+- Agent work gets duplicated or lost
+- Quality gates get skipped or fail
+- Project management becomes chaotic
+
+**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
+
+---
+
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 
 ### 🚨 CRITICAL: DOCUMENTATION STRUCTURE ENFORCEMENT 🚨

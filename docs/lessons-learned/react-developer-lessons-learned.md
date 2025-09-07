@@ -2,6 +2,52 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+
+**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
+
+### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
+- **END of your work phase** - BEFORE ending session
+- **COMPLETION of major component work** - Document critical UI patterns
+- **DISCOVERY of important React issues** - Share immediately
+- **COMPONENT LIBRARY UPDATES** - Document reusable patterns
+
+### 📁 WHERE TO SAVE HANDOFFS
+**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Naming**: `react-developer-YYYY-MM-DD-handoff.md`
+**Template**: `/docs/standards-processes/agent-handoff-template.md`
+
+### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
+1. **Component Patterns**: Reusable components created/modified
+2. **State Management**: Zustand store changes and patterns
+3. **API Integration**: TanStack Query patterns and cache keys
+4. **Styling Approaches**: Mantine customization and theme updates
+5. **Testing Requirements**: Component test needs for test developers
+
+### 🤝 WHO NEEDS YOUR HANDOFFS
+- **UI Designers**: Component feedback and design system updates
+- **Test Developers**: Component test requirements and user flows
+- **Backend Developers**: API contract expectations and data shapes
+- **Other React Developers**: Reusable patterns and component library
+
+### ⚠️ MANDATORY READING BEFORE STARTING
+**ALWAYS READ EXISTING HANDOFFS FIRST**:
+1. Check `/docs/functional-areas/[feature]/handoffs/` for previous agent work
+2. Read ALL handoff documents in the functional area
+3. Understand component patterns already established
+4. Build on existing work - don't create duplicate components
+
+### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
+**Why this matters**:
+- Next agents will rebuild existing components
+- Critical React patterns get lost
+- State management becomes inconsistent
+- UI components conflict and break design system
+
+**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
+
+---
+
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 
 ### Critical Architecture Documents (MUST READ BEFORE ANY WORK):

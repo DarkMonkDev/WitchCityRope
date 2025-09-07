@@ -4,6 +4,52 @@
 <!-- Owner: Test Team -->
 <!-- Status: Active -->
 
+## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+
+**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
+
+### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
+- **END of test execution phase** - BEFORE ending session
+- **COMPLETION of test runs** - Document results and failures
+- **DISCOVERY of environment issues** - Share immediately
+- **VALIDATION of system behavior** - Document actual vs expected results
+
+### 📁 WHERE TO SAVE HANDOFFS
+**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Naming**: `test-executor-YYYY-MM-DD-handoff.md`
+**Template**: `/docs/standards-processes/agent-handoff-template.md`
+
+### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
+1. **Test Results Summary**: Pass/fail rates and critical failures
+2. **Environment Issues**: Configuration problems and fixes applied
+3. **Bug Reports**: Detailed reproduction steps and evidence
+4. **Performance Metrics**: Response times and system behavior
+5. **Test Data Issues**: Problems with fixtures and seed data
+
+### 🤝 WHO NEEDS YOUR HANDOFFS
+- **Test Developers**: Test failure analysis and environment fixes
+- **Backend Developers**: API bug reports and integration issues
+- **React Developers**: UI/UX issues found during testing
+- **DevOps**: Environment configuration and deployment issues
+
+### ⚠️ MANDATORY READING BEFORE STARTING
+**ALWAYS READ EXISTING HANDOFFS FIRST**:
+1. Check `/docs/functional-areas/[feature]/handoffs/` for previous test execution work
+2. Read ALL handoff documents in the functional area
+3. Understand test environment setup already done
+4. Build on existing test results - don't repeat failed tests
+
+### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
+**Why this matters**:
+- Bug reports get lost and issues persist
+- Environment problems recur across test runs
+- Critical test failures go unaddressed
+- Quality assurance becomes ineffective
+
+**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
+
+---
+
 ## Overview
 Critical lessons learned for the test-executor agent, including mandatory E2E testing prerequisites, common failure patterns, file organization standards, and JWT authentication verification.
 
