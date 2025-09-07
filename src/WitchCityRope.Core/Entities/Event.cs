@@ -18,6 +18,7 @@ namespace WitchCityRope.Core.Entities
     public class Event
     {
         private readonly List<Registration> _registrations = new();
+        private readonly List<RSVP> _rsvps = new();
         private readonly List<User> _organizers = new();
         private readonly List<Money> _pricingTiers = new();
         private readonly List<EventSession> _sessions = new();
@@ -91,6 +92,8 @@ namespace WitchCityRope.Core.Entities
         
         public IReadOnlyCollection<Registration> Registrations => _registrations.AsReadOnly();
         
+        public IReadOnlyCollection<RSVP> RSVPs => _rsvps.AsReadOnly();
+        
         public IReadOnlyCollection<User> Organizers => _organizers.AsReadOnly();
         
         /// <summary>
@@ -109,6 +112,18 @@ namespace WitchCityRope.Core.Entities
         public IReadOnlyCollection<EventTicketType> TicketTypes => _ticketTypes.AsReadOnly();
 
         /// <summary>
+        /// Business rule property: Determines if this event allows free RSVPs
+        /// Only Social events allow RSVP functionality
+        /// </summary>
+        public bool AllowsRSVP => EventType == EventType.Social;
+
+        /// <summary>
+        /// Business rule property: Determines if this event requires payment for attendance
+        /// Classes and Workshops require payment, Social events allow both RSVP and payment
+        /// </summary>
+        public bool RequiresPayment => EventType == EventType.Workshop || EventType == EventType.Class;
+
+        /// <summary>
         /// Gets the number of confirmed registrations
         /// </summary>
         public int GetConfirmedRegistrationCount()
@@ -117,15 +132,34 @@ namespace WitchCityRope.Core.Entities
         }
 
         /// <summary>
-        /// Gets the number of available spots
+        /// Gets the number of confirmed RSVPs
         /// </summary>
-        public int GetAvailableSpots()
+        public int GetConfirmedRSVPCount()
         {
-            return Capacity - GetConfirmedRegistrationCount();
+            return _rsvps.Count(r => r.Status == RSVPStatus.Confirmed);
         }
 
         /// <summary>
-        /// Checks if the event has available capacity
+        /// Gets the total number of confirmed attendees (registrations + RSVPs)
+        /// This includes both paid ticket holders and free RSVPs
+        /// </summary>
+        public int GetCurrentAttendeeCount()
+        {
+            var rsvpCount = _rsvps.Count(r => r.Status == RSVPStatus.Confirmed);
+            var ticketCount = _registrations.Count(r => r.Status == RegistrationStatus.Confirmed);
+            return rsvpCount + ticketCount;
+        }
+
+        /// <summary>
+        /// Gets the number of available spots (considering both RSVPs and tickets)
+        /// </summary>
+        public int GetAvailableSpots()
+        {
+            return Math.Max(0, Capacity - GetCurrentAttendeeCount());
+        }
+
+        /// <summary>
+        /// Checks if the event has available capacity (considering both RSVPs and tickets)
         /// </summary>
         public bool HasAvailableCapacity()
         {

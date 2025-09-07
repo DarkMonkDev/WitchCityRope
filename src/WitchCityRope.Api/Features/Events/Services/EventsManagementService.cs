@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using WitchCityRope.Api.Features.Events.DTOs;
+using WitchCityRope.Core.Entities;
+using WitchCityRope.Core.Enums;
 using WitchCityRope.Infrastructure.Data;
 using System;
 using System.Collections.Generic;
@@ -349,6 +351,234 @@ public class EventsManagementService
         }
 
         return limitingSessions;
+    }
+
+    #endregion
+
+    #region RSVP Operations
+
+    /// <summary>
+    /// Creates a free RSVP for a social event
+    /// Business Rules:
+    /// - Only available for Social Events (EventType.Social)
+    /// - User cannot already have an RSVP for this event
+    /// - Event must have available capacity
+    /// </summary>
+    public async Task<(bool Success, RSVPDto? Response, string Error)> CreateRSVPAsync(
+        Guid eventId,
+        Guid userId,
+        RSVPRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Creating RSVP for user {UserId} and event {EventId}", userId, eventId);
+
+            // Get event with RSVPs to check capacity and business rules
+            var eventEntity = await _context.Events
+                .Include(e => e.RSVPs)
+                .Include(e => e.Registrations)
+                .FirstOrDefaultAsync(e => e.Id == eventId, cancellationToken);
+
+            if (eventEntity == null)
+            {
+                _logger.LogWarning("Event not found: eventId={EventId}", eventId);
+                return (false, null, "Event not found");
+            }
+
+            // Business rule: Only Social events allow RSVP
+            if (!eventEntity.AllowsRSVP)
+            {
+                _logger.LogWarning("RSVP attempted for non-social event: eventId={EventId}, eventType={EventType}", 
+                    eventId, eventEntity.EventType);
+                return (false, null, "This event does not allow RSVP. Please purchase a ticket.");
+            }
+
+            // Check if user already has an active RSVP
+            var existingRSVP = await _context.RSVPs
+                .FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId && r.Status != RSVPStatus.Cancelled, 
+                    cancellationToken);
+
+            if (existingRSVP != null)
+            {
+                _logger.LogWarning("User {UserId} already has RSVP for event {EventId}", userId, eventId);
+                return (false, null, "You have already RSVP'd for this event");
+            }
+
+            // Get user for RSVP creation
+            var user = await _context.Users.FindAsync(new object[] { userId }, cancellationToken);
+            if (user == null)
+            {
+                _logger.LogWarning("User not found: userId={UserId}", userId);
+                return (false, null, "User not found");
+            }
+
+            // Create RSVP (this will validate capacity and business rules)
+            var rsvp = new RSVP(user, eventEntity, request.DietaryRestrictions);
+
+            _context.RSVPs.Add(rsvp);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            var rsvpDto = new RSVPDto
+            {
+                Id = rsvp.Id,
+                EventId = rsvp.EventId,
+                EventTitle = eventEntity.Title,
+                EventDate = eventEntity.StartDate,
+                ConfirmationCode = rsvp.ConfirmationCode,
+                Status = rsvp.Status,
+                DietaryRestrictions = rsvp.DietaryRestrictions,
+                CreatedAt = rsvp.CreatedAt,
+                HasLinkedTicket = rsvp.TicketId.HasValue
+            };
+
+            _logger.LogInformation("Successfully created RSVP {RSVPId} for user {UserId} and event {EventId}", 
+                rsvp.Id, userId, eventId);
+
+            return (true, rsvpDto, string.Empty);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating RSVP for user {UserId} and event {EventId}", userId, eventId);
+            return (false, null, "Failed to create RSVP");
+        }
+    }
+
+    /// <summary>
+    /// Gets the attendance status for a user and event
+    /// Returns information about RSVP, ticket status, and what actions are available
+    /// </summary>
+    public async Task<(bool Success, AttendanceStatusDto? Response, string Error)> GetAttendanceStatusAsync(
+        Guid eventId,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Getting attendance status for user {UserId} and event {EventId}", userId, eventId);
+
+            var eventEntity = await _context.Events
+                .Include(e => e.RSVPs.Where(r => r.UserId == userId))
+                .Include(e => e.Registrations.Where(r => r.UserId == userId))
+                .FirstOrDefaultAsync(e => e.Id == eventId, cancellationToken);
+
+            if (eventEntity == null)
+            {
+                _logger.LogWarning("Event not found: eventId={EventId}", eventId);
+                return (false, null, "Event not found");
+            }
+
+            var userRSVP = eventEntity.RSVPs.FirstOrDefault(r => r.Status != RSVPStatus.Cancelled);
+            var userRegistration = eventEntity.Registrations.FirstOrDefault(r => r.Status != RegistrationStatus.Cancelled);
+
+            var attendanceStatus = new AttendanceStatusDto
+            {
+                EventId = eventId,
+                HasRSVP = userRSVP != null,
+                HasTicket = userRegistration != null,
+                CanPurchaseTicket = eventEntity.HasAvailableCapacity(), // Can buy ticket if capacity available
+                CanRSVP = eventEntity.AllowsRSVP && userRSVP == null && eventEntity.HasAvailableCapacity()
+            };
+
+            // Add RSVP details if exists
+            if (userRSVP != null)
+            {
+                attendanceStatus.RSVP = new RSVPDto
+                {
+                    Id = userRSVP.Id,
+                    EventId = userRSVP.EventId,
+                    EventTitle = eventEntity.Title,
+                    EventDate = eventEntity.StartDate,
+                    ConfirmationCode = userRSVP.ConfirmationCode,
+                    Status = userRSVP.Status,
+                    DietaryRestrictions = userRSVP.DietaryRestrictions,
+                    CreatedAt = userRSVP.CreatedAt,
+                    CancelledAt = userRSVP.CancelledAt,
+                    CancellationReason = userRSVP.CancellationReason,
+                    HasLinkedTicket = userRSVP.TicketId.HasValue
+                };
+            }
+
+            // Add ticket details if exists
+            if (userRegistration != null)
+            {
+                attendanceStatus.Ticket = new TicketDto
+                {
+                    Id = userRegistration.Id,
+                    EventId = userRegistration.EventId,
+                    EventTitle = eventEntity.Title,
+                    EventDate = eventEntity.StartDate,
+                    ConfirmationCode = userRegistration.ConfirmationCode,
+                    PricePaid = userRegistration.SelectedPrice.Amount,
+                    Currency = userRegistration.SelectedPrice.Currency,
+                    Status = userRegistration.Status,
+                    RegisteredAt = userRegistration.RegisteredAt,
+                    ConfirmedAt = userRegistration.ConfirmedAt
+                };
+            }
+
+            // Set constraint reason if can't RSVP
+            if (!attendanceStatus.CanRSVP)
+            {
+                if (!eventEntity.AllowsRSVP)
+                {
+                    attendanceStatus.RSVPConstraintReason = "This event type does not allow RSVP";
+                }
+                else if (userRSVP != null)
+                {
+                    attendanceStatus.RSVPConstraintReason = "You already have an RSVP for this event";
+                }
+                else if (!eventEntity.HasAvailableCapacity())
+                {
+                    attendanceStatus.RSVPConstraintReason = "Event is at full capacity";
+                }
+            }
+
+            return (true, attendanceStatus, string.Empty);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting attendance status for user {UserId} and event {EventId}", userId, eventId);
+            return (false, null, "Failed to get attendance status");
+        }
+    }
+
+    /// <summary>
+    /// Cancels an RSVP for a user
+    /// </summary>
+    public async Task<(bool Success, string Error)> CancelRSVPAsync(
+        Guid eventId,
+        Guid userId,
+        string? reason = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Cancelling RSVP for user {UserId} and event {EventId}", userId, eventId);
+
+            var rsvp = await _context.RSVPs
+                .FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId && r.Status != RSVPStatus.Cancelled,
+                    cancellationToken);
+
+            if (rsvp == null)
+            {
+                _logger.LogWarning("No active RSVP found for user {UserId} and event {EventId}", userId, eventId);
+                return (false, "No active RSVP found for this event");
+            }
+
+            rsvp.Cancel(reason);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Successfully cancelled RSVP {RSVPId} for user {UserId} and event {EventId}", 
+                rsvp.Id, userId, eventId);
+
+            return (true, string.Empty);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error cancelling RSVP for user {UserId} and event {EventId}", userId, eventId);
+            return (false, "Failed to cancel RSVP");
+        }
     }
 
     #endregion

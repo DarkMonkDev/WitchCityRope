@@ -20,6 +20,7 @@ namespace WitchCityRope.Infrastructure.Data
         public DbSet<EventTicketType> EventTicketTypes { get; set; }
         public DbSet<EventTicketTypeSession> EventTicketTypeSessions { get; set; }
         public DbSet<Registration> Registrations { get; set; }
+        public DbSet<RSVP> RSVPs { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<VettingApplication> VettingApplications { get; set; }
         public DbSet<IncidentReport> IncidentReports { get; set; }
@@ -37,6 +38,7 @@ namespace WitchCityRope.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new EventTicketTypeConfiguration());
             modelBuilder.ApplyConfiguration(new EventTicketTypeSessionConfiguration());
             modelBuilder.ApplyConfiguration(new RegistrationConfiguration());
+            modelBuilder.ApplyConfiguration(new RSVPConfiguration());
             modelBuilder.ApplyConfiguration(new PaymentConfiguration());
             modelBuilder.ApplyConfiguration(new VettingApplicationConfiguration());
             modelBuilder.ApplyConfiguration(new IncidentReportConfiguration());
@@ -61,8 +63,9 @@ namespace WitchCityRope.Infrastructure.Data
             var entries = ChangeTracker.Entries()
                 .Where(e => e.Entity is User || e.Entity is Event || e.Entity is EventSession || 
                            e.Entity is EventTicketType || e.Entity is EventTicketTypeSession ||
-                           e.Entity is Registration || e.Entity is Payment || e.Entity is VettingApplication || 
-                           e.Entity is IncidentReport || e.Entity is UserAuthentication || e.Entity is RefreshToken);
+                           e.Entity is Registration || e.Entity is RSVP || e.Entity is Payment || 
+                           e.Entity is VettingApplication || e.Entity is IncidentReport || 
+                           e.Entity is UserAuthentication || e.Entity is RefreshToken);
 
             foreach (var entry in entries)
             {
