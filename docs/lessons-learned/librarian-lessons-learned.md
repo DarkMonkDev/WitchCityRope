@@ -99,6 +99,8 @@
 
 **Phase completion requires migration plan alignment** - Always reference original migration plan to identify correct next phase, update percentage complete accurately (Phase 0-5 complete = 6 of 9 phases = 67% total, or 5 of 6 frontend phases = 83% frontend migration), and maintain phase sequence integrity.
 
+**Major infrastructure achievements require comprehensive documentation updates** - When critical infrastructure improvements occur (like test suite overhauls with 100% pass rates), update PROGRESS.md (current status), functional-area-master-index.md (active work), file-registry.md (changes logged), and relevant functional area documentation (test-coverage.md) to maintain accurate project status across all documentation.
+
 ## Cross-Cutting Feature Organization
 
 **Organize by primary business domain, not UI context** - Events features belong in `/docs/functional-areas/events/[context]/` not `/docs/functional-areas/user-dashboard/events/` because Events is the business domain, dashboard is just UI context.
@@ -127,3 +129,11 @@
 **Critical Content**: Top 5 discoveries, pitfalls to avoid, validation checklist, files created, and next agent action items.
 
 **Enforcement**: Added mandatory handoff section to ALL agent lessons-learned files with WARNING language to ensure compliance.
+
+## Comprehensive Status Documentation Patterns
+
+**Document infrastructure achievements immediately** - Major improvements like comprehensive test suite overhauls (37 test specs, 100% pass rate, CORS fixes, authentication helper fixes) must be documented across multiple files simultaneously to maintain accurate project status.
+
+**Use consistent excellence indicators** - When documenting major achievements, use ✅ checkmarks, performance metrics (9-13ms API responses = 96-99% faster), and specific technical details to convey the significance of infrastructure improvements.
+
+**Update date consistency** - When making major documentation updates, ensure Last Updated dates are consistent across PROGRESS.md, master index, file registry, and functional area documentation to show coordinated status updates.

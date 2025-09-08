@@ -182,7 +182,7 @@ export const EventsListPage: React.FC = () => {
   if (error) {
     return (
       <Container size="xl" py="xl">
-        <Alert color="red" title="Failed to Load Events">
+        <Alert data-testid="events-error" color="red" title="Failed to Load Events">
           <Stack gap="sm">
             <Text size="sm">
               Unable to load events. Please check your connection and try again.
@@ -197,7 +197,7 @@ export const EventsListPage: React.FC = () => {
   }
 
   return (
-    <Box style={{ background: 'var(--color-cream)', minHeight: '100vh' }}>
+    <Box data-testid="page-events" style={{ background: 'var(--color-cream)', minHeight: '100vh' }}>
       {/* Hero Section with burgundy gradient background */}
       <Box
         style={{
@@ -275,6 +275,7 @@ export const EventsListPage: React.FC = () => {
             
             <Group gap="md" align="center">
               <SegmentedControl
+                data-testid="button-view-toggle"
                 value={viewMode}
                 onChange={(value) => setViewMode(value as 'cards' | 'list')}
                 data={[
@@ -297,6 +298,7 @@ export const EventsListPage: React.FC = () => {
               />
               
               <TextInput
+                data-testid="input-search"
                 placeholder="Search events..."
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.currentTarget.value)}
@@ -318,6 +320,7 @@ export const EventsListPage: React.FC = () => {
               />
               
               <Select
+                data-testid="select-category"
                 value={sortBy}
                 onChange={(value) => setSortBy(value || 'date')}
                 data={[
@@ -350,7 +353,7 @@ export const EventsListPage: React.FC = () => {
         {isLoading && eventsArray.length === 0 ? (
           <EventsListSkeleton />
         ) : eventsArray.length === 0 ? (
-          <EmptyEventsState onClearFilters={clearFilters} />
+          <EmptyEventsState data-testid="events-empty" onClearFilters={clearFilters} />
         ) : viewMode === 'cards' ? (
           <EventCardGrid events={eventsArray} userRole={userRole} onRegister={handleRegister} onRSVP={handleRSVP} />
         ) : (
@@ -374,15 +377,17 @@ const EventCardGrid: React.FC<EventCardGridProps> = ({ events, userRole, onRegis
   
   return (
     <Box
+      data-testid="events-list"
       style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
         gap: 'var(--space-lg)'
       }}
     >
-      {events.map(event => (
+      {events.map((event, index) => (
         <WireframeEventCard
           key={event.id}
+          data-testid={`event-card-${index}`}
           event={event}
           userRole={userRole}
           onRegister={onRegister}
@@ -401,9 +406,10 @@ interface WireframeEventCardProps {
   onRegister: (eventId: string) => void;
   onRSVP: (eventId: string) => void;
   onClick: () => void;
+  'data-testid'?: string;
 }
 
-const WireframeEventCard: React.FC<WireframeEventCardProps> = ({ event, userRole, onRegister, onRSVP, onClick }) => {
+const WireframeEventCard: React.FC<WireframeEventCardProps> = ({ event, userRole, onRegister, onRSVP, onClick, 'data-testid': testId }) => {
   const navigate = useNavigate();
   const capacityPercentage = ((event.registrationCount || 0) / (event.capacity || 20)) * 100;
   const availableSpots = (event.capacity || 20) - (event.registrationCount || 0);
@@ -416,6 +422,7 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({ event, userRole
 
   return (
     <Paper
+      data-testid={testId || "event-card"}
       style={{
         background: 'var(--color-ivory)',
         borderRadius: '16px',
@@ -454,6 +461,7 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({ event, userRole
         }}
       >
         <Title
+          data-testid="event-title"
           order={3}
           size="lg"
           fw={700}
@@ -475,6 +483,7 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({ event, userRole
       <Box style={{ padding: 'var(--space-md) var(--space-lg)', flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Date and Time */}
         <Text
+          data-testid="event-date"
           size="sm"
           fw={700}
           mb="sm"
@@ -485,7 +494,7 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({ event, userRole
             letterSpacing: '0.5px'
           }}
         >
-          {formatEventDate(event.startDate)} • {formatEventTime(event.startDate)}
+          <span data-testid="event-time">{formatEventDate(event.startDate)} • {formatEventTime(event.startDate)}</span>
         </Text>
 
         {/* Description */}
@@ -707,7 +716,7 @@ const EventTableView: React.FC<EventTableViewProps> = ({ events, onEventClick })
 
 // Loading skeleton component
 const EventsListSkeleton: React.FC = () => (
-  <Stack gap="xl">
+  <Stack data-testid="events-loading" gap="xl">
     {Array.from({ length: 3 }, (_, index) => (
       <Stack key={index} gap="md">
         <Skeleton height={32} width={200} />
@@ -751,10 +760,11 @@ const EventCardSkeleton: React.FC = () => (
 // Empty state component
 interface EmptyEventsStateProps {
   onClearFilters: () => void;
+  'data-testid'?: string;
 }
 
-const EmptyEventsState: React.FC<EmptyEventsStateProps> = ({ onClearFilters }) => (
-  <Center py="xl">
+const EmptyEventsState: React.FC<EmptyEventsStateProps> = ({ onClearFilters, 'data-testid': testId }) => (
+  <Center data-testid={testId} py="xl">
     <Stack align="center" gap="md">
       <Box
         style={{

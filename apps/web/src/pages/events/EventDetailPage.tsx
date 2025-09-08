@@ -134,7 +134,7 @@ export const EventDetailPage: React.FC = () => {
   };
 
   return (
-    <Box style={{ background: 'var(--color-cream)', minHeight: '100vh' }}>
+    <Box data-testid="page-event-detail" style={{ background: 'var(--color-cream)', minHeight: '100vh' }}>
       {/* Breadcrumb */}
       <Container size="xl" pt="md">
         <Breadcrumbs separator="/" mb="md" styles={{
@@ -193,6 +193,7 @@ export const EventDetailPage: React.FC = () => {
         <Stack gap="lg">
           {/* Event Hero Section */}
           <Paper
+            data-testid="section-hero"
             style={{
               background: 'linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%)',
               borderRadius: '24px',
@@ -294,7 +295,7 @@ export const EventDetailPage: React.FC = () => {
               Daily Breakdown
             </Title>
 
-            <List spacing="md" style={{ listStyleType: 'none', padding: 0 }}>
+            <List data-testid="section-sessions" spacing="md" style={{ listStyleType: 'none', padding: 0 }}>
               {event.dailyBreakdown.map((day) => (
                 <List.Item key={day.day} style={{ marginBottom: 'var(--space-md)' }}>
                   <Group gap="sm" align="flex-start">
@@ -705,6 +706,7 @@ const RegistrationCard: React.FC<RegistrationCardProps> = ({
 
         {/* Purchase Button */}
         <Button
+          data-testid="button-register"
           onClick={onPurchase}
           disabled={!selectedOption?.available}
           style={{

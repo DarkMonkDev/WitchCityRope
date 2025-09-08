@@ -114,7 +114,7 @@ export const ProfilePage: React.FC = () => {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout data-testid="page-profile">
       <Box>
         <Title
           order={1}
@@ -132,6 +132,7 @@ export const ProfilePage: React.FC = () => {
         </Title>
 
         <ProfileForm
+          data-testid="form-profile"
           user={user}
           onSubmit={handleSubmit}
           isLoading={isLoading}

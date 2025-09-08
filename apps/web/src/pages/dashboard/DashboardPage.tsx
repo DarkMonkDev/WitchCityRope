@@ -61,9 +61,9 @@ export const DashboardPage: React.FC = () => {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout data-testid="page-dashboard">
       {/* Welcome Header */}
-      <Box mb="xl">
+      <Box data-testid="dashboard-title" mb="xl">
         {userLoading ? (
           <Box style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <Loader size="sm" color="#880124" />
@@ -118,9 +118,9 @@ export const DashboardPage: React.FC = () => {
         spacing="md"
         mb="xl"
       >
-        <EventsWidget limit={3} />
-        <ProfileWidget />
-        <RegistrationHistory limit={4} showOnlyUpcoming={true} />
+        <EventsWidget data-testid="widget-events" limit={3} />
+        <ProfileWidget data-testid="widget-profile" />
+        <RegistrationHistory data-testid="widget-registrations" limit={4} showOnlyUpcoming={true} />
         <MembershipWidget />
       </SimpleGrid>
 
@@ -153,6 +153,7 @@ export const DashboardPage: React.FC = () => {
             <Text
               component={Link}
               to="/events"
+              data-testid="button-quick-events"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -183,6 +184,7 @@ export const DashboardPage: React.FC = () => {
             <Text
               component={Link}
               to="/dashboard/profile"
+              data-testid="button-quick-profile"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -213,6 +215,7 @@ export const DashboardPage: React.FC = () => {
             <Text
               component={Link}
               to="/dashboard/membership"
+              data-testid="button-quick-membership"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -243,6 +246,7 @@ export const DashboardPage: React.FC = () => {
             <Text
               component={Link}
               to="/dashboard/security"
+              data-testid="button-quick-security"
               style={{
                 display: 'flex',
                 alignItems: 'center',

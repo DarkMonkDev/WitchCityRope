@@ -333,6 +333,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
               <Group justify="flex-end">
                 <Button
+                  data-testid="button-save-profile"
                   type="submit"
                   color="wcr"
                   loading={isLoading}

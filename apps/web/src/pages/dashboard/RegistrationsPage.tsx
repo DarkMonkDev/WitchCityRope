@@ -228,7 +228,7 @@ export const RegistrationsPage: React.FC = () => {
   }, []);
 
   return (
-    <DashboardLayout>
+    <DashboardLayout data-testid="page-registrations">
       <Box>
         <Title
           order={1}
@@ -449,7 +449,7 @@ export const RegistrationsPage: React.FC = () => {
               </Stack>
             ) : (
               // Desktop Table View
-              <Table striped highlightOnHover>
+              <Table data-testid="list-registrations" striped highlightOnHover>
                 <Table.Thead>
                   <Table.Tr>
                     <Table.Th>Event</Table.Th>
@@ -496,6 +496,7 @@ export const RegistrationsPage: React.FC = () => {
                         <Table.Td>
                           {registration.canCancel ? (
                             <Button
+                              data-testid="button-cancel-registration"
                               size="xs"
                               variant="light"
                               color="red"

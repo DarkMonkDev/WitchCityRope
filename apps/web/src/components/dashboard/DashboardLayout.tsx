@@ -41,6 +41,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
         {/* Left Navigation */}
         <Box
           component="aside"
+          data-testid="dashboard-nav"
           style={{
             backgroundColor: '#FAF6F2',
             padding: '16px 0',

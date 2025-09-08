@@ -22,13 +22,13 @@ export interface ProtectedWelcomeResponse {
   serverTime: string
 }
 
-const API_BASE_URL = 'http://localhost:5655'
+const API_BASE_URL = 'http://localhost:5653'
 
 class AuthService {
   private token: string | null = null
 
   async login(credentials: LoginRequest): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -50,7 +50,7 @@ class AuthService {
   }
 
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ class AuthService {
 
   async logout(): Promise<void> {
     try {
-      await fetch(`${API_BASE_URL}/api/auth/logout`, {
+      await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
         method: 'POST',
         credentials: 'include', // Include httpOnly cookies
         headers: this.token ? { Authorization: `Bearer ${this.token}` } : {},

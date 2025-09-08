@@ -67,6 +67,81 @@ Common mistakes to avoid:
 4. **Files Modified**: Exact paths and purposes
 5. **Validation Steps**: How to verify the work
 
+## 🚨 CRITICAL: CORS Configuration for Authentication - AllowAnyOrigin() vs AllowCredentials() 🚨
+**Date**: 2025-09-08
+**Category**: CORS
+**Severity**: Critical
+
+### Context
+React frontend at http://localhost:5174 blocked by CORS policy when making authenticated requests to API at http://localhost:5653. All E2E tests failing due to CORS blocking XMLHttpRequest with credentials.
+
+### What We Learned
+**CORS CONFIGURATION INCOMPATIBILITIES**:
+- `AllowAnyOrigin()` is INCOMPATIBLE with `AllowCredentials()` - browsers will block requests
+- Authentication cookies require `AllowCredentials()` to be true
+- Must specify explicit origins when using credentials (cannot use wildcard)
+- Development policy needs same credential support as production policy
+- CORS middleware must be configured before Authentication middleware in pipeline
+
+**DEBUGGING TECHNIQUES**:
+- Browser developer tools show exact CORS error messages
+- OPTIONS preflight requests reveal CORS policy effectiveness
+- Test CORS configuration with curl to verify headers before frontend testing
+- Check response headers: Access-Control-Allow-Origin, Access-Control-Allow-Credentials
+- Environment-specific policies may have different requirements
+
+### Action Items
+- [ ] NEVER use AllowAnyOrigin() with AllowCredentials() - they are mutually exclusive
+- [ ] ALWAYS specify explicit origins in development policy when using credentials
+- [ ] ALWAYS test CORS configuration with curl OPTIONS requests first
+- [ ] ALWAYS configure CORS before authentication middleware in pipeline
+- [ ] ALWAYS include exposed headers for pagination (X-Total-Count, etc.)
+- [ ] VERIFY appsettings.json has correct allowed origins for all environments
+
+### Files Involved
+- `/src/WitchCityRope.Api/Infrastructure/ApiConfiguration.cs` - CORS policy configuration
+- `/src/WitchCityRope.Api/appsettings.json` - Allowed origins configuration
+- `/src/WitchCityRope.Api/Program.cs` - Middleware pipeline order
+
+### Fix Strategy
+1. Replace AllowAnyOrigin() with WithOrigins() using explicit origin list
+2. Keep AllowCredentials() for authentication cookie support
+3. Use allowedOrigins from configuration or fallback to development defaults
+4. Include WithExposedHeaders for pagination headers
+5. Test CORS with OPTIONS preflight requests before frontend integration
+
+### Code Example
+```csharp
+// ❌ WRONG - AllowAnyOrigin incompatible with AllowCredentials
+options.AddPolicy("DevelopmentPolicy", builder =>
+{
+    builder
+        .AllowAnyOrigin()      // BLOCKS credentials
+        .AllowAnyMethod()
+        .AllowAnyHeader();     // Missing AllowCredentials()
+});
+
+// ✅ CORRECT - Explicit origins with credentials
+options.AddPolicy("DevelopmentPolicy", builder =>
+{
+    builder
+        .WithOrigins(allowedOrigins.Length > 0 ? allowedOrigins : new[] { 
+            "http://localhost:5173", 
+            "http://localhost:5174",
+            "http://localhost:5651"
+        })
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials()    // REQUIRED for auth cookies
+        .WithExposedHeaders("X-Total-Count", "X-Page-Number", "X-Page-Size");
+});
+```
+
+### Tags
+#critical #cors #authentication #credentials #react-integration #frontend-blocking
+
+---
+
 ## 🚨 CRITICAL: API Routing Conflicts Between Controllers and Minimal API 🚨
 **Date**: 2025-09-08
 **Category**: Architecture

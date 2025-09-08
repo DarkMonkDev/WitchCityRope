@@ -11,23 +11,38 @@ namespace WitchCityRope.Core.Enums
         Attendee = 0,
 
         /// <summary>
-        /// Verified community member with additional privileges
+        /// Basic community member
         /// </summary>
         Member = 1,
 
         /// <summary>
-        /// Event organizer who can create and manage events
+        /// Vetted community member with additional privileges
         /// </summary>
-        Organizer = 2,
+        VettedMember = 2,
 
         /// <summary>
-        /// Community moderator who can review incidents and vetting
+        /// Teacher who can create and manage classes
         /// </summary>
-        Moderator = 3,
+        Teacher = 3,
 
         /// <summary>
         /// System administrator with full access
         /// </summary>
-        Administrator = 4
+        Admin = 4,
+
+        /// <summary>
+        /// Event organizer who can create and manage events
+        /// </summary>
+        Organizer = 5,
+
+        /// <summary>
+        /// Community moderator who can review incidents and vetting
+        /// </summary>
+        Moderator = 6,
+
+        /// <summary>
+        /// Legacy - System administrator with full access
+        /// </summary>
+        Administrator = 7
     }
 }
