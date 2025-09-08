@@ -43,10 +43,10 @@ class AuthService {
     }
 
     const data = await response.json()
-    // API returns nested structure: { success: true, data: { token, user } }
-    const authData = data.data || data
-    this.token = authData.token // Store JWT token in memory
-    return authData
+    console.log('Login API response:', data)
+    // API returns flat structure directly: { token, user, refreshToken, expiresAt }
+    this.token = data.token // Store JWT token in memory
+    return data
   }
 
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {
@@ -65,10 +65,9 @@ class AuthService {
     }
 
     const data = await response.json()
-    // API returns nested structure: { success: true, data: { token, user } }
-    const authData = data.data || data
-    this.token = authData.token // Store JWT token in memory
-    return authData
+    // API returns flat structure directly: { token, user, refreshToken, expiresAt }
+    this.token = data.token // Store JWT token in memory
+    return data
   }
 
   async logout(): Promise<void> {

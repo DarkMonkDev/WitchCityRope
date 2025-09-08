@@ -40,14 +40,13 @@ export function useLogin() {
   const navigate = useNavigate()
   
   return useMutation({
-    mutationFn: async (credentials: LoginRequest): Promise<ApiResponse<LoginResponseWithToken>> => {
+    mutationFn: async (credentials: LoginRequest): Promise<LoginResponseWithToken> => {
       const response = await api.post('/api/Auth/login', credentials)
       return response.data
     },
-    onSuccess: (response, variables, context) => {
-      // Handle nested response structure from API
-      // The API returns { success: true, data: { token: '...', expiresAt: '...', user: {...} }, message: '...' }
-      const { data } = response
+    onSuccess: (data, variables, context) => {
+      // Handle flat response structure from API
+      // The API returns { token: '...', expiresAt: '...', user: {...}, refreshToken: '...' }
       const userData = data.user
       const token = data.token
       const expiresAt = new Date(data.expiresAt)
@@ -83,15 +82,14 @@ export function useRegister() {
   const navigate = useNavigate()
   
   return useMutation({
-    mutationFn: async (credentials: RegisterCredentials): Promise<ApiResponse<UserDto>> => {
+    mutationFn: async (credentials: RegisterCredentials): Promise<UserDto> => {
       const response = await api.post('/api/Auth/register', credentials)
       return response.data
     },
-    onSuccess: (response) => {
-      // Handle nested response structure from API
+    onSuccess: (userData) => {
+      // Handle flat response structure from API
       // Registration doesn't return JWT token - user needs to login
       // Just navigate to login page with success message
-      const userData = response.data
       
       // Navigate to login page after successful registration
       navigate('/login?message=Registration successful. Please log in.', { replace: true })
