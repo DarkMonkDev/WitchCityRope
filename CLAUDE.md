@@ -11,6 +11,19 @@ All navigation now uses:
 - **Agent Guides**: `/.claude/agents/` and `/docs/lessons-learned/`
 - **Standards**: `/docs/standards-processes/`
 
+### 🚨 CRITICAL: DOCUMENTATION ORGANIZATION STANDARD 🚨
+
+**MANDATORY**: Follow `/docs/standards-processes/documentation-organization-standard.md`
+
+**KEY PRINCIPLES**:
+1. **Cross-cutting features organized by PRIMARY BUSINESS DOMAIN**
+2. **Events is a DOMAIN, dashboard/admin/public are UI CONTEXTS**
+3. **Use subfolders for different UI contexts of same domain**
+4. **NEVER create separate functional area folders for UI contexts of existing domains**
+
+**CORRECT STRUCTURE**: `/docs/functional-areas/events/[context]/`
+**WRONG STRUCTURE**: `/docs/functional-areas/user-dashboard/events/`
+
 **ALL OTHER FILES MUST GO IN:**
 - `/docs/functional-areas/[area]/` - For feature work
 - `/docs/guides-setup/` - For guides and setup docs

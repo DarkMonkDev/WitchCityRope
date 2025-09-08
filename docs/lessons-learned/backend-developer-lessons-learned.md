@@ -27,6 +27,24 @@
 - **Import from @witchcityrope/shared-types only**
 - **Add comprehensive OpenAPI annotations - these generate frontend types**
 
+## Documentation Organization Standard
+
+**CRITICAL**: Follow the documentation organization standard at `/docs/standards-processes/documentation-organization-standard.md`
+
+Key points for Backend Developer Agent:
+- **Store API documentation by PRIMARY BUSINESS DOMAIN** - e.g., `/docs/functional-areas/events/new-work/`
+- **Use context subfolders for UI-specific API work** - e.g., `/docs/functional-areas/events/admin-events-management/api-design.md`
+- **NEVER create separate functional areas for UI contexts** - Events APIs go in `/events/`, not `/user-dashboard/events/`
+- **Document APIs that serve multiple contexts together** at domain level
+- **Reference context-specific requirements** for UI integration
+- **Maintain business rule documentation** at domain level not context level
+
+Common mistakes to avoid:
+- Creating API documentation in UI-context folders instead of business-domain folders
+- Scattering related API specs across multiple functional areas
+- Not documenting which contexts an API serves
+- Missing cross-references between APIs serving different UI contexts of same domain
+
 ## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
 
 **CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.

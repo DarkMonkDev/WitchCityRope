@@ -75,6 +75,24 @@
 - **Use standardized CSS classes, NOT inline styles**
 - **Follow Design System v7 for all styling decisions**
 
+## Documentation Organization Standard
+
+**CRITICAL**: Follow the documentation organization standard at `/docs/standards-processes/documentation-organization-standard.md`
+
+Key points for React Developer Agent:
+- **Find component docs by PRIMARY BUSINESS DOMAIN** - look in `/docs/functional-areas/events/` not `/user-dashboard/events/`
+- **Check context subfolders for UI-specific specs** - e.g., `/docs/functional-areas/events/admin-events-management/`
+- **Document React components by business domain** not UI context
+- **Cross-reference related UI contexts** when implementing shared components
+- **Use domain-level design systems** and component libraries
+- **Check for existing implementations** across all contexts of a domain
+
+Common mistakes to avoid:
+- Looking for component specs in UI-context folders instead of business-domain folders
+- Implementing duplicate components for different UI contexts of the same domain
+- Not checking all contexts (public, admin, user) for existing component patterns
+- Missing shared component opportunities across UI contexts
+
 ## 🚨 CRITICAL: WORKTREE WORKFLOW MANDATORY 🚨
 
 **All development MUST happen in git worktrees, NOT main repository**

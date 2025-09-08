@@ -66,6 +66,23 @@
 - **Document: 'Verified no existing solution in: [docs checked]'**
 - **NEVER specify manual DTO creation - all types come from NSwag auto-generation**
 
+## Documentation Organization Standard
+
+**CRITICAL**: Follow the documentation organization standard at `/docs/standards-processes/documentation-organization-standard.md`
+
+Key points for Business Requirements Agent:
+- **Store requirements by PRIMARY BUSINESS DOMAIN** - e.g., `/docs/functional-areas/events/requirements/`
+- **Use context subfolders for UI-specific requirements** - e.g., `/docs/functional-areas/events/admin-events-management/requirements.md`
+- **NEVER create separate functional areas for UI contexts** - Events requirements go in `/events/`, not `/user-dashboard/events/`
+- **Cross-reference related contexts** in all requirement documents
+- **Document domain-wide business rules** at the primary domain level
+- **Avoid creating `/docs/functional-areas/admin-dashboard/` or `/user-dashboard/` as primary areas**
+
+Common mistakes to avoid:
+- Creating requirements in UI-context folders instead of business-domain folders
+- Scattering related requirements across multiple functional areas
+- Not linking requirements between different UI contexts of the same domain
+
 ---
 
 ## 🚨 CRITICAL: DTO Specification Requirements (READ FIRST) 🚨

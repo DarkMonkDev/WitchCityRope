@@ -62,6 +62,24 @@
 
 ### Functional Specification Agent Specific Rules:
 - **PHASE 0 is now MANDATORY: Architecture Discovery before any specification**
+
+## Documentation Organization Standard
+
+**CRITICAL**: Follow the documentation organization standard at `/docs/standards-processes/documentation-organization-standard.md`
+
+Key points for Functional Specification Agent:
+- **Store specifications by PRIMARY BUSINESS DOMAIN** - e.g., `/docs/functional-areas/events/specifications/`
+- **Use context subfolders for UI-specific specs** - e.g., `/docs/functional-areas/events/admin-events-management/functional-spec.md`
+- **NEVER create separate functional areas for UI contexts** - Event specs go in `/events/`, not `/user-dashboard/events/`
+- **Document domain-wide functional requirements** at primary domain level
+- **Cross-reference specifications** between different UI contexts of same domain
+- **Create unified technical architecture** that serves all UI contexts of a domain
+
+Common mistakes to avoid:
+- Creating specifications in UI-context folders instead of business-domain folders
+- Scattering related functional specs across multiple functional areas
+- Not considering integration requirements between UI contexts of same domain
+- Missing shared technical patterns that could serve multiple contexts
 - **RED FLAG words: 'alignment', 'DTO', 'type generation' → STOP and check NSwag docs**
 - **Reference line numbers from architecture docs in specifications**
 - **Document: 'Verified existing solutions in: [architecture docs checked]'**

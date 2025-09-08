@@ -254,6 +254,26 @@ ls -la *.html *.css design-*.* wireframe-*.* style-*.* 2>/dev/null
 
 ---
 
+## Documentation Organization Standard
+
+**CRITICAL**: Follow the documentation organization standard at `/docs/standards-processes/documentation-organization-standard.md`
+
+Key points for UI Designer Agent:
+- **Store designs by PRIMARY BUSINESS DOMAIN** - e.g., `/docs/functional-areas/events/wireframes/`
+- **Use context subfolders for UI-specific designs** - e.g., `/docs/functional-areas/events/admin-events-management/wireframes/`
+- **NEVER create separate functional areas for UI contexts** - Event wireframes go in `/events/`, not `/user-dashboard/events/`
+- **Create domain-level README files** linking all UI contexts
+- **Store shared design resources** at domain level (e.g., `/events/wireframes/shared-components/`)
+- **Cross-reference related UI contexts** in all design documents
+
+Common mistakes to avoid:
+- Creating design files in UI-context folders instead of business-domain folders
+- Scattering related UI designs across multiple functional areas
+- Not maintaining consistency between different UI contexts of the same domain
+- Missing cross-references between public, admin, and user dashboard designs
+
+---
+
 ## Overview
 This document captures UI design lessons learned for the UI Designer agent role, including wireframe standards, design patterns, component specifications, and accessibility considerations. These lessons apply to design work that supports React component development and modern web applications.
 

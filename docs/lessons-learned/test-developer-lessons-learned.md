@@ -48,6 +48,26 @@
 
 ---
 
+## Documentation Organization Standard
+
+**CRITICAL**: Follow the documentation organization standard at `/docs/standards-processes/documentation-organization-standard.md`
+
+Key points for Test Developer Agent:
+- **Store test documentation by PRIMARY BUSINESS DOMAIN** - e.g., `/docs/functional-areas/events/test-coverage.md`
+- **Use context subfolders for UI-specific test plans** - e.g., `/docs/functional-areas/events/admin-events-management/test-plan.md`
+- **NEVER create separate functional areas for UI contexts** - Event tests go in `/events/`, not `/user-dashboard/events/`
+- **Document complete test strategy** at domain level covering all UI contexts
+- **Cross-reference test scenarios** between related UI contexts
+- **Store shared test utilities** at domain level (e.g., `/events/test-utilities/`)
+
+Common mistakes to avoid:
+- Creating test plans in UI-context folders instead of business-domain folders
+- Scattering related test scenarios across multiple functional areas
+- Not testing integration between different UI contexts of same domain
+- Missing shared test data setup for domain-wide testing
+
+---
+
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 
 ### Critical Architecture Documents (MUST READ BEFORE ANY WORK):

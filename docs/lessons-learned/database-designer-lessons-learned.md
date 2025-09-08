@@ -63,6 +63,24 @@
 - **NEVER create manual database setup scripts - use DatabaseInitializationService**
 - **ALWAYS use SeedDataService for comprehensive test data (7 accounts + 12 events)**
 
+## Documentation Organization Standard
+
+**CRITICAL**: Follow the documentation organization standard at `/docs/standards-processes/documentation-organization-standard.md`
+
+Key points for Database Designer Agent:
+- **Store database documentation by PRIMARY BUSINESS DOMAIN** - e.g., `/docs/functional-areas/events/database-design/`
+- **Document entity relationships at domain level** - e.g., `/docs/functional-areas/events/entity-relationships.md`
+- **NEVER create separate functional areas for UI contexts** - Event entities go in `/events/`, not `/user-dashboard/events/`
+- **Document database schemas that serve multiple contexts** at domain level
+- **Cross-reference data requirements** from different UI contexts of same domain
+- **Store migration scripts** by business domain not by UI context
+
+Common mistakes to avoid:
+- Creating database schemas based on UI contexts instead of business domains
+- Scattering related entity documentation across multiple functional areas
+- Not considering data needs across all UI contexts (public, admin, user) of same domain
+- Missing relationships between entities that serve different UI contexts
+
 ---
 
 ## 🚨 CRITICAL: Database Auto-Initialization Pattern (NEW SYSTEM) 🚨

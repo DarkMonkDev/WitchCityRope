@@ -67,6 +67,22 @@
   - `/docs/guides-setup/` - Guides and setup
   - `/docs/lessons-learned/` - Lessons learned
   - `/docs/standards-processes/` - Standards
+
+#### Documentation Organization Standard (NEW - CRITICAL):
+**MANDATORY**: Follow `/docs/standards-processes/documentation-organization-standard.md`
+
+**KEY ENFORCEMENT RULES**:
+1. **Cross-cutting features organized by PRIMARY BUSINESS DOMAIN**
+2. **Events is a DOMAIN, dashboard/admin/public are UI CONTEXTS**
+3. **Use subfolders for different UI contexts of same domain**
+4. **NEVER create separate functional area folders for UI contexts of existing domains**
+
+**ORCHESTRATOR MUST ENFORCE**:
+- ✅ **CORRECT**: `/docs/functional-areas/events/[context]/` 
+- ❌ **WRONG**: `/docs/functional-areas/user-dashboard/events/`
+- **Coordinate agents** to follow domain-based organization
+- **Prevent UI-context functional areas** from being created
+- **Ensure cross-references** between related contexts
   - `/docs/architecture/` - Architecture decisions
   - `/docs/design/` - Design documents
   - `/docs/_archive/` - Archived content
