@@ -620,8 +620,89 @@ This pattern enables rapid development of complex API integrations while maintai
 
 ---
 
+---
+
+## 🚨 CRITICAL: Frontend API Response Structure Fix 🚨
+**Date**: 2025-01-09
+**Category**: API Integration
+**Severity**: CRITICAL
+
+### Context
+Fixed critical authentication and events system issues where API response handling was expecting wrapped responses but the actual API returns flat data structures.
+
+### What We Learned
+- **API Returns Flat Structures**: The WitchCityRope API returns data directly, not wrapped in `.data` properties
+- **Authentication Flow Fixed**: Login/register now work correctly with proper response handling
+- **Events System Operational**: Events list and detail pages now use real API data exclusively
+- **Mock Data Removed**: All fallback mock data patterns removed for cleaner error handling
+
+### Action Items
+- [x] **ALWAYS check actual API response structure** before implementing handlers
+- [x] **NEVER assume wrapped responses** without verifying API behavior
+- [x] **REMOVE mock data fallbacks** once real API integration is working
+- [x] **TEST authentication flow** with real user credentials immediately after API changes
+- [x] **UPDATE all mutations** to handle flat response structure correctly
+
+### Fixed Implementation Pattern:
+```typescript
+// ✅ CORRECT - Handle flat API response structure
+async login(credentials: LoginRequest): Promise<AuthResponse> {
+  const response = await fetch('/api/Auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(credentials),
+  })
+  
+  const data = await response.json()
+  // API returns: { token: '...', user: {...}, expiresAt: '...' }
+  this.token = data.token // Direct access, not data.data.token
+  return data
+}
+
+// ✅ CORRECT - TanStack Query mutation
+export function useLogin() {
+  return useMutation({
+    mutationFn: async (credentials: LoginRequest) => {
+      const response = await api.post('/api/Auth/login', credentials)
+      return response.data // Flat structure from API
+    },
+    onSuccess: (data) => {
+      // Handle flat response: data.user, data.token, etc.
+      login(data.user, data.token, new Date(data.expiresAt))
+    }
+  })
+}
+
+// ❌ WRONG - Expecting wrapped responses
+return response.data.data.token  // API doesn't wrap responses
+```
+
+### Events System Fix:
+```typescript
+// ✅ CORRECT - Use real API data only, no mock fallbacks
+const { data: events, isLoading, error } = useEvents(apiFilters);
+const eventsArray: EventDto[] = events || []; // Real API data only
+
+// ❌ WRONG - Mock data fallbacks prevent proper error handling
+const eventsArray = events || mockEvents; // Hides API issues
+```
+
+### Impact
+This fix enables:
+- ✅ **Working Authentication**: Login/register/logout flow operational
+- ✅ **Real Events Data**: Events list and detail pages using live API
+- ✅ **Proper Error Handling**: No more hidden failures due to mock fallbacks
+- ✅ **Type Safety**: Response handlers match actual API contracts
+- ✅ **Performance**: Direct data access without unnecessary wrapping
+
+### Tags
+#critical #api-integration #authentication #events-system #response-handling #mock-data-removal
+
+---
+
 *This file is maintained by the react-developer agent. Add new lessons immediately when discovered.*
-*Last updated: 2025-09-07 - Added critical Event Session Matrix API integration patterns*
+*Last updated: 2025-01-09 - Added critical Frontend API Response Structure Fix*
 
 ## COMPREHENSIVE LESSONS FROM FRONTEND DEVELOPMENT
 **NOTE**: The following lessons were consolidated from frontend-lessons-learned.md
