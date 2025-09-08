@@ -83,7 +83,7 @@
 
 **Always update documentation in coordinated sets** - STATUS.md, README.md, PROGRESS.md, and master index together to maintain consistency.
 
-**Phase completion documentation pattern** - When phases complete, update PROGRESS.md (status and focus), master index (current work status), file registry (track changes), ensuring migration progress is clearly communicated.
+**Phase completion documentation pattern** - When phases complete, update PROGRESS.md (status and focus), master index (current work status), file registry (track changes), ensuring migration progress is clearly communicated. Calculate migration percentage accurately: 5 of 6 frontend phases = 83% complete.
 
 **Use comprehensive achievement summaries** - When documenting completion, include technical metrics, business value, and next steps for complete handoff.
 
@@ -97,7 +97,7 @@
 
 **Document existing asset inventory comprehensively** - When cataloging existing work, provide complete paths and describe what can be reused vs what needs creation.
 
-**Phase completion requires migration plan alignment** - Always reference original migration plan to identify correct next phase, update percentage complete accurately, and maintain phase sequence integrity.
+**Phase completion requires migration plan alignment** - Always reference original migration plan to identify correct next phase, update percentage complete accurately (Phase 0-5 complete = 6 of 9 phases = 67% total, or 5 of 6 frontend phases = 83% frontend migration), and maintain phase sequence integrity.
 
 ## Cross-Cutting Feature Organization
 
