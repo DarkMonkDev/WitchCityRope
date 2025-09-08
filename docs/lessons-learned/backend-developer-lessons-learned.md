@@ -2,6 +2,78 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 CRITICAL: Missing Individual Event API Endpoint Fixed - 2025-09-08 🚨
+**Date**: 2025-09-08
+**Category**: API Development
+**Severity**: Critical
+
+### Context
+Frontend events were failing because GET /api/events/{id} endpoint was missing from EventsController. Only the list events endpoint existed, preventing individual event detail pages from loading.
+
+### What We Learned
+**CONTROLLER ENDPOINT GAPS**:
+- EventsController had GET /api/events (list) but missing GET /api/events/{id} (individual)
+- IEventService.GetEventByIdAsync method existed but wasn't exposed via controller
+- Program.cs had commented-out minimal API endpoints that would have provided this functionality
+- Database schema issues with Registration table navigation properties causing runtime errors
+
+**DEBUGGING TECHNIQUES**:
+- Testing both list and individual endpoints to identify missing routes
+- Using curl with verbose output to see exact HTTP response codes
+- Checking service layer to confirm business logic exists before adding controller endpoint
+- Simplifying database queries to avoid schema migration issues during development
+
+### Action Items
+- [x] COMPLETED: Add GET /api/events/{id} endpoint to EventsController
+- [x] COMPLETED: Use IEventService.GetEventByIdAsync method for implementation
+- [x] COMPLETED: Implement proper 404 handling for non-existent events
+- [x] COMPLETED: Simplify database queries to avoid navigation property issues
+- [ ] ALWAYS verify individual resource endpoints exist alongside list endpoints
+- [ ] ALWAYS test both success and 404 scenarios for individual resource endpoints
+- [ ] ALWAYS check service layer exists before implementing controller endpoints
+
+### Files Involved
+- `/src/WitchCityRope.Api/Features/Events/EventsController.cs` - Added missing GET {id} endpoint
+- `/src/WitchCityRope.Api/Features/Events/Services/EventService.cs` - Simplified GetEventByIdAsync to avoid schema issues
+- `/src/WitchCityRope.Api/Interfaces/IEventService.cs` - Interface already had required method
+
+### Fix Strategy
+1. Add HttpGet("{id}") endpoint to EventsController
+2. Call existing IEventService.GetEventByIdAsync method
+3. Return 404 with descriptive message for non-existent events
+4. Simplify database queries to avoid navigation property schema conflicts
+5. Test with known event IDs and non-existent IDs
+
+### Code Example
+```csharp
+/// <summary>
+/// Get a specific event by ID
+/// </summary>
+[HttpGet("{id}")]
+public async Task<ActionResult<WitchCityRope.Api.Models.EventDto>> GetEvent(Guid id)
+{
+    var eventDetails = await _eventService.GetEventByIdAsync(id);
+    
+    if (eventDetails == null)
+    {
+        return NotFound($"Event with ID {id} not found");
+    }
+    
+    return Ok(eventDetails);
+}
+```
+
+### Business Impact
+- **Frontend Integration Fixed**: Individual event pages now load correctly
+- **Zero Breaking Changes**: Addition of new endpoint doesn't affect existing functionality
+- **Proper RESTful API**: Complete CRUD operations for events now available
+- **Better User Experience**: Users can view full event details, not just lists
+
+### Tags
+#critical #api-endpoints #events #restful-api #missing-endpoints #frontend-integration
+
+---
+
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 
 ### Critical Architecture Documents (MUST READ BEFORE ANY WORK):

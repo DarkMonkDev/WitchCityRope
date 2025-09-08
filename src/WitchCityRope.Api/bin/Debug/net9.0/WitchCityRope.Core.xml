@@ -1076,7 +1076,22 @@
         </member>
         <member name="F:WitchCityRope.Core.Enums.UserRole.Member">
             <summary>
-            Verified community member with additional privileges
+            Basic community member
+            </summary>
+        </member>
+        <member name="F:WitchCityRope.Core.Enums.UserRole.VettedMember">
+            <summary>
+            Vetted community member with additional privileges
+            </summary>
+        </member>
+        <member name="F:WitchCityRope.Core.Enums.UserRole.Teacher">
+            <summary>
+            Teacher who can create and manage classes
+            </summary>
+        </member>
+        <member name="F:WitchCityRope.Core.Enums.UserRole.Admin">
+            <summary>
+            System administrator with full access
             </summary>
         </member>
         <member name="F:WitchCityRope.Core.Enums.UserRole.Organizer">
@@ -1091,7 +1106,7 @@
         </member>
         <member name="F:WitchCityRope.Core.Enums.UserRole.Administrator">
             <summary>
-            System administrator with full access
+            Legacy - System administrator with full access
             </summary>
         </member>
         <member name="T:WitchCityRope.Core.Exceptions.ConflictException">

@@ -3,134 +3,61 @@ import { useParams } from 'react-router-dom';
 import { 
   Container, Stack, Title, Text, Breadcrumbs, 
   Anchor, Alert, Button, Box, Badge, Group, Paper, 
-  ActionIcon, List, Avatar
+  ActionIcon, List, Avatar, Skeleton, Center
 } from '@mantine/core';
 import { 
   IconCalendar, IconClock, IconMapPin, IconUsers, 
   IconShare, IconMail, IconBrandX, IconLink, IconCheck
 } from '@tabler/icons-react';
 import { formatEventDate, formatEventTime } from '../../utils/eventUtils';
-
-// Mock event data matching the wireframe
-const mockEventDetail = {
-  id: 'e2222222-2222-2222-2222-222222222222',
-  title: '3-Day Rope Intensive Series',
-  type: 'SERIES',
-  dates: 'February 15-17, 2025',
-  times: 'Various Times',
-  location: 'Salem Studio',
-  duration: '2.5 hours each day',
-  maxCapacity: 20,
-  description: `Immerse yourself in three days of comprehensive rope bondage education! This intensive series takes you from fundamental safety concepts through advanced techniques, with each day building upon the last. Perfect for those wanting to fast-track their learning or deepen existing knowledge.
-
-Choose from full series passes for the complete experience, or attend individual days based on your needs and schedule. Our expert instructors ensure personalized attention in small group settings.`,
-  dailyBreakdown: [
-    {
-      day: 1,
-      date: 'Feb 15',
-      title: 'Fundamentals',
-      description: 'Safety protocols, basic ties, communication, and risk awareness. Perfect for beginners.'
-    },
-    {
-      day: 2,
-      date: 'Feb 16', 
-      title: 'Intermediate Techniques',
-      description: 'Chest harnesses, hip patterns, and transitional ties. Some experience recommended.'
-    },
-    {
-      day: 3,
-      date: 'Feb 17',
-      title: 'Advanced Applications',
-      description: 'Suspension prep, complex patterns, and advanced safety. Strong fundamentals required.'
-    }
-  ],
-  prerequisites: [
-    'Must be 21+ years of age',
-    'Day 1: No experience required',
-    'Day 2-3: Basic tie knowledge recommended'
-  ],
-  whatToBring: [
-    '6-8 pieces of 8mm rope (available for purchase at venue)',
-    'Comfortable clothing that allows movement', 
-    'Water bottle and snacks',
-    'Notebook for taking notes'
-  ],
-  instructor: {
-    name: 'Alex Rivers',
-    initials: 'AR',
-    bio: 'Alex has been teaching rope bondage for over 8 years and is passionate about creating inclusive, safety-focused learning environments. Known for their patient teaching style and emphasis on consent culture, Alex makes learning accessible for all skill levels.'
-  },
-  sessions: [
-    { name: 'Day 1 (Feb 15)', spotsLeft: 12, total: 20, status: 'high' },
-    { name: 'Day 2 (Feb 16)', spotsLeft: 5, total: 20, status: 'low' },
-    { name: 'Day 3 (Feb 17)', spotsLeft: 15, total: 20, status: 'high' }
-  ],
-  ticketOptions: [
-    {
-      id: 'full-series',
-      name: 'Full 3-Day Series',
-      price: '$165-225',
-      sessions: ['Day 1', 'Day 2', 'Day 3'],
-      spotsLeft: 5,
-      status: 'low',
-      available: true
-    },
-    {
-      id: 'day-1',
-      name: 'Day 1 Only',
-      price: '$65-85',
-      sessions: ['Day 1 (Fundamentals)'],
-      spotsLeft: 12,
-      status: 'high',
-      available: true
-    },
-    {
-      id: 'day-2',
-      name: 'Day 2 Only',
-      price: '$75-95',
-      sessions: ['Day 2 (Intermediate)'],
-      spotsLeft: 5,
-      status: 'low',
-      available: true
-    },
-    {
-      id: 'day-3',
-      name: 'Day 3 Only',
-      price: '$85-105',
-      sessions: ['Day 3 (Advanced)'],
-      spotsLeft: 15,
-      status: 'high',
-      available: true
-    },
-    {
-      id: 'days-1-2',
-      name: 'Days 1-2 Combo',
-      price: '$120-160',
-      sessions: ['Day 1', 'Day 2'],
-      spotsLeft: 0,
-      status: 'sold-out',
-      available: false
-    }
-  ]
-};
+import { useEvent } from '../../lib/api/hooks/useEvents';
+import type { EventDto } from '../../lib/api/types/events.types';
 
 export const EventDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [selectedTicket, setSelectedTicket] = useState('full-series');
-  const event = mockEventDetail; // In real app, fetch by ID
+  const [selectedTicket, setSelectedTicket] = useState('single');
+  
+  const { data: event, isLoading, error } = useEvent(id!, !!id);
+  
+  if (isLoading) {
+    return (
+      <Box data-testid="page-event-detail" style={{ background: 'var(--color-cream)', minHeight: '100vh' }}>
+        <Container size="xl" py="xl">
+          <EventDetailSkeleton />
+        </Container>
+      </Box>
+    );
+  }
+  
+  if (error || !event) {
+    return (
+      <Box data-testid="page-event-detail" style={{ background: 'var(--color-cream)', minHeight: '100vh' }}>
+        <Container size="xl" py="xl">
+          <Alert color="red" title="Event Not Found">
+            <Text>Sorry, we couldn't find this event. It may have been removed or the link is incorrect.</Text>
+            <Button component="a" href="/events" mt="md" size="sm">
+              Back to Events
+            </Button>
+          </Alert>
+        </Container>
+      </Box>
+    );
+  }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'high': return 'var(--color-success)';
-      case 'low': return 'var(--color-error)';
-      default: return 'var(--color-warning)';
-    }
+  const availableSpots = (event.capacity || 0) - (event.registrationCount || 0);
+  const capacityPercentage = event.capacity ? (event.registrationCount || 0) / event.capacity * 100 : 0;
+  
+  const getAvailabilityStatus = () => {
+    if (availableSpots <= 0) return { status: 'sold-out', color: 'var(--color-stone)' };
+    if (availableSpots <= 3) return { status: 'low', color: 'var(--color-error)' };
+    return { status: 'available', color: 'var(--color-success)' };
   };
+  
+  const availability = getAvailabilityStatus();
 
   const handlePurchase = () => {
-    const selectedOption = event.ticketOptions.find(opt => opt.id === selectedTicket);
-    console.log('Purchasing:', selectedOption?.name);
-    // Implement purchase logic
+    console.log('Purchasing event:', event.title);
+    // Implement purchase logic - redirect to payment or registration
   };
 
   return (
@@ -179,7 +106,7 @@ export const EventDetailPage: React.FC = () => {
           >
             Classes
           </Anchor>
-          <Text style={{ color: 'var(--color-stone)' }}>3-Day Rope Intensive Series</Text>
+          <Text style={{ color: 'var(--color-stone)' }}>{event.title}</Text>
         </Breadcrumbs>
       </Container>
 
@@ -231,7 +158,7 @@ export const EventDetailPage: React.FC = () => {
                   boxShadow: '0 2px 10px rgba(255, 191, 0, 0.3)'
                 }}
               >
-                3-Day Series
+                Event
               </Badge>
 
               <Title 
@@ -251,11 +178,11 @@ export const EventDetailPage: React.FC = () => {
               <Group gap="lg" style={{ flexWrap: 'wrap' }}>
                 <Group gap="xs" style={{ color: 'var(--color-dusty-rose)', fontSize: '20px' }}>
                   <IconCalendar size={20} />
-                  <Text size="lg">{event.dates}</Text>
+                  <Text size="lg">{formatEventDate(event.startDate)}</Text>
                 </Group>
                 <Group gap="xs" style={{ color: 'var(--color-dusty-rose)', fontSize: '20px' }}>
                   <IconClock size={20} />
-                  <Text size="lg">{event.times}</Text>
+                  <Text size="lg">{formatEventTime(event.startDate)}</Text>
                 </Group>
                 <Group gap="xs" style={{ color: 'var(--color-dusty-rose)', fontSize: '20px' }}>
                   <IconMapPin size={20} />
@@ -265,157 +192,57 @@ export const EventDetailPage: React.FC = () => {
             </Box>
           </Paper>
 
-          {/* About This Series */}
-          <ContentSection title="About This Series">
-            {event.description.split('\n\n').map((paragraph, index) => (
-              <Text 
-                key={index}
-                style={{
-                  fontSize: '17px',
-                  lineHeight: 1.8,
-                  color: 'var(--color-charcoal)',
-                  marginBottom: 'var(--space-md)'
-                }}
-              >
-                {paragraph}
+          {/* About This Event */}
+          <ContentSection title="About This Event">
+            <Text 
+              style={{
+                fontSize: '17px',
+                lineHeight: 1.8,
+                color: 'var(--color-charcoal)',
+                marginBottom: 'var(--space-md)'
+              }}
+            >
+              {event.description}
+            </Text>
+
+            <Title 
+              order={2}
+              style={{
+                fontFamily: 'var(--font-heading)',
+                fontSize: '28px',
+                fontWeight: 700,
+                color: 'var(--color-burgundy)',
+                marginTop: 'var(--space-lg)',
+                marginBottom: 'var(--space-md)'
+              }}
+            >
+              Event Details
+            </Title>
+
+            <Group justify="space-between" style={{ padding: '12px 0', borderBottom: '1px solid var(--color-cream)' }}>
+              <Text style={{ color: 'var(--color-stone)', fontSize: '16px' }}>Start Time</Text>
+              <Text fw={600} style={{ color: 'var(--color-charcoal)' }}>
+                {formatEventDate(event.startDate)} at {formatEventTime(event.startDate)}
               </Text>
-            ))}
-
-            <Title 
-              order={2}
-              style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: '28px',
-                fontWeight: 700,
-                color: 'var(--color-burgundy)',
-                marginTop: 'var(--space-lg)',
-                marginBottom: 'var(--space-md)'
-              }}
-            >
-              Daily Breakdown
-            </Title>
-
-            <List data-testid="section-sessions" spacing="md" style={{ listStyleType: 'none', padding: 0 }}>
-              {event.dailyBreakdown.map((day) => (
-                <List.Item key={day.day} style={{ marginBottom: 'var(--space-md)' }}>
-                  <Group gap="sm" align="flex-start">
-                    <Box
-                      style={{
-                        width: '24px',
-                        height: '24px',
-                        background: 'var(--color-burgundy)',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'var(--color-ivory)',
-                        flexShrink: 0,
-                        marginTop: '2px',
-                        fontSize: '14px',
-                        fontWeight: 700
-                      }}
-                    >
-                      {day.day}
-                    </Box>
-                    <Box>
-                      <Text fw={700} mb={4}>
-                        Day {day.day} - {day.title} ({day.date}):
-                      </Text>
-                      <Text style={{ color: 'var(--color-charcoal)' }}>
-                        {day.description}
-                      </Text>
-                    </Box>
-                  </Group>
-                </List.Item>
-              ))}
-            </List>
-
-            <Title 
-              order={2}
-              style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: '28px',
-                fontWeight: 700,
-                color: 'var(--color-burgundy)',
-                marginTop: 'var(--space-lg)',
-                marginBottom: 'var(--space-md)'
-              }}
-            >
-              Prerequisites & What to Bring
-            </Title>
-
-            <Title 
-              order={4}
-              style={{
-                fontFamily: 'var(--font-heading)',
-                marginBottom: 'var(--space-md)',
-                marginTop: 'var(--space-md)'
-              }}
-            >
-              Prerequisites
-            </Title>
+            </Group>
             
-            {event.prerequisites.map((prereq, index) => (
-              <Group key={index} gap="sm" mb="sm">
-                <Text style={{ color: 'var(--color-success)' }}>✓</Text>
-                <Text style={{ color: 'var(--color-smoke)' }}>{prereq}</Text>
-              </Group>
-            ))}
-
-            <Title 
-              order={4}
-              style={{
-                fontFamily: 'var(--font-heading)',
-                marginBottom: 'var(--space-md)',
-                marginTop: 'var(--space-md)'
-              }}
-            >
-              What to Bring
-            </Title>
-            
-            {event.whatToBring.map((item, index) => (
-              <Group key={index} gap="sm" mb="sm">
-                <Text>•</Text>
-                <Text style={{ color: 'var(--color-smoke)' }}>{item}</Text>
-              </Group>
-            ))}
-          </ContentSection>
-
-          {/* About Your Instructor */}
-          <ContentSection title="About Your Instructor">
-            <Group gap="md" align="center" mt="lg" p="lg" style={{ 
-              background: 'var(--color-cream)',
-              borderRadius: '12px'
-            }}>
-              <Avatar
-                size={80}
-                style={{
-                  background: 'linear-gradient(135deg, var(--color-plum) 0%, var(--color-burgundy) 100%)',
-                  color: 'var(--color-ivory)',
-                  fontSize: '32px',
-                  fontWeight: 700,
-                  boxShadow: '0 4px 15px rgba(136, 1, 36, 0.3)',
-                  border: '2px solid var(--color-rose-gold)'
-                }}
-              >
-                {event.instructor.initials}
-              </Avatar>
-              <Stack gap="xs" style={{ flex: 1 }}>
-                <Title 
-                  order={3}
-                  style={{
-                    fontFamily: 'var(--font-heading)',
-                    fontSize: '20px',
-                    fontWeight: 700,
-                    color: 'var(--color-charcoal)'
-                  }}
-                >
-                  {event.instructor.name}
-                </Title>
-                <Text style={{ color: 'var(--color-stone)', fontSize: '15px' }}>
-                  {event.instructor.bio}
+            {event.endDate && (
+              <Group justify="space-between" style={{ padding: '12px 0', borderBottom: '1px solid var(--color-cream)' }}>
+                <Text style={{ color: 'var(--color-stone)', fontSize: '16px' }}>End Time</Text>
+                <Text fw={600} style={{ color: 'var(--color-charcoal)' }}>
+                  {formatEventDate(event.endDate)} at {formatEventTime(event.endDate)}
                 </Text>
-              </Stack>
+              </Group>
+            )}
+            
+            <Group justify="space-between" style={{ padding: '12px 0', borderBottom: '1px solid var(--color-cream)' }}>
+              <Text style={{ color: 'var(--color-stone)', fontSize: '16px' }}>Location</Text>
+              <Text fw={600} style={{ color: 'var(--color-charcoal)' }}>{event.location}</Text>
+            </Group>
+            
+            <Group justify="space-between" style={{ padding: '12px 0' }}>
+              <Text style={{ color: 'var(--color-stone)', fontSize: '16px' }}>Capacity</Text>
+              <Text fw={600} style={{ color: 'var(--color-charcoal)' }}>{event.capacity || 'Unlimited'}</Text>
             </Group>
           </ContentSection>
 
@@ -440,8 +267,8 @@ export const EventDetailPage: React.FC = () => {
         <Box style={{ position: 'sticky', top: '100px', height: 'fit-content' }}>
           <RegistrationCard 
             event={event}
-            selectedTicket={selectedTicket}
-            onTicketSelect={setSelectedTicket}
+            availability={availability}
+            availableSpots={availableSpots}
             onPurchase={handlePurchase}
           />
         </Box>
@@ -500,21 +327,18 @@ const ContentSection: React.FC<ContentSectionProps> = ({ title, children }) => (
 
 // Registration Card Component
 interface RegistrationCardProps {
-  event: typeof mockEventDetail;
-  selectedTicket: string;
-  onTicketSelect: (ticketId: string) => void;
+  event: EventDto;
+  availability: { status: string; color: string };
+  availableSpots: number;
   onPurchase: () => void;
 }
 
 const RegistrationCard: React.FC<RegistrationCardProps> = ({ 
   event, 
-  selectedTicket, 
-  onTicketSelect, 
+  availability,
+  availableSpots,
   onPurchase 
 }) => {
-  const constrainedSession = event.sessions.find(s => s.status === 'low');
-  const selectedOption = event.ticketOptions.find(opt => opt.id === selectedTicket);
-
   return (
     <Paper
       style={{
@@ -536,7 +360,7 @@ const RegistrationCard: React.FC<RegistrationCardProps> = ({
     >
       <Stack gap="lg">
         {/* Capacity Warning */}
-        {constrainedSession && (
+        {availability.status === 'low' && (
           <Alert
             style={{
               background: 'linear-gradient(135deg, rgba(220, 20, 60, 0.1), rgba(218, 165, 32, 0.1))',
@@ -549,13 +373,51 @@ const RegistrationCard: React.FC<RegistrationCardProps> = ({
             <Group gap="xs" justify="center">
               <Text style={{ color: 'var(--color-warning)', fontSize: '18px' }}>⚠️</Text>
               <Text style={{ fontSize: '14px', color: 'var(--color-charcoal)', fontWeight: 600 }}>
-                {constrainedSession.name} filling up fast - only {constrainedSession.spotsLeft} spots left!
+                Only {availableSpots} spots left!
               </Text>
             </Group>
           </Alert>
         )}
 
-        {/* Session Availability */}
+        {availability.status === 'sold-out' && (
+          <Alert
+            color="red"
+            style={{
+              textAlign: 'center'
+            }}
+          >
+            <Text style={{ fontSize: '16px', color: 'var(--color-error)', fontWeight: 600 }}>
+              This event is sold out
+            </Text>
+          </Alert>
+        )}
+
+        {/* Event Price */}
+        <Box
+          style={{
+            background: 'var(--color-cream)',
+            borderRadius: '12px',
+            padding: 'var(--space-md)',
+            textAlign: 'center'
+          }}
+        >
+          <Text 
+            fw={700}
+            style={{
+              fontFamily: 'var(--font-heading)',
+              fontSize: '24px',
+              color: 'var(--color-burgundy)',
+              marginBottom: 'var(--space-xs)'
+            }}
+          >
+            Price: ${event.capacity ? Math.round(50 + (availableSpots / event.capacity) * 25) : 50}
+          </Text>
+          <Text style={{ color: 'var(--color-stone)', fontSize: '14px' }}>
+            Sliding scale pricing available
+          </Text>
+        </Box>
+
+        {/* Availability */}
         <Box
           style={{
             background: 'var(--color-cream)',
@@ -566,7 +428,7 @@ const RegistrationCard: React.FC<RegistrationCardProps> = ({
           <Title 
             order={4}
             ta="center"
-            mb="md"
+            mb="sm"
             style={{
               fontFamily: 'var(--font-heading)',
               fontSize: '16px',
@@ -574,148 +436,36 @@ const RegistrationCard: React.FC<RegistrationCardProps> = ({
               color: 'var(--color-charcoal)'
             }}
           >
-            Session Availability
+            Availability
           </Title>
-          {event.sessions.map((session) => (
-            <Group 
-              key={session.name}
-              justify="space-between" 
-              align="center"
-              py="xs"
-              style={{ borderBottom: '1px solid rgba(183, 109, 117, 0.1)' }}
+          <Group justify="space-between" align="center">
+            <Text style={{ fontSize: '14px', color: 'var(--color-charcoal)' }}>
+              Spots Available
+            </Text>
+            <Text 
+              style={{ 
+                fontSize: '16px', 
+                fontWeight: 600,
+                color: availability.color
+              }}
             >
-              <Text style={{ fontSize: '14px', color: 'var(--color-charcoal)' }}>
-                {session.name}
-              </Text>
-              <Text 
-                style={{ 
-                  fontSize: '14px', 
-                  fontWeight: 600,
-                  color: getStatusColor(session.status)
-                }}
-              >
-                {session.spotsLeft} spots left
-              </Text>
-            </Group>
-          ))}
+              {availableSpots} / {event.capacity || 'Unlimited'}
+            </Text>
+          </Group>
         </Box>
-
-        {/* Ticket Selection */}
-        <Stack gap="sm">
-          <Title
-            order={4}
-            ta="center"
-            style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: '18px',
-              fontWeight: 600,
-              color: 'var(--color-charcoal)'
-            }}
-          >
-            Choose Your Ticket
-          </Title>
-
-          {event.ticketOptions.map((option) => (
-            <Box
-              key={option.id}
-              onClick={() => option.available && onTicketSelect(option.id)}
-              style={{
-                background: option.available ? 'var(--color-cream)' : 'var(--color-stone)',
-                border: `2px solid ${selectedTicket === option.id ? 'var(--color-burgundy)' : 'var(--color-taupe)'}`,
-                borderRadius: '12px',
-                padding: 'var(--space-md)',
-                cursor: option.available ? 'pointer' : 'not-allowed',
-                transition: 'all 0.3s ease',
-                opacity: option.available ? 1 : 0.6,
-                ...(selectedTicket === option.id && option.available && {
-                  background: 'rgba(136, 1, 36, 0.05)'
-                })
-              }}
-              onMouseEnter={(e) => {
-                if (option.available && selectedTicket !== option.id) {
-                  e.currentTarget.style.borderColor = 'var(--color-rose-gold)';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(183, 109, 117, 0.15)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (option.available && selectedTicket !== option.id) {
-                  e.currentTarget.style.borderColor = 'var(--color-taupe)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }
-              }}
-            >
-              <Group justify="space-between" align="center" mb="xs">
-                <Text 
-                  fw={600}
-                  style={{
-                    fontFamily: 'var(--font-heading)',
-                    color: option.available ? 'var(--color-charcoal)' : 'var(--color-ivory)',
-                    fontSize: '16px'
-                  }}
-                >
-                  {option.name}
-                </Text>
-                <Text 
-                  fw={700}
-                  style={{
-                    fontFamily: 'var(--font-heading)',
-                    color: option.available ? 'var(--color-burgundy)' : 'var(--color-ivory)',
-                    fontSize: '18px'
-                  }}
-                >
-                  {option.price}
-                </Text>
-              </Group>
-
-              <Text 
-                size="sm"
-                mb="xs"
-                style={{ 
-                  color: option.available ? 'var(--color-stone)' : 'var(--color-ivory)',
-                  fontSize: '14px'
-                }}
-              >
-                {option.sessions.map((session, idx) => (
-                  <span key={idx}>
-                    <span style={{ color: 'var(--color-success)', fontWeight: 700 }}>✓</span> {session}
-                    {idx < option.sessions.length - 1 && ' '}
-                  </span>
-                ))}
-              </Text>
-
-              <Text 
-                size="sm"
-                fw={600}
-                style={{
-                  fontSize: '13px',
-                  color: option.available 
-                    ? getStatusColor(option.status)
-                    : 'var(--color-ivory)'
-                }}
-              >
-                {option.available 
-                  ? `${option.spotsLeft} ${option.id.includes('series') ? 'series passes' : 'spots'} left`
-                  : 'Sold Out (Day 2 full)'
-                }
-              </Text>
-            </Box>
-          ))}
-        </Stack>
 
         {/* Purchase Button */}
         <Button
           data-testid="button-register"
           onClick={onPurchase}
-          disabled={!selectedOption?.available}
+          disabled={availability.status === 'sold-out'}
           style={{
             width: '100%',
             padding: 'var(--space-md)',
-            background: selectedOption?.available 
+            background: availability.status !== 'sold-out'
               ? 'linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%)'
               : 'var(--color-stone)',
-            color: selectedOption?.available ? 'var(--color-midnight)' : 'var(--color-ivory)',
+            color: availability.status !== 'sold-out' ? 'var(--color-midnight)' : 'var(--color-ivory)',
             border: 'none',
             borderRadius: '8px',
             fontFamily: 'var(--font-heading)',
@@ -723,48 +473,29 @@ const RegistrationCard: React.FC<RegistrationCardProps> = ({
             fontWeight: 700,
             textTransform: 'uppercase',
             letterSpacing: '1px',
-            cursor: selectedOption?.available ? 'pointer' : 'not-allowed',
+            cursor: availability.status !== 'sold-out' ? 'pointer' : 'not-allowed',
             transition: 'all 0.3s ease',
-            boxShadow: selectedOption?.available ? '0 4px 15px rgba(255, 191, 0, 0.4)' : 'none',
+            boxShadow: availability.status !== 'sold-out' ? '0 4px 15px rgba(255, 191, 0, 0.4)' : 'none',
             position: 'relative',
             overflow: 'hidden'
           }}
           onMouseEnter={(e) => {
-            if (selectedOption?.available) {
+            if (availability.status !== 'sold-out') {
               e.currentTarget.style.transform = 'translateY(-2px)';
               e.currentTarget.style.boxShadow = '0 6px 25px rgba(255, 191, 0, 0.5)';
               e.currentTarget.style.background = 'linear-gradient(135deg, var(--color-amber-dark) 0%, var(--color-amber) 100%)';
             }
           }}
           onMouseLeave={(e) => {
-            if (selectedOption?.available) {
+            if (availability.status !== 'sold-out') {
               e.currentTarget.style.transform = 'translateY(0)';
               e.currentTarget.style.boxShadow = '0 4px 15px rgba(255, 191, 0, 0.4)';
               e.currentTarget.style.background = 'linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%)';
             }
           }}
         >
-          {selectedOption 
-            ? `Purchase ${selectedOption.name}`
-            : 'Purchase Tickets'
-          }
+          {availability.status === 'sold-out' ? 'Sold Out' : 'Register for Event'}
         </Button>
-
-        {/* Event Details */}
-        <Stack gap={4}>
-          <Group justify="space-between" style={{ padding: '4px 0', borderBottom: '1px solid var(--color-cream)' }}>
-            <Text style={{ color: 'var(--color-stone)', fontSize: '15px' }}>Location</Text>
-            <Text fw={600} style={{ color: 'var(--color-charcoal)' }}>{event.location}</Text>
-          </Group>
-          <Group justify="space-between" style={{ padding: '4px 0', borderBottom: '1px solid var(--color-cream)' }}>
-            <Text style={{ color: 'var(--color-stone)', fontSize: '15px' }}>Duration</Text>
-            <Text fw={600} style={{ color: 'var(--color-charcoal)' }}>{event.duration}</Text>
-          </Group>
-          <Group justify="space-between" style={{ padding: '4px 0' }}>
-            <Text style={{ color: 'var(--color-stone)', fontSize: '15px' }}>Class Size</Text>
-            <Text fw={600} style={{ color: 'var(--color-charcoal)' }}>Max {event.maxCapacity} per session</Text>
-          </Group>
-        </Stack>
 
         {/* Share Section */}
         <Box pt="lg" style={{ borderTop: '1px solid var(--color-taupe)', textAlign: 'center' }}>
@@ -812,12 +543,30 @@ const RegistrationCard: React.FC<RegistrationCardProps> = ({
   );
 };
 
-// Helper function for status colors
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'high': return 'var(--color-success)';
-    case 'low': return 'var(--color-error)';
-    case 'sold-out': return 'var(--color-stone)';
-    default: return 'var(--color-warning)';
-  }
-};
+// Loading skeleton component
+const EventDetailSkeleton: React.FC = () => (
+  <Stack gap="xl">
+    {/* Hero skeleton */}
+    <Paper p="xl" style={{ borderRadius: '24px' }}>
+      <Stack gap="md">
+        <Skeleton height={24} width={120} />
+        <Skeleton height={48} width="80%" />
+        <Group gap="lg">
+          <Skeleton height={20} width={150} />
+          <Skeleton height={20} width={100} />
+          <Skeleton height={20} width={200} />
+        </Group>
+      </Stack>
+    </Paper>
+
+    {/* Content skeleton */}
+    <Paper p="xl" style={{ borderRadius: '16px' }}>
+      <Skeleton height={28} width={200} mb="md" />
+      <Stack gap="sm">
+        <Skeleton height={16} />
+        <Skeleton height={16} />
+        <Skeleton height={16} width="80%" />
+      </Stack>
+    </Paper>
+  </Stack>
+);

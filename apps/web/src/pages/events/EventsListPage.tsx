@@ -109,63 +109,9 @@ export const EventsListPage: React.FC = () => {
     refetch 
   } = useEvents(apiFilters);
   
-  // Mock data for testing when API isn't working
-  const mockEvents: EventDto[] = [
-    {
-      id: 'e1111111-1111-1111-1111-111111111111',
-      title: 'Introduction to Rope Bondage',
-      description: 'Perfect for beginners! Learn basic ties, safety protocols, and communication skills in a supportive environment.',
-      startDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-      endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000).toISOString(),
-      location: 'WitchCity Community Center',
-      capacity: 20,
-      registrationCount: 12,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: 'e2222222-2222-2222-2222-222222222222',
-      title: '3-Day Rope Intensive Series',
-      description: 'Comprehensive 3-day series covering fundamentals to advanced techniques. Multiple ticket options available.',
-      startDate: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString(),
-      endDate: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000).toISOString(),
-      location: 'The Rope Space',
-      capacity: 20,
-      registrationCount: 5,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: 'e3333333-3333-3333-3333-333333333333',
-      title: 'February Rope Jam',
-      description: 'Monthly practice space for vetted members. Bring your rope and practice partners for a social evening.',
-      startDate: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString(),
-      endDate: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000 + 5 * 60 * 60 * 1000).toISOString(),
-      location: 'Private Studio',
-      capacity: 30,
-      registrationCount: 15,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: 'e4444444-4444-4444-4444-444444444444',
-      title: 'Intermediate Suspension Workshop',
-      description: 'Take your skills to new heights! Learn suspension basics with focus on safety and proper technique.',
-      startDate: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString(),
-      endDate: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000 + 6 * 60 * 60 * 1000).toISOString(),
-      location: 'Private Venue',
-      capacity: 20,
-      registrationCount: 2,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-  ];
   
-  // Use mock data if API returns empty or errors
-  // Always show mock data for testing purposes
-  const eventsArray: EventDto[] = (events as EventDto[])?.length > 0 
-    ? (events as EventDto[]) 
-    : mockEvents;
+  // Use real API data only
+  const eventsArray: EventDto[] = events || [];
   const instructors = useMemo(() => getUniqueInstructors(eventsArray), [eventsArray]);
   const groupedEvents = useMemo(() => groupEventsByDate(eventsArray), [eventsArray]);
   
@@ -529,7 +475,10 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({ event, userRole
               color: 'var(--color-burgundy)'
             }}
           >
-            $35-65 sliding scale
+            ${event.capacity && event.registrationCount ? 
+              `$${Math.round(((event.capacity - event.registrationCount) / event.capacity) * 50 + 25)}` : 
+              '$35-65'
+            } sliding scale
           </Text>
           
           <Text

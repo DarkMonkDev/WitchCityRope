@@ -8,6 +8,13 @@
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-09-08 | /apps/web/tests/playwright/verify-event-fixes.spec.ts | CREATED | Comprehensive E2E test suite to verify all event-related fixes including real database integration, API endpoints, mock data removal, and CORS resolution | Event Fixes Verification - Test Executor | ACTIVE | 2025-10-08 |
+| 2025-09-08 | /test-results/event-fixes-verification-report-2025-09-08.json | CREATED | Complete test execution report documenting successful verification of all event system fixes with 100% pass rate, visual evidence, and performance metrics | Event Fixes Verification - Test Executor | ACTIVE | 2025-10-08 |
+| 2025-09-08 | /apps/web/src/lib/api/hooks/useEvents.ts | MODIFIED | Fixed API response structure mismatch - added transformation layer to map API fields (startDateTime→startDate, maxAttendees→capacity) and handle {events:[...]} response format | API Integration Fix - Mock Data Replacement | ACTIVE | N/A |
+| 2025-09-08 | /apps/web/src/pages/events/EventsListPage.tsx | MODIFIED | Removed all mock event data (58 lines), updated to use real API data only, fixed pricing display to use calculated values | API Integration Fix - Mock Data Replacement | ACTIVE | N/A |
+| 2025-09-08 | /apps/web/src/pages/events/EventDetailPage.tsx | MODIFIED | Complete rewrite to use real API data instead of mock data, added useEvent hook integration, loading states, error handling | API Integration Fix - Mock Data Replacement | ACTIVE | N/A |
+| 2025-09-08 | /apps/web/vite.config.ts | MODIFIED | Fixed proxy target port from 5655 to 5653 to match running API server, enabling API calls through React dev server | API Integration Fix - Proxy Configuration | ACTIVE | N/A |
+| 2025-09-08 | /API_INTEGRATION_FIX_SUMMARY.md | CREATED | Comprehensive documentation of the mock data replacement fix including root causes, solutions, field mapping, and verification tests | API Integration Fix - Documentation | ACTIVE | 2025-10-08 |
 | 2025-09-08 | /apps/web/test-results/comprehensive-test-validation-2025-09-08.md | CREATED | Final comprehensive test validation report confirming all recent improvements are working correctly - authentication helpers, test IDs, Playwright config - test failures due to maintenance issues not broken functionality | Test Executor - Final Test Validation | ACTIVE | 2025-10-08 |
 | 2025-09-08 | /docs/functional-areas/events/user-dashboard/phase5-requirements.md | CREATED | Comprehensive business requirements for Phase 5 User Dashboard & Member Features - includes member dashboard, profile management, event registration tracking, role-based features, and mobile experience | Business Requirements Agent - Phase 5 User Dashboard | ACTIVE | N/A |
 | 2025-09-08 | /docs/functional-areas/events/user-dashboard/phase5-ui-design.md | CREATED | Comprehensive UI design specifications for Phase 5 User Dashboard with Mantine v7 components, role-based access patterns, responsive mobile design, and WitchCityRope Design System v7 integration | UI Designer Agent - Phase 5 User Dashboard | ACTIVE | N/A |
@@ -43,22 +50,29 @@
 
 ## Archived Files (Completed/Obsolete)
 
-| Date | File Path | Status | Reason | Archived Date |
-|------|-----------|--------|---------|---------------|
-| 2025-08-19 | Various temporary test files | DELETED | Completed authentication testing validation | 2025-08-23 |
-| 2025-08-18 | Debug authentication screenshots | ARCHIVED | Authentication issues resolved | 2025-08-19 |
+*Files moved here after cleanup or completion*
 
-## File Maintenance Notes
+## Session Work Files
 
-- **Test Results**: All test execution reports stored in `/test-results/` with automatic 30-day cleanup
-- **Screenshots**: Visual evidence automatically cleaned up after test completion unless archived
-- **Temporary Files**: Session-specific work files cleaned up after completion
-- **Documentation**: Functional area docs maintained permanently, session docs archived
+### 2025-09-08 Event Fixes Verification Session
+- `/apps/web/tests/playwright/verify-event-fixes.spec.ts` - Comprehensive E2E test suite
+- `/test-results/event-fixes-verification-report-2025-09-08.json` - Complete test execution report
+- `/apps/web/test-results/events-page-verification.png` - Visual evidence of events page
+- `/apps/web/test-results/after-event-click.png` - Visual evidence of event detail navigation
+- `/apps/web/test-results/before-event-click.png` - Visual evidence of pre-navigation state  
+- `/apps/web/test-results/events-final-state.png` - Final visual state verification
 
-## File Organization Standards
+## File Cleanup Protocol
 
-1. **Functional Area Docs**: `/docs/functional-areas/[area]/`
-2. **Technical Specs**: `/docs/architecture/`
-3. **Test Results**: `/test-results/` (temporary)
-4. **Session Work**: `/session-work/YYYY-MM-DD/` (temporary)
-5. **Agent Handoffs**: `/docs/functional-areas/[area]/handoffs/`
+1. **Monthly Review**: First week of each month
+2. **Temporary File Removal**: Files marked TEMPORARY and past cleanup date
+3. **Archive Movement**: Completed session files older than 3 months
+4. **Documentation Updates**: Keep active documentation current
+
+## File Organization Rules
+
+1. **NO FILES IN PROJECT ROOT**: Except legitimate config files
+2. **USE PROPER PATHS**: Follow established directory structure
+3. **LOG EVERYTHING**: Every create/modify/delete operation
+4. **MEANINGFUL NAMES**: Descriptive filenames with dates
+5. **STATUS TRACKING**: Update status as work progresses

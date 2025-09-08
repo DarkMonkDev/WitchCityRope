@@ -11,15 +11,56 @@ import type {
 } from '../types/events.types'
 import type { ApiResponse, PaginatedResponse } from '../types/api.types'
 
+// API response structure from backend
+interface ApiEventResponse {
+  events: ApiEvent[]
+  totalCount: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
+// API event structure from backend
+interface ApiEvent {
+  id: string
+  title: string
+  description: string
+  startDateTime: string
+  endDateTime: string
+  location: string
+  maxAttendees: number
+  currentAttendees: number
+  availableSpots: number
+  price: number
+  organizerName: string
+  requiresVetting?: boolean
+}
+
+// Transform API event to frontend EventDto
+function transformApiEvent(apiEvent: ApiEvent): EventDto {
+  return {
+    id: apiEvent.id,
+    title: apiEvent.title,
+    description: apiEvent.description,
+    startDate: apiEvent.startDateTime,
+    endDate: apiEvent.endDateTime,
+    location: apiEvent.location,
+    capacity: apiEvent.maxAttendees,
+    registrationCount: apiEvent.currentAttendees,
+    createdAt: new Date().toISOString(), // Placeholder - should come from API
+    updatedAt: new Date().toISOString()  // Placeholder - should come from API
+  }
+}
+
 // Fetch events list with filters
 export function useEvents(filters: EventFilters = {}) {
   return useQuery({
     queryKey: eventKeys.list(filters),
     queryFn: async (): Promise<EventDto[]> => {
-      const { data } = await apiClient.get<ApiResponse<EventDto[]>>('/api/events', {
+      const { data } = await apiClient.get<ApiEventResponse>('/api/events', {
         params: filters,
       })
-      return data.data || []
+      return data.events?.map(transformApiEvent) || []
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     enabled: true,
@@ -48,9 +89,9 @@ export function useEvent(id: string, enabled: boolean = true) {
   return useQuery({
     queryKey: eventKeys.detail(id),
     queryFn: async (): Promise<EventDto> => {
-      const { data } = await apiClient.get<ApiResponse<EventDto>>(`/api/events/${id}`)
-      if (!data.data) throw new Error('Event not found')
-      return data.data
+      const { data } = await apiClient.get<ApiEvent>(`/api/events/${id}`)
+      if (!data) throw new Error('Event not found')
+      return transformApiEvent(data)
     },
     enabled: !!id && enabled,
     staleTime: 5 * 60 * 1000,
