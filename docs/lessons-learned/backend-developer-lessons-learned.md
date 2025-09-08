@@ -49,45 +49,54 @@
 4. **Files Modified**: Exact paths and purposes
 5. **Validation Steps**: How to verify the work
 
-## Entity Framework Navigation Property Configuration
+## 🚨 CRITICAL: API Routing Conflicts Between Controllers and Minimal API 🚨
+**Date**: 2025-09-08
+**Category**: Architecture
+**Severity**: Critical
 
-**Problem**: EF Core creates duplicate EventId1 properties when navigation properties are configured in multiple places  
-**Solution**: Configure navigation properties in ONE place only  
-**Example**: Configure `Event.Sessions` in EventConfiguration, NOT in EventSessionConfiguration  
+### Context
+Events API returning incomplete data due to routing conflicts between EventsController and minimal API endpoints in Program.cs.
 
-```csharp
-// ✅ CORRECT - In EventConfiguration.cs
-builder.HasMany(e => e.Sessions)
-    .WithOne(s => s.Event)
-    .HasForeignKey(s => s.EventId);
+### What We Learned
+**ROUTING PRECEDENCE ISSUES**:
+- Multiple EventDto classes cause confusion: `WitchCityRope.Api.Models.EventDto` vs `WitchCityRope.Core.DTOs.EventDto`
+- Minimal API routes in Program.cs can take precedence over controller routes
+- Route registration order matters: routes registered first take precedence
+- EventsController expects `ListEventsResponse` with complete `EventSummaryDto` but minimal API returns basic `PagedResult<EventDto>`
+- JSON serialization shows which DTO is actually being returned based on property names
 
-// ❌ WRONG - Don't duplicate in EventSessionConfiguration.cs
-// Creates duplicate EventId1 properties
-```
+**DEBUGGING TECHNIQUES**:
+- Check JSON response field names to identify which DTO class is being used
+- Test different routes (`/api/events` vs `/api/v1/events`) to identify routing conflicts
+- Use HTTP headers and response structure to trace which endpoint is handling requests
+- Build errors reveal type ambiguity issues early
 
-## PostgreSQL Enum Storage Pattern
+### Action Items
+- [ ] ALWAYS check for multiple DTO classes with same name in different namespaces
+- [ ] ALWAYS fully qualify ambiguous type references (WitchCityRope.Api.Models.EventDto vs Core.DTOs.EventDto)
+- [ ] ALWAYS verify which endpoint is actually handling requests by checking response structure
+- [ ] ALWAYS register controllers before minimal API endpoints to avoid precedence conflicts
+- [ ] ALWAYS ensure service interface signatures match implementation signatures exactly
+- [ ] NEVER assume routing works without testing - conflicts can cause silent fallbacks
 
-**Problem**: Enum values should be stored as integers in PostgreSQL for performance  
-**Solution**: Use explicit conversion in EF configuration  
-**Example**: 
-```csharp
-builder.Property(e => e.TicketType)
-    .IsRequired()
-    .HasConversion<int>(); // Store enum as int
-```
+### Files Involved
+- `/src/WitchCityRope.Api/Features/Events/Services/EventService.cs` - Service implementation
+- `/src/WitchCityRope.Api/Interfaces/IEventService.cs` - Service interface
+- `/src/WitchCityRope.Api/Features/Events/EventsController.cs` - Controller endpoints
+- `/src/WitchCityRope.Api/Program.cs` - Minimal API endpoints
+- `/src/WitchCityRope.Api/Models/CommonModels.cs` - API EventDto
+- `/src/WitchCityRope.Core/DTOs/CommonDtos.cs` - Core EventDto
 
-## Complex Junction Entity Management
+### Fix Strategy
+1. Remove conflicting minimal API routes OR change controller routes
+2. Ensure correct service method signatures match interface
+3. Use fully qualified type names to resolve ambiguity
+4. Test API endpoints to verify correct response structure
 
-**Problem**: Many-to-many with additional properties requires careful transaction handling  
-**Solution**: Use explicit transactions for ticket type session updates  
-**Example**:
-```csharp
-using var transaction = await _dbContext.Database.BeginTransactionAsync();
-// Remove existing inclusions
-// Add new inclusions
-await _dbContext.SaveChangesAsync();
-await transaction.CommitAsync();
-```
+### Tags
+#critical #api-routing #dto-conflicts #minimal-api #controllers #precedence
+
+---
 
 ### 🤝 WHO NEEDS YOUR HANDOFFS
 - **Frontend Developers**: API contracts, endpoint changes
@@ -1567,3 +1576,4 @@ CHECK ("EndTime" > "StartTime");
 
 **Tags**: #frontend-integration #api-patterns #authentication #httponly-cookies #cors #pagination
 
+---

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Interfaces;
+using WitchCityRope.Api.Models;
 using WitchCityRope.Infrastructure.Data;
 using WitchCityRope.Core.Entities;
 using WitchCityRope.Core;
@@ -513,10 +514,50 @@ public class EventService : IEventService
 
 
     // Additional methods for API endpoints
-    public async Task<Core.Models.PagedResult<Core.DTOs.EventDto>> GetEventsAsync(int page, int pageSize, string? search)
+    public async Task<Core.Models.PagedResult<WitchCityRope.Api.Models.EventDto>> GetEventsAsync(int page, int pageSize, string? search)
     {
-        // TODO: Implement GetEventsAsync
-        throw new NotImplementedException();
+        var query = _dbContext.Events
+            .Include(e => e.Registrations)
+            .Where(e => e.IsPublished)
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(search))
+        {
+            query = query.Where(e => e.Title.Contains(search) || e.Description.Contains(search));
+        }
+
+        var totalCount = await query.CountAsync();
+
+        // Get events from database first to calculate AvailableSpots
+        var eventEntities = await query
+            .OrderBy(e => e.StartDate)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        // Map to API EventDto with complete data
+        var events = eventEntities.Select(e => new WitchCityRope.Api.Models.EventDto
+        {
+            Id = e.Id,
+            Title = e.Title,
+            Description = e.Description,
+            StartDate = e.StartDate,
+            EndDate = e.EndDate,
+            Location = e.Location,
+            Capacity = e.Capacity,
+            AvailableSpots = e.GetAvailableSpots(),
+            Price = e.PricingTiers.Any() ? e.PricingTiers.Min(p => p.Amount) : 0,
+            EventType = e.EventType.ToString(),
+            IsPublished = e.IsPublished
+        }).ToList();
+
+        return new Core.Models.PagedResult<WitchCityRope.Api.Models.EventDto>
+        {
+            Items = events,
+            TotalCount = totalCount,
+            PageNumber = page,
+            PageSize = pageSize
+        };
     }
 
 
@@ -559,56 +600,8 @@ public class EventService : IEventService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<Core.Models.PagedResult<Core.DTOs.EventDto>> GetEventsAsync(int? pageNumber, int? pageSize, string? eventType, string? search)
-    {
-        var query = _dbContext.Events.AsQueryable();
 
-        if (!string.IsNullOrEmpty(eventType))
-        {
-            query = query.Where(e => e.EventType.ToString() == eventType);
-        }
-
-        if (!string.IsNullOrEmpty(search))
-        {
-            query = query.Where(e => e.Title.Contains(search) || e.Description.Contains(search));
-        }
-
-        var totalCount = await query.CountAsync();
-        var page = pageNumber ?? 1;
-        var size = pageSize ?? 10;
-
-        var events = await query
-            .OrderBy(e => e.StartDate)
-            .Skip((page - 1) * size)
-            .Take(size)
-            .Select(e => new Core.DTOs.EventDto
-            {
-                Id = e.Id,
-                Name = e.Title,
-                Description = e.Description,
-                StartDateTime = e.StartDate,
-                EndDateTime = e.EndDate,
-                Location = e.Location,
-                MaxAttendees = e.Capacity,
-                CurrentAttendees = e.Registrations.Count(r => r.Status == Core.Enums.RegistrationStatus.Confirmed),
-                Price = e.PricingTiers.Any() ? e.PricingTiers.First().Amount : 0,
-                Status = e.IsPublished ? "Published" : "Draft",
-                Tags = new List<string>(), // TODO: Add tags to event entity
-                RequiredSkillLevels = new List<string>(), // TODO: Add skill levels to event entity
-                RequiresVetting = false // TODO: Add RequiresVetting to event entity
-            })
-            .ToListAsync();
-
-        return new Core.Models.PagedResult<Core.DTOs.EventDto>
-        {
-            Items = events,
-            TotalCount = totalCount,
-            PageNumber = page,
-            PageSize = size
-        };
-    }
-
-    public async Task<Core.DTOs.EventDto?> GetEventByIdAsync(Guid id)
+    public async Task<WitchCityRope.Api.Models.EventDto?> GetEventByIdAsync(Guid id)
     {
         var @event = await _dbContext.Events
             .Include(e => e.Registrations)
@@ -617,21 +610,19 @@ public class EventService : IEventService
         if (@event == null)
             return null;
 
-        return new Core.DTOs.EventDto
+        return new WitchCityRope.Api.Models.EventDto
         {
             Id = @event.Id,
-            Name = @event.Title,
+            Title = @event.Title,
             Description = @event.Description,
-            StartDateTime = @event.StartDate,
-            EndDateTime = @event.EndDate,
+            StartDate = @event.StartDate,
+            EndDate = @event.EndDate,
             Location = @event.Location,
-            MaxAttendees = @event.Capacity,
-            CurrentAttendees = @event.Registrations.Count(r => r.Status == Core.Enums.RegistrationStatus.Confirmed),
+            Capacity = @event.Capacity,
+            AvailableSpots = @event.GetAvailableSpots(),
             Price = @event.PricingTiers.FirstOrDefault()?.Amount ?? 0,
-            Status = @event.IsPublished ? "Published" : "Draft",
-            Tags = new List<string>(), // TODO: Add tags to event entity
-            RequiredSkillLevels = new List<string>(), // TODO: Add skill levels to event entity
-            RequiresVetting = false // TODO: Add RequiresVetting to event entity
+            EventType = @event.EventType.ToString(),
+            IsPublished = @event.IsPublished
         };
     }
 

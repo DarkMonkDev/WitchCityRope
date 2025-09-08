@@ -224,7 +224,10 @@ public static class EndpointExtensions
         .WithName("RefreshToken")
         .WithOpenApi();
 
-        // Event endpoints
+        // Event endpoints - COMMENTED OUT to use EventsController instead
+        // These minimal API routes were conflicting with the EventsController routes
+        // The EventsController at /api/events provides more complete data
+        /*
         group.MapGet("/events", async (
             int page,
             int pageSize,
@@ -259,6 +262,7 @@ public static class EndpointExtensions
         })
         .WithName("GetEventById")
         .WithOpenApi();
+        */
 
         group.MapPost("/events", async (
             CreateEventRequest request,

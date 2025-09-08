@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using WitchCityRope.Api.Features.Events.Models;
+using WitchCityRope.Api.Models;
 using WitchCityRope.Core.DTOs;
 using WitchCityRope.Core.Models;
 
@@ -14,12 +15,12 @@ namespace WitchCityRope.Api.Interfaces
         /// <summary>
         /// Retrieves a paginated list of events
         /// </summary>
-        Task<Core.Models.PagedResult<Core.DTOs.EventDto>> GetEventsAsync(int page, int pageSize, string? search);
+        Task<Core.Models.PagedResult<WitchCityRope.Api.Models.EventDto>> GetEventsAsync(int page, int pageSize, string? search);
 
         /// <summary>
         /// Retrieves an event by its ID
         /// </summary>
-        Task<Core.DTOs.EventDto?> GetEventByIdAsync(Guid id);
+        Task<WitchCityRope.Api.Models.EventDto?> GetEventByIdAsync(Guid id);
 
         /// <summary>
         /// Creates a new event
