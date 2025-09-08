@@ -99,6 +99,14 @@
 
 **Phase completion requires migration plan alignment** - Always reference original migration plan to identify correct next phase, update percentage complete accurately, and maintain phase sequence integrity.
 
+## Cross-Cutting Feature Organization
+
+**Organize by primary business domain, not UI context** - Events features belong in `/docs/functional-areas/events/[context]/` not `/docs/functional-areas/user-dashboard/events/` because Events is the business domain, dashboard is just UI context.
+
+**Use context subfolders for related functionality** - When features span multiple interfaces (public, admin, user), create subfolders under the primary domain (e.g., `/events/public-events/`, `/events/admin-events-management/`, `/events/user-dashboard/`).
+
+**Create documentation organization standards proactively** - Cross-cutting features create confusion about file placement, establish clear standards early to prevent scattered documentation across multiple functional areas.
+
 ## Critical Business Requirements Discovery
 
 **NEVER trust initial assumption about business rules** - Always check ALL requirements documents before implementation to prevent major errors.
