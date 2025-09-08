@@ -7,6 +7,7 @@ import { EventsPage } from '../pages/dashboard/EventsPage';
 import { ProfilePage } from '../pages/dashboard/ProfilePage';
 import { SecurityPage } from '../pages/dashboard/SecurityPage';
 import { MembershipPage } from '../pages/dashboard/MembershipPage';
+import { RegistrationsPage } from '../pages/dashboard/RegistrationsPage';
 import { FormComponentsTest } from '../pages/FormComponentsTest';
 import MantineFormTest from '../pages/MantineFormTest';
 // TODO: Fix TypeScript errors in API validation pages before uncommenting
@@ -116,6 +117,11 @@ export const router = createBrowserRouter([
       {
         path: "dashboard/membership",
         element: <MembershipPage />,
+        loader: authLoader
+      },
+      {
+        path: "dashboard/registrations",
+        element: <RegistrationsPage />,
         loader: authLoader
       }
     ]

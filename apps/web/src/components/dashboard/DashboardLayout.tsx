@@ -17,6 +17,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
   const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: '📊' },
     { path: '/dashboard/events', label: 'Events', icon: '📅' },
+    { path: '/dashboard/registrations', label: 'Registrations', icon: '📋' },
     { path: '/dashboard/profile', label: 'Profile', icon: '👤' },
     { path: '/dashboard/security', label: 'Security', icon: '🔒' },
     { path: '/dashboard/membership', label: 'Membership', icon: '🎯' },
