@@ -16,6 +16,8 @@ import ApiConnectionTest from '../pages/ApiConnectionTest';
 import { TestMSWPage } from '../pages/TestMSWPage';
 import { EventSessionMatrixDemo } from '../pages/admin/EventSessionMatrixDemo';
 import { TinyMCETestPage } from '../pages/TinyMCETest';
+import { EventsListPage } from '../pages/events/EventsListPage';
+import { EventDetailPage } from '../pages/events/EventDetailPage';
 import { RootLayout } from '../components/layout/RootLayout';
 import { RootErrorBoundary } from '../components/errors/RootErrorBoundary';
 import { authLoader } from './loaders/authLoader';
@@ -77,6 +79,16 @@ export const router = createBrowserRouter([
       {
         path: "tinymce-test",
         element: <TinyMCETestPage />
+      },
+      
+      // Public Events Pages
+      {
+        path: "events",
+        element: <EventsListPage />
+      },
+      {
+        path: "events/:id",
+        element: <EventDetailPage />
       },
       
       // Protected routes - authentication required
