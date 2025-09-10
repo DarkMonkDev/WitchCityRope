@@ -46,7 +46,7 @@ namespace WitchCityRope.Api.Migrations
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
-                    b.ToTable("Roles", "auth");
+                    b.ToTable("Roles", "public");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -70,7 +70,7 @@ namespace WitchCityRope.Api.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("RoleClaims", "auth");
+                    b.ToTable("RoleClaims", "public");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
@@ -94,7 +94,7 @@ namespace WitchCityRope.Api.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserClaims", "auth");
+                    b.ToTable("UserClaims", "public");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
@@ -115,7 +115,7 @@ namespace WitchCityRope.Api.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserLogins", "auth");
+                    b.ToTable("UserLogins", "public");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
@@ -130,7 +130,7 @@ namespace WitchCityRope.Api.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("UserRoles", "auth");
+                    b.ToTable("UserRoles", "public");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
@@ -149,7 +149,7 @@ namespace WitchCityRope.Api.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("UserTokens", "auth");
+                    b.ToTable("UserTokens", "public");
                 });
 
             modelBuilder.Entity("WitchCityRope.Api.Models.ApplicationUser", b =>
@@ -288,7 +288,7 @@ namespace WitchCityRope.Api.Migrations
                         .IsUnique()
                         .HasDatabaseName("IX_Users_SceneName");
 
-                    b.ToTable("Users", "auth");
+                    b.ToTable("Users", "public");
                 });
 
             modelBuilder.Entity("WitchCityRope.Api.Models.Event", b =>
