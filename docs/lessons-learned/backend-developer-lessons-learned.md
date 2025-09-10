@@ -2,6 +2,83 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 CRITICAL: ApiResponse<T> Wrapper Standard Enforcement - 2025-09-10 🚨
+**Date**: 2025-09-10
+**Category**: API Standards
+**Severity**: Critical
+
+### Context
+Events API was violating established response standards by returning direct arrays/objects instead of using the mandatory `ApiResponse<T>` wrapper pattern. This violated the DTO alignment strategy and caused inconsistent API responses.
+
+### What We Learned
+**APIRESPONSE WRAPPER VIOLATIONS**:
+- Events endpoints returned `List<EventDto>` instead of `ApiResponse<List<EventDto>>`  
+- Frontend expected consistent `{ data: T, success: boolean, message: string }` format
+- `ApiResponse<T>` model exists at `/apps/api/Models/ApiResponse.cs` but wasn't being used
+- ProtectedController uses ApiResponse wrapper correctly, but Features architecture didn't
+- DTO Alignment Strategy documents ApiResponse as mandatory pattern
+
+**DEBUGGING TECHNIQUES**:
+- Checked actual API response structure with curl and jq
+- Verified `ApiResponse<T>` model exists and has proper properties
+- Found ambiguous EventDto references between Models/ and Features/Events/Models/
+- Used type alias to resolve namespace conflicts
+
+### Action Items
+- [x] COMPLETED: Update Events endpoints to use `ApiResponse<List<EventDto>>` wrapper
+- [x] COMPLETED: Update single event endpoint to use `ApiResponse<EventDto>` wrapper  
+- [x] COMPLETED: Fix error responses to use ApiResponse wrapper with proper status codes
+- [x] COMPLETED: Resolve ambiguous EventDto references with type alias
+- [x] COMPLETED: Update OpenAPI documentation annotations
+- [ ] ALWAYS use ApiResponse<T> wrapper for ALL API endpoints
+- [ ] ALWAYS verify response format matches established standards
+- [ ] ALWAYS resolve type ambiguity issues in Features architecture
+
+### Files Involved
+- `/apps/api/Features/Events/Endpoints/EventEndpoints.cs` - Updated to use ApiResponse wrapper
+- `/apps/api/Models/ApiResponse.cs` - Standard wrapper model (already existed)
+
+### Fix Strategy
+1. Add using statement for Models namespace containing ApiResponse<T>
+2. Wrap all success responses in ApiResponse<T> with proper success, data, message
+3. Wrap all error responses in ApiResponse<T> with success=false, error details
+4. Update OpenAPI Produces annotations to reflect wrapped response types
+5. Resolve ambiguous type references with type aliases
+
+### Code Example
+```csharp
+// ❌ WRONG - Direct array/object response
+return Results.Ok(response);
+return Results.Ok(fallbackEvents);
+
+// ✅ CORRECT - ApiResponse wrapper
+return Results.Ok(new ApiResponse<List<EventDto>>
+{
+    Success = true,
+    Data = response,
+    Message = "Events retrieved successfully"
+});
+
+return Results.Json(new ApiResponse<EventDto>
+{
+    Success = false,
+    Data = null,
+    Error = error,
+    Message = "Event not found"
+}, statusCode: 404);
+```
+
+### Business Impact
+- **API Consistency**: All responses now follow established standard format
+- **Frontend Integration**: React frontend receives expected response structure
+- **Error Handling**: Consistent error response format across all endpoints
+- **Developer Experience**: Clear success/failure indication in all API responses
+
+### Tags
+#critical #api-response-wrapper #api-standards #dto-alignment #frontend-integration
+
+---
+
 ## 🚨 CRITICAL: Missing Individual Event API Endpoint Fixed - 2025-09-08 🚨
 **Date**: 2025-09-08
 **Category**: API Development

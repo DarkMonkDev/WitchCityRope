@@ -1,5 +1,6 @@
-using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Features.Events.Services;
+using WitchCityRope.Api.Models;
+using EventDto = WitchCityRope.Api.Features.Events.Models.EventDto;
 
 namespace WitchCityRope.Api.Features.Events.Endpoints;
 
@@ -28,31 +29,49 @@ public static class EventEndpoints
                     if (response.Count == 0)
                     {
                         var fallbackEvents = GetFallbackEvents();
-                        return Results.Ok(fallbackEvents);
+                        return Results.Ok(new ApiResponse<List<EventDto>>
+                        {
+                            Success = true,
+                            Data = fallbackEvents.ToList(),
+                            Message = "Events retrieved from fallback data"
+                        });
                     }
                     
-                    return Results.Ok(response);
+                    return Results.Ok(new ApiResponse<List<EventDto>>
+                    {
+                        Success = true,
+                        Data = response,
+                        Message = "Events retrieved successfully"
+                    });
                 }
 
                 // If database fails, return fallback events as the original controller did
                 try
                 {
                     var fallbackEvents = GetFallbackEvents();
-                    return Results.Ok(fallbackEvents);
+                    return Results.Ok(new ApiResponse<List<EventDto>>
+                    {
+                        Success = true,
+                        Data = fallbackEvents.ToList(),
+                        Message = "Events retrieved from fallback data due to database error"
+                    });
                 }
                 catch
                 {
-                    return Results.Problem(
-                        title: "Get Events Failed",
-                        detail: error,
-                        statusCode: 500);
+                    return Results.Json(new ApiResponse<List<EventDto>>
+                    {
+                        Success = false,
+                        Data = null,
+                        Error = error,
+                        Message = "Failed to retrieve events"
+                    }, statusCode: 500);
                 }
             })
             .WithName("GetEvents")
             .WithSummary("Get all published events")
             .WithDescription("Returns all published future events from the database with fallback data")
             .WithTags("Events")
-            .Produces<List<EventDto>>(200)
+            .Produces<ApiResponse<List<EventDto>>>(200)
             .Produces(500);
 
         // Get single event by ID
@@ -63,18 +82,29 @@ public static class EventEndpoints
             {
                 var (success, response, error) = await eventService.GetEventAsync(id, cancellationToken);
 
-                return success 
-                    ? Results.Ok(response)
-                    : Results.Problem(
-                        title: "Get Event Failed",
-                        detail: error,
-                        statusCode: response == null ? 404 : 500);
+                if (success && response != null)
+                {
+                    return Results.Ok(new ApiResponse<EventDto>
+                    {
+                        Success = true,
+                        Data = response,
+                        Message = "Event retrieved successfully"
+                    });
+                }
+
+                return Results.Json(new ApiResponse<EventDto>
+                {
+                    Success = false,
+                    Data = null,
+                    Error = error,
+                    Message = response == null ? "Event not found" : "Failed to retrieve event"
+                }, statusCode: response == null ? 404 : 500);
             })
             .WithName("GetEvent")
             .WithSummary("Get single event by ID")
             .WithDescription("Returns a specific event by its unique identifier")
             .WithTags("Events")
-            .Produces<EventDto>(200)
+            .Produces<ApiResponse<EventDto>>(200)
             .Produces(404)
             .Produces(500);
     }

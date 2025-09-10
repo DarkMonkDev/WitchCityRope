@@ -17,6 +17,96 @@ This catalog provides a comprehensive inventory of all tests in the WitchCityRop
 
 ## Recent Additions (September 2025)
 
+### 🚨 CRITICAL: Dashboard E2E Test JavaScript Error Detection Fix - 2025-09-10 🚨
+**Fixed**: `/tests/playwright/dashboard.spec.ts` - Added mandatory console and JavaScript error monitoring
+**Purpose**: Fix critical testing failure where E2E test reported "successful login and navigation to dashboard" but completely missed RangeError that crashes the dashboard
+**Context**: Test was reporting success when the dashboard had "RangeError: Invalid time value" that crashed the page after login
+
+**CRITICAL ISSUE IDENTIFIED**:
+- **Problem**: E2E test claimed dashboard was working but missed JavaScript errors that crash the page
+- **Root Cause**: Test was missing required console error monitoring (violates testing standards)
+- **Impact**: False positive test results - tests passed while dashboard was completely broken
+- **Risk**: Unable to trust E2E test results for critical user journeys
+
+**SOLUTION IMPLEMENTED**:
+```typescript
+// 🚨 CRITICAL: Monitor console errors - REQUIRED by testing standards
+page.on('console', msg => {
+  if (msg.type() === 'error') {
+    const errorText = msg.text()
+    console.log(`❌ Console Error: ${errorText}`)
+    consoleErrors.push(errorText)
+    
+    // Specifically catch RangeError: Invalid time value
+    if (errorText.includes('RangeError') || errorText.includes('Invalid time value')) {
+      console.log(`🚨 CRITICAL: Date/Time error detected: ${errorText}`)
+    }
+  }
+})
+
+// 🚨 CRITICAL: Monitor JavaScript errors - catches crashes
+page.on('pageerror', error => {
+  const errorText = error.toString()
+  console.log(`💥 JavaScript Error: ${errorText}`)
+  jsErrors.push(errorText)
+})
+
+// 🚨 CRITICAL: Check for errors BEFORE validating content
+if (jsErrors.length > 0) {
+  throw new Error(`Dashboard has JavaScript errors that crash the page: ${jsErrors.join('; ')}`)
+}
+
+if (consoleErrors.length > 0) {
+  const dateTimeErrors = consoleErrors.filter(error => 
+    error.includes('RangeError') || 
+    error.includes('Invalid time value') ||
+    error.includes('Invalid Date')
+  )
+  
+  if (dateTimeErrors.length > 0) {
+    throw new Error(`Dashboard has CRITICAL date/time errors that crash the page: ${dateTimeErrors.join('; ')}`)
+  }
+  
+  throw new Error(`Dashboard has console errors: ${consoleErrors.join('; ')}`)
+}
+```
+
+**KEY IMPROVEMENTS**:
+1. **Console Error Monitoring**: Added required `page.on('console')` listener per testing standards
+2. **JavaScript Error Monitoring**: Added `page.on('pageerror')` to catch crashes
+3. **Specific RangeError Detection**: Specifically catches "RangeError: Invalid time value" errors
+4. **Error-First Validation**: Checks for JavaScript errors BEFORE testing content
+5. **Fail-Fast Pattern**: Test immediately fails if any JavaScript errors are detected
+6. **Detailed Error Reporting**: Logs specific error types and messages for debugging
+7. **New Test Case**: Added dedicated test "Dashboard must not have JavaScript errors that crash the page"
+
+**TESTING STANDARDS VIOLATION FIXED**:
+- **BEFORE**: Test violated required console error monitoring from `/docs/standards-processes/testing/PLAYWRIGHT_TESTING_STANDARDS.md`
+- **AFTER**: Test now follows mandatory error monitoring requirements
+- **Pattern**: All E2E tests MUST include console and JavaScript error monitoring
+
+**IMMEDIATE IMPACT**:
+- **From**: False positive - test passes while dashboard crashes
+- **To**: Accurate detection - test will now fail when dashboard has JavaScript errors
+- **Benefit**: Restores trust in E2E test results for critical user journeys
+- **Prevention**: Will catch similar JavaScript errors in future
+
+**RELATED FILES UPDATED**:
+- `/tests/playwright/dashboard.spec.ts` - Enhanced with comprehensive error monitoring
+- `/docs/standards-processes/testing/TEST_CATALOG.md` - Documented critical fix
+
+**LESSON FOR ALL E2E TESTS**:
+This issue highlights that ALL E2E tests must include console and JavaScript error monitoring. Tests that only check for successful navigation and element visibility are insufficient - they can report success while the page is actually crashing with JavaScript errors.
+
+**VERIFICATION PROCESS**:
+1. Run the updated test against the current dashboard (should now fail and catch the RangeError)
+2. Fix the underlying RangeError in the dashboard code
+3. Re-run test to verify it passes only when dashboard is truly error-free
+
+**CRITICAL TAKEAWAY**: E2E tests that don't monitor for JavaScript errors are worse than no tests at all - they provide false confidence while critical bugs go undetected.
+
+## Recent Additions (September 2025)
+
 ### 🚨 CRITICAL: Authentication Timeout Configuration Enhancement - 2025-09-08 🚨
 **Updated**: `/apps/web/tests/playwright/helpers/auth.helpers.ts` and `/apps/web/tests/playwright/helpers/wait.helpers.ts`
 **Purpose**: Enhanced timeout configurations to prevent authentication test failures due to timing issues

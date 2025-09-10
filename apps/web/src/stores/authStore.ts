@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { devtools, persist, createJSONStorage } from 'zustand/middleware';
-import type { UserDto } from '@witchcityrope/shared-types';
+import type { UserDto } from '../types/shared';
 
 // Auth state interface from functional specification
 interface AuthState {

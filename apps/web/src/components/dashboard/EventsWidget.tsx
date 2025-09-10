@@ -7,25 +7,46 @@ import type { EventDto } from '@witchcityrope/shared-types';
 
 // Helper function to format event for display
 const formatEventForWidget = (event: EventDto) => {
-  const startDate = new Date(event.startDateTime || '');
-  const endDate = new Date(event.endDateTime || '');
+  // Safely handle potentially null/undefined date strings
+  const startDateString = event.startDateTime;
+  const endDateString = event.endDateTime;
+  
+  // Only create Date objects if we have valid date strings
+  const startDate = startDateString ? new Date(startDateString) : null;
+  const endDate = endDateString ? new Date(endDateString) : null;
+  
+  // Validate that dates are actually valid Date objects
+  const isStartDateValid = startDate && !isNaN(startDate.getTime());
+  const isEndDateValid = endDate && !isNaN(endDate.getTime());
   
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
+    try {
+      return date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (error) {
+      return 'TBD';
+    }
   };
+  
+  // Fallback values for invalid dates
+  const fallbackDate = new Date().toISOString().split('T')[0];
+  const fallbackTime = 'TBD';
   
   return {
     id: event.id,
-    title: event.title,
-    date: startDate.toISOString().split('T')[0],
-    time: `${formatTime(startDate)} - ${formatTime(endDate)}`,
+    title: event.title || 'Untitled Event',
+    date: isStartDateValid ? startDate!.toISOString().split('T')[0] : fallbackDate,
+    time: isStartDateValid && isEndDateValid 
+      ? `${formatTime(startDate!)} - ${formatTime(endDate!)}`
+      : isStartDateValid 
+        ? `${formatTime(startDate!)} - ${fallbackTime}`
+        : fallbackTime,
     status: event.status === 'Published' ? 'Open' : 'Closed',
     statusColor: event.status === 'Published' ? '#228B22' : '#DAA520',
-    isUpcoming: startDate > new Date(),
+    isUpcoming: isStartDateValid ? startDate! > new Date() : false,
   };
 };
 
@@ -64,6 +85,12 @@ export const EventsWidget: React.FC<EventsWidgetProps> = ({
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
+    
+    // Handle invalid dates gracefully
+    if (isNaN(date.getTime())) {
+      return { day: '??', month: 'TBD' };
+    }
+    
     const day = date.getDate();
     const month = date.toLocaleDateString('en-US', { month: 'short' });
     return { day, month };

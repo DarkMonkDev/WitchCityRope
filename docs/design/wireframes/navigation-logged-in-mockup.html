@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WitchCityRope Navigation - Logged In State Mockup</title>
+    <style>
+        /* WitchCityRope Brand Colors */
+        :root {
+            --wcr-burgundy: #8B0000;
+            --wcr-black: #2c2c2c;
+            --wcr-light-gray: #f8f4e6;
+            --wcr-border: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Source Sans 3', sans-serif;
+            background-color: var(--wcr-light-gray);
+            line-height: 1.6;
+        }
+
+        /* Navigation Container */
+        .nav-container {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        /* Black Top Bar */
+        .top-bar {
+            background-color: var(--wcr-black);
+            color: white;
+            padding: 0.5rem 0;
+            font-size: 0.875rem;
+        }
+
+        .top-bar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .welcome-message {
+            color: white;
+            font-weight: 500;
+        }
+
+        .top-bar-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .top-bar-links a {
+            color: white;
+            text-decoration: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        .top-bar-links a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Main Navigation */
+        .main-nav {
+            background: white;
+            padding: 1rem 0;
+        }
+
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            color: var(--wcr-burgundy);
+            font-family: 'Bodoni Moda', serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--wcr-black);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--wcr-burgundy);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 50%;
+            background-color: var(--wcr-burgundy);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-links a:hover::after {
+            width: 80%;
+        }
+
+        /* Admin Link Styling */
+        .admin-link {
+            background-color: rgba(139, 0, 0, 0.1);
+            border: 1px solid var(--wcr-burgundy);
+        }
+
+        .admin-link:hover {
+            background-color: rgba(139, 0, 0, 0.2);
+        }
+
+        /* Dashboard CTA Button */
+        .dashboard-btn {
+            background-color: var(--wcr-burgundy);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(139, 0, 0, 0.2);
+        }
+
+        .dashboard-btn:hover {
+            background-color: #a50000;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3);
+        }
+
+        /* Mockup Section Styling */
+        .mockup-section {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .mockup-title {
+            font-family: 'Bodoni Moda', serif;
+            font-size: 2rem;
+            color: var(--wcr-burgundy);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .mockup-description {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--wcr-burgundy);
+        }
+
+        .state-label {
+            background-color: var(--wcr-burgundy);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .top-bar-content {
+                flex-direction: column;
+                gap: 0.5rem;
+                text-align: center;
+            }
+
+            .nav-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 1rem;
+            }
+
+            .nav-links a {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.9rem;
+            }
+
+            .dashboard-btn {
+                padding: 0.75rem 1.25rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Comparison Layout */
+        .comparison-grid {
+            display: grid;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .comparison-item {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .mockup-content {
+            padding: 1rem;
+        }
+
+        /* Current State (for reference) */
+        .current-state .dashboard-btn {
+            display: none;
+        }
+
+        .current-state .login-btn {
+            background-color: var(--wcr-burgundy);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .current-state .welcome-message {
+            display: none;
+        }
+
+        .current-state .logout-link {
+            display: none;
+        }
+
+        .current-state .admin-link {
+            display: none;
+        }
+
+        /* Logged-in States */
+        .logged-in .login-btn {
+            display: none;
+        }
+
+        .logged-in .welcome-message {
+            display: block;
+        }
+
+        .logged-in .logout-link {
+            display: block;
+        }
+
+        .logged-in .dashboard-btn {
+            display: inline-block;
+        }
+
+        /* Admin-specific styling */
+        .admin-user .admin-link {
+            display: inline-block;
+        }
+
+        .regular-user .admin-link {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="mockup-section">
+        <h1 class="mockup-title">WitchCityRope Navigation States</h1>
+        <div class="mockup-description">
+            <h3>Navigation Changes for Logged-In Users</h3>
+            <p><strong>Current Changes Required:</strong></p>
+            <ul>
+                <li>Replace "Login" button with "Dashboard" link (in burgundy/red matching logo color)</li>
+                <li>Move "Welcome, [username]" to black top bar on the left side</li>
+                <li>Add "Logout" link to black top bar on the right side (next to "Contact")</li>
+                <li>For admin users: Add "Admin" link in main nav (between logo and "Events & Classes")</li>
+            </ul>
+        </div>
+
+        <div class="comparison-grid">
+            <!-- Current State (Not Logged In) -->
+            <div class="comparison-item">
+                <div class="state-label">Current State - Not Logged In</div>
+                <div class="nav-container current-state">
+                    <div class="top-bar">
+                        <div class="top-bar-content">
+                            <div class="welcome-message">Welcome, Guest</div>
+                            <div class="top-bar-links">
+                                <a href="#about">About</a>
+                                <a href="#contact">Contact</a>
+                                <a href="#" class="logout-link">Logout</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="main-nav">
+                        <div class="nav-content">
+                            <a href="#" class="logo">WitchCityRope</a>
+                            <div class="nav-links">
+                                <a href="#" class="admin-link">Admin</a>
+                                <a href="#events">Events & Classes</a>
+                                <a href="#community">Community</a>
+                                <a href="#resources">Resources</a>
+                                <a href="#" class="login-btn">Login</a>
+                                <a href="#" class="dashboard-btn">Dashboard</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-content">
+                    <p><strong>Reference:</strong> Shows current navigation with Login button visible, no user-specific elements.</p>
+                </div>
+            </div>
+
+            <!-- Logged-In Regular User -->
+            <div class="comparison-item">
+                <div class="state-label">New State - Logged-In Regular User</div>
+                <div class="nav-container logged-in regular-user">
+                    <div class="top-bar">
+                        <div class="top-bar-content">
+                            <div class="welcome-message">Welcome, Sarah Mitchell</div>
+                            <div class="top-bar-links">
+                                <a href="#about">About</a>
+                                <a href="#contact">Contact</a>
+                                <a href="#" class="logout-link">Logout</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="main-nav">
+                        <div class="nav-content">
+                            <a href="#" class="logo">WitchCityRope</a>
+                            <div class="nav-links">
+                                <a href="#" class="admin-link">Admin</a>
+                                <a href="#events">Events & Classes</a>
+                                <a href="#community">Community</a>
+                                <a href="#resources">Resources</a>
+                                <a href="#" class="login-btn">Login</a>
+                                <a href="#dashboard" class="dashboard-btn">Dashboard</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-content">
+                    <p><strong>Changes:</strong></p>
+                    <ul>
+                        <li>✅ "Welcome, Sarah Mitchell" appears in black top bar (left side)</li>
+                        <li>✅ "Logout" link appears in black top bar (right side, next to Contact)</li>
+                        <li>✅ "Login" button replaced with red "Dashboard" button</li>
+                        <li>✅ No Admin link visible (regular user)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Logged-In Admin User -->
+            <div class="comparison-item">
+                <div class="state-label">New State - Logged-In Admin User</div>
+                <div class="nav-container logged-in admin-user">
+                    <div class="top-bar">
+                        <div class="top-bar-content">
+                            <div class="welcome-message">Welcome, Admin Rodriguez</div>
+                            <div class="top-bar-links">
+                                <a href="#about">About</a>
+                                <a href="#contact">Contact</a>
+                                <a href="#" class="logout-link">Logout</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="main-nav">
+                        <div class="nav-content">
+                            <a href="#" class="logo">WitchCityRope</a>
+                            <div class="nav-links">
+                                <a href="#admin" class="admin-link">Admin</a>
+                                <a href="#events">Events & Classes</a>
+                                <a href="#community">Community</a>
+                                <a href="#resources">Resources</a>
+                                <a href="#" class="login-btn">Login</a>
+                                <a href="#dashboard" class="dashboard-btn">Dashboard</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-content">
+                    <p><strong>Changes:</strong></p>
+                    <ul>
+                        <li>✅ "Welcome, Admin Rodriguez" appears in black top bar (left side)</li>
+                        <li>✅ "Logout" link appears in black top bar (right side, next to Contact)</li>
+                        <li>✅ "Login" button replaced with red "Dashboard" button</li>
+                        <li>✅ "Admin" link visible between logo and "Events & Classes"</li>
+                        <li>✅ Admin link has subtle background highlight to indicate special access</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Design Notes -->
+        <div class="mockup-description">
+            <h3>Design Implementation Notes</h3>
+            <h4>Visual Hierarchy:</h4>
+            <ul>
+                <li><strong>Dashboard Link:</strong> Primary CTA styling in WitchCityRope burgundy (#8B0000) with hover effects</li>
+                <li><strong>Welcome Message:</strong> Subtle placement in top bar, maintains personal connection</li>
+                <li><strong>Logout Link:</strong> Understated in top bar, easily accessible but not prominent</li>
+                <li><strong>Admin Link:</strong> Distinctive styling with light background to indicate special access</li>
+            </ul>
+
+            <h4>Responsive Behavior:</h4>
+            <ul>
+                <li>On mobile: Top bar stacks vertically, navigation becomes centered</li>
+                <li>Links maintain touch-friendly 44px minimum target size</li>
+                <li>Dashboard button remains prominent on all screen sizes</li>
+            </ul>
+
+            <h4>Accessibility Features:</h4>
+            <ul>
+                <li>High contrast ratios maintained (4.5:1 minimum)</li>
+                <li>Focus indicators with underline animations</li>
+                <li>Keyboard navigation support</li>
+                <li>Screen reader friendly text</li>
+            </ul>
+
+            <h4>Brand Consistency:</h4>
+            <ul>
+                <li>Uses established WitchCityRope color palette</li>
+                <li>Maintains existing typography hierarchy</li>
+                <li>Preserves logo styling and placement</li>
+                <li>Consistent hover effects throughout</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

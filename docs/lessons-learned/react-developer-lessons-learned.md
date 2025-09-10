@@ -701,8 +701,57 @@ This fix enables:
 
 ---
 
+## 🚨 CRITICAL: Events List API Mismatch Fix 🚨
+**Date**: 2025-01-10
+**Category**: API Integration
+**Severity**: CRITICAL
+
+### Context  
+Fixed events page showing no events despite API returning data correctly. The issue was a mismatch between expected response structure in React Query hook and actual API response.
+
+### What We Learned
+- **API Returns Direct Arrays**: `/api/events` returns `Event[]` directly, not `{events: Event[]}`
+- **useQuery Type Mismatch**: Hook was expecting `data.events` but `data` IS the array
+- **Always Verify API Structure**: Test actual API responses, don't assume wrapped structures
+- **Frontend Lessons Critical**: API response mismatches block entire features from working
+
+### Fixed Implementation Pattern:
+```typescript
+// ✅ CORRECT - Handle direct array response from API
+export function useEvents(filters: EventFilters = {}) {
+  return useQuery({
+    queryKey: eventKeys.list(filters),
+    queryFn: async (): Promise<EventDto[]> => {
+      const { data } = await apiClient.get<ApiEvent[]>('/api/events', {
+        params: filters,
+      })
+      return data?.map(transformApiEvent) || [] // data IS the array
+    },
+  })
+}
+
+// ❌ WRONG - Expecting wrapped response structure  
+const { data } = await apiClient.get<ApiEventResponse>('/api/events')
+return data.events?.map(transformApiEvent) || [] // data.events doesn't exist
+```
+
+### Action Items
+- [x] **ALWAYS test actual API endpoints** before implementing React Query hooks
+- [x] **VERIFY response structure** with curl/browser tools first
+- [x] **FIX type annotations** to match actual API responses
+- [x] **UPDATE lessons learned** immediately when discovering API mismatches
+- [ ] **APPLY this pattern** to all other API endpoint hooks
+
+### Impact
+Events page now displays all 6 events from the API correctly, fixing a complete feature breakdown.
+
+### Tags
+#critical #api-integration #react-query #events-system #response-structure
+
+---
+
 *This file is maintained by the react-developer agent. Add new lessons immediately when discovered.*
-*Last updated: 2025-01-09 - Added critical Frontend API Response Structure Fix*
+*Last updated: 2025-01-10 - Added critical Events List API Mismatch Fix*
 
 ## COMPREHENSIVE LESSONS FROM FRONTEND DEVELOPMENT
 **NOTE**: The following lessons were consolidated from frontend-lessons-learned.md
@@ -909,5 +958,63 @@ Complete setup guide: `/docs/guides-setup/tinymce-api-key-setup.md`
 
 ### Tags
 #critical #security #api-keys #environment-variables #tinymce #configuration
+
+---
+
+## 🚨 CRITICAL: Safe Date Handling from API Data 🚨
+
+**Date**: 2025-09-10  
+**File**: `/apps/web/src/components/dashboard/EventsWidget.tsx`
+
+### Context
+EventsWidget component was throwing `RangeError: Invalid time value` when trying to format dates from API responses. The error occurred when calling `Date.toISOString()` on invalid Date objects created from null/undefined/empty string date values.
+
+### What We Learned
+**NEVER assume API date fields are valid strings:**
+- API DTOs can have `undefined` or `null` date fields even when typed as `string`
+- Empty string `''` passed to `new Date()` creates invalid Date object
+- Calling `toISOString()` on invalid Date throws RangeError
+- `isNaN(date.getTime())` is the reliable way to check Date validity
+
+### Action Items
+1. **ALWAYS validate dates before using Date methods**
+2. **Use null checks before creating Date objects** 
+3. **Provide meaningful fallbacks for invalid dates**
+4. **Use try-catch for date formatting operations**
+
+### Safe Date Handling Pattern:
+```typescript
+const formatEventForWidget = (event: EventDto) => {
+  // Safely handle potentially null/undefined date strings
+  const startDateString = event.startDateTime;
+  const endDateString = event.endDateTime;
+  
+  // Only create Date objects if we have valid date strings
+  const startDate = startDateString ? new Date(startDateString) : null;
+  const endDate = endDateString ? new Date(endDateString) : null;
+  
+  // Validate that dates are actually valid Date objects
+  const isStartDateValid = startDate && !isNaN(startDate.getTime());
+  const isEndDateValid = endDate && !isNaN(endDate.getTime());
+  
+  // Provide fallbacks for invalid dates
+  const fallbackDate = new Date().toISOString().split('T')[0];
+  const fallbackTime = 'TBD';
+  
+  return {
+    date: isStartDateValid ? startDate!.toISOString().split('T')[0] : fallbackDate,
+    time: isStartDateValid && isEndDateValid 
+      ? `${formatTime(startDate!)} - ${formatTime(endDate!)}`
+      : fallbackTime,
+    isUpcoming: isStartDateValid ? startDate! > new Date() : false,
+  };
+};
+```
+
+### Impact
+This pattern prevents runtime crashes when API returns incomplete date data and provides graceful degradation with meaningful fallback values. Essential for any component displaying API date/time data.
+
+### Tags
+#critical #dates #api-data #error-handling #typescript #validation #runtime-safety
 
 ---

@@ -50,6 +50,59 @@
 
 ---
 
+## 🚨 CRITICAL: Database Seeding Pattern for WitchCityRope 🚨
+
+**Date**: 2025-09-10
+**Category**: Database Management
+**Severity**: CRITICAL
+
+### Context
+WitchCityRope uses an automatic C# code-based database seeding system through the DatabaseInitializationService. This is a background service that runs when the API starts.
+
+### What We Learned
+- **Database seeding is handled ONLY through C# code in the API** - NOT through SQL scripts or manual database operations
+- **DatabaseInitializationService handles everything automatically** - Migrations and seed data are applied when the API container starts
+- **NO manual scripts should ever be created** - The system is designed to work without any SQL scripts
+- **EF Tools installation in containers can be inconsistent** - Always verify with `docker exec [container] dotnet ef --version` first
+- **Schema mismatches cause complete API failure** - If API expects `auth.Users` but database has `public.Users`, nothing works
+
+### Correct Pattern
+1. **Start the API container** - This triggers DatabaseInitializationService automatically
+2. **Check API logs for initialization** - `docker logs witchcity-api | grep -i "database\|seed\|migration"`  
+3. **Verify through API endpoints** - Test `/api/health` and `/api/events` to confirm data exists
+4. **If database isn't seeded** - The issue is with the API service, NOT missing scripts
+
+### NEVER DO
+- ❌ Write SQL scripts to insert test data
+- ❌ Use psql or database tools to manually insert data
+- ❌ Create bash scripts for database seeding
+- ❌ Look for seed scripts (they don't exist by design)
+- ❌ Bypass the C# seeding mechanism
+
+### Why This Matters
+- Ensures data integrity and proper relationships
+- Maintains consistency between environments
+- Follows .NET best practices
+- Prevents data conflicts and migration issues
+- The C# code handles complex relationships and proper UTC DateTime handling
+
+### Action Items for Test Executor
+- [ ] ALWAYS check if DatabaseInitializationService ran by examining API logs
+- [ ] NEVER create database seeding scripts
+- [ ] Verify EF tools availability with `docker exec [container] dotnet ef --version` before attempting migrations
+- [ ] Check for schema mismatches if API fails to start
+- [ ] Use API endpoints to verify test data, not direct database queries
+
+### References
+- Database Designer Lessons: `/docs/lessons-learned/database-designer-lessons-learned.md` (lines 86-161)
+- Backend Developer Lessons: `/docs/lessons-learned/backend-developer-lessons-learned.md`
+- Dockerfile: `/src/WitchCityRope.Api/Dockerfile` (line 6 - EF tools installation)
+
+### Tags
+#critical #database-seeding #csharp-only #no-scripts #database-initialization-service
+
+---
+
 ## 🎉 MAJOR UPDATE: CORS Fixes and Data-testid Implementation Validation (2025-09-08)
 
 ### CRITICAL SUCCESS: Comprehensive Test Suite Execution Post-Fixes

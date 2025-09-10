@@ -26,14 +26,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         // Call base to configure Identity tables
         base.OnModelCreating(modelBuilder);
 
-        // Configure Identity tables to use auth schema (matching existing database)
-        modelBuilder.Entity<ApplicationUser>().ToTable("Users", "auth");
-        modelBuilder.Entity<IdentityRole<Guid>>().ToTable("Roles", "auth");
-        modelBuilder.Entity<IdentityUserRole<Guid>>().ToTable("UserRoles", "auth");
-        modelBuilder.Entity<IdentityUserClaim<Guid>>().ToTable("UserClaims", "auth");
-        modelBuilder.Entity<IdentityUserLogin<Guid>>().ToTable("UserLogins", "auth");
-        modelBuilder.Entity<IdentityUserToken<Guid>>().ToTable("UserTokens", "auth");
-        modelBuilder.Entity<IdentityRoleClaim<Guid>>().ToTable("RoleClaims", "auth");
+        // Configure Identity tables to use public schema (matching existing database)
+        modelBuilder.Entity<ApplicationUser>().ToTable("Users", "public");
+        modelBuilder.Entity<IdentityRole<Guid>>().ToTable("Roles", "public");
+        modelBuilder.Entity<IdentityUserRole<Guid>>().ToTable("UserRoles", "public");
+        modelBuilder.Entity<IdentityUserClaim<Guid>>().ToTable("UserClaims", "public");
+        modelBuilder.Entity<IdentityUserLogin<Guid>>().ToTable("UserLogins", "public");
+        modelBuilder.Entity<IdentityUserToken<Guid>>().ToTable("UserTokens", "public");
+        modelBuilder.Entity<IdentityRoleClaim<Guid>>().ToTable("RoleClaims", "public");
 
         // Configure ApplicationUser entity with custom properties
         modelBuilder.Entity<ApplicationUser>(entity =>

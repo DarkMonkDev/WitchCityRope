@@ -10,7 +10,8 @@ export function useEvent(eventId: string) {
     queryKey: queryKeys.event(eventId),
     queryFn: async (): Promise<EventDto> => {
       const response = await api.get(`/api/events/${eventId}`)
-      return response.data
+      // Access event from ApiResponse wrapper
+      return response.data?.data
     },
     enabled: !!eventId,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -21,8 +22,9 @@ export function useEvents() {
   return useQuery<EventDto[]>({
     queryKey: queryKeys.events(),
     queryFn: async (): Promise<EventDto[]> => {
-      const response = await api.get<EventListResponse>('/api/events')
-      return response.data.events || []
+      const response = await api.get('/api/events')
+      // Access events from ApiResponse wrapper
+      return response.data?.data || []
     },
     staleTime: 5 * 60 * 1000,
   })
@@ -32,10 +34,11 @@ export function useInfiniteEvents(filters: EventFilters = {}) {
   return useInfiniteQuery<EventListResponse>({
     queryKey: queryKeys.infiniteEvents(filters),
     queryFn: async ({ pageParam = 1 }): Promise<EventListResponse> => {
-      const response = await api.get<EventListResponse>('/api/events', {
+      const response = await api.get('/api/events', {
         params: { page: pageParam, pageSize: 20, ...filters }
       })
-      return response.data
+      // Access data from ApiResponse wrapper
+      return response.data?.data || { events: [], page: 1, totalPages: 1 }
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {

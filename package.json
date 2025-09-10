@@ -24,5 +24,9 @@
     "prettier": "^3.6.2",
     "turbo": "latest"
   },
-  "packageManager": "npm@10.2.4"
+  "packageManager": "npm@10.2.4",
+  "dependencies": {
+    "@tinymce/tinymce-react": "^6.3.0",
+    "tinymce": "^8.0.2"
+  }
 }
