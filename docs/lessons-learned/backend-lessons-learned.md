@@ -158,6 +158,36 @@ This document tracks critical lessons learned during backend development to prev
 - Authentication via ClaimsPrincipal in minimal API endpoints
 - Structured logging with contextual information
 
+## Database Service Registration Issues (2025-09-10)
+
+### CRITICAL FIX: Missing Service Registrations
+**Problem**: DatabaseInitializationService and SeedDataService were created but never registered in the DI container, preventing automatic database initialization.
+
+**Root Cause**: Services were implemented correctly but not added to `ServiceCollectionExtensions.cs`.
+
+**Solution**: Added proper service registrations:
+```csharp
+// Database initialization services
+services.AddScoped<ISeedDataService, SeedDataService>();
+services.AddHostedService<DatabaseInitializationService>();
+```
+
+**Key Points**:
+- DatabaseInitializationService inherits from BackgroundService, requires `AddHostedService`
+- SeedDataService implements ISeedDataService, requires `AddScoped` registration
+- Added proper using statement for `WitchCityRope.Api.Services` namespace
+- Services were already being called via `builder.Services.AddFeatureServices()` in Program.cs
+
+**Files Changed**:
+- `/apps/api/Features/Shared/Extensions/ServiceCollectionExtensions.cs`
+
+**Verification**:
+- API health endpoint shows 5 users (database is seeded)
+- Application starts without DI errors
+- Services are now properly registered and available
+
+**Prevention**: Always verify that new services are properly registered in DI container after creation.
+
 ## Success Metrics
 
 - ✅ All 16 tables created successfully
@@ -167,4 +197,5 @@ This document tracks critical lessons learned during backend development to prev
 - ✅ Event Session Matrix tables functional
 - ✅ RSVP system fully implemented with business rules
 - ✅ 17 tables now (added RSVPs table)
+- ✅ Database initialization services properly registered
 - ⚠️ Business requirements mismatch identified and documented

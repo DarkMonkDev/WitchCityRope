@@ -2,6 +2,7 @@ using WitchCityRope.Api.Features.Health.Services;
 using WitchCityRope.Api.Features.Authentication.Services;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Features.Users.Services;
+using WitchCityRope.Api.Services;
 
 namespace WitchCityRope.Api.Features.Shared.Extensions;
 
@@ -28,6 +29,10 @@ public static class ServiceCollectionExtensions
 
         // Users feature services
         services.AddScoped<UserManagementService>();
+
+        // Database initialization services
+        services.AddScoped<ISeedDataService, SeedDataService>();
+        services.AddHostedService<DatabaseInitializationService>();
 
         return services;
     }

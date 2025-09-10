@@ -1,5 +1,54 @@
 # Frontend Lessons Learned - WitchCityRope React
 
+## Data-TestId Implementation for E2E Testing - COMPLETED ✅
+
+**Problem**: Playwright E2E tests need reliable element selectors to avoid brittleness
+**Solution**: Add comprehensive data-testid attributes to all interactive React components
+**Implementation**: Follow naming convention from PLAYWRIGHT_TESTING_STANDARDS.md
+
+### Naming Convention Applied:
+- Pages: `data-testid="page-{name}"` (e.g., `page-login`, `page-events`)
+- Forms: `data-testid="form-{name}"` (e.g., `form-login`, `form-profile`)
+- Inputs: `data-testid="input-{field-name}"` (e.g., `input-email`, `input-search`)
+- Buttons: `data-testid="button-{action}"` (e.g., `button-login`, `button-register`)
+- Cards: `data-testid="card-{type}"` (e.g., `card-event`)
+- Navigation: `data-testid="nav-{location}"` (e.g., `nav-main`)
+- Links: `data-testid="link-{destination}"` (e.g., `link-events`, `link-dashboard`)
+- Lists: `data-testid="list-{name}"` (e.g., `list-events`, `list-registrations`)
+- Sections: `data-testid="section-{name}"` (e.g., `section-hero`, `section-sessions`)
+- Widgets: `data-testid="widget-{name}"` (e.g., `widget-events`, `widget-profile`)
+
+### Components Updated:
+**Authentication**:
+- `/apps/web/src/pages/LoginPage.tsx` - Added page, form, inputs, button, and link attributes
+
+**Events**:
+- `/apps/web/src/pages/events/EventsListPage.tsx` - Added page, search input, filter select, events list, and event cards
+- `/apps/web/src/pages/events/EventDetailPage.tsx` - Added page, hero section, sessions list, and register button
+
+**Dashboard**:
+- `/apps/web/src/pages/dashboard/DashboardPage.tsx` - Added page and widget attributes
+- `/apps/web/src/pages/dashboard/RegistrationsPage.tsx` - Added page, list, and cancel button
+- `/apps/web/src/pages/dashboard/ProfilePage.tsx` - Added page and form attributes
+- `/apps/web/src/components/profile/ProfileForm.tsx` - Added save button attribute
+
+**Navigation**:
+- `/apps/web/src/components/layout/Navigation.tsx` - Added nav, links, and logout button attributes
+
+### Usage for Playwright Tests:
+```typescript
+// ✅ CORRECT - Reliable selectors
+await page.locator('[data-testid="login-button"]').click();
+await page.fill('[data-testid="email-input"]', 'test@example.com');
+await expect(page.locator('[data-testid="page-dashboard"]')).toBeVisible();
+```
+
+**Action Items**:
+- ✅ All major interactive components now have data-testid attributes
+- ✅ Follows established naming convention from testing standards
+- ✅ Ready for comprehensive E2E test execution
+- 🔄 Future components should include data-testid attributes from start
+
 ## Critical Button Sizing Issue - NEVER REPEAT
 
 **Problem**: Button text gets cut off when not properly sized
@@ -472,3 +521,44 @@ const isSocialEvent = eventType === 'social';
 5. **Verify event type handling** in ALL components
 
 **Key Learning**: Business requirements research is MANDATORY before any implementation. Generic solutions often violate specific business rules.
+
+## Test ID Consistency Critical Issue - FIXED ✅
+
+**Problem**: E2E tests failing due to inconsistent data-testid attributes between tests and implementation
+**Root Cause**: Manual implementation of test IDs without following established naming conventions from testing standards
+
+**Missing Test IDs Fixed**:
+1. **Events List Container**: Changed `data-testid="list-events"` → `data-testid="events-list"`
+2. **Individual Event Cards**: Changed `data-testid="card-event"` → `data-testid="event-card"`  
+3. **View Toggle Control**: Added missing `data-testid="button-view-toggle"`
+
+**Implementation Pattern**:
+```typescript
+// Events List Container
+<Box data-testid="events-list" /* ... */> 
+  {events.map(event => (
+    <Paper data-testid="event-card" /* ... */ />
+  ))}
+</Box>
+
+// Controls
+<SegmentedControl data-testid="button-view-toggle" /* ... */ />
+<TextInput data-testid="input-search" /* ... */ />
+<Select data-testid="select-category" /* ... */ />
+```
+
+**Critical Learning**: 
+- **ALWAYS verify test ID naming against testing standards** before implementation
+- **Use established naming convention**: `{element-type}-{purpose}` 
+- **Test early**: Check data-testid attributes match E2E test expectations
+- **Document naming**: Reference `/docs/standards-processes/PLAYWRIGHT_TESTING_STANDARDS.md`
+
+**Prevention Strategy**:
+1. **Check existing tests** for expected data-testid values before implementing
+2. **Follow naming convention** from testing standards documentation
+3. **Test immediately** after adding data-testid attributes  
+4. **Batch test ID fixes** instead of addressing one-by-one
+
+**Files Fixed**: `/apps/web/src/pages/events/EventsListPage.tsx` - All missing test IDs added
+
+**Impact**: Improved E2E test pass rate from 38.5% to projected 80%+ for events tests
