@@ -25,7 +25,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<AuthenticationService>();
 
         // Events feature services
-        services.AddScoped<EventService>();
+        services.AddScoped<Events.Services.EventService>();
 
         // Users feature services
         services.AddScoped<UserManagementService>();

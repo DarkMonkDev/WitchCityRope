@@ -28,7 +28,8 @@ const useEventsForHomepage = (enabled: boolean = true) => {
     queryKey: queryKeys.events(),
     queryFn: async (): Promise<Event[]> => {
       const response = await api.get('/api/events');
-      return response.data;
+      // Access events from the wrapped ApiResponse format
+      return response.data?.data || [];
     },
     enabled, // Allow disabling the query when custom events are provided
     staleTime: 5 * 60 * 1000, // 5 minutes - same as existing pattern

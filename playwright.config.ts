@@ -4,7 +4,7 @@ import { defineConfig, devices } from '@playwright/test';
  * Playwright configuration for Design System v7 testing
  */
 export default defineConfig({
-  testDir: './tests/playwright',
+  testDir: '.', // Look for tests in current directory
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

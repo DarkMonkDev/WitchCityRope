@@ -2,102 +2,49 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
-## 🚨 CRITICAL: WORKTREE COMPLIANCE - MANDATORY 🚨
+## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
 
-### ALL WORK MUST BE IN THE SPECIFIED WORKTREE DIRECTORY
+**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
 
-**VIOLATION = CATASTROPHIC FAILURE**
+### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
+- **END of your work phase** - BEFORE ending session
+- **COMPLETION of major component work** - Document critical UI patterns
+- **DISCOVERY of important React issues** - Share immediately
+- **COMPONENT LIBRARY UPDATES** - Document reusable patterns
 
-When given a Working Directory like:
-`/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management`
+### 📁 WHERE TO SAVE HANDOFFS
+**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Naming**: `react-developer-YYYY-MM-DD-handoff.md`
+**Template**: `/docs/standards-processes/agent-handoff-template.md`
 
-**YOU MUST:**
-- Write ALL files to paths within the worktree directory
-- NEVER write to `/home/chad/repos/witchcityrope-react/` main repository
-- ALWAYS use the full worktree path in file operations
-- VERIFY you're in the correct directory before ANY file operation
+### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
+1. **Component Patterns**: Reusable components created/modified
+2. **State Management**: Zustand store changes and patterns
+3. **API Integration**: TanStack Query patterns and cache keys
+4. **Styling Approaches**: Mantine customization and theme updates
+5. **Testing Requirements**: Component test needs for test developers
 
-**Example:**
-- ✅ CORRECT: `/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/docs/...`
-- ❌ WRONG: `/home/chad/repos/witchcityrope-react/docs/...`
+### 🤝 WHO NEEDS YOUR HANDOFFS
+- **UI Designers**: Component feedback and design system updates
+- **Test Developers**: Component test requirements and user flows
+- **Backend Developers**: API contract expectations and data shapes
+- **Other React Developers**: Reusable patterns and component library
 
-**Why This Matters:**
-- Worktrees isolate feature branches
-- Writing to main repo pollutes other branches
-- Can cause merge conflicts and lost work
-- BREAKS the entire development workflow
+### ⚠️ MANDATORY READING BEFORE STARTING
+**ALWAYS READ EXISTING HANDOFFS FIRST**:
+1. Check `/docs/functional-areas/[feature]/handoffs/` for previous agent work
+2. Read ALL handoff documents in the functional area
+3. Understand component patterns already established
+4. Build on existing work - don't create duplicate components
 
-## 🚨 CRITICAL: MANDATORY PLAYWRIGHT TESTING REQUIREMENTS 🚨
+### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
+**Why this matters**:
+- Next agents will rebuild existing components
+- Critical React patterns get lost
+- State management becomes inconsistent
+- UI components conflict and break design system
 
-### ALL REACT IMPLEMENTATIONS REQUIRE VISUAL VERIFICATION
-
-**NO EXCEPTIONS - IMPLEMENTATION IS NOT COMPLETE WITHOUT PLAYWRIGHT TESTS**
-
-**MANDATORY TESTING CHECKLIST:**
-- [ ] **Visual Verification**: Playwright test with screenshot confirmation required for ALL implementations
-- [ ] **Functionality Testing**: All interactive elements must be tested (buttons, forms, navigation)
-- [ ] **Cross-Browser Compatibility**: Test in Chromium (minimum) with Playwright
-- [ ] **Responsive Design**: Test at multiple viewport sizes if applicable
-- [ ] **Error State Testing**: Test error scenarios and edge cases
-- [ ] **Performance Validation**: Ensure no obvious performance issues
-- [ ] **Accessibility Check**: Basic accessibility validation through Playwright
-
-**IMPLEMENTATION WORKFLOW:**
-1. Build React component/feature
-2. Write Playwright test with visual verification
-3. Take screenshots of working implementation
-4. Test all interactive functionality
-5. Verify responsive behavior if applicable
-6. ONLY THEN commit implementation
-
-**Required Playwright Test Pattern:**
-```typescript
-// Example: verify-[feature-name]-implementation.spec.ts
-import { test, expect } from '@playwright/test';
-
-test.describe('[Feature Name] Implementation Verification', () => {
-  test('should display and function correctly', async ({ page }) => {
-    await page.goto('/path/to/feature');
-    
-    // Visual verification - MANDATORY
-    await expect(page).toHaveScreenshot('[feature-name]-implementation.png');
-    
-    // Functionality testing - MANDATORY
-    await page.click('[data-testid="interactive-element"]');
-    await expect(page.locator('[data-testid="result"]')).toBeVisible();
-    
-    // Error testing - REQUIRED
-    await page.fill('[data-testid="input"]', 'invalid-data');
-    await expect(page.locator('[data-testid="error-message"]')).toBeVisible();
-  });
-  
-  test('should be responsive', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 }); // Mobile
-    await page.goto('/path/to/feature');
-    await expect(page).toHaveScreenshot('[feature-name]-mobile.png');
-  });
-});
-```
-
-**TEST FILES LOCATION:**
-- All Playwright tests: `/tests/playwright/[feature-name].spec.ts`
-- Screenshots automatically saved to: `/tests/playwright/[feature-name]-test-results/`
-
-**VIOLATION CONSEQUENCES:**
-- Implementation commits WITHOUT Playwright tests will be considered incomplete
-- No deployment without visual verification
-- Code review rejection for missing test coverage
-
-### Action Items
-- [ ] **NEVER commit React implementations without Playwright visual verification**
-- [ ] **ALWAYS include screenshot comparison tests**
-- [ ] **TEST all interactive elements and edge cases**
-- [ ] **VERIFY responsive behavior when applicable**
-- [ ] **VALIDATE error states and loading states**
-- [ ] **CHECK accessibility basics through Playwright tools**
-
-### Tags
-#critical #mandatory-testing #playwright #visual-verification #implementation-standards
+**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
 
 ---
 
@@ -127,6 +74,24 @@ test.describe('[Feature Name] Implementation Verification', () => {
 - **Always check for existing animated components before creating new ones**
 - **Use standardized CSS classes, NOT inline styles**
 - **Follow Design System v7 for all styling decisions**
+
+## Documentation Organization Standard
+
+**CRITICAL**: Follow the documentation organization standard at `/docs/standards-processes/documentation-organization-standard.md`
+
+Key points for React Developer Agent:
+- **Find component docs by PRIMARY BUSINESS DOMAIN** - look in `/docs/functional-areas/events/` not `/user-dashboard/events/`
+- **Check context subfolders for UI-specific specs** - e.g., `/docs/functional-areas/events/admin-events-management/`
+- **Document React components by business domain** not UI context
+- **Cross-reference related UI contexts** when implementing shared components
+- **Use domain-level design systems** and component libraries
+- **Check for existing implementations** across all contexts of a domain
+
+Common mistakes to avoid:
+- Looking for component specs in UI-context folders instead of business-domain folders
+- Implementing duplicate components for different UI contexts of the same domain
+- Not checking all contexts (public, admin, user) for existing component patterns
+- Missing shared component opportunities across UI contexts
 
 ## 🚨 CRITICAL: WORKTREE WORKFLOW MANDATORY 🚨
 
@@ -556,71 +521,237 @@ Using standardized CSS classes ensures:
 
 ---
 
-## 🚨 CRITICAL: TinyMCE Integration Success Pattern 🚨
-**Date**: 2025-08-25
-**Category**: Rich Text Editor Integration
-**Severity**: Critical
+## 🚨 CRITICAL: Event Session Matrix API Integration Patterns 🚨
+**Date**: 2025-09-07
+**Category**: API Integration
+**Severity**: CRITICAL
 
 ### Context
-Successfully fixed TinyMCE integration in EventForm component that was previously commented out. The existing `@tinymce/tinymce-react` package was already installed but the import was commented out.
+Successfully implemented Phase 3 frontend integration for Event Session Matrix, connecting existing demo UI to 8 new backend API endpoints. Discovered critical patterns for React Query + TypeScript integration.
 
 ### What We Learned
-- **Package Already Available**: `@tinymce/tinymce-react` was already installed in package.json
-- **Simple Fix**: Just needed to uncomment the import statement and implement proper Editor component
-- **Configuration Works**: The TinyMCE configuration with toolbar, plugins, and content_style works perfectly
-- **Professional Experience**: TinyMCE provides much better professional appearance than plain textareas
-- **API Integration**: Editor can be easily integrated with form onChange handlers for state management
+**MANDATORY API INTEGRATION PATTERN**: Read `/docs/functional-areas/events/new-work/2025-08-24-events-management/handoffs/phase3-frontend-to-testing.md` for complete implementation patterns
 
-### Action Items
-- [ ] ALWAYS check package.json before installing new packages for rich text editing
-- [ ] USE TinyMCE Editor component instead of plain Textarea for rich content editing
-- [ ] CONFIGURE toolbar with essential formatting options: 'undo redo | blocks | bold italic underline strikethrough | link | bullist numlist | indent outdent | removeformat'
-- [ ] INCLUDE proper content_style for consistent font and styling
-- [ ] SET branding: false to remove TinyMCE branding
-- [ ] CONNECT editor to form state with onEditorChange callback
+**KEY FRONTEND PATTERNS**:
+- **Type Conversion Layer**: Always create conversion utilities between backend DTOs and frontend interfaces
+- **Composite React Query Hooks**: Use composite hooks like `useEventSessionMatrix` for complex related data
+- **Graceful Degradation**: Always implement loading and error states with fallback options
+- **Optimistic Updates**: Use React Query mutations with rollback for better UX
 
-### Impact
-TinyMCE integration provides:
-- Professional rich text editing experience
-- Comprehensive formatting toolbar
-- Better user experience than plain textareas
-- Easy integration with React form state management
-- Industry-standard rich text editing capabilities
-
-### Required Implementation Pattern:
+**API CLIENT ARCHITECTURE**:
 ```typescript
-import { Editor } from '@tinymce/tinymce-react';
+// ✅ CORRECT: Separate service layer from hooks
+// /lib/api/services/eventSessions.ts - Pure API functions
+// /lib/api/hooks/useEventSessions.ts - React Query wrappers
+// /lib/api/utils/eventSessionConversion.ts - Type conversion
+// /lib/api/types/eventSession.types.ts - TypeScript definitions
 
-<Editor
-  value={formValue}
-  onEditorChange={(content) => {
-    form.setFieldValue('fieldName', content);
-  }}
-  init={{
-    height: 300,
-    menubar: false,
-    plugins: 'advlist autolink lists link charmap preview anchor textcolor colorpicker',
-    toolbar: 'undo redo | blocks | bold italic underline strikethrough | link | bullist numlist | indent outdent | removeformat',
-    content_style: `
-      body { 
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-        font-size: 14px;
-        color: #333;
-        line-height: 1.6;
-      }
-    `,
-    branding: false,
-  }}
-/>
+// ✅ CORRECT: Type conversion pattern
+export function convertEventSessionFromDto(dto: EventSessionDto): EventSession {
+  const startDateTime = new Date(dto.startDateTime)
+  const endDateTime = new Date(dto.endDateTime)
+  
+  return {
+    id: dto.id,
+    sessionIdentifier: dto.sessionIdentifier,
+    name: dto.name,
+    date: startDateTime.toISOString().split('T')[0], // YYYY-MM-DD format
+    startTime: startDateTime.toTimeString().slice(0, 5), // HH:MM format
+    endTime: endDateTime.toTimeString().slice(0, 5),
+    capacity: dto.capacity,
+    registeredCount: dto.registeredCount
+  }
+}
 ```
 
+**REACT QUERY INTEGRATION PATTERNS**:
+```typescript
+// ✅ CORRECT: Composite hook pattern for related data
+export function useEventSessionMatrix(eventId: string, enabled: boolean = true) {
+  const sessionsQuery = useEventSessions(eventId, enabled)
+  const ticketTypesQuery = useEventTicketTypes(eventId, enabled)
+  
+  return {
+    sessions: sessionsQuery.data || [],
+    ticketTypes: ticketTypesQuery.data || [],
+    isLoading: sessionsQuery.isLoading || ticketTypesQuery.isLoading,
+    hasError: !!sessionsQuery.error || !!ticketTypesQuery.error,
+    refetchAll: async () => {
+      await Promise.all([
+        sessionsQuery.refetch(),
+        ticketTypesQuery.refetch()
+      ])
+    }
+  }
+}
+
+// ✅ CORRECT: Smart cache invalidation
+export function useCreateEventSession(eventId: string) {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: (sessionData: CreateEventSessionDto) => 
+      eventSessionsApi.createSession(eventId, sessionData),
+    onSuccess: () => {
+      // Invalidate sessions for this event
+      queryClient.invalidateQueries({ 
+        queryKey: [...eventKeys.detail(eventId), 'sessions'] 
+      })
+    },
+  })
+}
+```
+
+### Action Items
+- [x] **ALWAYS create type conversion utilities** between backend DTOs and frontend components
+- [x] **USE composite hooks** for related data loading (sessions + ticket types)
+- [x] **IMPLEMENT graceful degradation** with loading states and error boundaries
+- [x] **PRESERVE existing UI** - never recreate working components, only connect to APIs
+- [x] **APPLY optimistic updates** with proper rollback for better user experience
+- [x] **SEPARATE concerns** - services, hooks, utils, and types in different files
+- [ ] **EXTEND with modals** - implement CRUD modals using established hooks
+- [ ] **ADD real-time updates** - WebSocket integration for live data
+
+### Impact
+This pattern enables rapid development of complex API integrations while maintaining type safety and excellent user experience. The Event Session Matrix demo went from mock data to full backend integration in a single implementation session.
+
 ### Tags
-#critical #tinymce #rich-text-editor #integration-success #form-components
+#critical #api-integration #react-query #typescript #event-session-matrix #backend-integration
+
+---
+
+---
+
+## 🚨 CRITICAL: Frontend API Response Structure Fix 🚨
+**Date**: 2025-01-09
+**Category**: API Integration
+**Severity**: CRITICAL
+
+### Context
+Fixed critical authentication and events system issues where API response handling was expecting wrapped responses but the actual API returns flat data structures.
+
+### What We Learned
+- **API Returns Flat Structures**: The WitchCityRope API returns data directly, not wrapped in `.data` properties
+- **Authentication Flow Fixed**: Login/register now work correctly with proper response handling
+- **Events System Operational**: Events list and detail pages now use real API data exclusively
+- **Mock Data Removed**: All fallback mock data patterns removed for cleaner error handling
+
+### Action Items
+- [x] **ALWAYS check actual API response structure** before implementing handlers
+- [x] **NEVER assume wrapped responses** without verifying API behavior
+- [x] **REMOVE mock data fallbacks** once real API integration is working
+- [x] **TEST authentication flow** with real user credentials immediately after API changes
+- [x] **UPDATE all mutations** to handle flat response structure correctly
+
+### Fixed Implementation Pattern:
+```typescript
+// ✅ CORRECT - Handle flat API response structure
+async login(credentials: LoginRequest): Promise<AuthResponse> {
+  const response = await fetch('/api/Auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(credentials),
+  })
+  
+  const data = await response.json()
+  // API returns: { token: '...', user: {...}, expiresAt: '...' }
+  this.token = data.token // Direct access, not data.data.token
+  return data
+}
+
+// ✅ CORRECT - TanStack Query mutation
+export function useLogin() {
+  return useMutation({
+    mutationFn: async (credentials: LoginRequest) => {
+      const response = await api.post('/api/Auth/login', credentials)
+      return response.data // Flat structure from API
+    },
+    onSuccess: (data) => {
+      // Handle flat response: data.user, data.token, etc.
+      login(data.user, data.token, new Date(data.expiresAt))
+    }
+  })
+}
+
+// ❌ WRONG - Expecting wrapped responses
+return response.data.data.token  // API doesn't wrap responses
+```
+
+### Events System Fix:
+```typescript
+// ✅ CORRECT - Use real API data only, no mock fallbacks
+const { data: events, isLoading, error } = useEvents(apiFilters);
+const eventsArray: EventDto[] = events || []; // Real API data only
+
+// ❌ WRONG - Mock data fallbacks prevent proper error handling
+const eventsArray = events || mockEvents; // Hides API issues
+```
+
+### Impact
+This fix enables:
+- ✅ **Working Authentication**: Login/register/logout flow operational
+- ✅ **Real Events Data**: Events list and detail pages using live API
+- ✅ **Proper Error Handling**: No more hidden failures due to mock fallbacks
+- ✅ **Type Safety**: Response handlers match actual API contracts
+- ✅ **Performance**: Direct data access without unnecessary wrapping
+
+### Tags
+#critical #api-integration #authentication #events-system #response-handling #mock-data-removal
+
+---
+
+## 🚨 CRITICAL: Events List API Mismatch Fix 🚨
+**Date**: 2025-01-10
+**Category**: API Integration
+**Severity**: CRITICAL
+
+### Context  
+Fixed events page showing no events despite API returning data correctly. The issue was a mismatch between expected response structure in React Query hook and actual API response.
+
+### What We Learned
+- **API Returns Direct Arrays**: `/api/events` returns `Event[]` directly, not `{events: Event[]}`
+- **useQuery Type Mismatch**: Hook was expecting `data.events` but `data` IS the array
+- **Always Verify API Structure**: Test actual API responses, don't assume wrapped structures
+- **Frontend Lessons Critical**: API response mismatches block entire features from working
+
+### Fixed Implementation Pattern:
+```typescript
+// ✅ CORRECT - Handle direct array response from API
+export function useEvents(filters: EventFilters = {}) {
+  return useQuery({
+    queryKey: eventKeys.list(filters),
+    queryFn: async (): Promise<EventDto[]> => {
+      const { data } = await apiClient.get<ApiEvent[]>('/api/events', {
+        params: filters,
+      })
+      return data?.map(transformApiEvent) || [] // data IS the array
+    },
+  })
+}
+
+// ❌ WRONG - Expecting wrapped response structure  
+const { data } = await apiClient.get<ApiEventResponse>('/api/events')
+return data.events?.map(transformApiEvent) || [] // data.events doesn't exist
+```
+
+### Action Items
+- [x] **ALWAYS test actual API endpoints** before implementing React Query hooks
+- [x] **VERIFY response structure** with curl/browser tools first
+- [x] **FIX type annotations** to match actual API responses
+- [x] **UPDATE lessons learned** immediately when discovering API mismatches
+- [ ] **APPLY this pattern** to all other API endpoint hooks
+
+### Impact
+Events page now displays all 6 events from the API correctly, fixing a complete feature breakdown.
+
+### Tags
+#critical #api-integration #react-query #events-system #response-structure
 
 ---
 
 *This file is maintained by the react-developer agent. Add new lessons immediately when discovered.*
-*Last updated: 2025-08-25 - Added TinyMCE integration success pattern*
+*Last updated: 2025-01-10 - Added critical Events List API Mismatch Fix*
 
 ## COMPREHENSIVE LESSONS FROM FRONTEND DEVELOPMENT
 **NOTE**: The following lessons were consolidated from frontend-lessons-learned.md
@@ -748,192 +879,142 @@ For detailed form implementation patterns, see: `/docs/lessons-learned/form-impl
 
 ---
 
-## 🚨 CRITICAL: Vite Hot Reload Port Configuration Fix 🚨
+## 🚨 CRITICAL: TinyMCE API Key Secure Configuration 🚨
 **Date**: 2025-08-25
-**Category**: Development Environment
-**Severity**: Critical
+**Category**: Security & Configuration
+**Severity**: CRITICAL
 
 ### Context
-Event Session Matrix demo page was constantly reloading every 2-4 seconds due to Vite WebSocket connection failures. The issue was caused by port mismatch between dev server and HMR configuration.
+Implemented secure TinyMCE API key configuration following security best practices to enable premium features while maintaining security standards.
 
 ### What We Learned
-- **Root Cause**: Vite config specified port 5173 but dev server ran on port 5174
-- **WebSocket Error**: `WebSocket connection to 'ws://0.0.0.0:24678/?token=...' failed: Error during WebSocket handshake: Unexpected response code: 400`
-- **Reload Behavior**: Failed WebSocket connection triggered `[vite] server connection lost. Polling for restart...`
-- **Port Alignment Critical**: HMR port must be consistent with dev server configuration
+- **NEVER hardcode API keys** in source code - security vulnerability
+- **ALWAYS use environment variables** for sensitive configuration
+- **Environment files must be gitignored** to prevent API key exposure
+- **Provide .env.example** with placeholders for new developers
+- **Component graceful degradation** when API key is missing shows professional UX
 
 ### Action Items
-- [ ] ALWAYS align Vite config port with command-line port parameter
-- [ ] USE different HMR port (24679) to avoid conflicts with existing services
-- [ ] SET `strictPort: false` to allow port flexibility during development
-- [ ] TEST WebSocket connection with browser dev tools before deployment
+- [x] STORE API key in `.env.development` and `.env.production`
+- [x] CREATE `.env.example` with placeholder for new developers
+- [x] ENSURE `.env` files are in `.gitignore`
+- [x] IMPLEMENT graceful handling when API key is missing
+- [x] ADD warning alert when API key is not configured
+- [x] DOCUMENT setup process for other developers
+
+### Secure Implementation Pattern:
+```typescript
+// ✅ CORRECT - Use environment variable
+const apiKey = import.meta.env.VITE_TINYMCE_API_KEY;
+
+// Component handles missing key gracefully
+const [apiKeyMissing, setApiKeyMissing] = useState(false);
+
+useEffect(() => {
+  if (!apiKey) {
+    console.warn('TinyMCE API key not found. Some features may be limited.');
+    setApiKeyMissing(true);
+  }
+}, [apiKey]);
+
+// Show warning to developers
+{apiKeyMissing && (
+  <Alert color="orange" mb="xs" title="Configuration Notice">
+    TinyMCE API key not configured. Set VITE_TINYMCE_API_KEY in your .env file.
+  </Alert>
+)}
+
+// Pass to TinyMCE Editor
+<Editor apiKey={apiKey} {...props} />
+
+// ❌ WRONG - Hardcoded in source code
+<Editor apiKey="actual_key_here" />
+```
+
+### Security Checklist:
+```bash
+# ✅ Environment files gitignored
+.env
+.env.local
+.env.development.local
+.env.production.local
+
+# ✅ Example file for new developers
+VITE_TINYMCE_API_KEY=your_api_key_here
+
+# ✅ Component handles missing configuration gracefully
+const apiKey = import.meta.env.VITE_TINYMCE_API_KEY;
+```
 
 ### Impact
-Proper port configuration eliminates constant page reloading, enabling normal development workflow and form testing.
+Secure API key configuration enables TinyMCE premium features while:
+- Protecting sensitive configuration from source control
+- Providing clear setup instructions for new developers  
+- Gracefully handling missing configuration
+- Following industry security best practices
 
-### Required Vite Config Pattern:
+### Reference
+Complete setup guide: `/docs/guides-setup/tinymce-api-key-setup.md`
+
+### Tags
+#critical #security #api-keys #environment-variables #tinymce #configuration
+
+---
+
+## 🚨 CRITICAL: Safe Date Handling from API Data 🚨
+
+**Date**: 2025-09-10  
+**File**: `/apps/web/src/components/dashboard/EventsWidget.tsx`
+
+### Context
+EventsWidget component was throwing `RangeError: Invalid time value` when trying to format dates from API responses. The error occurred when calling `Date.toISOString()` on invalid Date objects created from null/undefined/empty string date values.
+
+### What We Learned
+**NEVER assume API date fields are valid strings:**
+- API DTOs can have `undefined` or `null` date fields even when typed as `string`
+- Empty string `''` passed to `new Date()` creates invalid Date object
+- Calling `toISOString()` on invalid Date throws RangeError
+- `isNaN(date.getTime())` is the reliable way to check Date validity
+
+### Action Items
+1. **ALWAYS validate dates before using Date methods**
+2. **Use null checks before creating Date objects** 
+3. **Provide meaningful fallbacks for invalid dates**
+4. **Use try-catch for date formatting operations**
+
+### Safe Date Handling Pattern:
 ```typescript
-// vite.config.ts
-server: {
-  host: '0.0.0.0',
-  port: 5174, // Match command line port
-  strictPort: false, // Allow flexibility
+const formatEventForWidget = (event: EventDto) => {
+  // Safely handle potentially null/undefined date strings
+  const startDateString = event.startDateTime;
+  const endDateString = event.endDateTime;
   
-  hmr: {
-    port: 24679, // Unique HMR port
-    host: '0.0.0.0',
-    clientPort: 24679, // Match HMR port
-  },
-}
+  // Only create Date objects if we have valid date strings
+  const startDate = startDateString ? new Date(startDateString) : null;
+  const endDate = endDateString ? new Date(endDateString) : null;
+  
+  // Validate that dates are actually valid Date objects
+  const isStartDateValid = startDate && !isNaN(startDate.getTime());
+  const isEndDateValid = endDate && !isNaN(endDate.getTime());
+  
+  // Provide fallbacks for invalid dates
+  const fallbackDate = new Date().toISOString().split('T')[0];
+  const fallbackTime = 'TBD';
+  
+  return {
+    date: isStartDateValid ? startDate!.toISOString().split('T')[0] : fallbackDate,
+    time: isStartDateValid && isEndDateValid 
+      ? `${formatTime(startDate!)} - ${formatTime(endDate!)}`
+      : fallbackTime,
+    isUpcoming: isStartDateValid ? startDate! > new Date() : false,
+  };
+};
 ```
-
-### Debugging Commands:
-```bash
-# Check WebSocket connection in browser dev tools
-# Look for: [vite] connecting... followed by [vite] connected.
-# Error patterns: WebSocket handshake failures, connection lost messages
-```
-
-### Tags
-#critical #vite #hmr #websocket #development-environment
-
----
-
-## 🚨 CRITICAL: TinyMCE vs TipTap Implementation Standards 🚨
-**Date**: 2025-08-25
-**Category**: Rich Text Editor
-**Severity**: Critical
-
-### Context
-EventForm originally used TipTap but was migrated to TinyMCE for UI standards compliance and better user experience. TinyMCE provides professional-grade rich text editing with comprehensive toolbar and features.
-
-### What We Learned
-- **UI Standards Compliance**: TinyMCE chosen over TipTap for better professional appearance
-- **Package Requirements**: `@tinymce/tinymce-react` package required for React integration
-- **Configuration Complexity**: TinyMCE requires proper toolbar, plugins, and content styling configuration
-- **Form Integration**: Rich text editors need manual form value synchronization with onChange handlers
-- **Content Styling**: TinyMCE content needs CSS styling for proper appearance
-
-### Action Items
-- [ ] ALWAYS use TinyMCE (@tinymce/tinymce-react) for rich text editing, NOT TipTap
-- [ ] INSTALL TinyMCE React package: `npm install @tinymce/tinymce-react`
-- [ ] CONFIGURE comprehensive toolbar with essential formatting options
-- [ ] SYNC editor content with form values using onChange callback
-- [ ] STYLE TinyMCE content with proper CSS classes for professional appearance
 
 ### Impact
-TinyMCE provides professional rich text editing experience with:
-- Comprehensive formatting toolbar
-- Professional UI appearance
-- Better user experience than TipTap
-- Robust content handling and validation
-- Industry-standard rich text editing capabilities
-
-### Required TinyMCE Implementation Pattern:
-```typescript
-import { Editor } from '@tinymce/tinymce-react';
-
-// TinyMCE configuration
-<Editor
-  value={form.values.fieldName}
-  onEditorChange={(content) => {
-    form.setFieldValue('fieldName', content);
-  }}
-  init={{
-    height: 300,
-    menubar: false,
-    toolbar: 'undo redo | blocks | bold italic underline strikethrough | link | bullist numlist | indent outdent | removeformat',
-    plugins: 'advlist autolink lists link charmap preview anchor textcolor colorpicker',
-    content_style: `
-      body { 
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-        font-size: 14px;
-        color: #333;
-        line-height: 1.6;
-      }
-    `,
-    branding: false,
-  }}
-/>
-```
-
-### Package Installation:
-```bash
-npm install @tinymce/tinymce-react
-```
+This pattern prevents runtime crashes when API returns incomplete date data and provides graceful degradation with meaningful fallback values. Essential for any component displaying API date/time data.
 
 ### Tags
-#critical #rich-text-editor #tinymce #ui-standards #form-integration
-
----
-
-## 🚨 CRITICAL: Button Text Cutoff Fix - Use Standard CSS Classes 🚨
-**Date**: 2025-08-25
-**Category**: UI Button Styling
-**Severity**: Critical
-
-### Context
-Event Session Matrix demo page had critical button text cutoff issues affecting all buttons. Users could not read button text properly due to top/bottom text being cut off.
-
-### Root Cause
-Using Mantine Button components with inline styles instead of standardized CSS button classes caused text positioning and height calculation issues.
-
-### What We Learned
-- **Mantine Button + Inline Styles = Text Cutoff**: Combining Mantine Button components with custom inline styles breaks text positioning
-- **Standard CSS Classes Work Perfectly**: Using `.btn`, `.btn-primary`, `.btn-secondary` classes from `/apps/web/src/index.css` eliminates all text cutoff issues
-- **Animation Classes Work**: Standard button classes include proper corner morphing and hover animations
-- **Table Action Buttons**: Use `.table-action-btn` class for small buttons in data tables
-
-### Fixed Implementation Pattern:
-```typescript
-// ✅ CORRECT - Use standardized CSS button classes  
-<button type="button" className="btn btn-primary">
-  Primary Action
-</button>
-
-<button type="button" className="btn btn-secondary">
-  Secondary Action  
-</button>
-
-<button type="button" className="table-action-btn">
-  <IconEdit size={14} style={{ marginRight: '4px' }} />
-  Edit
-</button>
-
-// ❌ WRONG - Mantine Button with inline styles causes text cutoff
-<Button 
-  style={{
-    backgroundColor: 'var(--mantine-color-amber-6)',
-    color: 'var(--mantine-color-gray-9)',
-  }}
->
-  Text Gets Cut Off
-</Button>
-```
-
-### Action Items
-- [ ] ALWAYS use standard CSS button classes instead of Mantine Button with inline styles
-- [ ] CHECK `/apps/web/src/index.css` for available button classes before creating buttons
-- [ ] USE `.btn .btn-primary` for primary CTA buttons with amber gradient and animations
-- [ ] USE `.btn .btn-secondary` for secondary buttons with burgundy outline and hover fill
-- [ ] USE `.table-action-btn` for small buttons in data tables
-- [ ] NEVER mix Mantine Button components with custom inline styling for text-bearing buttons
-
-### Impact
-Standard CSS button classes provide:
-- No text cutoff issues (proper height and line-height)
-- Professional corner morphing animations on hover
-- Consistent styling across entire application  
-- Better accessibility and focus states
-- Proper gradient backgrounds and transitions
-
-### Verification
-Playwright tests confirm:
-- ✅ Button text is fully visible (no cutoff)
-- ✅ Hover animations work correctly
-- ✅ All button styling is consistent
-
-### Tags
-#critical #button-styling #text-cutoff #mantine-vs-css #standardized-classes
+#critical #dates #api-data #error-handling #typescript #validation #runtime-safety
 
 ---
