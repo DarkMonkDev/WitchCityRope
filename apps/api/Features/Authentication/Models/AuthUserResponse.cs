@@ -34,6 +34,16 @@ public class AuthUserResponse
     public DateTime? LastLoginAt { get; set; }
 
     /// <summary>
+    /// User's role in the system
+    /// </summary>
+    public string Role { get; set; } = string.Empty;
+
+    /// <summary>
+    /// User's roles as an array (for frontend compatibility)
+    /// </summary>
+    public string[] Roles { get; set; } = Array.Empty<string>();
+
+    /// <summary>
     /// Default constructor
     /// </summary>
     public AuthUserResponse() { }
@@ -48,5 +58,7 @@ public class AuthUserResponse
         SceneName = user.SceneName;
         CreatedAt = user.CreatedAt;
         LastLoginAt = user.LastLoginAt;
+        Role = user.Role;
+        Roles = new[] { user.Role }; // Frontend expects roles array, provide single role as array
     }
 }

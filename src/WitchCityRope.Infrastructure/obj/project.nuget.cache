@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "k83JJhUxUq8=",
+  "dgSpecHash": "7Y4U5ZXXR6g=",
   "success": true,
-  "projectFilePath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj",
+  "projectFilePath": "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj",
   "expectedPackageFiles": [
     "/home/chad/.nuget/packages/apimatic.core/0.4.9/apimatic.core.0.4.9.nupkg.sha512",
     "/home/chad/.nuget/packages/automapper/12.0.1/automapper.12.0.1.nupkg.sha512",
@@ -29,7 +29,7 @@
     "/home/chad/.nuget/packages/microsoft.extensions.caching.memory/9.0.6/microsoft.extensions.caching.memory.9.0.6.nupkg.sha512",
     "/home/chad/.nuget/packages/microsoft.extensions.configuration.abstractions/9.0.6/microsoft.extensions.configuration.abstractions.9.0.6.nupkg.sha512",
     "/home/chad/.nuget/packages/microsoft.extensions.dependencyinjection/9.0.6/microsoft.extensions.dependencyinjection.9.0.6.nupkg.sha512",
-    "/home/chad/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/9.0.8/microsoft.extensions.dependencyinjection.abstractions.9.0.8.nupkg.sha512",
+    "/home/chad/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/9.0.9/microsoft.extensions.dependencyinjection.abstractions.9.0.9.nupkg.sha512",
     "/home/chad/.nuget/packages/microsoft.extensions.dependencymodel/9.0.6/microsoft.extensions.dependencymodel.9.0.6.nupkg.sha512",
     "/home/chad/.nuget/packages/microsoft.extensions.diagnostics.abstractions/9.0.6/microsoft.extensions.diagnostics.abstractions.9.0.6.nupkg.sha512",
     "/home/chad/.nuget/packages/microsoft.extensions.diagnostics.healthchecks/9.0.6/microsoft.extensions.diagnostics.healthchecks.9.0.6.nupkg.sha512",

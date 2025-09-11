@@ -349,3 +349,67 @@ const response = await fetch('http://localhost:5655/api/events')
 - All new tests MUST use `testConfig.urls`
 - Environment variables MUST be used for all port references
 - Regular audit of hard-coded localhost references
+
+## Authentication Role Support Implementation (2025-09-11)
+
+### CRITICAL FIX: Missing User Roles in Login Response
+**Problem**: Frontend couldn't show/hide admin features because login endpoint `/api/Auth/login` returned user object without role information.
+**Root Cause**: `AuthUserResponse` DTO was missing role properties that exist on the `ApplicationUser` entity.
+
+**Solution Implemented**:
+1. **Updated AuthUserResponse Model** (`/apps/api/Features/Authentication/Models/AuthUserResponse.cs`):
+   - Added `Role` property (string) for single role access
+   - Added `Roles` property (string array) for frontend compatibility
+   - Updated constructor to populate both properties from `ApplicationUser.Role`
+
+2. **Updated Frontend Role Check** (`/apps/web/src/components/layout/Navigation.tsx`):
+   - Changed from checking `user?.roles?.includes('Admin')` to `user?.roles?.includes('Administrator')`
+   - Backend returns "Administrator" role, frontend was checking for "Admin"
+   - Kept email fallback check for additional safety
+
+3. **API Container Restart Required**:
+   - Docker hot reload didn't pick up the DTO changes automatically
+   - Required manual restart of API container: `docker restart witchcity-api`
+
+**Technical Details**:
+- ApplicationUser entity has `Role` property with values like "Administrator", "Teacher", "Member", "Attendee"
+- Simple role system (single role per user) rather than complex Identity roles
+- Frontend expects `roles` array format: `user?.roles?.includes('Administrator')`
+- Backend now returns both formats for compatibility:
+  ```json
+  {
+    "user": {
+      "id": "...",
+      "email": "admin@witchcityrope.com",
+      "role": "Administrator",
+      "roles": ["Administrator"]
+    }
+  }
+  ```
+
+**Files Changed**:
+- `/apps/api/Features/Authentication/Models/AuthUserResponse.cs` - Added role properties
+- `/apps/web/src/components/layout/Navigation.tsx` - Updated role check
+
+**Test Results**:
+✅ Admin user login now returns: `"role": "Administrator", "roles": ["Administrator"]`  
+✅ Teacher user login now returns: `"role": "Teacher", "roles": ["Teacher"]`  
+✅ Frontend can now properly show/hide admin features  
+✅ Role-based access control working end-to-end  
+
+**Pattern for Future Development**:
+```csharp
+// ✅ CORRECT - Include role information in auth DTOs
+public AuthUserResponse(ApplicationUser user)
+{
+    // ... other properties
+    Role = user.Role;
+    Roles = new[] { user.Role }; // Frontend expects array format
+}
+```
+
+**Prevention**:
+- Always include role/authorization information in authentication DTOs
+- Test role-based features after authentication changes
+- Verify frontend and backend role naming conventions match
+- Document role values and their expected behavior

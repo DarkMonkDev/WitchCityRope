@@ -1,0 +1,233 @@
+# Page snapshot
+
+```yaml
+- text: Welcome, RopeMaster
+- link "Report an Incident":
+  - /url: /incident-report
+- link "Private Lessons":
+  - /url: /private-lessons
+- link "Contact":
+  - /url: /contact
+- button "Logout"
+- banner:
+  - link "WITCH CITY ROPE":
+    - /url: /
+  - link "Events & Classes":
+    - /url: /events
+  - link "How to Join":
+    - /url: /join
+  - link "Resources":
+    - /url: /resources
+  - link "Dashboard":
+    - /url: /dashboard
+- main:
+  - heading "Event Management" [level=1]
+  - button "Create Event":
+    - img
+    - text: Create Event
+  - paragraph: Manage all events, workshops, and community gatherings. Create new events, edit existing ones, and monitor registrations.
+  - text: upcoming
+  - button "View Event":
+    - img
+  - button "Edit Event":
+    - img
+  - button "Delete Event":
+    - img
+  - heading "Introduction to Rope Safety" [level=3]
+  - paragraph: Learn the fundamentals of safe rope bondage practices in this comprehensive beginner workshop.
+  - paragraph: 📅 Sep 17, 2025
+  - paragraph: 🕐 2:00 PM - Invalid Date
+  - paragraph: 👥 0/0
+  - paragraph: "ID: 55ddaa64..."
+  - text: upcoming
+  - button "View Event":
+    - img
+  - button "Edit Event":
+    - img
+  - button "Delete Event":
+    - img
+  - heading "Single Column Tie Techniques" [level=3]
+  - paragraph: Master the art of single column ties with hands-on practice and personalized instruction.
+  - paragraph: 📅 Sep 24, 2025
+  - paragraph: 🕐 3:00 PM - Invalid Date
+  - paragraph: 👥 0/0
+  - paragraph: "ID: e17ae695..."
+  - text: upcoming
+  - button "View Event":
+    - img
+  - button "Edit Event":
+    - img
+  - button "Delete Event":
+    - img
+  - heading "Suspension Basics" [level=3]
+  - paragraph: Introduction to suspension techniques with emphasis on safety and proper rigging.
+  - paragraph: 📅 Oct 1, 2025
+  - paragraph: 🕐 2:00 PM - Invalid Date
+  - paragraph: 👥 0/0
+  - paragraph: "ID: 3ed3cfc8..."
+  - text: upcoming
+  - button "View Event":
+    - img
+  - button "Edit Event":
+    - img
+  - button "Delete Event":
+    - img
+  - heading "Rope Maintenance & Care" [level=3]
+  - paragraph: Learn how to properly maintain, clean, and store your rope for longevity and safety.
+  - paragraph: 📅 Oct 8, 2025
+  - paragraph: 🕐 1:00 PM - Invalid Date
+  - paragraph: 👥 0/0
+  - paragraph: "ID: 5e2b8d17..."
+  - text: upcoming
+  - button "View Event":
+    - img
+  - button "Edit Event":
+    - img
+  - button "Delete Event":
+    - img
+  - heading "Community Rope Jam" [level=3]
+  - paragraph: Casual practice session for all skill levels. Bring your rope and practice with the community.
+  - paragraph: 📅 Oct 15, 2025
+  - paragraph: 🕐 3:00 PM - Invalid Date
+  - paragraph: 👥 0/0
+  - paragraph: "ID: 68cea1ce..."
+  - text: upcoming
+  - button "View Event":
+    - img
+  - button "Edit Event":
+    - img
+  - button "Delete Event":
+    - img
+  - heading "Advanced Floor Work" [level=3]
+  - paragraph: Explore complex floor-based rope bondage techniques for experienced practitioners.
+  - paragraph: 📅 Oct 22, 2025
+  - paragraph: 🕐 2:00 PM - Invalid Date
+  - paragraph: 👥 0/0
+  - paragraph: "ID: db1f7894..."
+  - text: upcoming
+  - button "View Event":
+    - img
+  - button "Edit Event":
+    - img
+  - button "Delete Event":
+    - img
+  - heading "Rope and Sensation Play" [level=3]
+  - paragraph: Combine rope techniques with sensation play for enhanced experiences.
+  - paragraph: 📅 Oct 29, 2025
+  - paragraph: 🕐 4:00 PM - Invalid Date
+  - paragraph: 👥 0/0
+  - paragraph: "ID: 304bb07d..."
+  - text: upcoming
+  - button "View Event":
+    - img
+  - button "Edit Event":
+    - img
+  - button "Delete Event":
+    - img
+  - heading "Predicament Bondage Workshop" [level=3]
+  - paragraph: Learn to create challenging and engaging predicament scenarios with rope.
+  - paragraph: 📅 Nov 5, 2025
+  - paragraph: 🕐 1:00 PM - Invalid Date
+  - paragraph: 👥 0/0
+  - paragraph: "ID: e73a3496..."
+  - text: upcoming
+  - button "View Event":
+    - img
+  - button "Edit Event":
+    - img
+  - button "Delete Event":
+    - img
+  - heading "Photography and Rope" [level=3]
+  - paragraph: Explore the artistic intersection of rope bondage and photography.
+  - paragraph: 📅 Nov 12, 2025
+  - paragraph: 🕐 11:00 AM - Invalid Date
+  - paragraph: 👥 0/0
+  - paragraph: "ID: d80d3b16..."
+  - text: upcoming
+  - button "View Event":
+    - img
+  - button "Edit Event":
+    - img
+  - button "Delete Event":
+    - img
+  - heading "Rope Social & Discussion" [level=3]
+  - paragraph: Monthly social gathering for community connection and discussion of rope topics.
+  - paragraph: 📅 Nov 19, 2025
+  - paragraph: 🕐 2:00 PM - Invalid Date
+  - paragraph: 👥 0/0
+  - paragraph: "ID: ec55d967..."
+- button "Open Tanstack query devtools":
+  - img
+- dialog "Create New Event":
+  - banner:
+    - heading "Create New Event" [level=2]
+    - button:
+      - img
+  - tablist:
+    - tab "Basic Info"
+    - tab "Tickets/Orders" [selected]
+    - tab "Emails"
+    - tab "Volunteers"
+  - tabpanel "Tickets/Orders":
+    - heading "Event Sessions" [level=2]
+    - paragraph: Define the individual sessions for your event. Click Edit to modify session details. The system auto-detects single vs multi-day events based on session count.
+    - table:
+      - rowgroup:
+        - row "Actions S# Name Date Start Time End Time Capacity Sold Delete":
+          - cell "Actions"
+          - cell "S#"
+          - cell "Name"
+          - cell "Date"
+          - cell "Start Time"
+          - cell "End Time"
+          - cell "Capacity"
+          - cell "Sold"
+          - cell "Delete"
+      - rowgroup:
+        - row "No sessions created yet. Click \"Add Session\" to get started.":
+          - cell "No sessions created yet. Click \"Add Session\" to get started.":
+            - paragraph: No sessions created yet. Click "Add Session" to get started.
+    - button "+ Add Session"
+    - paragraph: "💡 Tip: Click Edit to modify session details in a modal dialog."
+    - heading "Ticket Types" [level=2]
+    - paragraph: Configure different ticket options for your event. Each ticket type can include multiple sessions. Click Edit to modify complex settings.
+    - table:
+      - rowgroup:
+        - row "Edit Ticket Name Type Sessions Included Price Range Quantity Sales End Delete":
+          - cell "Edit"
+          - cell "Ticket Name"
+          - cell "Type"
+          - cell "Sessions Included"
+          - cell "Price Range"
+          - cell "Quantity"
+          - cell "Sales End"
+          - cell "Delete"
+      - rowgroup:
+        - row "No ticket types created yet. Click \"Add Ticket Type\" to get started.":
+          - cell "No ticket types created yet. Click \"Add Ticket Type\" to get started.":
+            - paragraph: No ticket types created yet. Click "Add Ticket Type" to get started.
+    - button "+ Add Ticket Type"
+    - paragraph: "💡 Tip: Click Edit for complex settings like session selection and sale periods. Simple fields can be edited inline."
+- dialog "Add Session":
+  - banner:
+    - heading "Add Session" [level=2]
+    - button:
+      - img
+  - text: Session Identifier
+  - textbox "Session Identifier": S1 - Session 1
+  - img
+  - text: Session Name
+  - textbox "Session Name"
+  - text: Date
+  - textbox "Date": September 11, 2025
+  - text: Start Time
+  - textbox "Start Time": 18:00
+  - text: End Time
+  - textbox "End Time": 21:00
+  - text: Capacity
+  - textbox "Capacity": "50"
+  - text: Already Registered
+  - textbox "Already Registered" [disabled]: "0"
+  - button "Cancel"
+  - button "Add Session"
+```

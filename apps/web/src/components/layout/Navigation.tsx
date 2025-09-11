@@ -69,8 +69,8 @@ export const Navigation: React.FC = () => {
         className="nav"
       >
         {/* Admin link - only for administrators */}
-        {/* TODO: Backend needs to return user.roles - using email check as temporary workaround */}
-        {(user?.roles?.includes('Admin') || user?.email === 'admin@witchcityrope.com') && (
+        {/* Backend now returns user.roles - proper role-based access control */}
+        {user?.roles?.includes('Administrator') && (
           <Box
             component={Link}
             to="/admin"

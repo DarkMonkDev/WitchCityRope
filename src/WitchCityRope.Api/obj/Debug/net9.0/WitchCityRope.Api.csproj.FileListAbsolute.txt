@@ -219,3 +219,15 @@
 /home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Api/obj/Debug/net9.0/WitchCityRope.Api.genruntimeconfig.cache
 /home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Api/obj/Debug/net9.0/ref/WitchCityRope.Api.dll
 /home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Api/bin/Debug/net9.0/appsettings.Development.json
+/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/obj/Debug/net9.0/WitchCityRope.Api.dll
+/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/obj/Debug/net9.0/refint/WitchCityRope.Api.dll
+/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/obj/Debug/net9.0/WitchCityRope.Api.pdb
+/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/obj/Debug/net9.0/WitchCityRope.Api.csproj.AssemblyReference.cache
+/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/obj/Debug/net9.0/rpswa.dswa.cache.json
+/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/obj/Debug/net9.0/WitchCityRope.Api.GeneratedMSBuildEditorConfig.editorconfig
+/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/obj/Debug/net9.0/WitchCityRope.Api.AssemblyInfoInputs.cache
+/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/obj/Debug/net9.0/WitchCityRope.Api.AssemblyInfo.cs
+/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/obj/Debug/net9.0/WitchCityRope.Api.csproj.CoreCompileInputs.cache
+/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/obj/Debug/net9.0/WitchCityRope.Api.MvcApplicationPartsAssemblyInfo.cs
+/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/obj/Debug/net9.0/WitchCityRope.Api.MvcApplicationPartsAssemblyInfo.cache
+/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/obj/Debug/net9.0/WitchCityRope.Api.sourcelink.json
