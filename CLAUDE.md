@@ -1,5 +1,11 @@
 # Claude Code Project Configuration - WitchCityRope
 
+### 🚨 CRITICAL: DATE VERIFICATION REQUIRED 🚨
+**ALWAYS CHECK TODAY'S DATE**: The system provides today's date in the <env> section.
+**USE THIS DATE FOR ALL DOCUMENTATION**: Files, commit messages, and documentation entries.
+**COMMON ERROR**: Using January instead of the actual month. ALWAYS verify!
+**Example**: If env says "Today's date: 2025-09-11", use September 11, 2025, NOT January 11, 2025!
+
 ### 🚨 CRITICAL: DOCUMENTATION STRUCTURE ENFORCEMENT 🚨
 
 **NEVER CREATE FILES OR FOLDERS IN /docs/ ROOT**
