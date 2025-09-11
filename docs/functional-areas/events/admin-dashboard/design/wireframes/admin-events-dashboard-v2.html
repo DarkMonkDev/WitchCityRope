@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Events Dashboard v2 - WitchCityRope</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            /* Design System v7 Colors */
+            --color-burgundy: #880124;
+            --color-burgundy-dark: #660018;
+            --color-rose-gold: #B76D75;
+            --color-electric: #9D4EDD;
+            --color-amber: #FFBF00;
+            --color-midnight: #1A1A2E;
+            --color-charcoal: #2B2B2B;
+            --color-cream: #FAF6F2;
+            --color-ivory: #FFF8F0;
+            --color-success: #228B22;
+            --color-warning: #DAA520;
+            --color-error: #DC143C;
+            --color-stone: #8B8680;
+            
+            /* Typography */
+            --font-display: 'Bodoni Moda', serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 16px;
+            --space-md: 24px;
+            --space-lg: 32px;
+            --space-xl: 40px;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--color-cream);
+            color: var(--color-charcoal);
+            line-height: 1.6;
+        }
+        
+        /* Admin Header */
+        .admin-header {
+            background: var(--color-midnight);
+            color: white;
+            padding: var(--space-sm) var(--space-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .admin-logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .admin-badge {
+            background: var(--color-burgundy);
+            padding: 4px var(--space-sm);
+            border-radius: 4px;
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .admin-user {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-family: var(--font-heading);
+            font-weight: 500;
+        }
+        
+        /* Sidebar */
+        .admin-layout {
+            display: flex;
+            min-height: calc(100vh - 68px);
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: white;
+            border-right: 2px solid var(--color-rose-gold);
+            padding: var(--space-md) 0;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
+            color: var(--color-charcoal);
+            text-decoration: none;
+            font-family: var(--font-heading);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .sidebar-item::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--color-burgundy), transparent);
+            transition: width 0.3s ease;
+        }
+        
+        .sidebar-item:hover::after {
+            width: 80%;
+        }
+        
+        .sidebar-item.active {
+            background: rgba(136, 1, 36, 0.1);
+            color: var(--color-burgundy);
+            border-left: 3px solid var(--color-burgundy);
+            padding-left: calc(var(--space-md) - 3px);
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: var(--space-xl);
+            max-width: 1200px;
+        }
+        
+        /* Page Header with inline Create button */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-md);
+        }
+        
+        .page-title {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 400;
+            color: var(--color-burgundy);
+        }
+        
+        .create-event-btn {
+            background: linear-gradient(135deg, var(--color-amber) 0%, #DAA520 100%);
+            color: var(--color-charcoal);
+            border: none;
+            padding: var(--space-sm) var(--space-md);
+            border-radius: 12px 6px 12px 6px;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+        }
+        
+        .create-event-btn:hover {
+            border-radius: 6px 12px 6px 12px;
+            transform: scale(1.02);
+        }
+        
+        /* Filter Controls Bar */
+        .filter-controls {
+            background: white;
+            padding: var(--space-md);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: var(--space-md);
+            display: flex;
+            align-items: center;
+            gap: var(--space-lg);
+            flex-wrap: wrap;
+        }
+        
+        /* Event Type Filters - Clickable Words */
+        .event-type-filters {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .filter-label {
+            font-family: var(--font-heading);
+            font-weight: 500;
+            color: var(--color-charcoal);
+            margin-right: var(--space-sm);
+        }
+        
+        .filter-word {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--color-stone);
+            cursor: pointer;
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+        
+        .filter-word:hover {
+            color: var(--color-burgundy);
+            background: rgba(136, 1, 36, 0.1);
+        }
+        
+        .filter-word.active {
+            color: var(--color-burgundy);
+            background: rgba(136, 1, 36, 0.15);
+            font-weight: 700;
+        }
+        
+        /* Search Bar */
+        .search-container {
+            flex: 1;
+            max-width: 400px;
+            position: relative;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: var(--space-sm) var(--space-xl) var(--space-sm) var(--space-sm);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 8px;
+            background: var(--color-cream);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--color-charcoal);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        
+        .search-input:focus {
+            border-color: var(--color-burgundy);
+            box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.15);
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: var(--space-sm);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-stone);
+            font-size: 1.2rem;
+        }
+        
+        /* Past Events Toggle */
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            font-family: var(--font-heading);
+            font-weight: 500;
+            color: var(--color-charcoal);
+        }
+        
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--color-burgundy);
+        }
+        
+        /* Events Table */
+        .events-table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .events-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .events-table th {
+            background: var(--color-burgundy);
+            color: white;
+            padding: var(--space-md);
+            text-align: left;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            height: 56px;
+        }
+        
+        /* Sortable columns */
+        .events-table th.sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .events-table th.sortable:hover {
+            background: var(--color-burgundy-dark);
+        }
+        
+        .sort-indicator {
+            margin-left: var(--space-xs);
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+        
+        .events-table th.sortable:hover .sort-indicator {
+            opacity: 1;
+        }
+        
+        .events-table td {
+            padding: var(--space-md);
+            border-bottom: 1px solid rgba(183, 109, 117, 0.2);
+            vertical-align: middle;
+            font-size: 1rem;
+        }
+        
+        /* Alternating row backgrounds */
+        .events-table tbody tr:nth-child(even) {
+            background: rgba(250, 246, 242, 0.8);
+        }
+        
+        .events-table tbody tr {
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .events-table tbody tr:hover {
+            background: rgba(136, 1, 36, 0.08) !important;
+        }
+        
+        /* Column Specific Styling */
+        .event-date {
+            font-family: var(--font-body);
+            font-weight: 600;
+            color: var(--color-charcoal);
+            width: 15%;
+        }
+        
+        .event-title {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-burgundy);
+            font-size: 1.1rem;
+            width: 35%;
+        }
+        
+        .event-time {
+            font-family: var(--font-body);
+            font-weight: 500;
+            color: var(--color-charcoal);
+            width: 20%;
+        }
+        
+        /* Capacity Column with Progress Bar */
+        .capacity-column {
+            width: 15%;
+        }
+        
+        .capacity-display {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xs);
+        }
+        
+        .capacity-fraction {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--color-burgundy);
+        }
+        
+        .capacity-bar-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(183, 109, 117, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .capacity-bar {
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+        
+        .capacity-bar.low {
+            background: var(--color-success);
+        }
+        
+        .capacity-bar.medium {
+            background: var(--color-warning);
+        }
+        
+        .capacity-bar.high {
+            background: var(--color-error);
+        }
+        
+        /* Actions Column */
+        .actions-column {
+            width: 15%;
+            text-align: center;
+        }
+        
+        .action-btn {
+            background: var(--color-cream);
+            border: 2px solid var(--color-rose-gold);
+            color: var(--color-burgundy);
+            padding: 6px 12px;
+            border-radius: 8px 4px 8px 4px;
+            font-family: var(--font-heading);
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .action-btn:hover {
+            border-radius: 4px 8px 4px 8px;
+            background: var(--color-burgundy);
+            color: white;
+            transform: scale(1.05);
+        }
+        
+        /* Breadcrumb Navigation */
+        .breadcrumb {
+            margin-bottom: var(--space-md);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            color: var(--color-stone);
+        }
+        
+        .breadcrumb a {
+            color: var(--color-burgundy);
+            text-decoration: none;
+        }
+        
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: var(--space-xl);
+            color: var(--color-stone);
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: var(--space-md);
+        }
+        
+        .empty-state-title {
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: var(--space-sm);
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .admin-layout {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 2px solid var(--color-rose-gold);
+            }
+            
+            .main-content {
+                padding: var(--space-md);
+            }
+            
+            .page-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: var(--space-md);
+            }
+            
+            .filter-controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: var(--space-md);
+            }
+            
+            .event-type-filters {
+                justify-content: center;
+            }
+            
+            .search-container {
+                max-width: none;
+            }
+            
+            .events-table-container {
+                overflow-x: auto;
+            }
+            
+            .events-table {
+                min-width: 800px;
+            }
+            
+            .action-btn {
+                font-size: 0.75rem;
+                padding: 4px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Admin Header -->
+    <div class="admin-header">
+        <div class="admin-logo">
+            WitchCityRope
+            <span class="admin-badge">ADMIN</span>
+        </div>
+        <div class="admin-user">
+            <span>River Moon</span>
+            <span style="color: #ccc;">•</span>
+            <a href="#" style="color: #ccc; text-decoration: none;">Logout</a>
+        </div>
+    </div>
+    
+    <!-- Main Layout -->
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <a href="#" class="sidebar-item">
+                <span>🏠</span> Dashboard
+            </a>
+            <a href="#" class="sidebar-item active">
+                <span>📅</span> Events
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>🎓</span> Vetting Queue
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>⚠️</span> Incident Reports
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>👥</span> Members
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>👨‍🏫</span> Teachers
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>💰</span> Financial Reports
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>⚙️</span> Settings
+            </a>
+        </nav>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Breadcrumb Navigation -->
+            <div class="breadcrumb">
+                <a href="#">Dashboard</a> > <span>Events</span>
+            </div>
+            
+            <!-- Page Header with Create Button -->
+            <div class="page-header">
+                <h1 class="page-title">Events Dashboard</h1>
+                <button class="create-event-btn" onclick="createEvent()">+ Create New Event</button>
+            </div>
+            
+            <!-- Filter Controls -->
+            <div class="filter-controls">
+                <!-- Event Type Filters -->
+                <div class="event-type-filters">
+                    <span class="filter-label">Filter:</span>
+                    <span class="filter-word active" onclick="toggleFilter(this, 'social')" data-filter="social">Social</span>
+                    <span class="filter-word active" onclick="toggleFilter(this, 'class')" data-filter="class">Class</span>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Search events..." oninput="searchEvents(this.value)">
+                    <span class="search-icon">🔍</span>
+                </div>
+                
+                <!-- Past Events Toggle -->
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="show-past-events" onchange="togglePastEvents(this.checked)">
+                    <span>Show Past Events</span>
+                </label>
+            </div>
+            
+            <!-- Events Table -->
+            <div class="events-table-container">
+                <table class="events-table">
+                    <thead>
+                        <tr>
+                            <th class="sortable" onclick="sortTable('date')">
+                                Date <span class="sort-indicator">↕</span>
+                            </th>
+                            <th class="sortable" onclick="sortTable('title')">
+                                Event Title <span class="sort-indicator">↕</span>
+                            </th>
+                            <th>Time</th>
+                            <th>Capacity/Tickets</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="events-table-body">
+                        <tr onclick="editEvent('evt-001')" data-event-type="class" data-event-title="rope basics workshop">
+                            <td class="event-date">Mar 15, 2025</td>
+                            <td class="event-title">Rope Basics Workshop</td>
+                            <td class="event-time">2:00 PM - 5:00 PM</td>
+                            <td class="capacity-column">
+                                <div class="capacity-display">
+                                    <div class="capacity-fraction">15/25</div>
+                                    <div class="capacity-bar-container">
+                                        <div class="capacity-bar medium" style="width: 60%;"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="actions-column">
+                                <button class="action-btn" onclick="event.stopPropagation(); copyEvent('evt-001')">Copy</button>
+                            </td>
+                        </tr>
+                        <tr onclick="editEvent('evt-002')" data-event-type="class" data-event-title="advanced shibari techniques">
+                            <td class="event-date">Mar 16, 2025</td>
+                            <td class="event-title">Advanced Shibari Techniques</td>
+                            <td class="event-time">1:00 PM - 4:00 PM</td>
+                            <td class="capacity-column">
+                                <div class="capacity-display">
+                                    <div class="capacity-fraction">17/20</div>
+                                    <div class="capacity-bar-container">
+                                        <div class="capacity-bar high" style="width: 85%;"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="actions-column">
+                                <button class="action-btn" onclick="event.stopPropagation(); copyEvent('evt-002')">Copy</button>
+                            </td>
+                        </tr>
+                        <tr onclick="editEvent('evt-003')" data-event-type="social" data-event-title="community social night">
+                            <td class="event-date">Mar 21, 2025</td>
+                            <td class="event-title">Community Social Night</td>
+                            <td class="event-time">7:00 PM - 10:00 PM</td>
+                            <td class="capacity-column">
+                                <div class="capacity-display">
+                                    <div class="capacity-fraction">27/60</div>
+                                    <div class="capacity-bar-container">
+                                        <div class="capacity-bar low" style="width: 45%;"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="actions-column">
+                                <button class="action-btn" onclick="event.stopPropagation(); copyEvent('evt-003')">Copy</button>
+                            </td>
+                        </tr>
+                        <tr onclick="editEvent('evt-004')" data-event-type="class" data-event-title="intensive rope weekend day 1">
+                            <td class="event-date">Mar 22, 2025</td>
+                            <td class="event-title">Intensive Rope Weekend - Day 1</td>
+                            <td class="event-time">10:00 AM - 6:00 PM</td>
+                            <td class="capacity-column">
+                                <div class="capacity-display">
+                                    <div class="capacity-fraction">12/12</div>
+                                    <div class="capacity-bar-container">
+                                        <div class="capacity-bar high" style="width: 100%;"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="actions-column">
+                                <button class="action-btn" onclick="event.stopPropagation(); copyEvent('evt-004')">Copy</button>
+                            </td>
+                        </tr>
+                        <tr onclick="editEvent('evt-005')" data-event-type="class" data-event-title="intensive rope weekend day 2">
+                            <td class="event-date">Mar 23, 2025</td>
+                            <td class="event-title">Intensive Rope Weekend - Day 2</td>
+                            <td class="event-time">10:00 AM - 6:00 PM</td>
+                            <td class="capacity-column">
+                                <div class="capacity-display">
+                                    <div class="capacity-fraction">12/12</div>
+                                    <div class="capacity-bar-container">
+                                        <div class="capacity-bar high" style="width: 100%;"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="actions-column">
+                                <button class="action-btn" onclick="event.stopPropagation(); copyEvent('evt-005')">Copy</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <!-- Empty State (hidden by default) -->
+                <div class="empty-state" id="empty-state" style="display: none;">
+                    <div class="empty-state-icon">📅</div>
+                    <div class="empty-state-title">No events found</div>
+                    <div>Try adjusting your filters or search terms</div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        // State management
+        let sortOrder = {};
+        let activeFilters = ['social', 'class']; // Both active by default
+        let showPastEvents = false;
+        let searchTerm = '';
+        
+        // Event type filter toggle
+        function toggleFilter(element, filterType) {
+            const isActive = element.classList.contains('active');
+            
+            if (isActive) {
+                element.classList.remove('active');
+                activeFilters = activeFilters.filter(f => f !== filterType);
+            } else {
+                element.classList.add('active');
+                activeFilters.push(filterType);
+            }
+            
+            filterEvents();
+        }
+        
+        // Search functionality
+        function searchEvents(term) {
+            searchTerm = term.toLowerCase();
+            filterEvents();
+        }
+        
+        // Past events toggle
+        function togglePastEvents(show) {
+            showPastEvents = show;
+            filterEvents();
+        }
+        
+        // Filter events based on current state
+        function filterEvents() {
+            const tableBody = document.getElementById('events-table-body');
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+            const emptyState = document.getElementById('empty-state');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                const eventType = row.dataset.eventType;
+                const eventTitle = row.dataset.eventTitle;
+                
+                // Check filters
+                const matchesFilter = activeFilters.length === 0 || activeFilters.includes(eventType);
+                const matchesSearch = searchTerm === '' || eventTitle.includes(searchTerm);
+                
+                // For demo purposes, assume all events are upcoming
+                // In real implementation, would check date against current date
+                const isVisible = matchesFilter && matchesSearch;
+                
+                row.style.display = isVisible ? '' : 'none';
+                if (isVisible) visibleCount++;
+            });
+            
+            // Show/hide empty state
+            if (visibleCount === 0) {
+                tableBody.style.display = 'none';
+                emptyState.style.display = 'block';
+            } else {
+                tableBody.style.display = '';
+                emptyState.style.display = 'none';
+            }
+        }
+        
+        // Table sorting
+        function sortTable(column) {
+            const tableBody = document.getElementById('events-table-body');
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+            const headers = document.querySelectorAll('.sortable');
+            
+            // Determine sort direction
+            const currentOrder = sortOrder[column] || 'asc';
+            const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+            sortOrder[column] = newOrder;
+            
+            // Update sort indicators
+            headers.forEach(header => {
+                const indicator = header.querySelector('.sort-indicator');
+                if (header.onclick.toString().includes(column)) {
+                    indicator.textContent = newOrder === 'asc' ? '↑' : '↓';
+                } else {
+                    indicator.textContent = '↕';
+                }
+            });
+            
+            // Sort rows
+            rows.sort((a, b) => {
+                let aValue, bValue;
+                
+                if (column === 'date') {
+                    aValue = a.querySelector('.event-date').textContent;
+                    bValue = b.querySelector('.event-date').textContent;
+                } else if (column === 'title') {
+                    aValue = a.querySelector('.event-title').textContent;
+                    bValue = b.querySelector('.event-title').textContent;
+                }
+                
+                const comparison = aValue.localeCompare(bValue);
+                return newOrder === 'asc' ? comparison : -comparison;
+            });
+            
+            // Re-append sorted rows
+            rows.forEach(row => tableBody.appendChild(row));
+        }
+        
+        // Event actions
+        function createEvent() {
+            // Navigate to event creation page
+            window.location.href = '/admin/events/create';
+        }
+        
+        function editEvent(eventId) {
+            // Navigate to event edit page (full page)
+            window.location.href = `/admin/events/edit/${eventId}`;
+        }
+        
+        function copyEvent(eventId) {
+            // Copy event functionality
+            console.log('Copy event:', eventId);
+            // In real implementation, would call API to copy event
+            alert('Event copied! Redirecting to edit the new copy...');
+        }
+        
+        // Initialize filters on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            filterEvents();
+        });
+    </script>
+</body>
+</html>
