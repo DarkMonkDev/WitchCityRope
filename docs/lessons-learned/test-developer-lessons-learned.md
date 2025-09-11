@@ -2,6 +2,19 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 CRITICAL: Always Run Health Checks First
+
+**Lesson Learned**: Port misconfigurations cause most test failures, not code issues.
+
+**Solution**: ALWAYS run health checks before any test development or execution:
+```bash
+dotnet test tests/WitchCityRope.Core.Tests --filter "Category=HealthCheck"
+```
+
+**Impact**: Saves hours of debugging false failures from infrastructure issues.
+
+**Implementation**: ServiceHealthCheckTests.cs provides comprehensive pre-flight validation.
+
 ## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
 
 **CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.

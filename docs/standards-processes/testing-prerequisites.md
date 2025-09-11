@@ -18,6 +18,31 @@ E2E test failures are most commonly caused by:
 
 ## Standard E2E Testing Process
 
+### Phase 0: MANDATORY Pre-Flight Health Checks (NEW - January 2025)
+
+**🚨 CRITICAL: Run health checks BEFORE ANY test execution to prevent false failures**
+
+The #1 cause of test failures is port misconfigurations and service unavailability. These health checks prevent hours of wasted debugging time.
+
+#### Run Health Checks First
+```bash
+# MANDATORY: Run health checks before ANY test suite
+dotnet test tests/WitchCityRope.Core.Tests --filter "Category=HealthCheck"
+
+# Expected: All 5 health checks should pass
+# - Docker containers healthy
+# - PostgreSQL accessible on port 5433  
+# - API healthy on port 5655
+# - React dev server on port 5173
+```
+
+If ANY health check fails:
+- **DO NOT proceed with testing**
+- **Fix the infrastructure issues first**
+- **Health checks provide specific fix commands**
+
+Health check execution time: < 1 second
+
 ### Phase 1: MANDATORY Environment Validation
 
 **BEFORE running ANY E2E tests, validate the environment:**

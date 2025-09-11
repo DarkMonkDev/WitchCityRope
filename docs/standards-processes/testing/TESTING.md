@@ -4,6 +4,26 @@
 
 WitchCityRope uses a comprehensive testing strategy to ensure code quality and reliability:
 
+## 🚨 MANDATORY: Pre-Flight Health Checks
+
+**Before running ANY tests, you MUST run health checks:**
+
+```bash
+dotnet test tests/WitchCityRope.Core.Tests --filter "Category=HealthCheck"
+```
+
+These health checks verify:
+- ✅ React dev server (port 5173)
+- ✅ API service (port 5655)
+- ✅ PostgreSQL database (port 5433)
+- ✅ Docker containers healthy
+
+**Why**: Port misconfigurations are the #1 cause of false test failures. Health checks prevent hours of debugging by validating infrastructure first.
+
+See `/docs/standards-processes/testing-prerequisites.md` for full details.
+
+## Testing Strategy
+
 - **Unit Tests**: Test business logic in isolation
 - **Integration Tests**: Test database interactions and API endpoints with real PostgreSQL
 - **E2E Tests**: Test user workflows through the browser
