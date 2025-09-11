@@ -2,6 +2,26 @@
 
 This document tracks critical lessons learned during backend development to prevent recurring issues and speed up future development.
 
+## 🚨 CRITICAL: Testing Requirements for Backend Developers
+
+**MANDATORY BEFORE ANY TESTING**: Even for quick test runs, you MUST:
+
+1. **Read testing documentation FIRST**:
+   - `/docs/standards-processes/testing-prerequisites.md` - MANDATORY pre-flight checks
+   - `/docs/standards-processes/testing/TESTING.md` - Testing procedures
+   - `/docs/lessons-learned/test-executor-lessons-learned.md` - Common issues
+
+2. **Run health checks BEFORE any tests**:
+   ```bash
+   dotnet test tests/WitchCityRope.Core.Tests --filter "Category=HealthCheck"
+   ```
+
+3. **Why this matters**: Port misconfigurations are the #1 cause of false test failures. Running tests without health checks wastes hours debugging non-existent issues.
+
+**Never skip health checks** - they take < 1 second and prevent hours of confusion.
+
+---
+
 ## Entity Framework Core & PostgreSQL Issues
 
 ### PostgreSQL Check Constraint Case Sensitivity (2025-08-25)

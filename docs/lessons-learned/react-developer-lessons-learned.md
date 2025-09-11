@@ -2,6 +2,29 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 CRITICAL: Testing Requirements for React Developers
+
+**MANDATORY BEFORE ANY TESTING**: Even for quick test runs, you MUST:
+
+1. **Read testing documentation FIRST**:
+   - `/docs/standards-processes/testing-prerequisites.md` - MANDATORY pre-flight checks
+   - `/docs/standards-processes/testing/TESTING.md` - Testing procedures
+   - `/docs/lessons-learned/test-executor-lessons-learned.md` - Common issues
+
+2. **Run health checks BEFORE any tests**:
+   ```bash
+   dotnet test tests/WitchCityRope.Core.Tests --filter "Category=HealthCheck"
+   ```
+
+3. **Common React testing issues**:
+   - React dev server must be on port 5173 (not 5654)
+   - API must be running on port 5655
+   - PostgreSQL must be on port 5433
+
+**Never skip health checks** - they detect port misconfigurations instantly.
+
+---
+
 ## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
 
 **CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
