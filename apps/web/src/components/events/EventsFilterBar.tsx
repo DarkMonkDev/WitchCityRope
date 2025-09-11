@@ -15,16 +15,16 @@ export const EventsFilterBar: React.FC<EventsFilterBarProps> = ({
   onFilterChange
 }) => {
   return (
-    <Stack gap="md" mb="lg">
-      {/* Event Type Filters */}
-      <Group>
+    <Group mb="lg" justify="space-between" align="center" wrap="nowrap">
+      {/* Left side: Filter controls */}
+      <Group align="center" gap="md">
         <Text size="sm" fw={500} c="dimmed">Filter:</Text>
         <Chip.Group
           multiple
           value={filterState.activeTypes}
           onChange={(types) => onFilterChange({ activeTypes: types as string[] })}
         >
-          <Group>
+          <Group gap="xs">
             <Chip 
               value="social" 
               variant="filled" 
@@ -55,30 +55,7 @@ export const EventsFilterBar: React.FC<EventsFilterBarProps> = ({
             </Chip>
           </Group>
         </Chip.Group>
-      </Group>
-
-      {/* Search and Past Events Toggle */}
-      <Group justify="space-between">
-        <TextInput
-          placeholder="Search events..."
-          leftSection={<IconSearch size="1rem" />}
-          value={rawSearchTerm}
-          onChange={(event) => onFilterChange({ searchTerm: event.currentTarget.value })}
-          data-testid="input-search-events"
-          style={{ flex: 1, maxWidth: 300 }}
-          styles={{
-            input: {
-              backgroundColor: 'var(--mantine-color-gray-0)',
-              borderColor: 'var(--mantine-color-wcr-4)',
-              fontSize: '14px',
-              '&:focus': {
-                borderColor: 'var(--mantine-color-wcr-7)',
-                boxShadow: '0 0 0 3px rgba(136, 1, 36, 0.15)'
-              }
-            }
-          }}
-        />
-
+        
         <Switch
           label="Show Past Events"
           labelPosition="left"
@@ -95,6 +72,27 @@ export const EventsFilterBar: React.FC<EventsFilterBarProps> = ({
           }}
         />
       </Group>
-    </Stack>
+
+      {/* Right side: Search */}
+      <TextInput
+        placeholder="Search events..."
+        leftSection={<IconSearch size="1rem" />}
+        value={rawSearchTerm}
+        onChange={(event) => onFilterChange({ searchTerm: event.currentTarget.value })}
+        data-testid="input-search-events"
+        style={{ minWidth: 300 }}
+        styles={{
+          input: {
+            backgroundColor: 'var(--mantine-color-gray-0)',
+            borderColor: 'var(--mantine-color-wcr-4)',
+            fontSize: '14px',
+            '&:focus': {
+              borderColor: 'var(--mantine-color-wcr-7)',
+              boxShadow: '0 0 0 3px rgba(136, 1, 36, 0.15)'
+            }
+          }
+        }}
+      />
+    </Group>
   );
 };

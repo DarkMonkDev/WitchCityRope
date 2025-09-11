@@ -64,7 +64,7 @@ export const AdminEventsTablePage: React.FC = () => {
           order={1}
           mb="xl"
           c="wcr.7"
-          ff="var(--font-display)"
+          ff="Bodoni Moda, serif"
           size="2.5rem"
         >
           Events Dashboard
@@ -84,7 +84,7 @@ export const AdminEventsTablePage: React.FC = () => {
         <Title
           order={1}
           c="wcr.7"
-          ff="var(--font-display)"
+          ff="Bodoni Moda, serif"
           size="2.5rem"
         >
           Events Dashboard

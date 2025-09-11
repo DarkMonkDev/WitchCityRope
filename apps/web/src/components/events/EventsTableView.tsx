@@ -91,8 +91,14 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
   const navigate = useNavigate();
 
   const handleRowClick = (eventId: string) => {
-    // Navigate to event edit page (full page, not modal)
-    navigate(`/admin/events/edit/${eventId}`);
+    // TODO: Navigate to event edit page when it exists
+    // For now, navigate to the admin events page and show notification
+    navigate(`/admin/events`);
+    notifications.show({
+      title: 'Event Details',
+      message: 'Event edit page will be implemented soon. Navigating to events list.',
+      color: 'blue'
+    });
   };
 
   const handleCopyEvent = (eventId: string, event: React.MouseEvent) => {
@@ -226,7 +232,16 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
                 onClick={(e) => handleCopyEvent(event.id, e)}
                 styles={{
                   root: {
-                    fontWeight: 600
+                    minWidth: '60px',
+                    height: '32px',
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    paddingLeft: '12px',
+                    paddingRight: '12px',
+                    lineHeight: '18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }
                 }}
               >
