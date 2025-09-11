@@ -119,9 +119,9 @@ namespace WitchCityRope.Core.Entities
 
         /// <summary>
         /// Business rule property: Determines if this event requires payment for attendance
-        /// Classes and Workshops require payment, Social events allow both RSVP and payment
+        /// Classes require payment, Social events allow both RSVP and payment
         /// </summary>
-        public bool RequiresPayment => EventType == EventType.Workshop || EventType == EventType.Class;
+        public bool RequiresPayment => EventType == EventType.Class;
 
         /// <summary>
         /// Gets the number of confirmed registrations

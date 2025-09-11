@@ -20,4 +20,9 @@
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../../src/WitchCityRope.Core/WitchCityRope.Core.csproj" />
+    <ProjectReference Include="../../src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>

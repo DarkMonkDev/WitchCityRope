@@ -3,11 +3,7 @@ namespace WitchCityRope.Api.Features.Events.Models;
 public enum EventType
 {
     Class,
-    Workshop,
-    Party,
-    Performance,
-    Meetup,
-    Other
+    Social
 }
 
 public enum EventSortBy

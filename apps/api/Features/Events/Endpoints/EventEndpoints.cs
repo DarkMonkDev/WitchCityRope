@@ -123,7 +123,8 @@ public static class EventEndpoints
                 Title = "Rope Basics Workshop (Fallback)",
                 Description = "Learn the fundamentals of rope bondage in a safe, educational environment. Perfect for beginners who want to explore shibari and kinbaku basics.",
                 StartDate = new DateTime(2025, 8, 25, 14, 0, 0, DateTimeKind.Utc),
-                Location = "Salem Community Center"
+                Location = "Salem Community Center",
+                EventType = "Workshop"
             },
             new EventDto
             {
@@ -131,7 +132,8 @@ public static class EventEndpoints
                 Title = "Advanced Suspension Techniques (Fallback)",
                 Description = "Advanced workshop covering suspension safety, rigging points, and dynamic movements. Prerequisites: completion of intermediate rope workshops.",
                 StartDate = new DateTime(2025, 8, 30, 19, 0, 0, DateTimeKind.Utc),
-                Location = "Studio Space Downtown"
+                Location = "Studio Space Downtown",
+                EventType = "Class"
             },
             new EventDto
             {
@@ -139,7 +141,8 @@ public static class EventEndpoints
                 Title = "Community Social & Practice (Fallback)",
                 Description = "Open practice session for all skill levels. Bring your rope and practice with others in a supportive community environment.",
                 StartDate = new DateTime(2025, 9, 5, 18, 30, 0, DateTimeKind.Utc),
-                Location = "Salem Arts Collective"
+                Location = "Salem Arts Collective",
+                EventType = "Meetup"
             }
         };
     }

@@ -43,7 +43,8 @@ public class EventService
                     Title = e.Title,
                     Description = e.Description,
                     StartDate = e.StartDate,
-                    Location = e.Location
+                    Location = e.Location,
+                    EventType = e.EventType.ToString()
                 })
                 .ToListAsync(cancellationToken);
 
@@ -89,7 +90,8 @@ public class EventService
                 Title = eventEntity.Title,
                 Description = eventEntity.Description,
                 StartDate = eventEntity.StartDate,
-                Location = eventEntity.Location
+                Location = eventEntity.Location,
+                EventType = eventEntity.EventType.ToString()
             };
 
             _logger.LogDebug("Event retrieved successfully: {EventId} ({Title})", eventId, eventEntity.Title);

@@ -20,7 +20,7 @@ namespace WitchCityRope.Infrastructure.Mapping
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.IsPublished ? "Published" : "Draft"))
                 .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => new List<string>())) // Tags not in entity
                 .ForMember(dest => dest.RequiredSkillLevels, opt => opt.MapFrom(src => new List<string>())) // Skills not in entity
-                .ForMember(dest => dest.RequiresVetting, opt => opt.MapFrom(src => src.EventType == EventType.PlayParty || src.EventType == EventType.Conference));
+                .ForMember(dest => dest.RequiresVetting, opt => opt.MapFrom(src => false)); // No event types require vetting now
 
             // Reverse mapping if needed
             CreateMap<EventDto, Event>()

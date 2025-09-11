@@ -11,4 +11,5 @@ public class EventDto
     public string Description { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }
     public string Location { get; set; } = string.Empty;
+    public string EventType { get; set; } = string.Empty;
 }

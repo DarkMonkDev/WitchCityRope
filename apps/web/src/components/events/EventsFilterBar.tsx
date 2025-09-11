@@ -26,7 +26,7 @@ export const EventsFilterBar: React.FC<EventsFilterBarProps> = ({
         >
           <Group gap="xs">
             <Chip 
-              value="social" 
+              value="Social" 
               variant="filled" 
               color="wcr"
               data-testid="filter-social"
@@ -40,7 +40,7 @@ export const EventsFilterBar: React.FC<EventsFilterBarProps> = ({
               Social
             </Chip>
             <Chip 
-              value="class" 
+              value="Class" 
               variant="filled" 
               color="wcr"
               data-testid="filter-class"

@@ -11,7 +11,7 @@ export interface AdminEventFiltersState {
 }
 
 const initialFilterState: AdminEventFiltersState = {
-  activeTypes: ['social', 'class'], // Start with both types selected (lowercase to match API)
+  activeTypes: ['Social', 'Class'], // Start with both types selected (capitalize to match API)
   searchTerm: '',
   showPastEvents: false,
   sortColumn: 'date', // Default sort by date
@@ -49,22 +49,16 @@ export const useAdminEventFilters = () => {
 
       return events
         .filter(event => {
-          // Type filtering - only filter by type if:
-          // 1. We have selected types AND
-          // 2. The event actually has a type set
-          // If no filters selected (length === 0), don't show any events
-          // If filters selected but event has no type, show the event
+          // Type filtering - show events that match selected types
           if (filterState.activeTypes.length === 0) {
             return false; // No filters selected = no events shown
           }
-          // If event has a type, check if it matches selected filters
-          if (event.eventType) {
-            const eventType = event.eventType.toLowerCase();
-            if (!filterState.activeTypes.includes(eventType)) {
+          if (filterState.activeTypes.length > 0 && event.eventType) {
+            // Check if event type matches any selected filter
+            if (!filterState.activeTypes.includes(event.eventType)) {
               return false;
             }
           }
-          // If event has no type, show it when any filter is selected
 
           // Search filtering (case-insensitive, searches title and description)
           if (debouncedSearchTerm) {

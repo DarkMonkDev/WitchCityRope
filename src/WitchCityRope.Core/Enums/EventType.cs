@@ -6,48 +6,13 @@ namespace WitchCityRope.Core.Enums
     public enum EventType
     {
         /// <summary>
-        /// Educational workshop or class
+        /// Educational class or workshop - requires ticket purchase (paid)
         /// </summary>
-        Workshop,
+        Class,
 
         /// <summary>
-        /// Educational class (alias for Workshop, used in tests)
+        /// Social gathering - allows both RSVP (free) and optional ticket purchases
         /// </summary>
-        Class = Workshop,
-
-        /// <summary>
-        /// Social gathering or munch
-        /// </summary>
-        Social,
-
-        /// <summary>
-        /// Play party or dungeon event
-        /// </summary>
-        PlayParty,
-
-        /// <summary>
-        /// Performance or demonstration
-        /// </summary>
-        Performance,
-
-        /// <summary>
-        /// Skill share or peer learning
-        /// </summary>
-        SkillShare,
-
-        /// <summary>
-        /// Special event or celebration
-        /// </summary>
-        Special,
-
-        /// <summary>
-        /// Online/virtual event
-        /// </summary>
-        Virtual,
-
-        /// <summary>
-        /// Multi-day event or conference
-        /// </summary>
-        Conference
+        Social
     }
 }

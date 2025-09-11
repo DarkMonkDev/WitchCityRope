@@ -199,7 +199,7 @@ public static class DbInitializer
                 startDate: DateTime.UtcNow.AddDays(5).AddHours(14),
                 endDate: DateTime.UtcNow.AddDays(5).AddHours(16),
                 capacity: 30,
-                eventType: EventType.Workshop,
+                eventType: EventType.Class,
                 location: "The Rope Space - Main Room",
                 primaryOrganizer: adminUser,
                 pricingTiers: new[]
@@ -231,7 +231,7 @@ public static class DbInitializer
                 startDate: DateTime.UtcNow.AddDays(12).AddHours(13),
                 endDate: DateTime.UtcNow.AddDays(12).AddHours(18),
                 capacity: 20,
-                eventType: EventType.Workshop,
+                eventType: EventType.Class,
                 location: "The Rope Space - Main Room",
                 primaryOrganizer: adminUser,
                 pricingTiers: new[]
@@ -247,7 +247,7 @@ public static class DbInitializer
                 startDate: DateTime.UtcNow.AddDays(15).AddHours(14),
                 endDate: DateTime.UtcNow.AddDays(15).AddHours(17),
                 capacity: 24,
-                eventType: EventType.Workshop,
+                eventType: EventType.Class,
                 location: "The Rope Space - Lounge",
                 primaryOrganizer: organizerUser,
                 pricingTiers: new[]
@@ -262,7 +262,7 @@ public static class DbInitializer
                 startDate: DateTime.UtcNow.AddDays(18).AddHours(14),
                 endDate: DateTime.UtcNow.AddDays(18).AddHours(16),
                 capacity: 30,
-                eventType: EventType.Workshop,
+                eventType: EventType.Class,
                 location: "The Rope Space - Main Room",
                 primaryOrganizer: adminUser,
                 pricingTiers: new[]
@@ -278,7 +278,7 @@ public static class DbInitializer
                 startDate: DateTime.UtcNow.AddDays(22).AddHours(13),
                 endDate: DateTime.UtcNow.AddDays(22).AddHours(18),
                 capacity: 16,
-                eventType: EventType.Workshop,
+                eventType: EventType.Class,
                 location: "The Rope Space - Main Room",
                 primaryOrganizer: organizerUser,
                 pricingTiers: new[]
@@ -307,7 +307,7 @@ public static class DbInitializer
                 startDate: DateTime.UtcNow.AddDays(28).AddHours(20),
                 endDate: DateTime.UtcNow.AddDays(29).AddHours(2),
                 capacity: 50,
-                eventType: EventType.PlayParty,
+                eventType: EventType.Social,
                 location: "Private Venue (address provided after RSVP)",
                 primaryOrganizer: organizerUser,
                 pricingTiers: new[]
@@ -322,7 +322,7 @@ public static class DbInitializer
                 startDate: DateTime.UtcNow.AddDays(30).AddHours(19),
                 endDate: DateTime.UtcNow.AddDays(30).AddHours(21),
                 capacity: 100,
-                eventType: EventType.Virtual,
+                eventType: EventType.Class,
                 location: "Online - Zoom",
                 primaryOrganizer: adminUser,
                 pricingTiers: new[]
@@ -337,7 +337,7 @@ public static class DbInitializer
                 startDate: DateTime.UtcNow.AddDays(45).AddHours(17),
                 endDate: DateTime.UtcNow.AddDays(48).AddHours(14),
                 capacity: 200,
-                eventType: EventType.Conference,
+                eventType: EventType.Class,
                 location: "Salem Convention Center",
                 primaryOrganizer: adminUser,
                 pricingTiers: new[]

@@ -285,6 +285,85 @@ if (request.StartDate.HasValue || request.EndDate.HasValue)
 }
 ```
 
+## EventType Enum Simplification (2025-09-11)
+
+### CRITICAL CHANGE: EventType Enum Reduced to Two Values Only
+**Problem**: Admin dashboard filters required only "Class" and "Social" event types, but EventType enum had many values (Workshop, Class, Social, PlayParty, Performance, etc.)
+
+**Solution Implemented**: 
+1. **Updated Core EventType Enum** (`/src/WitchCityRope.Core/Enums/EventType.cs`):
+   - Removed all values except `Class` and `Social`
+   - Updated documentation to reflect business rules:
+     - `Class`: Educational class or workshop - requires ticket purchase (paid)
+     - `Social`: Social gathering - allows both RSVP (free) and optional ticket purchases
+
+2. **Updated API Features EventType Enum** (`/src/WitchCityRope.Api/Features/Events/Models/Enums.cs`):
+   - Aligned with Core enum to only have `Class` and `Social`
+
+3. **Updated SeedDataService** (`/apps/api/Services/SeedDataService.cs`):
+   - Removed local EventType enum definition
+   - Added using statement for `WitchCityRope.Core.Enums`
+   - Updated all sample events to use only `Class` or `Social` types
+   - Changed `Workshop` → `Class`, `Meetup` → `Social`
+
+4. **Updated Core Business Logic** (`/src/WitchCityRope.Core/Entities/Event.cs`):
+   - Fixed `RequiresPayment` property to only check for `EventType.Class`
+   - Removed references to deprecated `EventType.Workshop`
+
+5. **Updated Infrastructure Mapping** (`/src/WitchCityRope.Infrastructure/Mapping/EventProfile.cs`):
+   - Removed vetting requirements logic that referenced deprecated event types
+   - Set `RequiresVetting` to always `false` since no event types require vetting now
+
+6. **Updated Database Initializer** (`/src/WitchCityRope.Infrastructure/Data/DbInitializer.cs`):
+   - Changed all `EventType.Workshop` → `EventType.Class`
+   - Changed `EventType.PlayParty` → `EventType.Social`
+   - Changed `EventType.Virtual` → `EventType.Class`
+   - Changed `EventType.Conference` → `EventType.Class`
+
+7. **Added Project References** (`/apps/api/WitchCityRope.Api.csproj`):
+   - Added missing project references to WitchCityRope.Core and WitchCityRope.Infrastructure
+   - This was required for the SeedDataService to access the Core EventType enum
+
+**Build Results**:
+✅ Core project compiles with 0 errors  
+✅ Infrastructure project compiles with 0 errors  
+✅ API project compiles with 0 errors  
+⚠️ Docker container needs rebuild to reflect project reference changes
+
+**Business Impact**:
+- Admin dashboard filters will now work with only "Class" and "Social" options
+- All existing events will be categorized as either Class or Social
+- Business rules simplified: Classes require payment, Social events allow both RSVP and payment
+
+**Files Changed**:
+- `/src/WitchCityRope.Core/Enums/EventType.cs`
+- `/src/WitchCityRope.Api/Features/Events/Models/Enums.cs`
+- `/apps/api/Services/SeedDataService.cs`
+- `/src/WitchCityRope.Core/Entities/Event.cs`
+- `/src/WitchCityRope.Infrastructure/Mapping/EventProfile.cs`
+- `/src/WitchCityRope.Infrastructure/Data/DbInitializer.cs`
+- `/apps/api/WitchCityRope.Api.csproj`
+
+**Pattern for Future Development**:
+```csharp
+// ✅ CORRECT - Use only Class or Social
+public enum EventType
+{
+    Class,   // Educational - requires payment
+    Social   // Social gathering - allows RSVP or payment
+}
+
+// ✅ CORRECT - Business logic based on simplified enum
+public bool RequiresPayment => EventType == EventType.Class;
+public bool AllowsRSVP => EventType == EventType.Social;
+```
+
+**Prevention**:
+- Keep EventType enum values aligned across all projects
+- Use consistent naming between backend enums and frontend filter options
+- Always add project references when using types from other projects
+- Test API endpoints after enum changes to verify DTO mapping works correctly
+
 ## Success Metrics
 
 - ✅ All 16 tables created successfully
@@ -300,6 +379,7 @@ if (request.StartDate.HasValue || request.EndDate.HasValue)
 - ✅ NuGet packages updated to latest .NET 9 compatible versions
 - ✅ EF Core check constraint warnings eliminated (23 → 16 warnings)
 - ✅ EventService.cs compilation errors fixed (21 → 0 errors)
+- ✅ EventType enum simplified to Class and Social only
 - ⚠️ Business requirements mismatch identified and documented
 
 ## Port Configuration Refactoring (2025-09-11)
@@ -606,3 +686,79 @@ ticketType.UpdateSalesEndDate(endDate);
 - Use IntelliSense and compiler feedback to catch property/method mismatches
 - Test build after entity model changes to identify alignment issues early
 - Document entity model interfaces for reference during service development
+
+## EventDto Mapping Issue - Missing EventType Field (2025-09-11)
+
+### CRITICAL FIX: API Not Returning EventType Field 
+**Problem**: Admin dashboard filters were broken because `/api/events` endpoint returned `eventType: null` for all events despite database having correct EventType values.
+
+**Root Cause**: 
+- Event entity correctly had `EventType` property with values "Workshop", "Class", "Meetup"
+- EventDto classes were missing `eventType` property
+- EventService mapping was not including EventType in LINQ projections
+
+**Investigation Process**:
+1. ✅ Verified database has EventType values using curl test
+2. ✅ Located Event entity with correct EventType property
+3. ✅ Found EventDto classes missing eventType field
+4. ✅ Identified EventService LINQ projections missing EventType mapping
+5. ✅ Located correct API endpoint `/api/events` handled by EventEndpoints.cs
+
+**Solution Implemented**:
+1. **Added eventType field to EventDto classes**:
+   - `/apps/api/Features/Events/Models/EventDto.cs` - Added `public string EventType { get; set; } = string.Empty;`
+   - `/apps/api/Models/EventDto.cs` - Added matching eventType field
+
+2. **Updated EventService mapping**:
+   - `GetPublishedEventsAsync()` LINQ projection: Added `EventType = e.EventType.ToString()`
+   - `GetEventAsync()` DTO creation: Added `EventType = eventEntity.EventType.ToString()`
+
+3. **Updated fallback events**: Added eventType values ("Workshop", "Class", "Meetup") to hardcoded fallback data
+
+**Files Changed**:
+- `/apps/api/Features/Events/Models/EventDto.cs` - Added eventType property
+- `/apps/api/Models/EventDto.cs` - Added eventType property  
+- `/apps/api/Features/Events/Services/EventService.cs` - Updated LINQ projections and DTO mapping
+- `/apps/api/Features/Events/Endpoints/EventEndpoints.cs` - Updated fallback events
+
+**Test Results**:
+✅ API endpoint `/api/events` now returns eventType field for all events  
+✅ Individual event endpoint `/api/events/{id}` includes eventType  
+✅ EventType values correctly mapped: "Workshop", "Class", "Meetup"  
+✅ Admin dashboard filters now functional  
+✅ Build compiles with 0 errors, 3 warnings (unchanged)
+
+**Key Lessons**:
+- **LINQ Projection Completeness**: Always ensure DTO projections include ALL required entity properties
+- **Multiple EventDto Classes**: Project had duplicate EventDto classes - both needed updating for consistency
+- **End-to-End Testing**: Use curl/API testing to verify field mapping, not just code inspection
+- **Enum to String Conversion**: EventType enum properly converts to string using `.ToString()`
+
+**Pattern for Future Development**:
+```csharp
+// ✅ CORRECT - Complete DTO mapping including all business-critical fields
+.Select(e => new EventDto 
+{
+    Id = e.Id.ToString(),
+    Title = e.Title,
+    Description = e.Description,
+    StartDate = e.StartDate,
+    Location = e.Location,
+    EventType = e.EventType.ToString() // Don't forget business-critical enums
+})
+
+// ❌ WRONG - Missing critical business properties
+.Select(e => new EventDto 
+{
+    Id = e.Id.ToString(),
+    Title = e.Title,
+    Description = e.Description,
+    // Missing EventType breaks filtering functionality
+})
+```
+
+**Prevention**:
+- Include ALL entity properties needed by frontend in DTO mapping
+- Test API responses with curl/Postman after DTO changes
+- Maintain consistency across multiple DTO classes for same entity
+- Document enum-to-string conversion requirements in service layer
