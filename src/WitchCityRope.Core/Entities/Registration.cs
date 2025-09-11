@@ -20,6 +20,7 @@ namespace WitchCityRope.Core.Entities
             User user,
             Event eventToRegister,
             Money selectedPrice,
+            EventTicketType? ticketType = null,
             string? dietaryRestrictions = null,
             string? accessibilityNeeds = null,
             string? emergencyContactName = null,
@@ -36,12 +37,15 @@ namespace WitchCityRope.Core.Entities
 
             ValidateEventCapacity(eventToRegister);
             ValidateSelectedPrice(eventToRegister, selectedPrice);
+            ValidateTicketType(eventToRegister, ticketType);
 
             Id = Guid.NewGuid();
             UserId = user.Id;
             User = user;
             EventId = eventToRegister.Id;
             Event = eventToRegister;
+            EventTicketTypeId = ticketType?.Id;
+            EventTicketType = ticketType;
             SelectedPrice = selectedPrice;
             Status = RegistrationStatus.Pending;
             DietaryRestrictions = dietaryRestrictions;
@@ -63,6 +67,16 @@ namespace WitchCityRope.Core.Entities
         public Guid EventId { get; private set; }
         
         public Event Event { get; private set; }
+        
+        /// <summary>
+        /// Optional reference to the ticket type used for this registration
+        /// </summary>
+        public Guid? EventTicketTypeId { get; private set; }
+        
+        /// <summary>
+        /// The ticket type used for this registration (nullable for legacy registrations)
+        /// </summary>
+        public EventTicketType? EventTicketType { get; private set; }
         
         /// <summary>
         /// The price selected from the sliding scale
@@ -237,13 +251,26 @@ namespace WitchCityRope.Core.Entities
             if (!validPrice)
                 throw new DomainException("Selected price is not valid for this event");
         }
+
+        private void ValidateTicketType(Event eventToRegister, EventTicketType? ticketType)
+        {
+            if (ticketType == null)
+                return; // Ticket type is optional for legacy support
+            
+            if (ticketType.EventId != eventToRegister.Id)
+                throw new DomainException("Ticket type must belong to the event being registered for");
+            
+            if (!ticketType.HasAvailableTickets())
+                throw new DomainException("Selected ticket type is not available");
+        }
         
         private string GenerateConfirmationCode()
         {
-            // Generate a unique confirmation code
+            // Generate a unique ticket confirmation code
+            // Format: TKT-YYYYMMDDHHMM-XXXX
             var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmm");
             var random = new Random().Next(1000, 9999);
-            return $"REG-{timestamp}-{random}";
+            return $"TKT-{timestamp}-{random}";
         }
     }
 }

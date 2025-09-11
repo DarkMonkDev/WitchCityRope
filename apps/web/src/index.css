@@ -389,6 +389,12 @@ html {
   color: var(--color-rose-gold) !important;
 }
 
+/* v7 Shimmer Animation for content sections */
+@keyframes shimmer {
+  0% { transform: rotate(45deg) translateX(-100%); }
+  100% { transform: rotate(45deg) translateX(100%); }
+}
+
 /* v7 Float Animation for Hero Background */
 @keyframes float {
   0%, 100% { transform: translate(0, 0) rotate(0deg); }

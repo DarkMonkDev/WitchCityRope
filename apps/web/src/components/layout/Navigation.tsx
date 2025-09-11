@@ -35,6 +35,7 @@ export const Navigation: React.FC = () => {
   return (
     <Box
       component="header"
+      data-testid="nav-main"
       className={`header ${isScrolled ? 'scrolled' : ''}`}
       style={{
         background: 'rgba(255, 248, 240, 0.95)',
@@ -77,6 +78,7 @@ export const Navigation: React.FC = () => {
         <Box
           component={Link}
           to="/events"
+          data-testid="link-events"
           style={{
             color: 'var(--color-charcoal)',
             textDecoration: 'none',
@@ -137,6 +139,7 @@ export const Navigation: React.FC = () => {
             <Box
               component={Link}
               to="/dashboard"
+              data-testid="avatar-user"
               style={{
                 color: 'var(--color-charcoal)',
                 textDecoration: 'none',
@@ -149,6 +152,7 @@ export const Navigation: React.FC = () => {
             </Box>
             <Box
               component="button"
+              data-testid="button-logout"
               onClick={handleLogout}
               className="btn btn-primary-alt"
             >
@@ -167,7 +171,7 @@ export const Navigation: React.FC = () => {
       </Group>
 
       {/* Mobile Menu Toggle */}
-      <Box component="button" className="mobile-menu-toggle">
+      <Box component="button" data-testid="button-mobile-menu" className="mobile-menu-toggle">
         <Box component="span" />
         <Box component="span" />
         <Box component="span" />

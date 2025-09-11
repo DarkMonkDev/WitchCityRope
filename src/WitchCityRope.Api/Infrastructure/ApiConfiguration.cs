@@ -288,13 +288,19 @@ public static class ApiConfiguration
                     .WithExposedHeaders("X-Total-Count", "X-Page-Number", "X-Page-Size");
             });
 
-            // Development policy - allows all origins
+            // Development policy - allows specific origins with credentials
             options.AddPolicy("DevelopmentPolicy", builder =>
             {
                 builder
-                    .AllowAnyOrigin()
+                    .WithOrigins(allowedOrigins.Length > 0 ? allowedOrigins : new[] { 
+                        "http://localhost:5173", 
+                        "http://localhost:5174",
+                        "http://localhost:5651"
+                    })
                     .AllowAnyMethod()
-                    .AllowAnyHeader();
+                    .AllowAnyHeader()
+                    .AllowCredentials()
+                    .WithExposedHeaders("X-Total-Count", "X-Page-Number", "X-Page-Size");
             });
         });
 

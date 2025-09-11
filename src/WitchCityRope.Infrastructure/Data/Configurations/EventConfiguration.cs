@@ -86,6 +86,16 @@ namespace WitchCityRope.Infrastructure.Data.Configurations
                 .WithOne(r => r.Event)
                 .HasForeignKey(r => r.EventId)
                 .OnDelete(DeleteBehavior.Restrict);
+            
+            builder.HasMany(e => e.Sessions)
+                .WithOne(s => s.Event)
+                .HasForeignKey(s => s.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            builder.HasMany(e => e.TicketTypes)
+                .WithOne(tt => tt.Event)
+                .HasForeignKey(tt => tt.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Indexes
             builder.HasIndex(e => e.StartDate);

@@ -30,7 +30,7 @@ namespace WitchCityRope.Core.Tests.Entities
             var accessibilityNeeds = "Wheelchair access";
 
             // Act
-            var registration = new Registration(_user, _event, _validPrice, dietaryRestrictions, accessibilityNeeds);
+            var registration = new Registration(_user, _event, _validPrice, null, dietaryRestrictions, accessibilityNeeds);
 
             // Assert
             registration.Should().NotBeNull();

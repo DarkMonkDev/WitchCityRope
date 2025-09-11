@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using WitchCityRope.Api.Features.Events.Models;
+using WitchCityRope.Api.Models;
 using WitchCityRope.Core.DTOs;
 using WitchCityRope.Core.Models;
 
@@ -14,12 +15,12 @@ namespace WitchCityRope.Api.Interfaces
         /// <summary>
         /// Retrieves a paginated list of events
         /// </summary>
-        Task<Core.Models.PagedResult<Core.DTOs.EventDto>> GetEventsAsync(int page, int pageSize, string? search);
+        Task<Core.Models.PagedResult<WitchCityRope.Api.Models.EventDto>> GetEventsAsync(int page, int pageSize, string? search);
 
         /// <summary>
         /// Retrieves an event by its ID
         /// </summary>
-        Task<Core.DTOs.EventDto?> GetEventByIdAsync(Guid id);
+        Task<WitchCityRope.Api.Models.EventDto?> GetEventByIdAsync(Guid id);
 
         /// <summary>
         /// Creates a new event
@@ -45,5 +46,49 @@ namespace WitchCityRope.Api.Interfaces
         /// Registers a user for an event
         /// </summary>
         Task<Features.Events.Models.RegisterForEventResponse> RegisterForEventAsync(Features.Events.Models.RegisterForEventRequest request);
+        
+        // Event Session Management
+        
+        /// <summary>
+        /// Creates a new event session
+        /// </summary>
+        Task<(bool Success, string Message, Features.Events.Models.EventSessionDto? Session)> CreateEventSessionAsync(Guid eventId, Features.Events.Models.CreateEventSessionRequest request);
+        
+        /// <summary>
+        /// Updates an existing event session
+        /// </summary>
+        Task<(bool Success, string Message, Features.Events.Models.EventSessionDto? Session)> UpdateEventSessionAsync(Guid sessionId, Features.Events.Models.UpdateEventSessionRequest request);
+        
+        /// <summary>
+        /// Deletes an event session
+        /// </summary>
+        Task<(bool Success, string Message)> DeleteEventSessionAsync(Guid sessionId);
+        
+        /// <summary>
+        /// Gets all sessions for an event
+        /// </summary>
+        Task<ICollection<Features.Events.Models.EventSessionDto>> GetEventSessionsAsync(Guid eventId);
+        
+        // Event Ticket Type Management
+        
+        /// <summary>
+        /// Creates a new event ticket type
+        /// </summary>
+        Task<(bool Success, string Message, Features.Events.Models.EventTicketTypeDto? TicketType)> CreateEventTicketTypeAsync(Guid eventId, Features.Events.Models.CreateEventTicketTypeRequest request);
+        
+        /// <summary>
+        /// Updates an existing event ticket type
+        /// </summary>
+        Task<(bool Success, string Message, Features.Events.Models.EventTicketTypeDto? TicketType)> UpdateEventTicketTypeAsync(Guid ticketTypeId, Features.Events.Models.UpdateEventTicketTypeRequest request);
+        
+        /// <summary>
+        /// Deletes an event ticket type
+        /// </summary>
+        Task<(bool Success, string Message)> DeleteEventTicketTypeAsync(Guid ticketTypeId);
+        
+        /// <summary>
+        /// Gets all ticket types for an event
+        /// </summary>
+        Task<ICollection<Features.Events.Models.EventTicketTypeDto>> GetEventTicketTypesAsync(Guid eventId);
     }
 }

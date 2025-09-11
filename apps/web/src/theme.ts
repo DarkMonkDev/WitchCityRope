@@ -3,7 +3,20 @@ import { createTheme } from '@mantine/core';
 // Design System v7 Color Palette - Extracted from homepage-template-v7.html
 export const wcrTheme = createTheme({
   colors: {
-    // Primary burgundy palette
+    // Primary burgundy palette for public events (updated to match design specs)
+    wcr: [
+      '#f8f4e6', // ivory (lightest)
+      '#e8ddd4',
+      '#d4a5a5', // dustyRose  
+      '#c48b8b',
+      '#b47171',
+      '#a45757',
+      '#9b4a75', // plum
+      '#880124', // burgundy (primary)
+      '#6b0119', // darker
+      '#2c2c2c'  // charcoal (darkest)
+    ],
+    // Keep existing burgundy for backward compatibility
     burgundy: [
       '#F5E8EA', // lightest tint
       '#E5C2C8',
@@ -69,7 +82,7 @@ export const wcrTheme = createTheme({
       '#B87333'  // copper
     ]
   },
-  primaryColor: 'burgundy',
+  primaryColor: 'wcr',
   fontFamily: 'Source Sans 3, sans-serif',
   headings: {
     fontFamily: 'Montserrat, sans-serif', // Updated to match v7

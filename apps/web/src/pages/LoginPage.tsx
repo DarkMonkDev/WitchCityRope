@@ -55,6 +55,7 @@ export const LoginPage: React.FC = () => {
     <Flex 
       align="center" 
       justify="center" 
+      data-testid="page-login"
       style={{ 
         minHeight: 'calc(100vh - 120px)', 
         padding: 'var(--space-xl) var(--space-md)'
@@ -293,6 +294,7 @@ export const LoginPage: React.FC = () => {
           <Text style={{ fontSize: '14px', color: 'var(--color-stone)', marginBottom: 'var(--space-sm)' }}>
             <Link 
               to="/forgot-password" 
+              data-testid="link-forgot-password"
               style={{ 
                 color: 'var(--color-burgundy)', 
                 textDecoration: 'none', 
@@ -316,6 +318,7 @@ export const LoginPage: React.FC = () => {
             New to Witch City Rope?{' '}
             <Link 
               to="/register" 
+              data-testid="link-register"
               style={{ 
                 color: 'var(--color-burgundy)', 
                 textDecoration: 'none', 

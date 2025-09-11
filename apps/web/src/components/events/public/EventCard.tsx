@@ -1,0 +1,250 @@
+import React, { memo, useMemo } from 'react';
+import { 
+  Paper, Badge, Title, Text, Group, Stack, Progress, 
+  Button, Box, Anchor, Alert 
+} from '@mantine/core';
+import { useNavigate } from 'react-router-dom';
+import { formatPrice, getCapacityColor } from '../../../utils/eventUtils';
+import type { EventDto } from '../../../lib/api/types/events.types';
+
+interface EventCardProps {
+  event: {
+    id: string;
+    title: string;
+    description: string;
+    startDate: string;
+    endDate?: string;
+    location: string;
+    createdAt: string;
+    updatedAt: string;
+    type: 'CLASS' | 'SOCIAL' | 'MEMBER';
+    instructor?: string;
+    price: {
+      type: 'sliding' | 'fixed';
+      min?: number;
+      max?: number;
+      amount?: number;
+    };
+    capacity: {
+      total: number;
+      taken: number;
+      available: number;
+    };
+    isMemberOnly?: boolean;
+    requiresVetting?: boolean;
+    startTime: string;
+    endTime: string;
+  };
+  userRole: 'anonymous' | 'member' | 'vetted' | 'admin';
+  onRegister?: (eventId: string) => void;
+  onRSVP?: (eventId: string) => void;
+}
+
+export const EventCard = memo<EventCardProps>(({ 
+  event, 
+  userRole, 
+  onRegister = () => {}, 
+  onRSVP = () => {} 
+}) => {
+  const navigate = useNavigate();
+  const canViewFullDetails = useMemo(() => {
+    if (!event.isMemberOnly) return true;
+    return userRole === 'vetted' || userRole === 'admin';
+  }, [event.isMemberOnly, userRole]);
+
+  const capacityPercentage = useMemo(() => 
+    (event.capacity.taken / event.capacity.total) * 100, 
+    [event.capacity.taken, event.capacity.total]
+  );
+
+  const renderActionButtons = () => {
+    const stopPropagation = (e: React.MouseEvent) => {
+      e.stopPropagation();
+    };
+
+    if (!canViewFullDetails) {
+      return (
+        <Button 
+          size="sm" 
+          variant="outline" 
+          color="burgundy"
+          onClick={stopPropagation}
+        >
+          Login to Register
+        </Button>
+      );
+    }
+
+    if (event.capacity.available === 0) {
+      return (
+        <Button 
+          size="sm" 
+          variant="outline" 
+          color="red"
+          onClick={stopPropagation}
+        >
+          Join Waitlist
+        </Button>
+      );
+    }
+
+    if (event.type === 'SOCIAL') {
+      return (
+        <Group gap="xs">
+          <Button 
+            size="sm" 
+            color="green" 
+            onClick={(e) => {
+              stopPropagation(e);
+              onRSVP(event.id);
+            }}
+          >
+            RSVP Free
+          </Button>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            color="burgundy"
+            onClick={stopPropagation}
+          >
+            Support Ticket
+          </Button>
+        </Group>
+      );
+    }
+
+    return (
+      <Button 
+        size="sm" 
+        color="burgundy"
+        onClick={(e) => {
+          stopPropagation(e);
+          onRegister(event.id);
+        }}
+      >
+        Register Now
+      </Button>
+    );
+  };
+
+  return (
+    <Paper
+      withBorder
+      shadow="sm" 
+      p="md"
+      radius="md"
+      style={{
+        transition: 'all 200ms ease',
+        cursor: 'pointer',
+        ...(event.isMemberOnly && { 
+          borderColor: 'var(--mantine-color-burgundy-5)',
+          borderWidth: '2px'
+        })
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.1)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = '';
+      }}
+      onClick={() => navigate(`/events/${event.id}`)}
+    >
+      <Stack gap="sm">
+        {/* Event Header */}
+        <Group justify="space-between" align="flex-start">
+          <Group gap="xs" align="center">
+            <Badge
+              variant="light"
+              color={event.type === 'CLASS' ? 'green' : event.type === 'SOCIAL' ? 'orange' : 'grape'}
+              size="sm"
+            >
+              {event.type}
+            </Badge>
+            <Title order={3} size="lg" fw={600}>
+              {event.title}
+            </Title>
+          </Group>
+        </Group>
+
+        {/* Event Meta */}
+        <Group gap="md">
+          <Group gap={4}>
+            <Text span>🕐</Text>
+            <Text size="sm" c="dimmed">
+              {event.startTime} - {event.endTime}
+            </Text>
+          </Group>
+          {event.instructor && (
+            <Group gap={4}>
+              <Text span>👤</Text>
+              <Text size="sm" c="dimmed">
+                {event.instructor}
+              </Text>
+            </Group>
+          )}
+        </Group>
+
+        {/* Description */}
+        {canViewFullDetails ? (
+          <Text size="sm" c="dimmed" lineClamp={2}>
+            {event.description}
+          </Text>
+        ) : (
+          <Stack gap="sm">
+            <Text size="sm" c="dimmed" lineClamp={1} style={{ opacity: 0.7 }}>
+              {event.description.substring(0, 50)}...
+            </Text>
+            <Alert color="orange" p="xs">
+              <Text size="sm">
+                <Anchor href="/login" c="burgundy">Login</Anchor> or{' '}
+                <Anchor href="/register" c="burgundy">apply for membership</Anchor>{' '}
+                to see full details and register
+              </Text>
+            </Alert>
+          </Stack>
+        )}
+
+        {/* Footer */}
+        <Group justify="space-between" align="center" mt="xs">
+          <Group gap="md">
+            {/* Pricing */}
+            <Text fw={600} c="green" size="md">
+              {formatPrice(event.price)}
+            </Text>
+            
+            {/* Capacity */}
+            <Group gap="xs" align="center">
+              <Text 
+                size="sm" 
+                c={capacityPercentage >= 80 ? 'red' : 'dimmed'}
+              >
+                {capacityPercentage >= 80 && event.capacity.available > 0 
+                  ? `Only ${event.capacity.available} left!`
+                  : event.capacity.available === 0
+                    ? 'Full - Join Waitlist'
+                    : `${event.capacity.available} of ${event.capacity.total} available`
+                }
+              </Text>
+              <Progress
+                value={capacityPercentage}
+                color={getCapacityColor(capacityPercentage)}
+                size="sm"
+                w={80}
+                aria-label={`Event capacity: ${event.capacity.taken} of ${event.capacity.total} spots taken`}
+              />
+            </Group>
+          </Group>
+
+          {/* Actions */}
+          <Group gap="xs">
+            {renderActionButtons()}
+          </Group>
+        </Group>
+      </Stack>
+    </Paper>
+  );
+});
+
+EventCard.displayName = 'EventCard';
