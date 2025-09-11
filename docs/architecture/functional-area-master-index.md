@@ -1,6 +1,6 @@
 # Functional Area Master Index
-<!-- Last Updated: 2025-01-09 - January 9 Session Complete - Infrastructure Excellence Achieved -->
-<!-- Version: 1.4 -->
+<!-- Last Updated: 2025-08-23 - Final Cleanup and Documentation Management Complete -->
+<!-- Version: 1.3 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -18,7 +18,7 @@ This master index is maintained by the librarian agent to provide quick lookups 
 | **Database Initialization** | `/docs/functional-areas/database-initialization/` | **IMPLEMENTATION COMPLETE** ✅ | **Complete database auto-initialization system** - Reduces setup time from 2-4 hours to under 5 minutes with automated migrations, comprehensive seed data, and real PostgreSQL testing via TestContainers | **COMPLETE** | 2025-08-22 |
 | ~~**Authentication-Identity**~~ | `/docs/_archive/authentication-identity-legacy-2025-08-12/` | **ARCHIVED** | Legacy authentication docs - ARCHIVED to prevent confusion | Archived | 2025-08-12 |
 | **Design Refresh** | `/docs/functional-areas/design-refresh/` | `/docs/functional-areas/design-refresh/new-work/2025-08-20-modernization/` | Design system modernization with edgy/modern aesthetic, homepage navigation refresh, 5 design iterations, documentation reorganization | Phase 1 - Requirements | 2025-08-20 |
-| **Events Management** | `/docs/functional-areas/events/` | `/docs/functional-areas/events/new-work/2025-08-24-events-management/` | ✅ **PHASE 4 COMPLETE** - Public Events Pages (EventsListPage, EventDetailPage) with sophisticated burgundy/rose gold design, card/list toggle, mock data fallback, 100% wireframe compliance | **PHASE 4 COMPLETE** | 2025-08-25 |
+| **Events Management** | `/docs/functional-areas/events/` | `/docs/functional-areas/events/new-work/2025-08-24-events-management/` | **ACTIVE DEVELOPMENT** - React migration from Blazor implementation - Event creation, RSVP, ticketing, admin management | **Phase 1 - Requirements** | 2025-08-24 |
 | **Homepage** | `/docs/functional-areas/homepage/` | N/A | Landing page and main navigation entry point with complete workflow structure and design assets | Enhanced | 2025-08-19 |
 | **Payment (PayPal/Venmo)** | `/docs/functional-areas/payment-paypal-venmo/` | N/A | Payment processing integration | Planning | 2025-08-12 |
 | **User Management** | `/docs/functional-areas/user-management/` | `/docs/functional-areas/user-management/new-work/2025-08-12-admin-screen/` | Admin user management, member profiles, vetting status | In Development | 2025-08-12 |
@@ -26,38 +26,8 @@ This master index is maintained by the librarian agent to provide quick lookups 
 | **Docker Authentication** | `/docs/functional-areas/docker-authentication/` | Phase 2 Complete - Pending Human Approval | Containerize existing working authentication system (React + .NET API + PostgreSQL) | Phase 2 Design Complete | 2025-08-17 |
 | **Enhancements** | `/docs/functional-areas/enhancements/` | N/A | User interface enhancements and feature improvements | Active | 2025-08-22 |
 | **Browser Testing** | `/docs/functional-areas/browser-testing/` | N/A | Browser automation and testing tools configuration | Active | 2025-08-22 |
-| **Testing Infrastructure** | `/docs/functional-areas/testing/` | **SESSION COMPLETE** ✅ | ✅ **COMPREHENSIVE E2E TEST INFRASTRUCTURE OPERATIONAL** - 37 test specs, 100% basic functionality, CORS fixed, authentication helpers working, all critical issues resolved, system ready for Phase 6 | **OPERATIONAL** | 2025-01-09 |
 
 ## Active Development Work
-
-### 🏆 JANUARY 9, 2025: COMPREHENSIVE TEST INFRASTRUCTURE OPERATIONAL - READY FOR PHASE 6
-- **Infrastructure Status**: ✅ **COMPREHENSIVE E2E TEST SUITE OPERATIONAL** - 37 test specs, 100% basic functionality pass rate
-- **Critical Fixes Applied**: ✅ **CORS RESOLVED, AUTHENTICATION FIXED, REAL API INTEGRATION** - All blocking issues resolved
-- **Migration Status**: ✅ **PHASE 5 COMPLETE** - User Dashboard & Member Features fully implemented and tested
-- **Implementation Status**: ✅ **DASHBOARD, PROFILE, AND REGISTRATION SYSTEMS COMPLETE** - Complete member experience implementation
-- **Component Achievement**: Role-based dashboard with 4 core widgets, multi-tab profile management, registration history with advanced filtering
-- **Technical Stack Validation**: React + TypeScript + Mantine v7 + TanStack Query architecture proven for complex user interfaces
-- **Design System Success**: Complete integration with WitchCityRope Design System v7 across all components
-- **Key Features Delivered**: Dashboard widgets, profile management system, registration history, mobile-responsive layouts
-- **API Integration Excellence**: Real-time data integration with comprehensive error handling and loading states
-- **Type Safety Achievement**: Full TypeScript coverage with React Hook Form + Zod validation patterns
-- **Mobile Experience**: Complete mobile-first responsive design with optimized touch interactions
-- **Documentation Complete**: Component architecture and usage patterns documented for team adoption
-- **Archive Status**: ACTIVE - Phase 5 serves as foundation for Phase 6 (Advanced Features & Vetting)
-- **Completion Date**: 2025-09-08
-- **Next Phase**: Phase 6 - Advanced Features & Vetting implementation
-
-### 🏆 PHASE 4 COMPLETE: Public Events Pages - Foundation Established
-- **Migration Status**: ✅ **PHASE 4 COMPLETE** - Public Events Pages fully implemented and tested
-- **Implementation Status**: ✅ **EVENTS LIST & DETAIL PAGES COMPLETE** - EventsListPage and EventDetailPage with sophisticated design
-- **Design Achievement**: Burgundy/rose gold theme matching approved wireframes exactly, card/list view toggle functionality
-- **Technical Stack Success**: React + TypeScript + Mantine v7 architecture proven with real-world implementation
-- **Frontend Resilience**: Mock data fallback system ensures pages work independently of API status
-- **Key Pages Delivered**: EventsListPage (with view toggles), EventDetailPage (with registration flow)
-- **Testing Excellence**: Complete E2E Playwright test coverage for all user interaction flows
-- **Performance Validation**: Fast loading, optimized rendering, mobile-responsive design
-- **Documentation Complete**: Migration progress tracking at `/docs/functional-areas/events/new-work/2025-08-24-events-management/STATUS.md`
-- **Completion Date**: 2025-08-25
 
 ### 🏆 PROJECT COMPLETE: API Architecture Modernization - Mission Accomplished
 - **Project Status**: ✅ **IMPLEMENTATION COMPLETE** - All phases delivered, project successful, 6 weeks ahead of schedule
@@ -76,6 +46,17 @@ This master index is maintained by the librarian agent to provide quick lookups 
 - **Completion Date**: 2025-08-22
 - **Cleanup Date**: 2025-08-23
 - **Next Steps**: Legacy controller cleanup recommended for Week 8 after production stability confirmation
+
+### 🚀 ACTIVE: Events Management React Migration
+- **Current Work**: `/docs/functional-areas/events/new-work/2025-08-24-events-management/`
+- **Status**: Phase 1 - Requirements Analysis (STARTED)
+- **Objective**: Complete migration of Events Management system from Blazor to React + TypeScript
+- **Context**: Nearly-complete Blazor implementation available for reference, substantial existing documentation
+- **Technology Stack**: React 18 + TypeScript + Mantine v7 + TanStack Query + NSwag types
+- **Quality Gates**: Requirements 5% → 95%, Design 0% → 90%, Implementation 0% → 85%, Testing 0% → 100%
+- **Next Human Review**: After requirements analysis completion
+- **Key Assets**: Existing API layer, comprehensive wireframes, business logic documentation
+- **Session**: 2025-08-24 (Started)
 
 ### 🎨 ACTIVE: Design Refresh Modernization
 - **Current Work**: `/docs/functional-areas/design-refresh/new-work/2025-08-20-modernization/`

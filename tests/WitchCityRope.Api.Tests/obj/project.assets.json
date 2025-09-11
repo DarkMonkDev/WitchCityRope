@@ -230,6 +230,27 @@
           "build/netstandard2.0/coverlet.collector.targets": {}
         }
       },
+      "Docker.DotNet.Enhanced/3.126.1": {
+        "type": "package",
+        "compile": {
+          "lib/net9.0/Docker.DotNet.dll": {}
+        },
+        "runtime": {
+          "lib/net9.0/Docker.DotNet.dll": {}
+        }
+      },
+      "Docker.DotNet.Enhanced.X509/3.126.1": {
+        "type": "package",
+        "dependencies": {
+          "Docker.DotNet.Enhanced": "3.126.1"
+        },
+        "compile": {
+          "lib/net9.0/Docker.DotNet.X509.dll": {}
+        },
+        "runtime": {
+          "lib/net9.0/Docker.DotNet.X509.dll": {}
+        }
+      },
       "FluentAssertions/8.4.0": {
         "type": "package",
         "compile": {
@@ -1910,6 +1931,18 @@
           "lib/net6.0/QRCoder.dll": {}
         }
       },
+      "Respawn/6.2.1": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Data.SqlClient": "4.0.5"
+        },
+        "compile": {
+          "lib/netstandard2.1/Respawn.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.1/Respawn.dll": {}
+        }
+      },
       "SendGrid/9.29.3": {
         "type": "package",
         "dependencies": {
@@ -2101,6 +2134,19 @@
           }
         }
       },
+      "SharpZipLib/1.4.2": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/ICSharpCode.SharpZipLib.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/ICSharpCode.SharpZipLib.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      },
       "Slugify.Core/5.1.1": {
         "type": "package",
         "dependencies": {
@@ -2112,6 +2158,22 @@
         },
         "runtime": {
           "lib/netstandard2.0/Slugify.Core.dll": {}
+        }
+      },
+      "SSH.NET/2024.2.0": {
+        "type": "package",
+        "dependencies": {
+          "BouncyCastle.Cryptography": "2.4.0"
+        },
+        "compile": {
+          "lib/net8.0/Renci.SshNet.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Renci.SshNet.dll": {
+            "related": ".xml"
+          }
         }
       },
       "StackExchange.Redis/2.7.27": {
@@ -2515,6 +2577,42 @@
           }
         }
       },
+      "Testcontainers/4.3.0": {
+        "type": "package",
+        "dependencies": {
+          "Docker.DotNet.Enhanced": "3.126.1",
+          "Docker.DotNet.Enhanced.X509": "3.126.1",
+          "Microsoft.Extensions.Logging.Abstractions": "8.0.3",
+          "SSH.NET": "2024.2.0",
+          "SharpZipLib": "1.4.2"
+        },
+        "compile": {
+          "lib/net9.0/Testcontainers.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net9.0/Testcontainers.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Testcontainers.PostgreSql/4.3.0": {
+        "type": "package",
+        "dependencies": {
+          "Testcontainers": "4.3.0"
+        },
+        "compile": {
+          "lib/net9.0/Testcontainers.PostgreSql.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net9.0/Testcontainers.PostgreSql.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "xunit/2.9.3": {
         "type": "package",
         "dependencies": {
@@ -2697,13 +2795,18 @@
         "dependencies": {
           "Bogus": "35.6.3",
           "FluentAssertions": "8.4.0",
+          "Microsoft.EntityFrameworkCore": "9.0.6",
           "Microsoft.Extensions.Configuration": "9.0.6",
           "Microsoft.Extensions.Configuration.Binder": "9.0.6",
           "Microsoft.Extensions.DependencyInjection": "9.0.6",
           "Microsoft.Extensions.Logging": "9.0.6",
           "Microsoft.Extensions.Logging.Console": "9.0.6",
           "Moq": "4.20.72",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "9.0.4",
+          "Respawn": "6.2.1",
+          "Testcontainers.PostgreSql": "4.2.2",
           "WitchCityRope.Core": "1.0.0",
+          "WitchCityRope.Infrastructure": "1.0.0",
           "xunit": "2.9.3"
         },
         "compile": {
@@ -3050,6 +3153,40 @@
         "coverlet-icon.png",
         "coverlet.collector.6.0.2.nupkg.sha512",
         "coverlet.collector.nuspec"
+      ]
+    },
+    "Docker.DotNet.Enhanced/3.126.1": {
+      "sha512": "UPyLBLBaVE3s7OCWM0h5g9w6mUOag5sOIP5CldFQekIWo/gHixgZR+o5fG7eCFH4ZdKlvBGM4ALFuOyPoKoJ3A==",
+      "type": "package",
+      "path": "docker.dotnet.enhanced/3.126.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "docker.dotnet.enhanced.3.126.1.nupkg.sha512",
+        "docker.dotnet.enhanced.nuspec",
+        "icon.png",
+        "lib/net8.0/Docker.DotNet.dll",
+        "lib/net9.0/Docker.DotNet.dll",
+        "lib/netstandard2.0/Docker.DotNet.dll",
+        "lib/netstandard2.1/Docker.DotNet.dll"
+      ]
+    },
+    "Docker.DotNet.Enhanced.X509/3.126.1": {
+      "sha512": "XFHMC/iWHbloQgg9apZrxu010DmSamaAggu8nomCqTeotGyUGkv2Tt/aqk1ljC/4tjtTrb9LtFQwYpwZbMbiKg==",
+      "type": "package",
+      "path": "docker.dotnet.enhanced.x509/3.126.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "docker.dotnet.enhanced.x509.3.126.1.nupkg.sha512",
+        "docker.dotnet.enhanced.x509.nuspec",
+        "icon.png",
+        "lib/net8.0/Docker.DotNet.X509.dll",
+        "lib/net9.0/Docker.DotNet.X509.dll",
+        "lib/netstandard2.0/Docker.DotNet.X509.dll",
+        "lib/netstandard2.1/Docker.DotNet.X509.dll"
       ]
     },
     "FluentAssertions/8.4.0": {
@@ -5390,6 +5527,19 @@
         "qrcoder.nuspec"
       ]
     },
+    "Respawn/6.2.1": {
+      "sha512": "b8v9a1+08FKiDtqi6KllaJEeJiB1cmkD3kmOXDNIR+U85gEaZitwl6Gxq6RU5NL34OLmdQ5dB+QE0rhVCX+lEA==",
+      "type": "package",
+      "path": "respawn/6.2.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/netstandard2.1/Respawn.dll",
+        "logo.png",
+        "respawn.6.2.1.nupkg.sha512",
+        "respawn.nuspec"
+      ]
+    },
     "SendGrid/9.29.3": {
       "sha512": "nb/zHePecN9U4/Bmct+O+lpgK994JklbCCNMIgGPOone/DngjQoMCHeTvkl+m0Nglvm0dqMEshmvB4fO8eF3dA==",
       "type": "package",
@@ -5635,6 +5785,27 @@
         "serilog.sinks.file.nuspec"
       ]
     },
+    "SharpZipLib/1.4.2": {
+      "sha512": "yjj+3zgz8zgXpiiC3ZdF/iyTBbz2fFvMxZFEBPUcwZjIvXOf37Ylm+K58hqMfIBt5JgU/Z2uoUS67JmTLe973A==",
+      "type": "package",
+      "path": "sharpziplib/1.4.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "images/sharpziplib-nuget-256x256.png",
+        "lib/net6.0/ICSharpCode.SharpZipLib.dll",
+        "lib/net6.0/ICSharpCode.SharpZipLib.pdb",
+        "lib/net6.0/ICSharpCode.SharpZipLib.xml",
+        "lib/netstandard2.0/ICSharpCode.SharpZipLib.dll",
+        "lib/netstandard2.0/ICSharpCode.SharpZipLib.pdb",
+        "lib/netstandard2.0/ICSharpCode.SharpZipLib.xml",
+        "lib/netstandard2.1/ICSharpCode.SharpZipLib.dll",
+        "lib/netstandard2.1/ICSharpCode.SharpZipLib.pdb",
+        "lib/netstandard2.1/ICSharpCode.SharpZipLib.xml",
+        "sharpziplib.1.4.2.nupkg.sha512",
+        "sharpziplib.nuspec"
+      ]
+    },
     "Slugify.Core/5.1.1": {
       "sha512": "9dsxewpdgnLgOVN6dIRX3XvlEy1XpLbE2nd2bFebcW0XPdysU1WgQUXChFcAfjHpdfImBxMUe33PTwZOuU531Q==",
       "type": "package",
@@ -5647,6 +5818,31 @@
         "lib/netstandard2.0/Slugify.Core.dll",
         "slugify.core.5.1.1.nupkg.sha512",
         "slugify.core.nuspec"
+      ]
+    },
+    "SSH.NET/2024.2.0": {
+      "sha512": "9r+4UF2P51lTztpd+H7SJywk7WgmlWB//Cm2o96c6uGVZU5r58ys2/cD9pCgTk0zCdSkfflWL1WtqQ9I4IVO9Q==",
+      "type": "package",
+      "path": "ssh.net/2024.2.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "SS-NET-icon-h500.png",
+        "lib/net462/Renci.SshNet.dll",
+        "lib/net462/Renci.SshNet.xml",
+        "lib/net6.0/Renci.SshNet.dll",
+        "lib/net6.0/Renci.SshNet.xml",
+        "lib/net7.0/Renci.SshNet.dll",
+        "lib/net7.0/Renci.SshNet.xml",
+        "lib/net8.0/Renci.SshNet.dll",
+        "lib/net8.0/Renci.SshNet.xml",
+        "lib/netstandard2.0/Renci.SshNet.dll",
+        "lib/netstandard2.0/Renci.SshNet.xml",
+        "lib/netstandard2.1/Renci.SshNet.dll",
+        "lib/netstandard2.1/Renci.SshNet.xml",
+        "ssh.net.2024.2.0.nupkg.sha512",
+        "ssh.net.nuspec"
       ]
     },
     "StackExchange.Redis/2.7.27": {
@@ -6260,6 +6456,52 @@
         "useSharedDesignerContext.txt"
       ]
     },
+    "Testcontainers/4.3.0": {
+      "sha512": "1cxsjDE2+rdi/ELOel+NbQhQ7tvaqXG2YDN6nmhDzyAu9baGM2FUENG/3eG7N+ak3nap35RFvxyhIdVBeqNwlA==",
+      "type": "package",
+      "path": "testcontainers/4.3.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "README.md",
+        "docs/banner.png",
+        "docs/logo.png",
+        "lib/net8.0/Testcontainers.dll",
+        "lib/net8.0/Testcontainers.xml",
+        "lib/net9.0/Testcontainers.dll",
+        "lib/net9.0/Testcontainers.xml",
+        "lib/netstandard2.0/Testcontainers.dll",
+        "lib/netstandard2.0/Testcontainers.xml",
+        "lib/netstandard2.1/Testcontainers.dll",
+        "lib/netstandard2.1/Testcontainers.xml",
+        "testcontainers.4.3.0.nupkg.sha512",
+        "testcontainers.nuspec"
+      ]
+    },
+    "Testcontainers.PostgreSql/4.3.0": {
+      "sha512": "OWtFKTrVaYrAA+N+tQF3ZC/o21pIPUihRB7NZNYbPWyxIJgSkTRzBdtV/ZNIGmsM+Smg0kqUy9ho2mbfTBt2Xw==",
+      "type": "package",
+      "path": "testcontainers.postgresql/4.3.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "README.md",
+        "docs/banner.png",
+        "docs/logo.png",
+        "lib/net8.0/Testcontainers.PostgreSql.dll",
+        "lib/net8.0/Testcontainers.PostgreSql.xml",
+        "lib/net9.0/Testcontainers.PostgreSql.dll",
+        "lib/net9.0/Testcontainers.PostgreSql.xml",
+        "lib/netstandard2.0/Testcontainers.PostgreSql.dll",
+        "lib/netstandard2.0/Testcontainers.PostgreSql.xml",
+        "lib/netstandard2.1/Testcontainers.PostgreSql.dll",
+        "lib/netstandard2.1/Testcontainers.PostgreSql.xml",
+        "testcontainers.postgresql.4.3.0.nupkg.sha512",
+        "testcontainers.postgresql.nuspec"
+      ]
+    },
     "xunit/2.9.3": {
       "sha512": "TlXQBinK35LpOPKHAqbLY4xlEen9TBafjs0V5KnA4wZsoQLQJiirCR4CbIXvOH8NzkW4YeJKP5P/Bnrodm0h9Q==",
       "type": "package",
@@ -6431,6 +6673,7 @@
       "Moq >= 4.20.72",
       "WitchCityRope.Api >= 1.0.0",
       "WitchCityRope.Core >= 1.0.0",
+      "WitchCityRope.Infrastructure >= 1.0.0",
       "WitchCityRope.Tests.Common >= 1.0.0",
       "coverlet.collector >= 6.0.2",
       "xunit >= 2.9.3",
@@ -6443,11 +6686,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Api.Tests/WitchCityRope.Api.Tests.csproj",
+      "projectUniqueName": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Api.Tests/WitchCityRope.Api.Tests.csproj",
       "projectName": "WitchCityRope.Api.Tests",
-      "projectPath": "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Api.Tests/WitchCityRope.Api.Tests.csproj",
+      "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Api.Tests/WitchCityRope.Api.Tests.csproj",
       "packagesPath": "/home/chad/.nuget/packages/",
-      "outputPath": "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Api.Tests/obj/",
+      "outputPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Api.Tests/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/chad/.nuget/NuGet/NuGet.Config"
@@ -6462,14 +6705,17 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/WitchCityRope.Api.csproj": {
-              "projectPath": "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/WitchCityRope.Api.csproj"
+            "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Api/WitchCityRope.Api.csproj": {
+              "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Api/WitchCityRope.Api.csproj"
             },
-            "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/WitchCityRope.Core.csproj": {
-              "projectPath": "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/WitchCityRope.Core.csproj"
+            "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Core/WitchCityRope.Core.csproj": {
+              "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Core/WitchCityRope.Core.csproj"
             },
-            "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj": {
-              "projectPath": "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj"
+            "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj": {
+              "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj"
+            },
+            "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj": {
+              "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj"
             }
           }
         }
@@ -6552,6 +6798,16 @@
     }
   },
   "logs": [
+    {
+      "code": "NU1603",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "WitchCityRope.Tests.Common depends on Testcontainers.PostgreSql (>= 4.2.2) but Testcontainers.PostgreSql 4.2.2 was not found. Testcontainers.PostgreSql 4.3.0 was resolved instead.",
+      "libraryId": "Testcontainers.PostgreSql",
+      "targetGraphs": [
+        "net9.0"
+      ]
+    },
     {
       "code": "NU1603",
       "level": "Warning",

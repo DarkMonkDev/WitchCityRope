@@ -8,59 +8,71 @@ namespace WitchCityRope.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<EventSession> builder)
         {
-            builder.ToTable("EventSessions", "public");
-            
-            // Primary Key
-            builder.HasKey(e => e.Id);
-            builder.Property(e => e.Id)
-                .ValueGeneratedNever(); // Set by domain logic
-            
-            // Properties
-            builder.Property(e => e.SessionIdentifier)
+            builder.ToTable("EventSessions");
+
+            builder.HasKey(es => es.Id);
+
+            builder.Property(es => es.Id)
+                .ValueGeneratedNever();
+
+            // Add alternate key for SessionIdentifier to support foreign key relationships
+            builder.HasAlternateKey(es => new { es.EventId, es.SessionIdentifier });
+
+            builder.Property(es => es.EventId)
+                .IsRequired();
+
+            builder.Property(es => es.SessionIdentifier)
                 .IsRequired()
-                .HasMaxLength(10);
-            
-            builder.Property(e => e.Name)
+                .HasMaxLength(10); // S1, S2, S3, etc.
+
+            builder.Property(es => es.Name)
                 .IsRequired()
                 .HasMaxLength(200);
-            
-            builder.Property(e => e.StartDateTime)
-                .IsRequired()
-                .HasColumnType("timestamp with time zone");
-            
-            builder.Property(e => e.EndDateTime)
-                .IsRequired()
-                .HasColumnType("timestamp with time zone");
-            
-            builder.Property(e => e.Capacity)
+
+            builder.Property(es => es.Date)
                 .IsRequired();
-            
-            builder.Property(e => e.IsActive)
-                .IsRequired()
-                .HasDefaultValue(true);
-            
-            builder.Property(e => e.CreatedAt)
-                .IsRequired()
-                .HasColumnType("timestamp with time zone");
-            
-            builder.Property(e => e.UpdatedAt)
-                .IsRequired()
-                .HasColumnType("timestamp with time zone");
-            
-            // Foreign Key to Event
-            builder.Property(e => e.EventId)
+
+            builder.Property(es => es.StartTime)
                 .IsRequired();
-            
-            // Navigation will be configured by Event entity
-            
+
+            builder.Property(es => es.EndTime)
+                .IsRequired();
+
+            builder.Property(es => es.Capacity)
+                .IsRequired();
+
+            builder.Property(es => es.IsRequired)
+                .IsRequired()
+                .HasDefaultValue(false);
+
+            builder.Property(es => es.RegisteredCount)
+                .IsRequired()
+                .HasDefaultValue(0);
+
+            builder.Property(es => es.CreatedAt)
+                .IsRequired();
+
+            builder.Property(es => es.UpdatedAt)
+                .IsRequired();
+
+            // Configure relationships
+            builder.HasOne(es => es.Event)
+                .WithMany(e => e.Sessions)
+                .HasForeignKey(es => es.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // Indexes
-            builder.HasIndex(e => new { e.EventId, e.IsActive })
-                .HasDatabaseName("IX_EventSessions_EventId_IsActive");
-            
-            // Unique constraint for session identifier per event
-            builder.HasIndex(e => new { e.EventId, e.SessionIdentifier })
+            builder.HasIndex(es => es.EventId);
+            builder.HasIndex(es => new { es.EventId, es.SessionIdentifier })
                 .IsUnique()
-                .HasDatabaseName("UQ_EventSessions_EventId_SessionIdentifier");
+                .HasDatabaseName("IX_EventSessions_EventId_SessionIdentifier");
+            builder.HasIndex(es => new { es.EventId, es.Date });
+            builder.HasIndex(es => new { es.Date, es.StartTime });
+
+            // Constraints
+            builder.HasCheckConstraint("CK_EventSessions_Capacity", "\"Capacity\" > 0");
+            builder.HasCheckConstraint("CK_EventSessions_RegisteredCount", "\"RegisteredCount\" >= 0");
+            builder.HasCheckConstraint("CK_EventSessions_RegisteredCount_LTE_Capacity", "\"RegisteredCount\" <= \"Capacity\"");
         }
     }
 }

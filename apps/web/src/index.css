@@ -57,6 +57,109 @@
   --space-3xl: 64px;
 }
 
+/* Design System v7 Data Table Styles */
+.wcr-data-table {
+  border-collapse: collapse;
+}
+
+.wcr-data-table th {
+  background-color: var(--color-burgundy) !important;
+  color: white !important;
+  padding: var(--space-md);
+  text-align: left;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: none;
+}
+
+.wcr-data-table td {
+  padding: var(--space-md);
+  border-bottom: 1px solid rgba(183, 109, 117, 0.2);
+  vertical-align: middle;
+  font-size: 1rem;
+}
+
+.wcr-data-table tbody tr:nth-child(even) {
+  background-color: rgba(250, 246, 242, 0.8);
+}
+
+.wcr-data-table tbody tr:hover {
+  background-color: rgba(136, 1, 36, 0.08) !important;
+}
+
+.wcr-data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* WCR Button Variants - Design System v7 */
+.btn-wcr-primary {
+  background: linear-gradient(135deg, var(--color-amber), #DAA520);
+  color: var(--color-charcoal);
+  border: none;
+  box-shadow: 0 4px 12px rgba(255, 191, 0, 0.3);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  border-radius: 12px 6px 12px 6px;
+  transition: all 0.3s ease;
+}
+
+.btn-wcr-primary:hover {
+  border-radius: 6px 12px 6px 12px;
+  box-shadow: 0 6px 20px rgba(255, 191, 0, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-wcr-secondary {
+  background: white;
+  color: var(--color-burgundy);
+  border: 2px solid var(--color-burgundy);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  border-radius: 12px 6px 12px 6px;
+  transition: all 0.3s ease;
+}
+
+.btn-wcr-secondary:hover {
+  background: var(--color-burgundy);
+  color: white;
+  border-radius: 6px 12px 6px 12px;
+}
+
+/* Table Action Buttons */
+.table-action-btn {
+  background: var(--color-cream);
+  border: 1px solid var(--color-rose-gold);
+  color: var(--color-burgundy);
+  padding: 4px 8px;
+  margin: 0 2px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.table-action-btn:hover {
+  background: var(--color-burgundy);
+  color: white;
+}
+
+.table-action-btn.delete-btn {
+  background: var(--color-error);
+  border-color: var(--color-error);
+  color: white;
+}
+
+.table-action-btn.delete-btn:hover {
+  background: #b91c1c;
+}
+
 /* Global body styles for v7 */
 body {
   font-family: var(--font-body);

@@ -113,22 +113,34 @@ public static class MockHelpers
         bool isActive = true,
         bool isVetted = false)
     {
-        return new User
+        var user = new User(
+            encryptedLegalName: "encrypted-legal-name",
+            sceneName: SceneName.Create(sceneName),
+            email: EmailAddress.Create(email),
+            dateOfBirth: DateTime.UtcNow.AddYears(-25),
+            role: role
+        );
+
+        // Set properties via reflection for test scenarios
+        if (id.HasValue)
         {
-            Id = id ?? Guid.NewGuid(),
-            EncryptedLegalName = "encrypted-legal-name",
-            SceneName = new SceneName(sceneName),
-            Email = new EmailAddress(email),
-            DateOfBirth = DateTime.UtcNow.AddYears(-25),
-            PasswordHash = "password-hash",
-            Role = role,
-            Roles = new[] { role },
-            IsActive = isActive,
-            IsVetted = isVetted,
-            EmailVerified = true,
-            CreatedAt = DateTime.UtcNow.AddMonths(-1),
-            UpdatedAt = DateTime.UtcNow.AddDays(-1)
-        };
+            var idProperty = typeof(User).GetProperty(nameof(User.Id));
+            idProperty?.SetValue(user, id.Value);
+        }
+        
+        if (!isActive)
+        {
+            var isActiveProperty = typeof(User).GetProperty(nameof(User.IsActive));
+            isActiveProperty?.SetValue(user, isActive);
+        }
+        
+        if (isVetted)
+        {
+            var isVettedProperty = typeof(User).GetProperty(nameof(User.IsVetted));
+            isVettedProperty?.SetValue(user, isVetted);
+        }
+
+        return user;
     }
 
     public static Event CreateTestEvent(

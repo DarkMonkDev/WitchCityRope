@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import { router } from './routes/router'
 import { useAuthActions } from './stores/authStore'
@@ -9,16 +9,23 @@ import './App.css'
  * 
  * Features:
  * - RouterProvider with data router (createBrowserRouter)
- * - Automatic auth check on app initialization
+ * - Automatic auth check on app initialization (with safeguards)
  * - Integration with Zustand auth store
  * - No need for separate AuthProvider context
  */
 function App() {
   const { checkAuth } = useAuthActions();
+  const hasCheckedAuth = useRef(false);
 
   // Check authentication status on app load (only once)
   useEffect(() => {
-    checkAuth();
+    if (!hasCheckedAuth.current) {
+      console.log('🔍 App.tsx: Initial auth check starting...');
+      hasCheckedAuth.current = true;
+      checkAuth().catch((error) => {
+        console.error('🔍 App.tsx: Initial auth check failed:', error);
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array - auth check should only run once on mount
 

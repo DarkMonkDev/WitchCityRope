@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "ZC8gN3fDCNs=",
+  "dgSpecHash": "xn+JVuItn0A=",
   "success": true,
-  "projectFilePath": "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/WitchCityRope.Core.csproj",
+  "projectFilePath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Core/WitchCityRope.Core.csproj",
   "expectedPackageFiles": [
     "/home/chad/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/9.0.6/microsoft.extensions.dependencyinjection.abstractions.9.0.6.nupkg.sha512",
     "/home/chad/.nuget/packages/newtonsoft.json/13.0.3/newtonsoft.json.13.0.3.nupkg.sha512"

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EventForm Debug Test</title>
+    <script>
+        // Simple test to check if the demo page loads
+        async function testDemoPage() {
+            try {
+                const response = await fetch('/admin/event-session-matrix-demo');
+                const html = await response.text();
+                
+                console.log('Response status:', response.status);
+                console.log('HTML length:', html.length);
+                
+                // Check if React app is loading
+                if (html.includes('<div id="root">')) {
+                    console.log('✓ React root element found');
+                } else {
+                    console.log('✗ React root element NOT found');
+                }
+                
+                // Check for Vite
+                if (html.includes('@vite/client')) {
+                    console.log('✓ Vite client found');
+                } else {
+                    console.log('✗ Vite client NOT found');
+                }
+                
+                // Check for main script
+                if (html.includes('/src/main.tsx')) {
+                    console.log('✓ Main TypeScript file found');
+                } else {
+                    console.log('✗ Main TypeScript file NOT found');
+                }
+                
+                document.getElementById('results').innerHTML = 
+                    `<h3>Test Results:</h3>
+                     <pre>Status: ${response.status}
+HTML Length: ${html.length}
+Contains React root: ${html.includes('<div id="root">')}
+Contains Vite: ${html.includes('@vite/client')}
+Contains main.tsx: ${html.includes('/src/main.tsx')}</pre>`;
+                
+            } catch (error) {
+                console.error('Test failed:', error);
+                document.getElementById('results').innerHTML = 
+                    `<h3>Error:</h3><pre>${error.message}</pre>`;
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>EventForm Debug Test</h1>
+    <button onclick="testDemoPage()">Test Demo Page</button>
+    <div id="results"></div>
+</body>
+</html>

@@ -7,7 +7,6 @@ import { EventsPage } from '../pages/dashboard/EventsPage';
 import { ProfilePage } from '../pages/dashboard/ProfilePage';
 import { SecurityPage } from '../pages/dashboard/SecurityPage';
 import { MembershipPage } from '../pages/dashboard/MembershipPage';
-import { RegistrationsPage } from '../pages/dashboard/RegistrationsPage';
 import { FormComponentsTest } from '../pages/FormComponentsTest';
 import MantineFormTest from '../pages/MantineFormTest';
 // TODO: Fix TypeScript errors in API validation pages before uncommenting
@@ -16,12 +15,21 @@ import ApiValidationV2Simple from '../pages/ApiValidationV2Simple';
 import ApiConnectionTest from '../pages/ApiConnectionTest';
 import { TestMSWPage } from '../pages/TestMSWPage';
 import { EventSessionMatrixDemo } from '../pages/admin/EventSessionMatrixDemo';
-import { TinyMCETestPage } from '../pages/TinyMCETest';
-import { EventsListPage } from '../pages/events/EventsListPage';
-import { EventDetailPage } from '../pages/events/EventDetailPage';
+import { EventsManagementApiDemo } from '../pages/admin/EventsManagementApiDemo';
+// import { EventsManagementApiDemoMinimal } from '../pages/admin/EventsManagementApiDemo.minimal';
+import { EventsManagementApiDemoTest } from '../pages/admin/EventsManagementApiDemo.test';
+// import { EventsManagementApiDemoDebug } from '../pages/admin/EventsManagementApiDemo.debug';
+import { EventFormTestPage } from '../pages/EventFormTestPage';
+import TestTinyMCE from '../pages/TestTinyMCE';
+import { NavigationTestPage } from '../pages/NavigationTestPage';
 import { RootLayout } from '../components/layout/RootLayout';
 import { RootErrorBoundary } from '../components/errors/RootErrorBoundary';
 import { authLoader } from './loaders/authLoader';
+
+// Events system pages
+import { PublicEventsPage } from '../pages/events/PublicEventsPage';
+import { EventDetailsPage } from '../pages/events/EventDetailsPage';
+import { AdminEventsPage } from '../pages/admin/AdminEventsPage';
 
 /**
  * React Router v7 configuration following validated patterns
@@ -45,6 +53,16 @@ export const router = createBrowserRouter([
       { 
         path: "register", 
         element: <RegisterPage /> 
+      },
+      
+      // Events system routes
+      {
+        path: "events",
+        element: <PublicEventsPage />
+      },
+      {
+        path: "events/:id",
+        element: <EventDetailsPage />
       },
       
       // Test/Development routes (public for now)
@@ -73,23 +91,13 @@ export const router = createBrowserRouter([
         path: "test-msw", 
         element: <TestMSWPage /> 
       },
-      {
-        path: "admin/event-session-matrix-demo",
-        element: <EventSessionMatrixDemo />
+      { 
+        path: "test-tinymce", 
+        element: <TestTinyMCE /> 
       },
-      {
-        path: "tinymce-test",
-        element: <TinyMCETestPage />
-      },
-      
-      // Public Events Pages
-      {
-        path: "events",
-        element: <EventsListPage />
-      },
-      {
-        path: "events/:id",
-        element: <EventDetailPage />
+      { 
+        path: "navigation-test", 
+        element: <NavigationTestPage /> 
       },
       
       // Protected routes - authentication required
@@ -119,11 +127,32 @@ export const router = createBrowserRouter([
         element: <MembershipPage />,
         loader: authLoader
       },
+      
+      // Admin routes - authentication and admin role required
       {
-        path: "dashboard/registrations",
-        element: <RegistrationsPage />,
+        path: "admin/events",
+        element: <AdminEventsPage />,
         loader: authLoader
+      },
+      
+      // Demo routes - no authentication required for demos
+      {
+        path: "admin/event-session-matrix-demo",
+        element: <EventSessionMatrixDemo />
+      },
+      {
+        path: "admin/events-management-api-demo",
+        element: <EventsManagementApiDemo />
+      },
+      {
+        path: "event-form-test",
+        element: <EventFormTestPage />
       }
     ]
+  },
+  // Test route OUTSIDE of RootLayout to bypass Navigation/UtilityBar
+  {
+    path: "/test-no-layout",
+    element: <EventsManagementApiDemoTest />
   }
 ]);

@@ -1,50 +1,29 @@
 # Functional Specification Lessons Learned
 
-## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+## 🚨 CRITICAL: WORKTREE COMPLIANCE - MANDATORY 🚨
 
-**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
+### ALL WORK MUST BE IN THE SPECIFIED WORKTREE DIRECTORY
 
-### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
-- **END of functional specification phase** - BEFORE ending session
-- **COMPLETION of technical design** - Document architecture decisions
-- **DISCOVERY of technical constraints** - Share immediately
-- **VALIDATION of feasibility** - Document technical approach
+**VIOLATION = CATASTROPHIC FAILURE**
 
-### 📁 WHERE TO SAVE HANDOFFS
-**Location**: `/docs/functional-areas/[feature]/handoffs/`
-**Naming**: `functional-spec-YYYY-MM-DD-handoff.md`
-**Template**: `/docs/standards-processes/agent-handoff-template.md`
+When given a Working Directory like:
+`/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management`
 
-### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
-1. **Technical Architecture**: System design and component interactions
-2. **API Contracts**: Endpoint definitions and data schemas
-3. **Database Changes**: Schema updates and migration requirements
-4. **Integration Points**: External service dependencies
-5. **Performance Requirements**: Scalability and response time needs
+**YOU MUST:**
+- Write ALL files to paths within the worktree directory
+- NEVER write to `/home/chad/repos/witchcityrope-react/` main repository
+- ALWAYS use the full worktree path in file operations
+- VERIFY you're in the correct directory before ANY file operation
 
-### 🤝 WHO NEEDS YOUR HANDOFFS
-- **Backend Developers**: API implementation and database design
-- **Frontend Developers**: Component architecture and data flow
-- **Database Designers**: Schema design and relationship modeling
-- **Test Developers**: Integration test requirements and scenarios
+**Example:**
+- ✅ CORRECT: `/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/docs/...`
+- ❌ WRONG: `/home/chad/repos/witchcityrope-react/docs/...`
 
-### ⚠️ MANDATORY READING BEFORE STARTING
-**ALWAYS READ EXISTING HANDOFFS FIRST**:
-1. Check `/docs/functional-areas/[feature]/handoffs/` for previous specification work
-2. Read ALL handoff documents in the functional area
-3. Understand technical decisions already made
-4. Build on validated architecture - don't redesign systems
-
-### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
-**Why this matters**:
-- Development teams build incompatible solutions
-- Architecture becomes inconsistent across features
-- Critical technical decisions get lost
-- Integration failures cascade through system
-
-**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
-
----
+**Why This Matters:**
+- Worktrees isolate feature branches
+- Writing to main repo pollutes other branches
+- Can cause merge conflicts and lost work
+- BREAKS the entire development workflow
 
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 
@@ -62,24 +41,6 @@
 
 ### Functional Specification Agent Specific Rules:
 - **PHASE 0 is now MANDATORY: Architecture Discovery before any specification**
-
-## Documentation Organization Standard
-
-**CRITICAL**: Follow the documentation organization standard at `/docs/standards-processes/documentation-organization-standard.md`
-
-Key points for Functional Specification Agent:
-- **Store specifications by PRIMARY BUSINESS DOMAIN** - e.g., `/docs/functional-areas/events/specifications/`
-- **Use context subfolders for UI-specific specs** - e.g., `/docs/functional-areas/events/admin-events-management/functional-spec.md`
-- **NEVER create separate functional areas for UI contexts** - Event specs go in `/events/`, not `/user-dashboard/events/`
-- **Document domain-wide functional requirements** at primary domain level
-- **Cross-reference specifications** between different UI contexts of same domain
-- **Create unified technical architecture** that serves all UI contexts of a domain
-
-Common mistakes to avoid:
-- Creating specifications in UI-context folders instead of business-domain folders
-- Scattering related functional specs across multiple functional areas
-- Not considering integration requirements between UI contexts of same domain
-- Missing shared technical patterns that could serve multiple contexts
 - **RED FLAG words: 'alignment', 'DTO', 'type generation' → STOP and check NSwag docs**
 - **Reference line numbers from architecture docs in specifications**
 - **Document: 'Verified existing solutions in: [architecture docs checked]'**

@@ -13,6 +13,7 @@ using WitchCityRope.Api.Features.Auth.Models;
 using WitchCityRope.Core.Exceptions;
 using WitchCityRope.Api.Interfaces;
 using WitchCityRope.Api.Features.Events.Models;
+using WitchCityRope.Api.Features.Events.Endpoints;
 using WitchCityRope.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -224,45 +225,41 @@ public static class EndpointExtensions
         .WithName("RefreshToken")
         .WithOpenApi();
 
-        // Event endpoints - COMMENTED OUT to use EventsController instead
-        // These minimal API routes were conflicting with the EventsController routes
-        // The EventsController at /api/events provides more complete data
-        /*
-        group.MapGet("/events", async (
-            int page,
-            int pageSize,
-            string? search,
-            IEventService eventService,
-            IMemoryCache cache) =>
-        {
-            var cacheKey = $"events_{page}_{pageSize}_{search}";
-            
-            if (cache.TryGetValue<PagedResult<EventDto>>(cacheKey, out var cachedResult))
-            {
-                return Results.Ok(cachedResult);
-            }
+        // Event endpoints
+        //         group.MapGet("/events", async (
+        //             int page,
+        //             int pageSize,
+        //             string? search,
+        //             IEventService eventService,
+        //             IMemoryCache cache) =>
+        //         {
+        //             var cacheKey = $"events_{page}_{pageSize}_{search}";
+        //             
+        //             if (cache.TryGetValue<PagedResult<EventDto>>(cacheKey, out var cachedResult))
+        //             {
+        //                 return Results.Ok(cachedResult);
+        //             }
+        // 
+        //             var result = await eventService.GetEventsAsync(page, pageSize, search);
+        //             
+        //             cache.Set(cacheKey, result, TimeSpan.FromMinutes(5));
+        //             
+        //             return Results.Ok(result);
+        //         })
+        //         .WithName("ListEvents")
+        //         .WithOpenApi();
 
-            var result = await eventService.GetEventsAsync(page, pageSize, search);
-            
-            cache.Set(cacheKey, result, TimeSpan.FromMinutes(5));
-            
-            return Results.Ok(result);
-        })
-        .WithName("ListEvents")
-        .WithOpenApi();
-
-        group.MapGet("/events/{id:guid}", async (
-            Guid id,
-            IEventService eventService) =>
-        {
-            var eventDetails = await eventService.GetEventByIdAsync(id);
-            return eventDetails is null 
-                ? Results.NotFound() 
-                : Results.Ok(eventDetails);
-        })
-        .WithName("GetEventById")
-        .WithOpenApi();
-        */
+        //         group.MapGet("/events/{id:guid}", async (
+        //             Guid id,
+        //             IEventService eventService) =>
+        //         {
+        //             var eventDetails = await eventService.GetEventByIdAsync(id);
+        //             return eventDetails is null 
+        //                 ? Results.NotFound() 
+        //                 : Results.Ok(eventDetails);
+        //         })
+        //         .WithName("GetEventById")
+        //         .WithOpenApi();
 
         group.MapPost("/events", async (
             CreateEventRequest request,
@@ -287,6 +284,14 @@ public static class EndpointExtensions
         .RequireAuthorization("RequireOrganizer")
         .WithName("CreateEvent")
         .WithOpenApi();
+
+        // Event Session Matrix endpoints
+        group.MapCreateEventEndpoint();
+        group.MapGetEventWithSessionsEndpoint();
+        // group.MapGetEventAvailabilityEndpoint(); // Commented out to fix duplicate endpoint name with EventsManagementEndpoints
+        
+        // Events Management API endpoints (new Event Session Matrix APIs)
+        group.MapEventsManagementEndpoints();
 
         group.MapPut("/events/{id:guid}", async (
             Guid id,
@@ -570,8 +575,8 @@ public static class EndpointExtensions
             {
                 id = user.Id.ToString(),
                 email = user.Email.Value,
-                firstName = user.FirstName ?? "",
-                lastName = user.LastName ?? "",
+                firstName = user.SceneName?.Value ?? "",
+                lastName = "",
                 avatarUrl = (string?)null,
                 roles = new List<string> { user.Role.ToString() }
             });

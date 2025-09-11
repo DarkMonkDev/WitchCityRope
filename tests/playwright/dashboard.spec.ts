@@ -1,7 +1,42 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('Dashboard Pages', () => {
+  let consoleErrors: string[] = []
+  let jsErrors: string[] = []
+
   test.beforeEach(async ({ page }) => {
+    // Reset error arrays for each test
+    consoleErrors = []
+    jsErrors = []
+    
+    // 🚨 CRITICAL: Monitor console errors - REQUIRED by testing standards
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        const errorText = msg.text()
+        console.log(`❌ Console Error: ${errorText}`)
+        consoleErrors.push(errorText)
+        
+        // Specifically catch RangeError: Invalid time value
+        if (errorText.includes('RangeError') || errorText.includes('Invalid time value')) {
+          console.log(`🚨 CRITICAL: Date/Time error detected: ${errorText}`)
+        }
+      }
+    })
+    
+    // 🚨 CRITICAL: Monitor JavaScript errors - catches crashes
+    page.on('pageerror', error => {
+      const errorText = error.toString()
+      console.log(`💥 JavaScript Error: ${errorText}`)
+      jsErrors.push(errorText)
+    })
+    
+    // Monitor API responses for additional context
+    page.on('response', response => {
+      if (!response.ok() && response.url().includes('/api/')) {
+        console.log(`❌ API Error: ${response.status()} ${response.url()}`)
+      }
+    })
+
     // Navigate to login page
     await page.goto('http://localhost:5173/login')
     
@@ -15,20 +50,104 @@ test.describe('Dashboard Pages', () => {
   })
 
   test('should navigate to dashboard and display welcome message', async ({ page }) => {
-    // Should be on dashboard page
-    await expect(page.locator('h1')).toContainText('Welcome back')
+    // 🚨 CRITICAL: Wait for page to fully load before checking for errors
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(2000) // Allow time for React components to render and any errors to surface
     
-    // Should display upcoming events section
-    await expect(page.locator('text=Your Upcoming Events')).toBeVisible()
+    // 🚨 CRITICAL: Check for JavaScript errors FIRST - this will catch RangeError crashes
+    if (jsErrors.length > 0) {
+      console.log(`💥 FATAL: JavaScript errors detected on dashboard:`)
+      jsErrors.forEach(error => console.log(`  - ${error}`))
+      throw new Error(`Dashboard has JavaScript errors that crash the page: ${jsErrors.join('; ')}`)
+    }
     
-    // Should display quick actions
-    await expect(page.locator('text=Quick Actions')).toBeVisible()
+    // 🚨 CRITICAL: Check for console errors - this will catch RangeError: Invalid time value
+    if (consoleErrors.length > 0) {
+      console.log(`❌ FATAL: Console errors detected on dashboard:`)
+      consoleErrors.forEach(error => console.log(`  - ${error}`))
+      
+      // Specifically check for date/time errors that crash the dashboard
+      const dateTimeErrors = consoleErrors.filter(error => 
+        error.includes('RangeError') || 
+        error.includes('Invalid time value') ||
+        error.includes('Invalid Date') ||
+        error.includes('date') && error.includes('error')
+      )
+      
+      if (dateTimeErrors.length > 0) {
+        throw new Error(`Dashboard has CRITICAL date/time errors that crash the page: ${dateTimeErrors.join('; ')}`)
+      }
+      
+      throw new Error(`Dashboard has console errors: ${consoleErrors.join('; ')}`)
+    }
     
-    // Should show navigation links
-    await expect(page.locator('text=Browse All Events')).toBeVisible()
-    await expect(page.locator('text=Update Profile')).toBeVisible()
-    await expect(page.locator('text=Membership Status')).toBeVisible()
-    await expect(page.locator('text=Security Settings')).toBeVisible()
+    // Take screenshot for debugging if needed
+    await page.screenshot({ path: 'test-results/dashboard-after-error-check.png', fullPage: true })
+    
+    // Now test the actual content - but only if no errors occurred
+    try {
+      await expect(page.locator('h1')).toContainText('Welcome back')
+      
+      // Should display upcoming events section
+      await expect(page.locator('text=Your Upcoming Events')).toBeVisible()
+      
+      // Should display quick actions
+      await expect(page.locator('text=Quick Actions')).toBeVisible()
+      
+      // Should show navigation links
+      await expect(page.locator('text=Browse All Events')).toBeVisible()
+      await expect(page.locator('text=Update Profile')).toBeVisible()
+      await expect(page.locator('text=Membership Status')).toBeVisible()
+      await expect(page.locator('text=Security Settings')).toBeVisible()
+      
+      console.log('✅ Dashboard content validation completed - no errors detected')
+      
+    } catch (contentError) {
+      // If content validation fails, provide detailed error information
+      console.log(`❌ Dashboard content validation failed: ${contentError}`)
+      console.log(`📊 Console errors during content check: ${consoleErrors.length}`)
+      console.log(`💥 JS errors during content check: ${jsErrors.length}`)
+      throw contentError
+    }
+  })
+
+  test('🚨 CRITICAL: Dashboard must not have JavaScript errors that crash the page', async ({ page }) => {
+    console.log('🔍 Testing dashboard for JavaScript errors and crashes...')
+    
+    // Wait for dashboard to fully load
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(3000) // Extra time for any async operations
+    
+    // Take screenshot for debugging
+    await page.screenshot({ path: 'test-results/dashboard-error-check.png', fullPage: true })
+    
+    // Check for any JavaScript errors
+    if (jsErrors.length > 0) {
+      console.log(`💥 FATAL: JavaScript errors found:`)
+      jsErrors.forEach(error => console.log(`  💥 ${error}`))
+      throw new Error(`CRITICAL: Dashboard has JavaScript errors that crash the page. Errors: ${jsErrors.join('; ')}`)
+    }
+    
+    // Check for console errors including RangeError: Invalid time value
+    if (consoleErrors.length > 0) {
+      console.log(`❌ FATAL: Console errors found:`)
+      consoleErrors.forEach(error => console.log(`  ❌ ${error}`))
+      
+      // Check specifically for date/time related errors
+      const criticalErrors = consoleErrors.filter(error => 
+        error.includes('RangeError') || 
+        error.includes('Invalid time value') ||
+        error.includes('Invalid Date')
+      )
+      
+      if (criticalErrors.length > 0) {
+        throw new Error(`CRITICAL: Dashboard has date/time errors that crash the page. This was the root cause of previous test failures. Errors: ${criticalErrors.join('; ')}`)
+      }
+      
+      throw new Error(`Dashboard has console errors: ${consoleErrors.join('; ')}`)
+    }
+    
+    console.log('✅ SUCCESS: Dashboard loaded without JavaScript errors or crashes')
   })
 
   test('should navigate to events page and display events', async ({ page }) => {

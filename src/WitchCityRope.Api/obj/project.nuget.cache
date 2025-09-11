@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Avh/E2QzNfo=",
+  "dgSpecHash": "m5pOFPGkVzM=",
   "success": true,
-  "projectFilePath": "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/WitchCityRope.Api.csproj",
+  "projectFilePath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Api/WitchCityRope.Api.csproj",
   "expectedPackageFiles": [
     "/home/chad/.nuget/packages/apimatic.core/0.4.9/apimatic.core.0.4.9.nupkg.sha512",
     "/home/chad/.nuget/packages/asp.versioning.abstractions/8.1.0/asp.versioning.abstractions.8.1.0.nupkg.sha512",

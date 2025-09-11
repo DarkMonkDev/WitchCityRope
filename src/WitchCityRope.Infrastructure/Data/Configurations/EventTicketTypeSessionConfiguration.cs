@@ -8,51 +8,40 @@ namespace WitchCityRope.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<EventTicketTypeSession> builder)
         {
-            builder.ToTable("EventTicketTypeSessions", "public");
-            
-            // Primary Key
-            builder.HasKey(e => e.Id);
-            builder.Property(e => e.Id)
-                .ValueGeneratedNever(); // Set by domain logic
-            
-            // Foreign Key to EventTicketType
-            builder.Property(e => e.EventTicketTypeId)
+            builder.ToTable("EventTicketTypeSessions");
+
+            builder.HasKey(etts => etts.Id);
+
+            builder.Property(etts => etts.Id)
+                .ValueGeneratedNever();
+
+            builder.Property(etts => etts.TicketTypeId)
                 .IsRequired();
-            
-            builder.HasOne(e => e.EventTicketType)
-                .WithMany(tt => tt.SessionInclusions)
-                .HasForeignKey(e => e.EventTicketTypeId)
-                .OnDelete(DeleteBehavior.Cascade);
-            
-            // Foreign Key to EventSession
-            builder.Property(e => e.EventSessionId)
+
+            builder.Property(etts => etts.SessionIdentifier)
+                .IsRequired()
+                .HasMaxLength(10); // S1, S2, S3, etc.
+
+            builder.Property(etts => etts.CreatedAt)
                 .IsRequired();
-            
-            builder.HasOne(e => e.EventSession)
-                .WithMany(s => s.TicketTypeInclusions)
-                .HasForeignKey(e => e.EventSessionId)
+
+            // Configure relationships
+            builder.HasOne(etts => etts.TicketType)
+                .WithMany(ett => ett.TicketTypeSessions)
+                .HasForeignKey(etts => etts.TicketTypeId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
-            // Timestamps
-            builder.Property(e => e.CreatedAt)
-                .IsRequired()
-                .HasColumnType("timestamp with time zone");
-            
-            builder.Property(e => e.UpdatedAt)
-                .IsRequired()
-                .HasColumnType("timestamp with time zone");
-            
+
+            // Configure relationship with EventSession via SessionIdentifier
+            // This is a manual foreign key relationship since we're linking by string identifier
+            // Note: EF Core will handle the relationship through the SessionIdentifier property
+            // but we need to be careful about foreign key constraints in the database
+
             // Indexes
-            builder.HasIndex(e => e.EventTicketTypeId)
-                .HasDatabaseName("IX_EventTicketTypeSessions_EventTicketTypeId");
-            
-            builder.HasIndex(e => e.EventSessionId)
-                .HasDatabaseName("IX_EventTicketTypeSessions_EventSessionId");
-            
-            // Unique constraint for ticket type and session combination
-            builder.HasIndex(e => new { e.EventTicketTypeId, e.EventSessionId })
+            builder.HasIndex(etts => etts.TicketTypeId);
+            builder.HasIndex(etts => etts.SessionIdentifier);
+            builder.HasIndex(etts => new { etts.TicketTypeId, etts.SessionIdentifier })
                 .IsUnique()
-                .HasDatabaseName("UQ_EventTicketTypeSessions_TicketType_Session");
+                .HasDatabaseName("IX_EventTicketTypeSessions_TicketTypeId_SessionIdentifier");
         }
     }
 }

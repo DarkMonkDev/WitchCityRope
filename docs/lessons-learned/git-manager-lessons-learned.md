@@ -2,51 +2,30 @@
 <!-- Last Updated: 2025-08-23 -->
 <!-- Next Review: 2025-09-23 -->
 
-## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+## 🚨 CRITICAL: WORKTREE COMPLIANCE - MANDATORY 🚨
 
-**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
+### ALL WORK MUST BE IN THE SPECIFIED WORKTREE DIRECTORY
 
-### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
-- **END of git operations phase** - BEFORE ending session
-- **COMPLETION of branch management** - Document branch states and conflicts
-- **DISCOVERY of repository issues** - Share immediately
-- **VALIDATION of merge/PR status** - Document integration challenges
+**VIOLATION = CATASTROPHIC FAILURE**
 
-### 📁 WHERE TO SAVE HANDOFFS
-**Location**: `/docs/functional-areas/[feature]/handoffs/`
-**Naming**: `git-manager-YYYY-MM-DD-handoff.md`
-**Template**: `/docs/standards-processes/agent-handoff-template.md`
+When given a Working Directory like:
+`/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management`
 
-### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
-1. **Branch Status**: Current branch states and pending merges
-2. **Conflict Resolution**: How conflicts were resolved and patterns
-3. **Commit History**: Important commits and their business context
-4. **Repository Issues**: Problems found with files or structure
-5. **Integration Status**: PR readiness and merge requirements
+**YOU MUST:**
+- Write ALL files to paths within the worktree directory
+- NEVER write to `/home/chad/repos/witchcityrope-react/` main repository
+- ALWAYS use the full worktree path in file operations
+- VERIFY you're in the correct directory before ANY file operation
 
-### 🤝 WHO NEEDS YOUR HANDOFFS
-- **All Agents**: Repository state and branch management status
-- **DevOps**: Deployment and release management requirements
-- **Test Executors**: Branch-specific test requirements
-- **Orchestrators**: Workflow coordination and merge timing
+**Example:**
+- ✅ CORRECT: `/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/docs/...`
+- ❌ WRONG: `/home/chad/repos/witchcityrope-react/docs/...`
 
-### ⚠️ MANDATORY READING BEFORE STARTING
-**ALWAYS READ EXISTING HANDOFFS FIRST**:
-1. Check `/docs/functional-areas/[feature]/handoffs/` for previous git work
-2. Read ALL handoff documents in the functional area
-3. Understand branch history and merge patterns
-4. Build on existing repository state - don't create conflicting branches
-
-### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
-**Why this matters**:
-- Repository conflicts multiply across agents
-- Critical commits get lost or overwritten
-- Branch management becomes chaotic
-- Integration and deployment workflows break
-
-**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
-
----
+**Why This Matters:**
+- Worktrees isolate feature branches
+- Writing to main repo pollutes other branches
+- Can cause merge conflicts and lost work
+- BREAKS the entire development workflow
 
 ## 🚨 CRITICAL: Repository Branch Structure Reality Check (AUGUST 2025) ✅
 

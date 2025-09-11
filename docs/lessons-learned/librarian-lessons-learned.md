@@ -2,6 +2,31 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 CRITICAL: WORKTREE COMPLIANCE - MANDATORY 🚨
+
+### ALL WORK MUST BE IN THE SPECIFIED WORKTREE DIRECTORY
+
+**VIOLATION = CATASTROPHIC FAILURE**
+
+When given a Working Directory like:
+`/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management`
+
+**YOU MUST:**
+- Write ALL files to paths within the worktree directory
+- NEVER write to `/home/chad/repos/witchcityrope-react/` main repository
+- ALWAYS use the full worktree path in file operations
+- VERIFY you're in the correct directory before ANY file operation
+
+**Example:**
+- ✅ CORRECT: `/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/docs/...`
+- ❌ WRONG: `/home/chad/repos/witchcityrope-react/docs/...`
+
+**Why This Matters:**
+- Worktrees isolate feature branches
+- Writing to main repo pollutes other branches
+- Can cause merge conflicts and lost work
+- BREAKS the entire development workflow
+
 ## CRITICAL: Document Structure Prevention
 
 **Never allow `/docs/docs/` folders** - This catastrophic pattern happened multiple times and breaks the entire documentation system.
@@ -14,9 +39,24 @@
 
 **Never create files in project root** - Only README, PROGRESS, ARCHITECTURE, CLAUDE belong there.
 
+**Never create files in worktree root** - ALL files must go in proper subdirectories under docs/.
+
 **Use functional areas structure** - All feature documentation goes in `/docs/functional-areas/[feature]/`.
 
 **Check master index before searching** - Always consult `/docs/architecture/functional-area-master-index.md` first when agents ask for files.
+
+## 🚨 CRITICAL: File Extraction and Analysis Placement 🚨
+
+**When extracting versions or creating analysis files:**
+- **Wireframe versions** → `/docs/functional-areas/[feature]/new-work/[date-feature]/design/wireframes/`
+- **Analysis documents** → `/docs/functional-areas/[feature]/new-work/[date-feature]/requirements/`
+- **NEVER in root** → Not in `/` or `/home/chad/repos/witchcityrope-react/.worktrees/[branch]/`
+- **ALWAYS in proper subfolder** → Follow the established structure without exception
+
+**Example for Events Management:**
+- ❌ WRONG: `/volunteers-tab-version-1.html`
+- ❌ WRONG: `/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/volunteers-tab-version-1.html`
+- ✅ CORRECT: `/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/docs/functional-areas/events/new-work/2025-08-24-events-management/design/wireframes/volunteers-tab-version-1.html`
 
 ## Content Quality Standards
 
@@ -50,6 +90,20 @@
 
 **Consolidate duplicate content** - When finding similar documents, merge and archive duplicates immediately.
 
+## 🚨 MASSIVE DUPLICATE IMPLEMENTATION DETECTION 🚨
+
+**Events System Duplicate Crisis**: During investigation on 2025-09-07, discovered **MASSIVE duplicate implementations** of Events Management system:
+- **34+ React components** already built (RSVP modals, ticket purchase, admin forms, etc.)
+- **Multiple API service layers** (eventsManagement.service.ts, legacyEventsApi.service.ts)
+- **Complete backend API** with GET endpoints operational
+- **Extensive testing infrastructure** with 18 E2E tests
+- **Full TDD implementation plan** with 50 pre-written tests
+- **Working demo pages** at localhost already functional
+
+**ROOT CAUSE**: Agents didn't check existing implementations before creating new ones. The system is in Phase 5 (Implementation) with substantial existing work available.
+
+**PREVENTION**: ALWAYS check functional area master index and existing codebase before any development work. Use search tools to find existing implementations.
+
 ## Critical Pattern Recognition
 
 **Lessons learned files getting bloated** - Keep them concise and actionable, avoid turning into project documentation or implementation guides. Target 50-75 lines maximum per file.
@@ -79,69 +133,14 @@
 **Problem**: Agents don't understand difference between lessons learned and progress reports.
 **Solution**: Enforce strict template with validation checklist for orchestrator reviews.
 
-## Documentation Update Patterns
+## Progress Update Patterns
 
-**Always update documentation in coordinated sets** - STATUS.md, README.md, PROGRESS.md, and master index together to maintain consistency.
+**Update both main and functional area progress files** - When major milestones complete, update both /PROGRESS.md and the specific functional area progress file to maintain consistency.
 
-**Phase completion documentation pattern** - When phases complete, update PROGRESS.md (status and focus), master index (current work status), file registry (track changes), ensuring migration progress is clearly communicated. Calculate migration percentage accurately: 5 of 6 frontend phases = 83% complete.
+**Use specific commit references** - Include exact commit hashes when documenting implementation completions for traceability.
 
-**Use comprehensive achievement summaries** - When documenting completion, include technical metrics, business value, and next steps for complete handoff.
+**Document next steps clearly** - Always specify what the next phase requires and which team/agent should handle it.
 
-**Maintain file registry discipline** - Every documentation update must be logged in file registry with clear purpose and ownership.
+**Mark completed phases with checkmarks and progress percentages** - Use visual indicators (✅ COMPLETE, 100%) to show clear completion status.
 
-## Discovery and Inventory Patterns
-
-**Always inventory existing work before creating new documentation** - Check functional areas, wireframes, and specifications to prevent duplicate work.
-
-**Use systematic discovery approach** - Start with master index, then explore functional areas, check wireframes, and review requirements before concluding what exists.
-
-**Document existing asset inventory comprehensively** - When cataloging existing work, provide complete paths and describe what can be reused vs what needs creation.
-
-**Phase completion requires migration plan alignment** - Always reference original migration plan to identify correct next phase, update percentage complete accurately (Phase 0-5 complete = 6 of 9 phases = 67% total, or 5 of 6 frontend phases = 83% frontend migration), and maintain phase sequence integrity.
-
-**Major infrastructure achievements require comprehensive documentation updates** - When critical infrastructure improvements occur (like test suite overhauls with 100% pass rates), update PROGRESS.md (current status), functional-area-master-index.md (active work), file-registry.md (changes logged), and relevant functional area documentation (test-coverage.md) to maintain accurate project status across all documentation.
-
-## Cross-Cutting Feature Organization
-
-**Organize by primary business domain, not UI context** - Events features belong in `/docs/functional-areas/events/[context]/` not `/docs/functional-areas/user-dashboard/events/` because Events is the business domain, dashboard is just UI context.
-
-**Use context subfolders for related functionality** - When features span multiple interfaces (public, admin, user), create subfolders under the primary domain (e.g., `/events/public-events/`, `/events/admin-events-management/`, `/events/user-dashboard/`).
-
-**Create documentation organization standards proactively** - Cross-cutting features create confusion about file placement, establish clear standards early to prevent scattered documentation across multiple functional areas.
-
-## Critical Business Requirements Discovery
-
-**NEVER trust initial assumption about business rules** - Always check ALL requirements documents before implementation to prevent major errors.
-
-**Check both main repository AND worktree versions** - Requirements may have evolved between versions, worktree documents are typically more current.
-
-**Verify event type differences in Events Management** - Classes require ticket purchases (paid), Social Events use RSVP (free) with optional tickets, Social Events show BOTH RSVP table AND tickets table.
-
-**Business Requirements Discovery Pattern** - Always check multiple versions (main repo vs worktree, original vs current), comprehensive search reveals scattered but consistent business logic across multiple documents.
-
-## Agent Handoff Documentation System Implementation
-
-**Problem**: Agent workflows failing because critical findings and decisions get lost between phases, causing duplicate work and implementation failures.
-**Solution**: Mandatory handoff documentation using standardized template at `/docs/standards-processes/agent-handoff-template.md`.
-
-**Pattern**: Every agent MUST create handoff document when ending their phase, saved to `/docs/functional-areas/[feature]/handoffs/[agent-name]-YYYY-MM-DD-handoff.md`.
-
-**Critical Content**: Top 5 discoveries, pitfalls to avoid, validation checklist, files created, and next agent action items.
-
-**Enforcement**: Added mandatory handoff section to ALL agent lessons-learned files with WARNING language to ensure compliance.
-
-## Comprehensive Status Documentation Patterns
-
-**Document infrastructure achievements immediately** - Major improvements like comprehensive test suite overhauls (37 test specs, 100% pass rate, CORS fixes, authentication helper fixes) must be documented across multiple files simultaneously to maintain accurate project status.
-
-**Use consistent excellence indicators** - When documenting major achievements, use ✅ checkmarks, performance metrics (9-13ms API responses = 96-99% faster), and specific technical details to convey the significance of infrastructure improvements.
-
-**Update date consistency** - When making major documentation updates, ensure Last Updated dates are consistent across PROGRESS.md, master index, file registry, and functional area documentation to show coordinated status updates.
-
-## Session Handoff Documentation Excellence
-
-**Create comprehensive handoff documentation immediately at session end** - When major infrastructure work completes (like comprehensive test suite overhauls), create multiple coordinated handoff documents: session handoff, continuation guide, agent prompt, and update all tracking documents to ensure zero information loss.
-
-**Use standardized handoff document structure** - Include project overview, session accomplishments, critical fixes, environment details, known issues, next steps, and verification procedures in consistent format for perfect continuity.
-
-**Provide copy-paste agent prompts** - Create self-contained agent continuation prompts that include all essential context, current status, working credentials, and immediate actions so users can seamlessly transition to new Claude Code sessions.
+**Create implementation plans as deliverables** - When testing reveals gaps, document comprehensive implementation strategies with time estimates and pre-written tests.

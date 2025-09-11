@@ -31,16 +31,13 @@
             - Events have capacity limits
             - Events support sliding scale pricing
             - Events must have at least one organizer
+            - Events can have multiple sessions with different capacities
+            - Events can have multiple ticket types with different pricing
             </summary>
         </member>
         <member name="P:WitchCityRope.Core.Entities.Event.Capacity">
             <summary>
             Maximum number of attendees allowed
-            </summary>
-        </member>
-        <member name="P:WitchCityRope.Core.Entities.Event.RSVPs">
-            <summary>
-            Free RSVPs for social events
             </summary>
         </member>
         <member name="P:WitchCityRope.Core.Entities.Event.PricingTiers">
@@ -50,7 +47,7 @@
         </member>
         <member name="P:WitchCityRope.Core.Entities.Event.Sessions">
             <summary>
-            Sessions within this event
+            Sessions within this event (S1, S2, S3, etc.)
             </summary>
         </member>
         <member name="P:WitchCityRope.Core.Entities.Event.TicketTypes">
@@ -58,39 +55,42 @@
             Ticket types available for this event
             </summary>
         </member>
+        <member name="P:WitchCityRope.Core.Entities.Event.AllowsRSVP">
+            <summary>
+            Business rule property: Determines if this event allows free RSVPs
+            Only Social events allow RSVP functionality
+            </summary>
+        </member>
+        <member name="P:WitchCityRope.Core.Entities.Event.RequiresPayment">
+            <summary>
+            Business rule property: Determines if this event requires payment for attendance
+            Classes and Workshops require payment, Social events allow both RSVP and payment
+            </summary>
+        </member>
         <member name="M:WitchCityRope.Core.Entities.Event.GetConfirmedRegistrationCount">
             <summary>
-            Gets the number of confirmed registrations (ticket purchases)
+            Gets the number of confirmed registrations
             </summary>
         </member>
         <member name="M:WitchCityRope.Core.Entities.Event.GetConfirmedRSVPCount">
             <summary>
-            Gets the number of confirmed RSVPs (free attendees)
+            Gets the number of confirmed RSVPs
             </summary>
         </member>
-        <member name="M:WitchCityRope.Core.Entities.Event.GetTotalConfirmedAttendees">
+        <member name="M:WitchCityRope.Core.Entities.Event.GetCurrentAttendeeCount">
             <summary>
             Gets the total number of confirmed attendees (registrations + RSVPs)
+            This includes both paid ticket holders and free RSVPs
             </summary>
         </member>
         <member name="M:WitchCityRope.Core.Entities.Event.GetAvailableSpots">
             <summary>
-            Gets the number of available spots considering both registrations and RSVPs
+            Gets the number of available spots (considering both RSVPs and tickets)
             </summary>
         </member>
         <member name="M:WitchCityRope.Core.Entities.Event.HasAvailableCapacity">
             <summary>
-            Checks if the event has available capacity for both registrations and RSVPs
-            </summary>
-        </member>
-        <member name="M:WitchCityRope.Core.Entities.Event.AllowsRSVP">
-            <summary>
-            Checks if RSVPs are allowed for this event (Social events only)
-            </summary>
-        </member>
-        <member name="M:WitchCityRope.Core.Entities.Event.RequiresTicketPurchase">
-            <summary>
-            Checks if ticket purchases are required (Classes/Workshops) or optional (Social events)
+            Checks if the event has available capacity (considering both RSVPs and tickets)
             </summary>
         </member>
         <member name="M:WitchCityRope.Core.Entities.Event.Publish">
@@ -138,9 +138,14 @@
             Adds a session to the event
             </summary>
         </member>
-        <member name="M:WitchCityRope.Core.Entities.Event.RemoveSession(WitchCityRope.Core.Entities.EventSession)">
+        <member name="M:WitchCityRope.Core.Entities.Event.RemoveSession(System.String)">
             <summary>
             Removes a session from the event
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Entities.Event.GetSession(System.String)">
+            <summary>
+            Gets a session by its identifier
             </summary>
         </member>
         <member name="M:WitchCityRope.Core.Entities.Event.AddTicketType(WitchCityRope.Core.Entities.EventTicketType)">
@@ -148,123 +153,144 @@
             Adds a ticket type to the event
             </summary>
         </member>
-        <member name="M:WitchCityRope.Core.Entities.Event.RemoveTicketType(WitchCityRope.Core.Entities.EventTicketType)">
+        <member name="M:WitchCityRope.Core.Entities.Event.RemoveTicketType(System.Guid)">
             <summary>
             Removes a ticket type from the event
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Entities.Event.GetTicketType(System.Guid)">
+            <summary>
+            Gets a ticket type by its ID
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Entities.Event.CalculateTicketTypeAvailability(WitchCityRope.Core.Entities.EventTicketType)">
+            <summary>
+            Calculates the available capacity for a specific ticket type based on its included sessions
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Entities.Event.HasSessions">
+            <summary>
+            Checks if the event supports session-based ticketing
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Entities.Event.HasTicketTypes">
+            <summary>
+            Checks if the event has ticket types configured
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Entities.Event.GetTotalSessionCapacity">
+            <summary>
+            Gets the total capacity across all sessions (for reporting purposes)
             </summary>
         </member>
         <member name="T:WitchCityRope.Core.Entities.EventSession">
             <summary>
             Represents a session within an event (e.g., S1, S2, S3)
             Business Rules:
-            - Session identifier must be unique per event (not globally unique)
-            - Start time must be before end time
-            - Capacity must be greater than 0
-            - Cannot delete sessions with existing registrations
-            </summary>
-        </member>
-        <member name="M:WitchCityRope.Core.Entities.EventSession.#ctor(WitchCityRope.Core.Entities.Event,System.String,System.String,System.DateTime,System.DateTime,System.Int32)">
-            <summary>
-            Creates a new event session
-            </summary>
-            <param name="event">The event this session belongs to</param>
-            <param name="sessionIdentifier">Session identifier (S1, S2, etc.)</param>
-            <param name="name">Display name of the session</param>
-            <param name="startDateTime">Session start time (must be UTC)</param>
-            <param name="endDateTime">Session end time (must be UTC)</param>
-            <param name="capacity">Maximum capacity for this session</param>
-        </member>
-        <member name="P:WitchCityRope.Core.Entities.EventSession.Event">
-            <summary>
-            Reference to the parent event
+            - Sessions have capacity limits
+            - Sessions can be required or optional
+            - Session times cannot overlap on the same date
+            - Session capacity must be greater than zero
             </summary>
         </member>
         <member name="P:WitchCityRope.Core.Entities.EventSession.SessionIdentifier">
             <summary>
-            Session identifier unique per event (S1, S2, S3, etc.)
+            Session identifier (S1, S2, S3, etc.)
             </summary>
         </member>
         <member name="P:WitchCityRope.Core.Entities.EventSession.Name">
             <summary>
-            Display name of the session
+            Display name for the session (e.g., "Friday Workshop", "Saturday Workshop")
             </summary>
         </member>
-        <member name="P:WitchCityRope.Core.Entities.EventSession.StartDateTime">
+        <member name="P:WitchCityRope.Core.Entities.EventSession.Date">
             <summary>
-            Session start time (stored as UTC)
+            Date when this session occurs
             </summary>
         </member>
-        <member name="P:WitchCityRope.Core.Entities.EventSession.EndDateTime">
+        <member name="P:WitchCityRope.Core.Entities.EventSession.StartTime">
             <summary>
-            Session end time (stored as UTC)
+            Start time of the session
+            </summary>
+        </member>
+        <member name="P:WitchCityRope.Core.Entities.EventSession.EndTime">
+            <summary>
+            End time of the session
             </summary>
         </member>
         <member name="P:WitchCityRope.Core.Entities.EventSession.Capacity">
             <summary>
-            Maximum capacity for this session
+            Maximum number of attendees for this session
             </summary>
         </member>
-        <member name="P:WitchCityRope.Core.Entities.EventSession.IsActive">
+        <member name="P:WitchCityRope.Core.Entities.EventSession.IsRequired">
             <summary>
-            Whether this session is active
+            Whether this session is required for the event
             </summary>
         </member>
-        <member name="P:WitchCityRope.Core.Entities.EventSession.TicketTypeInclusions">
+        <member name="P:WitchCityRope.Core.Entities.EventSession.RegisteredCount">
             <summary>
-            Ticket types that include this session
+            Current number of registered attendees
             </summary>
         </member>
-        <member name="M:WitchCityRope.Core.Entities.EventSession.UpdateDetails(System.String,System.DateTime,System.DateTime,System.Int32)">
+        <member name="P:WitchCityRope.Core.Entities.EventSession.Event">
             <summary>
-            Updates session details
+            Navigation property to parent event
             </summary>
         </member>
-        <member name="M:WitchCityRope.Core.Entities.EventSession.Deactivate">
+        <member name="M:WitchCityRope.Core.Entities.EventSession.GetAvailableSpots">
             <summary>
-            Deactivates the session (soft delete)
+            Gets the number of available spots
             </summary>
         </member>
-        <member name="M:WitchCityRope.Core.Entities.EventSession.Activate">
+        <member name="M:WitchCityRope.Core.Entities.EventSession.HasAvailableCapacity(System.Int32)">
             <summary>
-            Reactivates the session
+            Checks if the session has available capacity
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Entities.EventSession.UpdateDetails(System.String,System.DateTime,System.TimeSpan,System.TimeSpan,System.Int32)">
+            <summary>
+            Updates the session details
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Entities.EventSession.UpdateRegisteredCount(System.Int32)">
+            <summary>
+            Updates the registered count for this session
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Entities.EventSession.IncrementRegisteredCount(System.Int32)">
+            <summary>
+            Increments the registered count for this session
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Entities.EventSession.DecrementRegisteredCount(System.Int32)">
+            <summary>
+            Decrements the registered count for this session
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Entities.EventSession.OverlapsWith(WitchCityRope.Core.Entities.EventSession)">
+            <summary>
+            Checks if this session overlaps with another session on the same date
             </summary>
         </member>
         <member name="T:WitchCityRope.Core.Entities.EventTicketType">
             <summary>
-            Represents a ticket type for an event with pricing and session inclusions
+            Represents a ticket type for an event with pricing and session inclusion
             Business Rules:
-            - Min price must be >= 0
-            - Max price must be >= min price
-            - Quantity available must be > 0 or null (unlimited)
-            - Cannot delete ticket types with existing registrations
-            - Must include at least one session per ticket type
-            </summary>
-        </member>
-        <member name="M:WitchCityRope.Core.Entities.EventTicketType.#ctor(WitchCityRope.Core.Entities.Event,System.String,WitchCityRope.Core.Enums.TicketTypeEnum,System.Decimal,System.Decimal,System.Nullable{System.Int32},System.Nullable{System.DateTime})">
-            <summary>
-            Creates a new event ticket type
-            </summary>
-            <param name="event">The event this ticket type belongs to</param>
-            <param name="name">Display name of the ticket type</param>
-            <param name="ticketType">Type of ticket (Single/Couples)</param>
-            <param name="minPrice">Minimum price for sliding scale</param>
-            <param name="maxPrice">Maximum price for sliding scale</param>
-            <param name="quantityAvailable">Available quantity (null for unlimited)</param>
-            <param name="salesEndDateTime">End of sales period (null for no limit)</param>
-        </member>
-        <member name="P:WitchCityRope.Core.Entities.EventTicketType.Event">
-            <summary>
-            Reference to the parent event
+            - Ticket types must include at least one session
+            - Price cannot be negative
+            - Must have valid sale dates if specified
+            - Can have quantity limits
             </summary>
         </member>
         <member name="P:WitchCityRope.Core.Entities.EventTicketType.Name">
             <summary>
-            Display name of the ticket type
+            Display name of the ticket type (e.g., "Single Person", "Couple")
             </summary>
         </member>
-        <member name="P:WitchCityRope.Core.Entities.EventTicketType.TicketType">
+        <member name="P:WitchCityRope.Core.Entities.EventTicketType.Description">
             <summary>
-            Type of ticket (Single/Couples)
+            Description of what this ticket type includes
             </summary>
         </member>
         <member name="P:WitchCityRope.Core.Entities.EventTicketType.MinPrice">
@@ -279,98 +305,121 @@
         </member>
         <member name="P:WitchCityRope.Core.Entities.EventTicketType.QuantityAvailable">
             <summary>
-            Available quantity (null for unlimited)
+            Number of tickets available (null = unlimited)
             </summary>
         </member>
-        <member name="P:WitchCityRope.Core.Entities.EventTicketType.SalesEndDateTime">
+        <member name="P:WitchCityRope.Core.Entities.EventTicketType.SalesEndDate">
             <summary>
-            End of sales period (null for no limit, stored as UTC)
+            Date when sales end for this ticket type
+            </summary>
+        </member>
+        <member name="P:WitchCityRope.Core.Entities.EventTicketType.IsRsvpMode">
+            <summary>
+            Whether this is RSVP mode (no payment required)
             </summary>
         </member>
         <member name="P:WitchCityRope.Core.Entities.EventTicketType.IsActive">
             <summary>
-            Whether this ticket type is active
+            Whether this ticket type is currently active
             </summary>
         </member>
-        <member name="P:WitchCityRope.Core.Entities.EventTicketType.SessionInclusions">
+        <member name="P:WitchCityRope.Core.Entities.EventTicketType.Event">
             <summary>
-            Sessions included in this ticket type
+            Navigation property to parent event
             </summary>
         </member>
-        <member name="P:WitchCityRope.Core.Entities.EventTicketType.Registrations">
+        <member name="P:WitchCityRope.Core.Entities.EventTicketType.TicketTypeSessions">
             <summary>
-            Registrations using this ticket type
+            Junction entities linking this ticket type to sessions
             </summary>
         </member>
-        <member name="M:WitchCityRope.Core.Entities.EventTicketType.UpdateDetails(System.String,System.Decimal,System.Decimal,System.Nullable{System.Int32},System.Nullable{System.DateTime})">
+        <member name="M:WitchCityRope.Core.Entities.EventTicketType.GetIncludedSessionIdentifiers">
             <summary>
-            Updates ticket type details
+            Gets the session identifiers included in this ticket type
             </summary>
         </member>
-        <member name="M:WitchCityRope.Core.Entities.EventTicketType.AddSessionInclusion(WitchCityRope.Core.Entities.EventSession)">
+        <member name="M:WitchCityRope.Core.Entities.EventTicketType.IsCurrentlyOnSale">
             <summary>
-            Adds a session inclusion to this ticket type
+            Checks if this ticket type is currently on sale
             </summary>
         </member>
-        <member name="M:WitchCityRope.Core.Entities.EventTicketType.RemoveSessionInclusion(WitchCityRope.Core.Entities.EventSession)">
+        <member name="M:WitchCityRope.Core.Entities.EventTicketType.HasQuantityLimit">
             <summary>
-            Removes a session inclusion from this ticket type
+            Checks if the ticket type has quantity limits
             </summary>
         </member>
-        <member name="M:WitchCityRope.Core.Entities.EventTicketType.Deactivate">
+        <member name="M:WitchCityRope.Core.Entities.EventTicketType.IsWithinQuantityLimit(System.Int32,System.Int32)">
             <summary>
-            Deactivates the ticket type (soft delete)
+            Checks if the requested quantity is within limits
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Entities.EventTicketType.UpdateDetails(System.String,System.String,System.Decimal,System.Decimal)">
+            <summary>
+            Updates the ticket type details
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Entities.EventTicketType.UpdateQuantityAvailable(System.Nullable{System.Int32})">
+            <summary>
+            Updates the quantity availability
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Entities.EventTicketType.UpdateSalesEndDate(System.Nullable{System.DateTime})">
+            <summary>
+            Updates the sales end date
             </summary>
         </member>
         <member name="M:WitchCityRope.Core.Entities.EventTicketType.Activate">
             <summary>
-            Reactivates the ticket type
+            Activates the ticket type
             </summary>
         </member>
-        <member name="M:WitchCityRope.Core.Entities.EventTicketType.GetConfirmedRegistrationCount">
+        <member name="M:WitchCityRope.Core.Entities.EventTicketType.Deactivate">
             <summary>
-            Gets the number of confirmed registrations for this ticket type
+            Deactivates the ticket type
             </summary>
         </member>
-        <member name="M:WitchCityRope.Core.Entities.EventTicketType.GetAvailableQuantity">
+        <member name="M:WitchCityRope.Core.Entities.EventTicketType.AddSession(System.String)">
             <summary>
-            Gets the number of available tickets (null for unlimited)
+            Adds a session to this ticket type
             </summary>
         </member>
-        <member name="M:WitchCityRope.Core.Entities.EventTicketType.AreSalesOpen">
+        <member name="M:WitchCityRope.Core.Entities.EventTicketType.RemoveSession(System.String)">
             <summary>
-            Checks if sales are still open for this ticket type
+            Removes a session from this ticket type
             </summary>
         </member>
-        <member name="M:WitchCityRope.Core.Entities.EventTicketType.HasAvailableTickets">
+        <member name="M:WitchCityRope.Core.Entities.EventTicketType.UpdateIncludedSessions(System.Collections.Generic.IEnumerable{System.String})">
             <summary>
-            Checks if tickets are available for purchase
+            Updates the sessions included in this ticket type
             </summary>
         </member>
         <member name="T:WitchCityRope.Core.Entities.EventTicketTypeSession">
             <summary>
-            Junction entity representing which sessions are included in a ticket type
+            Junction entity linking ticket types to specific sessions
+            This enables many-to-many relationship between EventTicketType and EventSession
             Business Rules:
-            - Ticket type and session must belong to the same event
-            - Cannot create circular references
-            - Unique combination of ticket type and session
+            - Each combination of TicketTypeId and SessionIdentifier must be unique
+            - SessionIdentifier must follow S1, S2, S3 format
             </summary>
         </member>
-        <member name="M:WitchCityRope.Core.Entities.EventTicketTypeSession.#ctor(WitchCityRope.Core.Entities.EventTicketType,WitchCityRope.Core.Entities.EventSession)">
+        <member name="P:WitchCityRope.Core.Entities.EventTicketTypeSession.TicketTypeId">
             <summary>
-            Creates a new ticket type session inclusion
+            Foreign key to EventTicketType
             </summary>
-            <param name="eventTicketType">The ticket type</param>
-            <param name="eventSession">The session to include</param>
         </member>
-        <member name="P:WitchCityRope.Core.Entities.EventTicketTypeSession.EventTicketType">
+        <member name="P:WitchCityRope.Core.Entities.EventTicketTypeSession.SessionIdentifier">
             <summary>
-            Reference to the ticket type
+            Session identifier (S1, S2, S3, etc.) that this ticket type includes
+            </summary>
+        </member>
+        <member name="P:WitchCityRope.Core.Entities.EventTicketTypeSession.TicketType">
+            <summary>
+            Navigation property to the ticket type
             </summary>
         </member>
         <member name="P:WitchCityRope.Core.Entities.EventTicketTypeSession.EventSession">
             <summary>
-            Reference to the session
+            Navigation property to the session (via EventSession.SessionIdentifier)
             </summary>
         </member>
         <member name="T:WitchCityRope.Core.Entities.IncidentAction">
@@ -546,16 +595,6 @@
             - Users can select from sliding scale pricing
             </summary>
         </member>
-        <member name="P:WitchCityRope.Core.Entities.Registration.EventTicketTypeId">
-            <summary>
-            Optional reference to the ticket type used for this registration
-            </summary>
-        </member>
-        <member name="P:WitchCityRope.Core.Entities.Registration.EventTicketType">
-            <summary>
-            The ticket type used for this registration (nullable for legacy registrations)
-            </summary>
-        </member>
         <member name="P:WitchCityRope.Core.Entities.Registration.SelectedPrice">
             <summary>
             The price selected from the sliding scale
@@ -623,82 +662,33 @@
         </member>
         <member name="T:WitchCityRope.Core.Entities.RSVP">
             <summary>
-            Represents a free RSVP for social events in the WitchCityRope system
+            Represents a free RSVP for a social event
             Business Rules:
-            - RSVPs are only allowed for Social events (EventType.Social)
-            - Classes/Workshops require ticket purchase instead of RSVPs
-            - Users can RSVP for free and optionally purchase tickets later to support the event
-            - RSVP confirmation codes use format: RSVP-XXXXXXXX
-            </summary>
-        </member>
-        <member name="P:WitchCityRope.Core.Entities.RSVP.Status">
-            <summary>
-            Current status of the RSVP
-            </summary>
-        </member>
-        <member name="P:WitchCityRope.Core.Entities.RSVP.EmergencyContactName">
-            <summary>
-            Emergency contact name for the attendee
-            </summary>
-        </member>
-        <member name="P:WitchCityRope.Core.Entities.RSVP.EmergencyContactPhone">
-            <summary>
-            Emergency contact phone number for the attendee
-            </summary>
-        </member>
-        <member name="P:WitchCityRope.Core.Entities.RSVP.CreatedAt">
-            <summary>
-            Timestamp when the RSVP was created
-            </summary>
-        </member>
-        <member name="P:WitchCityRope.Core.Entities.RSVP.UpdatedAt">
-            <summary>
-            Timestamp when the RSVP was last updated
-            </summary>
-        </member>
-        <member name="P:WitchCityRope.Core.Entities.RSVP.CheckedInAt">
-            <summary>
-            Timestamp when the attendee was checked in to the event
-            </summary>
-        </member>
-        <member name="P:WitchCityRope.Core.Entities.RSVP.CheckedInBy">
-            <summary>
-            ID of the staff member who performed the check-in
-            </summary>
-        </member>
-        <member name="P:WitchCityRope.Core.Entities.RSVP.CancelledAt">
-            <summary>
-            Timestamp when the RSVP was cancelled
-            </summary>
-        </member>
-        <member name="P:WitchCityRope.Core.Entities.RSVP.CancellationReason">
-            <summary>
-            Reason for cancellation
-            </summary>
-        </member>
-        <member name="P:WitchCityRope.Core.Entities.RSVP.ConfirmationCode">
-            <summary>
-            Unique confirmation code for the RSVP (format: RSVP-XXXXXXXX)
+            - Only available for Social Events (EventType.Social)
+            - No payment required
+            - Can optionally purchase ticket later
+            - Can be cancelled anytime before event
+            - Users who RSVP can still purchase tickets later to support the event
             </summary>
         </member>
         <member name="M:WitchCityRope.Core.Entities.RSVP.Cancel(System.String)">
             <summary>
-            Cancels the RSVP
+            Cancels the RSVP with optional reason
             </summary>
         </member>
-        <member name="M:WitchCityRope.Core.Entities.RSVP.ConfirmFromWaitlist">
+        <member name="M:WitchCityRope.Core.Entities.RSVP.LinkTicketPurchase(WitchCityRope.Core.Entities.Registration)">
             <summary>
-            Moves RSVP from waitlist to confirmed when capacity becomes available
+            Links a ticket purchase to this RSVP when user upgrades to paid ticket
             </summary>
         </member>
-        <member name="M:WitchCityRope.Core.Entities.RSVP.CheckIn(System.Guid)">
+        <member name="M:WitchCityRope.Core.Entities.RSVP.CheckIn">
             <summary>
             Marks the RSVP as checked in at the event
             </summary>
         </member>
-        <member name="M:WitchCityRope.Core.Entities.RSVP.UpdateEmergencyContact(System.String,System.String)">
+        <member name="M:WitchCityRope.Core.Entities.RSVP.UpdateDietaryRestrictions(System.String)">
             <summary>
-            Updates emergency contact information
+            Updates dietary restrictions
             </summary>
         </member>
         <member name="T:WitchCityRope.Core.Entities.User">
@@ -723,16 +713,6 @@
         <member name="P:WitchCityRope.Core.Entities.User.DisplayName">
             <summary>
             Display name derived from scene name
-            </summary>
-        </member>
-        <member name="P:WitchCityRope.Core.Entities.User.FirstName">
-            <summary>
-            First name for compatibility (derived from scene name)
-            </summary>
-        </member>
-        <member name="P:WitchCityRope.Core.Entities.User.LastName">
-            <summary>
-            Last name for compatibility (derived from scene name)
             </summary>
         </member>
         <member name="P:WitchCityRope.Core.Entities.User.PronouncedName">
@@ -884,6 +864,11 @@
             Educational workshop or class
             </summary>
         </member>
+        <member name="F:WitchCityRope.Core.Enums.EventType.Class">
+            <summary>
+            Educational class (alias for Workshop, used in tests)
+            </summary>
+        </member>
         <member name="F:WitchCityRope.Core.Enums.EventType.Social">
             <summary>
             Social gathering or munch
@@ -969,6 +954,11 @@
             Status of a payment transaction
             </summary>
         </member>
+        <member name="F:WitchCityRope.Core.Enums.PaymentStatus.NotRequired">
+            <summary>
+            No payment required (free events, RSVP only)
+            </summary>
+        </member>
         <member name="F:WitchCityRope.Core.Enums.PaymentStatus.Pending">
             <summary>
             Payment initiated but not yet processed
@@ -1026,42 +1016,22 @@
         </member>
         <member name="T:WitchCityRope.Core.Enums.RSVPStatus">
             <summary>
-            Status of an RSVP for a social event
+            Status of a free RSVP for a social event
             </summary>
         </member>
         <member name="F:WitchCityRope.Core.Enums.RSVPStatus.Confirmed">
             <summary>
-            RSVP is confirmed and the user has a guaranteed spot at the event
-            </summary>
-        </member>
-        <member name="F:WitchCityRope.Core.Enums.RSVPStatus.Waitlisted">
-            <summary>
-            Event is full, user is on the waitlist and will be confirmed if space becomes available
-            </summary>
-        </member>
-        <member name="F:WitchCityRope.Core.Enums.RSVPStatus.CheckedIn">
-            <summary>
-            User has been checked in to the event
+            RSVP confirmed - no payment required
             </summary>
         </member>
         <member name="F:WitchCityRope.Core.Enums.RSVPStatus.Cancelled">
             <summary>
-            RSVP has been cancelled by the user or event organizers
+            RSVP cancelled by user or system
             </summary>
         </member>
-        <member name="T:WitchCityRope.Core.Enums.TicketTypeEnum">
+        <member name="F:WitchCityRope.Core.Enums.RSVPStatus.CheckedIn">
             <summary>
-            Represents the different types of tickets available for events
-            </summary>
-        </member>
-        <member name="F:WitchCityRope.Core.Enums.TicketTypeEnum.Single">
-            <summary>
-            Single person ticket
-            </summary>
-        </member>
-        <member name="F:WitchCityRope.Core.Enums.TicketTypeEnum.Couples">
-            <summary>
-            Couples ticket for two people
+            User checked in at the event
             </summary>
         </member>
         <member name="T:WitchCityRope.Core.Enums.UserRole">
@@ -1079,6 +1049,16 @@
             Verified community member with additional privileges
             </summary>
         </member>
+        <member name="F:WitchCityRope.Core.Enums.UserRole.VettedMember">
+            <summary>
+            Vetted community member with enhanced privileges
+            </summary>
+        </member>
+        <member name="F:WitchCityRope.Core.Enums.UserRole.Teacher">
+            <summary>
+            Teacher who can create and manage educational events
+            </summary>
+        </member>
         <member name="F:WitchCityRope.Core.Enums.UserRole.Organizer">
             <summary>
             Event organizer who can create and manage events
@@ -1092,6 +1072,11 @@
         <member name="F:WitchCityRope.Core.Enums.UserRole.Administrator">
             <summary>
             System administrator with full access
+            </summary>
+        </member>
+        <member name="F:WitchCityRope.Core.Enums.UserRole.Admin">
+            <summary>
+            Legacy admin role (mapped to Administrator)
             </summary>
         </member>
         <member name="T:WitchCityRope.Core.Exceptions.ConflictException">
@@ -1314,6 +1299,78 @@
             Represents a paginated result set
             </summary>
             <typeparam name="T">The type of items in the result set</typeparam>
+        </member>
+        <member name="T:WitchCityRope.Core.Models.Result`1">
+            <summary>
+            Simple result pattern for consistent error handling across all services
+            Replaces complex error handling pipelines with straightforward success/failure pattern
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Models.Result`1.Success(`0)">
+            <summary>
+            Create successful result with value
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Models.Result`1.Failure(System.String,System.String)">
+            <summary>
+            Create failed result with error message
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Models.Result`1.op_Implicit(WitchCityRope.Core.Models.Result{`0})~System.Boolean">
+            <summary>
+            Implicit conversion to bool for easy success checking
+            </summary>
+        </member>
+        <member name="T:WitchCityRope.Core.Models.Result">
+            <summary>
+            Non-generic result for operations that don't return data
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Models.Result.Success">
+            <summary>
+            Create successful result
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Models.Result.Failure(System.String,System.String)">
+            <summary>
+            Create failed result with error message
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Models.Result.op_Implicit(WitchCityRope.Core.Models.Result)~System.Boolean">
+            <summary>
+            Implicit conversion to bool for easy success checking
+            </summary>
+        </member>
+        <member name="T:WitchCityRope.Core.Services.IEventSessionService">
+            <summary>
+            Service interface for managing event sessions and capacity calculations.
+            Handles the Event Session Matrix concept where sessions are atomic capacity units.
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Services.IEventSessionService.CreateEventWithSessionsAsync(WitchCityRope.Core.Services.CreateEventRequest,System.Threading.CancellationToken)">
+            <summary>
+            Creates a new event with multiple sessions.
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Services.IEventSessionService.GetEventWithSessionsAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Gets an event with its sessions loaded.
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Services.IEventSessionService.GetSessionCapacityAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Calculates available capacity for ticket types based on session constraints.
+            </summary>
+        </member>
+        <member name="T:WitchCityRope.Core.Services.CreateEventRequest">
+            <summary>
+            Basic event creation request
+            </summary>
+        </member>
+        <member name="T:WitchCityRope.Core.Services.SessionCapacityInfo">
+            <summary>
+            Session capacity information
+            </summary>
         </member>
         <member name="T:WitchCityRope.Core.ValueObjects.EmailAddress">
             <summary>

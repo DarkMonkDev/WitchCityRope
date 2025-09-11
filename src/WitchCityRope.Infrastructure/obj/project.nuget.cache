@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "7Y4U5ZXXR6g=",
+  "dgSpecHash": "k83JJhUxUq8=",
   "success": true,
-  "projectFilePath": "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj",
+  "projectFilePath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj",
   "expectedPackageFiles": [
     "/home/chad/.nuget/packages/apimatic.core/0.4.9/apimatic.core.0.4.9.nupkg.sha512",
     "/home/chad/.nuget/packages/automapper/12.0.1/automapper.12.0.1.nupkg.sha512",

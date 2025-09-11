@@ -1,62 +1,65 @@
 using System;
+using WitchCityRope.Core.Exceptions;
 
 namespace WitchCityRope.Core.Entities
 {
     /// <summary>
-    /// Junction entity representing which sessions are included in a ticket type
+    /// Junction entity linking ticket types to specific sessions
+    /// This enables many-to-many relationship between EventTicketType and EventSession
     /// Business Rules:
-    /// - Ticket type and session must belong to the same event
-    /// - Cannot create circular references
-    /// - Unique combination of ticket type and session
+    /// - Each combination of TicketTypeId and SessionIdentifier must be unique
+    /// - SessionIdentifier must follow S1, S2, S3 format
     /// </summary>
     public class EventTicketTypeSession
     {
         // Private constructor for EF Core
         private EventTicketTypeSession()
         {
+            SessionIdentifier = null!;
         }
 
-        /// <summary>
-        /// Creates a new ticket type session inclusion
-        /// </summary>
-        /// <param name="eventTicketType">The ticket type</param>
-        /// <param name="eventSession">The session to include</param>
-        public EventTicketTypeSession(EventTicketType eventTicketType, EventSession eventSession)
+        public EventTicketTypeSession(Guid ticketTypeId, string sessionIdentifier)
         {
-            Id = Guid.NewGuid(); // CRITICAL: Must set this first!
-            
-            EventTicketType = eventTicketType ?? throw new ArgumentNullException(nameof(eventTicketType));
-            EventTicketTypeId = eventTicketType.Id;
-            
-            EventSession = eventSession ?? throw new ArgumentNullException(nameof(eventSession));
-            EventSessionId = eventSession.Id;
-            
-            // Validate that both ticket type and session belong to the same event
-            if (eventTicketType.EventId != eventSession.EventId)
-                throw new ArgumentException("Ticket type and session must belong to the same event");
-            
+            ValidateSessionIdentifier(sessionIdentifier);
+
+            Id = Guid.NewGuid();
+            TicketTypeId = ticketTypeId;
+            SessionIdentifier = sessionIdentifier;
             CreatedAt = DateTime.UtcNow;
-            UpdatedAt = DateTime.UtcNow;
         }
 
         public Guid Id { get; private set; }
-        
-        public Guid EventTicketTypeId { get; private set; }
-        
+
         /// <summary>
-        /// Reference to the ticket type
+        /// Foreign key to EventTicketType
         /// </summary>
-        public EventTicketType EventTicketType { get; private set; } = null!;
-        
-        public Guid EventSessionId { get; private set; }
-        
+        public Guid TicketTypeId { get; private set; }
+
         /// <summary>
-        /// Reference to the session
+        /// Session identifier (S1, S2, S3, etc.) that this ticket type includes
         /// </summary>
-        public EventSession EventSession { get; private set; } = null!;
-        
+        public string SessionIdentifier { get; private set; }
+
         public DateTime CreatedAt { get; private set; }
-        
-        public DateTime UpdatedAt { get; private set; }
+
+        /// <summary>
+        /// Navigation property to the ticket type
+        /// </summary>
+        public EventTicketType TicketType { get; private set; }
+
+        /// <summary>
+        /// Navigation property to the session (via EventSession.SessionIdentifier)
+        /// </summary>
+        public EventSession EventSession { get; private set; }
+
+        private void ValidateSessionIdentifier(string sessionIdentifier)
+        {
+            if (string.IsNullOrWhiteSpace(sessionIdentifier))
+                throw new ArgumentException("Session identifier cannot be null or empty", nameof(sessionIdentifier));
+
+            // Basic validation for session identifier format (S1, S2, etc.)
+            if (!sessionIdentifier.StartsWith("S") || sessionIdentifier.Length < 2)
+                throw new DomainException("Session identifier must follow format S1, S2, S3, etc.");
+        }
     }
 }

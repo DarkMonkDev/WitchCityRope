@@ -1,119 +1,80 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Editor } from '@tinymce/tinymce-react';
-import { Text, Box, Alert } from '@mantine/core';
+import { Alert, Box } from '@mantine/core';
 
 interface TinyMCERichTextEditorProps {
-  value: string;
-  onChange: (content: string) => void;
-  label?: string;
-  description?: string;
-  required?: boolean;
-  error?: string;
-  height?: number;
+  value?: string;
+  onChange?: (content: string) => void;
   placeholder?: string;
+  minRows?: number;
 }
 
-/**
- * TinyMCE Rich Text Editor Component
- * 
- * Mandatory rich text editor for all admin content management.
- * Uses TinyMCE as per UI Implementation Standards.
- * 
- * Reference: /docs/standards-processes/ui-implementation-standards.md
- */
 export const TinyMCERichTextEditor: React.FC<TinyMCERichTextEditorProps> = ({
-  value,
+  value = '',
   onChange,
-  label,
-  description,
-  required = false,
-  error,
-  height = 300,
-  placeholder = 'Start typing...'
+  placeholder = 'Enter text...',
+  minRows = 4
 }) => {
   const [apiKeyMissing, setApiKeyMissing] = useState(false);
-  const apiKey = import.meta.env.VITE_TINYMCE_API_KEY;
+  // Temporarily hardcoding API key since env variable not loading
+  // TODO: Fix environment variable loading issue
+  const apiKey = '3f628sek98zponk2rt5ncrkc2n5lj9ghobeppfskrjvkpmqp';
+  // const apiKey = import.meta.env.VITE_TINYMCE_API_KEY;
 
   useEffect(() => {
     if (!apiKey) {
-      console.warn('TinyMCE API key not found. Some features may be limited.');
       setApiKeyMissing(true);
+      console.warn('TinyMCE API key not configured. Please set VITE_TINYMCE_API_KEY in your .env file.');
     }
   }, [apiKey]);
-  return (
-    <Box mb="md">
-      {label && (
-        <Text size="sm" fw={500} mb={5}>
-          {label} {required && <Text component="span" c="red">*</Text>}
-        </Text>
-      )}
-      {description && (
-        <Text size="xs" c="dimmed" mb="xs">
-          {description}
-        </Text>
-      )}
-      
-      {apiKeyMissing && (
+
+  if (!apiKey) {
+    return (
+      <Box>
         <Alert color="orange" mb="xs" title="Configuration Notice">
-          TinyMCE API key not configured. Using basic functionality. Set VITE_TINYMCE_API_KEY in your .env file.
+          TinyMCE API key not configured. Please set VITE_TINYMCE_API_KEY in your .env.development file.
+          <br />
+          Current environment: {import.meta.env.MODE}
         </Alert>
-      )}
-      
-      <Editor
-        value={value}
-        onEditorChange={onChange}
-        init={{
-          height,
-          menubar: false,
-          plugins: [
-            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
-            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-            'insertdatetime', 'media', 'table', 'help', 'wordcount'
-          ],
-          toolbar: 'undo redo | blocks | ' +
-            'bold italic forecolor | alignleft aligncenter ' +
-            'alignright alignjustify | bullist numlist outdent indent | ' +
-            'removeformat | help',
-          content_style: `
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-              font-size: 14px;
-              line-height: 1.6;
-              color: #333;
-              max-width: none;
-              margin: 8px;
-            }
-            p { margin: 0 0 8px 0; }
-            h1, h2, h3, h4, h5, h6 { 
-              color: var(--mantine-color-burgundy-6, #880124); 
-              margin: 12px 0 8px 0;
-            }
-            a { color: var(--mantine-color-burgundy-6, #880124); }
-          `,
-          placeholder,
-          branding: false,
-          statusbar: false,
-          resize: false,
-          // Basic configuration - no premium features needed
-          skin: 'oxide',
-          content_css: 'default',
-          // Ensure clean HTML output
-          valid_elements: 'p,br,strong,em,u,s,a[href],h1,h2,h3,h4,h5,h6,ul,ol,li,blockquote,code',
-          // Remove unwanted elements
-          invalid_elements: 'script,object,embed,iframe',
-          // Clean up on paste
-          paste_as_text: false,
-          paste_block_drop: true,
-          paste_data_images: false
-        }}
-        apiKey={apiKey}
-      />
-      
-      {error && (
-        <Text size="xs" c="red" mt={5}>
-          {error}
-        </Text>
-      )}
-    </Box>
+      </Box>
+    );
+  }
+
+  return (
+    <Editor
+      apiKey={apiKey}
+      value={value}
+      onEditorChange={(newContent) => {
+        if (onChange) {
+          onChange(newContent);
+        }
+      }}
+      init={{
+        height: minRows ? minRows * 30 : 300,
+        menubar: false,
+        plugins: [
+          'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 
+          'link', 'lists', 'media', 'searchreplace', 'table', 
+          'visualblocks', 'wordcount'
+        ],
+        toolbar: 'undo redo | blocks fontfamily fontsize | ' +
+          'bold italic underline strikethrough | link media table | ' +
+          'align lineheight | numlist bullist indent outdent | ' +
+          'emoticons charmap | removeformat',
+        content_style: `
+          body { 
+            font-family: 'Source Sans 3', sans-serif; 
+            font-size: 14px;
+            color: #2B2B2B;
+          }
+        `,
+        placeholder: placeholder,
+        branding: false, // Remove TinyMCE branding
+        promotion: false, // Remove upgrade promotions
+        statusbar: true, // Show word count
+        resize: true, // Allow vertical resize
+        contextmenu: false, // Disable right-click menu
+      }}
+    />
   );
 };

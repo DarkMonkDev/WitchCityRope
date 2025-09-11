@@ -127,6 +127,7 @@ export const ProtectedWelcomePage: React.FC = () => {
                         {formatDate(typedWelcomeData.user.createdAt)}
                       </Text>
                     </Group>
+                    {/* TODO: Fix UserDto type resolution to include lastLoginAt
                     {typedWelcomeData.user.lastLoginAt && (
                       <Group justify="space-between">
                         <Text c="dimmed">Last Login:</Text>
@@ -135,6 +136,7 @@ export const ProtectedWelcomePage: React.FC = () => {
                         </Text>
                       </Group>
                     )}
+                    */}
                     <Group justify="space-between">
                       <Text c="dimmed">Account Status:</Text>
                       <Badge color="green" variant="light" data-testid="account-status">

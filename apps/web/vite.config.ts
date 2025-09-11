@@ -29,14 +29,14 @@ export default defineConfig(({ mode }) => {
     // Development server configuration
     server: {
       host: '0.0.0.0', // Required for container access
-      port: 5173,
-      strictPort: true, // Fail if port is not available
+      port: 5174, // Updated to match command line port
+      strictPort: false, // Allow port flexibility for development
       
-      // HMR Configuration for containers
+      // HMR Configuration for containers - Fixed port alignment
       hmr: {
-        port: 24678, // Dedicated HMR port to avoid conflicts
+        port: 24679, // Changed HMR port to avoid conflicts
         host: '0.0.0.0', // Allow external HMR connections for Docker
-        clientPort: 24678, // Port for browser HMR connection
+        clientPort: 24679, // Updated client port to match HMR port
       },
       
       // File watching configuration for containers

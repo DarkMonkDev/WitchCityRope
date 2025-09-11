@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-In Launch Modal - WitchCityRope Design System v7</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,700;6..96,900&family=Montserrat:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;600&family=Satisfy&display=swap" rel="stylesheet">
+    <style>
+        /* Design System v7 Colors and Variables */
+        :root {
+            --color-burgundy: #880124;
+            --color-burgundy-dark: #660018;
+            --color-burgundy-light: #9F1D35;
+            --color-rose-gold: #B76D75;
+            --color-copper: #B87333;
+            --color-brass: #C9A961;
+            --color-electric: #9D4EDD;
+            --color-electric-dark: #7B2CBF;
+            --color-amber: #FFBF00;
+            --color-amber-dark: #FF8C00;
+            --color-dusty-rose: #D4A5A5;
+            --color-plum: #614B79;
+            --color-midnight: #1A1A2E;
+            --color-charcoal: #2B2B2B;
+            --color-smoke: #4A4A4A;
+            --color-stone: #8B8680;
+            --color-taupe: #B8B0A8;
+            --color-ivory: #FFF8F0;
+            --color-cream: #FAF6F2;
+            --color-success: #228B22;
+            --color-warning: #DAA520;
+            --color-error: #DC143C;
+            
+            --font-display: 'Bodoni Moda', serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            --font-accent: 'Satisfy', cursive;
+            
+            --space-xs: 8px;
+            --space-sm: 16px;
+            --space-md: 24px;
+            --space-lg: 32px;
+            --space-xl: 40px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            line-height: 1.6;
+            color: var(--color-charcoal);
+            background-color: var(--color-cream);
+            padding: var(--space-xl);
+        }
+        
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: var(--space-md);
+        }
+        
+        /* Modal Container */
+        .modal {
+            background: var(--color-ivory);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        /* Modal Header */
+        .modal-header {
+            background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-burgundy-dark) 100%);
+            color: var(--color-ivory);
+            padding: var(--space-lg);
+            border-radius: 16px 16px 0 0;
+            position: relative;
+        }
+        
+        .modal-title {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+        
+        .event-name {
+            font-family: var(--font-body);
+            font-size: 18px;
+            font-weight: 400;
+            margin-top: var(--space-xs);
+            opacity: 0.9;
+        }
+        
+        .close-button {
+            position: absolute;
+            top: var(--space-md);
+            right: var(--space-md);
+            background: none;
+            border: none;
+            color: var(--color-ivory);
+            font-size: 24px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .close-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.1);
+        }
+        
+        /* Modal Content */
+        .modal-content {
+            padding: var(--space-lg);
+        }
+        
+        /* Form Sections */
+        .form-section {
+            margin-bottom: var(--space-lg);
+        }
+        
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-sm);
+            padding-bottom: var(--space-xs);
+            border-bottom: 2px solid var(--color-rose-gold);
+        }
+        
+        /* Form Fields */
+        .form-field {
+            position: relative;
+            margin-bottom: var(--space-md);
+        }
+        
+        .floating-input {
+            width: 100%;
+            padding: var(--space-md) var(--space-sm) var(--space-xs) var(--space-sm);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 12px;
+            background: var(--color-cream);
+            font-family: var(--font-body);
+            font-size: 16px;
+            transition: all 0.3s ease;
+            appearance: none;
+        }
+        
+        .floating-input:focus {
+            outline: none;
+            border-color: var(--color-burgundy);
+            box-shadow: 0 0 0 3px rgba(183, 109, 117, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .floating-label {
+            position: absolute;
+            left: var(--space-sm);
+            top: 50%;
+            transform: translateY(-50%);
+            font-family: var(--font-heading);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-stone);
+            background: var(--color-cream);
+            padding: 0 var(--space-xs);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .floating-input:focus + .floating-label,
+        .floating-input:not(:placeholder-shown) + .floating-label,
+        .floating-input.has-value + .floating-label {
+            top: -2px;
+            transform: translateY(-50%) scale(0.8);
+            color: var(--color-burgundy);
+            background: var(--color-ivory);
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 14px 32px;
+            border-radius: 12px 6px 12px 6px;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        
+        .btn:hover {
+            border-radius: 6px 12px 6px 12px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+            color: var(--color-midnight);
+            box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--color-amber-dark) 0%, var(--color-amber) 100%);
+            box-shadow: 0 6px 20px rgba(255, 191, 0, 0.6);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--color-burgundy);
+            color: var(--color-burgundy);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--color-burgundy);
+            color: var(--color-ivory);
+        }
+        
+        /* Security Notice */
+        .security-notice {
+            background: linear-gradient(135deg, var(--color-dusty-rose) 0%, rgba(212, 165, 165, 0.3) 100%);
+            border: 1px solid var(--color-rose-gold);
+            border-radius: 12px;
+            padding: var(--space-md);
+            margin-bottom: var(--space-lg);
+        }
+        
+        .notice-title {
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-xs);
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        
+        .notice-text {
+            font-size: 14px;
+            color: var(--color-charcoal);
+            line-height: 1.5;
+        }
+        
+        /* Generated Link Section */
+        .generated-section {
+            display: none;
+            background: var(--color-cream);
+            border-radius: 12px;
+            padding: var(--space-lg);
+            border: 2px solid var(--color-success);
+        }
+        
+        .generated-section.active {
+            display: block;
+        }
+        
+        .success-title {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-success);
+            margin-bottom: var(--space-md);
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        
+        .url-container {
+            background: var(--color-ivory);
+            border: 1px solid var(--color-rose-gold);
+            border-radius: 8px;
+            padding: var(--space-sm);
+            margin-bottom: var(--space-md);
+            font-family: monospace;
+            font-size: 14px;
+            word-break: break-all;
+            position: relative;
+        }
+        
+        .copy-button {
+            position: absolute;
+            top: var(--space-xs);
+            right: var(--space-xs);
+            background: var(--color-burgundy);
+            color: var(--color-ivory);
+            border: none;
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .copy-button:hover {
+            background: var(--color-burgundy-dark);
+        }
+        
+        .qr-placeholder {
+            width: 120px;
+            height: 120px;
+            background: var(--color-ivory);
+            border: 2px dashed var(--color-rose-gold);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: var(--space-md) auto;
+            font-size: 14px;
+            color: var(--color-stone);
+            text-align: center;
+        }
+        
+        .instructions {
+            background: var(--color-ivory);
+            border-radius: 8px;
+            padding: var(--space-md);
+            margin-top: var(--space-md);
+        }
+        
+        .instructions-title {
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-sm);
+        }
+        
+        .instructions ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .instructions li {
+            padding: var(--space-xs) 0;
+            border-bottom: 1px solid rgba(183, 109, 117, 0.2);
+            font-size: 14px;
+        }
+        
+        .instructions li:last-child {
+            border-bottom: none;
+        }
+        
+        /* Modal Actions */
+        .modal-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: var(--space-md);
+            border-top: 1px solid var(--color-rose-gold);
+            margin-top: var(--space-lg);
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .modal-overlay {
+                padding: var(--space-sm);
+            }
+            
+            .modal-header {
+                padding: var(--space-md);
+            }
+            
+            .modal-content {
+                padding: var(--space-md);
+            }
+            
+            .modal-title {
+                font-size: 20px;
+            }
+            
+            .event-name {
+                font-size: 16px;
+            }
+            
+            .btn {
+                padding: 12px 24px;
+                font-size: 13px;
+            }
+            
+            .modal-actions {
+                flex-direction: column;
+                gap: var(--space-sm);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Modal Overlay (demonstrates modal context) -->
+    <div class="modal-overlay">
+        <!-- Check-In Launch Modal -->
+        <div class="modal">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h2 class="modal-title">Launch Check-In Screen</h2>
+                <div class="event-name">Shibari Fundamentals Workshop</div>
+                <button class="close-button" onclick="closeModal()">×</button>
+            </div>
+            
+            <!-- Modal Content -->
+            <div class="modal-content">
+                <!-- Configuration Section -->
+                <div class="form-section">
+                    <h3 class="section-title">Station Configuration</h3>
+                    
+                    <div class="form-field">
+                        <select class="floating-input has-value" id="station-select">
+                            <option value="">Select Station...</option>
+                            <option value="front-desk-1" selected>Front Desk 1</option>
+                            <option value="front-desk-2">Front Desk 2</option>
+                            <option value="mobile-device">Mobile Device</option>
+                            <option value="volunteer-station">Volunteer Station</option>
+                        </select>
+                        <label class="floating-label" for="station-select">Check-in Station</label>
+                    </div>
+                    
+                    <div class="form-field">
+                        <select class="floating-input" id="duration-select">
+                            <option value="">Select Duration...</option>
+                            <option value="2" selected>2 Hours</option>
+                            <option value="4">4 Hours</option>
+                            <option value="8">8 Hours</option>
+                            <option value="12">12 Hours</option>
+                            <option value="custom">Custom Duration</option>
+                        </select>
+                        <label class="floating-label" for="duration-select">Session Duration</label>
+                    </div>
+                </div>
+                
+                <!-- Security Notice -->
+                <div class="security-notice">
+                    <div class="notice-title">
+                        🛡️ Security Information
+                    </div>
+                    <div class="notice-text">
+                        This will create a secure kiosk session for check-in only. The generated link:
+                        <br>• Only allows access to this event's check-in functions
+                        <br>• Cannot access admin features or other event data
+                        <br>• Expires automatically after the selected duration
+                        <br>• Can be revoked immediately if needed
+                    </div>
+                </div>
+                
+                <!-- Initial Actions -->
+                <div class="modal-actions" id="initial-actions">
+                    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="generateLink()">
+                        🔗 Generate Secure Link
+                    </button>
+                </div>
+                
+                <!-- Generated Link Section (hidden initially) -->
+                <div class="generated-section" id="generated-section">
+                    <div class="success-title">
+                        ✅ Secure Check-In Link Generated
+                    </div>
+                    
+                    <!-- URL Display -->
+                    <div class="url-container">
+                        https://events.witchcityrope.com/checkin?session=a8f3d9c2e1b7f4a6&event=workshop-shibari-fundamentals-2025-08-24
+                        <button class="copy-button" onclick="copyUrl()">Copy</button>
+                    </div>
+                    
+                    <!-- QR Code Placeholder -->
+                    <div class="qr-placeholder">
+                        QR Code
+                        <br>
+                        <small>(Scan with mobile)</small>
+                    </div>
+                    
+                    <!-- Instructions -->
+                    <div class="instructions">
+                        <div class="instructions-title">Setup Instructions</div>
+                        <ul>
+                            <li>1. Copy the link above or scan the QR code on the check-in device</li>
+                            <li>2. The check-in screen will open in kiosk mode (no admin access)</li>
+                            <li>3. Hand the device to your front desk volunteers</li>
+                            <li>4. Link expires in 2 hours or when manually revoked</li>
+                            <li>5. Use "Revoke Access" below if device is compromised</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Generated Actions -->
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" onclick="revokeAccess()">
+                            🚫 Revoke Access
+                        </button>
+                        <button class="btn btn-primary" onclick="openCheckIn()">
+                            📱 Open Check-In Screen
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Simple demonstration functions
+        function closeModal() {
+            console.log('Modal would close');
+        }
+        
+        function generateLink() {
+            document.getElementById('initial-actions').style.display = 'none';
+            document.getElementById('generated-section').classList.add('active');
+        }
+        
+        function copyUrl() {
+            console.log('URL copied to clipboard');
+            // In real implementation, would copy to clipboard
+            alert('Link copied to clipboard!');
+        }
+        
+        function revokeAccess() {
+            console.log('Access revoked');
+            alert('Check-in access has been revoked for this session.');
+        }
+        
+        function openCheckIn() {
+            console.log('Opening check-in screen');
+            // In real implementation, would open new tab/window
+            alert('Check-in screen would open in new tab');
+        }
+        
+        // Handle floating labels
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('.floating-input');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.classList.add('focused');
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.classList.remove('focused');
+                    if (this.value) {
+                        this.classList.add('has-value');
+                    } else {
+                        this.classList.remove('has-value');
+                    }
+                });
+                
+                // Check initial value
+                if (input.value) {
+                    input.classList.add('has-value');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

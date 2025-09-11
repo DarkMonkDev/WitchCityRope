@@ -1,9 +1,0 @@
-/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/obj/Release/net9.0/WitchCityRope.Api.csproj.AssemblyReference.cache
-/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/obj/Release/net9.0/rpswa.dswa.cache.json
-/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/obj/Release/net9.0/WitchCityRope.Api.GeneratedMSBuildEditorConfig.editorconfig
-/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/obj/Release/net9.0/WitchCityRope.Api.AssemblyInfoInputs.cache
-/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/obj/Release/net9.0/WitchCityRope.Api.AssemblyInfo.cs
-/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/obj/Release/net9.0/WitchCityRope.Api.csproj.CoreCompileInputs.cache
-/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/obj/Release/net9.0/WitchCityRope.Api.MvcApplicationPartsAssemblyInfo.cs
-/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/obj/Release/net9.0/WitchCityRope.Api.MvcApplicationPartsAssemblyInfo.cache
-/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/obj/Release/net9.0/WitchCityRope.Api.sourcelink.json

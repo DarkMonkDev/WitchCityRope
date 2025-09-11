@@ -35,7 +35,7 @@ const useAuthStore = create<AuthStore>()(
         // State
         user: null,
         isAuthenticated: false,
-        isLoading: true,
+        isLoading: false, // Changed to false to prevent initial render loops
         lastAuthCheck: null,
         token: null,
         tokenExpiresAt: null,
@@ -78,12 +78,29 @@ const useAuthStore = create<AuthStore>()(
           ),
           
           checkAuth: async () => {
+            const currentState = get();
+            
+            // Prevent repeated auth checks within a short time period
+            if (currentState.lastAuthCheck) {
+              const timeSinceLastCheck = Date.now() - currentState.lastAuthCheck.getTime();
+              if (timeSinceLastCheck < 5000) { // 5 seconds cooldown
+                console.log('🔍 Auth check skipped - recent check within 5 seconds');
+                return;
+              }
+            }
+            
+            // Skip auth check if already loading to prevent concurrent calls
+            if (currentState.isLoading) {
+              console.log('🔍 Auth check skipped - already loading');
+              return;
+            }
+            
             set({ isLoading: true }, false, 'auth/checkAuth/start');
             
             try {
               // Check if we have a valid token first
-              const currentState = get();
               if (!currentState.token || get().actions.isTokenExpired()) {
+                console.log('🔍 No valid token found - setting unauthenticated state');
                 // No valid token, user is not authenticated
                 set(
                   { 
@@ -100,13 +117,15 @@ const useAuthStore = create<AuthStore>()(
                 return;
               }
               
+              console.log('🔍 Checking auth with API...');
               // Import api client dynamically to avoid circular dependency
-              const { api } = await import('../api/client');
-              const response = await api.get('/api/auth/user');
+              const { apiClient } = await import('../lib/api/client');
+              const response = await apiClient.get('/api/auth/user');
               
               // Handle nested response structure: { success: true, data: {...} }
               const user = response.data.data || response.data;
               
+              console.log('🔍 Auth check successful:', user.sceneName);
               // Update state directly instead of calling login action to avoid circular updates
               set(
                 { 
@@ -119,7 +138,7 @@ const useAuthStore = create<AuthStore>()(
                 'auth/checkAuth/success'
               );
             } catch (error) {
-              console.error('Auth check failed:', error);
+              console.log('🔍 Auth check failed:', error.response?.status || error.message);
               // Update state directly instead of calling logout action
               set(
                 { 

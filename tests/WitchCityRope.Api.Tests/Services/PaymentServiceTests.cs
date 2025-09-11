@@ -30,11 +30,10 @@ public class PaymentServiceTests
         var userId = Guid.NewGuid();
         var request = new ProcessPaymentRequest
         {
+            RegistrationId = Guid.NewGuid(),
             Amount = 100.00m,
-            Currency = "USD",
-            PaymentMethod = PaymentMethod.Stripe,
+            PaymentMethod = "Stripe",
             PaymentToken = "tok_test_123",
-            Description = "Event registration payment",
             Metadata = new Dictionary<string, string>
             {
                 { "eventId", Guid.NewGuid().ToString() },
@@ -59,9 +58,9 @@ public class PaymentServiceTests
         var userId = Guid.NewGuid();
         var request = new ProcessPaymentRequest
         {
+            RegistrationId = Guid.NewGuid(),
             Amount = 50.00m,
-            Currency = "USD",
-            PaymentMethod = PaymentMethod.PayPal,
+            PaymentMethod = "PayPal",
             PaymentToken = "PAYID-123"
         };
 
@@ -84,9 +83,9 @@ public class PaymentServiceTests
         var userId = Guid.NewGuid();
         var request = new ProcessPaymentRequest
         {
+            RegistrationId = Guid.NewGuid(),
             Amount = amount,
-            Currency = "USD",
-            PaymentMethod = PaymentMethod.Stripe,
+            PaymentMethod = "Stripe",
             PaymentToken = "tok_test"
         };
 
@@ -98,16 +97,16 @@ public class PaymentServiceTests
     }
 
     [Theory]
-    [InlineData(PaymentMethod.CreditCard)]
-    [InlineData(PaymentMethod.PayPal)]
-    public async Task ProcessPaymentAsync_WithDifferentPaymentMethods_ShouldSucceed(PaymentMethod method)
+    [InlineData("CreditCard")]
+    [InlineData("PayPal")]
+    public async Task ProcessPaymentAsync_WithDifferentPaymentMethods_ShouldSucceed(string method)
     {
         // Arrange
         var userId = Guid.NewGuid();
         var request = new ProcessPaymentRequest
         {
+            RegistrationId = Guid.NewGuid(),
             Amount = 75.00m,
-            Currency = "USD",
             PaymentMethod = method,
             PaymentToken = "test_token"
         };
@@ -217,9 +216,9 @@ public class PaymentServiceTests
         var userId = Guid.NewGuid();
         var request = new ProcessPaymentRequest
         {
+            RegistrationId = Guid.NewGuid(),
             Amount = 1.00m,
-            Currency = "USD",
-            PaymentMethod = PaymentMethod.Stripe,
+            PaymentMethod = "Stripe",
             PaymentToken = "tok"
         };
 
@@ -238,11 +237,10 @@ public class PaymentServiceTests
         var userId = Guid.NewGuid();
         var request = new ProcessPaymentRequest
         {
+            RegistrationId = Guid.NewGuid(),
             Amount = 250.00m,
-            Currency = "USD",
-            PaymentMethod = PaymentMethod.PayPal,
+            PaymentMethod = "PayPal",
             PaymentToken = "PAYID-COMPLEX",
-            Description = "Multiple event registrations with discounts",
             Metadata = new Dictionary<string, string>
             {
                 { "eventIds", "event1,event2,event3" },
@@ -273,9 +271,9 @@ public class PaymentServiceTests
         {
             var request = new ProcessPaymentRequest
             {
+                RegistrationId = Guid.NewGuid(),
                 Amount = 10.00m + i,
-                Currency = "USD",
-                PaymentMethod = PaymentMethod.Stripe,
+                    PaymentMethod = "Stripe",
                 PaymentToken = $"tok_concurrent_{i}"
             };
             tasks[i] = _paymentService.ProcessPaymentAsync(request, userId);

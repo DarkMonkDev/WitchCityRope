@@ -1,28 +1,23 @@
 namespace WitchCityRope.Core.Enums
 {
     /// <summary>
-    /// Status of an RSVP for a social event
+    /// Status of a free RSVP for a social event
     /// </summary>
     public enum RSVPStatus
     {
         /// <summary>
-        /// RSVP is confirmed and the user has a guaranteed spot at the event
+        /// RSVP confirmed - no payment required
         /// </summary>
         Confirmed,
 
         /// <summary>
-        /// Event is full, user is on the waitlist and will be confirmed if space becomes available
+        /// RSVP cancelled by user or system
         /// </summary>
-        Waitlisted,
+        Cancelled,
 
         /// <summary>
-        /// User has been checked in to the event
+        /// User checked in at the event
         /// </summary>
-        CheckedIn,
-
-        /// <summary>
-        /// RSVP has been cancelled by the user or event organizers
-        /// </summary>
-        Cancelled
+        CheckedIn
     }
 }

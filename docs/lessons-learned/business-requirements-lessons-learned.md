@@ -1,50 +1,29 @@
 # Business Requirements Lessons Learned
 
-## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+## 🚨 CRITICAL: WORKTREE COMPLIANCE - MANDATORY 🚨
 
-**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
+### ALL WORK MUST BE IN THE SPECIFIED WORKTREE DIRECTORY
 
-### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
-- **END of requirements gathering phase** - BEFORE ending session
-- **COMPLETION of business analysis** - Document critical business rules
-- **DISCOVERY of stakeholder conflicts** - Share immediately
-- **VALIDATION of user stories** - Document acceptance criteria
+**VIOLATION = CATASTROPHIC FAILURE**
 
-### 📁 WHERE TO SAVE HANDOFFS
-**Location**: `/docs/functional-areas/[feature]/handoffs/`
-**Naming**: `business-requirements-YYYY-MM-DD-handoff.md`
-**Template**: `/docs/standards-processes/agent-handoff-template.md`
+When given a Working Directory like:
+`/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management`
 
-### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
-1. **Business Rules**: Non-negotiable constraints and validations
-2. **User Stories**: Validated and prioritized requirements
-3. **Edge Cases**: Unusual scenarios that impact design
-4. **Stakeholder Decisions**: Approved choices and rationale
-5. **Data Requirements**: Entity relationships and validation rules
+**YOU MUST:**
+- Write ALL files to paths within the worktree directory
+- NEVER write to `/home/chad/repos/witchcityrope-react/` main repository
+- ALWAYS use the full worktree path in file operations
+- VERIFY you're in the correct directory before ANY file operation
 
-### 🤝 WHO NEEDS YOUR HANDOFFS
-- **UI Designers**: User flows and interaction requirements
-- **Database Designers**: Entity relationships and constraints
-- **Backend Developers**: Business logic and validation rules
-- **Test Developers**: Acceptance criteria and edge cases
+**Example:**
+- ✅ CORRECT: `/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/docs/...`
+- ❌ WRONG: `/home/chad/repos/witchcityrope-react/docs/...`
 
-### ⚠️ MANDATORY READING BEFORE STARTING
-**ALWAYS READ EXISTING HANDOFFS FIRST**:
-1. Check `/docs/functional-areas/[feature]/handoffs/` for previous requirements work
-2. Read ALL handoff documents in the functional area
-3. Understand business decisions already made
-4. Build on validated requirements - don't restart analysis
-
-### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
-**Why this matters**:
-- Design and development work on wrong requirements
-- Critical business rules get lost
-- User experience becomes inconsistent
-- Major rework required after implementation
-
-**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
-
----
+**Why This Matters:**
+- Worktrees isolate feature branches
+- Writing to main repo pollutes other branches
+- Can cause merge conflicts and lost work
+- BREAKS the entire development workflow
 
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 
@@ -65,23 +44,6 @@
 - **If work involves DTOs, APIs, or types → Check domain-layer-architecture.md FIRST**
 - **Document: 'Verified no existing solution in: [docs checked]'**
 - **NEVER specify manual DTO creation - all types come from NSwag auto-generation**
-
-## Documentation Organization Standard
-
-**CRITICAL**: Follow the documentation organization standard at `/docs/standards-processes/documentation-organization-standard.md`
-
-Key points for Business Requirements Agent:
-- **Store requirements by PRIMARY BUSINESS DOMAIN** - e.g., `/docs/functional-areas/events/requirements/`
-- **Use context subfolders for UI-specific requirements** - e.g., `/docs/functional-areas/events/admin-events-management/requirements.md`
-- **NEVER create separate functional areas for UI contexts** - Events requirements go in `/events/`, not `/user-dashboard/events/`
-- **Cross-reference related contexts** in all requirement documents
-- **Document domain-wide business rules** at the primary domain level
-- **Avoid creating `/docs/functional-areas/admin-dashboard/` or `/user-dashboard/` as primary areas**
-
-Common mistakes to avoid:
-- Creating requirements in UI-context folders instead of business-domain folders
-- Scattering related requirements across multiple functional areas
-- Not linking requirements between different UI contexts of the same domain
 
 ---
 

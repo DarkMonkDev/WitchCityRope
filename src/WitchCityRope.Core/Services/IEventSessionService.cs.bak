@@ -1,0 +1,407 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using WitchCityRope.Api.Features.Shared.Models;
+using WitchCityRope.Core.DTOs;
+using WitchCityRope.Core.Entities;
+using WitchCityRope.Core.Enums;
+
+namespace WitchCityRope.Core.Services
+{
+    /// <summary>
+    /// Service interface for managing event sessions, ticket types, and capacity calculations.
+    /// Handles the Event Session Matrix concept where sessions are atomic capacity units
+    /// and ticket types can span multiple sessions.
+    /// 
+    /// Key Responsibilities:
+    /// - Event creation with multiple sessions
+    /// - Ticket type management and session mapping
+    /// - Cross-session capacity calculations
+    /// - RSVP vs paid registration workflows
+    /// - Complex multi-session availability tracking
+    /// </summary>
+    public interface IEventSessionService
+    {
+        #region Event with Sessions Management
+
+        /// <summary>
+        /// Creates a new event with multiple sessions and associated ticket types.
+        /// Sessions are atomic capacity units (S1, S2, S3) that can have different capacities.
+        /// </summary>
+        /// <param name="request">Event creation request including sessions and ticket types</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>Created event with session and ticket type information</returns>
+        Task<Result<CreateEventWithSessionsResponse>> CreateEventWithSessionsAsync(
+            CreateEventWithSessionsRequest request, 
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Gets an event with its sessions and ticket types loaded.
+        /// </summary>
+        /// <param name="eventId">Event identifier</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>Event with full session matrix data</returns>
+        Task<Result<EventWithSessionsDto>> GetEventWithSessionsAsync(
+            Guid eventId, 
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Updates event sessions (add, remove, modify capacity).
+        /// Validates that ticket types remain valid after session changes.
+        /// </summary>
+        /// <param name="eventId">Event identifier</param>
+        /// <param name="request">Session update request</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>Success or failure result</returns>
+        Task<Result> UpdateEventSessionsAsync(
+            Guid eventId, 
+            UpdateEventSessionsRequest request, 
+            CancellationToken ct = default);
+
+        #endregion
+
+        #region Ticket Type Management
+
+        /// <summary>
+        /// Adds a new ticket type to an event, mapping it to specific sessions.
+        /// Validates that all referenced sessions exist.
+        /// </summary>
+        /// <param name="eventId">Event identifier</param>
+        /// <param name="request">Ticket type creation request</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>Created ticket type information</returns>
+        Task<Result<TicketTypeDto>> CreateTicketTypeAsync(
+            Guid eventId, 
+            CreateTicketTypeRequest request, 
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Updates an existing ticket type's session mappings and details.
+        /// Validates capacity implications of session changes.
+        /// </summary>
+        /// <param name="eventId">Event identifier</param>
+        /// <param name="ticketTypeId">Ticket type identifier</param>
+        /// <param name="request">Update request</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>Updated ticket type information</returns>
+        Task<Result<TicketTypeDto>> UpdateTicketTypeAsync(
+            Guid eventId, 
+            Guid ticketTypeId, 
+            UpdateTicketTypeRequest request, 
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Gets all ticket types for an event with their session mappings.
+        /// </summary>
+        /// <param name="eventId">Event identifier</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>List of ticket types with session information</returns>
+        Task<Result<List<TicketTypeDto>>> GetTicketTypesAsync(
+            Guid eventId, 
+            CancellationToken ct = default);
+
+        #endregion
+
+        #region Capacity and Availability Calculations
+
+        /// <summary>
+        /// Calculates available capacity for each ticket type based on session constraints.
+        /// Multi-session tickets are limited by the most constrained session.
+        /// </summary>
+        /// <param name="eventId">Event identifier</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>Availability information for all ticket types</returns>
+        Task<Result<TicketAvailabilityResponse>> GetTicketAvailabilityAsync(
+            Guid eventId, 
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Calculates availability for a specific ticket type.
+        /// Considers existing registrations across all sessions the ticket type spans.
+        /// </summary>
+        /// <param name="eventId">Event identifier</param>
+        /// <param name="ticketTypeId">Ticket type identifier</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>Available quantity for the ticket type</returns>
+        Task<Result<int>> GetTicketTypeAvailabilityAsync(
+            Guid eventId, 
+            Guid ticketTypeId, 
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Gets session-level capacity and registration information.
+        /// Shows which sessions are constraining ticket availability.
+        /// </summary>
+        /// <param name="eventId">Event identifier</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>Per-session capacity and utilization data</returns>
+        Task<Result<List<SessionCapacityDto>>> GetSessionCapacityAsync(
+            Guid eventId, 
+            CancellationToken ct = default);
+
+        #endregion
+
+        #region Registration Management
+
+        /// <summary>
+        /// Registers a user for an event using a specific ticket type.
+        /// Handles both RSVP (free) and paid registration workflows.
+        /// Updates capacity across all sessions included in the ticket type.
+        /// </summary>
+        /// <param name="request">Registration request</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>Registration result with payment requirements</returns>
+        Task<Result<EventRegistrationResponse>> RegisterForEventAsync(
+            EventRegistrationRequest request, 
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Cancels an event registration and frees up capacity.
+        /// Updates registered count across all affected sessions.
+        /// </summary>
+        /// <param name="registrationId">Registration identifier</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>Cancellation result</returns>
+        Task<Result> CancelRegistrationAsync(
+            Guid registrationId, 
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Confirms a pending registration after payment processing.
+        /// Used for paid events where registration is created but not confirmed until payment.
+        /// </summary>
+        /// <param name="registrationId">Registration identifier</param>
+        /// <param name="paymentTransactionId">Payment transaction reference</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>Confirmation result</returns>
+        Task<Result<RegistrationDto>> ConfirmRegistrationAsync(
+            Guid registrationId, 
+            string paymentTransactionId, 
+            CancellationToken ct = default);
+
+        #endregion
+
+        #region RSVP vs Paid Event Workflows
+
+        /// <summary>
+        /// Determines if a ticket type requires payment processing.
+        /// Social events with RSVP mode bypass payment, classes always require payment.
+        /// </summary>
+        /// <param name="eventId">Event identifier</param>
+        /// <param name="ticketTypeId">Ticket type identifier</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>Payment requirement information</returns>
+        Task<Result<PaymentRequirementDto>> GetPaymentRequirementAsync(
+            Guid eventId, 
+            Guid ticketTypeId, 
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Processes free RSVP registration for social events.
+        /// Immediate confirmation without payment processing.
+        /// </summary>
+        /// <param name="request">RSVP request</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>Confirmed registration</returns>
+        Task<Result<RegistrationDto>> ProcessRSVPRegistrationAsync(
+            RSVPRegistrationRequest request, 
+            CancellationToken ct = default);
+
+        #endregion
+    }
+
+    #region Request/Response DTOs
+
+    /// <summary>
+    /// Request to create an event with multiple sessions and ticket types
+    /// </summary>
+    public class CreateEventWithSessionsRequest
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public EventType EventType { get; set; }
+        public string Location { get; set; } = string.Empty;
+        public bool IsPublished { get; set; }
+        public Guid OrganizerId { get; set; }
+        public List<CreateSessionRequest> Sessions { get; set; } = new();
+        public List<CreateTicketTypeRequest> TicketTypes { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Session creation request
+    /// </summary>
+    public class CreateSessionRequest
+    {
+        public string SessionName { get; set; } = string.Empty; // S1, S2, S3
+        public string DisplayName { get; set; } = string.Empty; // "Friday Workshop"
+        public string SessionDate { get; set; } = string.Empty; // ISO date string
+        public string StartTime { get; set; } = string.Empty; // HH:mm format
+        public string EndTime { get; set; } = string.Empty; // HH:mm format
+        public int Capacity { get; set; }
+    }
+
+    /// <summary>
+    /// Ticket type creation request
+    /// </summary>
+    public class CreateTicketTypeRequest
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public bool IsRSVPMode { get; set; } = false;
+        public List<string> IncludedSessions { get; set; } = new(); // ["S1", "S2", "S3"]
+    }
+
+    /// <summary>
+    /// Response for successful event creation with sessions
+    /// </summary>
+    public class CreateEventWithSessionsResponse
+    {
+        public Guid EventId { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public int SessionsCreated { get; set; }
+        public int TicketTypesCreated { get; set; }
+        public List<Guid> SessionIds { get; set; } = new();
+        public List<Guid> TicketTypeIds { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Complete event information with sessions and ticket types
+    /// </summary>
+    public class EventWithSessionsDto
+    {
+        public Guid Id { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public EventType EventType { get; set; }
+        public string Location { get; set; } = string.Empty;
+        public bool IsPublished { get; set; }
+        public List<SessionDto> Sessions { get; set; } = new();
+        public List<TicketTypeDto> TicketTypes { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Session information DTO
+    /// </summary>
+    public class SessionDto
+    {
+        public Guid Id { get; set; }
+        public string SessionIdentifier { get; set; } = string.Empty; // S1, S2, S3
+        public string Name { get; set; } = string.Empty;
+        public DateTime Date { get; set; }
+        public TimeSpan StartTime { get; set; }
+        public TimeSpan EndTime { get; set; }
+        public int Capacity { get; set; }
+        public int RegisteredCount { get; set; }
+        public int AvailableSpots { get; set; }
+    }
+
+    /// <summary>
+    /// Ticket type information DTO
+    /// </summary>
+    public class TicketTypeDto
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public bool IsRSVPMode { get; set; }
+        public List<string> IncludedSessions { get; set; } = new(); // ["S1", "S2", "S3"]
+        public int AvailableQuantity { get; set; }
+    }
+
+    /// <summary>
+    /// Session update request
+    /// </summary>
+    public class UpdateEventSessionsRequest
+    {
+        public List<CreateSessionRequest> SessionsToAdd { get; set; } = new();
+        public List<UpdateSessionRequest> SessionsToUpdate { get; set; } = new();
+        public List<string> SessionsToRemove { get; set; } = new(); // Session identifiers
+    }
+
+    /// <summary>
+    /// Individual session update request
+    /// </summary>
+    public class UpdateSessionRequest
+    {
+        public string SessionName { get; set; } = string.Empty;
+        public string? DisplayName { get; set; }
+        public string? SessionDate { get; set; }
+        public string? StartTime { get; set; }
+        public string? EndTime { get; set; }
+        public int? Capacity { get; set; }
+    }
+
+    /// <summary>
+    /// Ticket type update request
+    /// </summary>
+    public class UpdateTicketTypeRequest
+    {
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public decimal? Price { get; set; }
+        public bool? IsRSVPMode { get; set; }
+        public List<string>? IncludedSessions { get; set; }
+    }
+
+    /// <summary>
+    /// Ticket availability response for all ticket types
+    /// </summary>
+    public class TicketAvailabilityResponse
+    {
+        public Guid EventId { get; set; }
+        public List<TicketAvailabilityDto> TicketTypes { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Availability information for a single ticket type
+    /// </summary>
+    public class TicketAvailabilityDto
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public int Available { get; set; }
+        public int TotalCapacity { get; set; }
+        public List<string> LimitingSessions { get; set; } = new(); // Sessions that constrain availability
+    }
+
+    /// <summary>
+    /// Session capacity information
+    /// </summary>
+    public class SessionCapacityDto
+    {
+        public string SessionIdentifier { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public int Capacity { get; set; }
+        public int RegisteredCount { get; set; }
+        public int AvailableSpots { get; set; }
+        public decimal UtilizationPercentage { get; set; }
+    }
+
+    /// <summary>
+    /// Payment requirement information
+    /// </summary>
+    public class PaymentRequirementDto
+    {
+        public bool RequiresPayment { get; set; }
+        public decimal Amount { get; set; }
+        public string PaymentType { get; set; } = string.Empty; // "Required", "Optional", "NotRequired"
+        public string Reason { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// RSVP registration request for free social events
+    /// </summary>
+    public class RSVPRegistrationRequest
+    {
+        public Guid EventId { get; set; }
+        public Guid UserId { get; set; }
+        public Guid TicketTypeId { get; set; }
+        public int Quantity { get; set; } = 1;
+        public string? SpecialRequests { get; set; }
+    }
+
+    #endregion
+}

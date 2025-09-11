@@ -215,6 +215,25 @@
           }
         }
       },
+      "Docker.DotNet.Enhanced/3.126.1": {
+        "runtime": {
+          "lib/net9.0/Docker.DotNet.dll": {
+            "assemblyVersion": "3.126.0.0",
+            "fileVersion": "3.126.1.1"
+          }
+        }
+      },
+      "Docker.DotNet.Enhanced.X509/3.126.1": {
+        "dependencies": {
+          "Docker.DotNet.Enhanced": "3.126.1"
+        },
+        "runtime": {
+          "lib/net9.0/Docker.DotNet.X509.dll": {
+            "assemblyVersion": "3.126.0.0",
+            "fileVersion": "3.126.1.1"
+          }
+        }
+      },
       "ExpressionTreeToString/3.4.71": {
         "dependencies": {
           "Microsoft.CSharp": "4.7.0",
@@ -1670,6 +1689,17 @@
           }
         }
       },
+      "Respawn/6.2.1": {
+        "dependencies": {
+          "Microsoft.Data.SqlClient": "5.2.2"
+        },
+        "runtime": {
+          "lib/netstandard2.1/Respawn.dll": {
+            "assemblyVersion": "6.0.0.0",
+            "fileVersion": "6.2.1.0"
+          }
+        }
+      },
       "RestSharp/112.1.0": {
         "runtime": {
           "lib/net8.0/RestSharp.dll": {
@@ -1894,6 +1924,14 @@
           }
         }
       },
+      "SharpZipLib/1.4.2": {
+        "runtime": {
+          "lib/net6.0/ICSharpCode.SharpZipLib.dll": {
+            "assemblyVersion": "1.4.2.13",
+            "fileVersion": "1.4.2.13"
+          }
+        }
+      },
       "Slugify.Core/5.1.1": {
         "dependencies": {
           "System.Memory": "4.6.1",
@@ -1914,6 +1952,17 @@
           "lib/net6.0/Spectre.Console.dll": {
             "assemblyVersion": "0.0.0.0",
             "fileVersion": "0.45.0.0"
+          }
+        }
+      },
+      "SSH.NET/2024.2.0": {
+        "dependencies": {
+          "BouncyCastle.Cryptography": "2.5.1"
+        },
+        "runtime": {
+          "lib/net8.0/Renci.SshNet.dll": {
+            "assemblyVersion": "2024.2.0.1",
+            "fileVersion": "2024.2.0.1"
           }
         }
       },
@@ -2638,6 +2687,32 @@
           "System.Xml.ReaderWriter": "4.3.0"
         }
       },
+      "Testcontainers/4.3.0": {
+        "dependencies": {
+          "Docker.DotNet.Enhanced": "3.126.1",
+          "Docker.DotNet.Enhanced.X509": "3.126.1",
+          "Microsoft.Extensions.Logging.Abstractions": "9.0.6",
+          "SSH.NET": "2024.2.0",
+          "SharpZipLib": "1.4.2"
+        },
+        "runtime": {
+          "lib/net9.0/Testcontainers.dll": {
+            "assemblyVersion": "4.3.0.0",
+            "fileVersion": "4.3.0.0"
+          }
+        }
+      },
+      "Testcontainers.PostgreSql/4.3.0": {
+        "dependencies": {
+          "Testcontainers": "4.3.0"
+        },
+        "runtime": {
+          "lib/net9.0/Testcontainers.PostgreSql.dll": {
+            "assemblyVersion": "4.3.0.0",
+            "fileVersion": "4.3.0.0"
+          }
+        }
+      },
       "xunit/2.9.3": {
         "dependencies": {
           "xunit.analyzers": "1.18.0",
@@ -2778,13 +2853,18 @@
         "dependencies": {
           "Bogus": "35.6.3",
           "FluentAssertions": "8.4.0",
+          "Microsoft.EntityFrameworkCore": "9.0.6",
           "Microsoft.Extensions.Configuration": "9.0.6",
           "Microsoft.Extensions.Configuration.Binder": "9.0.6",
           "Microsoft.Extensions.DependencyInjection": "9.0.6",
           "Microsoft.Extensions.Logging": "9.0.6",
           "Microsoft.Extensions.Logging.Console": "9.0.6",
           "Moq": "4.20.72",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "9.0.4",
+          "Respawn": "6.2.1",
+          "Testcontainers.PostgreSql": "4.3.0",
           "WitchCityRope.Core": "1.0.0",
+          "WitchCityRope.Infrastructure": "1.0.0",
           "xunit": "2.9.3"
         },
         "runtime": {
@@ -2920,6 +3000,20 @@
       "sha512": "sha512-fev4lynklAU2A9GVMLtwarkwaanjSYB4wUqO2nOJX5hnzObORzUqVLe+bDYCUyIIRQM4o5Bsq3CcyJR89iMmEQ==",
       "path": "csvhelper/33.0.1",
       "hashPath": "csvhelper.33.0.1.nupkg.sha512"
+    },
+    "Docker.DotNet.Enhanced/3.126.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-UPyLBLBaVE3s7OCWM0h5g9w6mUOag5sOIP5CldFQekIWo/gHixgZR+o5fG7eCFH4ZdKlvBGM4ALFuOyPoKoJ3A==",
+      "path": "docker.dotnet.enhanced/3.126.1",
+      "hashPath": "docker.dotnet.enhanced.3.126.1.nupkg.sha512"
+    },
+    "Docker.DotNet.Enhanced.X509/3.126.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-XFHMC/iWHbloQgg9apZrxu010DmSamaAggu8nomCqTeotGyUGkv2Tt/aqk1ljC/4tjtTrb9LtFQwYpwZbMbiKg==",
+      "path": "docker.dotnet.enhanced.x509/3.126.1",
+      "hashPath": "docker.dotnet.enhanced.x509.3.126.1.nupkg.sha512"
     },
     "ExpressionTreeToString/3.4.71": {
       "type": "package",
@@ -3642,6 +3736,13 @@
       "path": "qrcoder/1.6.0",
       "hashPath": "qrcoder.1.6.0.nupkg.sha512"
     },
+    "Respawn/6.2.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-b8v9a1+08FKiDtqi6KllaJEeJiB1cmkD3kmOXDNIR+U85gEaZitwl6Gxq6RU5NL34OLmdQ5dB+QE0rhVCX+lEA==",
+      "path": "respawn/6.2.1",
+      "hashPath": "respawn.6.2.1.nupkg.sha512"
+    },
     "RestSharp/112.1.0": {
       "type": "package",
       "serviceable": true,
@@ -3859,6 +3960,13 @@
       "path": "serilog.sinks.spectreconsole/0.3.3",
       "hashPath": "serilog.sinks.spectreconsole.0.3.3.nupkg.sha512"
     },
+    "SharpZipLib/1.4.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-yjj+3zgz8zgXpiiC3ZdF/iyTBbz2fFvMxZFEBPUcwZjIvXOf37Ylm+K58hqMfIBt5JgU/Z2uoUS67JmTLe973A==",
+      "path": "sharpziplib/1.4.2",
+      "hashPath": "sharpziplib.1.4.2.nupkg.sha512"
+    },
     "Slugify.Core/5.1.1": {
       "type": "package",
       "serviceable": true,
@@ -3872,6 +3980,13 @@
       "sha512": "sha512-e//13o8/BCrWmwN26eJ4zCzD2iq7iUlqQd+nDI9nJUdnJ/rYAanYiNFZZ7YHwlv48IKuKtRYYP6/wPt1DG67ww==",
       "path": "spectre.console/0.45.0",
       "hashPath": "spectre.console.0.45.0.nupkg.sha512"
+    },
+    "SSH.NET/2024.2.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-9r+4UF2P51lTztpd+H7SJywk7WgmlWB//Cm2o96c6uGVZU5r58ys2/cD9pCgTk0zCdSkfflWL1WtqQ9I4IVO9Q==",
+      "path": "ssh.net/2024.2.0",
+      "hashPath": "ssh.net.2024.2.0.nupkg.sha512"
     },
     "StackExchange.Redis/2.7.27": {
       "type": "package",
@@ -4425,6 +4540,20 @@
       "sha512": "sha512-5zJ0XDxAIg8iy+t4aMnQAu0MqVbqyvfoUVl1yDV61xdo3Vth45oA2FoY4pPkxYAH5f8ixpmTqXeEIya95x0aCQ==",
       "path": "system.xml.xdocument/4.3.0",
       "hashPath": "system.xml.xdocument.4.3.0.nupkg.sha512"
+    },
+    "Testcontainers/4.3.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-1cxsjDE2+rdi/ELOel+NbQhQ7tvaqXG2YDN6nmhDzyAu9baGM2FUENG/3eG7N+ak3nap35RFvxyhIdVBeqNwlA==",
+      "path": "testcontainers/4.3.0",
+      "hashPath": "testcontainers.4.3.0.nupkg.sha512"
+    },
+    "Testcontainers.PostgreSql/4.3.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-OWtFKTrVaYrAA+N+tQF3ZC/o21pIPUihRB7NZNYbPWyxIJgSkTRzBdtV/ZNIGmsM+Smg0kqUy9ho2mbfTBt2Xw==",
+      "path": "testcontainers.postgresql/4.3.0",
+      "hashPath": "testcontainers.postgresql.4.3.0.nupkg.sha512"
     },
     "xunit/2.9.3": {
       "type": "package",

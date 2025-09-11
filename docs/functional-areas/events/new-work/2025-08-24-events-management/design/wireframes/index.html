@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events Management Wireframes - WitchCityRope</title>
+    <style>
+        :root {
+            --mantine-color-wcr-0: #f8f4e6;
+            --mantine-color-wcr-1: #e8ddd4;
+            --mantine-color-wcr-2: #d4a5a5;
+            --mantine-color-wcr-6: #9b4a75;
+            --mantine-color-wcr-7: #880024;
+            --mantine-color-wcr-8: #6b0119;
+            --mantine-color-wcr-9: #2c2c2c;
+        }
+
+        body {
+            font-family: 'Source Sans 3', sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background: var(--mantine-color-wcr-9);
+            color: var(--mantine-color-wcr-0);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .title {
+            font-family: 'Bodoni Moda', serif;
+            font-size: 2.5rem;
+            margin: 0 0 1rem 0;
+            color: var(--mantine-color-wcr-0);
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: var(--mantine-color-wcr-2);
+            margin: 0;
+        }
+
+        .wireframes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .wireframe-card {
+            background: var(--mantine-color-wcr-8);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .wireframe-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+
+        .wireframe-preview {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, var(--mantine-color-wcr-7), var(--mantine-color-wcr-6));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: var(--mantine-color-wcr-0);
+        }
+
+        .wireframe-content {
+            padding: 1.5rem;
+        }
+
+        .wireframe-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem 0;
+            color: var(--mantine-color-wcr-0);
+        }
+
+        .wireframe-description {
+            color: var(--mantine-color-wcr-2);
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin-bottom: 1rem;
+        }
+
+        .wireframe-features {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .wireframe-features li {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+            font-size: 0.8rem;
+            color: var(--mantine-color-wcr-1);
+        }
+
+        .wireframe-features li::before {
+            content: "✓";
+            color: var(--mantine-color-wcr-7);
+            font-weight: bold;
+        }
+
+        .tech-info {
+            background: var(--mantine-color-wcr-8);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-top: 3rem;
+        }
+
+        .tech-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0 0 1rem 0;
+            color: var(--mantine-color-wcr-0);
+        }
+
+        .tech-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            color: var(--mantine-color-wcr-1);
+        }
+
+        .tech-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tech-item::before {
+            content: "⚡";
+            color: var(--mantine-color-wcr-6);
+        }
+
+        @media (max-width: 768px) {
+            .wireframes-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tech-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">Events Management Wireframes</h1>
+            <p class="subtitle">HTML wireframes using Mantine v7 components for WitchCityRope events system</p>
+        </div>
+
+        <div class="wireframes-grid">
+            <!-- Admin Events Dashboard -->
+            <a href="admin-events-dashboard.html" class="wireframe-card">
+                <div class="wireframe-preview">📊</div>
+                <div class="wireframe-content">
+                    <h3 class="wireframe-title">Admin Events Dashboard</h3>
+                    <p class="wireframe-description">
+                        Comprehensive admin interface for managing all events with DataTable, filters, and bulk actions.
+                    </p>
+                    <ul class="wireframe-features">
+                        <li>Mantine DataTable with sorting & pagination</li>
+                        <li>Advanced filtering by status, type, date</li>
+                        <li>Event statistics cards</li>
+                        <li>Quick action buttons for each event</li>
+                        <li>Real-time registration counts</li>
+                        <li>Mobile-responsive design</li>
+                    </ul>
+                </div>
+            </a>
+
+            <!-- Event Form -->
+            <a href="event-form.html" class="wireframe-card">
+                <div class="wireframe-preview">📝</div>
+                <div class="wireframe-content">
+                    <h3 class="wireframe-title">Event Creation/Edit Form</h3>
+                    <p class="wireframe-description">
+                        Comprehensive form for creating and editing events with all business requirements covered.
+                    </p>
+                    <ul class="wireframe-features">
+                        <li>Multi-section form with proper validation</li>
+                        <li>Multi-day event support</li>
+                        <li>Sliding scale pricing configuration</li>
+                        <li>Teacher assignment and venue selection</li>
+                        <li>Registration settings and policies</li>
+                        <li>Draft save functionality</li>
+                    </ul>
+                </div>
+            </a>
+
+            <!-- Check-in Interface -->
+            <a href="check-in-interface.html" class="wireframe-card">
+                <div class="wireframe-preview">✅</div>
+                <div class="wireframe-content">
+                    <h3 class="wireframe-title">Event Check-in Interface</h3>
+                    <p class="wireframe-description">
+                        Real-time check-in system for event organizers with search, filters, and live statistics.
+                    </p>
+                    <ul class="wireframe-features">
+                        <li>Live search with instant results</li>
+                        <li>Status filtering (registered, checked-in, waitlist)</li>
+                        <li>Real-time capacity tracking</li>
+                        <li>Waitlist promotion capabilities</li>
+                        <li>Manual check-in for walk-ins</li>
+                        <li>Export and reminder functionality</li>
+                    </ul>
+                </div>
+            </a>
+
+            <!-- Public Events List -->
+            <a href="public-events-list.html" class="wireframe-card">
+                <div class="wireframe-preview">🎫</div>
+                <div class="wireframe-content">
+                    <h3 class="wireframe-title">Public Events Listing</h3>
+                    <p class="wireframe-description">
+                        Public-facing event discovery page with filtering, search, and registration capabilities.
+                    </p>
+                    <ul class="wireframe-features">
+                        <li>Card-based event display layout</li>
+                        <li>Advanced filtering by type, skill, date</li>
+                        <li>Teacher profiles and event details</li>
+                        <li>Registration status indicators</li>
+                        <li>Pricing and capacity information</li>
+                        <li>Mobile-optimized card grid</li>
+                    </ul>
+                </div>
+            </a>
+
+            <!-- Event Details -->
+            <a href="event-details.html" class="wireframe-card">
+                <div class="wireframe-preview">📋</div>
+                <div class="wireframe-content">
+                    <h3 class="wireframe-title">Event Detail Page</h3>
+                    <p class="wireframe-description">
+                        Comprehensive event detail page with registration, teacher info, and all event information.
+                    </p>
+                    <ul class="wireframe-features">
+                        <li>Detailed event information layout</li>
+                        <li>Sticky registration card with pricing</li>
+                        <li>Teacher profiles and biographies</li>
+                        <li>Venue information and directions</li>
+                        <li>Related events suggestions</li>
+                        <li>Social sharing capabilities</li>
+                    </ul>
+                </div>
+            </a>
+        </div>
+
+        <!-- Technical Information -->
+        <div class="tech-info">
+            <h2 class="tech-title">Technical Implementation</h2>
+            <div class="tech-list">
+                <div class="tech-item">Mantine v7 UI Framework</div>
+                <div class="tech-item">WitchCityRope Design System</div>
+                <div class="tech-item">Responsive mobile-first design</div>
+                <div class="tech-item">Interactive JavaScript components</div>
+                <div class="tech-item">Accessibility-focused patterns</div>
+                <div class="tech-item">Dark theme with brand colors</div>
+                <div class="tech-item">Form validation and error handling</div>
+                <div class="tech-item">Real-time updates simulation</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

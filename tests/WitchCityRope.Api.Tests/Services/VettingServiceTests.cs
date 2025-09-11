@@ -25,13 +25,17 @@ public class VettingServiceTests
         var userId = Guid.NewGuid();
         var request = new VettingApplicationRequest
         {
-            FetLifeUsername = "testuser",
-            ReferenceNames = new[] { "Ref1", "Ref2" },
+            LegalName = "John Doe",
+            PreferredName = "TestUser",
+            FetlifeName = "testuser",
+            ReferenceOneName = "Ref1",
+            ReferenceOneContact = "ref1@example.com",
+            ReferenceTwoName = "Ref2",
+            ReferenceTwoContact = "ref2@example.com",
             Experience = "5 years of rope experience",
-            SafetyKnowledge = "Extensive knowledge of safety protocols",
-            ConsentPractices = "Always negotiate before scenes",
-            CommunityInvolvement = "Regular attendee at local events",
-            AdditionalNotes = "Looking forward to joining"
+            WhyJoin = "Looking forward to joining",
+            AgreeToCommunityGuidelines = true,
+            AgreeToPhotoPolicy = true
         };
 
         // Act
@@ -52,12 +56,17 @@ public class VettingServiceTests
         var userId2 = Guid.NewGuid();
         var request = new VettingApplicationRequest
         {
-            FetLifeUsername = "testuser",
-            ReferenceNames = new[] { "Ref1" },
+            LegalName = "Jane Doe",
+            PreferredName = "TestUser2",
+            FetlifeName = "testuser",
+            ReferenceOneName = "Ref1",
+            ReferenceOneContact = "ref1@example.com",
+            ReferenceTwoName = "Ref2",
+            ReferenceTwoContact = "ref2@example.com",
             Experience = "Some experience",
-            SafetyKnowledge = "Basic safety",
-            ConsentPractices = "Standard practices",
-            CommunityInvolvement = "Some involvement"
+            WhyJoin = "Interest in community",
+            AgreeToCommunityGuidelines = true,
+            AgreeToPhotoPolicy = true
         };
 
         // Act

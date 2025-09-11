@@ -1,0 +1,1917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Event - WitchCityRope Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            /* Design System v7 Colors */
+            --color-burgundy: #880124;
+            --color-burgundy-dark: #660018;
+            --color-rose-gold: #B76D75;
+            --color-electric: #9D4EDD;
+            --color-amber: #FFBF00;
+            --color-midnight: #1A1A2E;
+            --color-charcoal: #2B2B2B;
+            --color-cream: #FAF6F2;
+            --color-ivory: #FFF8F0;
+            --color-success: #228B22;
+            --color-warning: #DAA520;
+            --color-error: #DC143C;
+            --color-stone: #8B8680;
+            
+            /* Typography */
+            --font-display: 'Bodoni Moda', serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 16px;
+            --space-md: 24px;
+            --space-lg: 32px;
+            --space-xl: 40px;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--color-cream);
+            color: var(--color-charcoal);
+            line-height: 1.6;
+        }
+        
+        /* Admin Header */
+        .admin-header {
+            background: var(--color-midnight);
+            color: white;
+            padding: var(--space-sm) var(--space-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .admin-logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .admin-badge {
+            background: var(--color-burgundy);
+            padding: 4px var(--space-sm);
+            border-radius: 4px;
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .admin-user {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-family: var(--font-heading);
+            font-weight: 500;
+        }
+        
+        /* Sidebar */
+        .admin-layout {
+            display: flex;
+            min-height: calc(100vh - 68px);
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: white;
+            border-right: 2px solid var(--color-rose-gold);
+            padding: var(--space-md) 0;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
+            color: var(--color-charcoal);
+            text-decoration: none;
+            font-family: var(--font-heading);
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar-item:hover {
+            background: var(--color-cream);
+            border-left-color: var(--color-rose-gold);
+        }
+        
+        .sidebar-item.active {
+            background: rgba(136, 1, 36, 0.1);
+            border-left-color: var(--color-burgundy);
+            color: var(--color-burgundy);
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: var(--space-xl);
+        }
+        
+        .page-header {
+            margin-bottom: var(--space-xl);
+        }
+        
+        .page-title {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-sm);
+        }
+        
+        /* Tabs */
+        .tabs-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .tab-nav {
+            display: flex;
+            background: var(--color-ivory);
+            border-bottom: 2px solid var(--color-rose-gold);
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: var(--space-md);
+            background: transparent;
+            border: none;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--color-charcoal);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab-button:hover {
+            background: rgba(136, 1, 36, 0.1);
+            color: var(--color-burgundy);
+        }
+        
+        .tab-button.active {
+            background: white;
+            color: var(--color-burgundy);
+            border-bottom-color: var(--color-burgundy);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: var(--space-xl);
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Form Elements */
+        .form-section {
+            margin-bottom: var(--space-xl);
+        }
+        
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-md);
+            padding-bottom: var(--space-sm);
+            border-bottom: 2px solid var(--color-rose-gold);
+        }
+        
+        .form-group {
+            margin-bottom: var(--space-md);
+        }
+        
+        .floating-input-wrapper {
+            position: relative;
+        }
+        
+        .floating-input {
+            width: 100%;
+            padding: var(--space-md) var(--space-sm) var(--space-xs) var(--space-sm);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 12px;
+            background: var(--color-cream);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--color-charcoal);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        
+        .floating-input:focus {
+            border-color: var(--color-burgundy);
+            box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .floating-label {
+            position: absolute;
+            left: var(--space-sm);
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--color-cream);
+            padding: 0 4px;
+            color: var(--color-stone);
+            font-family: var(--font-heading);
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .floating-input:focus + .floating-label,
+        .floating-input:not(:placeholder-shown) + .floating-label,
+        .floating-input.has-value + .floating-label {
+            top: -2px;
+            transform: translateY(-50%) scale(0.8);
+            color: var(--color-burgundy);
+            background: var(--color-cream);
+        }
+        
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: var(--space-sm);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 8px;
+            background: var(--color-cream);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--color-charcoal);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        
+        .form-input:focus,
+        .form-select:focus {
+            border-color: var(--color-burgundy);
+            box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.15);
+        }
+        
+        .required {
+            color: var(--color-error);
+            font-weight: 600;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: var(--space-sm) var(--space-md);
+            border-radius: 12px 6px 12px 6px;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            outline: none;
+        }
+        
+        .btn:hover {
+            border-radius: 6px 12px 6px 12px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-amber), #DAA520);
+            color: var(--color-charcoal);
+            box-shadow: 0 4px 12px rgba(255, 191, 0, 0.3);
+        }
+        
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(255, 191, 0, 0.4);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--color-burgundy);
+            border: 2px solid var(--color-burgundy);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--color-burgundy);
+            color: white;
+        }
+        
+        .btn-sm {
+            padding: var(--space-xs) var(--space-sm);
+            font-size: 0.85rem;
+            min-width: 80px;
+        }
+        
+        /* Teacher Card Styles */
+        .teacher-cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-md);
+            margin-bottom: var(--space-md);
+        }
+        
+        .teacher-card {
+            padding: var(--space-md);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 8px;
+            background: white;
+            position: relative;
+            min-width: 220px;
+            flex: 1;
+            max-width: 300px;
+            transition: all 0.3s ease;
+        }
+        
+        .teacher-card:hover {
+            border-color: var(--color-burgundy);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(136, 1, 36, 0.15);
+        }
+        
+        .teacher-card-name {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-burgundy);
+            margin-bottom: 4px;
+            font-size: 1rem;
+        }
+        
+        .teacher-remove-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: var(--color-error);
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .teacher-remove-btn:hover {
+            background: #b91c1c;
+            transform: scale(1.1);
+        }
+        
+        .add-teacher-controls {
+            display: flex;
+            gap: var(--space-sm);
+            align-items: end;
+        }
+        
+        .teacher-dropdown {
+            flex: 1;
+        }
+        
+        /* UPDATED: Standardized Data Tables with Burgundy Headers */
+        .data-table, .data-grid {
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            border-collapse: collapse;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .data-table th, .data-grid th {
+            background: var(--color-burgundy);
+            color: white;
+            padding: var(--space-md);
+            text-align: left;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: none;
+        }
+        
+        .data-table td, .data-grid td {
+            padding: var(--space-md);
+            border-bottom: 1px solid rgba(183, 109, 117, 0.2);
+            vertical-align: middle;
+            font-size: 1rem;
+        }
+        
+        /* More contrasted alternating row backgrounds */
+        .data-table tbody tr:nth-child(even), .data-grid tbody tr:nth-child(even) {
+            background: rgba(250, 246, 242, 0.8);
+        }
+        
+        .data-table tbody tr:hover, .data-grid tbody tr:hover {
+            background: rgba(136, 1, 36, 0.08) !important;
+        }
+        
+        .data-table tbody tr:last-child td, .data-grid tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Action buttons in tables */
+        .table-action-btn {
+            background: var(--color-cream);
+            border: 1px solid var(--color-rose-gold);
+            color: var(--color-burgundy);
+            padding: 4px 8px;
+            margin: 0 2px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .table-action-btn:hover {
+            background: var(--color-burgundy);
+            color: white;
+        }
+        
+        .table-action-btn.delete-btn {
+            background: var(--color-error);
+            border-color: var(--color-error);
+            color: white;
+        }
+        
+        .table-action-btn.delete-btn:hover {
+            background: #b91c1c;
+        }
+        
+        /* Status Badges */
+        .status-badge {
+            padding: 4px var(--space-xs);
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-confirmed {
+            background: rgba(34, 139, 34, 0.2);
+            color: var(--color-success);
+        }
+        
+        .status-pending {
+            background: rgba(218, 165, 32, 0.2);
+            color: var(--color-warning);
+        }
+        
+        .status-cancelled {
+            background: rgba(220, 20, 60, 0.2);
+            color: var(--color-error);
+        }
+        
+        /* TinyMCE Editor Area */
+        .tinymce-editor {
+            width: 100%;
+            min-height: 200px;
+            padding: var(--space-md);
+            border: none;
+            background: white;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--color-charcoal);
+            resize: vertical;
+            outline: none;
+        }
+        
+        .tinymce-editor:empty:before {
+            content: attr(data-placeholder);
+            color: #999;
+            font-style: italic;
+        }
+        
+        /* TinyMCE Status Bar */
+        .tinymce-statusbar {
+            background: #f8f9fa;
+            border-top: 1px solid #e3e6ea;
+            padding: 4px var(--space-sm);
+            font-size: 0.75rem;
+            color: #6c757d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .resize-handle {
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(-45deg, transparent 0%, transparent 40%, #ccc 40%, #ccc 43%, transparent 43%, transparent 46%, #ccc 46%, #ccc 49%, transparent 49%);
+            cursor: nw-resize;
+        }
+        
+        .form-help {
+            font-size: 0.85rem;
+            color: var(--color-charcoal);
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+        
+        /* Event Type Toggle */
+        .event-type-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-md);
+        }
+        
+        .type-option {
+            padding: var(--space-md);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .type-option:hover {
+            border-color: var(--color-burgundy);
+        }
+        
+        .type-option.active {
+            border-color: var(--color-burgundy);
+            background: rgba(136, 1, 36, 0.1);
+        }
+        
+        .type-option-title {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--color-burgundy);
+            margin-bottom: 4px;
+        }
+        
+        .type-option-desc {
+            font-size: 0.85rem;
+            color: var(--color-charcoal);
+            opacity: 0.8;
+        }
+        
+        /* Venue Selection */
+        .venue-selection {
+            display: flex;
+            gap: var(--space-sm);
+            align-items: end;
+        }
+        
+        .venue-dropdown {
+            flex: 1;
+        }
+        
+        /* Radio Groups */
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .radio-option input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--color-burgundy);
+        }
+        
+        .radio-label {
+            cursor: pointer;
+            font-family: var(--font-heading);
+            font-weight: 500;
+        }
+
+        /* Email Template Management - Simplified */
+        .add-template-controls {
+            display: flex;
+            gap: var(--space-sm);
+            align-items: end;
+        }
+        
+        .template-dropdown {
+            flex: 1;
+        }
+        
+        .template-cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-md);
+            margin-bottom: var(--space-md);
+        }
+        
+        .template-card {
+            padding: var(--space-md);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            min-width: 220px;
+            flex: 1;
+            max-width: 300px;
+        }
+        
+        .template-card:hover {
+            border-color: var(--color-burgundy);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(136, 1, 36, 0.15);
+        }
+        
+        .template-card.active {
+            border-color: var(--color-burgundy);
+            background: rgba(136, 1, 36, 0.05);
+            box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.15);
+        }
+        
+        .template-card-name {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-burgundy);
+            margin-bottom: 4px;
+            font-size: 1rem;
+        }
+        
+        .template-card-trigger {
+            font-size: 0.85rem;
+            color: var(--color-stone);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .template-card-sessions {
+            font-size: 0.8rem;
+            color: var(--color-charcoal);
+            font-style: italic;
+        }
+        
+        .template-remove-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: var(--color-error);
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .template-remove-btn:hover {
+            background: #b91c1c;
+            transform: scale(1.1);
+        }
+        
+        /* TinyMCE Toolbar */
+        .tinymce-container {
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .tinymce-toolbar {
+            background: #f8f9fa;
+            border-bottom: 1px solid #e3e6ea;
+            padding: var(--space-xs);
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-xs);
+            align-items: center;
+        }
+        
+        .tinymce-btn-group {
+            display: flex;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-right: var(--space-xs);
+        }
+        
+        .tinymce-btn,
+        .tinymce-dropdown {
+            padding: 4px 8px;
+            background: white;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background-color 0.2s;
+        }
+        
+        .tinymce-btn:hover {
+            background: #e9ecef;
+        }
+        
+        .tinymce-btn.active {
+            background: var(--color-burgundy);
+            color: white;
+        }
+        
+        .tinymce-dropdown {
+            border-right: 1px solid #ddd;
+            min-width: 120px;
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: 12px;
+            padding: var(--space-xl);
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-md);
+        }
+        
+        .modal-title {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-burgundy);
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--color-charcoal);
+        }
+        
+        /* Volunteer Position Styles */
+        .volunteer-position-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-md);
+            align-items: end;
+        }
+        
+        .volunteer-position-form {
+            background: white;
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 8px;
+            padding: var(--space-md);
+            margin-bottom: var(--space-md);
+        }
+        
+        .position-title {
+            font-weight: 600;
+            color: var(--color-burgundy);
+        }
+        
+        .position-time {
+            color: var(--color-stone);
+            font-size: 0.9rem;
+        }
+        
+        .position-needed {
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .position-assigned {
+            font-size: 0.9rem;
+        }
+        
+        .volunteer-number-input {
+            width: 120px;
+        }
+        
+        .add-position-btn {
+            background: linear-gradient(135deg, var(--color-amber), #DAA520);
+            border: none;
+            color: var(--color-charcoal);
+            padding: var(--space-sm) var(--space-md);
+            border-radius: 12px 6px 12px 6px;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .add-position-btn:hover {
+            border-radius: 6px 12px 6px 12px;
+            box-shadow: 0 4px 12px rgba(255, 191, 0, 0.3);
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .admin-layout {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 2px solid var(--color-rose-gold);
+            }
+            
+            .main-content {
+                padding: var(--space-md);
+            }
+            
+            .tab-content {
+                padding: var(--space-md);
+            }
+            
+            .event-type-toggle {
+                grid-template-columns: 1fr;
+            }
+            
+            .venue-selection {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .volunteer-position-grid {
+                grid-template-columns: 1fr;
+                gap: var(--space-xs);
+            }
+            
+            .tinymce-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .tinymce-btn-group {
+                margin-bottom: var(--space-xs);
+                margin-right: 0;
+            }
+            
+            .template-cards-container {
+                flex-direction: column;
+            }
+            
+            .template-card {
+                max-width: none;
+            }
+            
+            .add-template-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .data-table, .data-grid {
+                font-size: 0.8rem;
+            }
+
+            .data-table th, .data-grid th,
+            .data-table td, .data-grid td {
+                padding: var(--space-xs) var(--space-sm);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Admin Header -->
+    <div class="admin-header">
+        <div class="admin-logo">
+            WitchCityRope
+            <span class="admin-badge">ADMIN</span>
+        </div>
+        <div class="admin-user">
+            <span>River Moon</span>
+            <span style="color: #ccc;">•</span>
+            <a href="#" style="color: #ccc; text-decoration: none;">Logout</a>
+        </div>
+    </div>
+    
+    <!-- Main Layout -->
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <a href="#" class="sidebar-item">
+                <span>🏠</span> Dashboard
+            </a>
+            <a href="#" class="sidebar-item active">
+                <span>📅</span> Events
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>🎓</span> Vetting Queue
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>⚠️</span> Incident Reports
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>👥</span> Members
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>👨‍🏫</span> Teachers
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>💰</span> Financial Reports
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>⚙️</span> Settings
+            </a>
+        </nav>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Page Header - NO BACK LINK -->
+            <div class="page-header">
+                <h1 class="page-title">Create New Event</h1>
+            </div>
+            
+            <!-- Tabs Container -->
+            <div class="tabs-container">
+                <!-- Tab Navigation -->
+                <div class="tab-nav">
+                    <button class="tab-button active" onclick="switchTab('basic-info')">Basic Info</button>
+                    <button class="tab-button" onclick="switchTab('tickets-orders')">Tickets/Orders</button>
+                    <button class="tab-button" onclick="switchTab('emails')">Emails</button>
+                    <button class="tab-button" onclick="switchTab('volunteers-staff')">Volunteers/Staff</button>
+                </div>
+                
+                <!-- Basic Info Tab -->
+                <div id="basic-info" class="tab-content active">
+                    <form>
+                        <!-- Event Details -->
+                        <div class="form-section">
+                            <h2 class="section-title">Event Details</h2>
+                            
+                            <!-- Event Type -->
+                            <div class="form-group">
+                                <div class="event-type-toggle">
+                                    <div class="type-option active" onclick="selectEventType(this, 'class')">
+                                        <div class="type-option-title">Class</div>
+                                        <div class="type-option-desc">Educational workshop requiring payment</div>
+                                    </div>
+                                    <div class="type-option" onclick="selectEventType(this, 'social')">
+                                        <div class="type-option-title">Social Event</div>
+                                        <div class="type-option-desc">Community gathering with volunteers</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Event Title -->
+                            <div class="form-group">
+                                <div class="floating-input-wrapper">
+                                    <input type="text" class="floating-input" placeholder=" " required>
+                                    <label class="floating-label">Event Title <span class="required">*</span></label>
+                                </div>
+                            </div>
+                            
+                            <!-- Short Description -->
+                            <div class="form-group">
+                                <div class="floating-input-wrapper">
+                                    <input type="text" class="floating-input" placeholder=" " required>
+                                    <label class="floating-label">Short Description <span class="required">*</span></label>
+                                </div>
+                                <p class="form-help">Brief description for cards and grid views (160 characters max)</p>
+                            </div>
+                            
+                            <!-- Full Description with Enhanced TinyMCE Editor -->
+                            <div class="form-group">
+                                <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Full Event Description <span class="required">*</span></label>
+                                <div class="tinymce-container">
+                                    <div class="tinymce-toolbar">
+                                        <!-- TinyMCE Toolbar -->
+                                        <select class="tinymce-dropdown">
+                                            <option>Paragraph</option>
+                                            <option>Heading 1</option>
+                                            <option>Heading 2</option>
+                                            <option>Heading 3</option>
+                                        </select>
+                                        
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Bold"><strong>B</strong></button>
+                                            <button type="button" class="tinymce-btn" title="Italic"><em>I</em></button>
+                                            <button type="button" class="tinymce-btn" title="Underline"><u>U</u></button>
+                                        </div>
+                                        
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Bullet List">•</button>
+                                            <button type="button" class="tinymce-btn" title="Numbered List">1.</button>
+                                        </div>
+                                        
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Insert Link">🔗</button>
+                                            <button type="button" class="tinymce-btn" title="Insert Table">📊</button>
+                                            <button type="button" class="tinymce-btn" title="Insert Image">🖼️</button>
+                                        </div>
+                                        
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Quote Block">❝</button>
+                                            <button type="button" class="tinymce-btn" title="Code Block">&lt;/&gt;</button>
+                                        </div>
+                                        
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Undo">↶</button>
+                                            <button type="button" class="tinymce-btn" title="Redo">↷</button>
+                                        </div>
+                                        
+                                        <button type="button" class="tinymce-btn" title="Source Code">{ }</button>
+                                    </div>
+                                    
+                                    <div class="tinymce-editor" contenteditable="true" data-placeholder="Enter detailed event description..." style="min-height: 200px;"></div>
+                                    
+                                    <div class="tinymce-statusbar">
+                                        <span>Path: body › p</span>
+                                        <div class="resize-handle"></div>
+                                    </div>
+                                </div>
+                                <p class="form-help">This detailed description will be visible on the public events page</p>
+                            </div>
+                            
+                            <!-- Policies & Procedures (replaces Prerequisites and Safety) -->
+                            <div class="form-group">
+                                <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Policies & Procedures</label>
+                                <div class="tinymce-container">
+                                    <div class="tinymce-toolbar">
+                                        <select class="tinymce-dropdown">
+                                            <option>Paragraph</option>
+                                            <option>Heading 1</option>
+                                            <option>Heading 2</option>
+                                            <option>Heading 3</option>
+                                        </select>
+                                        
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Bold"><strong>B</strong></button>
+                                            <button type="button" class="tinymce-btn" title="Italic"><em>I</em></button>
+                                            <button type="button" class="tinymce-btn" title="Underline"><u>U</u></button>
+                                        </div>
+                                        
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Bullet List">•</button>
+                                            <button type="button" class="tinymce-btn" title="Numbered List">1.</button>
+                                        </div>
+                                        
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Insert Link">🔗</button>
+                                            <button type="button" class="tinymce-btn" title="Insert Table">📊</button>
+                                        </div>
+                                        
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Undo">↶</button>
+                                            <button type="button" class="tinymce-btn" title="Redo">↷</button>
+                                        </div>
+                                        
+                                        <button type="button" class="tinymce-btn" title="Source Code">{ }</button>
+                                    </div>
+                                    
+                                    <div class="tinymce-editor" contenteditable="true" data-placeholder="Enter studio policies, safety requirements, prerequisites, etc..." style="min-height: 150px;"></div>
+                                    
+                                    <div class="tinymce-statusbar">
+                                        <span>Path: body › p</span>
+                                        <div class="resize-handle"></div>
+                                    </div>
+                                </div>
+                                <p class="form-help">Studio-specific policies, prerequisites, safety requirements, etc. (managed by studio/admin, teachers cannot edit)</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Venue Selection - Moved up and simplified -->
+                        <div class="form-section">
+                            <h2 class="section-title">Venue</h2>
+                            
+                            <!-- Venue Selection -->
+                            <div class="form-group">
+                                <div class="venue-selection">
+                                    <div class="venue-dropdown">
+                                        <select class="form-select" required>
+                                            <option value="">Select venue...</option>
+                                            <option value="main-studio">Main Studio</option>
+                                            <option value="meditation-room">Meditation Room</option>
+                                            <option value="outdoor-space">Outdoor Space</option>
+                                            <option value="off-site">Off-site Location</option>
+                                        </select>
+                                    </div>
+                                    <button type="button" class="btn btn-secondary">Add Venue</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Teachers/Instructors with Card Pattern -->
+                        <div class="form-section">
+                            <h2 class="section-title">Teachers/Instructors</h2>
+                            
+                            <!-- Teacher Cards Container -->
+                            <div class="teacher-cards-container">
+                                <!-- Selected Teachers (using same pattern as email templates) -->
+                                <div class="teacher-card">
+                                    <button class="teacher-remove-btn" onclick="removeTeacher(event, 'river-moon')">×</button>
+                                    <div class="teacher-card-name">River Moon</div>
+                                </div>
+                                
+                                <div class="teacher-card">
+                                    <button class="teacher-remove-btn" onclick="removeTeacher(event, 'sage-blackthorne')">×</button>
+                                    <div class="teacher-card-name">Sage Blackthorne</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Add Teacher Controls -->
+                            <div class="add-teacher-controls">
+                                <div class="teacher-dropdown">
+                                    <select class="form-select" id="available-teachers">
+                                        <option value="">Select teacher...</option>
+                                        <option value="phoenix-rose">Phoenix Rose</option>
+                                        <option value="willow-craft">Willow Craft</option>
+                                        <option value="raven-night">Raven Night</option>
+                                    </select>
+                                </div>
+                                <button type="button" class="btn btn-primary" onclick="addTeacher()" id="add-teacher-btn" disabled>Add Teacher</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Save Buttons -->
+                        <div style="display: flex; gap: var(--space-md); margin-top: var(--space-xl);">
+                            <button type="submit" class="btn btn-primary">Save Draft</button>
+                            <button type="button" class="btn btn-secondary">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- UPDATED: Tickets/Orders Tab with Session/Name Column Updates and Delete Column -->
+                <div id="tickets-orders" class="tab-content">
+                    <!-- Event Sessions - Updated Column Structure -->
+                    <div class="form-section">
+                        <h2 class="section-title">Event Sessions</h2>
+                        <p class="form-help" style="margin-bottom: var(--space-lg);">Define the individual sessions for your event. Click Edit to modify session details. The system auto-detects single vs multi-day events based on session count.</p>
+
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Actions</th>
+                                    <th>S#</th>
+                                    <th>Name</th>
+                                    <th>Date</th>
+                                    <th>Start Time</th>
+                                    <th>End Time</th>
+                                    <th>Capacity</th>
+                                    <th>Sold</th>
+                                    <th>Delete</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <button class="table-action-btn" onclick="editSession(1)">✏️ Edit</button>
+                                    </td>
+                                    <td><strong>S1</strong></td>
+                                    <td>Fundamentals Day</td>
+                                    <td>Feb 15, 2025</td>
+                                    <td>7:00 PM</td>
+                                    <td>9:00 PM</td>
+                                    <td>20</td>
+                                    <td><strong>8</strong></td>
+                                    <td>
+                                        <button class="table-action-btn delete-btn" onclick="deleteSession(1)">🗑️</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button class="table-action-btn" onclick="editSession(2)">✏️ Edit</button>
+                                    </td>
+                                    <td><strong>S2</strong></td>
+                                    <td>Intermediate Practice</td>
+                                    <td>Feb 16, 2025</td>
+                                    <td>7:00 PM</td>
+                                    <td>9:00 PM</td>
+                                    <td>20</td>
+                                    <td><strong style="color: var(--color-warning);">15</strong></td>
+                                    <td>
+                                        <button class="table-action-btn delete-btn" onclick="deleteSession(2)">🗑️</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button class="table-action-btn" onclick="editSession(3)">✏️ Edit</button>
+                                    </td>
+                                    <td><strong>S3</strong></td>
+                                    <td>Advanced Techniques</td>
+                                    <td>Feb 17, 2025</td>
+                                    <td>7:00 PM</td>
+                                    <td>9:00 PM</td>
+                                    <td>20</td>
+                                    <td><strong>8</strong></td>
+                                    <td>
+                                        <button class="table-action-btn delete-btn" onclick="deleteSession(3)">🗑️</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <button class="btn btn-primary" style="margin-top: var(--space-md);" onclick="addSession()">➕ Add Session</button>
+                        
+                        <div style="margin-top: var(--space-sm); font-size: 0.9rem; color: var(--color-stone); font-style: italic;">
+                            💡 Tip: Click Edit to modify session details in a modal dialog.
+                        </div>
+                    </div>
+
+                    <!-- Ticket Types - Updated Sessions Included Column -->
+                    <div class="form-section">
+                        <h2 class="section-title">Ticket Types</h2>
+                        <p class="form-help" style="margin-bottom: var(--space-lg);">Configure different ticket options for your event. Each ticket type can include multiple sessions. Click Edit to modify complex settings.</p>
+
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Edit</th>
+                                    <th>Ticket Name</th>
+                                    <th>Type</th>
+                                    <th>Sessions Included</th>
+                                    <th>Price Range</th>
+                                    <th>Quantity</th>
+                                    <th>Sales End</th>
+                                    <th>Delete</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <button class="table-action-btn" onclick="editTicketType(1)">✏️ Edit</button>
+                                    </td>
+                                    <td>Full 3-Day Series Pass</td>
+                                    <td>Single</td>
+                                    <td>S1, S2, S3</td>
+                                    <td>$120 - $150</td>
+                                    <td>15</td>
+                                    <td>Feb 17</td>
+                                    <td>
+                                        <button class="table-action-btn delete-btn" onclick="deleteTicketType(1)">🗑️</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button class="table-action-btn" onclick="editTicketType(2)">✏️ Edit</button>
+                                    </td>
+                                    <td>Day 1: Fundamentals Only</td>
+                                    <td>Single</td>
+                                    <td>S1</td>
+                                    <td>$45 - $60</td>
+                                    <td>10</td>
+                                    <td>Feb 15</td>
+                                    <td>
+                                        <button class="table-action-btn delete-btn" onclick="deleteTicketType(2)">🗑️</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button class="table-action-btn" onclick="editTicketType(3)">✏️ Edit</button>
+                                    </td>
+                                    <td>Weekend Pass (Days 2-3)</td>
+                                    <td>Couples</td>
+                                    <td>S2, S3</td>
+                                    <td>$80 - $100</td>
+                                    <td>8</td>
+                                    <td>Feb 16</td>
+                                    <td>
+                                        <button class="table-action-btn delete-btn" onclick="deleteTicketType(3)">🗑️</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <button class="btn btn-primary" style="margin-top: var(--space-md);" onclick="addTicketType()">➕ Add Ticket Type</button>
+                        
+                        <div style="margin-top: var(--space-sm); font-size: 0.9rem; color: var(--color-stone); font-style: italic;">
+                            💡 Tip: Click Edit for complex settings like session selection and sale periods. Simple fields can be edited inline.
+                        </div>
+                    </div>
+
+                    <!-- Tickets Sold - Renamed from Recent Orders -->
+                    <div class="form-section">
+                        <h2 class="section-title">Tickets Sold</h2>
+                        
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Actions</th>
+                                    <th>Order #</th>
+                                    <th>Customer</th>
+                                    <th>Ticket Type</th>
+                                    <th>Sessions</th>
+                                    <th>Status</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><button class="table-action-btn" onclick="viewOrder(1047)">👁️ View</button></td>
+                                    <td><strong>#1047</strong></td>
+                                    <td>Alex Thompson</td>
+                                    <td>Full 3-Day Series Pass</td>
+                                    <td>S1, S2, S3</td>
+                                    <td><span class="status-badge status-confirmed">Confirmed</span></td>
+                                    <td><strong>$135.00</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><button class="table-action-btn" onclick="viewOrder(1048)">👁️ View</button></td>
+                                    <td><strong>#1048</strong></td>
+                                    <td>Morgan Lee</td>
+                                    <td>Day 1: Fundamentals Only</td>
+                                    <td>S1</td>
+                                    <td><span class="status-badge status-confirmed">Confirmed</span></td>
+                                    <td><strong>$50.00</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><button class="table-action-btn" onclick="viewOrder(1049)">👁️ View</button></td>
+                                    <td><strong>#1049</strong></td>
+                                    <td>Sam Chen</td>
+                                    <td>Weekend Pass (Days 2-3)</td>
+                                    <td>S2, S3</td>
+                                    <td><span class="status-badge status-pending">Pending</span></td>
+                                    <td><strong>$90.00</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- RSVPs Table (shown for social events) -->
+                    <div class="form-section" id="rsvps-section">
+                        <h2 class="section-title">RSVPs</h2>
+                        
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Actions</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>RSVP Date</th>
+                                    <th>Ticket Purchased</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><button class="table-action-btn" onclick="viewRSVP(101)">👁️ View</button></td>
+                                    <td>Jamie Davis</td>
+                                    <td>jamie.davis@example.com</td>
+                                    <td>Feb 10, 2025</td>
+                                    <td><span style="color: var(--color-success);">Yes</span></td>
+                                </tr>
+                                <tr>
+                                    <td><button class="table-action-btn" onclick="viewRSVP(102)">👁️ View</button></td>
+                                    <td>Taylor Swift</td>
+                                    <td>taylor.swift@example.com</td>
+                                    <td>Feb 12, 2025</td>
+                                    <td><span style="color: var(--color-error);">No</span></td>
+                                </tr>
+                                <tr>
+                                    <td><button class="table-action-btn" onclick="viewRSVP(103)">👁️ View</button></td>
+                                    <td>Jordan Kim</td>
+                                    <td>jordan.kim@example.com</td>
+                                    <td>Feb 13, 2025</td>
+                                    <td><span style="color: var(--color-success);">Yes</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- REDESIGNED: Emails Tab - Merged Template Editing and Ad-hoc -->
+                <div id="emails" class="tab-content">
+                    <!-- Template Selection with Ad-hoc Card -->
+                    <div class="form-section">
+                        <h2 class="section-title">Email Templates</h2>
+                        <p class="form-help" style="margin-bottom: var(--space-lg);">Click on a template card to edit it below, or select "Send Ad-Hoc Email" to send one-time messages.</p>
+                        
+                        <div class="template-cards-container">
+                            <!-- Always present - Send Ad-Hoc Email Card -->
+                            <div class="template-card" onclick="selectTemplate(this, 'ad-hoc')" data-template-id="ad-hoc">
+                                <div class="template-card-name">Send Ad-Hoc Email</div>
+                                <div class="template-card-trigger">Send one-time messages to specific groups</div>
+                                <div class="template-card-sessions">Any recipients</div>
+                            </div>
+                            
+                            <!-- Always required - Confirmation Email -->
+                            <div class="template-card active" onclick="selectTemplate(this, 'confirmation')" data-template-id="confirmation">
+                                <button class="template-remove-btn" onclick="removeTemplate(event, 'confirmation')" disabled title="Required template">×</button>
+                                <div class="template-card-name">Confirmation Email</div>
+                                <div class="template-card-trigger">Sent immediately when ticket is purchased</div>
+                                <div class="template-card-sessions">All sessions</div>
+                            </div>
+                            
+                            <!-- Currently enabled templates -->
+                            <div class="template-card" onclick="selectTemplate(this, 'reminder-1day')" data-template-id="reminder-1day">
+                                <button class="template-remove-btn" onclick="removeTemplate(event, 'reminder-1day')">×</button>
+                                <div class="template-card-name">Reminder - 1 Day Before</div>
+                                <div class="template-card-trigger">Sent 1 day before event start</div>
+                                <div class="template-card-sessions">S1 attendees only</div>
+                            </div>
+                            
+                            <div class="template-card" onclick="selectTemplate(this, 'cancellation')" data-template-id="cancellation">
+                                <button class="template-remove-btn" onclick="removeTemplate(event, 'cancellation')">×</button>
+                                <div class="template-card-name">Cancellation Notice</div>
+                                <div class="template-card-trigger">Sent when event is cancelled</div>
+                                <div class="template-card-sessions">All sessions</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Add Template Controls -->
+                        <div class="add-template-controls">
+                            <div class="form-group template-dropdown">
+                                <select class="form-input" id="available-templates">
+                                    <option value="">Select template to add...</option>
+                                    <option value="reminder-1week">Reminder - 1 Week Before</option>
+                                    <option value="waitlist">Waitlist Notification</option>
+                                    <option value="survey">Post-Event Survey</option>
+                                    <option value="schedule-change">Schedule Change Alert</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" onclick="addTemplate()" id="add-template-btn" disabled>Add Email Template</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Unified Editor Section -->
+                    <div class="form-section template-editor-section">
+                        <div class="editor-header">
+                            <div class="currently-editing">Currently Editing: Confirmation Email</div>
+                        </div>
+                        
+                        <!-- Recipient Group (shown for ad-hoc) -->
+                        <div class="form-group" id="recipient-group" style="display: none;">
+                            <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Recipient Group</label>
+                            <select class="form-select">
+                                <option value="all-tickets">All Ticket Holders</option>
+                                <option value="all-rsvps">All RSVPs</option>
+                                <option value="volunteers">All Volunteers</option>
+                                <option value="everyone">Everyone</option>
+                                <option value="teachers">Teachers</option>
+                                <option value="session-s1">S1 Attendees</option>
+                                <option value="session-s2">S2 Attendees</option>
+                                <option value="session-s3">S3 Attendees</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Target Sessions (shown for templates) -->
+                        <div class="form-group" id="target-sessions">
+                            <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Target Sessions</label>
+                            <select class="form-select" multiple>
+                                <option value="all" selected>All Sessions</option>
+                                <option value="s1">S1</option>
+                                <option value="s2">S2</option>
+                                <option value="s3">S3</option>
+                            </select>
+                            <p class="form-help">Which sessions should trigger this email? Hold Ctrl/Cmd for multiple selections.</p>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="floating-input-wrapper">
+                                <input type="text" class="floating-input has-value" placeholder=" " value="Welcome to {event} - Registration Confirmed!">
+                                <label class="floating-label">Subject Line</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Email Content</label>
+                            <div class="tinymce-container">
+                                <div class="tinymce-toolbar">
+                                    <!-- Full toolbar for email editing -->
+                                    <select class="tinymce-dropdown">
+                                        <option>Paragraph</option>
+                                        <option>Heading 1</option>
+                                        <option>Heading 2</option>
+                                        <option>Heading 3</option>
+                                    </select>
+                                    
+                                    <div class="tinymce-btn-group">
+                                        <button type="button" class="tinymce-btn" title="Bold"><strong>B</strong></button>
+                                        <button type="button" class="tinymce-btn" title="Italic"><em>I</em></button>
+                                        <button type="button" class="tinymce-btn" title="Underline"><u>U</u></button>
+                                    </div>
+                                    
+                                    <div class="tinymce-btn-group">
+                                        <button type="button" class="tinymce-btn" title="Bullet List">•</button>
+                                        <button type="button" class="tinymce-btn" title="Numbered List">1.</button>
+                                    </div>
+                                    
+                                    <div class="tinymce-btn-group">
+                                        <button type="button" class="tinymce-btn" title="Insert Link">🔗</button>
+                                        <button type="button" class="tinymce-btn" title="Insert Table">📊</button>
+                                    </div>
+                                    
+                                    <div class="tinymce-btn-group">
+                                        <button type="button" class="tinymce-btn" title="Undo">↶</button>
+                                        <button type="button" class="tinymce-btn" title="Redo">↷</button>
+                                    </div>
+                                    
+                                    <button type="button" class="tinymce-btn" title="Variables">{ }</button>
+                                    <button type="button" class="tinymce-btn" title="Source Code">{ }</button>
+                                </div>
+                                
+                                <div class="tinymce-editor" contenteditable="true" style="min-height: 300px;">
+                                    <p><strong>Hi {name},</strong></p>
+                                    <p>Your registration for <strong>{event}</strong> has been confirmed!</p>
+                                    <p><strong>Event Details:</strong></p>
+                                    <ul>
+                                        <li><strong>Date:</strong> {date}</li>
+                                        <li><strong>Time:</strong> {time}</li>
+                                        <li><strong>Venue:</strong> {venue}</li>
+                                        <li><strong>Address:</strong> {venue_address}</li>
+                                    </ul>
+                                    <p>We're excited to see you there!</p>
+                                    <p>Best regards,<br>WitchCityRope Team</p>
+                                </div>
+                                
+                                <div class="tinymce-statusbar">
+                                    <span>Path: body › p</span>
+                                    <div class="resize-handle"></div>
+                                </div>
+                            </div>
+                            <p class="form-help">Available variables: {name}, {event}, {date}, {time}, {venue}, {venue_address}</p>
+                        </div>
+                        
+                        <div id="editor-actions">
+                            <button class="btn btn-primary" id="save-template-btn">Save Changes</button>
+                            <button class="btn btn-primary" id="send-email-btn" style="display: none;">Send Email</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- UPDATED: Volunteers/Staff Tab - Standardized Volunteer Positions Table -->
+                <div id="volunteers-staff" class="tab-content">
+                    <!-- Volunteer Positions FIRST - STANDARDIZED with Edit first, Delete last -->
+                    <div class="form-section">
+                        <h2 class="section-title">Volunteer Positions</h2>
+                        
+                        <table class="data-grid">
+                            <thead>
+                                <tr>
+                                    <th>Edit</th>
+                                    <th>Position</th>
+                                    <th>Sessions</th>
+                                    <th>Time</th>
+                                    <th>Description</th>
+                                    <th>Needed</th>
+                                    <th>Assigned</th>
+                                    <th>Delete</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <button class="table-action-btn" onclick="editVolunteerPosition(1)">✏️</button>
+                                    </td>
+                                    <td>
+                                        <div class="position-title">Door Monitor</div>
+                                    </td>
+                                    <td><strong>S1, S2</strong></td>
+                                    <td>
+                                        <div class="position-time">6:00 PM - 7:00 PM</div>
+                                    </td>
+                                    <td>Check IDs, welcome members</td>
+                                    <td class="position-needed">2</td>
+                                    <td class="position-assigned">
+                                        <div style="color: var(--color-success);">✓ Jamie Davis</div>
+                                        <div style="color: var(--color-warning);">○ 1 more needed</div>
+                                    </td>
+                                    <td>
+                                        <button class="table-action-btn delete-btn" onclick="deleteVolunteerPosition(1)">🗑️</button>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        <button class="table-action-btn" onclick="editVolunteerPosition(2)">✏️</button>
+                                    </td>
+                                    <td>
+                                        <div class="position-title">Safety Monitor</div>
+                                    </td>
+                                    <td><strong>All</strong></td>
+                                    <td>
+                                        <div class="position-time">7:00 PM - 10:00 PM</div>
+                                    </td>
+                                    <td>Monitor play areas, handle incidents</td>
+                                    <td class="position-needed">3</td>
+                                    <td class="position-assigned">
+                                        <div style="color: var(--color-success);">✓ Sam Singh</div>
+                                        <div style="color: var(--color-success);">✓ Alex Chen</div>
+                                        <div style="color: var(--color-warning);">○ 1 more needed</div>
+                                    </td>
+                                    <td>
+                                        <button class="table-action-btn delete-btn" onclick="deleteVolunteerPosition(2)">🗑️</button>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        <button class="table-action-btn" onclick="editVolunteerPosition(3)">✏️</button>
+                                    </td>
+                                    <td>
+                                        <div class="position-title">Setup Crew</div>
+                                    </td>
+                                    <td><strong>S1</strong></td>
+                                    <td>
+                                        <div class="position-time">6:00 PM - 7:00 PM</div>
+                                    </td>
+                                    <td>Arrange furniture, setup equipment</td>
+                                    <td class="position-needed">4</td>
+                                    <td class="position-assigned">
+                                        <div style="color: var(--color-error);">⚠ 4 positions open</div>
+                                    </td>
+                                    <td>
+                                        <button class="table-action-btn delete-btn" onclick="deleteVolunteerPosition(3)">🗑️</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Volunteer Position Management LAST -->
+                    <div class="form-section">
+                        <h2 class="section-title">Volunteer Position Management</h2>
+                        <p class="form-help" style="margin-bottom: var(--space-md);">Define volunteer positions and manage assignments</p>
+                        
+                        <!-- Add New Position -->
+                        <div class="volunteer-position-form">
+                            <h3 style="margin-bottom: var(--space-sm); color: var(--color-burgundy);">Add New Position</h3>
+                            <div class="volunteer-position-grid">
+                                <div class="form-group">
+                                    <div class="floating-input-wrapper">
+                                        <input type="text" class="floating-input" placeholder=" ">
+                                        <label class="floating-label">Position Name</label>
+                                    </div>
+                                </div>
+                                <!-- ADDED: Session Dropdown -->
+                                <div class="form-group">
+                                    <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Session</label>
+                                    <select class="form-select">
+                                        <option value="">Select session...</option>
+                                        <option value="s1">S1</option>
+                                        <option value="s2">S2</option>
+                                        <option value="s3">S3</option>
+                                        <option value="all">All Sessions</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <div class="floating-input-wrapper">
+                                        <input type="time" class="floating-input" placeholder=" ">
+                                        <label class="floating-label">Start Time</label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="floating-input-wrapper">
+                                        <input type="time" class="floating-input" placeholder=" ">
+                                        <label class="floating-label">End Time</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Description</label>
+                                <textarea class="form-input" placeholder="Describe the volunteer duties..." style="min-height: 80px;"></textarea>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: end; gap: var(--space-md);">
+                                <div class="form-group" style="flex: 0 0 auto;">
+                                    <div class="floating-input-wrapper">
+                                        <input type="number" class="floating-input volunteer-number-input" placeholder=" " min="1">
+                                        <label class="floating-label">Number Needed</label>
+                                    </div>
+                                </div>
+                                <button class="add-position-btn">Add Position</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- JavaScript for Tab Functionality and Updated Functions -->
+    <script>
+        function switchTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabId).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+        
+        function selectEventType(element, type) {
+            document.querySelectorAll('.type-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            element.classList.add('active');
+            
+            // Show/hide RSVP section based on event type
+            const rsvpSection = document.getElementById('rsvps-section');
+            if (rsvpSection) {
+                if (type === 'social') {
+                    rsvpSection.style.display = 'block';
+                } else {
+                    rsvpSection.style.display = 'none';
+                }
+            }
+        }
+        
+        // Teacher management functions
+        function addTeacher() {
+            const select = document.getElementById('available-teachers');
+            if (select.value) {
+                alert('Add ' + select.options[select.selectedIndex].text + ' teacher functionality would be implemented here');
+                select.value = '';
+                document.getElementById('add-teacher-btn').disabled = true;
+            }
+        }
+        
+        function removeTeacher(event, teacherId) {
+            event.stopPropagation();
+            alert('Remove teacher ' + teacherId + ' functionality would be implemented here');
+        }
+        
+        // Enable/disable add teacher button based on dropdown selection
+        document.addEventListener('DOMContentLoaded', function() {
+            const teacherSelect = document.getElementById('available-teachers');
+            if (teacherSelect) {
+                teacherSelect.addEventListener('change', function() {
+                    document.getElementById('add-teacher-btn').disabled = !this.value;
+                });
+            }
+        });
+        
+        // Session management functions (no inline editing)
+        function editSession(sessionId) {
+            alert(`Edit session ${sessionId} in modal with full form fields`);
+        }
+        
+        function addSession() {
+            alert('Add new session in modal with full form');
+        }
+        
+        function deleteSession(sessionId) {
+            if (confirm('Are you sure you want to delete this session?')) {
+                alert(`Delete session ${sessionId} functionality would be implemented here`);
+            }
+        }
+        
+        function editTicketType(id) {
+            alert(`Edit ticket type ${id} in modal with full form fields (sessions multi-select, sale periods, etc.)`);
+        }
+        
+        function addTicketType() {
+            alert('Add new ticket type in modal with full form');
+        }
+        
+        function deleteTicketType(id) {
+            if (confirm('Are you sure you want to delete this ticket type?')) {
+                alert(`Delete ticket type ${id} functionality would be implemented here`);
+            }
+        }
+        
+        function viewOrder(orderId) {
+            alert(`View order ${orderId} details functionality would be implemented here`);
+        }
+        
+        function viewRSVP(rsvpId) {
+            alert(`View RSVP ${rsvpId} details functionality would be implemented here`);
+        }
+        
+        // Volunteer position management functions
+        function editVolunteerPosition(positionId) {
+            alert(`Edit volunteer position ${positionId} functionality would be implemented here`);
+        }
+        
+        function deleteVolunteerPosition(positionId) {
+            if (confirm('Are you sure you want to delete this volunteer position?')) {
+                alert(`Delete volunteer position ${positionId} functionality would be implemented here`);
+            }
+        }
+        
+        function selectTemplate(element, templateId) {
+            document.querySelectorAll('.template-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            element.classList.add('active');
+            
+            // Update editor section based on selection
+            const currentlyEditing = document.querySelector('.currently-editing');
+            const recipientGroup = document.getElementById('recipient-group');
+            const targetSessions = document.getElementById('target-sessions');
+            const saveBtn = document.getElementById('save-template-btn');
+            const sendBtn = document.getElementById('send-email-btn');
+            
+            if (templateId === 'ad-hoc') {
+                currentlyEditing.textContent = 'Currently Editing: Ad-Hoc Email';
+                recipientGroup.style.display = 'block';
+                targetSessions.style.display = 'none';
+                saveBtn.style.display = 'none';
+                sendBtn.style.display = 'inline-flex';
+                
+                // Clear subject and content for ad-hoc
+                document.querySelector('.floating-input').value = '';
+                document.querySelector('.tinymce-editor').innerHTML = '';
+            } else {
+                const templateName = element.querySelector('.template-card-name').textContent;
+                currentlyEditing.textContent = `Currently Editing: ${templateName}`;
+                recipientGroup.style.display = 'none';
+                targetSessions.style.display = 'block';
+                saveBtn.style.display = 'inline-flex';
+                sendBtn.style.display = 'none';
+                
+                // Load template content (would come from backend)
+                if (templateId === 'confirmation') {
+                    document.querySelector('.floating-input').value = 'Welcome to {event} - Registration Confirmed!';
+                    document.querySelector('.tinymce-editor').innerHTML = '<p><strong>Hi {name},</strong></p><p>Your registration for <strong>{event}</strong> has been confirmed!</p>';
+                }
+            }
+        }
+        
+        function removeTemplate(event, templateId) {
+            event.stopPropagation();
+            if (templateId === 'confirmation') {
+                alert('Confirmation email is required and cannot be removed');
+                return;
+            }
+            alert('Remove ' + templateId + ' template functionality would be implemented here');
+        }
+        
+        function addTemplate() {
+            const select = document.getElementById('available-templates');
+            if (select.value) {
+                alert('Add ' + select.value + ' template functionality would be implemented here');
+                select.value = '';
+                document.getElementById('add-template-btn').disabled = true;
+            }
+        }
+        
+        // Enable/disable add template button based on dropdown selection
+        document.addEventListener('DOMContentLoaded', function() {
+            const templateSelect = document.getElementById('available-templates');
+            if (templateSelect) {
+                templateSelect.addEventListener('change', function() {
+                    document.getElementById('add-template-btn').disabled = !this.value;
+                });
+            }
+        });
+        
+        // Initialize floating labels for pre-filled inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.floating-input.has-value').forEach(input => {
+                input.nextElementSibling.classList.add('has-value');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -6,6 +6,11 @@ namespace WitchCityRope.Core.Enums
     public enum PaymentStatus
     {
         /// <summary>
+        /// No payment required (free events, RSVP only)
+        /// </summary>
+        NotRequired,
+
+        /// <summary>
         /// Payment initiated but not yet processed
         /// </summary>
         Pending,

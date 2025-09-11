@@ -136,8 +136,12 @@ namespace WitchCityRope.Api.Features.Auth.Services
             {
                 UserId = user.Id,
                 PasswordHash = passwordHash,
+                EmailVerified = false,
                 EmailVerificationToken = verificationToken,
-                EmailVerificationTokenCreatedAt = DateTime.UtcNow
+                EmailVerificationTokenCreatedAt = DateTime.UtcNow,
+                PronouncedName = request.PronouncedName,
+                Pronouns = request.Pronouns,
+                LastLoginAt = null
             };
 
             // Save user and authentication details

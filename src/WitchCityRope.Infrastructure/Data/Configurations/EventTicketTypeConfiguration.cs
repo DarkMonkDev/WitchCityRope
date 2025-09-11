@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WitchCityRope.Core.Entities;
-using WitchCityRope.Core.Enums;
 
 namespace WitchCityRope.Infrastructure.Data.Configurations
 {
@@ -9,65 +8,76 @@ namespace WitchCityRope.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<EventTicketType> builder)
         {
-            builder.ToTable("EventTicketTypes", "public");
-            
-            // Primary Key
-            builder.HasKey(e => e.Id);
-            builder.Property(e => e.Id)
-                .ValueGeneratedNever(); // Set by domain logic
-            
-            // Properties
-            builder.Property(e => e.Name)
+            builder.ToTable("EventTicketTypes");
+
+            builder.HasKey(ett => ett.Id);
+
+            builder.Property(ett => ett.Id)
+                .ValueGeneratedNever();
+
+            builder.Property(ett => ett.EventId)
+                .IsRequired();
+
+            builder.Property(ett => ett.Name)
                 .IsRequired()
-                .HasMaxLength(200);
-            
-            builder.Property(e => e.TicketType)
+                .HasMaxLength(100);
+
+            builder.Property(ett => ett.Description)
                 .IsRequired()
-                .HasConversion<int>(); // Store enum as int
-            
-            builder.Property(e => e.MinPrice)
+                .HasMaxLength(1000);
+
+            builder.Property(ett => ett.MinPrice)
                 .IsRequired()
-                .HasColumnType("decimal(10,2)");
-            
-            builder.Property(e => e.MaxPrice)
+                .HasPrecision(18, 2);
+
+            builder.Property(ett => ett.MaxPrice)
                 .IsRequired()
-                .HasColumnType("decimal(10,2)");
-            
-            builder.Property(e => e.QuantityAvailable)
+                .HasPrecision(18, 2);
+
+            builder.Property(ett => ett.QuantityAvailable)
                 .IsRequired(false); // Nullable for unlimited
-            
-            builder.Property(e => e.SalesEndDateTime)
-                .IsRequired(false)
-                .HasColumnType("timestamp with time zone");
-            
-            builder.Property(e => e.IsActive)
+
+            builder.Property(ett => ett.SalesEndDate)
+                .IsRequired(false);
+
+            builder.Property(ett => ett.IsRsvpMode)
+                .IsRequired()
+                .HasDefaultValue(false);
+
+            builder.Property(ett => ett.IsActive)
                 .IsRequired()
                 .HasDefaultValue(true);
-            
-            builder.Property(e => e.CreatedAt)
-                .IsRequired()
-                .HasColumnType("timestamp with time zone");
-            
-            builder.Property(e => e.UpdatedAt)
-                .IsRequired()
-                .HasColumnType("timestamp with time zone");
-            
-            // Foreign Key to Event
-            builder.Property(e => e.EventId)
+
+            builder.Property(ett => ett.CreatedAt)
                 .IsRequired();
-            
-            // Navigation will be configured by Event entity
-            
-            // Navigation to Registrations
-            builder.HasMany(e => e.Registrations)
-                .WithOne(r => r.EventTicketType)
-                .HasForeignKey(r => r.EventTicketTypeId)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.SetNull);
-            
+
+            builder.Property(ett => ett.UpdatedAt)
+                .IsRequired();
+
+            // Configure relationships
+            builder.HasOne(ett => ett.Event)
+                .WithMany(e => e.TicketTypes)
+                .HasForeignKey(ett => ett.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(ett => ett.TicketTypeSessions)
+                .WithOne(tts => tts.TicketType)
+                .HasForeignKey(tts => tts.TicketTypeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // Indexes
-            builder.HasIndex(e => new { e.EventId, e.IsActive })
-                .HasDatabaseName("IX_EventTicketTypes_EventId_IsActive");
+            builder.HasIndex(ett => ett.EventId);
+            builder.HasIndex(ett => new { ett.EventId, ett.Name })
+                .IsUnique()
+                .HasDatabaseName("IX_EventTicketTypes_EventId_Name");
+            builder.HasIndex(ett => new { ett.EventId, ett.IsActive });
+            builder.HasIndex(ett => ett.SalesEndDate);
+
+            // Constraints
+            builder.HasCheckConstraint("CK_EventTicketTypes_MinPrice", "\"MinPrice\" >= 0");
+            builder.HasCheckConstraint("CK_EventTicketTypes_MaxPrice", "\"MaxPrice\" >= 0");
+            builder.HasCheckConstraint("CK_EventTicketTypes_Price_Range", "\"MinPrice\" <= \"MaxPrice\"");
+            builder.HasCheckConstraint("CK_EventTicketTypes_QuantityAvailable", "\"QuantityAvailable\" IS NULL OR \"QuantityAvailable\" > 0");
         }
     }
 }

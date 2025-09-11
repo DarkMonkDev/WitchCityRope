@@ -12,6 +12,8 @@ namespace WitchCityRope.Core.Entities
     /// - Events have capacity limits
     /// - Events support sliding scale pricing
     /// - Events must have at least one organizer
+    /// - Events can have multiple sessions with different capacities
+    /// - Events can have multiple ticket types with different pricing
     /// </summary>
     public class Event
     {
@@ -90,9 +92,6 @@ namespace WitchCityRope.Core.Entities
         
         public IReadOnlyCollection<Registration> Registrations => _registrations.AsReadOnly();
         
-        /// <summary>
-        /// Free RSVPs for social events
-        /// </summary>
         public IReadOnlyCollection<RSVP> RSVPs => _rsvps.AsReadOnly();
         
         public IReadOnlyCollection<User> Organizers => _organizers.AsReadOnly();
@@ -101,19 +100,31 @@ namespace WitchCityRope.Core.Entities
         /// Sliding scale pricing tiers for the event
         /// </summary>
         public IReadOnlyCollection<Money> PricingTiers => _pricingTiers.AsReadOnly();
-        
+
         /// <summary>
-        /// Sessions within this event
+        /// Sessions within this event (S1, S2, S3, etc.)
         /// </summary>
         public IReadOnlyCollection<EventSession> Sessions => _sessions.AsReadOnly();
-        
+
         /// <summary>
         /// Ticket types available for this event
         /// </summary>
         public IReadOnlyCollection<EventTicketType> TicketTypes => _ticketTypes.AsReadOnly();
 
         /// <summary>
-        /// Gets the number of confirmed registrations (ticket purchases)
+        /// Business rule property: Determines if this event allows free RSVPs
+        /// Only Social events allow RSVP functionality
+        /// </summary>
+        public bool AllowsRSVP => EventType == EventType.Social;
+
+        /// <summary>
+        /// Business rule property: Determines if this event requires payment for attendance
+        /// Classes and Workshops require payment, Social events allow both RSVP and payment
+        /// </summary>
+        public bool RequiresPayment => EventType == EventType.Workshop || EventType == EventType.Class;
+
+        /// <summary>
+        /// Gets the number of confirmed registrations
         /// </summary>
         public int GetConfirmedRegistrationCount()
         {
@@ -121,7 +132,7 @@ namespace WitchCityRope.Core.Entities
         }
 
         /// <summary>
-        /// Gets the number of confirmed RSVPs (free attendees)
+        /// Gets the number of confirmed RSVPs
         /// </summary>
         public int GetConfirmedRSVPCount()
         {
@@ -130,42 +141,29 @@ namespace WitchCityRope.Core.Entities
 
         /// <summary>
         /// Gets the total number of confirmed attendees (registrations + RSVPs)
+        /// This includes both paid ticket holders and free RSVPs
         /// </summary>
-        public int GetTotalConfirmedAttendees()
+        public int GetCurrentAttendeeCount()
         {
-            return GetConfirmedRegistrationCount() + GetConfirmedRSVPCount();
+            var rsvpCount = _rsvps.Count(r => r.Status == RSVPStatus.Confirmed);
+            var ticketCount = _registrations.Count(r => r.Status == RegistrationStatus.Confirmed);
+            return rsvpCount + ticketCount;
         }
 
         /// <summary>
-        /// Gets the number of available spots considering both registrations and RSVPs
+        /// Gets the number of available spots (considering both RSVPs and tickets)
         /// </summary>
         public int GetAvailableSpots()
         {
-            return Capacity - GetTotalConfirmedAttendees();
+            return Math.Max(0, Capacity - GetCurrentAttendeeCount());
         }
 
         /// <summary>
-        /// Checks if the event has available capacity for both registrations and RSVPs
+        /// Checks if the event has available capacity (considering both RSVPs and tickets)
         /// </summary>
         public bool HasAvailableCapacity()
         {
             return GetAvailableSpots() > 0;
-        }
-
-        /// <summary>
-        /// Checks if RSVPs are allowed for this event (Social events only)
-        /// </summary>
-        public bool AllowsRSVP()
-        {
-            return EventType == EventType.Social;
-        }
-
-        /// <summary>
-        /// Checks if ticket purchases are required (Classes/Workshops) or optional (Social events)
-        /// </summary>
-        public bool RequiresTicketPurchase()
-        {
-            return EventType == EventType.Workshop;
         }
 
         /// <summary>
@@ -191,8 +189,8 @@ namespace WitchCityRope.Core.Entities
             if (!IsPublished)
                 throw new DomainException("Event is not published");
 
-            if (GetTotalConfirmedAttendees() > 0)
-                throw new DomainException("Cannot unpublish event with confirmed registrations or RSVPs");
+            if (GetConfirmedRegistrationCount() > 0)
+                throw new DomainException("Cannot unpublish event with confirmed registrations");
 
             IsPublished = false;
             UpdatedAt = DateTime.UtcNow;
@@ -235,8 +233,8 @@ namespace WitchCityRope.Core.Entities
         {
             ValidateCapacity(newCapacity);
 
-            if (newCapacity < GetTotalConfirmedAttendees())
-                throw new DomainException("New capacity cannot be less than current confirmed attendees (registrations + RSVPs)");
+            if (newCapacity < GetConfirmedRegistrationCount())
+                throw new DomainException("New capacity cannot be less than current confirmed registrations");
 
             Capacity = newCapacity;
             UpdatedAt = DateTime.UtcNow;
@@ -292,11 +290,13 @@ namespace WitchCityRope.Core.Entities
             if (session == null)
                 throw new ArgumentNullException(nameof(session));
 
-            if (session.EventId != Id)
-                throw new DomainException("Session must belong to this event");
-
             if (_sessions.Any(s => s.SessionIdentifier == session.SessionIdentifier))
-                throw new DomainException($"Session identifier '{session.SessionIdentifier}' already exists for this event");
+                throw new DomainException($"Session with identifier '{session.SessionIdentifier}' already exists");
+
+            // Check for session time overlaps on the same date
+            var overlappingSession = _sessions.FirstOrDefault(s => s.OverlapsWith(session));
+            if (overlappingSession != null)
+                throw new DomainException($"Session '{session.SessionIdentifier}' overlaps with existing session '{overlappingSession.SessionIdentifier}'");
 
             _sessions.Add(session);
             UpdatedAt = DateTime.UtcNow;
@@ -305,17 +305,32 @@ namespace WitchCityRope.Core.Entities
         /// <summary>
         /// Removes a session from the event
         /// </summary>
-        public void RemoveSession(EventSession session)
+        public void RemoveSession(string sessionIdentifier)
         {
+            var session = _sessions.FirstOrDefault(s => s.SessionIdentifier == sessionIdentifier);
             if (session == null)
-                throw new ArgumentNullException(nameof(session));
+                throw new DomainException($"Session '{sessionIdentifier}' not found");
 
-            // Check if any ticket types include this session
-            if (_ticketTypes.Any(tt => tt.SessionInclusions.Any(si => si.EventSessionId == session.Id)))
-                throw new DomainException("Cannot remove session that is included in ticket types");
+            // Check if any ticket types reference this session
+            var referencingTicketTypes = _ticketTypes.Where(tt => 
+                tt.TicketTypeSessions.Any(tts => tts.SessionIdentifier == sessionIdentifier));
+            
+            if (referencingTicketTypes.Any())
+            {
+                var ticketTypeNames = string.Join(", ", referencingTicketTypes.Select(tt => tt.Name));
+                throw new DomainException($"Cannot remove session '{sessionIdentifier}' because it is referenced by ticket types: {ticketTypeNames}");
+            }
 
-            _sessions.RemoveAll(s => s.Id == session.Id);
+            _sessions.Remove(session);
             UpdatedAt = DateTime.UtcNow;
+        }
+
+        /// <summary>
+        /// Gets a session by its identifier
+        /// </summary>
+        public EventSession? GetSession(string sessionIdentifier)
+        {
+            return _sessions.FirstOrDefault(s => s.SessionIdentifier == sessionIdentifier);
         }
 
         /// <summary>
@@ -326,11 +341,18 @@ namespace WitchCityRope.Core.Entities
             if (ticketType == null)
                 throw new ArgumentNullException(nameof(ticketType));
 
-            if (ticketType.EventId != Id)
-                throw new DomainException("Ticket type must belong to this event");
+            if (_ticketTypes.Any(tt => tt.Name == ticketType.Name))
+                throw new DomainException($"Ticket type with name '{ticketType.Name}' already exists");
 
-            if (_ticketTypes.Any(tt => tt.Name.Equals(ticketType.Name, StringComparison.OrdinalIgnoreCase)))
-                throw new DomainException($"Ticket type with name '{ticketType.Name}' already exists for this event");
+            // Validate that all referenced sessions exist
+            var sessionIdentifiers = ticketType.GetIncludedSessionIdentifiers();
+            var existingSessionIds = _sessions.Select(s => s.SessionIdentifier).ToHashSet();
+            
+            var missingSessionIds = sessionIdentifiers.Where(id => !existingSessionIds.Contains(id)).ToList();
+            if (missingSessionIds.Any())
+            {
+                throw new DomainException($"Ticket type references non-existent sessions: {string.Join(", ", missingSessionIds)}");
+            }
 
             _ticketTypes.Add(ticketType);
             UpdatedAt = DateTime.UtcNow;
@@ -339,16 +361,72 @@ namespace WitchCityRope.Core.Entities
         /// <summary>
         /// Removes a ticket type from the event
         /// </summary>
-        public void RemoveTicketType(EventTicketType ticketType)
+        public void RemoveTicketType(Guid ticketTypeId)
+        {
+            var ticketType = _ticketTypes.FirstOrDefault(tt => tt.Id == ticketTypeId);
+            if (ticketType == null)
+                throw new DomainException("Ticket type not found");
+
+            _ticketTypes.Remove(ticketType);
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        /// <summary>
+        /// Gets a ticket type by its ID
+        /// </summary>
+        public EventTicketType? GetTicketType(Guid ticketTypeId)
+        {
+            return _ticketTypes.FirstOrDefault(tt => tt.Id == ticketTypeId);
+        }
+
+        /// <summary>
+        /// Calculates the available capacity for a specific ticket type based on its included sessions
+        /// </summary>
+        public int CalculateTicketTypeAvailability(EventTicketType ticketType)
         {
             if (ticketType == null)
-                throw new ArgumentNullException(nameof(ticketType));
+                return 0;
 
-            if (ticketType.GetConfirmedRegistrationCount() > 0)
-                throw new DomainException("Cannot remove ticket type with confirmed registrations");
+            var includedSessionIds = ticketType.GetIncludedSessionIdentifiers();
+            if (!includedSessionIds.Any())
+                return 0;
 
-            _ticketTypes.RemoveAll(tt => tt.Id == ticketType.Id);
-            UpdatedAt = DateTime.UtcNow;
+            // Find the minimum available capacity across all included sessions
+            var availableCapacities = new List<int>();
+            foreach (var sessionId in includedSessionIds)
+            {
+                var session = GetSession(sessionId);
+                if (session != null)
+                {
+                    availableCapacities.Add(session.GetAvailableSpots());
+                }
+            }
+
+            return availableCapacities.Any() ? availableCapacities.Min() : 0;
+        }
+
+        /// <summary>
+        /// Checks if the event supports session-based ticketing
+        /// </summary>
+        public bool HasSessions()
+        {
+            return _sessions.Any();
+        }
+
+        /// <summary>
+        /// Checks if the event has ticket types configured
+        /// </summary>
+        public bool HasTicketTypes()
+        {
+            return _ticketTypes.Any();
+        }
+
+        /// <summary>
+        /// Gets the total capacity across all sessions (for reporting purposes)
+        /// </summary>
+        public int GetTotalSessionCapacity()
+        {
+            return _sessions.Sum(s => s.Capacity);
         }
 
         private void ValidateDates(DateTime startDate, DateTime endDate)

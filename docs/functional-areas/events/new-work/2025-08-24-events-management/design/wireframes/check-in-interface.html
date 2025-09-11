@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Check-In (Kiosk Mode) - Rope Basics Workshop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            /* Design System v7 Colors */
+            --color-burgundy: #880124;
+            --color-burgundy-dark: #660018;
+            --color-rose-gold: #B76D75;
+            --color-electric: #9D4EDD;
+            --color-amber: #FFBF00;
+            --color-midnight: #1A1A2E;
+            --color-charcoal: #2B2B2B;
+            --color-cream: #FAF6F2;
+            --color-ivory: #FFF8F0;
+            --color-success: #228B22;
+            --color-warning: #DAA520;
+            --color-error: #DC143C;
+            --color-dusty-rose: #B59DA6; /* For kiosk mode */
+            
+            /* Typography */
+            --font-display: 'Bodoni Moda', serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 16px;
+            --space-md: 24px;
+            --space-lg: 32px;
+            --space-xl: 40px;
+        }
+        
+        /* Kiosk Mode Body with Border */
+        body {
+            font-family: var(--font-body);
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--color-charcoal);
+            background: var(--color-cream);
+            /* Subtle border around entire viewport to show "locked in" feeling */
+            border: 3px solid var(--color-burgundy);
+            min-height: 100vh;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+        }
+        
+        /* Kiosk Mode Header Bar */
+        .kiosk-header {
+            background: linear-gradient(135deg, var(--color-dusty-rose) 0%, var(--color-rose-gold) 100%);
+            color: var(--color-charcoal);
+            padding: var(--space-xs) var(--space-lg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-bottom: 1px solid var(--color-burgundy);
+            height: 40px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .kiosk-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .kiosk-station {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        
+        .lock-icon {
+            font-size: 1rem;
+        }
+        
+        .kiosk-timer {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 2px var(--space-xs);
+            border-radius: 4px;
+            font-family: var(--font-heading);
+            font-weight: 700;
+        }
+        
+        .kiosk-right {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            font-size: 0.8rem;
+        }
+        
+        .secure-indicator {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            background: rgba(34, 139, 34, 0.2);
+            padding: 2px var(--space-xs);
+            border-radius: 4px;
+            color: var(--color-success);
+            font-weight: 600;
+        }
+        
+        .station-name {
+            color: var(--color-burgundy);
+            font-weight: 700;
+        }
+        
+        /* Compact Header with Stats */
+        .header-bar {
+            background: var(--color-burgundy);
+            color: white;
+            padding: var(--space-sm) var(--space-lg); /* Reduced padding */
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: var(--space-md); /* Reduced gap */
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .event-info h1 {
+            font-family: var(--font-display);
+            font-size: 1.5rem; /* Reduced from 1.8rem */
+            font-weight: 400;
+            margin-bottom: 2px; /* Reduced spacing */
+        }
+        
+        .event-time {
+            font-family: var(--font-heading);
+            font-size: 1rem; /* Increased from 0.8rem */
+            opacity: 0.9;
+        }
+        
+        /* Inline Stats with more spacing */
+        .header-stats {
+            display: flex;
+            gap: var(--space-lg); /* Tighter spacing */
+            justify-content: center;
+        }
+        
+        .header-stat {
+            text-align: center;
+            min-width: 80px; /* Slightly smaller */
+        }
+        
+        .header-stat-number {
+            font-family: var(--font-display);
+            font-size: 1.6rem; /* Reduced from 2.5rem */
+            font-weight: 700;
+            color: white;
+            margin-bottom: 2px; /* Reduced spacing */
+        }
+        
+        .header-stat-label {
+            font-family: var(--font-heading);
+            font-size: 0.75rem; /* Reduced from 0.8rem */
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        
+        /* Remove exit button in kiosk mode - no navigation away from page */
+        .exit-btn {
+            display: none;
+        }
+        
+        /* Kiosk mode locked indicator where exit button was */
+        .kiosk-locked {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+            text-align: center;
+            font-style: italic;
+        }
+        
+        /* Main Content - Adjusted for kiosk bars */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--space-sm); /* Reduced from var(--space-lg) */
+            /* Add bottom padding to account for status bar */
+            padding-bottom: 50px;
+        }
+        
+        /* Controls Bar */
+        .controls-bar {
+            background: white;
+            padding: var(--space-xs) var(--space-sm); /* Reduced padding */
+            border-radius: 12px;
+            margin-bottom: var(--space-xs); /* Reduced from var(--space-md) */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .search-box {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: var(--space-sm) var(--space-xl) var(--space-sm) var(--space-md);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 8px;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--color-burgundy);
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: var(--space-sm);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-charcoal);
+            opacity: 0.6;
+        }
+        
+        .filter-tabs {
+            display: flex;
+            gap: var(--space-sm);
+        }
+        
+        .filter-tab {
+            padding: var(--space-sm) var(--space-md);
+            border: none;
+            background: var(--color-cream);
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-charcoal);
+            transition: all 0.3s ease;
+        }
+        
+        .filter-tab.active {
+            background: var(--color-burgundy);
+            color: white;
+        }
+        
+        .filter-tab:hover:not(.active) {
+            background: rgba(136, 1, 36, 0.1);
+        }
+        
+        /* Compact Attendee Table */
+        .attendee-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: var(--color-burgundy);
+            color: white;
+            padding: var(--space-xs) var(--space-sm); /* Reduced from var(--space-md) */
+            text-align: left;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1rem; /* Increased from 0.85rem - BIGGER FONT */
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+        
+        th:first-child {
+            padding-left: var(--space-md); /* Slightly more for first column */
+        }
+        
+        th:hover {
+            background: var(--color-burgundy-dark);
+        }
+        
+        .sort-indicator {
+            display: inline-block;
+            margin-left: var(--space-sm);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.75rem;
+        }
+        
+        th.sort-active .sort-indicator {
+            color: white;
+        }
+        
+        /* Compact table rows */
+        td {
+            padding: var(--space-xs) var(--space-sm); /* Reduced from var(--space-md) */
+            border-bottom: 1px solid rgba(183, 109, 117, 0.2);
+            vertical-align: middle;
+            line-height: 1.2; /* Reduced line height for compactness */
+            font-size: 1.1rem; /* Increased from 1rem - BIGGER FONT */
+        }
+        
+        /* MORE CONTRASTED alternating row backgrounds */
+        tbody tr:nth-child(even) {
+            background: rgba(250, 246, 242, 0.9); /* Increased from 0.3 - MORE CONTRAST */
+        }
+        
+        tr:hover {
+            background: rgba(136, 1, 36, 0.08) !important; /* Stronger hover, overrides alternating */
+        }
+        
+        /* Name Column */
+        .attendee-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding-left: var(--space-xs); /* Reduced from var(--space-sm) */
+        }
+        
+        .attendee-name {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-burgundy);
+            font-size: 1.1rem; /* Increased from 1rem - BIGGER FONT */
+        }
+        
+        .attendee-pronouns {
+            font-size: 0.9rem; /* Increased from 0.8rem - BIGGER FONT */
+            color: var(--color-charcoal);
+            opacity: 0.7;
+        }
+        
+        /* Status Badges - Slightly more compact */
+        .status-badge {
+            display: inline-block;
+            padding: 2px var(--space-xs); /* Reduced vertical padding */
+            border-radius: 12px;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 0.8rem; /* Increased from 0.7rem - BIGGER FONT */
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .payment-paid {
+            background: rgba(34, 139, 34, 0.2);
+            color: var(--color-success);
+        }
+        
+        .payment-unpaid {
+            background: rgba(220, 20, 60, 0.2);
+            color: var(--color-error);
+        }
+        
+        .payment-comp {
+            background: rgba(157, 78, 221, 0.2);
+            color: var(--color-electric);
+        }
+        
+        .waiver-signed {
+            background: rgba(34, 139, 34, 0.2);
+            color: var(--color-success);
+        }
+        
+        .waiver-not-signed {
+            background: rgba(220, 20, 60, 0.2);
+            color: var(--color-error);
+        }
+        
+        /* Actions Column */
+        .check-in-btn {
+            background: linear-gradient(135deg, var(--color-amber) 0%, #DAA520 100%); /* Changed to amber */
+            color: var(--color-charcoal);
+            border: none;
+            padding: 4px var(--space-xs); /* Reduced from var(--space-sm) var(--space-md) */
+            border-radius: 12px 6px 12px 6px; /* Signature asymmetric corners */
+            cursor: pointer;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            font-size: 0.7rem; /* Reduced from 0.8rem */
+            box-shadow: 0 2px 8px rgba(255, 191, 0, 0.3);
+        }
+        
+        .check-in-btn:hover {
+            border-radius: 6px 12px 6px 12px; /* Signature corner morphing */
+            transform: scale(1.05);
+        }
+        
+        .checked-in-text {
+            color: var(--color-success);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 0.95rem; /* Increased from 0.85rem - BIGGER FONT */
+        }
+        
+        /* Check-in Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: var(--space-xl);
+            max-width: 450px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-lg);
+            border-bottom: 2px solid var(--color-rose-gold);
+            padding-bottom: var(--space-md);
+        }
+        
+        .modal-title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-burgundy);
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--color-charcoal);
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+        }
+        
+        .close-btn:hover {
+            opacity: 1;
+        }
+        
+        .attendee-header {
+            text-align: center;
+            margin-bottom: var(--space-lg);
+            padding: var(--space-md);
+            background: var(--color-ivory);
+            border-radius: 12px;
+            border: 2px solid var(--color-rose-gold);
+        }
+        
+        .attendee-modal-name {
+            font-family: var(--font-heading);
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .attendee-modal-pronouns {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--color-charcoal);
+            opacity: 0.8;
+        }
+        
+        .form-group {
+            margin-bottom: var(--space-md);
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: var(--space-xs);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-charcoal);
+            font-size: 0.9rem;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: var(--space-sm);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 12px;
+            background: var(--color-cream);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            color: var(--color-charcoal);
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--color-burgundy);
+            box-shadow: 0 0 0 3px rgba(183, 109, 117, 0.3);
+            transform: translateY(-2px);
+            background: white;
+        }
+        
+        .checkbox-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-md);
+        }
+        
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--color-burgundy);
+            margin-top: 2px;
+        }
+        
+        .checkbox-label {
+            cursor: pointer;
+            font-family: var(--font-heading);
+            font-weight: 500;
+            color: var(--color-charcoal);
+            line-height: 1.4;
+        }
+        
+        .notes-field {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: var(--space-md);
+            justify-content: flex-end;
+            margin-top: var(--space-lg);
+            padding-top: var(--space-md);
+            border-top: 1px solid rgba(183, 109, 117, 0.3);
+        }
+        
+        .btn {
+            padding: var(--space-sm) var(--space-lg);
+            border-radius: 12px 6px 12px 6px; /* Signature asymmetric corners */
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        
+        .btn:hover {
+            border-radius: 6px 12px 6px 12px; /* Signature corner morphing */
+            transform: scale(1.02);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-amber) 0%, #DAA520 100%);
+            color: var(--color-charcoal);
+            box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--color-charcoal);
+            border: 2px solid var(--color-rose-gold);
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--color-burgundy);
+            background: rgba(136, 1, 36, 0.1);
+        }
+        
+        /* Kiosk Mode Status Bar */
+        .kiosk-status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 3px; /* Account for body border */
+            right: 3px; /* Account for body border */
+            background: linear-gradient(135deg, var(--color-charcoal) 0%, var(--color-midnight) 100%);
+            color: rgba(255, 255, 255, 0.8);
+            padding: var(--space-xs) var(--space-lg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--color-burgundy);
+            height: 30px;
+            font-size: 0.8rem;
+            z-index: 100;
+        }
+        
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            font-family: var(--font-heading);
+            font-weight: 600;
+        }
+        
+        .event-code {
+            background: rgba(183, 109, 117, 0.3);
+            padding: 2px var(--space-xs);
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .session-id {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px var(--space-xs);
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .kiosk-header {
+                flex-direction: column;
+                height: auto;
+                padding: var(--space-xs);
+                gap: var(--space-xs);
+            }
+            
+            .kiosk-left, .kiosk-right {
+                font-size: 0.8rem;
+            }
+            
+            .header-bar {
+                grid-template-columns: 1fr;
+                gap: var(--space-sm);
+                text-align: center;
+            }
+            
+            .header-stats {
+                order: 2;
+                flex-wrap: wrap;
+                gap: var(--space-md);
+                justify-content: center;
+            }
+            
+            .header-actions {
+                order: 3;
+                justify-content: center;
+                margin-top: var(--space-sm);
+            }
+            
+            .header-stat {
+                flex: 1;
+                min-width: 70px;
+            }
+            
+            .header-stat-number {
+                font-size: 1.5rem;
+            }
+            
+            .controls-bar {
+                flex-direction: column;
+                gap: var(--space-sm);
+                align-items: stretch;
+            }
+            
+            .search-box {
+                max-width: 100%;
+            }
+            
+            .attendee-table {
+                overflow-x: auto;
+            }
+            
+            table {
+                min-width: 600px;
+            }
+            
+            th:first-child,
+            .attendee-info {
+                padding-left: var(--space-sm);
+            }
+            
+            .kiosk-status-bar {
+                flex-direction: column;
+                height: auto;
+                padding: var(--space-xs);
+                gap: var(--space-xs);
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Kiosk Mode Header Bar -->
+    <div class="kiosk-header">
+        <div class="kiosk-left">
+            <div class="kiosk-station">
+                <span class="lock-icon">🔒</span>
+                <span>KIOSK MODE - Check-In Station: <span class="station-name">Front Desk 1</span></span>
+            </div>
+            <div class="kiosk-timer">
+                Session expires in: <span id="session-timer">3:47:12</span>
+            </div>
+        </div>
+        <div class="kiosk-right">
+            <div class="secure-indicator">
+                <span>🔐</span>
+                <span>Secure Check-In Session</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Compact Header with Stats -->
+    <div class="header-bar">
+        <div class="event-info">
+            <h1>Rope Basics Workshop - Check-in</h1>
+            <div class="event-time">Saturday, March 15, 2024 • 2:00 PM - 5:00 PM</div>
+        </div>
+        
+        <div class="header-stats">
+            <div class="header-stat">
+                <div class="header-stat-number" id="not-arrived">8</div>
+                <div class="header-stat-label">Not Arrived</div>
+            </div>
+            <div class="header-stat">
+                <div class="header-stat-number" id="total-registered">12</div>
+                <div class="header-stat-label">Total</div>
+            </div>
+            <div class="header-stat">
+                <div class="header-stat-number" id="need-waiver">2</div>
+                <div class="header-stat-label">Need Waiver</div>
+            </div>
+            <div class="header-stat">
+                <div class="header-stat-number" id="time-left">1:42:15</div>
+                <div class="header-stat-label">Time Left</div>
+            </div>
+        </div>
+        
+        <div class="header-actions">
+            <div class="kiosk-locked">
+                <span>🔒</span> Locked Session<br>
+                <small>No navigation available</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Search and Filters -->
+        <div class="controls-bar">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Search by name..." onkeyup="searchAttendees(this.value)">
+                <span class="search-icon">🔍</span>
+            </div>
+            <div class="filter-tabs">
+                <button class="filter-tab active" onclick="filterAttendees('all')">All (12)</button>
+                <button class="filter-tab" onclick="filterAttendees('not-arrived')">Not Arrived (8)</button>
+                <button class="filter-tab" onclick="filterAttendees('need-waiver')">Need Waiver (2)</button>
+            </div>
+        </div>
+        
+        <!-- Compact Attendee Table -->
+        <div class="attendee-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)">
+                            Name <span class="sort-indicator">↕</span>
+                        </th>
+                        <th onclick="sortTable(1)">
+                            Payment <span class="sort-indicator">↕</span>
+                        </th>
+                        <th onclick="sortTable(2)">
+                            Waiver <span class="sort-indicator">↕</span>
+                        </th>
+                        <th onclick="sortTable(3)">
+                            Status <span class="sort-indicator">↕</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr data-status="checked-in" data-payment="paid" data-waiver="signed">
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Alex Chen</span>
+                                <span class="attendee-pronouns">they/them</span>
+                            </div>
+                        </td>
+                        <td><span class="status-badge payment-paid">Paid</span></td>
+                        <td><span class="status-badge waiver-signed">Signed</span></td>
+                        <td><span class="checked-in-text">✓ Checked In</span></td>
+                    </tr>
+                    <tr data-status="not-arrived" data-payment="paid" data-waiver="signed">
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Ashley Martinez</span>
+                                <span class="attendee-pronouns">she/her</span>
+                            </div>
+                        </td>
+                        <td><span class="status-badge payment-paid">Paid</span></td>
+                        <td><span class="status-badge waiver-signed">Signed</span></td>
+                        <td><button class="check-in-btn" onclick="openCheckInModal('Ashley Martinez', 'she/her')">Check In</button></td>
+                    </tr>
+                    <tr data-status="checked-in" data-payment="paid" data-waiver="signed">
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Chris Smith</span>
+                                <span class="attendee-pronouns">he/him</span>
+                            </div>
+                        </td>
+                        <td><span class="status-badge payment-paid">Paid</span></td>
+                        <td><span class="status-badge waiver-signed">Signed</span></td>
+                        <td><span class="checked-in-text">✓ Checked In</span></td>
+                    </tr>
+                    <tr data-status="not-arrived" data-payment="paid" data-waiver="signed">
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Jamie Davis</span>
+                                <span class="attendee-pronouns">they/them</span>
+                            </div>
+                        </td>
+                        <td><span class="status-badge payment-paid">Paid</span></td>
+                        <td><span class="status-badge waiver-signed">Signed</span></td>
+                        <td><button class="check-in-btn" onclick="openCheckInModal('Jamie Davis', 'they/them')">Check In</button></td>
+                    </tr>
+                    <tr data-status="not-arrived" data-payment="paid" data-waiver="not-signed">
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Kelly Wilson</span>
+                                <span class="attendee-pronouns">she/they</span>
+                            </div>
+                        </td>
+                        <td><span class="status-badge payment-paid">Paid</span></td>
+                        <td><span class="status-badge waiver-not-signed">Not Signed</span></td>
+                        <td><button class="check-in-btn" onclick="openCheckInModal('Kelly Wilson', 'she/they')">Check In</button></td>
+                    </tr>
+                    <tr data-status="not-arrived" data-payment="paid" data-waiver="not-signed">
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Morgan Davis</span>
+                                <span class="attendee-pronouns">she/her</span>
+                            </div>
+                        </td>
+                        <td><span class="status-badge payment-paid">Paid</span></td>
+                        <td><span class="status-badge waiver-not-signed">Not Signed</span></td>
+                        <td><button class="check-in-btn" onclick="openCheckInModal('Morgan Davis', 'she/her')">Check In</button></td>
+                    </tr>
+                    <tr data-status="checked-in" data-payment="comp" data-waiver="signed">
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">River Moon</span>
+                                <span class="attendee-pronouns">they/them</span>
+                            </div>
+                        </td>
+                        <td><span class="status-badge payment-comp">Comp</span></td>
+                        <td><span class="status-badge waiver-signed">Signed</span></td>
+                        <td><span class="checked-in-text">✓ Checked In</span></td>
+                    </tr>
+                    <tr data-status="not-arrived" data-payment="paid" data-waiver="signed">
+                        <td>
+                            <div class="attendee-info">
+                                <span class="attendee-name">Sam Taylor</span>
+                                <span class="attendee-pronouns">xe/xir</span>
+                            </div>
+                        </td>
+                        <td><span class="status-badge payment-paid">Paid</span></td>
+                        <td><span class="status-badge waiver-signed">Signed</span></td>
+                        <td><button class="check-in-btn" onclick="openCheckInModal('Sam Taylor', 'xe/xir')">Check In</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Kiosk Mode Status Bar -->
+    <div class="kiosk-status-bar">
+        <div class="status-left">
+            <span>For assistance, contact event organizer</span>
+        </div>
+        <div class="status-right">
+            <span>Event Code: <span class="event-code">WCR-RB-2024-03-15</span></span>
+            <span>Kiosk Session ID: <span class="session-id">KIOSK-FD1-7B42</span></span>
+        </div>
+    </div>
+    
+    <!-- Check-in Modal -->
+    <div class="modal-overlay" id="checkin-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Check-in Attendee</h2>
+                <button class="close-btn" onclick="closeCheckInModal()">&times;</button>
+            </div>
+            
+            <div class="attendee-header">
+                <div class="attendee-modal-name" id="modal-attendee-name">Ashley Martinez</div>
+                <div class="attendee-modal-pronouns" id="modal-attendee-pronouns">she/her</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Payment Status</label>
+                <select class="form-input" id="payment-status">
+                    <option value="paid">Paid</option>
+                    <option value="unpaid">Unpaid</option>
+                    <option value="cash-at-door">Cash at Door</option>
+                    <option value="comp">Comp</option>
+                </select>
+            </div>
+            
+            <div class="checkbox-wrapper">
+                <input type="checkbox" id="waiver-signed" checked>
+                <label class="checkbox-label" for="waiver-signed">Waiver Signed</label>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Notes (Optional)</label>
+                <textarea class="form-input notes-field" id="checkin-notes" placeholder="Any special notes or observations..."></textarea>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeCheckInModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmCheckIn()">Confirm Check-in</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Session Timer Countdown (different from event countdown)
+        function updateSessionTimer() {
+            // Session expires 4 hours from now
+            const sessionEnd = new Date(Date.now() + (4 * 60 * 60 * 1000)); // 4 hours from now
+            const now = new Date();
+            const diff = sessionEnd - now;
+            
+            if (diff > 0) {
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                const timeString = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                document.getElementById('session-timer').textContent = timeString;
+            } else {
+                document.getElementById('session-timer').textContent = '0:00:00';
+            }
+        }
+        
+        // Event Countdown Timer
+        function updateCountdown() {
+            const eventTime = new Date('2024-03-15T14:00:00');
+            const now = new Date();
+            const diff = eventTime - now;
+            
+            if (diff > 0) {
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                const timeString = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                document.getElementById('time-left').textContent = timeString;
+            } else {
+                document.getElementById('time-left').textContent = '0:00:00';
+            }
+        }
+        
+        // Update timers every second
+        setInterval(updateSessionTimer, 1000);
+        setInterval(updateCountdown, 1000);
+        updateSessionTimer();
+        updateCountdown();
+        
+        // Check-in Modal Functions
+        let currentCheckingInRow = null;
+        
+        function openCheckInModal(name, pronouns) {
+            document.getElementById('modal-attendee-name').textContent = name;
+            document.getElementById('modal-attendee-pronouns').textContent = pronouns;
+            document.getElementById('checkin-modal').style.display = 'flex';
+            
+            // Find the row for this attendee to update later
+            currentCheckingInRow = Array.from(document.querySelectorAll('tbody tr')).find(row => 
+                row.querySelector('.attendee-name').textContent === name
+            );
+            
+            // Set default values based on current status
+            const paymentBadge = currentCheckingInRow.querySelector('.status-badge[class*="payment"]');
+            const waiverBadge = currentCheckingInRow.querySelector('.status-badge[class*="waiver"]');
+            
+            if (paymentBadge.textContent === 'Paid') {
+                document.getElementById('payment-status').value = 'paid';
+            } else if (paymentBadge.textContent === 'Comp') {
+                document.getElementById('payment-status').value = 'comp';
+            }
+            
+            document.getElementById('waiver-signed').checked = waiverBadge.textContent === 'Signed';
+            document.getElementById('checkin-notes').value = '';
+        }
+        
+        function closeCheckInModal() {
+            document.getElementById('checkin-modal').style.display = 'none';
+            currentCheckingInRow = null;
+        }
+        
+        function confirmCheckIn() {
+            if (currentCheckingInRow) {
+                // Update the row to show checked in
+                const actionCell = currentCheckingInRow.querySelector('td:last-child');
+                actionCell.innerHTML = '<span class="checked-in-text">✓ Checked In</span>';
+                
+                // Update row data status
+                currentCheckingInRow.setAttribute('data-status', 'checked-in');
+                
+                // Update payment status badge if changed
+                const paymentStatus = document.getElementById('payment-status').value;
+                const paymentBadge = currentCheckingInRow.querySelector('.status-badge[class*="payment"]');
+                paymentBadge.className = `status-badge payment-${paymentStatus}`;
+                paymentBadge.textContent = paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1).replace('-', ' ');
+                
+                // Update waiver status badge if changed
+                const waiverSigned = document.getElementById('waiver-signed').checked;
+                const waiverBadge = currentCheckingInRow.querySelector('.status-badge[class*="waiver"]');
+                waiverBadge.className = `status-badge waiver-${waiverSigned ? 'signed' : 'not-signed'}`;
+                waiverBadge.textContent = waiverSigned ? 'Signed' : 'Not Signed';
+                
+                // Update row waiver data attribute
+                currentCheckingInRow.setAttribute('data-waiver', waiverSigned ? 'signed' : 'not-signed');
+                
+                // Update stats
+                updateStats();
+                
+                closeCheckInModal();
+            }
+        }
+        
+        // Check-in functionality (legacy for already checked-in rows)
+        function checkInAttendee(button) {
+            const row = button.closest('tr');
+            const actionCell = row.querySelector('td:last-child');
+            
+            // Update action button to checked in status
+            actionCell.innerHTML = '<span class="checked-in-text">✓ Checked In</span>';
+            
+            // Update row data status
+            row.setAttribute('data-status', 'checked-in');
+            
+            // Update stats
+            updateStats();
+        }
+        
+        function updateStats() {
+            const rows = document.querySelectorAll('tbody tr');
+            let notArrived = 0;
+            let needWaiver = 0;
+            
+            rows.forEach(row => {
+                const status = row.getAttribute('data-status');
+                const waiver = row.getAttribute('data-waiver');
+                
+                if (status === 'not-arrived') {
+                    notArrived++;
+                }
+                if (waiver === 'not-signed') {
+                    needWaiver++;
+                }
+            });
+            
+            document.getElementById('not-arrived').textContent = notArrived;
+            document.getElementById('need-waiver').textContent = needWaiver;
+            
+            // Update filter tab counts
+            const allTab = document.querySelector('.filter-tab');
+            const notArrivedTab = document.querySelectorAll('.filter-tab')[1];
+            const needWaiverTab = document.querySelectorAll('.filter-tab')[2];
+            
+            allTab.textContent = `All (${rows.length})`;
+            notArrivedTab.textContent = `Not Arrived (${notArrived})`;
+            needWaiverTab.textContent = `Need Waiver (${needWaiver})`;
+        }
+        
+        // Filter functionality
+        function filterAttendees(filter) {
+            // Update active tab
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const status = row.getAttribute('data-status');
+                const waiver = row.getAttribute('data-waiver');
+                let show = false;
+                
+                switch(filter) {
+                    case 'all':
+                        show = true;
+                        break;
+                    case 'not-arrived':
+                        show = status === 'not-arrived';
+                        break;
+                    case 'need-waiver':
+                        show = waiver === 'not-signed';
+                        break;
+                }
+                
+                row.style.display = show ? '' : 'none';
+            });
+        }
+        
+        // Search functionality
+        function searchAttendees(query) {
+            const rows = document.querySelectorAll('tbody tr');
+            const lowercaseQuery = query.toLowerCase();
+            
+            rows.forEach(row => {
+                const name = row.querySelector('.attendee-name').textContent.toLowerCase();
+                const pronouns = row.querySelector('.attendee-pronouns').textContent.toLowerCase();
+                
+                const matches = name.includes(lowercaseQuery) || pronouns.includes(lowercaseQuery);
+                row.style.display = matches ? '' : 'none';
+            });
+        }
+        
+        // Table sorting functionality
+        let sortOrder = {};
+        
+        function sortTable(columnIndex) {
+            const table = document.querySelector('table');
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const headers = table.querySelectorAll('th');
+            
+            // Determine sort direction
+            const currentOrder = sortOrder[columnIndex] || 'asc';
+            const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+            sortOrder[columnIndex] = newOrder;
+            
+            // Update all indicators
+            headers.forEach((header, index) => {
+                header.classList.remove('sort-active');
+                const indicator = header.querySelector('.sort-indicator');
+                if (index === columnIndex) {
+                    header.classList.add('sort-active');
+                    indicator.textContent = newOrder === 'asc' ? '↑' : '↓';
+                } else {
+                    indicator.textContent = '↕';
+                }
+            });
+            
+            // Sort rows
+            rows.sort((a, b) => {
+                let aValue, bValue;
+                
+                switch (columnIndex) {
+                    case 0: // Name column
+                        aValue = a.querySelector('.attendee-name').textContent;
+                        bValue = b.querySelector('.attendee-name').textContent;
+                        break;
+                    case 1: // Payment column
+                        aValue = a.querySelectorAll('td')[1].textContent;
+                        bValue = b.querySelectorAll('td')[1].textContent;
+                        break;
+                    case 2: // Waiver column
+                        aValue = a.querySelectorAll('td')[2].textContent;
+                        bValue = b.querySelectorAll('td')[2].textContent;
+                        break;
+                    case 3: // Status column
+                        aValue = a.querySelectorAll('td')[3].textContent;
+                        bValue = b.querySelectorAll('td')[3].textContent;
+                        break;
+                }
+                
+                if (newOrder === 'asc') {
+                    return aValue.localeCompare(bValue);
+                } else {
+                    return bValue.localeCompare(aValue);
+                }
+            });
+            
+            // Re-append sorted rows
+            rows.forEach(row => tbody.appendChild(row));
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('checkin-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCheckInModal();
+            }
+        });
+        
+        // Initialize stats on page load
+        updateStats();
+        
+        // Prevent right-click and other kiosk mode security measures
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', function(e) {
+            // Disable F12, Ctrl+Shift+I, Ctrl+U, etc.
+            if (e.keyCode === 123 || // F12
+                (e.ctrlKey && e.shiftKey && e.keyCode === 73) || // Ctrl+Shift+I
+                (e.ctrlKey && e.keyCode === 85)) { // Ctrl+U
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

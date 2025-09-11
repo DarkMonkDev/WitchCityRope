@@ -109,43 +109,63 @@ namespace WitchCityRope.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("EndDateTime")
+                    b.Property<DateTime>("Date")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("interval");
 
                     b.Property<Guid>("EventId")
                         .HasColumnType("uuid");
 
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("IsRequired")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(true);
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<int>("RegisteredCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
                     b.Property<string>("SessionIdentifier")
                         .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)");
 
-                    b.Property<DateTime>("StartDateTime")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("interval");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EventId", "IsActive")
-                        .HasDatabaseName("IX_EventSessions_EventId_IsActive");
+                    b.HasAlternateKey("EventId", "SessionIdentifier");
+
+                    b.HasIndex("EventId");
+
+                    b.HasIndex("Date", "StartTime");
+
+                    b.HasIndex("EventId", "Date");
 
                     b.HasIndex("EventId", "SessionIdentifier")
                         .IsUnique()
-                        .HasDatabaseName("UQ_EventSessions_EventId_SessionIdentifier");
+                        .HasDatabaseName("IX_EventSessions_EventId_SessionIdentifier");
 
-                    b.ToTable("EventSessions", "public");
+                    b.ToTable("EventSessions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_EventSessions_Capacity", "\"Capacity\" > 0");
+
+                            t.HasCheckConstraint("CK_EventSessions_RegisteredCount", "\"RegisteredCount\" >= 0");
+
+                            t.HasCheckConstraint("CK_EventSessions_RegisteredCount_LTE_Capacity", "\"RegisteredCount\" <= \"Capacity\"");
+                        });
                 });
 
             modelBuilder.Entity("WitchCityRope.Core.Entities.EventTicketType", b =>
@@ -156,6 +176,11 @@ namespace WitchCityRope.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
                     b.Property<Guid>("EventId")
                         .HasColumnType("uuid");
 
@@ -164,35 +189,55 @@ namespace WitchCityRope.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
+                    b.Property<bool>("IsRsvpMode")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<decimal>("MaxPrice")
-                        .HasColumnType("decimal(10,2)");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<decimal>("MinPrice")
-                        .HasColumnType("decimal(10,2)");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int?>("QuantityAvailable")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime?>("SalesEndDateTime")
+                    b.Property<DateTime?>("SalesEndDate")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("TicketType")
-                        .HasColumnType("integer");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EventId", "IsActive")
-                        .HasDatabaseName("IX_EventTicketTypes_EventId_IsActive");
+                    b.HasIndex("EventId");
 
-                    b.ToTable("EventTicketTypes", "public");
+                    b.HasIndex("SalesEndDate");
+
+                    b.HasIndex("EventId", "IsActive");
+
+                    b.HasIndex("EventId", "Name")
+                        .IsUnique()
+                        .HasDatabaseName("IX_EventTicketTypes_EventId_Name");
+
+                    b.ToTable("EventTicketTypes", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_EventTicketTypes_MaxPrice", "\"MaxPrice\" >= 0");
+
+                            t.HasCheckConstraint("CK_EventTicketTypes_MinPrice", "\"MinPrice\" >= 0");
+
+                            t.HasCheckConstraint("CK_EventTicketTypes_Price_Range", "\"MinPrice\" <= \"MaxPrice\"");
+
+                            t.HasCheckConstraint("CK_EventTicketTypes_QuantityAvailable", "\"QuantityAvailable\" IS NULL OR \"QuantityAvailable\" > 0");
+                        });
                 });
 
             modelBuilder.Entity("WitchCityRope.Core.Entities.EventTicketTypeSession", b =>
@@ -206,25 +251,27 @@ namespace WitchCityRope.Infrastructure.Migrations
                     b.Property<Guid>("EventSessionId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("EventTicketTypeId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("SessionIdentifier")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<Guid>("TicketTypeId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EventSessionId")
-                        .HasDatabaseName("IX_EventTicketTypeSessions_EventSessionId");
+                    b.HasIndex("EventSessionId");
 
-                    b.HasIndex("EventTicketTypeId")
-                        .HasDatabaseName("IX_EventTicketTypeSessions_EventTicketTypeId");
+                    b.HasIndex("SessionIdentifier");
 
-                    b.HasIndex("EventTicketTypeId", "EventSessionId")
+                    b.HasIndex("TicketTypeId");
+
+                    b.HasIndex("TicketTypeId", "SessionIdentifier")
                         .IsUnique()
-                        .HasDatabaseName("UQ_EventTicketTypeSessions_TicketType_Session");
+                        .HasDatabaseName("IX_EventTicketTypeSessions_TicketTypeId_SessionIdentifier");
 
-                    b.ToTable("EventTicketTypeSessions", "public");
+                    b.ToTable("EventTicketTypeSessions", (string)null);
                 });
 
             modelBuilder.Entity("WitchCityRope.Core.Entities.IncidentReport", b =>
@@ -383,6 +430,7 @@ namespace WitchCityRope.Infrastructure.Migrations
             modelBuilder.Entity("WitchCityRope.Core.Entities.RSVP", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("CancellationReason")
@@ -392,12 +440,6 @@ namespace WitchCityRope.Infrastructure.Migrations
                     b.Property<DateTime?>("CancelledAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("CheckedInAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("CheckedInBy")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("ConfirmationCode")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -406,13 +448,9 @@ namespace WitchCityRope.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("EmergencyContactName")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("EmergencyContactPhone")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                    b.Property<string>("DietaryRestrictions")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<Guid>("EventId")
                         .HasColumnType("uuid");
@@ -420,6 +458,9 @@ namespace WitchCityRope.Infrastructure.Migrations
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<Guid?>("TicketId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -429,21 +470,25 @@ namespace WitchCityRope.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CheckedInAt");
-
                     b.HasIndex("ConfirmationCode")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("IX_RSVPs_ConfirmationCode");
 
-                    b.HasIndex("CreatedAt");
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_RSVPs_CreatedAt");
 
                     b.HasIndex("EventId");
 
-                    b.HasIndex("Status");
+                    b.HasIndex("Status")
+                        .HasDatabaseName("IX_RSVPs_Status");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("TicketId")
+                        .IsUnique();
 
                     b.HasIndex("UserId", "EventId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("IX_RSVPs_UserId_EventId_Active")
+                        .HasFilter("\"Status\" != 'Cancelled'");
 
                     b.ToTable("RSVPs", (string)null);
                 });
@@ -546,9 +591,6 @@ namespace WitchCityRope.Infrastructure.Migrations
                     b.Property<Guid>("EventId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("EventTicketTypeId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("RegisteredAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -570,8 +612,6 @@ namespace WitchCityRope.Infrastructure.Migrations
                         .IsUnique();
 
                     b.HasIndex("EventId");
-
-                    b.HasIndex("EventTicketTypeId");
 
                     b.HasIndex("RegisteredAt");
 
@@ -648,11 +688,23 @@ namespace WitchCityRope.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("EmailVerificationToken")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("EmailVerificationTokenCreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("EmailVerified")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("FailedLoginAttempts")
                         .HasColumnType("integer");
 
                     b.Property<bool>("IsTwoFactorEnabled")
                         .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastLoginAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime?>("LastPasswordChangeAt")
                         .HasColumnType("timestamp with time zone");
@@ -664,6 +716,12 @@ namespace WitchCityRope.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
+
+                    b.Property<string>("PronouncedName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Pronouns")
+                        .HasColumnType("text");
 
                     b.Property<string>("TwoFactorSecret")
                         .HasMaxLength(256)
@@ -793,20 +851,20 @@ namespace WitchCityRope.Infrastructure.Migrations
             modelBuilder.Entity("WitchCityRope.Core.Entities.EventTicketTypeSession", b =>
                 {
                     b.HasOne("WitchCityRope.Core.Entities.EventSession", "EventSession")
-                        .WithMany("TicketTypeInclusions")
+                        .WithMany()
                         .HasForeignKey("EventSessionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("WitchCityRope.Core.Entities.EventTicketType", "EventTicketType")
-                        .WithMany("SessionInclusions")
-                        .HasForeignKey("EventTicketTypeId")
+                    b.HasOne("WitchCityRope.Core.Entities.EventTicketType", "TicketType")
+                        .WithMany("TicketTypeSessions")
+                        .HasForeignKey("TicketTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("EventSession");
 
-                    b.Navigation("EventTicketType");
+                    b.Navigation("TicketType");
                 });
 
             modelBuilder.Entity("WitchCityRope.Core.Entities.IncidentReport", b =>
@@ -997,8 +1055,13 @@ namespace WitchCityRope.Infrastructure.Migrations
                     b.HasOne("WitchCityRope.Core.Entities.Event", "Event")
                         .WithMany("RSVPs")
                         .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("WitchCityRope.Core.Entities.Registration", "Ticket")
+                        .WithOne()
+                        .HasForeignKey("WitchCityRope.Core.Entities.RSVP", "TicketId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("WitchCityRope.Core.Entities.User", "User")
                         .WithMany()
@@ -1007,6 +1070,8 @@ namespace WitchCityRope.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Event");
+
+                    b.Navigation("Ticket");
 
                     b.Navigation("User");
                 });
@@ -1029,11 +1094,6 @@ namespace WitchCityRope.Infrastructure.Migrations
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("WitchCityRope.Core.Entities.EventTicketType", "EventTicketType")
-                        .WithMany("Registrations")
-                        .HasForeignKey("EventTicketTypeId")
-                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("WitchCityRope.Core.Entities.User", "User")
                         .WithMany("Registrations")
@@ -1066,8 +1126,6 @@ namespace WitchCityRope.Infrastructure.Migrations
                         });
 
                     b.Navigation("Event");
-
-                    b.Navigation("EventTicketType");
 
                     b.Navigation("SelectedPrice")
                         .IsRequired();
@@ -1205,16 +1263,9 @@ namespace WitchCityRope.Infrastructure.Migrations
                     b.Navigation("TicketTypes");
                 });
 
-            modelBuilder.Entity("WitchCityRope.Core.Entities.EventSession", b =>
-                {
-                    b.Navigation("TicketTypeInclusions");
-                });
-
             modelBuilder.Entity("WitchCityRope.Core.Entities.EventTicketType", b =>
                 {
-                    b.Navigation("Registrations");
-
-                    b.Navigation("SessionInclusions");
+                    b.Navigation("TicketTypeSessions");
                 });
 
             modelBuilder.Entity("WitchCityRope.Core.Entities.Registration", b =>

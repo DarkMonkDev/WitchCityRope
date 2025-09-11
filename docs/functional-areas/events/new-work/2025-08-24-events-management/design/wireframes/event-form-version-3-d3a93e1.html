@@ -1,0 +1,2704 @@
+<!--
+Commit Hash: d3a93e1
+Commit Date: 2025-08-24
+Commit Message: feat(events): Implement comprehensive Event Session Matrix architecture for complex ticketing scenarios
+Version: Comprehensive Event Session Matrix architecture
+Contains: Complex ticketing scenario support with full Event Session Matrix
+--><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Event - WitchCityRope Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            /* Design System v7 Colors */
+            --color-burgundy: #880124;
+            --color-burgundy-dark: #660018;
+            --color-rose-gold: #B76D75;
+            --color-electric: #9D4EDD;
+            --color-amber: #FFBF00;
+            --color-midnight: #1A1A2E;
+            --color-charcoal: #2B2B2B;
+            --color-cream: #FAF6F2;
+            --color-ivory: #FFF8F0;
+            --color-success: #228B22;
+            --color-warning: #DAA520;
+            --color-error: #DC143C;
+            --color-stone: #8B8680;
+            
+            /* Typography */
+            --font-display: 'Bodoni Moda', serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 16px;
+            --space-md: 24px;
+            --space-lg: 32px;
+            --space-xl: 40px;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--color-cream);
+            color: var(--color-charcoal);
+            line-height: 1.6;
+        }
+        
+        /* Admin Header */
+        .admin-header {
+            background: var(--color-midnight);
+            color: white;
+            padding: var(--space-sm) var(--space-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .admin-logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .admin-badge {
+            background: var(--color-burgundy);
+            padding: 4px var(--space-sm);
+            border-radius: 4px;
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .admin-user {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-family: var(--font-heading);
+            font-weight: 500;
+        }
+        
+        /* Sidebar */
+        .admin-layout {
+            display: flex;
+            min-height: calc(100vh - 68px);
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: white;
+            border-right: 2px solid var(--color-rose-gold);
+            padding: var(--space-md) 0;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
+            color: var(--color-charcoal);
+            text-decoration: none;
+            font-family: var(--font-heading);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .sidebar-item::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--color-burgundy), transparent);
+            transition: width 0.3s ease;
+        }
+        
+        .sidebar-item:hover::after {
+            width: 80%;
+        }
+        
+        .sidebar-item.active {
+            background: rgba(136, 1, 36, 0.1);
+            color: var(--color-burgundy);
+            border-left: 3px solid var(--color-burgundy);
+            padding-left: calc(var(--space-md) - 3px);
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: var(--space-xl);
+            max-width: 1200px;
+        }
+        
+        .page-header {
+            margin-bottom: var(--space-md); /* Reduced from var(--space-xl) */
+        }
+        
+        .page-title {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 400;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-xs); /* Reduced from var(--space-sm) */
+        }
+        
+        /* Tabs Container */
+        .tabs-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            background: var(--color-cream);
+            border-bottom: 2px solid var(--color-rose-gold);
+        }
+        
+        .tab-button {
+            flex: 0 0 auto;
+            padding: var(--space-md) var(--space-lg);
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--color-charcoal);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            position: relative;
+        }
+        
+        .tab-button::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--color-burgundy), transparent);
+            transition: width 0.3s ease;
+        }
+        
+        .tab-button:hover::after {
+            width: 80%;
+        }
+        
+        .tab-button.active {
+            color: var(--color-burgundy);
+            border-bottom-color: var(--color-burgundy);
+            background: white;
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            padding: var(--space-xl);
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Form Sections */
+        .form-section {
+            margin-bottom: var(--space-xl);
+            padding-bottom: var(--space-xl);
+            border-bottom: 1px solid rgba(183, 109, 117, 0.3);
+        }
+        
+        .form-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-md);
+        }
+        
+        /* Form Groups with Floating Label Animation */
+        .form-group {
+            margin-bottom: var(--space-md);
+            position: relative;
+        }
+        
+        .floating-input-wrapper {
+            position: relative;
+        }
+        
+        .floating-input {
+            width: 100%;
+            padding: var(--space-md) var(--space-sm) var(--space-xs) var(--space-sm);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 12px;
+            background: var(--color-cream);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            color: var(--color-charcoal);
+        }
+        
+        .floating-input:focus {
+            outline: none;
+            border-color: var(--color-burgundy);
+            box-shadow: 0 0 0 3px rgba(183, 109, 117, 0.3);
+            transform: translateY(-2px);
+            background: white;
+        }
+        
+        .floating-label {
+            position: absolute;
+            left: var(--space-sm);
+            top: 50%;
+            transform: translateY(-50%);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: rgba(43, 43, 43, 0.6);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            background: transparent;
+            padding: 0 4px;
+        }
+        
+        .floating-input:focus + .floating-label,
+        .floating-input:not(:placeholder-shown) + .floating-label,
+        .floating-input.has-value + .floating-label {
+            top: -2px;
+            transform: translateY(-50%) scale(0.8);
+            color: var(--color-burgundy);
+            background: var(--color-cream);
+        }
+        
+        .floating-input:focus + .floating-label {
+            color: var(--color-burgundy);
+            background: white;
+        }
+        
+        .required {
+            color: var(--color-error);
+            margin-left: 4px;
+        }
+        
+        /* Regular form inputs (for dropdowns, etc.) */
+        .form-input {
+            width: 100%;
+            padding: var(--space-sm);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 12px;
+            background: var(--color-cream);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            color: var(--color-charcoal);
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--color-burgundy);
+            box-shadow: 0 0 0 3px rgba(183, 109, 117, 0.3);
+            transform: translateY(-2px);
+            background: white;
+        }
+        
+        /* TinyMCE Editor Container */
+        .tinymce-container {
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 12px;
+            background: white;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .tinymce-container:focus-within {
+            border-color: var(--color-burgundy);
+            box-shadow: 0 0 0 3px rgba(183, 109, 117, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        /* Enhanced TinyMCE Toolbar */
+        .tinymce-toolbar {
+            background: #f8f9fa;
+            border-bottom: 1px solid #e3e6ea;
+            padding: var(--space-xs) var(--space-sm);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            align-items: center;
+        }
+        
+        .tinymce-btn-group {
+            display: flex;
+            border: 1px solid #e3e6ea;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-right: var(--space-xs);
+        }
+        
+        .tinymce-btn {
+            padding: 6px 8px;
+            border: none;
+            background: white;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: var(--font-heading);
+            font-weight: 500;
+            color: #495057;
+            min-width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .tinymce-btn:hover {
+            background: #e9ecef;
+        }
+        
+        .tinymce-btn.active {
+            background: var(--color-burgundy);
+            color: white;
+        }
+        
+        .tinymce-btn-group .tinymce-btn + .tinymce-btn {
+            border-left: 1px solid #e3e6ea;
+        }
+        
+        /* TinyMCE Dropdown */
+        .tinymce-dropdown {
+            padding: 4px 8px;
+            border: 1px solid #e3e6ea;
+            border-radius: 4px;
+            background: white;
+            font-size: 0.8rem;
+            font-family: var(--font-body);
+            color: #495057;
+            margin-right: var(--space-xs);
+            min-width: 120px;
+        }
+        
+        /* TinyMCE Editor Area */
+        .tinymce-editor {
+            width: 100%;
+            min-height: 200px;
+            padding: var(--space-md);
+            border: none;
+            background: white;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--color-charcoal);
+            resize: vertical;
+            outline: none;
+        }
+        
+        .tinymce-editor:empty:before {
+            content: attr(data-placeholder);
+            color: #999;
+            font-style: italic;
+        }
+        
+        /* TinyMCE Status Bar */
+        .tinymce-statusbar {
+            background: #f8f9fa;
+            border-top: 1px solid #e3e6ea;
+            padding: 4px var(--space-sm);
+            font-size: 0.75rem;
+            color: #6c757d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .resize-handle {
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(-45deg, transparent 0%, transparent 40%, #ccc 40%, #ccc 43%, transparent 43%, transparent 46%, #ccc 46%, #ccc 49%, transparent 49%);
+            cursor: nw-resize;
+        }
+        
+        .form-help {
+            font-size: 0.85rem;
+            color: var(--color-charcoal);
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+        
+        /* Event Type Toggle */
+        .event-type-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-md);
+        }
+        
+        .type-option {
+            padding: var(--space-md);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .type-option:hover {
+            border-color: var(--color-burgundy);
+        }
+        
+        .type-option.active {
+            border-color: var(--color-burgundy);
+            background: rgba(136, 1, 36, 0.1);
+        }
+        
+        .type-option-title {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--color-burgundy);
+            margin-bottom: 4px;
+        }
+        
+        .type-option-desc {
+            font-size: 0.85rem;
+            color: var(--color-charcoal);
+            opacity: 0.8;
+        }
+        
+        /* Venue Selection */
+        .venue-selection {
+            display: flex;
+            gap: var(--space-sm);
+            align-items: end;
+        }
+        
+        .venue-dropdown {
+            flex: 1;
+        }
+        
+        /* Compact grid for Schedule/Venue section */
+        .schedule-venue-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: var(--space-md);
+        }
+        
+        /* FIXED: Capacity and Ticketing on same line */
+        .capacity-ticketing-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: var(--space-md);
+        }
+        
+        /* Pricing Fields */
+        .pricing-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-md);
+        }
+        
+        /* Radio Groups */
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .radio-option input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--color-burgundy);
+        }
+        
+        .radio-label {
+            cursor: pointer;
+            font-family: var(--font-heading);
+            font-weight: 500;
+        }
+        
+        /* Pricing Type Toggle - Dropdown instead */
+        .pricing-type-dropdown {
+            margin-bottom: var(--space-md);
+        }
+        
+        .pricing-unit-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-md);
+        }
+        
+        .unit-option {
+            padding: var(--space-sm);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            font-family: var(--font-heading);
+            font-weight: 500;
+        }
+        
+        .unit-option:hover {
+            border-color: var(--color-burgundy);
+        }
+        
+        .unit-option.active {
+            border-color: var(--color-burgundy);
+            background: rgba(136, 1, 36, 0.1);
+            color: var(--color-burgundy);
+        }
+
+        /* Session Management Styles */
+        .session-list {
+            margin-bottom: var(--space-lg);
+        }
+
+        .session-card {
+            background: white;
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 12px;
+            padding: var(--space-md);
+            margin-bottom: var(--space-md);
+            transition: all 0.3s ease;
+        }
+
+        .session-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(136, 1, 36, 0.15);
+        }
+
+        .session-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-sm);
+        }
+
+        .session-name {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-burgundy);
+            font-size: 1.1rem;
+        }
+
+        .session-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: var(--space-md);
+        }
+
+        /* Ticket Type Cards */
+        .ticket-types-list {
+            margin-bottom: var(--space-lg);
+        }
+
+        .ticket-type-card {
+            background: white;
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 12px;
+            padding: var(--space-lg);
+            margin-bottom: var(--space-lg);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .ticket-type-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(136, 1, 36, 0.15);
+        }
+
+        .ticket-type-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--space-md);
+        }
+
+        .ticket-type-name {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-burgundy);
+            font-size: 1.2rem;
+            margin-bottom: var(--space-xs);
+        }
+
+        .ticket-type-sessions {
+            font-size: 0.9rem;
+            color: var(--color-stone);
+        }
+
+        .ticket-type-actions {
+            display: flex;
+            gap: var(--space-sm);
+        }
+
+        .ticket-type-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-md);
+        }
+
+        .ticket-detail-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xs);
+        }
+
+        .ticket-detail-label {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: var(--color-charcoal);
+        }
+
+        .ticket-detail-value {
+            font-weight: 500;
+            color: var(--color-burgundy);
+        }
+
+        /* Template Selection */
+        .template-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-md);
+            margin-bottom: var(--space-lg);
+        }
+
+        .template-option {
+            padding: var(--space-md);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .template-option:hover {
+            border-color: var(--color-burgundy);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(136, 1, 36, 0.15);
+        }
+
+        .template-option.active {
+            border-color: var(--color-burgundy);
+            background: rgba(136, 1, 36, 0.1);
+        }
+
+        .template-option-title {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-burgundy);
+            margin-bottom: 4px;
+        }
+
+        .template-option-desc {
+            font-size: 0.85rem;
+            color: var(--color-charcoal);
+            opacity: 0.8;
+        }
+
+        /* Capacity Overview Sidebar */
+        .capacity-overview {
+            background: var(--color-ivory);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 12px;
+            padding: var(--space-md);
+            position: sticky;
+            top: var(--space-md);
+        }
+
+        .capacity-overview-title {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-md);
+            text-align: center;
+        }
+
+        .session-capacity {
+            margin-bottom: var(--space-md);
+            padding-bottom: var(--space-sm);
+            border-bottom: 1px solid rgba(183, 109, 117, 0.3);
+        }
+
+        .session-capacity:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .session-capacity-name {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-xs);
+        }
+
+        .capacity-bar {
+            background: rgba(183, 109, 117, 0.2);
+            border-radius: 12px;
+            height: 8px;
+            margin-bottom: var(--space-xs);
+            overflow: hidden;
+        }
+
+        .capacity-fill {
+            background: var(--color-burgundy);
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.3s ease;
+        }
+
+        .capacity-text {
+            font-size: 0.8rem;
+            color: var(--color-stone);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Warning States */
+        .capacity-warning {
+            color: var(--color-warning);
+        }
+
+        .capacity-error {
+            color: var(--color-error);
+        }
+
+        .capacity-fill.warning {
+            background: var(--color-warning);
+        }
+
+        .capacity-fill.error {
+            background: var(--color-error);
+        }
+
+        /* Two-column layout for ticket management */
+        .tickets-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: var(--space-xl);
+            align-items: start;
+        }
+        
+        /* Email Template Management - NEW STYLES FOR IMPROVED WORKFLOW */
+        .currently-selected-templates {
+            margin-bottom: var(--space-xl);
+        }
+        
+        .template-cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-md);
+            margin-bottom: var(--space-md);
+        }
+        
+        .template-card {
+            padding: var(--space-md);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            min-width: 220px;
+            flex: 1;
+            max-width: 300px;
+        }
+        
+        .template-card:hover {
+            border-color: var(--color-burgundy);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(136, 1, 36, 0.15);
+        }
+        
+        .template-card.active {
+            border-color: var(--color-burgundy);
+            background: rgba(136, 1, 36, 0.05);
+            box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.15);
+        }
+        
+        .template-card-name {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-burgundy);
+            margin-bottom: 4px;
+            font-size: 1rem;
+        }
+        
+        .template-card-trigger {
+            font-size: 0.85rem;
+            color: var(--color-stone);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .template-remove-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: var(--color-error);
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .template-remove-btn:hover {
+            background: #b91c1c;
+            transform: scale(1.1);
+        }
+        
+        .add-template-section {
+            margin-bottom: var(--space-xl);
+            padding: var(--space-md);
+            background: var(--color-ivory);
+            border-radius: 8px;
+            border: 2px solid var(--color-rose-gold);
+        }
+        
+        .add-template-controls {
+            display: flex;
+            gap: var(--space-md);
+            align-items: end;
+        }
+        
+        .template-dropdown {
+            flex: 1;
+            max-width: 400px;
+        }
+        
+        .template-editor-section {
+            background: var(--color-ivory);
+            border-radius: 8px;
+            border: 2px solid var(--color-rose-gold);
+            padding: var(--space-md);
+        }
+        
+        .editor-header {
+            margin-bottom: var(--space-md);
+            padding-bottom: var(--space-sm);
+            border-bottom: 1px solid rgba(183, 109, 117, 0.3);
+        }
+        
+        .currently-editing {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-burgundy);
+            font-size: 1.1rem;
+        }
+        
+        /* Email Recipient Dropdown */
+        .recipient-dropdown {
+            margin-bottom: var(--space-md);
+        }
+        
+        .recipient-select {
+            width: 100%;
+            padding: var(--space-sm);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 12px;
+            background: var(--color-cream);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            color: var(--color-charcoal);
+        }
+        
+        .recipient-select:focus {
+            outline: none;
+            border-color: var(--color-burgundy);
+            box-shadow: 0 0 0 3px rgba(183, 109, 117, 0.3);
+            transform: translateY(-2px);
+            background: white;
+        }
+        
+        /* Volunteer Position Form */
+        .volunteer-position-form {
+            background: var(--color-ivory);
+            padding: var(--space-md);
+            border-radius: 8px;
+            margin-bottom: var(--space-md);
+            border: 2px solid var(--color-rose-gold);
+        }
+        
+        .volunteer-position-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: var(--space-sm);
+            align-items: end;
+        }
+        
+        /* FIXED: Volunteer input field sizes */
+        .volunteer-number-input {
+            width: 120px;
+        }
+        
+        .add-position-btn {
+            background: linear-gradient(135deg, var(--color-amber) 0%, #DAA520 100%);
+            color: var(--color-charcoal);
+            border: none;
+            padding: var(--space-sm) var(--space-md);
+            border-radius: 12px 6px 12px 6px;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+            align-self: end;
+        }
+        
+        .add-position-btn:hover {
+            border-radius: 6px 12px 6px 12px;
+            transform: scale(1.02);
+        }
+        
+        /* Data Grid for Volunteer Positions */
+        .data-grid {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: var(--space-md);
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .data-grid th {
+            background: var(--color-burgundy);
+            color: white;
+            padding: var(--space-sm) var(--space-md);
+            text-align: left;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .data-grid td {
+            padding: var(--space-sm) var(--space-md);
+            border-bottom: 1px solid rgba(183, 109, 117, 0.2);
+            font-size: 0.9rem;
+        }
+        
+        /* More contrasted alternating rows */
+        .data-grid tr:nth-child(even) {
+            background: rgba(250, 246, 242, 0.8);
+        }
+        
+        .data-grid tr:hover {
+            background: rgba(136, 1, 36, 0.05);
+        }
+        
+        .position-title {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-burgundy);
+        }
+        
+        .position-time {
+            font-size: 0.85rem;
+            color: var(--color-charcoal);
+        }
+        
+        .position-needed {
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .position-assigned {
+            text-align: center;
+            font-size: 0.85rem;
+        }
+        
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: var(--space-md);
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .data-table th {
+            background: var(--color-burgundy);
+            color: white;
+            padding: var(--space-sm) var(--space-md);
+            text-align: left;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .data-table td {
+            padding: var(--space-sm) var(--space-md);
+            border-bottom: 1px solid rgba(183, 109, 117, 0.2);
+            font-size: 0.9rem;
+        }
+        
+        /* More contrasted alternating rows for all data tables */
+        .data-table tbody tr:nth-child(even) {
+            background: rgba(250, 246, 242, 0.8);
+        }
+        
+        .data-table tr:hover {
+            background: rgba(136, 1, 36, 0.05);
+        }
+        
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 4px var(--space-sm);
+            border-radius: 12px;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-confirmed {
+            background: rgba(34, 139, 34, 0.2);
+            color: var(--color-success);
+        }
+        
+        .status-pending {
+            background: rgba(218, 165, 32, 0.2);
+            color: var(--color-warning);
+        }
+        
+        .status-cancelled {
+            background: rgba(220, 20, 60, 0.2);
+            color: var(--color-error);
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: var(--space-sm) var(--space-md);
+            border-radius: 12px 6px 12px 6px; /* Signature asymmetric corners */
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        
+        .btn:hover {
+            border-radius: 6px 12px 6px 12px; /* Signature corner morphing */
+            transform: scale(1.02);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-amber) 0%, #DAA520 100%);
+            color: var(--color-charcoal);
+            box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--color-charcoal);
+            border: 2px solid var(--color-rose-gold);
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--color-burgundy);
+            background: rgba(136, 1, 36, 0.1);
+        }
+        
+        .btn-sm {
+            padding: 6px var(--space-sm);
+            font-size: 0.8rem;
+        }
+        
+        /* Form Footer */
+        .form-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: var(--space-xl);
+            padding: var(--space-lg);
+            background: var(--color-cream);
+            border-top: 2px solid var(--color-rose-gold);
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: var(--space-xl);
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-md);
+        }
+        
+        .modal-title {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-burgundy);
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--color-charcoal);
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .admin-layout {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 2px solid var(--color-rose-gold);
+            }
+            
+            .main-content {
+                padding: var(--space-md);
+            }
+            
+            .tab-content {
+                padding: var(--space-md);
+            }
+            
+            .schedule-venue-grid,
+            .capacity-ticketing-grid,
+            .pricing-fields {
+                grid-template-columns: 1fr;
+            }
+            
+            .event-type-toggle,
+            .pricing-unit-toggle {
+                grid-template-columns: 1fr;
+            }
+            
+            .venue-selection {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .volunteer-position-grid {
+                grid-template-columns: 1fr;
+                gap: var(--space-xs);
+            }
+            
+            .tinymce-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .tinymce-btn-group {
+                margin-bottom: var(--space-xs);
+                margin-right: 0;
+            }
+            
+            .template-cards-container {
+                flex-direction: column;
+            }
+            
+            .template-card {
+                max-width: none;
+            }
+            
+            .add-template-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .tickets-layout {
+                grid-template-columns: 1fr;
+                gap: var(--space-lg);
+            }
+
+            .session-details {
+                grid-template-columns: 1fr;
+            }
+
+            .ticket-type-details {
+                grid-template-columns: 1fr;
+            }
+
+            .template-selection {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Admin Header -->
+    <div class="admin-header">
+        <div class="admin-logo">
+            WitchCityRope
+            <span class="admin-badge">ADMIN</span>
+        </div>
+        <div class="admin-user">
+            <span>River Moon</span>
+            <span style="color: #ccc;">•</span>
+            <a href="#" style="color: #ccc; text-decoration: none;">Logout</a>
+        </div>
+    </div>
+    
+    <!-- Main Layout -->
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <a href="#" class="sidebar-item">
+                <span>🏠</span> Dashboard
+            </a>
+            <a href="#" class="sidebar-item active">
+                <span>📅</span> Events
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>🎓</span> Vetting Queue
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>⚠️</span> Incident Reports
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>👥</span> Members
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>👨‍🏫</span> Teachers
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>💰</span> Financial Reports
+            </a>
+            <a href="#" class="sidebar-item">
+                <span>⚙️</span> Settings
+            </a>
+        </nav>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Page Header - NO BACK LINK -->
+            <div class="page-header">
+                <h1 class="page-title">Create New Event</h1>
+            </div>
+            
+            <!-- Tabs Container -->
+            <div class="tabs-container">
+                <!-- Tab Navigation -->
+                <div class="tab-nav">
+                    <button class="tab-button active" onclick="switchTab('basic-info')">Basic Info</button>
+                    <button class="tab-button" onclick="switchTab('tickets-orders')">Tickets/Orders</button>
+                    <button class="tab-button" onclick="switchTab('emails')">Emails</button>
+                    <button class="tab-button" onclick="switchTab('volunteers-staff')">Volunteers/Staff</button>
+                </div>
+                
+                <!-- Basic Info Tab -->
+                <div id="basic-info" class="tab-content active">
+                    <form>
+                        <!-- Event Details -->
+                        <div class="form-section">
+                            <h2 class="section-title">Event Details</h2>
+                            
+                            <!-- Event Type -->
+                            <div class="form-group">
+                                <div class="event-type-toggle">
+                                    <div class="type-option active" onclick="selectEventType(this, 'class')">
+                                        <div class="type-option-title">Class</div>
+                                        <div class="type-option-desc">Educational workshop requiring payment</div>
+                                    </div>
+                                    <div class="type-option" onclick="selectEventType(this, 'social')">
+                                        <div class="type-option-title">Social Event</div>
+                                        <div class="type-option-desc">Community gathering with volunteers</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Event Title -->
+                            <div class="form-group">
+                                <div class="floating-input-wrapper">
+                                    <input type="text" class="floating-input" placeholder=" " required>
+                                    <label class="floating-label">Event Title <span class="required">*</span></label>
+                                </div>
+                            </div>
+                            
+                            <!-- Description with Enhanced TinyMCE Editor -->
+                            <div class="form-group">
+                                <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Description <span class="required">*</span></label>
+                                <div class="tinymce-container">
+                                    <div class="tinymce-toolbar">
+                                        <!-- Font and Style Group -->
+                                        <select class="tinymce-dropdown">
+                                            <option>Paragraph</option>
+                                            <option>Heading 1</option>
+                                            <option>Heading 2</option>
+                                            <option>Heading 3</option>
+                                            <option>Preformatted</option>
+                                        </select>
+                                        
+                                        <select class="tinymce-dropdown">
+                                            <option>Source Sans 3</option>
+                                            <option>Arial</option>
+                                            <option>Georgia</option>
+                                            <option>Times New Roman</option>
+                                        </select>
+                                        
+                                        <select class="tinymce-dropdown" style="width: 60px;">
+                                            <option>12px</option>
+                                            <option>14px</option>
+                                            <option>16px</option>
+                                            <option>18px</option>
+                                            <option>24px</option>
+                                        </select>
+                                        
+                                        <!-- Basic Formatting Group -->
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Bold"><strong>B</strong></button>
+                                            <button type="button" class="tinymce-btn" title="Italic"><em>I</em></button>
+                                            <button type="button" class="tinymce-btn" title="Underline"><u>U</u></button>
+                                            <button type="button" class="tinymce-btn" title="Strikethrough"><s>S</s></button>
+                                        </div>
+                                        
+                                        <!-- Color Group -->
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Text Color">A</button>
+                                            <button type="button" class="tinymce-btn" title="Background Color">🎨</button>
+                                        </div>
+                                        
+                                        <!-- Alignment Group -->
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Align Left">⬅</button>
+                                            <button type="button" class="tinymce-btn" title="Center">⬜</button>
+                                            <button type="button" class="tinymce-btn" title="Align Right">➡</button>
+                                            <button type="button" class="tinymce-btn" title="Justify">⬌</button>
+                                        </div>
+                                        
+                                        <!-- List Group -->
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Bullet List">•</button>
+                                            <button type="button" class="tinymce-btn" title="Numbered List">1.</button>
+                                            <button type="button" class="tinymce-btn" title="Outdent">⬅</button>
+                                            <button type="button" class="tinymce-btn" title="Indent">➡</button>
+                                        </div>
+                                        
+                                        <!-- Insert Group -->
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Insert Link">🔗</button>
+                                            <button type="button" class="tinymce-btn" title="Insert Image">🖼️</button>
+                                            <button type="button" class="tinymce-btn" title="Insert Table">📊</button>
+                                        </div>
+                                        
+                                        <!-- Action Group -->
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Undo">↶</button>
+                                            <button type="button" class="tinymce-btn" title="Redo">↷</button>
+                                        </div>
+                                        
+                                        <!-- Special Functions -->
+                                        <button type="button" class="tinymce-btn" title="Source Code">{ }</button>
+                                        <button type="button" class="tinymce-btn" title="Fullscreen">⛶</button>
+                                    </div>
+                                    
+                                    <div class="tinymce-editor" contenteditable="true" data-placeholder="Describe what attendees will learn or do at this event...">
+                                    </div>
+                                    
+                                    <div class="tinymce-statusbar">
+                                        <span>Path: body › p</span>
+                                        <div class="resize-handle"></div>
+                                    </div>
+                                </div>
+                                <p class="form-help">Industry-standard TinyMCE editor with advanced formatting options. This will be visible on the event page.</p>
+                            </div>
+                            
+                            <!-- What to Bring with Enhanced TinyMCE Editor -->
+                            <div class="form-group">
+                                <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">What to Bring</label>
+                                <div class="tinymce-container">
+                                    <div class="tinymce-toolbar">
+                                        <!-- Simplified toolbar for this field -->
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn active" title="Bold"><strong>B</strong></button>
+                                            <button type="button" class="tinymce-btn" title="Italic"><em>I</em></button>
+                                            <button type="button" class="tinymce-btn" title="Underline"><u>U</u></button>
+                                        </div>
+                                        
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Bullet List">•</button>
+                                            <button type="button" class="tinymce-btn" title="Numbered List">1.</button>
+                                        </div>
+                                        
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Insert Link">🔗</button>
+                                        </div>
+                                        
+                                        <div class="tinymce-btn-group">
+                                            <button type="button" class="tinymce-btn" title="Undo">↶</button>
+                                            <button type="button" class="tinymce-btn" title="Redo">↷</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="tinymce-editor" contenteditable="true" data-placeholder="List items attendees should bring..." style="min-height: 120px;">
+                                    </div>
+                                    
+                                    <div class="tinymce-statusbar">
+                                        <span>Path: body › ul</span>
+                                        <div class="resize-handle"></div>
+                                    </div>
+                                </div>
+                                <p class="form-help">Separate section for items attendees should bring or prepare for the event.</p>
+                            </div>
+                            
+                            <!-- Teacher Assignment (Classes Only) -->
+                            <div class="form-group" id="teacher-section">
+                                <select class="form-input" style="max-width: 400px;">
+                                    <option>Select teachers...</option>
+                                    <option>River Moon</option>
+                                    <option>Sky Chen</option>
+                                    <option>Sage Williams</option>
+                                    <option>Luna Martinez</option>
+                                </select>
+                                <p class="form-help">Multiple teachers can be selected for classes</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Schedule & Venue - COMPACT LAYOUT -->
+                        <div class="form-section">
+                            <h2 class="section-title">Schedule & Venue</h2>
+                            
+                            <!-- Compact grid with Date, Start Time, Duration on same line -->
+                            <div class="schedule-venue-grid">
+                                <div class="form-group">
+                                    <div class="floating-input-wrapper">
+                                        <input type="date" class="floating-input" placeholder=" " required>
+                                        <label class="floating-label">Date <span class="required">*</span></label>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="floating-input-wrapper">
+                                        <input type="time" class="floating-input" placeholder=" " required>
+                                        <label class="floating-label">Start Time <span class="required">*</span></label>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <select class="form-input" required>
+                                        <option value="">Select duration</option>
+                                        <option value="1">1 hour</option>
+                                        <option value="1.5">1.5 hours</option>
+                                        <option value="2">2 hours</option>
+                                        <option value="3">3 hours</option>
+                                        <option value="4">4 hours</option>
+                                        <option value="5">5 hours</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Venue Selection -->
+                            <div class="form-group">
+                                <div class="venue-selection">
+                                    <div class="venue-dropdown">
+                                        <select class="form-input">
+                                            <option>Select venue...</option>
+                                            <option>Salem Community Center</option>
+                                            <option>Witch City Studio</option>
+                                            <option>Private Venue (Downtown)</option>
+                                            <option>Outdoor Pavilion (Seasonal)</option>
+                                        </select>
+                                    </div>
+                                    <button type="button" class="btn btn-secondary" onclick="openVenueModal()">Manage Venues</button>
+                                </div>
+                                <p class="form-help">The exact address will only be shown to ticket holders</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Capacity & Ticketing - FIXED: ALL 3 FIELDS ON SAME LINE -->
+                        <div class="form-section">
+                            <h2 class="section-title">Capacity & Ticketing</h2>
+                            
+                            <!-- ALL THREE FIELDS ON SAME LINE -->
+                            <div class="capacity-ticketing-grid">
+                                <div class="form-group">
+                                    <div class="floating-input-wrapper">
+                                        <input type="number" class="floating-input" placeholder=" " required>
+                                        <label class="floating-label">Capacity <span class="required">*</span></label>
+                                    </div>
+                                    <p class="form-help">Typical events have 12-60 attendees</p>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="floating-input-wrapper">
+                                        <input type="datetime-local" class="floating-input" placeholder=" ">
+                                        <label class="floating-label">Ticket Sales Start</label>
+                                    </div>
+                                    <p class="form-help">Leave blank to open immediately</p>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="floating-input-wrapper">
+                                        <input type="datetime-local" class="floating-input" placeholder=" ">
+                                        <label class="floating-label">Ticket Sales End</label>
+                                    </div>
+                                    <p class="form-help">Leave blank to allow until event starts</p>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Tickets/Orders Tab - UPDATED WITH EVENT SESSION MATRIX -->
+                <div id="tickets-orders" class="tab-content">
+                    <div class="tickets-layout">
+                        <!-- Main Ticket Configuration -->
+                        <div>
+                            <!-- Event Sessions Section -->
+                            <div class="form-section">
+                                <h2 class="section-title">Event Sessions</h2>
+                                <p class="form-help" style="margin-bottom: var(--space-lg);">Define sessions for multi-day events. Single-day events can skip this section.</p>
+                                
+                                <!-- Session List -->
+                                <div class="session-list">
+                                    <!-- Example Session 1 -->
+                                    <div class="session-card">
+                                        <div class="session-header">
+                                            <div class="session-name">Day 1: Fundamentals</div>
+                                            <button class="btn btn-secondary btn-sm" onclick="removeSession(this)">Remove</button>
+                                        </div>
+                                        <div class="session-details">
+                                            <div class="form-group">
+                                                <div class="floating-input-wrapper">
+                                                    <input type="date" class="floating-input has-value" placeholder=" " value="2025-02-15">
+                                                    <label class="floating-label">Date</label>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="floating-input-wrapper">
+                                                    <input type="time" class="floating-input has-value" placeholder=" " value="19:00">
+                                                    <label class="floating-label">Start Time</label>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="floating-input-wrapper">
+                                                    <input type="number" class="floating-input has-value" placeholder=" " value="20" min="1">
+                                                    <label class="floating-label">Capacity</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Example Session 2 -->
+                                    <div class="session-card">
+                                        <div class="session-header">
+                                            <div class="session-name">Day 2: Advanced Techniques</div>
+                                            <button class="btn btn-secondary btn-sm" onclick="removeSession(this)">Remove</button>
+                                        </div>
+                                        <div class="session-details">
+                                            <div class="form-group">
+                                                <div class="floating-input-wrapper">
+                                                    <input type="date" class="floating-input has-value" placeholder=" " value="2025-02-16">
+                                                    <label class="floating-label">Date</label>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="floating-input-wrapper">
+                                                    <input type="time" class="floating-input has-value" placeholder=" " value="19:00">
+                                                    <label class="floating-label">Start Time</label>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="floating-input-wrapper">
+                                                    <input type="number" class="floating-input has-value" placeholder=" " value="20" min="1">
+                                                    <label class="floating-label">Capacity</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Example Session 3 -->
+                                    <div class="session-card">
+                                        <div class="session-header">
+                                            <div class="session-name">Day 3: Integration & Practice</div>
+                                            <button class="btn btn-secondary btn-sm" onclick="removeSession(this)">Remove</button>
+                                        </div>
+                                        <div class="session-details">
+                                            <div class="form-group">
+                                                <div class="floating-input-wrapper">
+                                                    <input type="date" class="floating-input has-value" placeholder=" " value="2025-02-17">
+                                                    <label class="floating-label">Date</label>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="floating-input-wrapper">
+                                                    <input type="time" class="floating-input has-value" placeholder=" " value="19:00">
+                                                    <label class="floating-label">Start Time</label>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="floating-input-wrapper">
+                                                    <input type="number" class="floating-input has-value" placeholder=" " value="20" min="1">
+                                                    <label class="floating-label">Capacity</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn btn-primary" onclick="addSession()">Add Session</button>
+                            </div>
+
+                            <!-- Quick Template Selection -->
+                            <div class="form-section">
+                                <h2 class="section-title">Quick Event Templates</h2>
+                                <p class="form-help" style="margin-bottom: var(--space-md);">Choose a common pattern to quickly set up sessions and ticket types.</p>
+                                
+                                <div class="template-selection">
+                                    <div class="template-option active" onclick="selectTemplate(this, 'single')">
+                                        <div class="template-option-title">Single Session Event</div>
+                                        <div class="template-option-desc">Basic event with one ticket type</div>
+                                    </div>
+                                    <div class="template-option" onclick="selectTemplate(this, 'multi-day')">
+                                        <div class="template-option-title">Multi-Day Series</div>
+                                        <div class="template-option-desc">Series pass + individual day tickets</div>
+                                    </div>
+                                    <div class="template-option" onclick="selectTemplate(this, 'tiered')">
+                                        <div class="template-option-title">Tiered Pricing</div>
+                                        <div class="template-option-desc">Member/non-member rates</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Ticket Types Section -->
+                            <div class="form-section">
+                                <h2 class="section-title">Ticket Types</h2>
+                                <p class="form-help" style="margin-bottom: var(--space-lg);">Configure different ticket options for your event. Each ticket type can include multiple sessions.</p>
+
+                                <!-- Ticket Types List -->
+                                <div class="ticket-types-list">
+                                    <!-- Example Ticket Type 1: Full Series Pass -->
+                                    <div class="ticket-type-card">
+                                        <div class="ticket-type-header">
+                                            <div>
+                                                <div class="ticket-type-name">Full 3-Day Series Pass</div>
+                                                <div class="ticket-type-sessions">Includes: Day 1, Day 2, Day 3</div>
+                                            </div>
+                                            <div class="ticket-type-actions">
+                                                <button class="btn btn-secondary btn-sm">Edit</button>
+                                                <button class="btn btn-secondary btn-sm">Remove</button>
+                                            </div>
+                                        </div>
+                                        <div class="ticket-type-details">
+                                            <div class="ticket-detail-group">
+                                                <div class="ticket-detail-label">Price Range</div>
+                                                <div class="ticket-detail-value">$120 - $150</div>
+                                            </div>
+                                            <div class="ticket-detail-group">
+                                                <div class="ticket-detail-label">Quantity Available</div>
+                                                <div class="ticket-detail-value">15 tickets</div>
+                                            </div>
+                                            <div class="ticket-detail-group">
+                                                <div class="ticket-detail-label">Sales Period</div>
+                                                <div class="ticket-detail-value">Now until event start</div>
+                                            </div>
+                                            <div class="ticket-detail-group">
+                                                <div class="ticket-detail-label">Sessions Included</div>
+                                                <div class="ticket-detail-value">✓ Day 1 ✓ Day 2 ✓ Day 3</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Example Ticket Type 2: Day 1 Only -->
+                                    <div class="ticket-type-card">
+                                        <div class="ticket-type-header">
+                                            <div>
+                                                <div class="ticket-type-name">Day 1: Fundamentals Only</div>
+                                                <div class="ticket-type-sessions">Includes: Day 1</div>
+                                            </div>
+                                            <div class="ticket-type-actions">
+                                                <button class="btn btn-secondary btn-sm">Edit</button>
+                                                <button class="btn btn-secondary btn-sm">Remove</button>
+                                            </div>
+                                        </div>
+                                        <div class="ticket-type-details">
+                                            <div class="ticket-detail-group">
+                                                <div class="ticket-detail-label">Price Range</div>
+                                                <div class="ticket-detail-value">$45 - $60</div>
+                                            </div>
+                                            <div class="ticket-detail-group">
+                                                <div class="ticket-detail-label">Quantity Available</div>
+                                                <div class="ticket-detail-value">10 tickets</div>
+                                            </div>
+                                            <div class="ticket-detail-group">
+                                                <div class="ticket-detail-label">Sales Period</div>
+                                                <div class="ticket-detail-value">Now until Feb 15</div>
+                                            </div>
+                                            <div class="ticket-detail-group">
+                                                <div class="ticket-detail-label">Sessions Included</div>
+                                                <div class="ticket-detail-value">✓ Day 1</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Example Ticket Type 3: Weekend Pass -->
+                                    <div class="ticket-type-card">
+                                        <div class="ticket-type-header">
+                                            <div>
+                                                <div class="ticket-type-name">Weekend Pass (Days 2-3)</div>
+                                                <div class="ticket-type-sessions">Includes: Day 2, Day 3</div>
+                                            </div>
+                                            <div class="ticket-type-actions">
+                                                <button class="btn btn-secondary btn-sm">Edit</button>
+                                                <button class="btn btn-secondary btn-sm">Remove</button>
+                                            </div>
+                                        </div>
+                                        <div class="ticket-type-details">
+                                            <div class="ticket-detail-group">
+                                                <div class="ticket-detail-label">Price Range</div>
+                                                <div class="ticket-detail-value">$80 - $100</div>
+                                            </div>
+                                            <div class="ticket-detail-group">
+                                                <div class="ticket-detail-label">Quantity Available</div>
+                                                <div class="ticket-detail-value">8 tickets</div>
+                                            </div>
+                                            <div class="ticket-detail-group">
+                                                <div class="ticket-detail-label">Sales Period</div>
+                                                <div class="ticket-detail-value">Now until Feb 16</div>
+                                            </div>
+                                            <div class="ticket-detail-group">
+                                                <div class="ticket-detail-label">Sessions Included</div>
+                                                <div class="ticket-detail-value">✓ Day 2 ✓ Day 3</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button class="btn btn-primary" onclick="addTicketType()">Add Ticket Type</button>
+                            </div>
+
+                            <!-- Current Orders -->
+                            <div class="form-section">
+                                <h2 class="section-title">Current Orders</h2>
+                                
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Order #</th>
+                                            <th>Customer</th>
+                                            <th>Ticket Type</th>
+                                            <th>Sessions</th>
+                                            <th>Status</th>
+                                            <th>Amount</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>#1047</td>
+                                            <td>Alex Thompson</td>
+                                            <td>Full 3-Day Series Pass</td>
+                                            <td>Day 1, Day 2, Day 3</td>
+                                            <td><span class="status-badge status-confirmed">Confirmed</span></td>
+                                            <td>$135.00</td>
+                                            <td><button class="btn btn-secondary btn-sm">View</button></td>
+                                        </tr>
+                                        <tr>
+                                            <td>#1048</td>
+                                            <td>Morgan Lee</td>
+                                            <td>Day 1: Fundamentals Only</td>
+                                            <td>Day 1</td>
+                                            <td><span class="status-badge status-confirmed">Confirmed</span></td>
+                                            <td>$50.00</td>
+                                            <td><button class="btn btn-secondary btn-sm">View</button></td>
+                                        </tr>
+                                        <tr>
+                                            <td>#1049</td>
+                                            <td>Sam Chen</td>
+                                            <td>Weekend Pass (Days 2-3)</td>
+                                            <td>Day 2, Day 3</td>
+                                            <td><span class="status-badge status-pending">Pending</span></td>
+                                            <td>$90.00</td>
+                                            <td><button class="btn btn-secondary btn-sm">View</button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Capacity Overview Sidebar -->
+                        <div class="capacity-overview">
+                            <h3 class="capacity-overview-title">Session Capacity Overview</h3>
+                            
+                            <div class="session-capacity">
+                                <div class="session-capacity-name">Day 1: Fundamentals</div>
+                                <div class="capacity-bar">
+                                    <div class="capacity-fill" style="width: 40%;"></div>
+                                </div>
+                                <div class="capacity-text">
+                                    <span>8 / 20 spots</span>
+                                    <span>12 available</span>
+                                </div>
+                            </div>
+
+                            <div class="session-capacity">
+                                <div class="session-capacity-name">Day 2: Advanced</div>
+                                <div class="capacity-bar">
+                                    <div class="capacity-fill warning" style="width: 75%;"></div>
+                                </div>
+                                <div class="capacity-text capacity-warning">
+                                    <span>15 / 20 spots</span>
+                                    <span>5 available</span>
+                                </div>
+                            </div>
+
+                            <div class="session-capacity">
+                                <div class="session-capacity-name">Day 3: Integration</div>
+                                <div class="capacity-bar">
+                                    <div class="capacity-fill" style="width: 40%;"></div>
+                                </div>
+                                <div class="capacity-text">
+                                    <span>8 / 20 spots</span>
+                                    <span>12 available</span>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: var(--space-lg); padding-top: var(--space-md); border-top: 1px solid rgba(183, 109, 117, 0.3);">
+                                <div style="font-size: 0.8rem; color: var(--color-stone); text-align: center;">
+                                    <strong>Legend:</strong><br>
+                                    <span style="color: var(--color-burgundy);">●</span> Good availability<br>
+                                    <span style="color: var(--color-warning);">●</span> Limited spots<br>
+                                    <span style="color: var(--color-error);">●</span> Nearly full
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Emails Tab - UPDATED WITH IMPROVED WORKFLOW -->
+                <div id="emails" class="tab-content">
+                    <!-- Currently Selected Templates -->
+                    <div class="form-section currently-selected-templates">
+                        <h2 class="section-title">Currently Selected Templates</h2>
+                        <p class="form-help" style="margin-bottom: var(--space-lg);">Click on a template card to edit it below. Use the X button to remove templates from this event.</p>
+                        
+                        <div class="template-cards-container">
+                            <!-- Always required - Confirmation Email -->
+                            <div class="template-card active" onclick="selectTemplate(this, 'confirmation')" data-template-id="confirmation">
+                                <button class="template-remove-btn" onclick="removeTemplate(event, 'confirmation')" disabled title="Required template">×</button>
+                                <div class="template-card-name">Confirmation Email</div>
+                                <div class="template-card-trigger">Sent immediately when ticket is purchased</div>
+                            </div>
+                            
+                            <!-- Currently enabled templates -->
+                            <div class="template-card" onclick="selectTemplate(this, 'reminder-1day')" data-template-id="reminder-1day">
+                                <button class="template-remove-btn" onclick="removeTemplate(event, 'reminder-1day')">×</button>
+                                <div class="template-card-name">Reminder - 1 Day Before</div>
+                                <div class="template-card-trigger">Sent 1 day before event start</div>
+                            </div>
+                            
+                            <div class="template-card" onclick="selectTemplate(this, 'cancellation')" data-template-id="cancellation">
+                                <button class="template-remove-btn" onclick="removeTemplate(event, 'cancellation')">×</button>
+                                <div class="template-card-name">Cancellation Notice</div>
+                                <div class="template-card-trigger">Sent when event is cancelled</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Add Template Section -->
+                    <div class="form-section add-template-section">
+                        <h2 class="section-title">Add Email Template</h2>
+                        <p class="form-help" style="margin-bottom: var(--space-md);">Select a template from the dropdown to add it to this event.</p>
+                        
+                        <div class="add-template-controls">
+                            <div class="form-group template-dropdown">
+                                <select class="form-input" id="available-templates">
+                                    <option value="">Select a template to add...</option>
+                                    <option value="reminder-1week">Reminder - 1 Week Before</option>
+                                    <option value="waitlist">Waitlist Notification</option>
+                                    <option value="survey">Post-Event Survey</option>
+                                    <option value="schedule-change">Schedule Change Alert</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" onclick="addTemplate()" id="add-template-btn" disabled>Add Email Template</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Template Editor Section -->
+                    <div class="form-section template-editor-section">
+                        <div class="editor-header">
+                            <div class="currently-editing">Currently Editing: Confirmation Email</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="floating-input-wrapper">
+                                <input type="text" class="floating-input has-value" placeholder=" " value="Welcome to {event} - Registration Confirmed!">
+                                <label class="floating-label">Email Subject</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Email Content</label>
+                            <div class="tinymce-container">
+                                <div class="tinymce-toolbar">
+                                    <!-- Full toolbar for email editing -->
+                                    <select class="tinymce-dropdown">
+                                        <option>Paragraph</option>
+                                        <option>Heading 1</option>
+                                        <option>Heading 2</option>
+                                        <option>Heading 3</option>
+                                    </select>
+                                    
+                                    <div class="tinymce-btn-group">
+                                        <button type="button" class="tinymce-btn" title="Bold"><strong>B</strong></button>
+                                        <button type="button" class="tinymce-btn" title="Italic"><em>I</em></button>
+                                        <button type="button" class="tinymce-btn" title="Underline"><u>U</u></button>
+                                    </div>
+                                    
+                                    <div class="tinymce-btn-group">
+                                        <button type="button" class="tinymce-btn" title="Bullet List">•</button>
+                                        <button type="button" class="tinymce-btn" title="Numbered List">1.</button>
+                                    </div>
+                                    
+                                    <div class="tinymce-btn-group">
+                                        <button type="button" class="tinymce-btn" title="Insert Link">🔗</button>
+                                        <button type="button" class="tinymce-btn" title="Insert Table">📊</button>
+                                    </div>
+                                    
+                                    <div class="tinymce-btn-group">
+                                        <button type="button" class="tinymce-btn" title="Undo">↶</button>
+                                        <button type="button" class="tinymce-btn" title="Redo">↷</button>
+                                    </div>
+                                    
+                                    <button type="button" class="tinymce-btn" title="Variables">{ }</button>
+                                    <button type="button" class="tinymce-btn" title="Source Code">{ }</button>
+                                </div>
+                                
+                                <div class="tinymce-editor" contenteditable="true" style="min-height: 300px;">
+                                    <p><strong>Hi {name},</strong></p>
+                                    <p>Your registration for <strong>{event}</strong> has been confirmed!</p>
+                                    <p><strong>Event Details:</strong></p>
+                                    <ul>
+                                        <li><strong>Date:</strong> {date}</li>
+                                        <li><strong>Time:</strong> {time}</li>
+                                        <li><strong>Venue:</strong> {venue}</li>
+                                        <li><strong>Address:</strong> {venue_address}</li>
+                                    </ul>
+                                    <p>We're excited to see you there!</p>
+                                    <p>Best regards,<br>WitchCityRope Team</p>
+                                </div>
+                                
+                                <div class="tinymce-statusbar">
+                                    <span>Path: body › p</span>
+                                    <div class="resize-handle"></div>
+                                </div>
+                            </div>
+                            <p class="form-help">Available variables: {name}, {event}, {date}, {time}, {venue}, {venue_address}</p>
+                        </div>
+                        
+                        <button class="btn btn-primary">Save Changes</button>
+                    </div>
+                    
+                    <!-- Ad-hoc Emails -->
+                    <div class="form-section">
+                        <h2 class="section-title">Send Ad-hoc Emails</h2>
+                        <p class="form-help" style="margin-bottom: var(--space-md);">Send one-time emails to specific groups</p>
+                        
+                        <div class="form-group recipient-dropdown">
+                            <select class="recipient-select">
+                                <option value="all-tickets">All Ticket Holders</option>
+                                <option value="all-rsvps">All RSVPs</option>
+                                <option value="volunteers">All Volunteers</option>
+                                <option value="everyone">Everyone</option>
+                                <option value="teachers">Teachers</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="floating-input-wrapper">
+                                <input type="text" class="floating-input" placeholder=" ">
+                                <label class="floating-label">Subject Line</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Message</label>
+                            <div class="tinymce-container">
+                                <div class="tinymce-toolbar">
+                                    <div class="tinymce-btn-group">
+                                        <button type="button" class="tinymce-btn" title="Bold"><strong>B</strong></button>
+                                        <button type="button" class="tinymce-btn" title="Italic"><em>I</em></button>
+                                        <button type="button" class="tinymce-btn" title="Underline"><u>U</u></button>
+                                    </div>
+                                    
+                                    <div class="tinymce-btn-group">
+                                        <button type="button" class="tinymce-btn" title="Bullet List">•</button>
+                                        <button type="button" class="tinymce-btn" title="Numbered List">1.</button>
+                                    </div>
+                                    
+                                    <div class="tinymce-btn-group">
+                                        <button type="button" class="tinymce-btn" title="Insert Link">🔗</button>
+                                        <button type="button" class="tinymce-btn" title="Insert Table">📊</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="tinymce-editor" contenteditable="true" data-placeholder="Write your message here...">
+                                </div>
+                                
+                                <div class="tinymce-statusbar">
+                                    <span>Path: body</span>
+                                    <div class="resize-handle"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-secondary">Send Email</button>
+                    </div>
+                </div>
+                
+                <!-- Volunteers/Staff Tab -->
+                <div id="volunteers-staff" class="tab-content">
+                    <!-- Current Volunteer Positions FIRST -->
+                    <div class="form-section">
+                        <h2 class="section-title">Current Volunteer Positions</h2>
+                        
+                        <table class="data-grid">
+                            <thead>
+                                <tr>
+                                    <th>Position</th>
+                                    <th>Time</th>
+                                    <th>Description</th>
+                                    <th>Needed</th>
+                                    <th>Assigned</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="position-title">Door Monitor</div>
+                                    </td>
+                                    <td>
+                                        <div class="position-time">6:00 PM - 7:00 PM</div>
+                                    </td>
+                                    <td>Check IDs, welcome members</td>
+                                    <td class="position-needed">2</td>
+                                    <td class="position-assigned">
+                                        <div style="color: var(--color-success);">✓ Jamie Davis</div>
+                                        <div style="color: var(--color-warning);">○ 1 more needed</div>
+                                    </td>
+                                    <td><button class="btn btn-secondary btn-sm">Manage</button></td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        <div class="position-title">Safety Monitor</div>
+                                    </td>
+                                    <td>
+                                        <div class="position-time">7:00 PM - 10:00 PM</div>
+                                    </td>
+                                    <td>Monitor play areas, handle incidents</td>
+                                    <td class="position-needed">3</td>
+                                    <td class="position-assigned">
+                                        <div style="color: var(--color-success);">✓ Sam Singh</div>
+                                        <div style="color: var(--color-success);">✓ Alex Chen</div>
+                                        <div style="color: var(--color-warning);">○ 1 more needed</div>
+                                    </td>
+                                    <td><button class="btn btn-secondary btn-sm">Manage</button></td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        <div class="position-title">Setup Crew</div>
+                                    </td>
+                                    <td>
+                                        <div class="position-time">6:00 PM - 7:00 PM</div>
+                                    </td>
+                                    <td>Arrange furniture, setup equipment</td>
+                                    <td class="position-needed">4</td>
+                                    <td class="position-assigned">
+                                        <div style="color: var(--color-error);">⚠ 4 positions open</div>
+                                    </td>
+                                    <td><button class="btn btn-secondary btn-sm">Manage</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Volunteer Position Management LAST -->
+                    <div class="form-section">
+                        <h2 class="section-title">Volunteer Position Management</h2>
+                        <p class="form-help" style="margin-bottom: var(--space-md);">Define volunteer positions and manage assignments</p>
+                        
+                        <!-- Add New Position -->
+                        <div class="volunteer-position-form">
+                            <h3 style="margin-bottom: var(--space-sm); color: var(--color-burgundy);">Add New Position</h3>
+                            <div class="volunteer-position-grid">
+                                <div class="form-group">
+                                    <div class="floating-input-wrapper">
+                                        <input type="text" class="floating-input" placeholder=" ">
+                                        <label class="floating-label">Position Title</label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="floating-input-wrapper">
+                                        <input type="time" class="floating-input" placeholder=" ">
+                                        <label class="floating-label">Start Time</label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="floating-input-wrapper">
+                                        <input type="time" class="floating-input" placeholder=" ">
+                                        <label class="floating-label">End Time</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label style="display: block; margin-bottom: var(--space-xs); font-family: var(--font-heading); font-weight: 600; color: var(--color-charcoal);">Description</label>
+                                <textarea class="form-input" placeholder="Describe the volunteer duties..." style="min-height: 80px;"></textarea>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: end; gap: var(--space-md);">
+                                <div class="form-group" style="flex: 0 0 auto;">
+                                    <div class="floating-input-wrapper">
+                                        <input type="number" class="floating-input volunteer-number-input" placeholder=" " min="1">
+                                        <label class="floating-label">Number Needed</label>
+                                    </div>
+                                </div>
+                                <button class="add-position-btn">Add Position</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="form-footer">
+                    <button type="button" class="btn btn-secondary">Save as Draft</button>
+                    <button type="submit" class="btn btn-primary">Create Event</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Venue Management Modal -->
+    <div class="modal-overlay" id="venue-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Manage Venues</h3>
+                <button class="close-btn" onclick="closeVenueModal()">&times;</button>
+            </div>
+            
+            <div class="form-section">
+                <h4 style="margin-bottom: var(--space-sm); color: var(--color-burgundy);">Add New Venue</h4>
+                
+                <div class="form-group">
+                    <div class="floating-input-wrapper">
+                        <input type="text" class="floating-input" placeholder=" " required>
+                        <label class="floating-label">Venue Name <span class="required">*</span></label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="floating-input-wrapper">
+                        <input type="text" class="floating-input" placeholder=" " required>
+                        <label class="floating-label">Address <span class="required">*</span></label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <textarea class="form-input" placeholder="Additional directions, parking info, entrance details..." style="min-height: 100px;"></textarea>
+                    <p class="form-help">This information will be included in confirmation emails</p>
+                </div>
+                
+                <button class="btn btn-primary">Add Venue</button>
+            </div>
+            
+            <div class="form-section">
+                <h4 style="margin-bottom: var(--space-sm); color: var(--color-burgundy);">Existing Venues</h4>
+                
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Venue Name</th>
+                            <th>Address</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Salem Community Center</td>
+                            <td>123 Main St, Salem, MA</td>
+                            <td><button class="btn btn-secondary btn-sm">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>Witch City Studio</td>
+                            <td>456 Essex St, Salem, MA</td>
+                            <td><button class="btn btn-secondary btn-sm">Edit</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Global variables for template management
+        let currentlyEditingTemplate = 'confirmation';
+        let availableTemplates = [
+            { id: 'reminder-1week', name: 'Reminder - 1 Week Before', trigger: 'Sent 1 week before event start' },
+            { id: 'waitlist', name: 'Waitlist Notification', trigger: 'Sent when spot opens on waitlist' },
+            { id: 'survey', name: 'Post-Event Survey', trigger: 'Sent 1 day after event ends' },
+            { id: 'schedule-change', name: 'Schedule Change Alert', trigger: 'Sent manually when event details change' }
+        ];
+        
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabId).classList.add('active');
+            
+            // Mark button as active
+            event.target.classList.add('active');
+        }
+        
+        function selectEventType(element, type) {
+            // Remove active from all options
+            document.querySelectorAll('.type-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            // Add active to selected
+            element.classList.add('active');
+        }
+        
+        function selectPricingUnit(element, unit) {
+            document.querySelectorAll('.unit-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            element.classList.add('active');
+            
+            const helpText = document.getElementById('price-help');
+            if (helpText) {
+                helpText.textContent = unit === 'person' ? 'Price per person' : 'Price per couple (2 people)';
+            }
+        }
+        
+        function togglePricingFields() {
+            const pricingType = event.target.value;
+            const pricingOptions = document.getElementById('pricing-options');
+            const fixedPricing = document.getElementById('fixed-pricing');
+            const slidingPricing = document.getElementById('sliding-pricing');
+            
+            if (pricingType === 'free') {
+                pricingOptions.style.display = 'none';
+            } else {
+                pricingOptions.style.display = 'block';
+                
+                if (pricingType === 'fixed') {
+                    fixedPricing.style.display = 'grid';
+                    slidingPricing.style.display = 'none';
+                } else if (pricingType === 'sliding') {
+                    fixedPricing.style.display = 'none';
+                    slidingPricing.style.display = 'grid';
+                }
+            }
+        }
+
+        // New Event Session Matrix Functions
+        function addSession() {
+            const sessionList = document.querySelector('.session-list');
+            const sessionCount = sessionList.children.length + 1;
+            
+            const sessionCard = document.createElement('div');
+            sessionCard.className = 'session-card';
+            sessionCard.innerHTML = `
+                <div class="session-header">
+                    <div class="session-name">Session ${sessionCount}</div>
+                    <button class="btn btn-secondary btn-sm" onclick="removeSession(this)">Remove</button>
+                </div>
+                <div class="session-details">
+                    <div class="form-group">
+                        <div class="floating-input-wrapper">
+                            <input type="date" class="floating-input" placeholder=" ">
+                            <label class="floating-label">Date</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="floating-input-wrapper">
+                            <input type="time" class="floating-input" placeholder=" ">
+                            <label class="floating-label">Start Time</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="floating-input-wrapper">
+                            <input type="number" class="floating-input" placeholder=" " min="1">
+                            <label class="floating-label">Capacity</label>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            sessionList.appendChild(sessionCard);
+        }
+        
+        function removeSession(button) {
+            if (confirm('Are you sure you want to remove this session?')) {
+                button.closest('.session-card').remove();
+            }
+        }
+        
+        function selectTemplate(element, templateType) {
+            // Remove active from all template options
+            document.querySelectorAll('.template-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            // Add active to selected
+            element.classList.add('active');
+            
+            // Here you would typically load the appropriate template configuration
+            console.log('Selected template:', templateType);
+        }
+        
+        function addTicketType() {
+            // This would open a modal or expand a form to create a new ticket type
+            alert('Add Ticket Type functionality would be implemented here');
+        }
+        
+        // NEW EMAIL TEMPLATE MANAGEMENT FUNCTIONS
+        function selectTemplate(cardElement, templateId) {
+            // Remove active class from all template cards
+            document.querySelectorAll('.template-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            
+            // Add active class to selected card
+            cardElement.classList.add('active');
+            
+            // Update the editor section
+            currentlyEditingTemplate = templateId;
+            updateTemplateEditor(templateId);
+        }
+        
+        function removeTemplate(event, templateId) {
+            // Prevent the card click event from firing
+            event.stopPropagation();
+            
+            // Don't allow removing the confirmation template
+            if (templateId === 'confirmation') {
+                alert('Confirmation email is required and cannot be removed.');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to remove this email template from this event?')) {
+                // Remove the template card
+                const templateCard = document.querySelector(`[data-template-id="${templateId}"]`);
+                if (templateCard) {
+                    templateCard.remove();
+                }
+                
+                // Add the template back to the available options
+                addTemplateToDropdown(templateId);
+                
+                // If this was the currently editing template, switch to confirmation
+                if (currentlyEditingTemplate === templateId) {
+                    const confirmationCard = document.querySelector('[data-template-id="confirmation"]');
+                    if (confirmationCard) {
+                        selectTemplate(confirmationCard, 'confirmation');
+                    }
+                }
+            }
+        }
+        
+        function addTemplate() {
+            const dropdown = document.getElementById('available-templates');
+            const selectedValue = dropdown.value;
+            
+            if (!selectedValue) return;
+            
+            // Find the template data
+            const templateData = availableTemplates.find(t => t.id === selectedValue);
+            if (!templateData) return;
+            
+            // Create new template card
+            const templateCardsContainer = document.querySelector('.template-cards-container');
+            const newCard = document.createElement('div');
+            newCard.className = 'template-card';
+            newCard.setAttribute('data-template-id', selectedValue);
+            newCard.onclick = () => selectTemplate(newCard, selectedValue);
+            
+            newCard.innerHTML = `
+                <button class="template-remove-btn" onclick="removeTemplate(event, '${selectedValue}')">×</button>
+                <div class="template-card-name">${templateData.name}</div>
+                <div class="template-card-trigger">${templateData.trigger}</div>
+            `;
+            
+            templateCardsContainer.appendChild(newCard);
+            
+            // Remove from dropdown
+            const optionToRemove = dropdown.querySelector(`option[value="${selectedValue}"]`);
+            if (optionToRemove) {
+                optionToRemove.remove();
+            }
+            
+            // Reset dropdown and disable button
+            dropdown.value = '';
+            document.getElementById('add-template-btn').disabled = true;
+            
+            // Auto-select the newly added template
+            selectTemplate(newCard, selectedValue);
+        }
+        
+        function addTemplateToDropdown(templateId) {
+            const templateData = availableTemplates.find(t => t.id === templateId);
+            if (!templateData) return;
+            
+            const dropdown = document.getElementById('available-templates');
+            const option = document.createElement('option');
+            option.value = templateId;
+            option.textContent = templateData.name;
+            dropdown.appendChild(option);
+        }
+        
+        function updateTemplateEditor(templateId) {
+            const editorHeader = document.querySelector('.currently-editing');
+            const subjectInput = document.querySelector('.template-editor-section .floating-input');
+            const contentEditor = document.querySelector('.template-editor-section .tinymce-editor');
+            
+            // Template data would normally come from the server
+            const templateData = {
+                'confirmation': {
+                    name: 'Confirmation Email',
+                    subject: 'Welcome to {event} - Registration Confirmed!',
+                    content: `<p><strong>Hi {name},</strong></p>
+                            <p>Your registration for <strong>{event}</strong> has been confirmed!</p>
+                            <p><strong>Event Details:</strong></p>
+                            <ul>
+                                <li><strong>Date:</strong> {date}</li>
+                                <li><strong>Time:</strong> {time}</li>
+                                <li><strong>Venue:</strong> {venue}</li>
+                                <li><strong>Address:</strong> {venue_address}</li>
+                            </ul>
+                            <p>We're excited to see you there!</p>
+                            <p>Best regards,<br>WitchCityRope Team</p>`
+                },
+                'reminder-1day': {
+                    name: 'Reminder - 1 Day Before',
+                    subject: 'Tomorrow: {event} at {time}',
+                    content: `<p>Hi {name},</p>
+                            <p>Just a friendly reminder that <strong>{event}</strong> is tomorrow!</p>
+                            <p><strong>Details:</strong></p>
+                            <ul>
+                                <li><strong>Date:</strong> {date}</li>
+                                <li><strong>Time:</strong> {time}</li>
+                                <li><strong>Location:</strong> {venue}</li>
+                            </ul>
+                            <p>See you there!</p>`
+                },
+                'cancellation': {
+                    name: 'Cancellation Notice',
+                    subject: 'Important: {event} has been cancelled',
+                    content: `<p>Dear {name},</p>
+                            <p>We're sorry to inform you that <strong>{event}</strong> scheduled for {date} has been cancelled.</p>
+                            <p>If you purchased a ticket, you will receive a full refund within 3-5 business days.</p>
+                            <p>We apologize for any inconvenience.</p>
+                            <p>Best regards,<br>WitchCityRope Team</p>`
+                }
+            };
+            
+            const template = templateData[templateId] || {
+                name: 'Template Name',
+                subject: 'Subject line...',
+                content: '<p>Email content...</p>'
+            };
+            
+            // Update editor header
+            if (editorHeader) {
+                editorHeader.textContent = `Currently Editing: ${template.name}`;
+            }
+            
+            // Update subject input
+            if (subjectInput) {
+                subjectInput.value = template.subject;
+                subjectInput.classList.add('has-value');
+            }
+            
+            // Update content editor
+            if (contentEditor) {
+                contentEditor.innerHTML = template.content;
+            }
+        }
+        
+        // Event listeners for template management
+        document.addEventListener('DOMContentLoaded', function() {
+            // Enable/disable add template button based on dropdown selection
+            const availableTemplatesDropdown = document.getElementById('available-templates');
+            const addTemplateBtn = document.getElementById('add-template-btn');
+            
+            if (availableTemplatesDropdown && addTemplateBtn) {
+                availableTemplatesDropdown.addEventListener('change', function() {
+                    addTemplateBtn.disabled = !this.value;
+                });
+            }
+            
+            // Initialize with confirmation template selected
+            const confirmationCard = document.querySelector('[data-template-id="confirmation"]');
+            if (confirmationCard) {
+                selectTemplate(confirmationCard, 'confirmation');
+            }
+        });
+        
+        // TinyMCE Editor Functions
+        function formatText(command, value) {
+            document.execCommand(command, false, value);
+        }
+        
+        function insertLink() {
+            const url = prompt('Enter URL:');
+            if (url) {
+                document.execCommand('createLink', false, url);
+            }
+        }
+        
+        function insertTable() {
+            const rows = prompt('Number of rows:', '3');
+            const cols = prompt('Number of columns:', '3');
+            if (rows && cols) {
+                console.log(`Insert ${rows}x${cols} table`);
+            }
+        }
+        
+        function insertImage() {
+            const url = prompt('Enter image URL:');
+            if (url) {
+                document.execCommand('insertImage', false, url);
+            }
+        }
+        
+        function toggleSourceView() {
+            console.log('Toggle source view');
+        }
+        
+        // Floating label behavior
+        document.addEventListener('DOMContentLoaded', function() {
+            const floatingInputs = document.querySelectorAll('.floating-input');
+            
+            floatingInputs.forEach(input => {
+                // Handle existing values
+                if (input.value.trim() !== '') {
+                    input.classList.add('has-value');
+                }
+                
+                input.addEventListener('input', function() {
+                    if (this.value.trim() !== '') {
+                        this.classList.add('has-value');
+                    } else {
+                        this.classList.remove('has-value');
+                    }
+                });
+            });
+        });
+        
+        function openVenueModal() {
+            document.getElementById('venue-modal').style.display = 'flex';
+        }
+        
+        function closeVenueModal() {
+            document.getElementById('venue-modal').style.display = 'none';
+        }
+        
+        // Close modals when clicking outside
+        const venueModal = document.getElementById('venue-modal');
+        if (venueModal) {
+            venueModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeVenueModal();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
