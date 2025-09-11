@@ -47,6 +47,14 @@
 | 2025-09-11 | /docs/functional-areas/events/admin-activation/functional-specification-2025-09-11.md | CREATED | Technical functional specification for Admin Dashboard Events Management activation - details minimal implementation to connect existing assets | Functional Spec Agent admin events activation | ACTIVE | Keep permanent |
 | 2025-09-11 | /session-work/2025-09-11/event-session-matrix-investigation-report.md | CREATED | Comprehensive investigation report confirming Event Session Matrix system is fully implemented - no work was lost in recent merges | Librarian Event Session Matrix investigation | ACTIVE | Keep permanent |
 | 2025-09-11 | /session-work/2025-09-11/authentication-investigation-summary.md | CREATED | Complete analysis of authentication implementation status and methodology - identifies single source of truth for authentication patterns | Librarian authentication investigation | ACTIVE | Keep permanent |
+| 2025-09-11 | /docs/functional-areas/dependencies-management/requirements/business-requirements.md | CREATED | Business requirements document for dependencies management functional area - covers NuGet, npm, security vulnerabilities | Librarian dependencies management setup | ACTIVE | Keep permanent |
+| 2025-09-11 | /docs/functional-areas/dependencies-management/research/package-analysis.md | CREATED | Package analysis framework for security vulnerability assessment and compatibility testing | Librarian dependencies management setup | ACTIVE | Keep permanent |
+| 2025-09-11 | /docs/functional-areas/dependencies-management/implementation/update-procedures.md | CREATED | Comprehensive update procedures for NuGet and npm packages including rollback procedures | Librarian dependencies management setup | ACTIVE | Keep permanent |
+| 2025-09-11 | /docs/functional-areas/dependencies-management/testing/compatibility-tests.md | CREATED | Testing strategy and compatibility matrix for validating dependency updates | Librarian dependencies management setup | ACTIVE | Keep permanent |
+| 2025-09-11 | /docs/functional-areas/dependencies-management/reviews/update-checklist.md | CREATED | Comprehensive review checklist for dependency updates with sign-off requirements | Librarian dependencies management setup | ACTIVE | Keep permanent |
+| 2025-09-11 | /docs/architecture/functional-area-master-index.md | MODIFIED | Added Dependencies Management functional area to master index with appropriate status and description | Librarian master index update | ACTIVE | Keep permanent |
+| 2025-09-11 | /docs/functional-areas/dependencies-management/requirements/nuget-update-requirements-2025-09-11.md | CREATED | Comprehensive business requirements for NuGet package updates - addressing version conflicts, security vulnerabilities, and system stability | Business Requirements Agent NuGet updates | ACTIVE | Keep permanent |
+| 2025-09-11 | /docs/functional-areas/dependencies-management/research/nuget-versions-analysis-2025-09-11.md | CREATED | Comprehensive technology research document analyzing latest NuGet package versions, security updates, compatibility, and migration strategies for WitchCityRope API | Technology Researcher NuGet analysis | ACTIVE | Keep permanent |
 
 ## File Management Guidelines
 
@@ -79,4 +87,7 @@ Each agent must:
 ### File Registry Validation
 - Run monthly audits to verify file registry accuracy
 - Clean up orphaned files not in registry
-- Update status of files that changed in purpose/importance
+- Update status of files that changed in purpose/importance| 2025-09-11 | /test-results/nuget-package-validation-report-2025-09-11.md | CREATED | Comprehensive validation report for NuGet package updates showing 206 compilation errors remain | Test executor NuGet validation | ACTIVE | Keep permanent |
+| 2025-09-11 | /test-results/nuget-validation-summary-2025-09-11.json | CREATED | JSON summary of NuGet validation results for orchestrator consumption showing compilation status and required fixes | Test executor NuGet validation | ACTIVE | Keep permanent |
+| 2025-01-11 | /docs/functional-areas/dependencies-management/nuget-update-completion-report-2025-01-11.md | CREATED | Comprehensive completion report for NuGet package update project - documents all accomplishments, package versions, and success metrics | Librarian NuGet finalization | ACTIVE | Keep permanent |
+| 2025-01-11 | /docs/functional-areas/dependencies-management/test-project-fixes-scope-2025-01-11.md | CREATED | Implementation scope and roadmap for fixing 172 test compilation errors - categorized by type with time estimates and fix strategies | Librarian test fixes planning | ACTIVE | Keep permanent |

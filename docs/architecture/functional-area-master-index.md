@@ -1,6 +1,6 @@
 # Functional Area Master Index
-<!-- Last Updated: 2025-08-23 - Final Cleanup and Documentation Management Complete -->
-<!-- Version: 1.3 -->
+<!-- Last Updated: 2025-09-11 - Added Dependencies Management Functional Area -->
+<!-- Version: 1.4 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -27,6 +27,7 @@ This master index is maintained by the librarian agent to provide quick lookups 
 | **Docker Authentication** | `/docs/functional-areas/docker-authentication/` | Phase 2 Complete - Pending Human Approval | Containerize existing working authentication system (React + .NET API + PostgreSQL) | Phase 2 Design Complete | 2025-08-17 |
 | **Enhancements** | `/docs/functional-areas/enhancements/` | N/A | User interface enhancements and feature improvements | Active | 2025-08-22 |
 | **Browser Testing** | `/docs/functional-areas/browser-testing/` | N/A | Browser automation and testing tools configuration | Active | 2025-08-22 |
+| **Dependencies Management** | `/docs/functional-areas/dependencies-management/` | N/A | Package dependency updates, security vulnerability management, NuGet and npm package compatibility | Planning | 2025-09-11 |
 
 ## Active Development Work
 

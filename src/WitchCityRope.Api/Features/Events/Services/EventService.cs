@@ -648,11 +648,12 @@ public class EventService : IEventService
 
             // Create new session
             var session = new Core.Entities.EventSession(
-                @event,
+                eventId,
                 request.SessionIdentifier,
                 request.Name,
-                request.StartDateTime,
-                request.EndDateTime,
+                request.StartDateTime.Date,
+                request.StartDateTime.TimeOfDay,
+                request.EndDateTime.TimeOfDay,
                 request.Capacity
             );
 
@@ -669,10 +670,10 @@ public class EventService : IEventService
                 EventId = session.EventId,
                 SessionIdentifier = session.SessionIdentifier,
                 Name = session.Name,
-                StartDateTime = session.StartDateTime,
-                EndDateTime = session.EndDateTime,
+                StartDateTime = session.Date.Add(session.StartTime),
+                EndDateTime = session.Date.Add(session.EndTime),
                 Capacity = session.Capacity,
-                IsActive = session.IsActive,
+                IsActive = true,
                 CreatedAt = session.CreatedAt,
                 UpdatedAt = session.UpdatedAt
             };
@@ -698,8 +699,9 @@ public class EventService : IEventService
             // Update session details
             session.UpdateDetails(
                 request.Name,
-                request.StartDateTime,
-                request.EndDateTime,
+                request.StartDateTime.Date,
+                request.StartDateTime.TimeOfDay,
+                request.EndDateTime.TimeOfDay,
                 request.Capacity
             );
 
@@ -712,10 +714,10 @@ public class EventService : IEventService
                 EventId = session.EventId,
                 SessionIdentifier = session.SessionIdentifier,
                 Name = session.Name,
-                StartDateTime = session.StartDateTime,
-                EndDateTime = session.EndDateTime,
+                StartDateTime = session.Date.Add(session.StartTime),
+                EndDateTime = session.Date.Add(session.EndTime),
                 Capacity = session.Capacity,
-                IsActive = session.IsActive,
+                IsActive = true,
                 CreatedAt = session.CreatedAt,
                 UpdatedAt = session.UpdatedAt
             };
@@ -733,18 +735,20 @@ public class EventService : IEventService
         try
         {
             var session = await _dbContext.EventSessions
-                .Include(s => s.TicketTypeInclusions)
                 .FirstOrDefaultAsync(s => s.Id == sessionId);
 
             if (session == null)
                 return (false, "Session not found");
 
             // Check if session is included in any ticket types
-            if (session.TicketTypeInclusions.Any())
+            var hasTicketTypes = await _dbContext.EventTicketTypeSessions
+                .AnyAsync(tts => tts.SessionIdentifier == session.SessionIdentifier);
+            
+            if (hasTicketTypes)
                 return (false, "Cannot delete session that is included in ticket types");
 
-            // Soft delete by deactivating
-            session.Deactivate();
+            // Hard delete the session
+            _dbContext.EventSessions.Remove(session);
             await _dbContext.SaveChangesAsync();
 
             return (true, "Session deleted successfully");
@@ -758,7 +762,7 @@ public class EventService : IEventService
     public async Task<ICollection<Features.Events.Models.EventSessionDto>> GetEventSessionsAsync(Guid eventId)
     {
         var sessions = await _dbContext.EventSessions
-            .Where(s => s.EventId == eventId && s.IsActive)
+            .Where(s => s.EventId == eventId)
             .OrderBy(s => s.SessionIdentifier)
             .Select(s => new Features.Events.Models.EventSessionDto
             {
@@ -766,10 +770,10 @@ public class EventService : IEventService
                 EventId = s.EventId,
                 SessionIdentifier = s.SessionIdentifier,
                 Name = s.Name,
-                StartDateTime = s.StartDateTime,
-                EndDateTime = s.EndDateTime,
+                StartDateTime = s.Date.Add(s.StartTime),
+                EndDateTime = s.Date.Add(s.EndTime),
                 Capacity = s.Capacity,
-                IsActive = s.IsActive,
+                IsActive = true,
                 CreatedAt = s.CreatedAt,
                 UpdatedAt = s.UpdatedAt
             })
@@ -790,7 +794,7 @@ public class EventService : IEventService
         {
             // Validate the event exists and load sessions
             var @event = await _dbContext.Events
-                .Include(e => e.Sessions.Where(s => s.IsActive))
+                .Include(e => e.Sessions)
                 .Include(e => e.TicketTypes)
                 .FirstOrDefaultAsync(e => e.Id == eventId);
 
@@ -814,9 +818,9 @@ public class EventService : IEventService
 
             // Create new ticket type
             var ticketType = new Core.Entities.EventTicketType(
-                @event,
+                eventId,
                 request.Name,
-                request.TicketType,
+                request.Name, // Use name as description for now
                 request.MinPrice,
                 request.MaxPrice,
                 request.QuantityAvailable,
@@ -826,7 +830,7 @@ public class EventService : IEventService
             // Add session inclusions
             foreach (var session in includedSessions)
             {
-                ticketType.AddSessionInclusion(session);
+                ticketType.AddSession(session.SessionIdentifier);
             }
 
             // Add ticket type to event
@@ -855,9 +859,8 @@ public class EventService : IEventService
         try
         {
             var ticketType = await _dbContext.EventTicketTypes
-                .Include(tt => tt.Event.Sessions.Where(s => s.IsActive))
-                .Include(tt => tt.SessionInclusions)
-                    .ThenInclude(si => si.EventSession)
+                .Include(tt => tt.Event.Sessions)
+                .Include(tt => tt.TicketTypeSessions)
                 .FirstOrDefaultAsync(tt => tt.Id == ticketTypeId);
 
             if (ticketType == null)
@@ -878,25 +881,17 @@ public class EventService : IEventService
             // Update ticket type details
             ticketType.UpdateDetails(
                 request.Name,
+                request.Name, // Use name as description
                 request.MinPrice,
-                request.MaxPrice,
-                request.QuantityAvailable,
-                request.SalesEndDateTime
+                request.MaxPrice
             );
+            
+            // Update quantity and sales end date separately
+            ticketType.UpdateQuantityAvailable(request.QuantityAvailable);
+            ticketType.UpdateSalesEndDate(request.SalesEndDateTime);
 
-            // Remove existing session inclusions and add new ones
-            var existingInclusions = ticketType.SessionInclusions.ToList();
-            foreach (var inclusion in existingInclusions)
-            {
-                _dbContext.EventTicketTypeSessions.Remove(inclusion);
-            }
-
-            // Add new session inclusions
-            foreach (var session in includedSessions)
-            {
-                var inclusion = new Core.Entities.EventTicketTypeSession(ticketType, session);
-                _dbContext.EventTicketTypeSessions.Add(inclusion);
-            }
+            // Update included sessions
+            ticketType.UpdateIncludedSessions(includedSessions.Select(s => s.SessionIdentifier));
 
             await _dbContext.SaveChangesAsync();
             await transaction.CommitAsync();
@@ -918,14 +913,16 @@ public class EventService : IEventService
         try
         {
             var ticketType = await _dbContext.EventTicketTypes
-                .Include(tt => tt.Registrations)
                 .FirstOrDefaultAsync(tt => tt.Id == ticketTypeId);
 
             if (ticketType == null)
                 return (false, "Ticket type not found");
 
             // Check if ticket type has confirmed registrations
-            if (ticketType.GetConfirmedRegistrationCount() > 0)
+            var hasRegistrations = await _dbContext.Registrations
+                .AnyAsync(r => r.EventId == ticketType.EventId && r.Status == Core.Enums.RegistrationStatus.Confirmed);
+            
+            if (hasRegistrations)
                 return (false, "Cannot delete ticket type with confirmed registrations");
 
             // Soft delete by deactivating
@@ -943,8 +940,7 @@ public class EventService : IEventService
     public async Task<ICollection<Features.Events.Models.EventTicketTypeDto>> GetEventTicketTypesAsync(Guid eventId)
     {
         var ticketTypes = await _dbContext.EventTicketTypes
-            .Include(tt => tt.SessionInclusions)
-                .ThenInclude(si => si.EventSession)
+            .Include(tt => tt.TicketTypeSessions)
             .Where(tt => tt.EventId == eventId && tt.IsActive)
             .OrderBy(tt => tt.Name)
             .ToListAsync();
@@ -965,9 +961,9 @@ public class EventService : IEventService
         // If sessions not provided, load them
         if (sessions == null)
         {
-            var sessionIds = ticketType.SessionInclusions.Select(si => si.EventSessionId).ToList();
+            var sessionIdentifiers = ticketType.GetIncludedSessionIdentifiers();
             sessions = await _dbContext.EventSessions
-                .Where(s => sessionIds.Contains(s.Id))
+                .Where(s => s.EventId == ticketType.EventId && sessionIdentifiers.Contains(s.SessionIdentifier))
                 .ToListAsync();
         }
 
@@ -976,17 +972,17 @@ public class EventService : IEventService
             Id = ticketType.Id,
             EventId = ticketType.EventId,
             Name = ticketType.Name,
-            TicketType = ticketType.TicketType,
+            TicketType = Core.Enums.TicketTypeEnum.Single, // Default to Single ticket type
             MinPrice = ticketType.MinPrice,
             MaxPrice = ticketType.MaxPrice,
             QuantityAvailable = ticketType.QuantityAvailable,
-            SalesEndDateTime = ticketType.SalesEndDateTime,
+            SalesEndDateTime = ticketType.SalesEndDate, // Correct property name
             IsActive = ticketType.IsActive,
             CreatedAt = ticketType.CreatedAt,
             UpdatedAt = ticketType.UpdatedAt,
             IncludedSessions = sessions.Select(s => s.SessionIdentifier).ToList(),
-            AvailableQuantity = ticketType.GetAvailableQuantity(),
-            SalesOpen = ticketType.AreSalesOpen()
+            AvailableQuantity = ticketType.QuantityAvailable,
+            SalesOpen = ticketType.IsCurrentlyOnSale()
         };
     }
 
