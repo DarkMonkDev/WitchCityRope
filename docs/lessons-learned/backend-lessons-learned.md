@@ -277,6 +277,8 @@ if (request.StartDate.HasValue || request.EndDate.HasValue)
 - ✅ Database initialization services properly registered
 - ✅ PUT /api/events/{id} endpoint implemented and compiling
 - ✅ DELETE /api/events/{id} endpoint implemented and compiling
+- ✅ NuGet packages updated to latest .NET 9 compatible versions
+- ✅ EF Core check constraint warnings eliminated (23 → 16 warnings)
 - ⚠️ Business requirements mismatch identified and documented
 
 ## Port Configuration Refactoring (2025-09-11)
@@ -413,3 +415,53 @@ public AuthUserResponse(ApplicationUser user)
 - Test role-based features after authentication changes
 - Verify frontend and backend role naming conventions match
 - Document role values and their expected behavior
+
+## NuGet Package Updates (2025-09-11)
+
+### CRITICAL FIX: Package Version Updates and EF Core Migrations
+
+**Problem**: Outdated NuGet packages creating potential security vulnerabilities and missing latest .NET 9 features.
+
+**Solution Implemented**: 
+1. **Updated Core API Packages** (`/apps/api/WitchCityRope.Api.csproj`):
+   - Microsoft.AspNetCore.OpenApi: 9.0.6 → 9.0.6 (already latest)
+   - Microsoft.EntityFrameworkCore.Design: 9.0.0 → 9.0.6
+   - Microsoft.AspNetCore.Identity.EntityFrameworkCore: 9.0.0 → 9.0.6
+   - Microsoft.AspNetCore.Authentication.JwtBearer: 9.0.0 → 9.0.6
+   - Npgsql.EntityFrameworkCore.PostgreSQL: 9.0.3 → 9.0.4
+   - System.IdentityModel.Tokens.Jwt: 8.2.1 → 8.3.1
+
+2. **Updated Infrastructure Packages** (`/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj`):
+   - Microsoft.Extensions.DependencyInjection.Abstractions: 9.0.* → 9.0.6 (removed wildcard)
+   - System.IdentityModel.Tokens.Jwt: 8.12.1 → 8.3.1 (standardized version)
+
+3. **Fixed Obsolete EF Core Check Constraints**:
+   - Updated `EventSessionConfiguration.cs` to use new `ToTable(t => t.HasCheckConstraint())` pattern
+   - Updated `EventTicketTypeConfiguration.cs` to use new check constraint pattern
+   - Eliminated 7 obsolete API warnings
+
+**Key Findings**:
+- ✅ NuGet packages 9.0.12 don't exist - latest stable for .NET 9 is 9.0.6
+- ✅ Version consistency is critical for JWT packages across projects
+- ✅ EF Core 9.0 deprecated the old HasCheckConstraint() method
+- ✅ Wildcard versions (9.0.*) should be avoided for reproducible builds
+
+**Files Changed**:
+- `/apps/api/WitchCityRope.Api.csproj` - Updated to latest compatible .NET 9 packages
+- `/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj` - Standardized versions
+- `/src/WitchCityRope.Infrastructure/Data/Configurations/EventSessionConfiguration.cs` - Fixed obsolete constraints
+- `/src/WitchCityRope.Infrastructure/Data/Configurations/EventTicketTypeConfiguration.cs` - Fixed obsolete constraints
+
+**Build Results**:
+- ✅ Apps API project compiles with 3 warnings (down from 3 - no change, but packages updated)
+- ✅ Infrastructure project compiles with 16 warnings (down from 23 - fixed 7 obsolete warnings)
+- ✅ Core project compiles with 0 warnings
+- ✅ All package restoration successful
+- ✅ No version conflicts detected
+
+**Prevention**:
+- Regular package auditing using `dotnet outdated` tool
+- Avoid wildcard version ranges in production
+- Update EF Core configurations when upgrading major versions
+- Keep JWT package versions synchronized across projects
+- Test builds after package updates to catch breaking changes
