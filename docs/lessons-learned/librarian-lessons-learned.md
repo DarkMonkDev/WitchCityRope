@@ -202,3 +202,11 @@ When given a Working Directory like:
 **Completion tracking consistency** - Use specific completion markers (✅ COMPLETE) across all documentation with test percentages and limitation documentation.
 
 **File registry discipline** - Log completion summaries and progress updates immediately to prevent orphaned completion documentation.
+
+## Testing Documentation Enhancement Patterns
+
+**Health check requirement documentation** - When adding new mandatory procedures, update ALL related testing documents with consistent messaging and cross-references.
+
+**Consistent messaging across files** - Use exact same command examples and language across testing-prerequisites.md, TESTING.md, and lessons-learned files.
+
+**Documentation impact tracking** - Update multiple files simultaneously to prevent inconsistent information between related documents.
