@@ -44,26 +44,12 @@ else
 fi
 
 # ================================================
-# 2. CHECK GIT BRANCH AND WORKTREE STATUS
+# 2. CHECK GIT BRANCH STATUS
 # ================================================
-echo -e "${BLUE}[2/8] Checking git branch and worktree status...${NC}"
+echo -e "${BLUE}[2/8] Checking git branch status...${NC}"
 CURRENT_BRANCH=$(git branch --show-current)
-IS_WORKTREE=$(git rev-parse --git-common-dir 2>/dev/null)
 
 echo "  Current branch: $CURRENT_BRANCH"
-
-if [[ "$IS_WORKTREE" != *".git" ]]; then
-    echo -e "${YELLOW}⚠ WARNING: You are in a worktree${NC}"
-    echo "  Worktree path: $(git rev-parse --show-toplevel)"
-    echo -e "${YELLOW}  CRITICAL: Docker cannot see worktree changes!${NC}"
-    WARNINGS=$((WARNINGS + 1))
-fi
-
-# List all worktrees
-echo "  Active worktrees:"
-git worktree list | while read -r line; do
-    echo "    - $line"
-done
 
 # ================================================
 # 3. CHECK FOR UNCOMMITTED CHANGES
@@ -94,13 +80,6 @@ echo -e "${BLUE}[4/8] Checking Docker status...${NC}"
 if docker compose ps 2>/dev/null | grep -q "Up"; then
     echo -e "${GREEN}✓ Docker services running${NC}"
     
-    # Check if Docker is using main or worktree
-    if [ "$IS_WORKTREE" != *".git" ] && docker compose ps 2>/dev/null | grep -q "Up"; then
-        echo -e "${RED}✗ CRITICAL ERROR: Docker running but you're in a worktree!${NC}"
-        echo -e "${RED}  Docker can only see main branch files!${NC}"
-        echo -e "${RED}  Your changes will NOT be visible in the running app!${NC}"
-        ERRORS=$((ERRORS + 1))
-    fi
 else
     echo "  Docker services not running (run ./dev.sh to start)"
 fi
@@ -187,10 +166,6 @@ elif [ "$ERRORS" -eq 0 ]; then
     echo ""
     echo "Recommended actions:"
     
-    if [ "$IS_WORKTREE" != *".git" ]; then
-        echo "  • Consider switching to main branch for Docker work"
-        echo "  • Or create a feature branch and push changes"
-    fi
     
     if [ "$STAGED_COUNT" -gt 0 ] || [ "$UNSTAGED_COUNT" -gt 0 ]; then
         echo "  • Review uncommitted changes with: git status"
@@ -218,10 +193,6 @@ else
         echo "  • Change to correct directory: cd $EXPECTED_DIR"
     fi
     
-    if [ "$IS_WORKTREE" != *".git" ] && docker compose ps 2>/dev/null | grep -q "Up"; then
-        echo "  • CRITICAL: Stop Docker or switch to main branch"
-        echo "    Docker cannot see worktree changes!"
-    fi
     
     if [ "$ROOT_DOCS_COUNT" -gt 0 ]; then
         echo "  • Move files from /docs/ root to appropriate subdirectories"

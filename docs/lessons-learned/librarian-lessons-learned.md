@@ -2,30 +2,6 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
-## 🚨 CRITICAL: WORKTREE COMPLIANCE - MANDATORY 🚨
-
-### ALL WORK MUST BE IN THE SPECIFIED WORKTREE DIRECTORY
-
-**VIOLATION = CATASTROPHIC FAILURE**
-
-When given a Working Directory like:
-`/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management`
-
-**YOU MUST:**
-- Write ALL files to paths within the worktree directory
-- NEVER write to `/home/chad/repos/witchcityrope-react/` main repository
-- ALWAYS use the full worktree path in file operations
-- VERIFY you're in the correct directory before ANY file operation
-
-**Example:**
-- ✅ CORRECT: `/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/docs/...`
-- ❌ WRONG: `/home/chad/repos/witchcityrope-react/docs/...`
-
-**Why This Matters:**
-- Worktrees isolate feature branches
-- Writing to main repo pollutes other branches
-- Can cause merge conflicts and lost work
-- BREAKS the entire development workflow
 
 ## CRITICAL: Document Structure Prevention
 
@@ -39,7 +15,7 @@ When given a Working Directory like:
 
 **Never create files in project root** - Only README, PROGRESS, ARCHITECTURE, CLAUDE belong there.
 
-**Never create files in worktree root** - ALL files must go in proper subdirectories under docs/.
+**Never create files in project root** - ALL files must go in proper subdirectories under docs/.
 
 **Use functional areas structure** - All feature documentation goes in `/docs/functional-areas/[feature]/`.
 
@@ -50,13 +26,13 @@ When given a Working Directory like:
 **When extracting versions or creating analysis files:**
 - **Wireframe versions** → `/docs/functional-areas/[feature]/new-work/[date-feature]/design/wireframes/`
 - **Analysis documents** → `/docs/functional-areas/[feature]/new-work/[date-feature]/requirements/`
-- **NEVER in root** → Not in `/` or `/home/chad/repos/witchcityrope-react/.worktrees/[branch]/`
+- **NEVER in root** → Not in project root directory
 - **ALWAYS in proper subfolder** → Follow the established structure without exception
 
 **Example for Events Management:**
 - ❌ WRONG: `/volunteers-tab-version-1.html`
-- ❌ WRONG: `/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/volunteers-tab-version-1.html`
-- ✅ CORRECT: `/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/docs/functional-areas/events/new-work/2025-08-24-events-management/design/wireframes/volunteers-tab-version-1.html`
+- ❌ WRONG: Files in project root directory
+- ✅ CORRECT: `/docs/functional-areas/events/new-work/2025-08-24-events-management/design/wireframes/volunteers-tab-version-1.html`
 
 ## Content Quality Standards
 
@@ -210,3 +186,18 @@ When given a Working Directory like:
 **Consistent messaging across files** - Use exact same command examples and language across testing-prerequisites.md, TESTING.md, and lessons-learned files.
 
 **Documentation impact tracking** - Update multiple files simultaneously to prevent inconsistent information between related documents.
+
+## Comprehensive Technology Removal Pattern
+
+**Problem**: Worktree technology completely removed from project but references scattered across 20+ files.
+**Solution**: Systematic deletion of ALL references - documentation, scripts, guides, functional areas, gitignore entries, and validation checks.
+
+**Successful Removal Checklist**:
+- Archive decision documents (don't delete - historical context needed)
+- Delete implementation scripts and utilities
+- Remove guides and setup documentation  
+- Delete entire functional areas built around the technology
+- Clean configuration files (.gitignore, validation scripts)
+- Update file registry with comprehensive deletion log
+
+**Pattern**: When technology is deemed harmful (worktrees broke Docker compatibility), remove ALL traces to prevent future confusion or accidental re-adoption.

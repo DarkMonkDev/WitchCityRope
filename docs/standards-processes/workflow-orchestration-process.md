@@ -109,20 +109,20 @@ This document is THE authoritative source for the WitchCityRope AI workflow orch
 
 #### Critical Finalization Steps
 1. **Documentation Completion**
-2. **MANDATORY WORKTREE CLEANUP** (Git-Manager delegation)
+2. **Git Cleanup and Branch Management** (Git-Manager delegation)
 3. **Final Quality Validation**
 
-#### Mandatory Worktree Cleanup Process
+#### Mandatory Git Cleanup Process
 - **IMMEDIATE**: After PR merge confirmation
 - **DELEGATION**: Git-manager agent performs cleanup
 - **VERIFICATION**: Cleanup completion required before workflow end
-- **NO EXCEPTIONS**: Zero orphaned worktrees allowed
+- **NO EXCEPTIONS**: Clean repository state required
 
 #### Deliverables
 - Updated main PROGRESS.md
 - Feature documentation complete
 - Lessons learned captured
-- **VERIFIED WORKTREE CLEANUP** (mandatory)
+- **VERIFIED GIT CLEANUP** (mandatory)
 - Improvement suggestions documented
 - Final workflow summary: `/docs/functional-areas/[feature]/reviews/workflow-completion-summary.md`
 

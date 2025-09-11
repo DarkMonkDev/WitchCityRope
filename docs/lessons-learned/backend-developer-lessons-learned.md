@@ -364,18 +364,6 @@ Events API returning incomplete data due to routing conflicts between EventsCont
 
 ---
 
-## 🚨 CRITICAL: WORKTREE WORKFLOW MANDATORY 🚨
-
-**All development MUST happen in git worktrees, NOT main repository**
-- Working directory MUST be: `/home/chad/repos/witchcityrope-worktrees/[feature-name]`
-- NEVER work in: `/home/chad/repos/witchcityrope-react`
-- Verify worktree context before ANY operations
-
-### Worktree Verification Checklist
-- [ ] Run `pwd` to confirm in worktree directory
-- [ ] Check for .env file presence
-- [ ] Verify node_modules exists
-- [ ] Confirm database connections work
 
 ## 🚨 CRITICAL: FILE PLACEMENT RULES - ZERO TOLERANCE 🚨
 

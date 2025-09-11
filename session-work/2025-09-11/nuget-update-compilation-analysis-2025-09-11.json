@@ -1,0 +1,157 @@
+{
+  "test_execution_summary": {
+    "date": "2025-09-11T12:04:00Z",
+    "executor": "test-executor",
+    "context": "Post-NuGet package update verification",
+    "status": "CRITICAL_FAILURE",
+    "environment_health": "HEALTHY",
+    "compilation_status": "FAILED"
+  },
+  "environment_status": {
+    "docker_containers": {
+      "witchcity-api": "healthy",
+      "witchcity-postgres": "healthy"
+    },
+    "health_endpoints": {
+      "api_health": "PASS - http://localhost:5655/health returns 200",
+      "swagger": "PASS - Swagger UI available"
+    },
+    "container_logs": "No errors detected in recent logs"
+  },
+  "compilation_results": {
+    "total_errors": 21,
+    "total_warnings": 136,
+    "build_status": "FAILED",
+    "affected_files": [
+      "/src/WitchCityRope.Api/Features/Events/Services/EventService.cs"
+    ]
+  },
+  "error_analysis": {
+    "root_cause": "Service code using incorrect property names that don't match current entity models",
+    "error_categories": [
+      {
+        "type": "MISSING_PROPERTIES",
+        "entity": "EventSession",
+        "issues": [
+          "Code uses 'StartDateTime' property but entity has 'Date' and 'StartTime' separately",
+          "Code uses 'EndDateTime' property but entity has 'Date' and 'EndTime' separately", 
+          "Code uses 'IsActive' property but entity doesn't have this property",
+          "Code uses 'TicketTypeInclusions' property but entity doesn't have this navigation property"
+        ],
+        "count": 8
+      },
+      {
+        "type": "MISSING_METHODS",
+        "entity": "EventTicketType", 
+        "issues": [
+          "Code calls 'AddSessionInclusion()' but entity has 'AddSession()'",
+          "Code accesses 'SessionInclusions' but entity has 'TicketTypeSessions'",
+          "Code accesses 'Registrations' property that doesn't exist",
+          "Code calls 'GetAvailableQuantity()' method that doesn't exist",
+          "Code calls 'AreSalesOpen()' but entity has 'IsCurrentlyOnSale()'"
+        ],
+        "count": 9
+      },
+      {
+        "type": "CONSTRUCTOR_SIGNATURE", 
+        "entity": "EventSession",
+        "issues": [
+          "Code not passing required 'capacity' parameter to EventSession constructor",
+          "Code not passing required 'capacity' parameter to UpdateDetails method"
+        ],
+        "count": 2
+      },
+      {
+        "type": "TYPE_CONVERSION",
+        "issues": [
+          "Cannot convert TicketTypeEnum to string"
+        ],
+        "count": 2
+      }
+    ]
+  },
+  "detailed_property_mapping": {
+    "EventSession": {
+      "code_expects": [
+        "StartDateTime (DateTime)",
+        "EndDateTime (DateTime)", 
+        "IsActive (bool)",
+        "TicketTypeInclusions (collection)"
+      ],
+      "entity_provides": [
+        "Date (DateTime) + StartTime (TimeSpan)",
+        "Date (DateTime) + EndTime (TimeSpan)",
+        "No IsActive property - always active when entity exists",
+        "No direct navigation to ticket types"
+      ]
+    },
+    "EventTicketType": {
+      "code_expects": [
+        "AddSessionInclusion()",
+        "SessionInclusions",
+        "Registrations", 
+        "TicketType",
+        "SalesEndDateTime",
+        "GetAvailableQuantity()",
+        "AreSalesOpen()"
+      ],
+      "entity_provides": [
+        "AddSession()",
+        "TicketTypeSessions",
+        "No registrations navigation",
+        "Name property (not TicketType)",
+        "SalesEndDate",
+        "No quantity tracking method",
+        "IsCurrentlyOnSale()"
+      ]
+    }
+  },
+  "recommended_fixes": [
+    {
+      "priority": "CRITICAL",
+      "category": "Property Access Corrections",
+      "actions": [
+        "Replace session.StartDateTime with DateTime.Combine(session.Date, session.StartTime)",
+        "Replace session.EndDateTime with DateTime.Combine(session.Date, session.EndTime)",
+        "Remove session.IsActive references or implement logic differently",
+        "Update EventSession constructor calls to include capacity parameter"
+      ]
+    },
+    {
+      "priority": "CRITICAL", 
+      "category": "EventTicketType Method Corrections",
+      "actions": [
+        "Replace AddSessionInclusion() calls with AddSession()",
+        "Replace SessionInclusions with TicketTypeSessions",
+        "Implement registration count tracking separately",
+        "Replace AreSalesOpen() with IsCurrentlyOnSale()",
+        "Replace GetAvailableQuantity() with custom implementation"
+      ]
+    },
+    {
+      "priority": "HIGH",
+      "category": "Constructor Updates",
+      "actions": [
+        "Add capacity parameter to EventSession constructor calls",
+        "Add capacity parameter to UpdateDetails method calls"
+      ]
+    }
+  ],
+  "testing_phases_attempted": {
+    "phase_1_environment_checks": "PASSED",
+    "phase_2_compilation": "FAILED - Cannot proceed with runtime testing",
+    "phase_3_unit_tests": "SKIPPED - Compilation failed",
+    "phase_4_integration_tests": "SKIPPED - Compilation failed", 
+    "phase_5_e2e_tests": "SKIPPED - Compilation failed"
+  },
+  "next_actions": {
+    "immediate": "ESCALATE to backend-developer for Entity/Service alignment fixes",
+    "after_fixes": "Re-run full test suite including runtime verification",
+    "validation": "Verify no additional breaking changes in NuGet package updates"
+  },
+  "artifacts_generated": [
+    "/test-results/nuget-update-test-execution-report-2025-09-11.md",
+    "/test-results/nuget-update-compilation-analysis-2025-09-11.json"
+  ],
+  "conclusion": "NuGet package updates did not directly cause breaking changes. The issue is that the service layer code is using incorrect property names and method signatures that don't match the current entity models. This suggests the service code may have been written for a different version of the entities or contains copy-paste errors."
+}
