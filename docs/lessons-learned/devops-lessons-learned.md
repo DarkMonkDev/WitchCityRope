@@ -54,6 +54,47 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 ## Git Operations
 
+### Critical Fix Cherry-Pick Strategy Pattern (SEPTEMBER 2025) ✅
+
+**SUCCESS PATTERN**: Strategic cherry-picking of critical fixes with conflict resolution
+```bash
+# 1. Secure current work first
+git add . && git commit -m "checkpoint: Save current work before cherry-picking critical fixes"
+
+# 2. Cherry-pick fixes in order of criticality
+git cherry-pick [security-fix-hash]     # Security fixes first
+git cherry-pick [auth-fix-hash]         # Authentication fixes second
+# Skip complex fixes that cause massive conflicts
+
+# 3. For commits with too many conflicts, manually extract critical changes
+# Rather than struggling with binary file conflicts and build artifacts
+```
+
+**Result**: Successfully applied critical fixes to feature branch
+- ✅ Security fix: .env.production removal (API key exposure prevention)
+- ✅ Authentication fix: Critical login bug preventing user access
+- ✅ Manual extraction: Missing GET /api/events/{id} endpoint
+- ❌ Skipped: Complex commits with 100+ binary file conflicts
+
+**Key Success Factors for Cherry-Pick Pattern**:
+- Always commit current work before starting cherry-pick operations
+- Prioritize fixes by criticality: Security → Authentication → Core functionality
+- When conflicts involve many binary files (bin/obj), abort and extract manually
+- Focus on source code fixes, ignore build artifact conflicts
+- Test that build works after applying fixes
+- Document which fixes were applied and which were skipped
+
+**When to Use Manual Extraction vs Cherry-Pick**:
+- **Cherry-pick**: Small, focused commits with minimal conflicts
+- **Manual extraction**: Large commits affecting many files, especially with binary conflicts
+- **Skip entirely**: Infrastructure changes that would require extensive conflict resolution
+
+**Cherry-Pick Conflict Resolution Strategy**:
+1. **Binary files (bin/obj)**: Always ignore these conflicts, reset them out
+2. **Source code conflicts**: Resolve carefully, prioritizing current feature work
+3. **Documentation conflicts**: Merge valuable content, skip outdated references
+4. **Too many conflicts (50+)**: Abort and extract specific changes manually
+
 ### Script Organization and File Placement Enforcement Pattern (AUGUST 2025) ✅
 
 **SUCCESS PATTERN**: Complete script organization with comprehensive developer agent zero-tolerance file placement enforcement
