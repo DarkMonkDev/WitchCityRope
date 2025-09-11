@@ -104,6 +104,20 @@ When given a Working Directory like:
 
 **PREVENTION**: ALWAYS check functional area master index and existing codebase before any development work. Use search tools to find existing implementations.
 
+## Event Session Matrix Investigation Pattern
+
+**Problem**: User concerned about "lost work" in Event Session Matrix system.
+**Solution**: Systematic investigation revealed COMPLETE implementation exists - backend entities, frontend components, API endpoints, migrations, and tests all present.
+
+**Investigation Method**:
+1. Search by file patterns (*session*, *ticket*, EventSessionMatrix)
+2. Check git history for relevant commits
+3. Verify database migrations applied
+4. Confirm frontend-backend integration
+5. Validate testing infrastructure
+
+**Key Finding**: No work was lost - comprehensive Event Session Matrix implementation exists and is functional.
+
 ## Critical Pattern Recognition
 
 **Lessons learned files getting bloated** - Keep them concise and actionable, avoid turning into project documentation or implementation guides. Target 50-75 lines maximum per file.
@@ -133,6 +147,23 @@ When given a Working Directory like:
 **Problem**: Agents don't understand difference between lessons learned and progress reports.
 **Solution**: Enforce strict template with validation checklist for orchestrator reviews.
 
+**Problem**: Workflow documentation conflicts between phases - UI Design shown in wrong phase.
+**Solution**: Always verify workflow sequence consistency across all documents when fixing workflow issues.
+
+## 🚨 AUTHENTICATION METHODOLOGY CONFUSION PREVENTION 🚨
+
+**Problem**: Agents confused about "correct" authentication approach, asking for guidance when clear documentation exists.
+**Solution**: ALWAYS check `/docs/functional-areas/authentication/AUTHENTICATION_MILESTONE_COMPLETE.md` FIRST - 572 lines of definitive authentication implementation.
+
+**Problem**: Agents might look for Blazor authentication patterns which cause "Headers are read-only" errors.
+**Solution**: ALL Blazor authentication patterns archived in `/docs/_archive/authentication-blazor-legacy-2025-08-19/` - React patterns are ONLY valid approach.
+
+**Problem**: Authentication "confusion" when complete working implementation exists and is documented.
+**Solution**: Functional area master index shows Authentication status as "COMPLETE" - investigate before declaring confusion.
+
+**Root Cause**: Authentication system migrated from Blazor to React in August 2025 with complete milestone documentation, but agents may not check existing documentation before investigating.
+**Prevention**: Check master index status and milestone documentation before investigating "missing" implementations.
+
 ## Progress Update Patterns
 
 **Update both main and functional area progress files** - When major milestones complete, update both /PROGRESS.md and the specific functional area progress file to maintain consistency.
@@ -144,3 +175,18 @@ When given a Working Directory like:
 **Mark completed phases with checkmarks and progress percentages** - Use visual indicators (✅ COMPLETE, 100%) to show clear completion status.
 
 **Create implementation plans as deliverables** - When testing reveals gaps, document comprehensive implementation strategies with time estimates and pre-written tests.
+
+## Critical Workflow Documentation Conflicts
+
+**Problem**: Workflow documents contained conflicting sequences for when UI Design should happen.
+**Solution**: UI Design MUST be first in Phase 2, before all other design work including Functional Specification.
+
+**Immediate fix required**: Phase 1 should ONLY contain Business Requirements with human review, Phase 2 starts with UI Design first.
+
+## Documentation Completion Excellence
+
+**Documentation completion workflow** - Always follow 4-step completion process: PROGRESS.md (visibility), file registry (tracking), completion summary (handoff), master index (navigation).
+
+**Completion tracking consistency** - Use specific completion markers (✅ COMPLETE) across all documentation with test percentages and limitation documentation.
+
+**File registry discipline** - Log completion summaries and progress updates immediately to prevent orphaned completion documentation.

@@ -1,18 +1,18 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Playwright configuration for Design System v7 testing
+ * Playwright configuration for Admin Events Management testing
  */
 export default defineConfig({
-  testDir: '.', // Look for tests in current directory
+  testDir: './tests/playwright', // Look for tests in tests/playwright directory
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: [
     ['list'],
-    ['json', { outputFile: './test-results/playwright-results.json' }],
-    ['html', { outputFolder: './test-results/playwright-report' }]
+    ['json', { outputFile: './test-results/test-results.json' }],
+    ['html', { outputFolder: './test-results/html-report' }]
   ],
   use: {
     baseURL: process.env.VITE_BASE_URL || `http://localhost:${process.env.VITE_PORT || 5173}`,

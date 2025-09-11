@@ -68,21 +68,6 @@ public class EventsController : ControllerBase
         return Ok(response);
     }
 
-    /// <summary>
-    /// Get a specific event by ID
-    /// </summary>
-    [HttpGet("{id}")]
-    public async Task<ActionResult<WitchCityRope.Core.DTOs.EventDto>> GetEvent(Guid id)
-    {
-        var eventDetails = await _eventService.GetEventByIdAsync(id);
-        
-        if (eventDetails == null)
-        {
-            return NotFound($"Event with ID {id} not found");
-        }
-        
-        return Ok(eventDetails);
-    }
 
     /// <summary>
     /// Register for an event

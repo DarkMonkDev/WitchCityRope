@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Features.Events.DTOs;
+using WitchCityRope.Api.Models;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
@@ -108,6 +109,42 @@ public static class EventsManagementEndpoints
             .Produces(204)
             .Produces(400)
             .Produces(401)
+            .Produces(404)
+            .Produces(500);
+
+        // PUT /api/events/{eventId} - Update event
+        group.MapPut("/events/{eventId:guid}", UpdateEventAsync)
+            .RequireAuthorization()
+            .WithName("UpdateEvent")
+            .WithTags("Events", "Management")
+            .WithOpenApi(operation =>
+            {
+                operation.Summary = "Update event";
+                operation.Description = "Updates an existing event's basic details. Only organizers and administrators can update events.";
+                return operation;
+            })
+            .Produces<EventDetailsDto>(200)
+            .Produces(400)
+            .Produces(401)
+            .Produces(403)
+            .Produces(404)
+            .Produces(500);
+
+        // DELETE /api/events/{eventId} - Delete event
+        group.MapDelete("/events/{eventId:guid}", DeleteEventAsync)
+            .RequireAuthorization()
+            .WithName("DeleteEvent")
+            .WithTags("Events", "Management")
+            .WithOpenApi(operation =>
+            {
+                operation.Summary = "Delete event";
+                operation.Description = "Deletes an event. Only organizers and administrators can delete events. Events with active registrations cannot be deleted.";
+                return operation;
+            })
+            .Produces(204)
+            .Produces(400)
+            .Produces(401)
+            .Produces(403)
             .Produces(404)
             .Produces(500);
 
@@ -311,5 +348,110 @@ public static class EventsManagementEndpoints
             detail: error,
             statusCode: 500,
             title: "Failed to cancel RSVP");
+    }
+
+    /// <summary>
+    /// Updates an existing event
+    /// </summary>
+    private static async Task<IResult> UpdateEventAsync(
+        [FromRoute] Guid eventId,
+        [FromBody] UpdateEventRequest request,
+        EventsManagementService eventsService,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        // Get user ID from claims
+        var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+        {
+            return Results.Problem(
+                detail: "Invalid or missing user authentication",
+                statusCode: 401,
+                title: "Authentication error");
+        }
+
+        var (success, response, error) = await eventsService.UpdateEventAsync(
+            eventId, request, userId, cancellationToken);
+
+        if (success && response != null)
+        {
+            return Results.Ok(response);
+        }
+
+        // Handle specific error cases
+        if (error.Contains("not found"))
+        {
+            return Results.NotFound(new { error });
+        }
+
+        if (error.Contains("not authorized"))
+        {
+            return Results.Problem(
+                detail: error,
+                statusCode: 403,
+                title: "Authorization error");
+        }
+
+        if (error.Contains("Cannot update") || error.Contains("Cannot reduce"))
+        {
+            return Results.BadRequest(new { error });
+        }
+
+        return Results.Problem(
+            detail: error,
+            statusCode: 500,
+            title: "Failed to update event");
+    }
+
+    /// <summary>
+    /// Deletes an event
+    /// </summary>
+    private static async Task<IResult> DeleteEventAsync(
+        [FromRoute] Guid eventId,
+        EventsManagementService eventsService,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        // Get user ID from claims
+        var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+        {
+            return Results.Problem(
+                detail: "Invalid or missing user authentication",
+                statusCode: 401,
+                title: "Authentication error");
+        }
+
+        var (success, error) = await eventsService.DeleteEventAsync(
+            eventId, userId, cancellationToken);
+
+        if (success)
+        {
+            return Results.NoContent();
+        }
+
+        // Handle specific error cases
+        if (error.Contains("not found"))
+        {
+            return Results.NotFound(new { error });
+        }
+
+        if (error.Contains("not authorized"))
+        {
+            return Results.Problem(
+                detail: error,
+                statusCode: 403,
+                title: "Authorization error");
+        }
+
+        if (error.Contains("Cannot delete") || error.Contains("active attendance"))
+        {
+            return Results.BadRequest(new { error });
+        }
+
+        return Results.Problem(
+            detail: error,
+            statusCode: 500,
+            title: "Failed to delete event");
     }
 }

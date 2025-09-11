@@ -260,8 +260,8 @@ namespace WitchCityRope.Core.Entities
             if (ticketType.EventId != eventToRegister.Id)
                 throw new DomainException("Ticket type must belong to the event being registered for");
             
-            if (!ticketType.HasAvailableTickets())
-                throw new DomainException("Selected ticket type is not available");
+            if (!ticketType.IsCurrentlyOnSale())
+                throw new DomainException("Selected ticket type is not currently on sale");
         }
         
         private string GenerateConfirmationCode()

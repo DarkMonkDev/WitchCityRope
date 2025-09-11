@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using WitchCityRope.Api.Features.Events.DTOs;
 using WitchCityRope.Core.Entities;
 using WitchCityRope.Core.Enums;
+using WitchCityRope.Core.ValueObjects;
 using WitchCityRope.Infrastructure.Data;
 using System;
 using System.Collections.Generic;
@@ -578,6 +579,233 @@ public class EventsManagementService
         {
             _logger.LogError(ex, "Error cancelling RSVP for user {UserId} and event {EventId}", userId, eventId);
             return (false, "Failed to cancel RSVP");
+        }
+    }
+
+    #endregion
+
+    #region Event CRUD Operations
+
+    /// <summary>
+    /// Updates an existing event with new details
+    /// Business Rules:
+    /// - Only event organizers or administrators can update events
+    /// - Cannot update past events
+    /// - Cannot reduce capacity below current registrations
+    /// - Published events have restricted fields that can be changed
+    /// </summary>
+    public async Task<(bool Success, EventDetailsDto? Response, string Error)> UpdateEventAsync(
+        Guid eventId,
+        WitchCityRope.Api.Models.UpdateEventRequest request,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Updating event {EventId} by user {UserId}", eventId, userId);
+
+            // Get event with organizers and sessions for validation
+            var eventEntity = await _context.Events
+                .Include(e => e.Organizers)
+                .Include(e => e.Sessions)
+                .Include(e => e.TicketTypes)
+                    .ThenInclude(tt => tt.TicketTypeSessions)
+                .Include(e => e.Registrations)
+                .FirstOrDefaultAsync(e => e.Id == eventId, cancellationToken);
+
+            if (eventEntity == null)
+            {
+                _logger.LogWarning("Event not found: eventId={EventId}", eventId);
+                return (false, null, "Event not found");
+            }
+
+            // Get user for authorization
+            var user = await _context.Users.FindAsync(new object[] { userId }, cancellationToken);
+            if (user == null)
+            {
+                _logger.LogWarning("User not found: userId={UserId}", userId);
+                return (false, null, "User not found");
+            }
+
+            // Authorization check: user must be organizer or admin
+            if (!eventEntity.Organizers.Any(o => o.Id == userId) && user.Role != UserRole.Administrator)
+            {
+                _logger.LogWarning("User {UserId} not authorized to update event {EventId}", userId, eventId);
+                return (false, null, "Not authorized to update this event");
+            }
+
+            // Business rule: Cannot update past events
+            if (eventEntity.StartDate < DateTime.UtcNow)
+            {
+                _logger.LogWarning("Attempted to update past event {EventId}", eventId);
+                return (false, null, "Cannot update past events");
+            }
+
+            // Business rule: Cannot reduce capacity below current attendance (only if capacity is being updated)
+            var currentAttendance = eventEntity.GetCurrentAttendeeCount();
+            if (request.Capacity.HasValue && request.Capacity.Value < currentAttendance)
+            {
+                _logger.LogWarning("Attempted to reduce capacity below current attendance for event {EventId}. Current: {Current}, Requested: {Requested}", 
+                    eventId, currentAttendance, request.Capacity.Value);
+                return (false, null, $"Cannot reduce capacity to {request.Capacity}. Current attendance is {currentAttendance}");
+            }
+
+            // Update event properties using available methods - only update non-null values
+            if (!string.IsNullOrWhiteSpace(request.Title) || !string.IsNullOrWhiteSpace(request.Description) || !string.IsNullOrWhiteSpace(request.Location))
+            {
+                var title = !string.IsNullOrWhiteSpace(request.Title) ? request.Title : eventEntity.Title;
+                var description = !string.IsNullOrWhiteSpace(request.Description) ? request.Description : eventEntity.Description;
+                var location = !string.IsNullOrWhiteSpace(request.Location) ? request.Location : eventEntity.Location;
+                
+                eventEntity.UpdateDetails(title, description, location);
+            }
+            
+            if (request.StartDate.HasValue || request.EndDate.HasValue)
+            {
+                var startDate = request.StartDate?.ToUniversalTime() ?? eventEntity.StartDate;
+                var endDate = request.EndDate?.ToUniversalTime() ?? eventEntity.EndDate;
+                
+                eventEntity.UpdateDates(startDate, endDate);
+            }
+            
+            if (request.Capacity.HasValue)
+            {
+                eventEntity.UpdateCapacity(request.Capacity.Value);
+            }
+            
+            // TODO: EventType property has private setter - need to add UpdateEventType method to Event entity
+            // For now, EventType updates are not supported in this MVP version
+
+            // Update published status if changed
+            if (request.IsPublished.HasValue && request.IsPublished.Value != eventEntity.IsPublished)
+            {
+                if (request.IsPublished.Value)
+                {
+                    eventEntity.Publish();
+                }
+                else
+                {
+                    eventEntity.Unpublish();
+                }
+            }
+
+            // Update pricing if needed (basic price for events without ticket types)
+            if (!eventEntity.TicketTypes.Any(tt => tt.IsActive) && request.Price.HasValue && request.Price.Value > 0)
+            {
+                eventEntity.UpdatePricingTiers(new[] { Money.Create(request.Price.Value) });
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Successfully updated event {EventId}", eventId);
+
+            // Return updated event details
+            var updatedDetails = await GetEventDetailsAsync(eventId, cancellationToken);
+            return updatedDetails;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating event {EventId} by user {UserId}", eventId, userId);
+            return (false, null, "Failed to update event");
+        }
+    }
+
+    /// <summary>
+    /// Deletes an event
+    /// Business Rules:
+    /// - Only event organizers or administrators can delete events
+    /// - Cannot delete past events
+    /// - Cannot delete events with confirmed registrations (must be cancelled first)
+    /// - Published events should be unpublished before deletion
+    /// </summary>
+    public async Task<(bool Success, string Error)> DeleteEventAsync(
+        Guid eventId,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Deleting event {EventId} by user {UserId}", eventId, userId);
+
+            // Get event with organizers and registrations for validation
+            var eventEntity = await _context.Events
+                .Include(e => e.Organizers)
+                .Include(e => e.Registrations)
+                .Include(e => e.RSVPs)
+                .Include(e => e.Sessions)
+                .Include(e => e.TicketTypes)
+                .FirstOrDefaultAsync(e => e.Id == eventId, cancellationToken);
+
+            if (eventEntity == null)
+            {
+                _logger.LogWarning("Event not found: eventId={EventId}", eventId);
+                return (false, "Event not found");
+            }
+
+            // Get user for authorization
+            var user = await _context.Users.FindAsync(new object[] { userId }, cancellationToken);
+            if (user == null)
+            {
+                _logger.LogWarning("User not found: userId={UserId}", userId);
+                return (false, "User not found");
+            }
+
+            // Authorization check: user must be organizer or admin
+            if (!eventEntity.Organizers.Any(o => o.Id == userId) && user.Role != UserRole.Administrator)
+            {
+                _logger.LogWarning("User {UserId} not authorized to delete event {EventId}", userId, eventId);
+                return (false, "Not authorized to delete this event");
+            }
+
+            // Business rule: Cannot delete past events
+            if (eventEntity.StartDate < DateTime.UtcNow)
+            {
+                _logger.LogWarning("Attempted to delete past event {EventId}", eventId);
+                return (false, "Cannot delete past events");
+            }
+
+            // Business rule: Cannot delete events with active registrations or RSVPs
+            var activeRegistrations = eventEntity.Registrations.Count(r => r.Status == RegistrationStatus.Confirmed);
+            var activeRSVPs = eventEntity.RSVPs.Count(r => r.Status == RSVPStatus.Confirmed);
+
+            if (activeRegistrations > 0 || activeRSVPs > 0)
+            {
+                _logger.LogWarning("Attempted to delete event {EventId} with active attendance. Registrations: {Registrations}, RSVPs: {RSVPs}", 
+                    eventId, activeRegistrations, activeRSVPs);
+                return (false, $"Cannot delete event with active attendance. Please cancel all registrations ({activeRegistrations}) and RSVPs ({activeRSVPs}) first.");
+            }
+
+            // Unpublish if published
+            if (eventEntity.IsPublished)
+            {
+                eventEntity.Unpublish();
+                await _context.SaveChangesAsync(cancellationToken);
+                _logger.LogInformation("Unpublished event {EventId} before deletion", eventId);
+            }
+
+            // Delete related entities (cascade should handle this, but being explicit)
+            _context.EventSessions.RemoveRange(eventEntity.Sessions);
+            _context.EventTicketTypes.RemoveRange(eventEntity.TicketTypes);
+            
+            // Remove cancelled registrations and RSVPs
+            var cancelledRegistrations = eventEntity.Registrations.Where(r => r.Status == RegistrationStatus.Cancelled);
+            var cancelledRSVPs = eventEntity.RSVPs.Where(r => r.Status == RSVPStatus.Cancelled);
+            
+            _context.Registrations.RemoveRange(cancelledRegistrations);
+            _context.RSVPs.RemoveRange(cancelledRSVPs);
+
+            // Delete the event
+            _context.Events.Remove(eventEntity);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Successfully deleted event {EventId} by user {UserId}", eventId, userId);
+
+            return (true, string.Empty);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting event {EventId} by user {UserId}", eventId, userId);
+            return (false, "Failed to delete event");
         }
     }
 

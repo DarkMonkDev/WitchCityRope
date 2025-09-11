@@ -188,6 +188,83 @@ services.AddHostedService<DatabaseInitializationService>();
 
 **Prevention**: Always verify that new services are properly registered in DI container after creation.
 
+## Events Management API CRUD Implementation (2025-09-11)
+
+### UPDATE and DELETE Endpoints Successfully Implemented
+**Implemented**: Missing PUT and DELETE endpoints for Events Management API
+
+**Key Components Added**:
+1. **PUT /api/events/{id} Endpoint** (`EventsManagementEndpoints.cs`)
+   - Updates existing events with business rule validation
+   - Only organizers and administrators can update events
+   - Cannot update past events or reduce capacity below current attendance
+   - Handles nullable properties from existing `UpdateEventRequest` model
+
+2. **DELETE /api/events/{id} Endpoint** (`EventsManagementEndpoints.cs`)
+   - Deletes events with comprehensive safety checks
+   - Cannot delete events with active registrations or RSVPs
+   - Automatically unpublishes events before deletion
+   - Cascades deletion to related sessions and ticket types
+
+3. **Service Layer Methods** (`EventsManagementService.cs`)
+   - `UpdateEventAsync()`: Full event update with validation
+   - `DeleteEventAsync()`: Safe event deletion with business rules
+   - Integrated with existing Event Session Matrix system
+   - Follows tuple return pattern from lessons learned
+
+**Business Rules Implemented**:
+- ✅ Only event organizers or administrators can modify events
+- ✅ Cannot update or delete past events
+- ✅ Cannot reduce capacity below current attendance
+- ✅ Cannot delete events with active registrations or RSVPs
+- ✅ Events are unpublished before deletion for safety
+- ✅ Supports partial updates (only non-null properties updated)
+
+**Technical Decisions**:
+- **Reused Existing DTOs**: Used existing `UpdateEventRequest` from Models namespace instead of creating duplicate
+- **Nullable Property Handling**: Implemented proper null-checking for partial updates
+- **Business Rule Enforcement**: Domain model enforces event modification restrictions
+- **Authorization**: JWT-based authentication required for both endpoints
+- **Error Handling**: Specific HTTP status codes for different failure scenarios
+
+**Integration Points**:
+- ✅ Works with Event Session Matrix (sessions and ticket types)
+- ✅ Respects RSVP and Registration systems for capacity validation
+- ✅ Integrates with existing authentication middleware
+- ✅ Follows existing API patterns and conventions
+
+**Files Changed**:
+- `/src/WitchCityRope.Api/Features/Events/Endpoints/EventsManagementEndpoints.cs`
+- `/src/WitchCityRope.Api/Features/Events/Services/EventsManagementService.cs`
+- `/src/WitchCityRope.Core/Entities/Registration.cs` (fixed missing method issue)
+
+**Frontend Integration**:
+- ✅ Endpoints match expected routes for `useUpdateEvent` and `useDeleteEvent` mutations
+- ✅ HTTP methods (PUT/DELETE) align with REST conventions
+- ✅ Response formats compatible with existing frontend expectations
+
+**Limitations**:
+- ⚠️ EventType updates not supported (property has private setter - requires domain model enhancement)
+- ⚠️ Complex session/ticket type updates should use dedicated endpoints for those resources
+
+**Pattern for Future Development**:
+```csharp
+// ✅ CORRECT - Use business rule validation in service layer
+var currentAttendance = eventEntity.GetCurrentAttendeeCount();
+if (request.Capacity.HasValue && request.Capacity.Value < currentAttendance)
+{
+    return (false, null, $"Cannot reduce capacity to {request.Capacity}. Current attendance is {currentAttendance}");
+}
+
+// ✅ CORRECT - Handle nullable properties for partial updates
+if (request.StartDate.HasValue || request.EndDate.HasValue)
+{
+    var startDate = request.StartDate?.ToUniversalTime() ?? eventEntity.StartDate;
+    var endDate = request.EndDate?.ToUniversalTime() ?? eventEntity.EndDate;
+    eventEntity.UpdateDates(startDate, endDate);
+}
+```
+
 ## Success Metrics
 
 - ✅ All 16 tables created successfully
@@ -198,6 +275,8 @@ services.AddHostedService<DatabaseInitializationService>();
 - ✅ RSVP system fully implemented with business rules
 - ✅ 17 tables now (added RSVPs table)
 - ✅ Database initialization services properly registered
+- ✅ PUT /api/events/{id} endpoint implemented and compiling
+- ✅ DELETE /api/events/{id} endpoint implemented and compiling
 - ⚠️ Business requirements mismatch identified and documented
 
 ## Port Configuration Refactoring (2025-09-11)

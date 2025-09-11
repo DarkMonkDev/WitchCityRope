@@ -1,6 +1,6 @@
 # Workflow Orchestration Process - Single Source of Truth
 
-<!-- Last Updated: 2025-08-17 -->
+<!-- Last Updated: 2025-09-11 -->
 <!-- Version: 1.0 -->
 <!-- Owner: Orchestrator Agent -->
 <!-- Status: Active -->
@@ -13,37 +13,38 @@ This document is THE authoritative source for the WitchCityRope AI workflow orch
 
 ### Phase 1: Requirements & Planning
 **Quality Gate Target**: 95% completion
-**Mandatory Human Review**: After Business Requirements (BEFORE Functional Specification)
+**Mandatory Human Review**: After Business Requirements (BEFORE any design work)
 
 #### Phase Sequence
 1. **Business Requirements** (business-requirements agent)
    - Platform analysis and user needs assessment
+   - User stories and acceptance criteria
    - **MANDATORY HUMAN REVIEW CHECKPOINT** - MUST PAUSE for approval
-2. **Functional Specification** (ONLY after BR approval)
-3. **UI Design** (ui-designer agent) - if UI involved
-   - **MANDATORY HUMAN REVIEW CHECKPOINT** - MUST PAUSE after UI design
+   - **CRITICAL**: NO other work until approval received
 
 #### Deliverables
 - Business requirements document: `/docs/functional-areas/[feature]/requirements/business-requirements.md`
-- Functional specification: `/docs/functional-areas/[feature]/requirements/functional-specification.md`
-- UI wireframes (if applicable): `/docs/functional-areas/[feature]/design/ui-wireframes.md`
 - Phase 1 review document: `/docs/functional-areas/[feature]/reviews/phase1-requirements-review.md`
+
+**NOTE**: Functional Specification and UI Design are moved to Phase 2 for proper sequencing.
 
 ### Phase 2: Design & Architecture
 **Quality Gate Target**: 90% completion
-**MANDATORY SEQUENCING**: UI Design FIRST, then other designs
+**MANDATORY SEQUENCING**: UI Design FIRST, then all other designs
 
 #### Phase Sequence (CRITICAL ORDER)
-1. **UI Design** (ui-designer agent) - FIRST PRIORITY
-   - Create visual design and wireframes
+1. **UI Design** (ui-designer agent) - ABSOLUTE FIRST PRIORITY
+   - Create visual design and wireframes based on approved business requirements
    - **MANDATORY HUMAN REVIEW CHECKPOINT** - MUST PAUSE after UI design
-2. **Post-UI Approval**: Other design work may proceed
-   - **Functional Specification updates** (if needed based on UI)
-   - **Database design** (database-designer agent)
-   - **API design** (api-designer agent) - planned
-   - **Technical architecture** (blazor-architect agent) - planned
+   - **CRITICAL**: NO other design work until UI approval received
 
-**Rationale**: UI design changes can influence technical designs, so it should come first.
+2. **Post-UI Approval**: All other design work may proceed
+   - **Functional Specification** (business-requirements agent) - based on approved UI
+   - **Database design** (database-designer agent) - informed by UI data needs
+   - **API design** (api-designer agent) - planned
+   - **Technical architecture** (react-developer agent) - informed by UI patterns
+
+**Rationale**: UI design decisions fundamentally inform all technical specifications. User interface patterns determine data models, API contracts, and technical architecture. Starting with UI ensures all subsequent design work is aligned with user experience requirements.
 
 #### Agent Coordination
 - ui-designer: UI/UX specifications (MUST BE COMPLETED FIRST)
@@ -54,8 +55,9 @@ This document is THE authoritative source for the WitchCityRope AI workflow orch
 #### Deliverables
 - UI design specifications: `/docs/functional-areas/[feature]/design/ui-design.md` (FIRST)
 - UI design review document: `/docs/functional-areas/[feature]/reviews/ui-design-review.md` (HUMAN REVIEW)
-- Database schema: `/docs/functional-areas/[feature]/design/database-design.md`
-- Technical architecture: `/docs/functional-areas/[feature]/design/technical-design.md`
+- Functional specification: `/docs/functional-areas/[feature]/requirements/functional-specification.md` (after UI approval)
+- Database schema: `/docs/functional-areas/[feature]/design/database-design.md` (after UI approval)
+- Technical architecture: `/docs/functional-areas/[feature]/design/technical-design.md` (after UI approval)
 - Phase 2 review document: `/docs/functional-areas/[feature]/reviews/phase2-design-review.md`
 
 ### Phase 3: Implementation
@@ -134,11 +136,11 @@ This document is THE authoritative source for the WitchCityRope AI workflow orch
 
 ### 2. After UI Design (CRITICAL)
 - **MUST PAUSE**: Wait for explicit human approval  
-- **BEFORE**: Other design work (database, API, technical)
-- **BEFORE**: Functional specification updates (may be needed based on UI)
+- **BEFORE**: ALL other design work (functional specification, database, API, technical)
+- **BEFORE**: Any implementation planning
 - **Review Document**: UI design review with mockup approval
 - **Approval Required**: UI/UX Stakeholder or Product Manager
-- **Impact**: UI changes can influence technical requirements and designs
+- **Impact**: UI decisions fundamentally shape all technical specifications and architecture
 
 ### 3. After Vertical Slice (CRITICAL)
 - **MUST PAUSE**: Wait for explicit human approval

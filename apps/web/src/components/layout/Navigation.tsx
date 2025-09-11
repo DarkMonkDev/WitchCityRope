@@ -1,36 +1,25 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { Group, Button, Box } from '@mantine/core';
-import { useUser, useIsAuthenticated, useAuthActions } from '../../stores/authStore';
-import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom'
+import { Group, Button, Box } from '@mantine/core'
+import { useUser, useIsAuthenticated } from '../../stores/authStore'
+import { useEffect, useState } from 'react'
 
 /**
  * Navigation Component - Main header navigation
  * Matches the exact wireframe design with logo, nav items, and login button
  */
 export const Navigation: React.FC = () => {
-  const user = useUser();
-  const isAuthenticated = useIsAuthenticated();
-  const { logout } = useAuthActions();
-  const navigate = useNavigate();
-  const [isScrolled, setIsScrolled] = useState(false);
+  const user = useUser()
+  const isAuthenticated = useIsAuthenticated()
+  const [isScrolled, setIsScrolled] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 100);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      logout();
-      navigate('/');
-    } catch (error) {
-      console.error('Logout failed:', error);
+      setIsScrolled(window.scrollY > 100)
     }
-  };
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   return (
     <Box
@@ -74,7 +63,35 @@ export const Navigation: React.FC = () => {
       </Box>
 
       {/* Navigation Items */}
-      <Group gap="var(--space-xl)" style={{ alignItems: 'center', marginRight: '30px' }} className="nav">
+      <Group
+        gap="var(--space-xl)"
+        style={{ alignItems: 'center', marginRight: '30px' }}
+        className="nav"
+      >
+        {/* Admin link - only for administrators */}
+        {/* TODO: Backend needs to return user.roles - using email check as temporary workaround */}
+        {(user?.roles?.includes('Admin') || user?.email === 'admin@witchcityrope.com') && (
+          <Box
+            component={Link}
+            to="/admin"
+            data-testid="link-admin"
+            style={{
+              color: 'var(--color-charcoal)',
+              textDecoration: 'none',
+              fontFamily: 'var(--font-heading)',
+              fontWeight: 500,
+              fontSize: '15px',
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+              transition: 'all 0.3s ease',
+              position: 'relative',
+            }}
+            className="nav-underline-animation"
+          >
+            Admin
+          </Box>
+        )}
+
         <Box
           component={Link}
           to="/events"
@@ -133,38 +150,18 @@ export const Navigation: React.FC = () => {
           Resources
         </Box>
 
-        {/* Login/User Section */}
+        {/* Dashboard CTA / Login Button */}
         {isAuthenticated && user ? (
-          <Group gap="var(--space-md)">
-            <Box
-              component={Link}
-              to="/dashboard"
-              data-testid="avatar-user"
-              style={{
-                color: 'var(--color-charcoal)',
-                textDecoration: 'none',
-                fontFamily: 'var(--font-heading)',
-                fontSize: '14px',
-                fontWeight: 500,
-              }}
-            >
-              Welcome, {user.sceneName}
-            </Box>
-            <Box
-              component="button"
-              data-testid="button-logout"
-              onClick={handleLogout}
-              className="btn btn-primary-alt"
-            >
-              Logout
-            </Box>
-          </Group>
-        ) : (
           <Box
             component={Link}
-            to="/login"
+            to="/dashboard"
+            data-testid="link-dashboard"
             className="btn btn-primary"
           >
+            Dashboard
+          </Box>
+        ) : (
+          <Box component={Link} to="/login" className="btn btn-primary">
             Login
           </Box>
         )}
@@ -177,5 +174,5 @@ export const Navigation: React.FC = () => {
         <Box component="span" />
       </Box>
     </Box>
-  );
-};
+  )
+}

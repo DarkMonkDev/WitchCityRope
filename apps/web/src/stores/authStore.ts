@@ -210,9 +210,19 @@ export const useUserSceneName = () => useAuthStore((state) => state.user?.sceneN
 export const useToken = () => useAuthStore((state) => state.actions.getToken());
 export const useIsTokenExpired = () => useAuthStore((state) => state.actions.isTokenExpired());
 
-// DEPRECATED: Use individual selectors above to prevent infinite loops
-// This composite hook creates new objects on every render - DO NOT USE
-// export const useAuth = () => ({ ... })
+// Composite hook for components that need multiple auth values
+// Note: This creates new objects on every render, use individual selectors when possible
+export const useAuth = () => {
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isLoading = useAuthStore((state) => state.isLoading);
+  
+  return {
+    user,
+    isAuthenticated,
+    isLoading
+  };
+};
 
 // Export the store itself for testing
 export { useAuthStore };

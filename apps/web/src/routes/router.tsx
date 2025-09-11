@@ -30,6 +30,8 @@ import { authLoader } from './loaders/authLoader';
 import { EventsListPage } from '../pages/events/EventsListPage';
 import { EventDetailPage } from '../pages/events/EventDetailPage';
 import { AdminEventsPage } from '../pages/admin/AdminEventsPage';
+import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage';
+import { TestPage } from '../pages/TestPage';
 
 /**
  * React Router v7 configuration following validated patterns
@@ -45,6 +47,10 @@ export const router = createBrowserRouter([
       { 
         index: true, 
         element: <HomePage /> 
+      },
+      {
+        path: "test",
+        element: <TestPage />
       },
       { 
         path: "login", 
@@ -129,6 +135,11 @@ export const router = createBrowserRouter([
       },
       
       // Admin routes - authentication and admin role required
+      {
+        path: "admin",
+        element: <AdminDashboardPage />,
+        loader: authLoader
+      },
       {
         path: "admin/events",
         element: <AdminEventsPage />,
