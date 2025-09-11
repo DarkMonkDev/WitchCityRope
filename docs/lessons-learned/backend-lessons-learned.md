@@ -199,3 +199,74 @@ services.AddHostedService<DatabaseInitializationService>();
 - ✅ 17 tables now (added RSVPs table)
 - ✅ Database initialization services properly registered
 - ⚠️ Business requirements mismatch identified and documented
+
+## Port Configuration Refactoring (2025-09-11)
+
+### CRITICAL ISSUE: Hard-coded Port References Throughout Codebase
+**Problem**: Multiple port configuration issues causing repeated deployment and testing failures:
+- authService.ts used port 5653 instead of configured 5655
+- EventsList.tsx had hard-coded port 5655
+- Test files mixed ports 5653, 5655, 5173, and 8080 inconsistently
+- Playwright tests had hard-coded URLs throughout
+- vite.config.ts had hard-coded fallback ports
+
+**Root Cause**: Lack of centralized environment variable management led to port configuration drift across development sessions.
+
+**Solution Implemented**: 
+1. **Created centralized API configuration** (`/apps/web/src/config/api.ts`)
+   - Single source of truth for API base URL
+   - Environment variable driven with proper fallbacks
+   - Helper functions for consistent URL construction
+   - Request wrapper with default configuration
+
+2. **Updated Environment Variable Structure**:
+   ```bash
+   # Development
+   VITE_API_BASE_URL=http://localhost:5655
+   VITE_PORT=5173
+   VITE_HMR_PORT=24679
+   VITE_DB_PORT=5433
+   VITE_TEST_SERVER_PORT=8080
+   ```
+
+3. **Updated Core Components**:
+   - authService.ts: Now uses `apiRequest()` and `apiConfig.endpoints`
+   - EventsList.tsx: Uses centralized `getApiBaseUrl()`
+   - vite.config.ts: Uses environment variables for all port configuration
+
+4. **Created Test Configuration** (`/apps/web/src/test/config/testConfig.ts`)
+   - Environment-aware test URLs
+   - Consistent test credentials
+   - Timeout management for CI vs local development
+
+**Files Changed**:
+- `/apps/web/.env.template` - Template for all environments
+- `/apps/web/.env.development` - Updated with full port configuration
+- `/apps/web/.env.staging` - New staging environment configuration
+- `/apps/web/.env.production` - New production environment configuration
+- `/apps/web/src/config/api.ts` - Centralized API configuration
+- `/apps/web/src/services/authService.ts` - Updated to use centralized config
+- `/apps/web/src/components/EventsList.tsx` - Updated to use centralized config
+- `/apps/web/vite.config.ts` - Environment variable driven port configuration
+- `/apps/web/src/test/config/testConfig.ts` - Test environment configuration
+
+**Remaining Work**: 
+- 39 test files still need updating to use testConfig.urls
+- Mock handlers need to use environment variables
+- Playwright tests need testConfig integration
+
+**Pattern for Future Development**:
+```typescript
+// ✅ CORRECT - Use centralized configuration
+import { apiRequest, apiConfig } from '../config/api'
+const response = await apiRequest(apiConfig.endpoints.events.list)
+
+// ❌ WRONG - Hard-coded URLs
+const response = await fetch('http://localhost:5655/api/events')
+```
+
+**Prevention**: 
+- All new API calls MUST use `apiRequest()` or `getApiUrl()`
+- All new tests MUST use `testConfig.urls`
+- Environment variables MUST be used for all port references
+- Regular audit of hard-coded localhost references

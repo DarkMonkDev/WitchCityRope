@@ -8,8 +8,15 @@
     "build": "tsc && vite build",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "test": "vitest",
-    "test:e2e": "playwright test"
+    "test": "NODE_OPTIONS='--max-old-space-size=2048' vitest",
+    "test:e2e": "NODE_OPTIONS='--max-old-space-size=2048' playwright test",
+    "test:e2e:headed": "NODE_OPTIONS='--max-old-space-size=2048' playwright test --headed",
+    "test:e2e:debug": "NODE_OPTIONS='--max-old-space-size=2048' playwright test --debug",
+    "test:safe": "./scripts/monitor-test-memory.sh vitest",
+    "test:e2e:safe": "./scripts/monitor-test-memory.sh playwright",
+    "test:all:safe": "./scripts/monitor-test-memory.sh all",
+    "test:cleanup": "./scripts/cleanup-test-processes.sh",
+    "test:verify": "./scripts/verify-test-config.sh"
   },
   "dependencies": {
     "@chakra-ui/react": "^3.24.2",

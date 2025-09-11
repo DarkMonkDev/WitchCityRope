@@ -8,7 +8,7 @@ async function checkApiHealth() {
     console.log('📡 Checking API availability...');
     
     try {
-        const response = await fetch('http://localhost:5653/health');
+        const response = await fetch('http://localhost:5655/health');
         if (!response.ok) {
             throw new Error(`API health check failed: ${response.status}`);
         }
@@ -38,7 +38,7 @@ async function generateTypes() {
     
     const swaggerSource = useTestFile 
         ? path.join(__dirname, '../test-swagger.json')
-        : 'http://localhost:5653/swagger/v1/swagger.json';
+        : 'http://localhost:5655/swagger/v1/swagger.json';
     
     const outputPath = path.join(__dirname, '../src/generated/api-types.ts');
     
@@ -172,7 +172,7 @@ import type {
   ApiError
 } from './api-helpers';
 
-const API_BASE_URL = process.env.VITE_API_BASE_URL || 'http://localhost:5653';
+const API_BASE_URL = process.env.VITE_API_BASE_URL || 'http://localhost:5655';
 
 class ApiClient {
   private baseUrl: string;

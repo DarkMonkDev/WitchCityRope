@@ -7,7 +7,7 @@ import { api } from '../api/client';
  * 
  * This page verifies that:
  * 1. MSW is disabled (we get real API responses)
- * 2. React app connects to real API at localhost:5653
+ * 2. React app connects to real API at configured port (VITE_API_BASE_URL)
  * 3. Real API validation and error responses work
  */
 export function ApiConnectionTest() {
@@ -74,7 +74,7 @@ export function ApiConnectionTest() {
     }
     
     addResult(`API Base URL: ${api.defaults.baseURL}`);
-    addResult('If MSW is disabled, all requests above should hit the real API at localhost:5653');
+    addResult(`If MSW is disabled, all requests above should hit the real API at ${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5655'}`);
     addResult('If MSW is enabled, responses would be from the mock handlers');
   };
 
@@ -134,7 +134,7 @@ export function ApiConnectionTest() {
             • Health check should succeed<br/>
             • Protected endpoint should return 401 (Unauthorized)<br/>
             • Login should fail with real API validation error<br/>
-            • All responses should come from localhost:5653 (real API)
+            • All responses should come from the configured API URL (real API)
           </Text>
         </Alert>
       </Card>

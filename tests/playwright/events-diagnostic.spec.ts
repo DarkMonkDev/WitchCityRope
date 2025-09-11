@@ -47,7 +47,7 @@ test.describe('Events Page Diagnostic', () => {
     console.log('🚀 Navigating to events page...');
     
     // Navigate to events page
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     
     console.log('⏳ Waiting for page to stabilize...');
     

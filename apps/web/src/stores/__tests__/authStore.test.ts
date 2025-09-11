@@ -2,6 +2,12 @@ import { describe, it, expect, beforeEach, vi, MockedFunction } from 'vitest';
 import { useAuthStore } from '../authStore';
 import type { UserDto } from '@witchcityrope/shared-types';
 
+// Environment-based API URL - NO MORE HARD-CODED PORTS
+const getApiBaseUrl = () => {
+  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5655'
+}
+const API_BASE_URL = getApiBaseUrl()
+
 const mockFetch = vi.fn() as MockedFunction<typeof fetch>;
 
 // Mock JWT token data
@@ -173,7 +179,7 @@ describe('AuthStore', () => {
       const { http, HttpResponse } = await import('msw');
       
       server.use(
-        http.get('http://localhost:5651/api/auth/user', () => {
+        http.get(`${API_BASE_URL}/api/auth/user`, () => {
           return new HttpResponse(null, { status: 401 })
         })
       );
@@ -193,7 +199,7 @@ describe('AuthStore', () => {
       const { http, HttpResponse } = await import('msw');
       
       server.use(
-        http.get('http://localhost:5651/api/auth/user', () => {
+        http.get(`${API_BASE_URL}/api/auth/user`, () => {
           return HttpResponse.error()
         })
       );

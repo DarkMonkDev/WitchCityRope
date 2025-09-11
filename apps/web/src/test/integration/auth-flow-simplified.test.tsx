@@ -6,6 +6,12 @@ import { server } from '../setup'
 import { useAuthStore } from '../../stores/authStore'
 import { useLogin, useLogout } from '../../features/auth/api/mutations'
 
+// Environment-based API URL - NO MORE HARD-CODED PORTS
+const getApiBaseUrl = () => {
+  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5655'
+}
+const API_BASE_URL = getApiBaseUrl()
+
 // Mock global fetch for auth store calls
 const mockFetch = vi.fn()
 
@@ -132,7 +138,7 @@ describe('Authentication Flow Integration Tests', () => {
     it('should handle login failure without updating store', async () => {
       // Override MSW handler for failed login
       server.use(
-        http.post('http://localhost:5653/api/auth/login', () => {
+        http.post(`${API_BASE_URL}/api/Auth/login`, () => {
           return new HttpResponse('Invalid credentials', { status: 401 })
         })
       )
@@ -204,7 +210,7 @@ describe('Authentication Flow Integration Tests', () => {
     it('should clear store even if logout API fails', async () => {
       // Override MSW handler for failed logout
       server.use(
-        http.post('http://localhost:5653/api/auth/logout', () => {
+        http.post(`${API_BASE_URL}/api/Auth/logout`, () => {
           return new HttpResponse('Server error', { status: 500 })
         })
       )
@@ -291,7 +297,7 @@ describe('Authentication Flow Integration Tests', () => {
       })
       
       server.use(
-        http.post('http://localhost:5653/api/auth/login', loginHandler)
+        http.post(`${API_BASE_URL}/api/Auth/login`, loginHandler)
       )
 
       const { result } = renderHook(() => useLogin(), {
@@ -338,7 +344,7 @@ describe('Authentication Flow Integration Tests', () => {
     it.skip('should calculate permissions for multiple roles', async () => {
       // Override MSW handler to return user with multiple roles
       server.use(
-        http.post('http://localhost:5653/api/auth/login', async () => {
+        http.post(`${API_BASE_URL}/api/Auth/login`, async () => {
           return HttpResponse.json({
             user: {
               id: '1',
@@ -446,7 +452,11 @@ describe('Authentication Flow Integration Tests', () => {
 
       const authState = useAuthStore.getState()
       expect(authState.lastAuthCheck).toBeInstanceOf(Date)
-      expect(authState.lastAuthCheck?.getTime()).toBeGreaterThanOrEqual(beforeLogin.getTime())
+      // Handle case where lastAuthCheck might be a string from localStorage
+      const lastCheckTime = typeof authState.lastAuthCheck === 'string' 
+        ? new Date(authState.lastAuthCheck).getTime()
+        : authState.lastAuthCheck?.getTime() || 0;
+      expect(lastCheckTime).toBeGreaterThanOrEqual(beforeLogin.getTime())
     })
 
     it('should clear lastAuthCheck on logout', () => {

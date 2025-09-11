@@ -7,7 +7,7 @@ interface AuthState {
   user: UserDto | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  lastAuthCheck: Date | null;
+  lastAuthCheck: Date | string | null; // Can be string when loaded from storage
   token: string | null;
   tokenExpiresAt: Date | null;
 }
@@ -82,7 +82,11 @@ const useAuthStore = create<AuthStore>()(
             
             // Prevent repeated auth checks within a short time period
             if (currentState.lastAuthCheck) {
-              const timeSinceLastCheck = Date.now() - currentState.lastAuthCheck.getTime();
+              // Handle case where lastAuthCheck might be a string from localStorage
+              const lastCheckTime = typeof currentState.lastAuthCheck === 'string' 
+                ? new Date(currentState.lastAuthCheck).getTime()
+                : currentState.lastAuthCheck.getTime();
+              const timeSinceLastCheck = Date.now() - lastCheckTime;
               if (timeSinceLastCheck < 5000) { // 5 seconds cooldown
                 console.log('🔍 Auth check skipped - recent check within 5 seconds');
                 return;

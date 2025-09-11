@@ -27,8 +27,8 @@ import { RootErrorBoundary } from '../components/errors/RootErrorBoundary';
 import { authLoader } from './loaders/authLoader';
 
 // Events system pages
-import { PublicEventsPage } from '../pages/events/PublicEventsPage';
-import { EventDetailsPage } from '../pages/events/EventDetailsPage';
+import { EventsListPage } from '../pages/events/EventsListPage';
+import { EventDetailPage } from '../pages/events/EventDetailPage';
 import { AdminEventsPage } from '../pages/admin/AdminEventsPage';
 
 /**
@@ -58,11 +58,11 @@ export const router = createBrowserRouter([
       // Events system routes
       {
         path: "events",
-        element: <PublicEventsPage />
+        element: <EventsListPage />
       },
       {
         path: "events/:id",
-        element: <EventDetailsPage />
+        element: <EventDetailPage />
       },
       
       // Test/Development routes (public for now)

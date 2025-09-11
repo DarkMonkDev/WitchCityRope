@@ -9,6 +9,18 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    // Memory management to prevent system crashes
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: true, // Use single thread to prevent memory issues
+      }
+    },
+    teardownTimeout: 10000,
+    maxConcurrency: 1, // Limit concurrent tests
+    // Test timeouts
+    testTimeout: 30000,
+    hookTimeout: 10000,
   },
   resolve: {
     alias: {

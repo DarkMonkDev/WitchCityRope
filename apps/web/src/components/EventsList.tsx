@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Event } from '../types/Event'
 import { EventCard } from './EventCard'
 import { LoadingSpinner } from './LoadingSpinner'
+import { apiRequest, apiConfig, getApiBaseUrl } from '../config/api'
 
 export const EventsList: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([])
@@ -11,8 +12,8 @@ export const EventsList: React.FC = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        // Using port 5655 as specified in the instructions
-        const response = await fetch('http://localhost:5655/api/events')
+        // Use centralized API configuration
+        const response = await apiRequest(apiConfig.endpoints.events.list)
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
@@ -20,8 +21,9 @@ export const EventsList: React.FC = () => {
         setEvents(data)
       } catch (err) {
         console.error('Error fetching events:', err)
+        const apiBaseUrl = getApiBaseUrl()
         setError(
-          'Failed to load events. Please check that the API service is running on http://localhost:5655'
+          `Failed to load events. Please check that the API service is running on ${apiBaseUrl}`
         )
       } finally {
         setLoading(false)

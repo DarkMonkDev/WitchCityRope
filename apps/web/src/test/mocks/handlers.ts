@@ -16,6 +16,18 @@ type UserDto = {
   lastLoginAt?: string | null;
 }
 
+// Environment-based API URL configuration - NO MORE HARD-CODED PORTS
+const getApiBaseUrl = () => {
+  if (typeof window !== 'undefined' && window.location) {
+    // Browser environment - use VITE environment variables
+    return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5655';
+  }
+  // Test environment fallback
+  return 'http://localhost:5655';
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
 export const handlers = [
   // Authentication endpoints
   // Current user endpoint used by useCurrentUser hook
@@ -37,26 +49,8 @@ export const handlers = [
     })
   }),
 
-  // Support absolute URLs for auth user endpoint
-  http.get('http://localhost:5655/api/auth/user', () => {
-    return HttpResponse.json({
-      success: true,
-      data: {
-        id: '1',
-        email: 'admin@witchcityrope.com',
-        sceneName: 'TestAdmin',
-        firstName: null,
-        lastName: null,
-        roles: ['Admin'],
-        isActive: true,
-        createdAt: '2025-08-19T00:00:00Z',
-        updatedAt: '2025-08-19T10:00:00Z',
-        lastLoginAt: '2025-08-19T10:00:00Z'
-      } as UserDto
-    })
-  }),
-
-  http.get('http://localhost:5653/api/auth/user', () => {
+  // Support absolute URLs for auth user endpoint (environment-based)
+  http.get(`${API_BASE_URL}/api/auth/user`, () => {
     return HttpResponse.json({
       success: true,
       data: {
@@ -91,23 +85,8 @@ export const handlers = [
     } as UserDto)
   }),
 
-  // Support absolute URLs for profile endpoint
-  http.get('http://localhost:5653/api/Protected/profile', () => {
-    return HttpResponse.json({
-      id: '1',
-      email: 'admin@witchcityrope.com',
-      sceneName: 'TestAdmin',
-      firstName: null,
-      lastName: null,
-      roles: ['Admin'],
-      isActive: true,
-      createdAt: '2025-08-19T00:00:00Z',
-      updatedAt: '2025-08-19T10:00:00Z',
-      lastLoginAt: '2025-08-19T10:00:00Z'
-    } as UserDto)
-  }),
-
-  http.get('http://localhost:5655/api/Protected/profile', () => {
+  // Support absolute URLs for profile endpoint (environment-based)
+  http.get(`${API_BASE_URL}/api/Protected/profile`, () => {
     return HttpResponse.json({
       id: '1',
       email: 'admin@witchcityrope.com',
@@ -127,11 +106,7 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 })
   }),
 
-  http.post('http://localhost:5653/api/Auth/logout', () => {
-    return new HttpResponse(null, { status: 204 })
-  }),
-
-  http.post('http://localhost:5655/api/Auth/logout', () => {
+  http.post(`${API_BASE_URL}/api/Auth/logout`, () => {
     return new HttpResponse(null, { status: 204 })
   }),
 
@@ -161,32 +136,7 @@ export const handlers = [
     }, { status: 401 })
   }),
 
-  http.post('http://localhost:5653/api/Auth/login', async ({ request }) => {
-    const body = await request.json() as any
-    if (body.email === 'admin@witchcityrope.com' && body.password === 'Test123!') {
-      return HttpResponse.json({
-        success: true,
-        user: {
-          id: '1',
-          email: body.email as string,
-          sceneName: 'TestAdmin',
-          firstName: null,
-          lastName: null,
-          roles: ['Admin'],
-          isActive: true,
-          createdAt: '2025-08-19T00:00:00Z',
-          updatedAt: '2025-08-19T10:00:00Z',
-          lastLoginAt: '2025-08-19T10:00:00Z'
-        } as UserDto,
-        message: 'Login successful'
-      })
-    }
-    return HttpResponse.json({
-      error: 'Invalid credentials'
-    }, { status: 401 })
-  }),
-
-  http.post('http://localhost:5655/api/Auth/login', async ({ request }) => {
+  http.post(`${API_BASE_URL}/api/Auth/login`, async ({ request }) => {
     const body = await request.json() as any
     if (body.email === 'admin@witchcityrope.com' && body.password === 'Test123!') {
       return HttpResponse.json({
@@ -212,16 +162,12 @@ export const handlers = [
   }),
 
   // Auth refresh endpoint for interceptor
-  http.post('http://localhost:5651/auth/refresh', () => {
-    return new HttpResponse('Unauthorized', { status: 401 })
-  }),
-
-  http.post('http://localhost:5655/auth/refresh', () => {
+  http.post(`${API_BASE_URL}/auth/refresh`, () => {
     return new HttpResponse('Unauthorized', { status: 401 })
   }),
 
   // Protected welcome endpoint
-  http.get('http://localhost:5655/api/protected/welcome', () => {
+  http.get(`${API_BASE_URL}/api/protected/welcome`, () => {
     return HttpResponse.json({
       message: 'Welcome to the protected area!',
       user: {
@@ -241,7 +187,7 @@ export const handlers = [
   }),
 
   // Register endpoint
-  http.post('http://localhost:5651/api/auth/register', async ({ request }) => {
+  http.post(`${API_BASE_URL}/api/auth/register`, async ({ request }) => {
     const body = await request.json() as any
     return HttpResponse.json({
       success: true,
@@ -284,53 +230,119 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 })
   }),
 
-  http.post('/api/auth/login', async ({ request }) => {
-    const body = await request.json() as any
-    if (body.email === 'admin@witchcityrope.com') {
+
+  // Events endpoints - CLEANED UP with proper API response format and no duplicates
+  
+  // Individual event endpoint (both relative and absolute URL support)
+  http.get('/api/events/:id', ({ params }) => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        id: params.id,
+        title: 'Test Event',
+        description: 'A test event for API validation',
+        startDateTime: '2025-08-20T19:00:00Z',
+        endDateTime: '2025-08-20T21:00:00Z',
+        capacity: 20,
+        currentAttendees: 5,
+        status: 'Published',
+        eventType: 'class',
+        instructorId: '1',
+        instructor: {
+          id: '1',
+          sceneName: 'TestInstructor',
+          email: 'instructor@test.com',
+          createdAt: '2025-08-19T00:00:00Z',
+          lastLoginAt: '2025-08-19T10:00:00Z'
+        },
+        attendees: [],
+      } as Event
+    })
+  }),
+
+  http.get(`${API_BASE_URL}/api/events/:id`, ({ params }) => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        id: params.id,
+        title: 'Test Event',
+        description: 'A test event for API validation',
+        startDateTime: '2025-08-20T19:00:00Z',
+        endDateTime: '2025-08-20T21:00:00Z',
+        capacity: 20,
+        currentAttendees: 5,
+        status: 'Published',
+        eventType: 'class',
+        instructorId: '1',
+        instructor: {
+          id: '1',
+          sceneName: 'TestInstructor',
+          email: 'instructor@test.com',
+          createdAt: '2025-08-19T00:00:00Z',
+          lastLoginAt: '2025-08-19T10:00:00Z'
+        },
+        attendees: [],
+      } as Event
+    })
+  }),
+
+  // Events list endpoint (both relative and absolute URL support)
+  http.get('/api/events', ({ request }) => {
+    const url = new URL(request.url)
+    const page = parseInt(url.searchParams.get('page') || '1')
+    const pageSize = parseInt(url.searchParams.get('pageSize') || '20')
+    
+    const events = [
+      {
+        id: '1',
+        title: 'Rope Bondage Fundamentals',
+        description: 'Learn the basics of safe rope bondage with experienced instructors',
+        startDateTime: '2025-08-20T19:00:00Z',
+        endDateTime: '2025-08-20T21:00:00Z',
+        capacity: 20,
+        currentAttendees: 5,
+        status: 'Published',
+        eventType: 'class',
+        instructorId: '1',
+      },
+      {
+        id: '2',
+        title: 'Community Social Night',
+        description: 'Join fellow community members for socializing and light play',
+        startDateTime: '2025-08-21T19:00:00Z',
+        endDateTime: '2025-08-21T21:00:00Z',
+        capacity: 15,
+        currentAttendees: 10,
+        status: 'Published',
+        eventType: 'social',
+        instructorId: '1',
+      },
+    ] as Event[]
+
+    // Return paginated or simple response based on request - ALL wrapped in API response format
+    if (url.searchParams.has('page')) {
       return HttpResponse.json({
         success: true,
-        user: {
-          id: '1',
-          email: body.email as string,
-          sceneName: 'TestAdmin',
-          firstName: null,
-          lastName: null,
-          roles: ['Admin'],
-          isActive: true,
-          createdAt: '2025-08-19T00:00:00Z',
-          updatedAt: '2025-08-19T10:00:00Z',
-          lastLoginAt: '2025-08-19T10:00:00Z'
-        } as UserDto,
-        message: 'Login successful'
+        data: {
+          data: events,
+          page,
+          pageSize,
+          totalCount: 25,
+          totalPages: 2,
+          hasNext: page < 2,
+          hasPrevious: page > 1,
+        }
       })
     }
-    return new HttpResponse(null, { status: 401 })
-  }),
 
-  // Events endpoints - support both relative and absolute URLs
-  http.get('/api/events/:id', ({ params }) => {
+    // CRITICAL FIX: Wrap events in API response format so useEvents query works
     return HttpResponse.json({
-      id: params.id,
-      title: 'Test Event',
-      description: 'A test event for API validation',
-      startDate: '2025-08-20T19:00:00Z',
-      endDate: '2025-08-20T21:00:00Z',
-      maxAttendees: 20,
-      currentAttendees: 5,
-      isRegistrationOpen: true,
-      instructorId: '1',
-      instructor: {
-        id: '1',
-        sceneName: 'TestInstructor',
-        email: 'instructor@test.com',
-        createdAt: '2025-08-19T00:00:00Z',
-        lastLoginAt: '2025-08-19T10:00:00Z'
-      },
-      attendees: [],
-    } as Event)
+      success: true,
+      data: events
+    })
   }),
 
-  http.get('/api/events', ({ request }) => {
+  http.get(`${API_BASE_URL}/api/events`, ({ request }) => {
     const url = new URL(request.url)
     const page = parseInt(url.searchParams.get('page') || '1')
     const pageSize = parseInt(url.searchParams.get('pageSize') || '20')
@@ -338,180 +350,51 @@ export const handlers = [
     const events = [
       {
         id: '1',
-        title: 'Test Event 1',
-        description: 'First test event',
-        startDate: '2025-08-20T19:00:00Z',
-        endDate: '2025-08-20T21:00:00Z',
-        maxAttendees: 20,
+        title: 'Rope Bondage Fundamentals',
+        description: 'Learn the basics of safe rope bondage with experienced instructors',
+        startDateTime: '2025-08-20T19:00:00Z',
+        endDateTime: '2025-08-20T21:00:00Z',
+        capacity: 20,
         currentAttendees: 5,
-        isRegistrationOpen: true,
+        status: 'Published',
+        eventType: 'class',
         instructorId: '1',
       },
       {
         id: '2',
-        title: 'Test Event 2',
-        description: 'Second test event',
-        startDate: '2025-08-21T19:00:00Z',
-        endDate: '2025-08-21T21:00:00Z',
-        maxAttendees: 15,
+        title: 'Community Social Night',
+        description: 'Join fellow community members for socializing and light play',
+        startDateTime: '2025-08-21T19:00:00Z',
+        endDateTime: '2025-08-21T21:00:00Z',
+        capacity: 15,
         currentAttendees: 10,
-        isRegistrationOpen: true,
+        status: 'Published',
+        eventType: 'social',
         instructorId: '1',
       },
     ] as Event[]
 
-    // Return paginated or simple response based on request
+    // Return paginated or simple response based on request - ALL wrapped in API response format
     if (url.searchParams.has('page')) {
       return HttpResponse.json({
-        data: events,
-        page,
-        pageSize,
-        totalCount: 25,
-        totalPages: 2,
-        hasNext: page < 2,
-        hasPrevious: page > 1,
-      } as PaginatedResponse<Event>)
+        success: true,
+        data: {
+          data: events,
+          page,
+          pageSize,
+          totalCount: 25,
+          totalPages: 2,
+          hasNext: page < 2,
+          hasPrevious: page > 1,
+        }
+      })
     }
 
-    return HttpResponse.json(events)
-  }),
-
-  // Events with absolute URLs
-  http.get('http://localhost:5655/api/events/:id', ({ params }) => {
+    // CRITICAL FIX: Wrap events in API response format so useEvents query works
     return HttpResponse.json({
-      id: params.id,
-      title: 'Test Event',
-      description: 'A test event for API validation',
-      startDate: '2025-08-20T19:00:00Z',
-      endDate: '2025-08-20T21:00:00Z',
-      maxAttendees: 20,
-      currentAttendees: 5,
-      isRegistrationOpen: true,
-      instructorId: '1',
-      instructor: {
-        id: '1',
-        sceneName: 'TestInstructor',
-        email: 'instructor@test.com',
-        createdAt: '2025-08-19T00:00:00Z',
-        lastLoginAt: '2025-08-19T10:00:00Z'
-      },
-      attendees: [],
-    } as Event)
-  }),
-
-  http.get('http://localhost:5655/api/events', ({ request }) => {
-    const url = new URL(request.url)
-    const page = parseInt(url.searchParams.get('page') || '1')
-    const pageSize = parseInt(url.searchParams.get('pageSize') || '20')
-    
-    const events = [
-      {
-        id: '1',
-        title: 'Test Event 1',
-        description: 'First test event',
-        startDate: '2025-08-20T19:00:00Z',
-        endDate: '2025-08-20T21:00:00Z',
-        maxAttendees: 20,
-        currentAttendees: 5,
-        isRegistrationOpen: true,
-        instructorId: '1',
-      },
-      {
-        id: '2',
-        title: 'Test Event 2',
-        description: 'Second test event',
-        startDate: '2025-08-21T19:00:00Z',
-        endDate: '2025-08-21T21:00:00Z',
-        maxAttendees: 15,
-        currentAttendees: 10,
-        isRegistrationOpen: true,
-        instructorId: '1',
-      },
-    ] as Event[]
-
-    // Return paginated or simple response based on request
-    if (url.searchParams.has('page')) {
-      return HttpResponse.json({
-        data: events,
-        page,
-        pageSize,
-        totalCount: 25,
-        totalPages: 2,
-        hasNext: page < 2,
-        hasPrevious: page > 1,
-      } as PaginatedResponse<Event>)
-    }
-
-    return HttpResponse.json(events)
-  }),
-
-  // Events - Keep relative paths for other tests
-  http.get('/api/events/:id', ({ params }) => {
-    return HttpResponse.json({
-      id: params.id,
-      title: 'Test Event',
-      description: 'A test event for API validation',
-      startDate: '2025-08-20T19:00:00Z',
-      endDate: '2025-08-20T21:00:00Z',
-      maxAttendees: 20,
-      currentAttendees: 5,
-      isRegistrationOpen: true,
-      instructorId: '1',
-      instructor: {
-        id: '1',
-        sceneName: 'TestInstructor',
-        email: 'instructor@test.com',
-        createdAt: '2025-08-19T00:00:00Z',
-        lastLoginAt: '2025-08-19T10:00:00Z'
-      },
-      attendees: [],
-    } as Event)
-  }),
-
-  http.get('/api/events', ({ request }) => {
-    const url = new URL(request.url)
-    const page = parseInt(url.searchParams.get('page') || '1')
-    const pageSize = parseInt(url.searchParams.get('pageSize') || '20')
-    
-    const events = [
-      {
-        id: '1',
-        title: 'Test Event 1',
-        description: 'First test event',
-        startDate: '2025-08-20T19:00:00Z',
-        endDate: '2025-08-20T21:00:00Z',
-        maxAttendees: 20,
-        currentAttendees: 5,
-        isRegistrationOpen: true,
-        instructorId: '1',
-      },
-      {
-        id: '2',
-        title: 'Test Event 2',
-        description: 'Second test event',
-        startDate: '2025-08-21T19:00:00Z',
-        endDate: '2025-08-21T21:00:00Z',
-        maxAttendees: 15,
-        currentAttendees: 10,
-        isRegistrationOpen: true,
-        instructorId: '1',
-      },
-    ] as Event[]
-
-    // Return paginated or simple response based on request
-    if (url.searchParams.has('page')) {
-      return HttpResponse.json({
-        data: events,
-        page,
-        pageSize,
-        totalCount: 25,
-        totalPages: 2,
-        hasNext: page < 2,
-        hasPrevious: page > 1,
-      } as PaginatedResponse<Event>)
-    }
-
-    return HttpResponse.json(events)
+      success: true,
+      data: events
+    })
   }),
 
   http.post('/api/events', async ({ request }) => {

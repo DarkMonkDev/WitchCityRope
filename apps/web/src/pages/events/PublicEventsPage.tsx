@@ -43,7 +43,8 @@ const formatEventDisplay = (event: EventDto) => {
   // Determine appropriate status text based on event type
   const eventType = event.eventType || 'class';
   let actionStatus = 'Closed';
-  if (event.status === 'Published') {
+  // Note: API currently doesn't return status field, so assume all returned events are published
+  if (!event.status || event.status === 'Published') {
     actionStatus = eventType === 'class' ? 'Tickets Available' : 'RSVP & Tickets';
   }
 
@@ -66,8 +67,9 @@ export const PublicEventsPage: React.FC = () => {
   const { data: events, isLoading, error } = useEvents();
 
   // Filter to show only published events for public viewing
+  // Note: API currently doesn't return status field, so assume all returned events are published
   const publishedEvents = events 
-    ? events.filter(event => event.status === 'Published').map(formatEventDisplay)
+    ? events.filter(event => !event.status || event.status === 'Published').map(formatEventDisplay)
     : [];
 
   if (isLoading) {

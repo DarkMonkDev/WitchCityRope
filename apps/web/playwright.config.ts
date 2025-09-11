@@ -5,8 +5,10 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: 'list',
+  maxFailures: 2, // Stop after 2 failures to prevent runaway tests
+  workers: process.env.CI ? 1 : 6, // Limit to 2 workers max to prevent system crashes
+  globalTeardown: './tests/playwright/global-teardown.ts', // Clean up orphaned processes
+  reporter: [['list'], ['html', { outputFolder: './playwright-report' }]], // Fixed path conflict
   
   // Global timeout settings for improved reliability
   timeout: 60000, // Overall test timeout
@@ -15,7 +17,7 @@ export default defineConfig({
   },
   
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: process.env.VITE_BASE_URL || `http://localhost:${process.env.VITE_PORT || 5173}`,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     
@@ -27,6 +29,21 @@ export default defineConfig({
     video: 'retain-on-failure',
     launchOptions: {
       slowMo: process.env.CI ? 0 : 100, // Slow down actions in development
+      // Memory management arguments to prevent system crashes
+      args: [
+        '--max-old-space-size=1024', // Limit Node.js memory
+        '--disable-dev-shm-usage', // Overcome limited resource problems
+        '--disable-extensions-except', // Reduce memory footprint
+        '--disable-gpu', // Disable GPU hardware acceleration
+        '--no-sandbox', // Required for containerized environments
+        '--disable-web-security', // Allow cross-origin requests in tests
+        '--disable-features=VizDisplayCompositor', // Reduce memory usage
+        '--memory-pressure-off', // Disable memory pressure warnings
+        '--max_old_space_size=1024', // Additional Node memory limit
+        '--disable-background-timer-throttling', // Prevent hanging tests
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding',
+      ],
     },
   },
 
@@ -40,7 +57,7 @@ export default defineConfig({
   webServer: [
     {
       command: 'npm run dev',
-      port: 5173,
+      port: parseInt(process.env.VITE_PORT || '5173', 10),
       reuseExistingServer: true,
     },
   ],

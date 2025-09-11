@@ -15,7 +15,7 @@ export default defineConfig({
     ['html', { outputFolder: './test-results/playwright-report' }]
   ],
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: process.env.VITE_BASE_URL || `http://localhost:${process.env.VITE_PORT || 5173}`,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure'
@@ -30,7 +30,7 @@ export default defineConfig({
 
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:5173',
+    url: process.env.VITE_BASE_URL || `http://localhost:${process.env.VITE_PORT || 5173}`,
     reuseExistingServer: true, // Use existing dev server
     timeout: 30 * 1000,
   },

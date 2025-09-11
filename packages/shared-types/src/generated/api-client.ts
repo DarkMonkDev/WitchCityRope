@@ -15,7 +15,7 @@ import type {
   ApiError
 } from './api-helpers';
 
-const API_BASE_URL = process.env.VITE_API_BASE_URL || 'http://localhost:5653';
+const API_BASE_URL = process.env.VITE_API_BASE_URL || 'http://localhost:5655';
 
 class ApiClient {
   private baseUrl: string;

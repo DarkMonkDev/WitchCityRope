@@ -6,6 +6,12 @@ import { useAuthStore } from '../../../../stores/authStore'
 import { server } from '../../../../test/setup'
 import { http, HttpResponse } from 'msw'
 
+// Environment-based API URL - NO MORE HARD-CODED PORTS
+const getApiBaseUrl = () => {
+  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5655'
+}
+const API_BASE_URL = getApiBaseUrl()
+
 // Mock react-router-dom
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', () => ({
@@ -148,9 +154,9 @@ describe('useLogin', () => {
   })
 
   it('should handle login failure', async () => {
-    // Override MSW handler for failed login - use correct port
+    // Override MSW handler for failed login - use environment-based URL
     server.use(
-      http.post('http://localhost:5651/api/auth/login', () => {
+      http.post(`${API_BASE_URL}/api/Auth/login`, () => {
         return new HttpResponse('Invalid credentials', { status: 401 })
       })
     )
@@ -194,7 +200,7 @@ describe('useLogin', () => {
     })
     
     server.use(
-      http.post('http://localhost:5651/api/auth/login', loginHandler)
+      http.post(`${API_BASE_URL}/api/Auth/login`, loginHandler)
     )
 
     const { result } = renderHook(() => useLogin(), {
@@ -318,9 +324,9 @@ describe('useLogout', () => {
   it('should handle logout API failure gracefully', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     
-    // Override MSW handler for failed logout - use correct port
+    // Override MSW handler for failed logout - use environment-based URL
     server.use(
-      http.post('http://localhost:5651/api/auth/logout', () => {
+      http.post(`${API_BASE_URL}/api/Auth/logout`, () => {
         return new HttpResponse('Server error', { status: 500 })
       })
     )
@@ -384,7 +390,7 @@ describe('useLogout', () => {
     })
     
     server.use(
-      http.post('http://localhost:5651/api/auth/logout', logoutHandler)
+      http.post(`${API_BASE_URL}/api/Auth/logout`, logoutHandler)
     )
 
     const { result } = renderHook(() => useLogout(), {

@@ -3,6 +3,7 @@ import type {
   LoginRequest, 
   LoginResponse 
 } from '@witchcityrope/shared-types'
+import { apiConfig, apiRequest, getApiUrl } from '../config/api'
 
 // Local types for services not covered by generated types yet
 export interface RegisterCredentials {
@@ -22,18 +23,12 @@ export interface ProtectedWelcomeResponse {
   serverTime: string
 }
 
-const API_BASE_URL = 'http://localhost:5653'
-
 class AuthService {
   private token: string | null = null
 
   async login(credentials: LoginRequest): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+    const response = await apiRequest(apiConfig.endpoints.auth.login, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include', // Include httpOnly cookies
       body: JSON.stringify(credentials),
     })
 
@@ -50,12 +45,8 @@ class AuthService {
   }
 
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
+    const response = await apiRequest(apiConfig.endpoints.auth.register, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include', // Include httpOnly cookies
       body: JSON.stringify(credentials),
     })
 
@@ -72,9 +63,8 @@ class AuthService {
 
   async logout(): Promise<void> {
     try {
-      await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
+      await apiRequest(apiConfig.endpoints.auth.logout, {
         method: 'POST',
-        credentials: 'include', // Include httpOnly cookies
         headers: this.token ? { Authorization: `Bearer ${this.token}` } : {},
       })
     } catch (error) {
@@ -85,8 +75,7 @@ class AuthService {
   }
 
   async getProtectedWelcome(): Promise<ProtectedWelcomeResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/protected/welcome`, {
-      credentials: 'include', // Include httpOnly cookies
+    const response = await apiRequest(apiConfig.endpoints.protected.welcome, {
       headers: this.token ? { Authorization: `Bearer ${this.token}` } : {},
     })
 
