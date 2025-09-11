@@ -81,12 +81,7 @@ export const AdminEventsTablePage: React.FC = () => {
     <Box p="xl">
       {/* Page Header with Title and Create Button */}
       <Group justify="space-between" align="center" mb="xl">
-        <Title
-          order={1}
-          c="wcr.7"
-          ff="Bodoni Moda, serif"
-          size="2.5rem"
-        >
+        <Title order={1} c="burgundy">
           Events Dashboard
         </Title>
         

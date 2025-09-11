@@ -225,25 +225,11 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
             {/* Actions Column */}
             <Table.Td onClick={(e) => e.stopPropagation()}>
               <Button
-                size="xs"
+                size="sm"
                 variant="light"
-                color="wcr"
+                color="blue"
                 data-testid="button-copy-event"
                 onClick={(e) => handleCopyEvent(event.id, e)}
-                styles={{
-                  root: {
-                    minWidth: '60px',
-                    height: '32px',
-                    fontWeight: 600,
-                    fontSize: '14px',
-                    paddingLeft: '12px',
-                    paddingRight: '12px',
-                    lineHeight: '18px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }
-                }}
               >
                 Copy
               </Button>
