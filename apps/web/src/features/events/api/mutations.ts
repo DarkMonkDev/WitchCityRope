@@ -78,6 +78,25 @@ export function useDeleteEvent() {
   })
 }
 
+export function useCopyEvent() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async (eventId: string): Promise<Event> => {
+      const response = await api.post(`/api/events/${eventId}/copy`)
+      return response.data
+    },
+    onSuccess: () => {
+      // Invalidate events cache to show new event
+      queryClient.invalidateQueries({ queryKey: queryKeys.events() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.infiniteEvents({}) })
+    },
+    onError: (error) => {
+      console.error('Failed to copy event:', error)
+    },
+  })
+}
+
 // Optimistic updates example for event registration
 export function useEventRegistration() {
   const queryClient = useQueryClient()
