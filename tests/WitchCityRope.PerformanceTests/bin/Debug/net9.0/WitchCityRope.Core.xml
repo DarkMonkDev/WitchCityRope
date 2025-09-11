@@ -55,19 +55,42 @@
             Ticket types available for this event
             </summary>
         </member>
+        <member name="P:WitchCityRope.Core.Entities.Event.AllowsRSVP">
+            <summary>
+            Business rule property: Determines if this event allows free RSVPs
+            Only Social events allow RSVP functionality
+            </summary>
+        </member>
+        <member name="P:WitchCityRope.Core.Entities.Event.RequiresPayment">
+            <summary>
+            Business rule property: Determines if this event requires payment for attendance
+            Classes and Workshops require payment, Social events allow both RSVP and payment
+            </summary>
+        </member>
         <member name="M:WitchCityRope.Core.Entities.Event.GetConfirmedRegistrationCount">
             <summary>
             Gets the number of confirmed registrations
             </summary>
         </member>
+        <member name="M:WitchCityRope.Core.Entities.Event.GetConfirmedRSVPCount">
+            <summary>
+            Gets the number of confirmed RSVPs
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Entities.Event.GetCurrentAttendeeCount">
+            <summary>
+            Gets the total number of confirmed attendees (registrations + RSVPs)
+            This includes both paid ticket holders and free RSVPs
+            </summary>
+        </member>
         <member name="M:WitchCityRope.Core.Entities.Event.GetAvailableSpots">
             <summary>
-            Gets the number of available spots
+            Gets the number of available spots (considering both RSVPs and tickets)
             </summary>
         </member>
         <member name="M:WitchCityRope.Core.Entities.Event.HasAvailableCapacity">
             <summary>
-            Checks if the event has available capacity
+            Checks if the event has available capacity (considering both RSVPs and tickets)
             </summary>
         </member>
         <member name="M:WitchCityRope.Core.Entities.Event.Publish">
@@ -637,6 +660,37 @@
             Checks if registration is eligible for refund based on cancellation window
             </summary>
         </member>
+        <member name="T:WitchCityRope.Core.Entities.RSVP">
+            <summary>
+            Represents a free RSVP for a social event
+            Business Rules:
+            - Only available for Social Events (EventType.Social)
+            - No payment required
+            - Can optionally purchase ticket later
+            - Can be cancelled anytime before event
+            - Users who RSVP can still purchase tickets later to support the event
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Entities.RSVP.Cancel(System.String)">
+            <summary>
+            Cancels the RSVP with optional reason
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Entities.RSVP.LinkTicketPurchase(WitchCityRope.Core.Entities.Registration)">
+            <summary>
+            Links a ticket purchase to this RSVP when user upgrades to paid ticket
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Entities.RSVP.CheckIn">
+            <summary>
+            Marks the RSVP as checked in at the event
+            </summary>
+        </member>
+        <member name="M:WitchCityRope.Core.Entities.RSVP.UpdateDietaryRestrictions(System.String)">
+            <summary>
+            Updates dietary restrictions
+            </summary>
+        </member>
         <member name="T:WitchCityRope.Core.Entities.User">
             <summary>
             Represents a user in the WitchCityRope system
@@ -960,6 +1014,26 @@
             On waiting list due to capacity
             </summary>
         </member>
+        <member name="T:WitchCityRope.Core.Enums.RSVPStatus">
+            <summary>
+            Status of a free RSVP for a social event
+            </summary>
+        </member>
+        <member name="F:WitchCityRope.Core.Enums.RSVPStatus.Confirmed">
+            <summary>
+            RSVP confirmed - no payment required
+            </summary>
+        </member>
+        <member name="F:WitchCityRope.Core.Enums.RSVPStatus.Cancelled">
+            <summary>
+            RSVP cancelled by user or system
+            </summary>
+        </member>
+        <member name="F:WitchCityRope.Core.Enums.RSVPStatus.CheckedIn">
+            <summary>
+            User checked in at the event
+            </summary>
+        </member>
         <member name="T:WitchCityRope.Core.Enums.UserRole">
             <summary>
             User roles within the system
@@ -975,6 +1049,16 @@
             Verified community member with additional privileges
             </summary>
         </member>
+        <member name="F:WitchCityRope.Core.Enums.UserRole.VettedMember">
+            <summary>
+            Vetted community member with enhanced privileges
+            </summary>
+        </member>
+        <member name="F:WitchCityRope.Core.Enums.UserRole.Teacher">
+            <summary>
+            Teacher who can create and manage educational events
+            </summary>
+        </member>
         <member name="F:WitchCityRope.Core.Enums.UserRole.Organizer">
             <summary>
             Event organizer who can create and manage events
@@ -988,6 +1072,11 @@
         <member name="F:WitchCityRope.Core.Enums.UserRole.Administrator">
             <summary>
             System administrator with full access
+            </summary>
+        </member>
+        <member name="F:WitchCityRope.Core.Enums.UserRole.Admin">
+            <summary>
+            Legacy admin role (mapped to Administrator)
             </summary>
         </member>
         <member name="T:WitchCityRope.Core.Exceptions.ConflictException">

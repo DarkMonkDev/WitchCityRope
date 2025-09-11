@@ -1,5 +1,29 @@
 # Frontend Lessons Learned - WitchCityRope React
 
+## CRITICAL TypeScript Compilation Issues - 2025-09-10 ⚠️
+
+**Problem**: TypeScript compilation failing with 74 errors after restoration
+**Root Causes**: 
+1. UserDto type resolution issue - `lastLoginAt` field missing from resolved type
+2. Test mocks using outdated DTO structures (EventSessionDto, TicketTypeDto)
+3. Mantine v6 -> v7 API changes (`spacing` prop removed)
+4. Missing vitest types in tsconfig
+
+**Solutions Applied**:
+1. **IMMEDIATE FIX**: Added vitest types to tsconfig.json
+2. **IMMEDIATE FIX**: Created missing DashboardCard component
+3. **IMMEDIATE FIX**: Created EventSessionForm stub component
+4. **WORKAROUND**: Temporarily commented out lastLoginAt references with TODO markers
+5. **TODO**: Investigate why generated types with lastLoginAt aren't being resolved correctly
+
+**Critical Action Items**:
+- [ ] Fix UserDto type resolution - generated types DO have lastLoginAt but TypeScript isn't picking them up
+- [ ] Update all test mocks to match actual DTO structures
+- [ ] Fix Mantine v7 compatibility issues (replace `spacing` with `gap`)
+- [ ] Remove TODO comments once type resolution is fixed
+
+**Prevention Strategy**: Always verify shared-types package is properly built and linked before major restoration work
+
 ## Data-TestId Implementation for E2E Testing - COMPLETED ✅
 
 **Problem**: Playwright E2E tests need reliable element selectors to avoid brittleness

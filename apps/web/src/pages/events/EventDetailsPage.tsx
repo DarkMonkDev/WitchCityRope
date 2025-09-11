@@ -145,8 +145,8 @@ export const EventDetailsPage: React.FC = () => {
   const spotsRemaining = capacity - currentAttendees;
   
   // Different UI logic based on event type
-  const isClass = eventType === 'class';
-  const isSocialEvent = eventType === 'social';
+  const isClass = eventType === 'Workshop';
+  const isSocialEvent = eventType === 'Social';
   const hasTicketTypes = mockTicketTypes.length > 0;
 
   return (
@@ -500,8 +500,8 @@ export const EventDetailsPage: React.FC = () => {
         event={{
           id: event?.id || '',
           title: event?.title || '',
-          startDate: event?.startDateTime || event?.startDate || '',
-          endDate: event?.endDateTime || event?.endDate || '',
+          startDate: event?.startDateTimeTime || event?.startDateTime || '',
+          endDate: event?.endDateTimeTime || event?.endDateTime || '',
         }}
         ticketTypes={mockTicketTypes}
         isPurchasing={purchaseTicketMutation.isPending}
@@ -517,8 +517,8 @@ export const EventDetailsPage: React.FC = () => {
           event={{
             id: event?.id || '',
             title: event?.title || '',
-            startDate: event?.startDateTime || event?.startDate || '',
-            endDate: event?.endDateTime || event?.endDate || '',
+            startDate: event?.startDateTimeTime || event?.startDateTime || '',
+            endDate: event?.endDateTimeTime || event?.endDateTime || '',
           }}
           isRSVPing={rsvpForEventMutation.isPending}
           hasTicketTypes={hasTicketTypes}

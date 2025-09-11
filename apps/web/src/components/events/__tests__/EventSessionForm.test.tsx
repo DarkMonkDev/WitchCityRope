@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 import { MantineProvider } from '@mantine/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { EventSessionForm } from '../EventSessionForm';
-import type { EventSession, TicketType } from '@witchcityrope/shared-types';
+import type { EventSessionDto, TicketTypeDto } from '@witchcityrope/shared-types';
 
 // TDD Test for Event Session Matrix Form Components
 // Following React testing patterns from lessons learned
@@ -26,7 +26,7 @@ describe('EventSessionForm', () => {
     );
   };
 
-  const mockEventSessions: EventSession[] = [
+  const mockEventSessions: EventSessionDto[] = [
     {
       id: '1',
       eventId: 'event-1',
@@ -65,7 +65,7 @@ describe('EventSessionForm', () => {
     }
   ];
 
-  const mockTicketTypes: TicketType[] = [
+  const mockTicketTypes: TicketTypeDto[] = [
     {
       id: '1',
       eventId: 'event-1',

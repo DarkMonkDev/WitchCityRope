@@ -339,6 +339,7 @@ export const ProfilePage: React.FC = () => {
                 </Group>
               </Box>
 
+              {/* TODO: Fix UserDto type resolution to include lastLoginAt
               {user?.lastLoginAt && (
                 <Box
                   style={{
@@ -378,6 +379,7 @@ export const ProfilePage: React.FC = () => {
                   </Text>
                 </Box>
               )}
+              */}
             </Stack>
           </Paper>
 

@@ -87,7 +87,7 @@ export const EventsManagementApiDemo: React.FC = () => {
         Events Management API Integration Demo
       </Title>
 
-      <Stack spacing="xl">
+      <Stack gap="xl">
         {/* API Selector */}
         <Paper shadow="sm" radius="md" p="lg">
           <Title order={2} c="burgundy" mb="md">API Integration Demo</Title>
@@ -137,7 +137,7 @@ export const EventsManagementApiDemo: React.FC = () => {
                         }}
                         onClick={() => handleEventSelect(event.id)}
                       >
-                        <Stack mt="md" spacing="xs">
+                        <Stack mt="md" gap="xs">
                           <Title order={4}>{event.title}</Title>
                           <Text size="sm" c="dimmed" lineClamp={2}>
                             {event.description}
@@ -163,7 +163,7 @@ export const EventsManagementApiDemo: React.FC = () => {
               {selectedEventId && legacyEventDetails && (
                 <Paper shadow="sm" radius="md" p="lg" mt="xl">
                   <Title order={3} mb="md">Selected Event Details</Title>
-                  <Stack spacing="md">
+                  <Stack gap="md">
                     <div>
                       <Title order={4}>{legacyEventDetails.title}</Title>
                       <Text c="dimmed">{legacyEventDetails.description}</Text>
@@ -207,7 +207,7 @@ export const EventsManagementApiDemo: React.FC = () => {
                 <Title order={4} mb="md">Events Management Types Preview</Title>
                 <Text size="sm" mb="md">These TypeScript types are ready for the Events Management API:</Text>
                 
-                <Stack spacing="md">
+                <Stack gap="md">
                   <div>
                     <Text fw={500} size="sm" mb="xs">EventSummaryDto:</Text>
                     <Text size="xs" c="dimmed" style={{ fontFamily: 'monospace' }}>
