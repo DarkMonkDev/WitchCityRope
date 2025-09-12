@@ -48,3 +48,10 @@ lerna-debug.log*
 *.pem
 .cache
 
+
+# Test artifacts and build outputs
+**/bin/Debug/
+**/obj/Debug/
+.playwright/
+tests/**/bin/
+tests/**/obj/
