@@ -1,6 +1,7 @@
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Models;
 using EventDto = WitchCityRope.Api.Features.Events.Models.EventDto;
+using WitchCityRope.Api.Features.Events.Models;
 
 namespace WitchCityRope.Api.Features.Events.Endpoints;
 
@@ -105,6 +106,57 @@ public static class EventEndpoints
             .WithDescription("Returns a specific event by its unique identifier")
             .WithTags("Events")
             .Produces<ApiResponse<EventDto>>(200)
+            .Produces(404)
+            .Produces(500);
+
+        // Update existing event by ID
+        app.MapPut("/api/events/{id}", async (
+            string id,
+            UpdateEventRequest request,
+            EventService eventService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, response, error) = await eventService.UpdateEventAsync(id, request, cancellationToken);
+
+                if (success && response != null)
+                {
+                    return Results.Ok(new ApiResponse<EventDto>
+                    {
+                        Success = true,
+                        Data = response,
+                        Message = "Event updated successfully"
+                    });
+                }
+
+                // Determine appropriate HTTP status code based on error message
+                var statusCode = error switch
+                {
+                    string msg when msg.Contains("not found") => 404,
+                    string msg when msg.Contains("Invalid event ID") => 400,
+                    string msg when msg.Contains("past events") => 400,
+                    string msg when msg.Contains("capacity") => 400,
+                    string msg when msg.Contains("date") => 400,
+                    string msg when msg.Contains("null") => 400,
+                    _ => 500
+                };
+
+                return Results.Json(new ApiResponse<EventDto>
+                {
+                    Success = false,
+                    Data = null,
+                    Error = error,
+                    Message = "Failed to update event"
+                }, statusCode: statusCode);
+            })
+            .RequireAuthorization() // Requires JWT authentication
+            .WithName("UpdateEvent")
+            .WithSummary("Update an existing event")
+            .WithDescription("Updates an event with the provided data. Supports partial updates (only non-null fields will be updated). " +
+                "Business rules: Cannot update past events, cannot reduce capacity below current attendance.")
+            .WithTags("Events")
+            .Produces<ApiResponse<EventDto>>(200)
+            .Produces(400)
+            .Produces(401)
             .Produces(404)
             .Produces(500);
     }

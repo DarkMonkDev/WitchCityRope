@@ -115,4 +115,144 @@ public class EventService
             return (false, null, "Failed to retrieve event");
         }
     }
+
+    /// <summary>
+    /// Update an existing event with business rule validation
+    /// Supports partial updates - only non-null fields will be updated
+    /// </summary>
+    public async Task<(bool Success, EventDto? Response, string Error)> UpdateEventAsync(
+        string eventId,
+        UpdateEventRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (!Guid.TryParse(eventId, out var parsedId))
+            {
+                _logger.LogWarning("Invalid event ID format for update: {EventId}", eventId);
+                return (false, null, "Invalid event ID format");
+            }
+
+            if (request == null)
+            {
+                _logger.LogWarning("Update request is null for event: {EventId}", eventId);
+                return (false, null, "Update request cannot be null");
+            }
+
+            // Find the existing event (with tracking for update)
+            var eventEntity = await _context.Events
+                .FirstOrDefaultAsync(e => e.Id == parsedId, cancellationToken);
+
+            if (eventEntity == null)
+            {
+                _logger.LogInformation("Event not found for update: {EventId}", eventId);
+                return (false, null, "Event not found");
+            }
+
+            // Business rule: Cannot update past events
+            if (eventEntity.StartDate <= DateTime.UtcNow)
+            {
+                _logger.LogWarning("Attempted to update past event: {EventId} (StartDate: {StartDate})", 
+                    eventId, eventEntity.StartDate);
+                return (false, null, "Cannot update past events");
+            }
+
+            // Validate capacity changes
+            if (request.Capacity.HasValue)
+            {
+                var currentAttendees = eventEntity.GetCurrentAttendeeCount();
+                if (request.Capacity.Value < currentAttendees)
+                {
+                    _logger.LogWarning("Cannot reduce capacity below current attendance. Event: {EventId}, " +
+                        "Requested Capacity: {RequestedCapacity}, Current Attendees: {CurrentAttendees}",
+                        eventId, request.Capacity.Value, currentAttendees);
+                    return (false, null, $"Cannot reduce capacity to {request.Capacity.Value}. " +
+                        $"Current attendance is {currentAttendees}");
+                }
+            }
+
+            // Validate date range if either date is provided
+            var startDate = request.StartDate?.ToUniversalTime() ?? eventEntity.StartDate;
+            var endDate = request.EndDate?.ToUniversalTime() ?? eventEntity.EndDate;
+            
+            if (startDate >= endDate)
+            {
+                _logger.LogWarning("Invalid date range for event update: {EventId}, " +
+                    "StartDate: {StartDate}, EndDate: {EndDate}", eventId, startDate, endDate);
+                return (false, null, "Start date must be before end date");
+            }
+
+            // Apply updates only for non-null fields (partial update)
+            if (!string.IsNullOrWhiteSpace(request.Title))
+            {
+                eventEntity.Title = request.Title.Trim();
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Description))
+            {
+                eventEntity.Description = request.Description.Trim();
+            }
+
+            if (request.StartDate.HasValue)
+            {
+                eventEntity.StartDate = startDate;
+            }
+
+            if (request.EndDate.HasValue)
+            {
+                eventEntity.EndDate = endDate;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Location))
+            {
+                eventEntity.Location = request.Location.Trim();
+            }
+
+            if (request.Capacity.HasValue)
+            {
+                eventEntity.Capacity = request.Capacity.Value;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.PricingTiers))
+            {
+                eventEntity.PricingTiers = request.PricingTiers;
+            }
+
+            if (request.IsPublished.HasValue)
+            {
+                eventEntity.IsPublished = request.IsPublished.Value;
+            }
+
+            // Update the UpdatedAt timestamp
+            eventEntity.UpdatedAt = DateTime.UtcNow;
+
+            // Save changes to database
+            await _context.SaveChangesAsync(cancellationToken);
+
+            // Return updated event as DTO
+            var updatedEventDto = new EventDto
+            {
+                Id = eventEntity.Id.ToString(),
+                Title = eventEntity.Title,
+                Description = eventEntity.Description,
+                StartDate = eventEntity.StartDate,
+                EndDate = eventEntity.EndDate,
+                Location = eventEntity.Location,
+                EventType = eventEntity.EventType,
+                Capacity = eventEntity.Capacity,
+                CurrentAttendees = eventEntity.GetCurrentAttendeeCount(),
+                CurrentRSVPs = eventEntity.GetCurrentRSVPCount(),
+                CurrentTickets = eventEntity.GetCurrentTicketCount()
+            };
+
+            _logger.LogInformation("Event updated successfully: {EventId} ({Title})", 
+                eventId, eventEntity.Title);
+            return (true, updatedEventDto, string.Empty);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update event: {EventId}", eventId);
+            return (false, null, "Failed to update event");
+        }
+    }
 }

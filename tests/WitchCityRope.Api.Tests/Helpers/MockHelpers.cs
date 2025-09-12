@@ -147,7 +147,7 @@ public static class MockHelpers
         Guid? id = null,
         Guid? organizerId = null,
         string title = "Test Event",
-        EventType type = EventType.Workshop,
+        EventType type = EventType.Class,
         decimal price = 0,
         int maxAttendees = 20,
         bool requiresVetting = false)
@@ -288,7 +288,7 @@ public class TestDataBuilder
     public async Task<Event> CreateEventAsync(
         Guid organizerId,
         string title = "Test Event",
-        EventType type = EventType.Workshop,
+        EventType type = EventType.Class,
         bool requiresVetting = false)
     {
         var @event = MockHelpers.CreateTestEvent(

@@ -18,10 +18,15 @@ import {
   IconEdit
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
-import { useEvent } from '../../lib/api/hooks/useEvents';
+import { useEvent, useUpdateEvent } from '../../lib/api/hooks/useEvents';
 import { EventForm, EventFormData } from '../../components/events/EventForm';
 import { WCRButton } from '../../components/ui';
+import { convertEventFormDataToUpdateDto, hasEventFormDataChanged, getChangedEventFields } from '../../utils/eventDataTransformation';
 import type { EventDto } from '@witchcityrope/shared-types';
+import type { components } from '@witchcityrope/shared-types';
+
+// Type alias for cleaner usage
+type EventDtoType = components['schemas']['EventDto'];
 
 export const AdminEventDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,17 +36,23 @@ export const AdminEventDetailsPage: React.FC = () => {
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string>('');
   const [formDirty, setFormDirty] = useState(false);
+  const [initialFormData, setInitialFormData] = useState<EventFormData | null>(null);
   
   const { data: event, isLoading, error } = useEvent(id!, !!id);
+  const updateEventMutation = useUpdateEvent();
   
-  // Initialize publish status from event data
+  // Initialize publish status and form data from event
   React.useEffect(() => {
     if (event) {
-      // Determine status from event data (you may need to adjust based on your API)
+      // Determine status from event data
       const status = event.status === 'Published' || !event.status ? 'published' : 'draft';
       setPublishStatus(status);
+      
+      // Store initial form data for change tracking
+      const initialData = convertEventToFormData(event as EventDtoType);
+      setInitialFormData(initialData);
     }
-  }, [event]);
+  }, [event]);  
   
   if (!id) {
     return (
@@ -92,14 +103,14 @@ export const AdminEventDetailsPage: React.FC = () => {
   }
 
   // Convert EventDto to EventFormData
-  const convertEventToFormData = (event: EventDto): EventFormData => {
+  const convertEventToFormData = (event: EventDtoType): EventFormData => {
     return {
-      eventType: 'class', // Default since EventDto doesn't have this field
-      title: event.title,
-      shortDescription: event.description.substring(0, 160), // Take first 160 chars as short desc
-      fullDescription: event.description,
+      eventType: 'class', // Default since EventDto doesn't have this field, could map from event.eventType
+      title: event.title || '',
+      shortDescription: event.description?.substring(0, 160) || '', // Take first 160 chars as short desc
+      fullDescription: event.description || '',
       policies: '', // EventDto doesn't have policies field
-      venueId: event.location || '', // Use location as venue
+      venueId: '', // EventDto doesn't have location field in generated types
       teacherIds: [], // EventDto doesn't have teachers
       sessions: [], // EventDto doesn't have sessions
       ticketTypes: [], // EventDto doesn't have ticket types
@@ -114,16 +125,45 @@ export const AdminEventDetailsPage: React.FC = () => {
     navigate('/admin/events');
   };
 
-  const handleFormSubmit = (data: EventFormData) => {
-    console.log('Form submitted:', data);
-    // TODO: Implement save functionality
-    setIsEditMode(false);
-    setFormDirty(false);
-    notifications.show({
-      title: 'Event Saved',
-      message: 'Event details have been saved successfully.',
-      color: 'green'
-    });
+  const handleFormSubmit = async (data: EventFormData) => {
+    if (!event || !id) return;
+    
+    try {
+      // Get only changed fields for partial update
+      const changedFields = initialFormData 
+        ? getChangedEventFields(id, data, initialFormData)
+        : convertEventFormDataToUpdateDto(id, data);
+      
+      // Only proceed if there are changes
+      if (Object.keys(changedFields).length <= 1) { // Only id field means no changes
+        notifications.show({
+          title: 'No Changes',
+          message: 'No changes detected to save.',
+          color: 'blue'
+        });
+        return;
+      }
+      
+      await updateEventMutation.mutateAsync(changedFields);
+      
+      // Update initial form data to new values
+      setInitialFormData(data);
+      setIsEditMode(false);
+      setFormDirty(false);
+      
+      notifications.show({
+        title: 'Event Updated',
+        message: 'Event details have been saved successfully.',
+        color: 'green'
+      });
+    } catch (error) {
+      console.error('Failed to update event:', error);
+      notifications.show({
+        title: 'Update Failed',
+        message: error instanceof Error ? error.message : 'Failed to update event. Please try again.',
+        color: 'red'
+      });
+    }
   };
 
   const handleFormCancel = () => {
@@ -138,20 +178,37 @@ export const AdminEventDetailsPage: React.FC = () => {
     }
   };
 
-  const confirmStatusChange = () => {
+  const confirmStatusChange = async () => {
+    if (!event || !id) return;
+    
     const action = pendingStatus === 'published' ? 'publish' : 'unpublish';
+    const isPublished = pendingStatus === 'published';
     
-    // TODO: Implement API call to update status
-    console.log(`${action} event:`, id);
-    
-    setPublishStatus(pendingStatus);
-    setConfirmModalOpen(false);
-    
-    notifications.show({
-      title: `Event ${pendingStatus === 'published' ? 'Published' : 'Unpublished'}`,
-      message: `Event has been ${pendingStatus === 'published' ? 'published and is now visible to the public' : 'moved to draft and is no longer visible publicly'}.`,
-      color: pendingStatus === 'published' ? 'green' : 'blue'
-    });
+    try {
+      // Update only the isPublished field
+      await updateEventMutation.mutateAsync({
+        id,
+        isPublished
+      });
+      
+      setPublishStatus(pendingStatus);
+      setConfirmModalOpen(false);
+      
+      notifications.show({
+        title: `Event ${isPublished ? 'Published' : 'Unpublished'}`,
+        message: `Event has been ${isPublished ? 'published and is now visible to the public' : 'moved to draft and is no longer visible publicly'}.`,
+        color: isPublished ? 'green' : 'blue'
+      });
+    } catch (error) {
+      console.error(`Failed to ${action} event:`, error);
+      notifications.show({
+        title: `${action.charAt(0).toUpperCase() + action.slice(1)} Failed`,
+        message: error instanceof Error ? error.message : `Failed to ${action} event. Please try again.`,
+        color: 'red'
+      });
+      // Reset pending status on error
+      setPendingStatus('');
+    }
   };
 
   const cancelStatusChange = () => {
@@ -225,10 +282,10 @@ export const AdminEventDetailsPage: React.FC = () => {
 
       {/* EventForm Component */}
       <EventForm
-        initialData={convertEventToFormData(event)}
+        initialData={convertEventToFormData(event as EventDtoType)}
         onSubmit={handleFormSubmit}
         onCancel={handleFormCancel}
-        isSubmitting={false}
+        isSubmitting={updateEventMutation.isPending}
         onFormChange={() => setFormDirty(true)}
         formDirty={formDirty}
       />

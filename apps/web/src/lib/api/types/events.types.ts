@@ -27,10 +27,12 @@ export interface UpdateEventDto {
   id: string
   title?: string
   description?: string
-  startDate?: string
-  endDate?: string
+  startDate?: string    // Backend expects StartDate field
+  endDate?: string      // Backend expects EndDate field
   location?: string
   capacity?: number
+  price?: number
+  isPublished?: boolean
 }
 
 export interface EventFilters extends PaginationParams {

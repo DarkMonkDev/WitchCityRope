@@ -1716,3 +1716,112 @@ This issue demonstrates the importance of understanding the full application flo
 - **Always check what fonts existing components use** before applying custom fonts
 
 **Pattern Applied**: When users report legibility issues, examine similar UI components to find the most readable font already in use and apply consistently.
+
+## Admin Event Update API Integration - Pattern Implementation ✅ (2025-09-12)
+
+**Problem**: Wire frontend AdminEventDetailsPage to call existing backend API (PUT `/api/events/{id}`) for updating events
+**Solution**: Implemented complete API integration with proper error handling, partial updates, and publish status management
+
+**Implementation Pattern Applied**:
+
+### 1. Data Transformation Layer ✅
+**Created**: `/apps/web/src/utils/eventDataTransformation.ts`
+```typescript
+// Convert form data to API format with partial updates
+export function convertEventFormDataToUpdateDto(
+  eventId: string, 
+  formData: EventFormData, 
+  isPublished?: boolean
+): UpdateEventDto
+
+// Track only changed fields for efficient API calls
+export function getChangedEventFields(
+  eventId: string,
+  current: EventFormData, 
+  initial: EventFormData,
+  isPublished?: boolean
+): UpdateEventDto
+```
+
+### 2. Type System Enhancement ✅
+**Updated**: `UpdateEventDto` interface with backend-compatible fields:
+```typescript
+export interface UpdateEventDto {
+  id: string
+  title?: string
+  description?: string
+  startDate?: string
+  endDate?: string
+  location?: string
+  capacity?: number
+  price?: number        // Added for backend compatibility
+  isPublished?: boolean // Added for publish/draft toggle
+}
+```
+
+### 3. API Integration Pattern ✅
+**Used**: Existing `useUpdateEvent` mutation hook from TanStack Query
+**Features**:
+- Optimistic updates for better UX
+- Automatic cache invalidation
+- Error rollback on failure
+- Loading states for UI feedback
+
+### 4. Form Integration Pattern ✅
+**AdminEventDetailsPage Implementation**:
+```typescript
+const updateEventMutation = useUpdateEvent();
+const [initialFormData, setInitialFormData] = useState<EventFormData | null>(null);
+
+const handleFormSubmit = async (data: EventFormData) => {
+  // Get only changed fields for efficient partial updates
+  const changedFields = initialFormData 
+    ? getChangedEventFields(id, data, initialFormData)
+    : convertEventFormDataToUpdateDto(id, data);
+    
+  await updateEventMutation.mutateAsync(changedFields);
+};
+
+// Handle publish/draft toggle separately
+const confirmStatusChange = async () => {
+  await updateEventMutation.mutateAsync({
+    id,
+    isPublished: pendingStatus === 'published'
+  });
+};
+```
+
+### 5. User Experience Patterns ✅
+**Loading States**: Form shows `isSubmitting={updateEventMutation.isPending}`
+**Error Handling**: Comprehensive error messages with fallbacks
+**Success Feedback**: Clear notifications for save and publish actions
+**Partial Updates**: Only sends changed fields to reduce API load
+**Change Tracking**: Compares current vs initial form data to detect changes
+
+### 6. Authentication Pattern ✅
+**Followed**: Existing JWT patterns from apiClient
+- Uses httpOnly cookies via `withCredentials: true`
+- Automatic token inclusion in Authorization header
+- 401 handling with redirect to login
+
+**Key Learning Patterns**:
+1. **Data Transformation Layer**: Always create utility functions to convert between form data and API formats
+2. **Partial Updates**: Track changed fields and only send modifications to the API
+3. **Separate Publish Logic**: Handle publish/draft status changes as separate operations
+4. **Comprehensive Error Handling**: Provide specific error messages and fallback handling
+5. **Form State Management**: Track initial data to enable change detection and dirty state
+6. **TanStack Query Integration**: Leverage existing mutation patterns with optimistic updates
+
+**Files Modified**:
+- ✅ `/apps/web/src/lib/api/types/events.types.ts` - Added isPublished and price fields
+- ✅ `/apps/web/src/utils/eventDataTransformation.ts` - Created transformation utilities
+- ✅ `/apps/web/src/pages/admin/AdminEventDetailsPage.tsx` - Complete API integration
+
+**Standards Established**:
+- Always use partial updates for performance
+- Separate form submission from publish status changes  
+- Create reusable transformation utilities
+- Follow TanStack Query patterns for mutations
+- Handle all error states with user-friendly messages
+
+**Critical Success**: EventForm now saves changes to backend via PUT API with proper authentication, error handling, and user feedback. Publish/draft toggle works independently for immediate status changes.
