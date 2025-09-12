@@ -81,6 +81,16 @@ public class Event
     public string PricingTiers { get; set; } = "{}";
 
     /// <summary>
+    /// Navigation property to sessions
+    /// </summary>
+    public ICollection<Session> Sessions { get; set; } = new List<Session>();
+
+    /// <summary>
+    /// Navigation property to ticket types
+    /// </summary>
+    public ICollection<TicketType> TicketTypes { get; set; } = new List<TicketType>();
+
+    /// <summary>
     /// Gets the current number of confirmed attendees based on CORRECT business logic:
     /// - Social Events: CurrentAttendees = RSVPs (everyone must RSVP to attend, tickets are optional donations)
     /// - Class Events: CurrentAttendees = Tickets (only paid tickets, no RSVPs)

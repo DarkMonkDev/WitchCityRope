@@ -21,6 +21,10 @@ namespace WitchCityRope.Api.Services;
 /// Seed data includes:
 /// - 5 test accounts covering all role scenarios (Admin, Teacher, Member, Guest, Organizer)
 /// - 12 sample events (10 upcoming, 2 past) with realistic data
+/// - Sessions for each event (single-day and multi-day scenarios)
+/// - Ticket types with varied pricing models (sliding scale, early bird, full event packages)
+/// - Sample ticket purchases and RSVPs with realistic payment data
+/// - Volunteer positions demonstrating event management functionality
 /// - Vetting status configuration for development workflows
 /// 
 /// Implementation follows existing service layer patterns and coding standards.
@@ -77,6 +81,9 @@ public class SeedDataService : ISeedDataService
             // Seed data operations in logical order
             await SeedUsersAsync(cancellationToken);
             await SeedEventsAsync(cancellationToken);
+            await SeedSessionsAndTicketsAsync(cancellationToken);
+            await SeedTicketPurchasesAsync(cancellationToken);
+            await SeedVolunteerPositionsAsync(cancellationToken);
             await SeedVettingStatusesAsync(cancellationToken);
 
             // Calculate records created
@@ -320,6 +327,149 @@ public class SeedDataService : ISeedDataService
     }
 
     /// <summary>
+    /// Creates sessions and ticket types for each event
+    /// Includes variety of scenarios: single-session events, multi-day events, different pricing models
+    /// </summary>
+    public async Task SeedSessionsAndTicketsAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Starting sessions and ticket types creation");
+
+        // Check if sessions already exist (idempotent operation)
+        var existingSessionCount = await _context.Sessions.CountAsync(cancellationToken);
+        if (existingSessionCount > 0)
+        {
+            _logger.LogInformation("Sessions already exist ({Count}), skipping session and ticket seeding", existingSessionCount);
+            return;
+        }
+
+        var events = await _context.Events.ToListAsync(cancellationToken);
+        var sessionsToAdd = new List<Session>();
+        var ticketTypesToAdd = new List<TicketType>();
+
+        foreach (var eventItem in events)
+        {
+            if (eventItem.Title.Contains("Suspension Intensive") || eventItem.Title.Contains("Conference"))
+            {
+                // Multi-day events (2-3 days)
+                var numberOfDays = eventItem.Title.Contains("Conference") ? 3 : 2;
+                AddMultiDayEvent(eventItem, numberOfDays, sessionsToAdd, ticketTypesToAdd);
+            }
+            else
+            {
+                // Single-day events (most events)
+                AddSingleDayEvent(eventItem, sessionsToAdd, ticketTypesToAdd);
+            }
+        }
+
+        await _context.Sessions.AddRangeAsync(sessionsToAdd, cancellationToken);
+        await _context.TicketTypes.AddRangeAsync(ticketTypesToAdd, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Sessions and ticket types creation completed. Created: {SessionCount} sessions, {TicketCount} ticket types", 
+            sessionsToAdd.Count, ticketTypesToAdd.Count);
+    }
+
+    /// <summary>
+    /// Creates sample ticket purchases for realistic data testing
+    /// Includes mix of completed purchases, pending payments, and free RSVPs
+    /// </summary>
+    public async Task SeedTicketPurchasesAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Starting ticket purchases creation");
+
+        // Check if purchases already exist (idempotent operation)
+        var existingPurchaseCount = await _context.TicketPurchases.CountAsync(cancellationToken);
+        if (existingPurchaseCount > 0)
+        {
+            _logger.LogInformation("Ticket purchases already exist ({Count}), skipping purchase seeding", existingPurchaseCount);
+            return;
+        }
+
+        var ticketTypes = await _context.TicketTypes
+            .Include(t => t.Event)
+            .ToListAsync(cancellationToken);
+        
+        var users = await _userManager.Users.ToListAsync(cancellationToken);
+        var purchasesToAdd = new List<TicketPurchase>();
+
+        // Create realistic purchase data
+        foreach (var ticketType in ticketTypes)
+        {
+            var purchaseCount = Math.Min(ticketType.Sold, users.Count);
+            
+            for (int i = 0; i < purchaseCount; i++)
+            {
+                var user = users[i % users.Count];
+                var isRSVP = ticketType.IsRsvpMode;
+                
+                var purchase = new TicketPurchase
+                {
+                    TicketTypeId = ticketType.Id,
+                    UserId = user.Id,
+                    PurchaseDate = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 30)),
+                    Quantity = 1,
+                    TotalPrice = isRSVP ? 0 : ticketType.Price * (0.5m + (decimal)Random.Shared.NextDouble() * 0.5m), // Sliding scale pricing
+                    PaymentStatus = isRSVP ? "Completed" : GetRandomPaymentStatus(),
+                    PaymentMethod = isRSVP ? "RSVP" : GetRandomPaymentMethod(),
+                    PaymentReference = Guid.NewGuid().ToString("N")[..8],
+                    Notes = GetRandomPurchaseNotes()
+                };
+
+                purchasesToAdd.Add(purchase);
+            }
+        }
+
+        await _context.TicketPurchases.AddRangeAsync(purchasesToAdd, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Ticket purchases creation completed. Created: {PurchaseCount} purchases", purchasesToAdd.Count);
+    }
+
+    /// <summary>
+    /// Creates volunteer positions for events to demonstrate volunteer management functionality
+    /// </summary>
+    public async Task SeedVolunteerPositionsAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Starting volunteer positions creation");
+
+        // Check if volunteer positions already exist (idempotent operation)
+        var existingVolunteerCount = await _context.VolunteerPositions.CountAsync(cancellationToken);
+        if (existingVolunteerCount > 0)
+        {
+            _logger.LogInformation("Volunteer positions already exist ({Count}), skipping volunteer seeding", existingVolunteerCount);
+            return;
+        }
+
+        var events = await _context.Events
+            .Include(e => e.Sessions)
+            .ToListAsync(cancellationToken);
+        
+        var volunteerPositionsToAdd = new List<VolunteerPosition>();
+
+        foreach (var eventItem in events)
+        {
+            // Add event-wide volunteer positions
+            var eventPositions = CreateEventVolunteerPositions(eventItem);
+            volunteerPositionsToAdd.AddRange(eventPositions);
+
+            // Add session-specific volunteer positions for some events
+            if (eventItem.Sessions.Any() && eventItem.EventType == "Class")
+            {
+                foreach (var session in eventItem.Sessions)
+                {
+                    var sessionPositions = CreateSessionVolunteerPositions(eventItem, session);
+                    volunteerPositionsToAdd.AddRange(sessionPositions);
+                }
+            }
+        }
+
+        await _context.VolunteerPositions.AddRangeAsync(volunteerPositionsToAdd, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Volunteer positions creation completed. Created: {VolunteerCount} positions", volunteerPositionsToAdd.Count);
+    }
+
+    /// <summary>
     /// Checks if seed data population is required by examining existing data.
     /// Implements idempotent behavior to avoid unnecessary seeding operations.
     /// 
@@ -385,6 +535,270 @@ public class SeedDataService : ISeedDataService
         return eventType == EventType.Social 
             ? $"${slidingMin:F0}-${slidingMax:F0} (pay what you can)"
             : $"${slidingMin:F0}-${slidingMax:F0} (sliding scale)";
+    }
+
+    /// <summary>
+    /// Helper method to add sessions and tickets for single-day events
+    /// Most events are single-day with one session
+    /// </summary>
+    private void AddSingleDayEvent(Event eventItem, List<Session> sessionsToAdd, List<TicketType> ticketTypesToAdd)
+    {
+        var session = new Session
+        {
+            EventId = eventItem.Id,
+            SessionCode = "S1",
+            Name = "Main Session",
+            StartTime = eventItem.StartDate,
+            EndTime = eventItem.EndDate,
+            Capacity = eventItem.Capacity,
+            CurrentAttendees = eventItem.GetCurrentAttendeeCount()
+        };
+
+        sessionsToAdd.Add(session);
+
+        // Add ticket types based on event type
+        if (eventItem.EventType == "Social")
+        {
+            // Social events: Free RSVP + optional donation ticket
+            var rsvpTicket = new TicketType
+            {
+                EventId = eventItem.Id,
+                SessionId = session.Id,
+                Name = "Free RSVP",
+                Description = "Free attendance - RSVP required",
+                Price = 0,
+                Available = eventItem.Capacity,
+                Sold = eventItem.GetCurrentRSVPCount(),
+                IsRsvpMode = true
+            };
+
+            var donationTicket = new TicketType
+            {
+                EventId = eventItem.Id,
+                SessionId = session.Id,
+                Name = "Support Donation",
+                Description = "Optional donation to support the community",
+                Price = ParsePrice(eventItem.PricingTiers),
+                Available = eventItem.Capacity,
+                Sold = eventItem.GetCurrentTicketCount(),
+                IsRsvpMode = false
+            };
+
+            ticketTypesToAdd.Add(rsvpTicket);
+            ticketTypesToAdd.Add(donationTicket);
+        }
+        else // Class
+        {
+            // Class events: Regular ticket only
+            var regularTicket = new TicketType
+            {
+                EventId = eventItem.Id,
+                SessionId = session.Id,
+                Name = "Regular",
+                Description = "Full access to the workshop",
+                Price = ParsePrice(eventItem.PricingTiers),
+                Available = eventItem.Capacity,
+                Sold = eventItem.GetCurrentAttendeeCount(),
+                IsRsvpMode = false
+            };
+
+            ticketTypesToAdd.Add(regularTicket);
+        }
+    }
+
+    /// <summary>
+    /// Helper method to add sessions and tickets for multi-day events
+    /// Creates individual day sessions plus discounted full-event tickets
+    /// </summary>
+    private void AddMultiDayEvent(Event eventItem, int numberOfDays, List<Session> sessionsToAdd, List<TicketType> ticketTypesToAdd)
+    {
+        var basePrice = ParsePrice(eventItem.PricingTiers);
+        var dailyPrice = Math.Round(basePrice * 0.6m, 2); // Individual day is 60% of full price
+        var capacityPerDay = (int)Math.Ceiling(eventItem.Capacity / (double)numberOfDays);
+
+        // Create sessions for each day
+        var sessions = new List<Session>();
+        for (int day = 0; day < numberOfDays; day++)
+        {
+            var dayStart = eventItem.StartDate.AddDays(day);
+            var dayEnd = dayStart.AddHours(eventItem.EndDate.Hour - eventItem.StartDate.Hour);
+
+            var session = new Session
+            {
+                EventId = eventItem.Id,
+                SessionCode = $"S{day + 1}",
+                Name = $"Day {day + 1}",
+                StartTime = dayStart,
+                EndTime = dayEnd,
+                Capacity = capacityPerDay,
+                CurrentAttendees = (int)(capacityPerDay * 0.7) // 70% filled on average
+            };
+
+            sessions.Add(session);
+            sessionsToAdd.Add(session);
+        }
+
+        // Create ticket types - Individual day tickets
+        for (int day = 0; day < numberOfDays; day++)
+        {
+            var dayTicket = new TicketType
+            {
+                EventId = eventItem.Id,
+                SessionId = sessions[day].Id,
+                Name = $"Day {day + 1} Only",
+                Description = $"Access to Day {day + 1} activities only",
+                Price = dailyPrice,
+                Available = capacityPerDay,
+                Sold = (int)(capacityPerDay * 0.5), // 50% sold for individual days
+                IsRsvpMode = false
+            };
+
+            ticketTypesToAdd.Add(dayTicket);
+        }
+
+        // Full event ticket with discount
+        var fullEventTicket = new TicketType
+        {
+            EventId = eventItem.Id,
+            SessionId = null, // Multi-session ticket
+            Name = $"All {numberOfDays} Days",
+            Description = $"Full access to all {numberOfDays} days - SAVE ${(dailyPrice * numberOfDays - basePrice):F0}!",
+            Price = basePrice,
+            Available = eventItem.Capacity,
+            Sold = eventItem.GetCurrentAttendeeCount(),
+            IsRsvpMode = false
+        };
+
+        ticketTypesToAdd.Add(fullEventTicket);
+    }
+
+    /// <summary>
+    /// Creates volunteer positions for an event
+    /// </summary>
+    private List<VolunteerPosition> CreateEventVolunteerPositions(Event eventItem)
+    {
+        var positions = new List<VolunteerPosition>();
+
+        // Common volunteer positions for all events
+        positions.Add(new VolunteerPosition
+        {
+            EventId = eventItem.Id,
+            Title = "Door Monitor",
+            Description = "Check attendees in, verify tickets/RSVPs, and welcome newcomers",
+            SlotsNeeded = 2,
+            SlotsFilled = Random.Shared.Next(0, 3),
+            RequiresExperience = false,
+            Requirements = "Friendly demeanor, punctuality"
+        });
+
+        positions.Add(new VolunteerPosition
+        {
+            EventId = eventItem.Id,
+            Title = "Setup/Cleanup Crew",
+            Description = "Help set up equipment before the event and clean up afterwards",
+            SlotsNeeded = 3,
+            SlotsFilled = Random.Shared.Next(1, 4),
+            RequiresExperience = false,
+            Requirements = "Physical ability to lift equipment"
+        });
+
+        // Additional positions for classes
+        if (eventItem.EventType == "Class")
+        {
+            positions.Add(new VolunteerPosition
+            {
+                EventId = eventItem.Id,
+                Title = "Teaching Assistant",
+                Description = "Help instructor with demonstrations and assist students",
+                SlotsNeeded = 1,
+                SlotsFilled = Random.Shared.Next(0, 2),
+                RequiresExperience = true,
+                Requirements = "Intermediate+ rope skills, teaching experience preferred"
+            });
+        }
+
+        return positions;
+    }
+
+    /// <summary>
+    /// Creates session-specific volunteer positions
+    /// </summary>
+    private List<VolunteerPosition> CreateSessionVolunteerPositions(Event eventItem, Session session)
+    {
+        var positions = new List<VolunteerPosition>();
+
+        // Session-specific positions only for multi-day events
+        if (session.SessionCode != "S1" || session.Name.Contains("Day"))
+        {
+            positions.Add(new VolunteerPosition
+            {
+                EventId = eventItem.Id,
+                SessionId = session.Id,
+                Title = $"Session Monitor - {session.Name}",
+                Description = $"Monitor safety and assist during {session.Name}",
+                SlotsNeeded = 1,
+                SlotsFilled = Random.Shared.Next(0, 2),
+                RequiresExperience = true,
+                Requirements = "Safety knowledge, first aid certified preferred"
+            });
+        }
+
+        return positions;
+    }
+
+    /// <summary>
+    /// Helper method to extract price from pricing tiers JSON
+    /// </summary>
+    private decimal ParsePrice(string pricingTiers)
+    {
+        // Simple parsing for seed data - extract numeric values from pricing string
+        var price = pricingTiers.Replace("$", "").Replace("-", " ").Replace("(", " ").Replace(")", " ");
+        var parts = price.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        
+        foreach (var part in parts)
+        {
+            if (decimal.TryParse(part, out var result) && result > 0)
+            {
+                return result;
+            }
+        }
+
+        return 25.00m; // Default price
+    }
+
+    /// <summary>
+    /// Helper method to get random payment status for realistic purchase data
+    /// </summary>
+    private string GetRandomPaymentStatus()
+    {
+        var statuses = new[] { "Completed", "Completed", "Completed", "Pending", "Failed" };
+        return statuses[Random.Shared.Next(statuses.Length)];
+    }
+
+    /// <summary>
+    /// Helper method to get random payment method for realistic purchase data
+    /// </summary>
+    private string GetRandomPaymentMethod()
+    {
+        var methods = new[] { "PayPal", "Stripe", "Venmo", "Cash", "Zelle" };
+        return methods[Random.Shared.Next(methods.Length)];
+    }
+
+    /// <summary>
+    /// Helper method to get random purchase notes for realistic data
+    /// </summary>
+    private string GetRandomPurchaseNotes()
+    {
+        var notes = new[] 
+        { 
+            "", "", "", // Most purchases have no notes
+            "First time attending!",
+            "Vegetarian meal preference",
+            "Mobility assistance needed",
+            "Paid sliding scale minimum",
+            "Group purchase for partners"
+        };
+        return notes[Random.Shared.Next(notes.Length)];
     }
 }
 
