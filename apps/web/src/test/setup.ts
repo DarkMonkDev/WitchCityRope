@@ -8,6 +8,36 @@ if (typeof global.fetch === 'undefined') {
   global.fetch = vi.fn()
 }
 
+// Filter out Mantine CSS warnings in tests
+const originalError = console.error
+const originalWarn = console.warn
+
+console.error = (...args) => {
+  const message = args.join(' ')
+  // Filter out Mantine CSS warnings that clutter test output
+  if (
+    message.includes('Unsupported style property') ||
+    message.includes('Did you mean') ||
+    message.includes('mantine-') ||
+    message.includes('@media')
+  ) {
+    return
+  }
+  originalError.apply(console, args)
+}
+
+console.warn = (...args) => {
+  const message = args.join(' ')
+  // Filter out Mantine warnings that aren't test failures
+  if (
+    message.includes('Unsupported style property') ||
+    message.includes('mantine-')
+  ) {
+    return
+  }
+  originalWarn.apply(console, args)
+}
+
 // Mock window.matchMedia for Mantine components
 Object.defineProperty(window, 'matchMedia', {
   writable: true,

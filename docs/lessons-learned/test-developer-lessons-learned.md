@@ -2,6 +2,71 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 CRITICAL: E2E Selector Validation Required
+
+**Lesson Learned**: NEVER assume test selectors exist in actual React components. Mass test failures caused by wrong selectors.
+
+**Root Cause**: Tests used `button[type="submit"]:has-text("Login")` but LoginPage.tsx actually uses `[data-testid="login-button"]`
+
+**Prevention**: 
+1. **Always verify selectors against actual component code**
+2. **Use data-testid attributes exclusively for E2E tests**
+3. **Create selector validation test first**:
+   ```typescript
+   // Verify selectors exist before using them
+   expect(await page.locator('[data-testid="login-button"]').count()).toBe(1)
+   expect(await page.locator('button[type="submit"]:has-text("Login")').count()).toBe(0) // Broken
+   ```
+
+**Correct Patterns**:
+- ✅ Email: `[data-testid="email-input"]`
+- ✅ Password: `[data-testid="password-input"]` 
+- ✅ Button: `[data-testid="login-button"]`
+- ✅ URL: `**/dashboard` (not `**/dashboard/**`)
+
+**Impact**: Fixed 4+ failing tests immediately. Don't repeat this mistake.
+
+## 🚨 CRITICAL: Test Cleanup for Unimplemented Features - 2025-09-12 🚨
+
+**Lesson Learned**: Don't waste time debugging tests that are failing because they're testing features that haven't been implemented yet.
+
+**Root Cause**: Many tests were navigating to wrong routes or expecting components that don't exist, causing false failures.
+
+**Prevention**:
+1. **Verify routes exist in React app before testing**:
+   ```bash
+   # Check actual routes in React router
+   grep -r "path.*admin/events" apps/web/src/routes/
+   ```
+
+2. **Skip tests for unimplemented features**:
+   ```typescript
+   test.describe.skip('Feature Name - SKIPPED: Features Not Implemented', () => {
+   ```
+
+3. **Fix wrong routes immediately**:
+   ```typescript
+   // ❌ WRONG - Route doesn't exist
+   await page.goto('/admin/events-table'); 
+   
+   // ✅ CORRECT - Actual React route  
+   await page.goto('/admin/events');
+   ```
+
+4. **Test component behavior patterns, not assumptions**:
+   ```typescript
+   // ❌ WRONG - Assuming aria-checked for Mantine chips
+   await expect(chip).toHaveAttribute('aria-checked', 'true');
+   
+   // ✅ CORRECT - Use Playwright's semantic methods
+   await expect(chip).toBeChecked();
+   ```
+
+**Impact**: 
+- Fixed wrong routes: 3/5 admin events tests now pass (were 0/5)
+- Skipped unimplemented features: Reduced test noise, focus on real bugs
+- Established patterns for future feature detection
+
 ## 🚨 CRITICAL: Always Run Health Checks First
 
 **Lesson Learned**: Port misconfigurations cause most test failures, not code issues.
@@ -138,6 +203,76 @@ ls -la *.test.* *.spec.* *.html test-*.* debug-*.* 2>/dev/null
 - ❌ `/apps/` for test utilities
 - ❌ `/src/` for test scripts
 - ❌ Random folders for test HTML files
+
+---
+
+## 🚨 CRITICAL: Mantine UI Login Solution for Playwright E2E Tests (2025-09-12) 🚨
+**Date**: 2025-09-12
+**Category**: E2E Testing
+**Severity**: CRITICAL
+
+### Context
+E2E tests were consistently failing to login due to incorrect selectors and misunderstanding of Mantine UI component CSS console errors. Tests were using wrong selectors and treating harmless CSS warnings as blocking errors.
+
+### What We Learned
+**MANTINE UI LOGIN REQUIRES SPECIFIC APPROACH**:
+- Use `data-testid` selectors, not `name` attributes for Mantine components
+- CSS warnings from Mantine (like `&:focus-visible` errors) are NOT blocking
+- `page.fill()` method works reliably with Mantine TextInput components
+- Wrong selectors cause timeouts, not JavaScript errors
+
+### Critical Fix
+```typescript
+// ❌ WRONG - These selectors don't work in React LoginPage.tsx
+await page.locator('input[name="email"]').fill('admin@witchcityrope.com')
+await page.locator('input[name="password"]').fill('Test123!')
+
+// ✅ CORRECT - Use data-testid selectors from LoginPage.tsx
+await page.locator('[data-testid="email-input"]').fill('admin@witchcityrope.com')
+await page.locator('[data-testid="password-input"]').fill('Test123!')
+await page.locator('[data-testid="login-button"]').click()
+```
+
+### Console Error Handling Strategy
+```typescript
+// Filter CSS warnings that are NOT blocking
+page.on('console', msg => {
+  if (msg.type() === 'error') {
+    const errorText = msg.text()
+    // Only treat as critical if it's not a Mantine CSS warning
+    if (!errorText.includes('style property') && 
+        !errorText.includes('maxWidth') &&
+        !errorText.includes('focus-visible')) {
+      criticalErrors.push(errorText)
+    }
+  }
+})
+```
+
+### Working Authentication Helper
+```typescript
+import { AuthHelper, quickLogin } from './helpers/auth.helper'
+
+// Simple login - throws on failure
+await quickLogin(page, 'admin')
+
+// Advanced login with options
+const success = await AuthHelper.loginAs(page, 'admin', {
+  timeout: 15000,
+  ignoreConsoleErrors: true
+})
+```
+
+### Impact
+This solution transforms unreliable authentication flows into consistent E2E test success. Key insight: Mantine CSS warnings are harmless and should be filtered out, not treated as test failures.
+
+### Files Created
+- `/tests/e2e/login-methods-test.spec.ts` - Comprehensive testing of different approaches
+- `/tests/e2e/helpers/auth.helper.ts` - Reusable authentication helper
+- `/tests/e2e/working-login-solution.spec.ts` - Working examples and benchmarks
+
+### Tags
+#critical #mantine-ui #authentication #playwright #data-testid #css-warnings #e2e-login
 
 ---
 

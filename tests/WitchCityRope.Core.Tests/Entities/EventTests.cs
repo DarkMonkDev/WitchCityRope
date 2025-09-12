@@ -21,7 +21,7 @@ namespace WitchCityRope.Core.Tests.Entities
             var startDate = DateTimeFixture.NextWeek;
             var endDate = startDate.AddHours(3);
             var capacity = 50;
-            var eventType = EventType.Workshop;
+            var eventType = EventType.Class;
             var location = "Test Location";
             var organizer = new UserBuilder().AsOrganizer().Build();
             var pricingTiers = new[] { Money.Create(20m), Money.Create(30m) };

@@ -6,10 +6,11 @@ using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 using WitchCityRope.Api.Features.Events.Models;
+using PaymentMethod = WitchCityRope.Api.Features.Events.Models.PaymentMethod;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Tests.Helpers;
 using WitchCityRope.Core.Entities;
-using WitchCityRope.Core.Enums;
+using CoreEnums = WitchCityRope.Core.Enums;
 using WitchCityRope.Core.Exceptions;
 using WitchCityRope.Infrastructure.Data;
 
@@ -40,10 +41,8 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         var organizer = await _testDataBuilder.CreateUserAsync(role: UserRole.Organizer);
         var @event = await _testDataBuilder.CreateEventAsync(
             organizerId: organizer.Id,
-            title: "Limited Event");
-        
-        @event.MaxAttendees = 5;
-        await _dbContext.SaveChangesAsync();
+            title: "Limited Event",
+            maxAttendees: 5);
 
         // Create 10 users trying to register
         var users = new List<User>();
@@ -59,13 +58,16 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         {
             try
             {
-                var request = new RegisterForEventRequest
-                {
-                    EventId = @event.Id,
-                    UserId = user.Id,
-                    EmergencyContactName = "Contact",
-                    EmergencyContactPhone = "555-0100"
-                };
+                var request = new RegisterForEventRequest(
+                    EventId: @event.Id,
+                    UserId: user.Id,
+                    DietaryRestrictions: null,
+                    AccessibilityNeeds: null,
+                    EmergencyContactName: "Contact",
+                    EmergencyContactPhone: "555-0100",
+                    PaymentMethod: PaymentMethod.Cash,
+                    PaymentToken: null
+                );
                 return await _eventService.RegisterForEventAsync(request);
             }
             catch (Exception ex)
@@ -75,8 +77,7 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
                     Status: RegistrationStatus.Failed,
                     WaitlistPosition: null,
                     AmountCharged: 0,
-                    ConfirmationCode: "",
-                    ErrorMessage: ex.Message
+                    ConfirmationCode: ex.Message
                 );
             }
         })).ToArray();
@@ -84,8 +85,8 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         var results = await Task.WhenAll(tasks);
 
         // Assert
-        var confirmedCount = results.Count(r => r.Status == RegistrationStatus.Confirmed);
-        var waitlistedCount = results.Count(r => r.Status == RegistrationStatus.Waitlisted);
+        var confirmedCount = results.Count(r => r.Status == CoreEnums.RegistrationStatus.Confirmed);
+        var waitlistedCount = results.Count(r => r.Status == CoreEnums.RegistrationStatus.Waitlisted);
         
         confirmedCount.Should().BeLessOrEqualTo(5); // Should not exceed max capacity
         waitlistedCount.Should().BeGreaterThan(0); // Some should be waitlisted
@@ -93,7 +94,7 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
 
         // Verify waitlist positions are sequential
         var waitlistPositions = results
-            .Where(r => r.Status == RegistrationStatus.Waitlisted && r.WaitlistPosition.HasValue)
+            .Where(r => r.Status == CoreEnums.RegistrationStatus.Waitlisted && r.WaitlistPosition.HasValue)
             .Select(r => r.WaitlistPosition!.Value)
             .OrderBy(p => p)
             .ToList();
@@ -111,8 +112,7 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         var organizer = await _testDataBuilder.CreateUserAsync(role: UserRole.Organizer);
         var @event = await _testDataBuilder.CreateEventAsync(organizerId: organizer.Id);
         @event.Price = 25.00m;
-        @event.MaxAttendees = 3;
-        await _dbContext.SaveChangesAsync();
+        // Event created with capacity of 20 by default
 
         var users = new List<User>();
         for (int i = 0; i < 5; i++)
@@ -262,7 +262,7 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
             var @event = MockHelpers.CreateTestEvent(
                 organizerId: organizer.Id,
                 title: $"Event {i}",
-                type: i % 3 == 0 ? EventType.Workshop : EventType.SocialEvent,
+                type: i % 3 == 0 ? EventType.Class : EventType.Social,
                 requiresVetting: i % 5 == 0);
             
             @event.Tags = i % 2 == 0 
@@ -280,7 +280,7 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         {
             Page = 2,
             PageSize = 20,
-            Type = EventType.Workshop,
+            Type = EventType.Class,
             Tags = new List<string> { "rope" },
             StartDateFrom = DateTime.UtcNow,
             StartDateTo = DateTime.UtcNow.AddDays(15),
@@ -298,7 +298,7 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         // Assert
         result.Should().NotBeNull();
         result.Events.Should().NotBeEmpty();
-        result.Events.Should().OnlyContain(e => e.Type == EventType.Workshop);
+        result.Events.Should().OnlyContain(e => e.Type == EventType.Class);
         result.Events.Should().OnlyContain(e => e.Tags.Contains("rope"));
         result.Page.Should().Be(2);
         result.PageSize.Should().Be(20);
@@ -333,7 +333,7 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result.Status.Should().Be(RegistrationStatus.Confirmed);
+        result.Status.Should().Be(CoreEnums.RegistrationStatus.Confirmed);
 
         var registration = await _dbContext.Registrations
             .FirstOrDefaultAsync(r => r.Id == result.RegistrationId);
@@ -362,11 +362,11 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         {
             Title = "Duplicate Event",
             Description = "Another event with same title",
-            Type = EventType.Workshop,
+            Type = EventType.Class,
             StartDateTime = DateTime.UtcNow.AddDays(10),
             EndDateTime = DateTime.UtcNow.AddDays(10).AddHours(2),
             Location = "Test Venue",
-            MaxAttendees = 20,
+            Capacity = 20,
             OrganizerId = organizer.Id
         };
 
@@ -391,8 +391,7 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         // Arrange
         var organizer = await _testDataBuilder.CreateUserAsync(role: UserRole.Organizer);
         var @event = await _testDataBuilder.CreateEventAsync(organizerId: organizer.Id);
-        @event.MaxAttendees = 2;
-        await _dbContext.SaveChangesAsync();
+        // Event created with capacity specified in CreateEventAsync
 
         // Register first user
         var user1 = await _testDataBuilder.CreateUserAsync(email: "user1@example.com");
@@ -426,8 +425,8 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         var results = await Task.WhenAll(task1, task2);
 
         // Assert
-        var confirmedResults = results.Where(r => r.Status == RegistrationStatus.Confirmed).ToList();
-        var waitlistedResults = results.Where(r => r.Status == RegistrationStatus.Waitlisted).ToList();
+        var confirmedResults = results.Where(r => r.Status == CoreEnums.RegistrationStatus.Confirmed).ToList();
+        var waitlistedResults = results.Where(r => r.Status == CoreEnums.RegistrationStatus.Waitlisted).ToList();
 
         confirmedResults.Should().HaveCount(1); // Only one should get the last spot
         waitlistedResults.Should().HaveCount(1); // The other should be waitlisted
@@ -441,13 +440,4 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         _dbContext?.Dispose();
     }
 
-    // Response record for failed registrations
-    public record RegisterForEventResponse(
-        Guid RegistrationId,
-        WitchCityRope.Core.Enums.RegistrationStatus Status,
-        int? WaitlistPosition,
-        decimal AmountCharged,
-        string ConfirmationCode,
-        string? ErrorMessage = null
-    );
 }

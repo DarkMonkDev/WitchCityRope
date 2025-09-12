@@ -69,7 +69,7 @@ export const ProfilePage: React.FC = () => {
           </Title>
           
           <Box style={{ textAlign: 'center', padding: '40px' }}>
-            <Loader size="lg" color="#880124" />
+            <Loader size="lg" color="#880124" data-testid="profile-loader" />
             <Text style={{ marginTop: '16px', color: '#8B8680' }}>Loading your profile...</Text>
           </Box>
         </Box>

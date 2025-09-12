@@ -217,7 +217,7 @@ public class RequestModelValidationTests
         {
             Title = "Test Event",
             Description = "A test event description",
-            Type = EventType.Workshop,
+            Type = EventType.Class,
             StartDateTime = DateTime.UtcNow.AddDays(7),
             EndDateTime = DateTime.UtcNow.AddDays(7).AddHours(2),
             Location = "Test Venue",
@@ -249,7 +249,7 @@ public class RequestModelValidationTests
         {
             Title = title,
             Description = "Description",
-            Type = EventType.Workshop,
+            Type = EventType.Class,
             StartDateTime = DateTime.UtcNow.AddDays(7),
             EndDateTime = DateTime.UtcNow.AddDays(7).AddHours(2),
             Location = "Venue",
@@ -271,7 +271,7 @@ public class RequestModelValidationTests
         {
             Title = new string('a', 201), // 201 characters
             Description = "Description",
-            Type = EventType.Workshop,
+            Type = EventType.Class,
             StartDateTime = DateTime.UtcNow.AddDays(7),
             EndDateTime = DateTime.UtcNow.AddDays(7).AddHours(2),
             Location = "Venue",
@@ -295,7 +295,7 @@ public class RequestModelValidationTests
         {
             Title = "Test Event",
             Description = "Description",
-            Type = EventType.Workshop,
+            Type = EventType.Class,
             StartDateTime = DateTime.UtcNow.AddDays(7),
             EndDateTime = DateTime.UtcNow.AddDays(7).AddHours(2),
             Location = "Venue",
@@ -319,7 +319,7 @@ public class RequestModelValidationTests
         {
             Title = "Test Event",
             Description = "Description",
-            Type = EventType.Workshop,
+            Type = EventType.Class,
             StartDateTime = DateTime.UtcNow.AddDays(7),
             EndDateTime = DateTime.UtcNow.AddDays(7).AddHours(2),
             Location = "Venue",

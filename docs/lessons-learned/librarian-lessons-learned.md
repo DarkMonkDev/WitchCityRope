@@ -140,6 +140,12 @@
 **Root Cause**: Authentication system migrated from Blazor to React in August 2025 with complete milestone documentation, but agents may not check existing documentation before investigating.
 **Prevention**: Check master index status and milestone documentation before investigating "missing" implementations.
 
+## Critical Architecture Issue Session Documentation
+
+**Pattern**: When discovering critical architectural issues (like duplicate API projects), immediately create comprehensive session prompt for dedicated cleanup.
+**Components**: Investigation report + session prompt + agent protection updates + file registry tracking.
+**Success**: Fresh Claude Code session can handle complex architectural cleanup independently without repeating discovery phase.
+
 ## Progress Update Patterns
 
 **Update both main and functional area progress files** - When major milestones complete, update both /PROGRESS.md and the specific functional area progress file to maintain consistency.
@@ -201,3 +207,68 @@
 - Update file registry with comprehensive deletion log
 
 **Pattern**: When technology is deemed harmful (worktrees broke Docker compatibility), remove ALL traces to prevent future confusion or accidental re-adoption.
+
+## 🚨 CRITICAL: Duplicate API Projects Detection 🚨
+
+**ARCHITECTURAL CRISIS DISCOVERED**: Two separate API projects exist simultaneously in codebase - /apps/api/ (active, port 5655) and /src/WitchCityRope.Api/ (legacy, dormant).
+
+**Root Cause**: During React migration in August 2025, new simplified API was created instead of refactoring existing API, leaving legacy API in place.
+
+**Investigation Process**:
+1. Directory structure analysis (found two .csproj files with API)
+2. Git history forensics (traced creation timeline)
+3. Port configuration analysis (found frontend pointing to 5655)
+4. Architecture comparison (vertical slice vs enterprise patterns)
+5. Impact assessment (development confusion, no immediate production risk)
+
+**Prevention Pattern**: ALWAYS audit for duplicate implementations during architectural migrations - search by file patterns, check git history, verify single source of truth.
+
+**Immediate Actions**: Create comprehensive investigation report, document resolution options, prevent simultaneous operation, plan archival strategy for legacy code.
+
+## CRITICAL: API Cleanup Session Prompt Creation (2025-09-12)
+
+**Problem**: Agents confused about which of TWO API projects to modify - `/apps/api/` (active) vs `/src/WitchCityRope.Api/` (legacy dormant).
+**Solution**: Created comprehensive session prompt at `/docs/architecture/api-cleanup-session-prompt.md` for future Claude Code session to handle complete cleanup.
+
+**Session Prompt Features**:
+- **Complete context summary** - Investigation report reference, timeline, technical differences
+- **6-phase work plan** - Feature analysis, extraction, archival, documentation updates
+- **Technical constraints** - What NEVER to do vs ALWAYS do
+- **Success criteria** - Clear validation requirements for each phase
+- **Emergency procedures** - What to do if something breaks
+- **Self-contained design** - Fresh Claude Code session can execute independently
+
+**Backend Developer Protection**:
+- Updated `/docs/lessons-learned/backend-lessons-learned.md` with CRITICAL API confusion prevention section
+- Clear instructions: ONLY modify `/apps/api/`, NEVER touch `/src/WitchCityRope.Api/`
+- Emergency procedures if agent accidentally modifies wrong API
+- Documentation of why dual API situation exists
+
+**Key Patterns for Session Prompts**:
+- Include complete context summary upfront
+- Reference all relevant existing documentation
+- Provide detailed work breakdown with deliverables
+- Include safety measures and emergency procedures
+- Design for independent execution by fresh session
+- Protect team from confusion with clear agent instructions
+
+## Testing Standards Documentation Excellence (2025-09-12)
+
+**Problem**: Critical Playwright login solution existed only in lessons learned files, not accessible as testing standards.
+**Solution**: Created comprehensive `/docs/standards-processes/testing/playwright-standards.md` with complete implementation guide for 100% validated login solution.
+
+**Documentation Excellence Pattern**:
+1. **Extract proven solutions** from lessons learned into formal standards
+2. **Create comprehensive implementation guides** with complete code examples
+3. **Document performance benchmarks** and cross-browser validation results
+4. **Include troubleshooting sections** with common issues and solutions
+5. **Update main documentation** to reference new standards
+6. **Cross-reference between** lessons learned and formal standards
+
+**Key Components Created**:
+- Complete Playwright standards document (280+ lines)
+- Updated main TESTING.md with proven login pattern
+- Enhanced test-executor lessons learned with documentation integration notes
+- Proper file registry tracking for all documentation updates
+
+**Impact**: Critical testing solution elevated from lessons learned to formal team standards, enabling immediate adoption and preventing future testing blockers.

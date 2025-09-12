@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using WitchCityRope.Core;
 using WitchCityRope.Core.Entities;
 using WitchCityRope.Core.Enums;
 using WitchCityRope.Core.ValueObjects;

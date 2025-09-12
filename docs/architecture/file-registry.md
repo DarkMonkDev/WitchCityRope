@@ -94,6 +94,10 @@
 | 2025-09-12 | /docs/architecture/api-cleanup-session-prompt.md | CREATED | CRITICAL: Comprehensive session prompt for future Claude Code session to handle complete API cleanup and feature extraction - 6-phase work plan with technical constraints and success criteria | Librarian session prompt creation | ACTIVE | Keep permanent |
 | 2025-09-12 | /docs/lessons-learned/backend-lessons-learned.md | MODIFIED | Added CRITICAL API confusion prevention section - clear instructions for backend developers to ONLY modify /apps/api/ and NEVER touch /src/WitchCityRope.Api/ | Librarian agent protection | ACTIVE | Keep permanent |
 | 2025-09-12 | /docs/lessons-learned/librarian-lessons-learned.md | MODIFIED | Added critical architecture issue session documentation pattern - how to create comprehensive session prompts for complex architectural cleanup | Librarian lessons documentation | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/standards-processes/testing/playwright-standards.md | CREATED | Comprehensive Playwright testing standards with proven 100% success login solution - complete implementation guide with cross-browser validation, performance metrics, troubleshooting | Librarian testing standards documentation | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/standards-processes/testing/TESTING.md | MODIFIED | Updated main testing guide with proven Playwright login pattern, updated E2E commands to use npx playwright test instead of deprecated npm test | Librarian testing documentation update | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/lessons-learned/test-executor-lessons-learned.md | MODIFIED | Enhanced major success login solution with documentation integration section - records creation of formal testing standards | Librarian testing documentation integration | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/lessons-learned/librarian-lessons-learned.md | MODIFIED | Added testing standards documentation excellence pattern - how to extract proven solutions from lessons learned into formal team standards | Librarian lessons documentation | ACTIVE | Keep permanent |
 
 ## File Management Guidelines
 

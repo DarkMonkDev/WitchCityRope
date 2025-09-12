@@ -12,12 +12,13 @@ using WitchCityRope.Api.Interfaces;
 using WitchCityRope.Core;
 using WitchCityRope.Core.DTOs;
 using WitchCityRope.Core.Entities;
-using WitchCityRope.Core.Enums;
+using CoreEnums = WitchCityRope.Core.Enums;
 using WitchCityRope.Core.Interfaces;
 using WitchCityRope.Core.ValueObjects;
 using WitchCityRope.Infrastructure.Data;
 using WitchCityRope.Tests.Common.Builders;
 using WitchCityRope.Tests.Common.Fixtures;
+using WitchCityRope.Core.Enums;
 
 namespace WitchCityRope.Api.Tests.Services;
 
@@ -51,7 +52,7 @@ public class EventServiceTests : IDisposable
         var request = new CreateEventRequest(
             Title: "Test Event",
             Description: "Test Description",
-            Type: EventType.Workshop,
+            Type: WitchCityRope.Api.Features.Events.Models.EventType.Class,
             StartDateTime: DateTime.UtcNow.AddDays(7),
             EndDateTime: DateTime.UtcNow.AddDays(7).AddHours(2),
             Location: "Test Location",
@@ -66,24 +67,24 @@ public class EventServiceTests : IDisposable
             OrganizerId: organizer.Id
         );
 
-        var expectedResponse = new CreateEventResponse(
+        var expectedResponse = new WitchCityRope.Core.DTOs.CreateEventResponse(
             EventId: Guid.NewGuid(),
             Title: request.Title,
             Slug: "test-event",
             CreatedAt: DateTime.UtcNow
         );
 
-        _eventServiceMock.Setup(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>()))
+        _eventServiceMock.Setup(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>(), It.IsAny<Guid>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _eventServiceMock.Object.CreateEventAsync(request);
+        var result = await _eventServiceMock.Object.CreateEventAsync(request, organizer.Id);
 
         // Assert
         result.Should().NotBeNull();
         result.Title.Should().Be(request.Title);
         result.Slug.Should().NotBeNullOrEmpty();
-        _eventServiceMock.Verify(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>()), Times.Once);
+        _eventServiceMock.Verify(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>(), It.IsAny<Guid>()), Times.Once);
     }
 
     [Fact]

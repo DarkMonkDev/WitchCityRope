@@ -11,6 +11,7 @@ using WitchCityRope.Core.Interfaces;
 using WitchCityRope.Core.ValueObjects;
 using WitchCityRope.Infrastructure.Data;
 using WitchCityRope.Infrastructure.Services;
+using WitchCityRope.Tests.Common.Builders;
 
 namespace WitchCityRope.Api.Tests.Helpers;
 
@@ -53,7 +54,7 @@ public static class MockHelpers
     public static Mock<Core.Interfaces.IEmailService> CreateEmailServiceMock(bool sendResult = true)
     {
         var mock = new Mock<Core.Interfaces.IEmailService>();
-        mock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>()))
+        mock.Setup(x => x.SendEmailAsync(It.IsAny<EmailAddress>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()))
             .ReturnsAsync(sendResult);
         return mock;
     }
@@ -152,27 +153,21 @@ public static class MockHelpers
         int maxAttendees = 20,
         bool requiresVetting = false)
     {
-        return new Event
-        {
-            Id = id ?? Guid.NewGuid(),
-            Title = title,
-            Slug = title.ToLower().Replace(" ", "-"),
-            Description = "Test event description",
-            Type = type,
-            StartDateTime = DateTime.UtcNow.AddDays(7),
-            EndDateTime = DateTime.UtcNow.AddDays(7).AddHours(2),
-            Location = "Test Location",
-            MaxAttendees = maxAttendees,
-            CurrentAttendees = 0,
-            Price = price,
-            RequiredSkillLevels = new List<string> { "All Levels" },
-            Tags = new List<string> { "test", "workshop" },
-            RequiresVetting = requiresVetting,
-            OrganizerId = organizerId ?? Guid.NewGuid(),
-            Status = EventStatus.Published,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+        // Create organizer if not provided
+        var organizer = organizerId.HasValue 
+            ? CreateTestUser(id: organizerId.Value, role: UserRole.Organizer)
+            : CreateTestUser(role: UserRole.Organizer);
+
+        // Use EventBuilder which properly constructs the Event entity
+        var eventBuilder = new EventBuilder()
+            .WithTitle(title)
+            .WithEventType(type)
+            .WithCapacity(maxAttendees)
+            .WithLocation("Test Location")
+            .WithPrimaryOrganizer(organizer)
+            .WithSinglePrice(price);
+
+        return eventBuilder.Build();
     }
 
     public static Registration CreateTestRegistration(
@@ -289,13 +284,15 @@ public class TestDataBuilder
         Guid organizerId,
         string title = "Test Event",
         EventType type = EventType.Class,
-        bool requiresVetting = false)
+        bool requiresVetting = false,
+        int maxAttendees = 20)
     {
         var @event = MockHelpers.CreateTestEvent(
             organizerId: organizerId,
             title: title,
             type: type,
-            requiresVetting: requiresVetting);
+            requiresVetting: requiresVetting,
+            maxAttendees: maxAttendees);
 
         await _context.Events.AddAsync(@event);
         await _context.SaveChangesAsync();

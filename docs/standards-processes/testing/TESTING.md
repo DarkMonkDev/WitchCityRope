@@ -119,9 +119,17 @@ dotnet test -v normal
 # Watch mode for TDD
 dotnet watch test --project tests/WitchCityRope.Core.Tests
 
-# E2E tests (requires app running)
-cd tests/e2e
-npm test
+# E2E tests (runs with 10 parallel workers by default for 10x speed)
+npx playwright test
+
+# Run with headed browser for debugging
+npx playwright test --headed
+
+# Run specific test file
+npx playwright test login.spec.ts
+
+# Override worker count if needed (default is 10)
+npx playwright test --workers=5
 ```
 
 ### Cleanup
