@@ -1,0 +1,175 @@
+{
+  "config": {
+    "configFile": "/home/chad/repos/witchcityrope-react/playwright.config.ts",
+    "rootDir": "/home/chad/repos/witchcityrope-react/tests/playwright",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "./test-results/test-results.json"
+        }
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "./test-results/html-report"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/home/chad/repos/witchcityrope-react/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/chad/repos/witchcityrope-react/tests/playwright",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.54.2",
+    "workers": 12,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:5173",
+      "reuseExistingServer": true,
+      "timeout": 30000
+    }
+  },
+  "suites": [
+    {
+      "title": "admin-events-diagnostic.spec.ts",
+      "file": "admin-events-diagnostic.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Admin Events Page - Data Loading Diagnostic",
+          "file": "admin-events-diagnostic.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should load events data in admin events page",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 1519,
+                      "error": {
+                        "message": "Error: page.waitForFunction: SyntaxError: Failed to execute 'querySelector' on 'Document': ':text(\"No events\")' is not a valid selector.\n    at eval (eval at predicate (eval at evaluate (:291:30)), <anonymous>:4:40)\n    at predicate (eval at evaluate (:291:30), <anonymous>:5:23)\n    at next (eval at evaluate (:291:30), <anonymous>:25:29)\n    at eval (eval at evaluate (:291:30), <anonymous>:38:9)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+                        "stack": "Error: page.waitForFunction: SyntaxError: Failed to execute 'querySelector' on 'Document': ':text(\"No events\")' is not a valid selector.\n    at eval (eval at predicate (eval at evaluate (:291:30)), <anonymous>:4:40)\n    at predicate (eval at evaluate (:291:30), <anonymous>:5:23)\n    at next (eval at evaluate (:291:30), <anonymous>:25:29)\n    at eval (eval at evaluate (:291:30), <anonymous>:38:9)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at eval (eval at predicate (eval at evaluate (:291:30)), <anonymous>:4:40)\n    at predicate (eval at evaluate (:291:30), <anonymous>:5:23)\n    at next (eval at evaluate (:291:30), <anonymous>:25:29)\n    at eval (eval at evaluate (:291:30), <anonymous>:38:9)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at /home/chad/repos/witchcityrope-react/tests/playwright/admin-events-diagnostic.spec.ts:20:16",
+                        "location": {
+                          "file": "eval at predicate (eval at evaluate (:291:30)), <anonymous>",
+                          "column": 40,
+                          "line": 4
+                        }
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "eval at predicate (eval at evaluate (:291:30)), <anonymous>",
+                            "column": 40,
+                            "line": 4
+                          },
+                          "message": "Error: page.waitForFunction: SyntaxError: Failed to execute 'querySelector' on 'Document': ':text(\"No events\")' is not a valid selector.\n    at eval (eval at predicate (eval at evaluate (:291:30)), <anonymous>:4:40)\n    at predicate (eval at evaluate (:291:30), <anonymous>:5:23)\n    at next (eval at evaluate (:291:30), <anonymous>:25:29)\n    at eval (eval at evaluate (:291:30), <anonymous>:38:9)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at eval (eval at predicate (eval at evaluate (:291:30)), <anonymous>:4:40)\n    at predicate (eval at evaluate (:291:30), <anonymous>:5:23)\n    at next (eval at evaluate (:291:30), <anonymous>:25:29)\n    at eval (eval at evaluate (:291:30), <anonymous>:38:9)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at /home/chad/repos/witchcityrope-react/tests/playwright/admin-events-diagnostic.spec.ts:20:16"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Page title: Welcome Back\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-12T02:15:44.376Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/admin-events-diagnostic-Ad-e3d6c-s-data-in-admin-events-page-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/admin-events-diagnostic-Ad-e3d6c-s-data-in-admin-events-page-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/chad/repos/witchcityrope-react/test-results/admin-events-diagnostic-Ad-e3d6c-s-data-in-admin-events-page-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "eval at predicate (eval at evaluate (:291:30)), <anonymous>",
+                        "column": 40,
+                        "line": 4
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "0b0725dbba69de01f370-f574ab82c980cd6dc173",
+              "file": "admin-events-diagnostic.spec.ts",
+              "line": 4,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-09-12T02:15:43.855Z",
+    "duration": 2458.207,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

@@ -1,0 +1,86 @@
+# Page snapshot
+
+```yaml
+- text: Welcome, RopeMaster
+- link "Report an Incident":
+  - /url: /incident-report
+- link "Private Lessons":
+  - /url: /private-lessons
+- link "Contact":
+  - /url: /contact
+- button "Logout"
+- banner:
+  - link "WITCH CITY ROPE":
+    - /url: /
+  - link "Admin":
+    - /url: /admin
+  - link "Events & Classes":
+    - /url: /events
+  - link "How to Join":
+    - /url: /join
+  - link "Resources":
+    - /url: /resources
+  - link "Dashboard":
+    - /url: /dashboard
+- main:
+  - complementary:
+    - navigation:
+      - link "📊 Dashboard":
+        - /url: /dashboard
+        - paragraph: 📊
+        - paragraph: Dashboard
+      - link "📅 Events":
+        - /url: /dashboard/events
+        - paragraph: 📅
+        - paragraph: Events
+      - link "📋 Registrations":
+        - /url: /dashboard/registrations
+        - paragraph: 📋
+        - paragraph: Registrations
+      - link "👤 Profile":
+        - /url: /dashboard/profile
+        - paragraph: 👤
+        - paragraph: Profile
+      - link "🔒 Security":
+        - /url: /dashboard/security
+        - paragraph: 🔒
+        - paragraph: Security
+      - link "🎯 Membership":
+        - /url: /dashboard/membership
+        - paragraph: 🎯
+        - paragraph: Membership
+  - main:
+    - heading "Loading..." [level=1]
+    - text: 📅
+    - paragraph: Upcoming Events
+    - text: 0 Events
+    - paragraph: Loading events...
+    - button "View All Events" [disabled]
+    - text: 👤
+    - paragraph: Profile Status
+    - paragraph: Loading profile...
+    - text: 📋
+    - paragraph: Registration History
+    - text: 2 Attended
+    - paragraph: Beginner Rope Fundamentals
+    - text: Registered
+    - paragraph: "Event: Sep 14"
+    - paragraph: "Registered: Aug 19"
+    - paragraph: "Total Events: 3"
+    - paragraph: "Attended: 2"
+    - button "View Full History"
+    - text: 🎯
+    - paragraph: Membership Status
+    - paragraph: Loading membership...
+    - heading "Quick Actions" [level=3]
+    - link "📅 Browse All Events":
+      - /url: /events
+    - link "👤 Update Profile":
+      - /url: /dashboard/profile
+    - link "🎯 Membership Status":
+      - /url: /dashboard/membership
+    - link "🔒 Security Settings":
+      - /url: /dashboard/security
+- button "Open Tanstack query devtools":
+  - img
+```

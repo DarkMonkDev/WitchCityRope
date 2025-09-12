@@ -67,12 +67,12 @@ public class EventServiceTests : IDisposable
             OrganizerId: organizer.Id
         );
 
-        var expectedResponse = new WitchCityRope.Core.DTOs.CreateEventResponse(
-            EventId: Guid.NewGuid(),
-            Title: request.Title,
-            Slug: "test-event",
-            CreatedAt: DateTime.UtcNow
-        );
+        var eventId = Guid.NewGuid();
+        var expectedResponse = new WitchCityRope.Core.DTOs.CreateEventResponse
+        {
+            EventId = eventId,
+            Message = "Event created successfully"
+        };
 
         _eventServiceMock.Setup(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>(), It.IsAny<Guid>()))
             .ReturnsAsync(expectedResponse);
@@ -82,8 +82,8 @@ public class EventServiceTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result.Title.Should().Be(request.Title);
-        result.Slug.Should().NotBeNullOrEmpty();
+        result.EventId.Should().Be(eventId);
+        result.Message.Should().NotBeNullOrEmpty();
         _eventServiceMock.Verify(x => x.CreateEventAsync(It.IsAny<CreateEventRequest>(), It.IsAny<Guid>()), Times.Once);
     }
 

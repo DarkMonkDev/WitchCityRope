@@ -595,6 +595,16 @@
             - Users can select from sliding scale pricing
             </summary>
         </member>
+        <member name="P:WitchCityRope.Core.Entities.Registration.EventTicketTypeId">
+            <summary>
+            Optional reference to the ticket type used for this registration
+            </summary>
+        </member>
+        <member name="P:WitchCityRope.Core.Entities.Registration.EventTicketType">
+            <summary>
+            The ticket type used for this registration (nullable for legacy registrations)
+            </summary>
+        </member>
         <member name="P:WitchCityRope.Core.Entities.Registration.SelectedPrice">
             <summary>
             The price selected from the sliding scale
@@ -713,6 +723,16 @@
         <member name="P:WitchCityRope.Core.Entities.User.DisplayName">
             <summary>
             Display name derived from scene name
+            </summary>
+        </member>
+        <member name="P:WitchCityRope.Core.Entities.User.FirstName">
+            <summary>
+            First name for compatibility (derived from scene name)
+            </summary>
+        </member>
+        <member name="P:WitchCityRope.Core.Entities.User.LastName">
+            <summary>
+            Last name for compatibility (derived from scene name)
             </summary>
         </member>
         <member name="P:WitchCityRope.Core.Entities.User.PronouncedName">
@@ -1032,6 +1052,21 @@
         <member name="F:WitchCityRope.Core.Enums.RSVPStatus.CheckedIn">
             <summary>
             User checked in at the event
+            </summary>
+        </member>
+        <member name="T:WitchCityRope.Core.Enums.TicketTypeEnum">
+            <summary>
+            Represents the different types of tickets available for events
+            </summary>
+        </member>
+        <member name="F:WitchCityRope.Core.Enums.TicketTypeEnum.Single">
+            <summary>
+            Single person ticket
+            </summary>
+        </member>
+        <member name="F:WitchCityRope.Core.Enums.TicketTypeEnum.Couples">
+            <summary>
+            Couples ticket for two people
             </summary>
         </member>
         <member name="T:WitchCityRope.Core.Enums.UserRole">

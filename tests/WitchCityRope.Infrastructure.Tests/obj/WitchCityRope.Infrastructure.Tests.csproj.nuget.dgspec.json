@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Infrastructure.Tests/WitchCityRope.Infrastructure.Tests.csproj": {}
+    "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Infrastructure.Tests/WitchCityRope.Infrastructure.Tests.csproj": {}
   },
   "projects": {
-    "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Core/WitchCityRope.Core.csproj": {
+    "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/WitchCityRope.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Core/WitchCityRope.Core.csproj",
+        "projectUniqueName": "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/WitchCityRope.Core.csproj",
         "projectName": "WitchCityRope.Core",
-        "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Core/WitchCityRope.Core.csproj",
+        "projectPath": "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/WitchCityRope.Core.csproj",
         "packagesPath": "/home/chad/.nuget/packages/",
-        "outputPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Core/obj/",
+        "outputPath": "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/chad/.nuget/NuGet/NuGet.Config"
@@ -73,14 +73,14 @@
         }
       }
     },
-    "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj": {
+    "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj",
+        "projectUniqueName": "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj",
         "projectName": "WitchCityRope.Infrastructure",
-        "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj",
+        "projectPath": "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj",
         "packagesPath": "/home/chad/.nuget/packages/",
-        "outputPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Infrastructure/obj/",
+        "outputPath": "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Infrastructure/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/chad/.nuget/NuGet/NuGet.Config"
@@ -95,8 +95,8 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Core/WitchCityRope.Core.csproj": {
-                "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Core/WitchCityRope.Core.csproj"
+              "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/WitchCityRope.Core.csproj": {
+                "projectPath": "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/WitchCityRope.Core.csproj"
               }
             }
           }
@@ -141,7 +141,7 @@
             },
             "Microsoft.Extensions.DependencyInjection.Abstractions": {
               "target": "Package",
-              "version": "[9.0.*, )"
+              "version": "[9.0.6, )"
             },
             "Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore": {
               "target": "Package",
@@ -165,7 +165,7 @@
             },
             "System.IdentityModel.Tokens.Jwt": {
               "target": "Package",
-              "version": "[8.12.1, )"
+              "version": "[8.3.1, )"
             }
           },
           "imports": [
@@ -188,14 +188,14 @@
         }
       }
     },
-    "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Infrastructure.Tests/WitchCityRope.Infrastructure.Tests.csproj": {
+    "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Infrastructure.Tests/WitchCityRope.Infrastructure.Tests.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Infrastructure.Tests/WitchCityRope.Infrastructure.Tests.csproj",
+        "projectUniqueName": "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Infrastructure.Tests/WitchCityRope.Infrastructure.Tests.csproj",
         "projectName": "WitchCityRope.Infrastructure.Tests",
-        "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Infrastructure.Tests/WitchCityRope.Infrastructure.Tests.csproj",
+        "projectPath": "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Infrastructure.Tests/WitchCityRope.Infrastructure.Tests.csproj",
         "packagesPath": "/home/chad/.nuget/packages/",
-        "outputPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Infrastructure.Tests/obj/",
+        "outputPath": "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Infrastructure.Tests/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/chad/.nuget/NuGet/NuGet.Config"
@@ -210,14 +210,14 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Core/WitchCityRope.Core.csproj": {
-                "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Core/WitchCityRope.Core.csproj"
+              "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/WitchCityRope.Core.csproj": {
+                "projectPath": "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/WitchCityRope.Core.csproj"
               },
-              "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj": {
-                "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj"
+              "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj": {
+                "projectPath": "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj"
               },
-              "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj": {
-                "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj"
+              "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj": {
+                "projectPath": "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj"
               }
             }
           }
@@ -276,11 +276,11 @@
             },
             "Testcontainers": {
               "target": "Package",
-              "version": "[4.6.0, )"
+              "version": "[4.7.0, )"
             },
             "Testcontainers.PostgreSql": {
               "target": "Package",
-              "version": "[4.6.0, )"
+              "version": "[4.7.0, )"
             },
             "coverlet.collector": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
@@ -319,14 +319,14 @@
         }
       }
     },
-    "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj": {
+    "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj",
+        "projectUniqueName": "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj",
         "projectName": "WitchCityRope.Tests.Common",
-        "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj",
+        "projectPath": "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj",
         "packagesPath": "/home/chad/.nuget/packages/",
-        "outputPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Tests.Common/obj/",
+        "outputPath": "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Tests.Common/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/chad/.nuget/NuGet/NuGet.Config"
@@ -341,11 +341,11 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Core/WitchCityRope.Core.csproj": {
-                "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Core/WitchCityRope.Core.csproj"
+              "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/WitchCityRope.Core.csproj": {
+                "projectPath": "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/WitchCityRope.Core.csproj"
               },
-              "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj": {
-                "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj"
+              "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj": {
+                "projectPath": "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj"
               }
             }
           }
@@ -412,7 +412,7 @@
             },
             "Testcontainers.PostgreSql": {
               "target": "Package",
-              "version": "[4.2.2, )"
+              "version": "[4.7.0, )"
             },
             "xunit": {
               "target": "Package",

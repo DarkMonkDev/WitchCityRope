@@ -230,8 +230,11 @@
           "build/netstandard2.0/coverlet.collector.targets": {}
         }
       },
-      "Docker.DotNet.Enhanced/3.126.1": {
+      "Docker.DotNet.Enhanced/3.128.5": {
         "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.Logging.Abstractions": "8.0.3"
+        },
         "compile": {
           "lib/net9.0/Docker.DotNet.dll": {}
         },
@@ -239,10 +242,10 @@
           "lib/net9.0/Docker.DotNet.dll": {}
         }
       },
-      "Docker.DotNet.Enhanced.X509/3.126.1": {
+      "Docker.DotNet.Enhanced.X509/3.128.5": {
         "type": "package",
         "dependencies": {
-          "Docker.DotNet.Enhanced": "3.126.1"
+          "Docker.DotNet.Enhanced": "3.128.5"
         },
         "compile": {
           "lib/net9.0/Docker.DotNet.X509.dll": {}
@@ -1382,7 +1385,7 @@
           }
         }
       },
-      "Microsoft.IdentityModel.Abstractions/8.12.1": {
+      "Microsoft.IdentityModel.Abstractions/8.3.1": {
         "type": "package",
         "compile": {
           "lib/net9.0/Microsoft.IdentityModel.Abstractions.dll": {
@@ -1395,10 +1398,10 @@
           }
         }
       },
-      "Microsoft.IdentityModel.JsonWebTokens/8.12.1": {
+      "Microsoft.IdentityModel.JsonWebTokens/8.3.1": {
         "type": "package",
         "dependencies": {
-          "Microsoft.IdentityModel.Tokens": "8.12.1"
+          "Microsoft.IdentityModel.Tokens": "8.3.1"
         },
         "compile": {
           "lib/net9.0/Microsoft.IdentityModel.JsonWebTokens.dll": {
@@ -1411,10 +1414,10 @@
           }
         }
       },
-      "Microsoft.IdentityModel.Logging/8.12.1": {
+      "Microsoft.IdentityModel.Logging/8.3.1": {
         "type": "package",
         "dependencies": {
-          "Microsoft.IdentityModel.Abstractions": "8.12.1"
+          "Microsoft.IdentityModel.Abstractions": "8.3.1"
         },
         "compile": {
           "lib/net9.0/Microsoft.IdentityModel.Logging.dll": {
@@ -1460,11 +1463,11 @@
           }
         }
       },
-      "Microsoft.IdentityModel.Tokens/8.12.1": {
+      "Microsoft.IdentityModel.Tokens/8.3.1": {
         "type": "package",
         "dependencies": {
-          "Microsoft.Extensions.Logging.Abstractions": "8.0.0",
-          "Microsoft.IdentityModel.Logging": "8.12.1"
+          "Microsoft.Extensions.Logging.Abstractions": "9.0.0",
+          "Microsoft.IdentityModel.Logging": "8.3.1"
         },
         "compile": {
           "lib/net9.0/Microsoft.IdentityModel.Tokens.dll": {
@@ -2408,11 +2411,11 @@
           "buildTransitive/net6.0/_._": {}
         }
       },
-      "System.IdentityModel.Tokens.Jwt/8.12.1": {
+      "System.IdentityModel.Tokens.Jwt/8.3.1": {
         "type": "package",
         "dependencies": {
-          "Microsoft.IdentityModel.JsonWebTokens": "8.12.1",
-          "Microsoft.IdentityModel.Tokens": "8.12.1"
+          "Microsoft.IdentityModel.JsonWebTokens": "8.3.1",
+          "Microsoft.IdentityModel.Tokens": "8.3.1"
         },
         "compile": {
           "lib/net9.0/System.IdentityModel.Tokens.Jwt.dll": {
@@ -2577,11 +2580,11 @@
           }
         }
       },
-      "Testcontainers/4.3.0": {
+      "Testcontainers/4.7.0": {
         "type": "package",
         "dependencies": {
-          "Docker.DotNet.Enhanced": "3.126.1",
-          "Docker.DotNet.Enhanced.X509": "3.126.1",
+          "Docker.DotNet.Enhanced": "3.128.5",
+          "Docker.DotNet.Enhanced.X509": "3.128.5",
           "Microsoft.Extensions.Logging.Abstractions": "8.0.3",
           "SSH.NET": "2024.2.0",
           "SharpZipLib": "1.4.2"
@@ -2597,10 +2600,10 @@
           }
         }
       },
-      "Testcontainers.PostgreSql/4.3.0": {
+      "Testcontainers.PostgreSql/4.7.0": {
         "type": "package",
         "dependencies": {
-          "Testcontainers": "4.3.0"
+          "Testcontainers": "4.7.0"
         },
         "compile": {
           "lib/net9.0/Testcontainers.PostgreSql.dll": {
@@ -2697,16 +2700,16 @@
           }
         }
       },
-      "xunit.runner.visualstudio/3.0.0": {
+      "xunit.runner.visualstudio/3.1.4": {
         "type": "package",
         "compile": {
-          "lib/net6.0/_._": {}
+          "lib/net8.0/_._": {}
         },
         "runtime": {
-          "lib/net6.0/_._": {}
+          "lib/net8.0/_._": {}
         },
         "build": {
-          "build/net6.0/xunit.runner.visualstudio.props": {}
+          "build/net8.0/xunit.runner.visualstudio.props": {}
         }
       },
       "WitchCityRope.Api/1.0.0": {
@@ -2773,13 +2776,13 @@
           "BCrypt.Net-Next": "4.0.3",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "9.0.6",
           "Microsoft.Extensions.Configuration.Abstractions": "9.0.6",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "9.0.0",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "9.0.6",
           "Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore": "9.0.6",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "9.0.4",
           "PayPalServerSDK": "1.1.0",
           "SendGrid": "9.29.3",
           "SendGrid.Extensions.DependencyInjection": "1.0.1",
-          "System.IdentityModel.Tokens.Jwt": "8.12.1",
+          "System.IdentityModel.Tokens.Jwt": "8.3.1",
           "WitchCityRope.Core": "1.0.0"
         },
         "compile": {
@@ -2804,7 +2807,7 @@
           "Moq": "4.20.72",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "9.0.4",
           "Respawn": "6.2.1",
-          "Testcontainers.PostgreSql": "4.2.2",
+          "Testcontainers.PostgreSql": "4.7.0",
           "WitchCityRope.Core": "1.0.0",
           "WitchCityRope.Infrastructure": "1.0.0",
           "xunit": "2.9.3"
@@ -3155,15 +3158,15 @@
         "coverlet.collector.nuspec"
       ]
     },
-    "Docker.DotNet.Enhanced/3.126.1": {
-      "sha512": "UPyLBLBaVE3s7OCWM0h5g9w6mUOag5sOIP5CldFQekIWo/gHixgZR+o5fG7eCFH4ZdKlvBGM4ALFuOyPoKoJ3A==",
+    "Docker.DotNet.Enhanced/3.128.5": {
+      "sha512": "RmhcxDmS/zEuWhV9XA5M/xwFinfGe8IRyyNuEu/7EmnLam35dxlIXabi1Kp/MeEWr1fNPjPFrgxKieZfPeOOqw==",
       "type": "package",
-      "path": "docker.dotnet.enhanced/3.126.1",
+      "path": "docker.dotnet.enhanced/3.128.5",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "LICENSE",
-        "docker.dotnet.enhanced.3.126.1.nupkg.sha512",
+        "docker.dotnet.enhanced.3.128.5.nupkg.sha512",
         "docker.dotnet.enhanced.nuspec",
         "icon.png",
         "lib/net8.0/Docker.DotNet.dll",
@@ -3172,15 +3175,15 @@
         "lib/netstandard2.1/Docker.DotNet.dll"
       ]
     },
-    "Docker.DotNet.Enhanced.X509/3.126.1": {
-      "sha512": "XFHMC/iWHbloQgg9apZrxu010DmSamaAggu8nomCqTeotGyUGkv2Tt/aqk1ljC/4tjtTrb9LtFQwYpwZbMbiKg==",
+    "Docker.DotNet.Enhanced.X509/3.128.5": {
+      "sha512": "ofHQIPpv5HillvBZwk66wEGzHjV/G/771Ta1HjbOtcG8+Lv3bKNH19+fa+hgMzO4sZQCWGDIXygyDralePOKQA==",
       "type": "package",
-      "path": "docker.dotnet.enhanced.x509/3.126.1",
+      "path": "docker.dotnet.enhanced.x509/3.128.5",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "LICENSE",
-        "docker.dotnet.enhanced.x509.3.126.1.nupkg.sha512",
+        "docker.dotnet.enhanced.x509.3.128.5.nupkg.sha512",
         "docker.dotnet.enhanced.x509.nuspec",
         "icon.png",
         "lib/net8.0/Docker.DotNet.X509.dll",
@@ -4852,10 +4855,10 @@
         "microsoft.identity.client.extensions.msal.nuspec"
       ]
     },
-    "Microsoft.IdentityModel.Abstractions/8.12.1": {
-      "sha512": "JzWhET0VOCORyJbqDc1Wtdl8Q/l+I1MjFB0I/Jko+Ma691JZll8X6o9XwZtUce8FkqGuV4uY4/V1808XZOpDVg==",
+    "Microsoft.IdentityModel.Abstractions/8.3.1": {
+      "sha512": "oXYKRcTS0DTIB5vZenGy9oceD8awhjnXFFabc/IWBwluMA03SGvazCFyUIQ2mJOIOSf9lLyM971nbTj9qZgEJg==",
       "type": "package",
-      "path": "microsoft.identitymodel.abstractions/8.12.1",
+      "path": "microsoft.identitymodel.abstractions/8.3.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -4872,14 +4875,14 @@
         "lib/net9.0/Microsoft.IdentityModel.Abstractions.xml",
         "lib/netstandard2.0/Microsoft.IdentityModel.Abstractions.dll",
         "lib/netstandard2.0/Microsoft.IdentityModel.Abstractions.xml",
-        "microsoft.identitymodel.abstractions.8.12.1.nupkg.sha512",
+        "microsoft.identitymodel.abstractions.8.3.1.nupkg.sha512",
         "microsoft.identitymodel.abstractions.nuspec"
       ]
     },
-    "Microsoft.IdentityModel.JsonWebTokens/8.12.1": {
-      "sha512": "imi3xiRLzzKxN4m1aR9Z2X8GUmNsVH7GLA6AkwYStNnh3UzupFtHEEVk3GK1fCvnYdRbpnCGNYY6WQb9AfDAKg==",
+    "Microsoft.IdentityModel.JsonWebTokens/8.3.1": {
+      "sha512": "cA622rrXYdaO7inNZ8KY5leZpP6889wT+gHPgvy62PYlAITyxF9PxP5u+ecNBOsPx2PagBH7ZNr39yU/MOPn+w==",
       "type": "package",
-      "path": "microsoft.identitymodel.jsonwebtokens/8.12.1",
+      "path": "microsoft.identitymodel.jsonwebtokens/8.3.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -4896,14 +4899,14 @@
         "lib/net9.0/Microsoft.IdentityModel.JsonWebTokens.xml",
         "lib/netstandard2.0/Microsoft.IdentityModel.JsonWebTokens.dll",
         "lib/netstandard2.0/Microsoft.IdentityModel.JsonWebTokens.xml",
-        "microsoft.identitymodel.jsonwebtokens.8.12.1.nupkg.sha512",
+        "microsoft.identitymodel.jsonwebtokens.8.3.1.nupkg.sha512",
         "microsoft.identitymodel.jsonwebtokens.nuspec"
       ]
     },
-    "Microsoft.IdentityModel.Logging/8.12.1": {
-      "sha512": "39HjVkU7Voe2jRLmORRB5PoTmta1ZPKzUZCc6ldlNlLzdx+um0+fAnvfk05LUQPrNxpvb5ZoqF00SrNvyO2Fzg==",
+    "Microsoft.IdentityModel.Logging/8.3.1": {
+      "sha512": "XCwbK7ErgZdrwl4ph+i8X5SCGwAepBFbsNIEceozGzrBFVvZbKKJE1WQOft9QyglP4me+DECdVVL8UnI6OO+sg==",
       "type": "package",
-      "path": "microsoft.identitymodel.logging/8.12.1",
+      "path": "microsoft.identitymodel.logging/8.3.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -4920,7 +4923,7 @@
         "lib/net9.0/Microsoft.IdentityModel.Logging.xml",
         "lib/netstandard2.0/Microsoft.IdentityModel.Logging.dll",
         "lib/netstandard2.0/Microsoft.IdentityModel.Logging.xml",
-        "microsoft.identitymodel.logging.8.12.1.nupkg.sha512",
+        "microsoft.identitymodel.logging.8.3.1.nupkg.sha512",
         "microsoft.identitymodel.logging.nuspec"
       ]
     },
@@ -4970,10 +4973,10 @@
         "microsoft.identitymodel.protocols.openidconnect.nuspec"
       ]
     },
-    "Microsoft.IdentityModel.Tokens/8.12.1": {
-      "sha512": "DzgPEABn3eZmIk4lhov0QPcoHkIbnAfgkyDPM7uGuWDHeockR9DdqNCD9Zy30hPfExu5VhbOXn9oPRi+tFUhEQ==",
+    "Microsoft.IdentityModel.Tokens/8.3.1": {
+      "sha512": "77GXREJzIDiKAc/RR8YE267bwzrxM4cjMRCzMQa0Xk1MUUdjx/JwjDJpUh00vT4oxcX5rjsMP0KLd8YjgR3N3w==",
       "type": "package",
-      "path": "microsoft.identitymodel.tokens/8.12.1",
+      "path": "microsoft.identitymodel.tokens/8.3.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -4990,7 +4993,7 @@
         "lib/net9.0/Microsoft.IdentityModel.Tokens.xml",
         "lib/netstandard2.0/Microsoft.IdentityModel.Tokens.dll",
         "lib/netstandard2.0/Microsoft.IdentityModel.Tokens.xml",
-        "microsoft.identitymodel.tokens.8.12.1.nupkg.sha512",
+        "microsoft.identitymodel.tokens.8.3.1.nupkg.sha512",
         "microsoft.identitymodel.tokens.nuspec"
       ]
     },
@@ -6167,10 +6170,10 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "System.IdentityModel.Tokens.Jwt/8.12.1": {
-      "sha512": "jlYdVOJrdeyD80ppEqKJ8BhJdrV3MjeA+seURdhC0DnD41GyUA9Ik+P7Sb571ufVVCYIx93GjeqVvY3QyQxZAA==",
+    "System.IdentityModel.Tokens.Jwt/8.3.1": {
+      "sha512": "SxdCv+SmnKOhUvryKvrpWJnkuVHj3hU8pUwj7R8zthi73TlBUlMyavon9qfuJsjnqY+L7jusp3Zo0fWFX6mwtw==",
       "type": "package",
-      "path": "system.identitymodel.tokens.jwt/8.12.1",
+      "path": "system.identitymodel.tokens.jwt/8.3.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -6187,7 +6190,7 @@
         "lib/net9.0/System.IdentityModel.Tokens.Jwt.xml",
         "lib/netstandard2.0/System.IdentityModel.Tokens.Jwt.dll",
         "lib/netstandard2.0/System.IdentityModel.Tokens.Jwt.xml",
-        "system.identitymodel.tokens.jwt.8.12.1.nupkg.sha512",
+        "system.identitymodel.tokens.jwt.8.3.1.nupkg.sha512",
         "system.identitymodel.tokens.jwt.nuspec"
       ]
     },
@@ -6456,10 +6459,10 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "Testcontainers/4.3.0": {
-      "sha512": "1cxsjDE2+rdi/ELOel+NbQhQ7tvaqXG2YDN6nmhDzyAu9baGM2FUENG/3eG7N+ak3nap35RFvxyhIdVBeqNwlA==",
+    "Testcontainers/4.7.0": {
+      "sha512": "Nx4HR4e7XcKV5BVIqYdCpF8PAYFpukZ8QpoBe+sY9FL5q0RDtsy81MElVXIJVO4Wg3Q6j2f39QaF7i+2jf6YjA==",
       "type": "package",
-      "path": "testcontainers/4.3.0",
+      "path": "testcontainers/4.7.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -6475,14 +6478,14 @@
         "lib/netstandard2.0/Testcontainers.xml",
         "lib/netstandard2.1/Testcontainers.dll",
         "lib/netstandard2.1/Testcontainers.xml",
-        "testcontainers.4.3.0.nupkg.sha512",
+        "testcontainers.4.7.0.nupkg.sha512",
         "testcontainers.nuspec"
       ]
     },
-    "Testcontainers.PostgreSql/4.3.0": {
-      "sha512": "OWtFKTrVaYrAA+N+tQF3ZC/o21pIPUihRB7NZNYbPWyxIJgSkTRzBdtV/ZNIGmsM+Smg0kqUy9ho2mbfTBt2Xw==",
+    "Testcontainers.PostgreSql/4.7.0": {
+      "sha512": "RwR8cZIWaZLFYtXtIlwjMbGwUcbdQqcJj6zuUNN+RQooDmkbAlrp5WpPwVkMDSdNTi4BF3wiMnsw62j20OI6FA==",
       "type": "package",
-      "path": "testcontainers.postgresql/4.3.0",
+      "path": "testcontainers.postgresql/4.7.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -6498,7 +6501,7 @@
         "lib/netstandard2.0/Testcontainers.PostgreSql.xml",
         "lib/netstandard2.1/Testcontainers.PostgreSql.dll",
         "lib/netstandard2.1/Testcontainers.PostgreSql.xml",
-        "testcontainers.postgresql.4.3.0.nupkg.sha512",
+        "testcontainers.postgresql.4.7.0.nupkg.sha512",
         "testcontainers.postgresql.nuspec"
       ]
     },
@@ -6621,10 +6624,10 @@
         "xunit.extensibility.execution.nuspec"
       ]
     },
-    "xunit.runner.visualstudio/3.0.0": {
-      "sha512": "HggUqjQJe8PtDxcP25Q+CnR6Lz4oX3GElhD9V4oU2+75x9HI6A6sxbfKGS4UwU4t4yJaS9fBmAuriz8bQApNjw==",
+    "xunit.runner.visualstudio/3.1.4": {
+      "sha512": "5mj99LvCqrq3CNi06xYdyIAXOEh+5b33F2nErCzI5zWiDdLHXiPXEWFSUAF8zlIv0ZWqjZNCwHTQeAPYbF3pCg==",
       "type": "package",
-      "path": "xunit.runner.visualstudio/3.0.0",
+      "path": "xunit.runner.visualstudio/3.1.4",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -6633,12 +6636,12 @@
         "build/net472/xunit.abstractions.dll",
         "build/net472/xunit.runner.visualstudio.props",
         "build/net472/xunit.runner.visualstudio.testadapter.dll",
-        "build/net6.0/xunit.abstractions.dll",
-        "build/net6.0/xunit.runner.visualstudio.props",
-        "build/net6.0/xunit.runner.visualstudio.testadapter.dll",
+        "build/net8.0/xunit.abstractions.dll",
+        "build/net8.0/xunit.runner.visualstudio.props",
+        "build/net8.0/xunit.runner.visualstudio.testadapter.dll",
         "lib/net472/_._",
-        "lib/net6.0/_._",
-        "xunit.runner.visualstudio.3.0.0.nupkg.sha512",
+        "lib/net8.0/_._",
+        "xunit.runner.visualstudio.3.1.4.nupkg.sha512",
         "xunit.runner.visualstudio.nuspec"
       ]
     },
@@ -6677,7 +6680,7 @@
       "WitchCityRope.Tests.Common >= 1.0.0",
       "coverlet.collector >= 6.0.2",
       "xunit >= 2.9.3",
-      "xunit.runner.visualstudio >= 2.9.3"
+      "xunit.runner.visualstudio >= 3.1.4"
     ]
   },
   "packageFolders": {
@@ -6686,11 +6689,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Api.Tests/WitchCityRope.Api.Tests.csproj",
+      "projectUniqueName": "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Api.Tests/WitchCityRope.Api.Tests.csproj",
       "projectName": "WitchCityRope.Api.Tests",
-      "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Api.Tests/WitchCityRope.Api.Tests.csproj",
+      "projectPath": "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Api.Tests/WitchCityRope.Api.Tests.csproj",
       "packagesPath": "/home/chad/.nuget/packages/",
-      "outputPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Api.Tests/obj/",
+      "outputPath": "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Api.Tests/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/chad/.nuget/NuGet/NuGet.Config"
@@ -6705,17 +6708,17 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Api/WitchCityRope.Api.csproj": {
-              "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Api/WitchCityRope.Api.csproj"
+            "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/WitchCityRope.Api.csproj": {
+              "projectPath": "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Api/WitchCityRope.Api.csproj"
             },
-            "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Core/WitchCityRope.Core.csproj": {
-              "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Core/WitchCityRope.Core.csproj"
+            "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/WitchCityRope.Core.csproj": {
+              "projectPath": "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/WitchCityRope.Core.csproj"
             },
-            "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj": {
-              "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj"
+            "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj": {
+              "projectPath": "/home/chad/repos/witchcityrope-react/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj"
             },
-            "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj": {
-              "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj"
+            "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj": {
+              "projectPath": "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj"
             }
           }
         }
@@ -6774,7 +6777,7 @@
             "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
             "suppressParent": "All",
             "target": "Package",
-            "version": "[2.9.3, )"
+            "version": "[3.1.4, )"
           }
         },
         "imports": [
@@ -6796,27 +6799,5 @@
         "runtimeIdentifierGraphPath": "/home/chad/.dotnet/sdk/9.0.301/PortableRuntimeIdentifierGraph.json"
       }
     }
-  },
-  "logs": [
-    {
-      "code": "NU1603",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "WitchCityRope.Tests.Common depends on Testcontainers.PostgreSql (>= 4.2.2) but Testcontainers.PostgreSql 4.2.2 was not found. Testcontainers.PostgreSql 4.3.0 was resolved instead.",
-      "libraryId": "Testcontainers.PostgreSql",
-      "targetGraphs": [
-        "net9.0"
-      ]
-    },
-    {
-      "code": "NU1603",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "WitchCityRope.Api.Tests depends on xunit.runner.visualstudio (>= 2.9.3) but xunit.runner.visualstudio 2.9.3 was not found. xunit.runner.visualstudio 3.0.0 was resolved instead.",
-      "libraryId": "xunit.runner.visualstudio",
-      "targetGraphs": [
-        "net9.0"
-      ]
-    }
-  ]
+  }
 }

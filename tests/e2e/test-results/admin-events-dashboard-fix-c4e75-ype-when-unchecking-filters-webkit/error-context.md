@@ -1,0 +1,153 @@
+# Page snapshot
+
+```yaml
+- text: Welcome, RopeMaster
+- link "Report an Incident":
+  - /url: /incident-report
+- link "Private Lessons":
+  - /url: /private-lessons
+- link "Contact":
+  - /url: /contact
+- button "Logout"
+- banner:
+  - link "WITCH CITY ROPE":
+    - /url: /
+  - link "Admin":
+    - /url: /admin
+  - link "Events & Classes":
+    - /url: /events
+  - link "How to Join":
+    - /url: /join
+  - link "Resources":
+    - /url: /resources
+  - link "Dashboard":
+    - /url: /dashboard
+- main:
+  - heading "Events Dashboard" [level=1]
+  - button "Create New Event":
+    - img
+    - text: Create New Event
+  - paragraph: "Filter:"
+  - checkbox "Social"
+  - text: Social
+  - checkbox "Class" [checked]
+  - text: Class
+  - switch "Show Past Events"
+  - text: Show Past Events
+  - img
+  - textbox "Search events..."
+  - table:
+    - rowgroup:
+      - row "Date Event Title Time Capacity/Tickets Actions":
+        - cell "Date":
+          - text: Date
+          - button:
+            - img
+        - cell "Event Title":
+          - text: Event Title
+          - button:
+            - img
+        - cell "Time"
+        - cell "Capacity/Tickets"
+        - cell "Actions"
+    - rowgroup:
+      - row "Sep 19, 2025 Introduction to Rope Safety (Updated via API Test) 2:00 PM - 5:00 PM 12/20 60% Copy":
+        - cell "Sep 19, 2025":
+          - paragraph: Sep 19, 2025
+        - cell "Introduction to Rope Safety (Updated via API Test)":
+          - paragraph: Introduction to Rope Safety (Updated via API Test)
+        - cell "2:00 PM - 5:00 PM":
+          - paragraph: 2:00 PM - 5:00 PM
+        - cell "12/20 60%":
+          - paragraph: 12/20
+          - progressbar "12 of 20 spots filled"
+        - cell "Copy":
+          - button "Copy"
+      - row "Sep 26, 2025 Single Column Tie Techniques 3:00 PM - 6:00 PM 9/15 60% Copy":
+        - cell "Sep 26, 2025":
+          - paragraph: Sep 26, 2025
+        - cell "Single Column Tie Techniques":
+          - paragraph: Single Column Tie Techniques
+        - cell "3:00 PM - 6:00 PM":
+          - paragraph: 3:00 PM - 6:00 PM
+        - cell "9/15 60%":
+          - paragraph: 9/15
+          - progressbar "9 of 15 spots filled"
+        - cell "Copy":
+          - button "Copy"
+      - row "Oct 3, 2025 Suspension Basics 2:00 PM - 5:00 PM 12/12 100% Copy":
+        - cell "Oct 3, 2025":
+          - paragraph: Oct 3, 2025
+        - cell "Suspension Basics":
+          - paragraph: Suspension Basics
+        - cell "2:00 PM - 5:00 PM":
+          - paragraph: 2:00 PM - 5:00 PM
+        - cell "12/12 100%":
+          - paragraph: 12/12
+          - progressbar "12 of 12 spots filled"
+        - cell "Copy":
+          - button "Copy"
+      - row "Oct 10, 2025 Rope Maintenance & Care 1:00 PM - 4:00 PM 15/25 60% Copy":
+        - cell "Oct 10, 2025":
+          - paragraph: Oct 10, 2025
+        - cell "Rope Maintenance & Care":
+          - paragraph: Rope Maintenance & Care
+        - cell "1:00 PM - 4:00 PM":
+          - paragraph: 1:00 PM - 4:00 PM
+        - cell "15/25 60%":
+          - paragraph: 15/25
+          - progressbar "15 of 25 spots filled"
+        - cell "Copy":
+          - button "Copy"
+      - row "Oct 24, 2025 Advanced Floor Work 2:00 PM - 5:00 PM 8/10 80% Copy":
+        - cell "Oct 24, 2025":
+          - paragraph: Oct 24, 2025
+        - cell "Advanced Floor Work":
+          - paragraph: Advanced Floor Work
+        - cell "2:00 PM - 5:00 PM":
+          - paragraph: 2:00 PM - 5:00 PM
+        - cell "8/10 80%":
+          - paragraph: 8/10
+          - progressbar "8 of 10 spots filled"
+        - cell "Copy":
+          - button "Copy"
+      - row "Oct 31, 2025 Rope and Sensation Play 4:00 PM - 7:00 PM 7/8 87.5% Copy":
+        - cell "Oct 31, 2025":
+          - paragraph: Oct 31, 2025
+        - cell "Rope and Sensation Play":
+          - paragraph: Rope and Sensation Play
+        - cell "4:00 PM - 7:00 PM":
+          - paragraph: 4:00 PM - 7:00 PM
+        - cell "7/8 87.5%":
+          - paragraph: 7/8
+          - progressbar "7 of 8 spots filled"
+        - cell "Copy":
+          - button "Copy"
+      - row "Nov 7, 2025 Predicament Bondage Workshop 1:00 PM - 4:00 PM 7/12 58.333333333333336% Copy":
+        - cell "Nov 7, 2025":
+          - paragraph: Nov 7, 2025
+        - cell "Predicament Bondage Workshop":
+          - paragraph: Predicament Bondage Workshop
+        - cell "1:00 PM - 4:00 PM":
+          - paragraph: 1:00 PM - 4:00 PM
+        - cell "7/12 58.333333333333336%":
+          - paragraph: 7/12
+          - progressbar "7 of 12 spots filled"
+        - cell "Copy":
+          - button "Copy"
+      - row "Nov 14, 2025 Photography and Rope 11:00 AM - 2:00 PM 3/6 50% Copy":
+        - cell "Nov 14, 2025":
+          - paragraph: Nov 14, 2025
+        - cell "Photography and Rope":
+          - paragraph: Photography and Rope
+        - cell "11:00 AM - 2:00 PM":
+          - paragraph: 11:00 AM - 2:00 PM
+        - cell "3/6 50%":
+          - paragraph: 3/6
+          - progressbar "3 of 6 spots filled"
+        - cell "Copy":
+          - button "Copy"
+  - text: "Showing 8 of 10 events Filtered by: Class"
+- button "Open Tanstack query devtools":
+  - img
+```

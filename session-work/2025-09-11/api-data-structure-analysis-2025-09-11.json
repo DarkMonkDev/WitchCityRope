@@ -1,0 +1,191 @@
+{
+  "analysis_date": "2025-09-11",
+  "analysis_type": "API Data Structure Validation",
+  "status": "CRITICAL_MISMATCH_IDENTIFIED",
+  
+  "api_actual_structure": {
+    "endpoint": "/api/events",
+    "method": "GET",
+    "response_format": {
+      "success": true,
+      "data": [
+        {
+          "id": "uuid",
+          "title": "string",
+          "description": "string", 
+          "startDate": "ISO8601_datetime",
+          "location": "string",
+          "eventType": "string"
+        }
+      ],
+      "error": null,
+      "details": null,
+      "message": "string",
+      "timestamp": "ISO8601_datetime"
+    }
+  },
+
+  "frontend_expected_structure": {
+    "component": "EventCard.tsx",
+    "expected_fields": {
+      "id": "string",
+      "title": "string", 
+      "description": "string",
+      "startDate": "string",
+      "endDate": "string (optional)",
+      "location": "string",
+      "createdAt": "string",
+      "updatedAt": "string",
+      "type": "'CLASS' | 'SOCIAL' | 'MEMBER'",
+      "instructor": "string (optional)",
+      "price": {
+        "type": "'sliding' | 'fixed'",
+        "min": "number (optional)",
+        "max": "number (optional)", 
+        "amount": "number (optional)"
+      },
+      "capacity": {
+        "total": "number",
+        "taken": "number",
+        "available": "number"
+      },
+      "isMemberOnly": "boolean (optional)",
+      "requiresVetting": "boolean (optional)",
+      "startTime": "string",
+      "endTime": "string"
+    }
+  },
+
+  "missing_api_fields": [
+    "endDate",
+    "createdAt", 
+    "updatedAt",
+    "instructor",
+    "price",
+    "capacity",
+    "registrationCount",
+    "isMemberOnly",
+    "requiresVetting"
+  ],
+
+  "data_transformation_issues": {
+    "capacity_hardcoded": {
+      "code_location": "EventsListPage.tsx:45",
+      "issue": "const eventCapacity = typeof event.capacity === 'number' ? event.capacity : 12;",
+      "result": "All events show default capacity of 12, causing 'Capacity TBD' display"
+    },
+    "registration_count_missing": {
+      "code_location": "EventsListPage.tsx:46", 
+      "issue": "const registrationCount = event.registrationCount || 0;",
+      "result": "Always shows 0 registered, capacity appears full"
+    },
+    "price_hardcoded": {
+      "code_location": "EventsListPage.tsx:54-58",
+      "issue": "Static price object with min: 35, max: 55",
+      "result": "All events show same price regardless of actual pricing"
+    }
+  },
+
+  "frontend_fallback_behavior": {
+    "capacity_display": "12/12 slots (hardcoded values)",
+    "price_display": "$35-65 sliding scale (hardcoded)",
+    "instructor_display": "Instructor TBA (hardcoded)",
+    "event_type": "CLASS (hardcoded)"
+  },
+
+  "api_endpoint_testing": {
+    "events_list": {
+      "endpoint": "/api/events", 
+      "status": "200 OK",
+      "response_time": "<2s",
+      "data_count": 10
+    },
+    "event_details": {
+      "endpoint": "/api/events/{id}",
+      "status": "200 OK", 
+      "response_time": "<2s",
+      "additional_fields": false
+    },
+    "sessions_endpoints": {
+      "tested": [
+        "/api/events/{id}/sessions",
+        "/api/sessions"
+      ],
+      "result": "ENDPOINTS_NOT_FOUND",
+      "status": "No response (likely 404 or timeout)"
+    }
+  },
+
+  "root_cause_analysis": {
+    "primary_issue": "API_DTO_INCOMPLETE",
+    "description": "The API only returns basic event information (id, title, description, startDate, location, eventType) but frontend expects comprehensive event data including capacity, pricing, registration counts, and session information",
+    
+    "impact": "HIGH",
+    "symptoms": [
+      "All events show 'Capacity TBD' or hardcoded capacity",
+      "Price information is static/hardcoded",  
+      "No registration count tracking",
+      "No instructor information",
+      "No session-based events support"
+    ],
+
+    "immediate_cause": "Backend EventDto class missing required fields for frontend display",
+    "contributing_factors": [
+      "Frontend built expecting full Event Session Matrix data",
+      "API implementation only covers basic event listing",
+      "No capacity/registration tracking in current API",
+      "Missing pricing information in API responses"
+    ]
+  },
+
+  "recommended_fixes": {
+    "backend_changes": [
+      "Expand EventDto to include capacity, registrationCount, pricing fields",
+      "Add instructor information to Event entity/DTO", 
+      "Implement session support if Event Session Matrix is required",
+      "Add registration/capacity tracking endpoints"
+    ],
+    "frontend_changes": [
+      "Update transformation logic to handle missing fields gracefully",
+      "Add proper null/undefined checks for optional fields",
+      "Improve fallback display for missing data", 
+      "Add loading states for incomplete data"
+    ],
+    "immediate_workaround": [
+      "Show 'Coming Soon' for capacity instead of hardcoded values",
+      "Display 'Pricing TBD' instead of static prices",
+      "Add 'More details coming soon' messaging"
+    ]
+  },
+
+  "test_execution_impact": {
+    "e2e_tests": "WILL_FAIL",
+    "reason": "Tests expecting capacity/pricing data will fail with current API",
+    "integration_tests": "PARTIAL_SUCCESS",
+    "reason": "Basic API connectivity works, but data completeness fails"
+  },
+
+  "next_steps": {
+    "immediate": [
+      "Report to orchestrator for backend-developer assignment",
+      "Document expected vs actual API contract",
+      "Identify which features require immediate backend changes"
+    ],
+    "short_term": [
+      "Backend team expands EventDto with missing fields", 
+      "Frontend team updates transformation logic",
+      "Update API documentation with complete field descriptions"
+    ],
+    "long_term": [
+      "Implement Event Session Matrix backend support",
+      "Add comprehensive capacity/registration tracking",
+      "Build complete pricing and instructor management"
+    ]
+  },
+
+  "evidence_collected": {
+    "api_responses": "/session-work/2025-09-11/ (curl commands executed)",
+    "frontend_code": "EventCard.tsx, EventsListPage.tsx, legacyEventsApiService.ts analyzed",
+    "transformation_logic": "transformEventForCard() function in EventsListPage.tsx:42-67"
+  }
+}

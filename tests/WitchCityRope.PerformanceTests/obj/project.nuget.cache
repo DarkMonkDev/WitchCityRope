@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "927tZhtmol4=",
+  "dgSpecHash": "SMyLBUgHCcQ=",
   "success": true,
-  "projectFilePath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.PerformanceTests/WitchCityRope.PerformanceTests.csproj",
+  "projectFilePath": "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.PerformanceTests/WitchCityRope.PerformanceTests.csproj",
   "expectedPackageFiles": [
     "/home/chad/.nuget/packages/apimatic.core/0.4.9/apimatic.core.0.4.9.nupkg.sha512",
     "/home/chad/.nuget/packages/asp.versioning.abstractions/8.1.0/asp.versioning.abstractions.8.1.0.nupkg.sha512",
@@ -21,8 +21,8 @@
     "/home/chad/.nuget/packages/commandlineparser/2.9.1/commandlineparser.2.9.1.nupkg.sha512",
     "/home/chad/.nuget/packages/consoletables/2.4.2/consoletables.2.4.2.nupkg.sha512",
     "/home/chad/.nuget/packages/csvhelper/33.0.1/csvhelper.33.0.1.nupkg.sha512",
-    "/home/chad/.nuget/packages/docker.dotnet.enhanced/3.126.1/docker.dotnet.enhanced.3.126.1.nupkg.sha512",
-    "/home/chad/.nuget/packages/docker.dotnet.enhanced.x509/3.126.1/docker.dotnet.enhanced.x509.3.126.1.nupkg.sha512",
+    "/home/chad/.nuget/packages/docker.dotnet.enhanced/3.128.5/docker.dotnet.enhanced.3.128.5.nupkg.sha512",
+    "/home/chad/.nuget/packages/docker.dotnet.enhanced.x509/3.128.5/docker.dotnet.enhanced.x509.3.128.5.nupkg.sha512",
     "/home/chad/.nuget/packages/expressiontreetostring/3.4.71/expressiontreetostring.3.4.71.nupkg.sha512",
     "/home/chad/.nuget/packages/fluentassertions/8.4.0/fluentassertions.8.4.0.nupkg.sha512",
     "/home/chad/.nuget/packages/fluentvalidation/11.11.0/fluentvalidation.11.11.0.nupkg.sha512",
@@ -68,7 +68,7 @@
     "/home/chad/.nuget/packages/microsoft.extensions.configuration.fileextensions/9.0.6/microsoft.extensions.configuration.fileextensions.9.0.6.nupkg.sha512",
     "/home/chad/.nuget/packages/microsoft.extensions.configuration.json/9.0.6/microsoft.extensions.configuration.json.9.0.6.nupkg.sha512",
     "/home/chad/.nuget/packages/microsoft.extensions.dependencyinjection/9.0.6/microsoft.extensions.dependencyinjection.9.0.6.nupkg.sha512",
-    "/home/chad/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/9.0.8/microsoft.extensions.dependencyinjection.abstractions.9.0.8.nupkg.sha512",
+    "/home/chad/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/9.0.6/microsoft.extensions.dependencyinjection.abstractions.9.0.6.nupkg.sha512",
     "/home/chad/.nuget/packages/microsoft.extensions.dependencymodel/9.0.0/microsoft.extensions.dependencymodel.9.0.0.nupkg.sha512",
     "/home/chad/.nuget/packages/microsoft.extensions.diagnostics.abstractions/9.0.6/microsoft.extensions.diagnostics.abstractions.9.0.6.nupkg.sha512",
     "/home/chad/.nuget/packages/microsoft.extensions.diagnostics.healthchecks/9.0.6/microsoft.extensions.diagnostics.healthchecks.9.0.6.nupkg.sha512",
@@ -89,12 +89,12 @@
     "/home/chad/.nuget/packages/microsoft.extensions.primitives/9.0.6/microsoft.extensions.primitives.9.0.6.nupkg.sha512",
     "/home/chad/.nuget/packages/microsoft.identity.client/4.71.1/microsoft.identity.client.4.71.1.nupkg.sha512",
     "/home/chad/.nuget/packages/microsoft.identity.client.extensions.msal/4.71.1/microsoft.identity.client.extensions.msal.4.71.1.nupkg.sha512",
-    "/home/chad/.nuget/packages/microsoft.identitymodel.abstractions/8.12.1/microsoft.identitymodel.abstractions.8.12.1.nupkg.sha512",
-    "/home/chad/.nuget/packages/microsoft.identitymodel.jsonwebtokens/8.12.1/microsoft.identitymodel.jsonwebtokens.8.12.1.nupkg.sha512",
-    "/home/chad/.nuget/packages/microsoft.identitymodel.logging/8.12.1/microsoft.identitymodel.logging.8.12.1.nupkg.sha512",
+    "/home/chad/.nuget/packages/microsoft.identitymodel.abstractions/8.3.1/microsoft.identitymodel.abstractions.8.3.1.nupkg.sha512",
+    "/home/chad/.nuget/packages/microsoft.identitymodel.jsonwebtokens/8.3.1/microsoft.identitymodel.jsonwebtokens.8.3.1.nupkg.sha512",
+    "/home/chad/.nuget/packages/microsoft.identitymodel.logging/8.3.1/microsoft.identitymodel.logging.8.3.1.nupkg.sha512",
     "/home/chad/.nuget/packages/microsoft.identitymodel.protocols/8.0.1/microsoft.identitymodel.protocols.8.0.1.nupkg.sha512",
     "/home/chad/.nuget/packages/microsoft.identitymodel.protocols.openidconnect/8.0.1/microsoft.identitymodel.protocols.openidconnect.8.0.1.nupkg.sha512",
-    "/home/chad/.nuget/packages/microsoft.identitymodel.tokens/8.12.1/microsoft.identitymodel.tokens.8.12.1.nupkg.sha512",
+    "/home/chad/.nuget/packages/microsoft.identitymodel.tokens/8.3.1/microsoft.identitymodel.tokens.8.3.1.nupkg.sha512",
     "/home/chad/.nuget/packages/microsoft.json.pointer/2.3.0/microsoft.json.pointer.2.3.0.nupkg.sha512",
     "/home/chad/.nuget/packages/microsoft.net.http.headers/2.2.8/microsoft.net.http.headers.2.2.8.nupkg.sha512",
     "/home/chad/.nuget/packages/microsoft.net.stringtools/17.6.3/microsoft.net.stringtools.17.6.3.nupkg.sha512",
@@ -187,7 +187,7 @@
     "/home/chad/.nuget/packages/system.globalization/4.3.0/system.globalization.4.3.0.nupkg.sha512",
     "/home/chad/.nuget/packages/system.globalization.calendars/4.3.0/system.globalization.calendars.4.3.0.nupkg.sha512",
     "/home/chad/.nuget/packages/system.globalization.extensions/4.3.0/system.globalization.extensions.4.3.0.nupkg.sha512",
-    "/home/chad/.nuget/packages/system.identitymodel.tokens.jwt/8.12.1/system.identitymodel.tokens.jwt.8.12.1.nupkg.sha512",
+    "/home/chad/.nuget/packages/system.identitymodel.tokens.jwt/8.3.1/system.identitymodel.tokens.jwt.8.3.1.nupkg.sha512",
     "/home/chad/.nuget/packages/system.io/4.3.0/system.io.4.3.0.nupkg.sha512",
     "/home/chad/.nuget/packages/system.io.compression/4.3.0/system.io.compression.4.3.0.nupkg.sha512",
     "/home/chad/.nuget/packages/system.io.compression.zipfile/4.3.0/system.io.compression.zipfile.4.3.0.nupkg.sha512",
@@ -241,8 +241,8 @@
     "/home/chad/.nuget/packages/system.valuetuple/4.5.0/system.valuetuple.4.5.0.nupkg.sha512",
     "/home/chad/.nuget/packages/system.xml.readerwriter/4.3.0/system.xml.readerwriter.4.3.0.nupkg.sha512",
     "/home/chad/.nuget/packages/system.xml.xdocument/4.3.0/system.xml.xdocument.4.3.0.nupkg.sha512",
-    "/home/chad/.nuget/packages/testcontainers/4.3.0/testcontainers.4.3.0.nupkg.sha512",
-    "/home/chad/.nuget/packages/testcontainers.postgresql/4.3.0/testcontainers.postgresql.4.3.0.nupkg.sha512",
+    "/home/chad/.nuget/packages/testcontainers/4.7.0/testcontainers.4.7.0.nupkg.sha512",
+    "/home/chad/.nuget/packages/testcontainers.postgresql/4.7.0/testcontainers.postgresql.4.7.0.nupkg.sha512",
     "/home/chad/.nuget/packages/xunit/2.9.3/xunit.2.9.3.nupkg.sha512",
     "/home/chad/.nuget/packages/xunit.abstractions/2.0.3/xunit.abstractions.2.0.3.nupkg.sha512",
     "/home/chad/.nuget/packages/xunit.analyzers/1.18.0/xunit.analyzers.1.18.0.nupkg.sha512",
@@ -253,18 +253,5 @@
     "/home/chad/.nuget/packages/xunit.runner.visualstudio/3.1.1/xunit.runner.visualstudio.3.1.1.nupkg.sha512",
     "/home/chad/.nuget/packages/zspitz.util/0.1.113/zspitz.util.0.1.113.nupkg.sha512"
   ],
-  "logs": [
-    {
-      "code": "NU1603",
-      "level": "Warning",
-      "message": "WitchCityRope.Tests.Common depends on Testcontainers.PostgreSql (>= 4.2.2) but Testcontainers.PostgreSql 4.2.2 was not found. Testcontainers.PostgreSql 4.3.0 was resolved instead.",
-      "projectPath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.PerformanceTests/WitchCityRope.PerformanceTests.csproj",
-      "warningLevel": 1,
-      "filePath": "/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.PerformanceTests/WitchCityRope.PerformanceTests.csproj",
-      "libraryId": "Testcontainers.PostgreSql",
-      "targetGraphs": [
-        "net9.0"
-      ]
-    }
-  ]
+  "logs": []
 }

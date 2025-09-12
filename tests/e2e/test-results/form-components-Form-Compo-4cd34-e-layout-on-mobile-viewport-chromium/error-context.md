@@ -1,0 +1,100 @@
+# Page snapshot
+
+```yaml
+- link "Report an Incident":
+  - /url: /incident-report
+- link "Private Lessons":
+  - /url: /private-lessons
+- link "Contact":
+  - /url: /contact
+- banner:
+  - link "WITCH CITY ROPE":
+    - /url: /
+  - button
+- main:
+  - paragraph: Form Components Test
+  - paragraph: Floating Label Design with Dark Theme
+  - paragraph: Comprehensive testing page for all WitchCityRope form components with floating labels, underline effects, and dark theme styling.
+  - heading "Test Controls" [level=2]
+  - button "Fill Test Data"
+  - button "Fill Conflict Data"
+  - button "Show Validation Errors"
+  - button "Disable All Fields"
+  - alert "Testing Instructions":
+    - img
+    - text: Testing Instructions
+    - paragraph: • Use "Fill Test Data" to populate all fields with valid data
+    - paragraph: • Use "Fill Conflict Data" to test validation errors and async uniqueness checks
+    - paragraph: • Click in and out of fields to see floating label animations
+    - paragraph: • Focus on fields to see elegant underline animation
+    - paragraph: • All fields use floating labels with clean focus indicators
+    - paragraph: • Dark theme with sophisticated color transitions
+  - heading "Basic Form Components" [level=2]
+  - textbox
+  - text: Basic Input*
+  - paragraph: This is a basic text input with validation
+  - combobox:
+    - option "Option 1"
+    - option "Option 2"
+    - option "Option 3"
+  - text: Floating Select*
+  - paragraph: This is a floating label select without underline
+  - textbox
+  - text: Floating Textarea
+  - paragraph: This is a floating label textarea with underline effect
+  - heading "Floating Label Inputs" [level=2]
+  - textbox
+  - text: Email Address*
+  - paragraph: Checks email uniqueness (try 'taken@example.com')
+  - textbox
+  - text: Scene Name*
+  - paragraph: Checks scene name uniqueness (try 'admin')
+  - textbox
+  - text: Password*
+  - paragraph: Shows real-time strength meter and requirements
+  - textbox
+  - text: Phone Number
+  - paragraph: Auto-formats US phone numbers as you type
+  - heading "Emergency Contact Group" [level=2]
+  - paragraph: Emergency Contact Information
+  - textbox
+  - text: Emergency Contact Name*
+  - paragraph: Full name of your emergency contact
+  - textbox
+  - text: Emergency Contact Phone*
+  - paragraph: Best phone number to reach your emergency contact
+  - combobox:
+    - option "Spouse/Partner"
+    - option "Parent"
+    - option "Sibling"
+    - option "Friend"
+    - option "Other"
+  - text: Relationship to Contact*
+  - paragraph: How this person is related to you
+  - button "Submit Form"
+  - heading "Form State" [level=2]
+  - text: Invalid Pristine Ready
+  - button "View Form Values":
+    - img
+    - text: View Form Values
+  - button "View Form Errors":
+    - img
+    - text: View Form Errors
+  - heading "Design Features Demonstrated" [level=2]
+  - paragraph: "Floating Label Features:"
+  - paragraph: • Labels smoothly animate up when focused or filled
+  - paragraph: • Clean underline animation on focus
+  - paragraph: • Elegant transitions with cubic-bezier easing
+  - paragraph: • Dark theme with sophisticated colors
+  - paragraph: • Helper text with 1.1rem for readability
+  - paragraph: • Error states with shake animation
+  - paragraph: "Interaction States:"
+  - paragraph: • Default/empty with subtle borders
+  - paragraph: • Focus with brand color underline
+  - paragraph: • Filled with elevated label position
+  - paragraph: • Error with red color and animation
+  - paragraph: • Disabled with reduced opacity
+  - paragraph: • All test controls still functional
+- button "Open Tanstack query devtools":
+  - img
+```

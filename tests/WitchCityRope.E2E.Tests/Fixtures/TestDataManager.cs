@@ -85,7 +85,7 @@ public class TestDataManager
             startDate: startDate.Value,
             endDate: startDate.Value.AddHours(3),
             capacity: capacity,
-            eventType: EventType.Workshop, // Default to workshop for tests
+            eventType: EventType.Class, // Default to class for tests
             location: faker.Address.FullAddress(),
             primaryOrganizer: organizerEntity,
             pricingTiers: new[] { Money.Create("USD", price.Value) }

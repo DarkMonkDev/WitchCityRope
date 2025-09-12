@@ -7,3 +7,12 @@
 /home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Api.Tests/obj/Debug/net9.0/WitchCityRope.Api.Tests.AssemblyInfo.cs
 /home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Api.Tests/obj/Debug/net9.0/WitchCityRope.Api.Tests.csproj.CoreCompileInputs.cache
 /home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/tests/WitchCityRope.Api.Tests/obj/Debug/net9.0/WitchCityRope.Api.Tests.sourcelink.json
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Api.Tests/bin/Debug/net9.0/.msCoverageSourceRootsMapping_WitchCityRope.Api.Tests
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Api.Tests/bin/Debug/net9.0/CoverletSourceRootsMapping_WitchCityRope.Api.Tests
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Api.Tests/obj/Debug/net9.0/WitchCityRope.Api.Tests.csproj.AssemblyReference.cache
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Api.Tests/obj/Debug/net9.0/MvcTestingAppManifest.json
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Api.Tests/obj/Debug/net9.0/WitchCityRope.Api.Tests.GeneratedMSBuildEditorConfig.editorconfig
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Api.Tests/obj/Debug/net9.0/WitchCityRope.Api.Tests.AssemblyInfoInputs.cache
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Api.Tests/obj/Debug/net9.0/WitchCityRope.Api.Tests.AssemblyInfo.cs
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Api.Tests/obj/Debug/net9.0/WitchCityRope.Api.Tests.csproj.CoreCompileInputs.cache
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Api.Tests/obj/Debug/net9.0/WitchCityRope.Api.Tests.sourcelink.json
