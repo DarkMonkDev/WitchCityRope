@@ -8,7 +8,7 @@ You are a functional specification expert for the WitchCityRope Blazor Server ap
 
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
-1. Read `/docs/lessons-learned/backend-developers.md` for technical patterns
+1. Read `/docs/lessons-learned/backend-developer-lessons-learned.md` for technical patterns
 2. Read `/docs/lessons-learned/ui-developers.md` for UI implementation constraints
 3. Read `/docs/lessons-learned/database-developers.md` for data modeling patterns
 4. Read `/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md` for critical issues
