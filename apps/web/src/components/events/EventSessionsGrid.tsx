@@ -1,6 +1,7 @@
 import React from 'react';
-import { Table, Text, Group, ActionIcon, Button } from '@mantine/core';
+import { Table, Text, Group, ActionIcon } from '@mantine/core';
 import { IconEdit, IconTrash } from '@tabler/icons-react';
+import { WCRButton } from '../ui';
 
 export interface EventSession {
   id: string;
@@ -110,15 +111,14 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
           {sessions.map((session) => (
             <Table.Tr key={session.id}>
               <Table.Td>
-                <Button
+                <WCRButton
                   size="compact-xs"
-                  variant="light"
-                  color="burgundy"
+                  variant="outline"
                   leftSection={<IconEdit size={14} />}
                   onClick={() => onEditSession(session.id)}
                 >
                   Edit
-                </Button>
+                </WCRButton>
               </Table.Td>
               <Table.Td>
                 <Text fw={700} size="sm">
@@ -174,20 +174,13 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
       </Table>
 
       <Group mt="md" justify="space-between" align="center">
-        <Button
-          variant="filled"
-          color="burgundy"
+        <WCRButton
+          variant="secondary"
+          size="lg"
           onClick={onAddSession}
-          style={{
-            background: 'linear-gradient(135deg, var(--mantine-color-amber-6), #DAA520)',
-            border: 'none',
-            color: 'var(--mantine-color-dark-9)',
-            borderRadius: '12px 6px 12px 6px',
-            fontWeight: 600,
-          }}
         >
-          + Add Session
-        </Button>
+          Add Session
+        </WCRButton>
         
         <Text size="xs" c="dimmed" fs="italic">
           💡 Tip: Click Edit to modify session details in a modal dialog.

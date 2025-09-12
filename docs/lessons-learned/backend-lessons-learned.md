@@ -486,10 +486,107 @@ var eventDtos = events.Select(e => new EventDto
 - **NEVER call business logic methods inside LINQ database projections**
 - Move complex property calculations outside database queries
 
+## Database Seed Data Enhancement (2025-09-11)
+
+### COMPLETE SUCCESS: Event Sessions and Ticket Types Implementation
+**Achievement**: Successfully updated DbInitializer.cs to include comprehensive sessions and ticket types for all events, providing proper frontend integration support.
+
+**Key Components Enhanced**:
+1. **14 Complete Events with Sessions and Ticket Types**:
+   - Past events (4): Historical data for testing "show past events" functionality
+   - Upcoming events (10): Varied examples of single-day, multi-day, and different event types
+
+2. **Single-Day Events** (Most events):
+   - Added 1 session (S1) with event's date/time
+   - Added 1 ticket type for full access
+   - Proper capacity limits matching event capacity
+   - Sliding scale pricing based on event's pricing tiers
+
+3. **Multi-Day Class Events**:
+   - Event 7: 2-day Suspension Workshop with individual day tickets + discounted full event ticket
+   - Event 14: 3-day Conference with individual day tickets + discounted full event ticket
+   - Session identifiers: S1, S2, S3 with proper date/time distribution
+   - Individual day pricing at ~60% of full event with savings messaging
+
+4. **Social Events**:
+   - Free RSVP ticket types for community events (isRsvpMode: true)
+   - Donation-based ticket types for member gatherings
+   - Proper business rule enforcement (Social events allow both RSVP and optional tickets)
+
+**Technical Implementation**:
+- **Helper Methods Created**: 
+  - `AddSingleDayClassSessions()` - Standardized single-day class setup
+  - `AddSingleDaySocialSessions()` - Social event setup with RSVP/donation options
+  - `AddMultiDayClassSessions()` - Complex multi-day setup with individual + full tickets
+- **Entity Integration**: Used Event.AddSession() and Event.AddTicketType() methods correctly
+- **Business Rules Applied**: Proper differentiation between Class (paid only) and Social (RSVP + optional payment) events
+
+**Seed Data Examples**:
+- **Single Day Class**: "Rope Safety Fundamentals" - 1 session, 1 ticket type
+- **Multi-Day Class**: "Suspension Intensive" - 2 days, 3 ticket types (Day 1, Day 2, Both Days with savings)
+- **Free Social**: "Monthly Rope Social" - 1 session, free RSVP ticket type
+- **Paid Social**: "Rope Play Party" - 1 session, donation-based ticket types
+- **3-Day Conference**: "New England Rope Intensive" - 3 days, 4 ticket types with volume discounts
+
+**Frontend Benefits**:
+- Event forms can now properly display sessions and ticket type options
+- Capacity management works correctly with session-based limits
+- Multi-day events show individual day options and savings for full attendance
+- Social events distinguish between free RSVPs and optional donations
+- Real pricing data with sliding scale support
+
+**Files Modified**:
+- `/src/WitchCityRope.Infrastructure/Data/DbInitializer.cs` - Complete rewrite of SeedEventsAsync method
+
+**Build Results**:
+✅ Infrastructure project compiles successfully with 0 errors, 16 warnings  
+✅ All entity relationships properly configured  
+✅ Session and ticket type validation working correctly  
+✅ Multi-day pricing calculations implemented  
+
+**Database Schema Enhancement**:
+- Events now properly linked to EventSession entities
+- EventTicketType entities correctly associated with sessions via EventTicketTypeSession
+- Capacity management distributed across sessions
+- Pricing tiers properly mapped to ticket type min/max pricing
+
+**Business Rules Implemented**:
+- ✅ Classes require ticket purchase (no free RSVPs)
+- ✅ Social events support both free RSVP and optional paid tickets
+- ✅ Multi-day events offer individual day tickets + discounted full event tickets
+- ✅ Session capacity limits align with event capacity
+- ✅ Ticket sales periods can be configured per ticket type
+- ✅ Quantity limits enforced at ticket type level
+
+**Key Patterns Used**:
+```csharp
+// ✅ CORRECT - Multi-day setup with savings
+var fullEventTicketType = new EventTicketType(
+    eventId: eventItem.Id,
+    name: "All 3 Days",
+    description: $"Full access to all 3 days - SAVE $50!",
+    minPrice: minPrice,
+    maxPrice: maxPrice,
+    quantityAvailable: capacity
+);
+
+// Add all sessions to full ticket
+for (int day = 0; day < numberOfDays; day++)
+{
+    fullEventTicketType.AddSession($"S{day + 1}");
+}
+```
+
+**Prevention for Future Development**:
+- Always include both sessions and ticket types when creating events in seed data
+- Use helper methods to maintain consistency across similar event patterns
+- Test multi-day pricing calculations to ensure savings messaging is accurate
+- Verify session capacity distribution matches event business rules
+
 ## Success Metrics
 
 - ✅ All 16 tables created successfully
-- ✅ Database seeding works (5 users, 10 events, 2 vetting applications)  
+- ✅ Database seeding works (5 users, 14 events with sessions/tickets, 2 vetting applications)  
 - ✅ API starts without errors
 - ✅ Health checks pass
 - ✅ Event Session Matrix tables functional
@@ -503,6 +600,7 @@ var eventDtos = events.Select(e => new EventDto
 - ✅ EventService.cs compilation errors fixed (21 → 0 errors)
 - ✅ EventType enum simplified to Class and Social only
 - ✅ EventDto fields added for EndDate, Capacity, CurrentAttendees
+- ✅ Comprehensive session and ticket type seed data implemented
 - ⚠️ Business requirements mismatch identified and documented
 - ⚠️ Entity architecture confusion identified - Core vs API entities
 

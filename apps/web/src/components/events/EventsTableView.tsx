@@ -135,14 +135,8 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
   const navigate = useNavigate();
 
   const handleRowClick = (eventId: string) => {
-    // TODO: Navigate to event edit page when it exists
-    // For now, navigate to the admin events page and show notification
-    navigate(`/admin/events`);
-    notifications.show({
-      title: 'Event Details',
-      message: 'Event edit page will be implemented soon. Navigating to events list.',
-      color: 'blue'
-    });
+    // Navigate to the admin event details page
+    navigate(`/admin/events/${eventId}`);
   };
 
   const handleCopyEvent = (eventId: string, event: React.MouseEvent) => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Card,
   Tabs,
@@ -12,7 +12,6 @@ import {
   Title,
   Divider,
   MultiSelect,
-  Button,
   Badge,
   Table,
   ActionIcon,
@@ -24,6 +23,7 @@ import { EventSessionsGrid, EventSession } from './EventSessionsGrid';
 import { EventTicketTypesGrid, EventTicketType } from './EventTicketTypesGrid';
 import { SessionFormModal } from './SessionFormModal';
 import { TicketTypeFormModal, EventTicketType as ModalTicketType } from './TicketTypeFormModal';
+import { WCRButton } from '../ui';
 
 export interface EventFormData {
   // Basic Info
@@ -45,6 +45,8 @@ interface EventFormProps {
   onSubmit: (data: EventFormData) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
+  onFormChange?: () => void;
+  formDirty?: boolean;
 }
 
 export const EventForm: React.FC<EventFormProps> = ({
@@ -52,6 +54,8 @@ export const EventForm: React.FC<EventFormProps> = ({
   onSubmit,
   onCancel,
   isSubmitting = false,
+  onFormChange,
+  formDirty = false,
 }) => {
   const [activeTab, setActiveTab] = useState<string>('basic-info');
   const [activeEmailTemplate, setActiveEmailTemplate] = useState<string>('confirmation');
@@ -87,6 +91,19 @@ export const EventForm: React.FC<EventFormProps> = ({
       venueId: (value) => (!value ? 'Venue selection is required' : null),
     },
   });
+  
+  // Track form changes
+  const previousValues = useRef(form.values);
+  
+  useEffect(() => {
+    // Compare current values with previous values to detect changes
+    if (JSON.stringify(form.values) !== JSON.stringify(previousValues.current)) {
+      if (onFormChange) {
+        onFormChange();
+      }
+      previousValues.current = form.values;
+    }
+  }, [form.values, onFormChange]);
 
   // TinyMCE configuration (commented out - using simple textarea for now)
   // const tinyMCEConfig = {
@@ -289,11 +306,8 @@ export const EventForm: React.FC<EventFormProps> = ({
           {/* Basic Info Tab */}
           <Tabs.Panel value="basic-info" pt="xl">
             <Stack gap="xl">
-              {/* Event Details Section */}
+              {/* Event Details Section - removed redundant title */}
               <div>
-                <Title order={2} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
-                  Event Details
-                </Title>
 
                 {/* Event Type Toggle */}
                 <Radio.Group
@@ -442,9 +456,9 @@ export const EventForm: React.FC<EventFormProps> = ({
                     required
                     {...form.getInputProps('venueId')}
                   />
-                  <Button variant="outline" color="burgundy">
+                  <WCRButton variant="outline" size="md">
                     Add Venue
-                  </Button>
+                  </WCRButton>
                 </Group>
               </div>
 
@@ -464,24 +478,22 @@ export const EventForm: React.FC<EventFormProps> = ({
 
               {/* Save Buttons */}
               <Group justify="flex-end" mt="xl">
-                <Button variant="outline" color="burgundy" onClick={onCancel} style={{ minWidth: '120px', height: '48px', fontWeight: 600 }}>
+                <WCRButton 
+                  variant="outline" 
+                  onClick={onCancel}
+                  size="lg"
+                >
                   Cancel
-                </Button>
-                <Button
+                </WCRButton>
+                <WCRButton
                   type="submit"
                   loading={isSubmitting}
-                  style={{
-                    background: 'linear-gradient(135deg, var(--mantine-color-amber-6), #DAA520)',
-                    border: 'none',
-                    color: 'var(--mantine-color-dark-9)',
-                    borderRadius: '12px 6px 12px 6px',
-                    fontWeight: 600,
-                    minWidth: '140px',
-                    height: '48px',
-                  }}
+                  variant="secondary"
+                  size="lg"
+                  disabled={!formDirty}
                 >
-                  {isSubmitting ? 'Saving...' : 'Save Draft'}
-                </Button>
+                  {isSubmitting ? 'Saving...' : 'Save'}
+                </WCRButton>
               </Group>
             </Stack>
           </Tabs.Panel>
@@ -513,6 +525,58 @@ export const EventForm: React.FC<EventFormProps> = ({
                   onDeleteTicketType={handleDeleteTicketType}
                   onAddTicketType={handleAddTicketType}
                 />
+              </div>
+
+              {/* Ticket Sales */}
+              <div>
+                <Title order={2} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
+                  Ticket Sales
+                </Title>
+                <Text size="sm" c="dimmed" mb="lg">
+                  View all ticket purchases for this event. Track sales, manage refunds, and download attendee lists.
+                </Text>
+                
+                <Table
+                  striped
+                  highlightOnHover
+                  withTableBorder
+                  style={{
+                    backgroundColor: 'white',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                  }}
+                >
+                  <Table.Thead style={{ backgroundColor: 'var(--mantine-color-burgundy-6)' }}>
+                    <Table.Tr>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Buyer Name
+                      </Table.Th>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Ticket Type
+                      </Table.Th>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Purchase Date
+                      </Table.Th>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Amount Paid
+                      </Table.Th>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Status
+                      </Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {/* Empty state for now - will be populated with real sales data */}
+                    <Table.Tr>
+                      <Table.Td colSpan={5}>
+                        <Text ta="center" c="dimmed" py="xl">
+                          No ticket sales yet. Sales will appear here once tickets are purchased.
+                        </Text>
+                      </Table.Td>
+                    </Table.Tr>
+                  </Table.Tbody>
+                </Table>
               </div>
             </Stack>
           </Tabs.Panel>
@@ -662,11 +726,9 @@ export const EventForm: React.FC<EventFormProps> = ({
                   ]}
                   style={{ flex: 1 }}
                 />
-                <Button color="burgundy" disabled style={{
-                  minWidth: '160px',
-                  height: '48px',
-                  fontWeight: 600,
-                }}>Add Email Template</Button>
+                <WCRButton variant="primary" size="lg" disabled>
+                  Add Email Template
+                </WCRButton>
               </Group>
 
               {/* Unified Editor Section */}
@@ -752,17 +814,13 @@ export const EventForm: React.FC<EventFormProps> = ({
 
                 <Group mt="md">
                   {activeEmailTemplate === 'ad-hoc' ? (
-                    <Button color="burgundy" style={{
-                      minWidth: '120px',
-                      height: '48px',
-                      fontWeight: 600,
-                    }}>Send Email</Button>
+                    <WCRButton variant="primary" size="lg">
+                      Send Email
+                    </WCRButton>
                   ) : (
-                    <Button color="burgundy" style={{
-                      minWidth: '140px',
-                      height: '48px',
-                      fontWeight: 600,
-                    }}>Save Changes</Button>
+                    <WCRButton variant="primary" size="lg">
+                      Save Changes
+                    </WCRButton>
                   )}
                 </Group>
               </div>
@@ -910,19 +968,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                   </Table.Tbody>
                 </Table>
 
-                {/* Add Position Button - Below Table as per wireframe */}
-                <Button
-                  mt="md"
-                  style={{
-                    background: 'linear-gradient(135deg, var(--mantine-color-amber-6), #DAA520)',
-                    border: 'none',
-                    color: 'var(--mantine-color-dark-9)',
-                    borderRadius: '12px 6px 12px 6px',
-                    fontWeight: 600,
-                  }}
-                >
-                  Add Position
-                </Button>
+                {/* Add Position Button removed - kept only at bottom of form */}
               </div>
 
               {/* Volunteer Position Edit Form - From Wireframe */}
@@ -981,19 +1027,12 @@ export const EventForm: React.FC<EventFormProps> = ({
                       min={1}
                       style={{ width: '120px' }}
                     />
-                    <Button
-                      style={{
-                        background: 'linear-gradient(135deg, var(--mantine-color-amber-6), #DAA520)',
-                        border: 'none',
-                        color: 'var(--mantine-color-dark-9)',
-                        borderRadius: '12px 6px 12px 6px',
-                        fontWeight: 600,
-                        minWidth: '140px',
-                        height: '48px',
-                      }}
+                    <WCRButton
+                      variant="secondary"
+                      size="lg"
                     >
                       Add Position
-                    </Button>
+                    </WCRButton>
                   </div>
                 </Card>
               </div>

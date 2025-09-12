@@ -1,6 +1,7 @@
 import React from 'react';
-import { Table, Text, Group, ActionIcon, Badge, Button } from '@mantine/core';
+import { Table, Text, Group, ActionIcon, Badge } from '@mantine/core';
 import { IconEdit, IconTrash } from '@tabler/icons-react';
+import { WCRButton } from '../ui';
 
 export interface EventTicketType {
   id: string;
@@ -117,15 +118,14 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
           {ticketTypes.map((ticketType) => (
             <Table.Tr key={ticketType.id}>
               <Table.Td>
-                <Button
+                <WCRButton
                   size="compact-xs"
-                  variant="light"
-                  color="burgundy"
+                  variant="outline"
                   leftSection={<IconEdit size={14} />}
                   onClick={() => onEditTicketType(ticketType.id)}
                 >
                   Edit
-                </Button>
+                </WCRButton>
               </Table.Td>
               <Table.Td>
                 <Text size="sm" fw={500}>
@@ -186,20 +186,13 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
       </Table>
 
       <Group mt="md" justify="space-between" align="center">
-        <Button
-          variant="filled"
-          color="burgundy"
+        <WCRButton
+          variant="secondary"
+          size="lg"
           onClick={onAddTicketType}
-          style={{
-            background: 'linear-gradient(135deg, var(--mantine-color-amber-6), #DAA520)',
-            border: 'none',
-            color: 'var(--mantine-color-dark-9)',
-            borderRadius: '12px 6px 12px 6px',
-            fontWeight: 600,
-          }}
         >
-          + Add Ticket Type
-        </Button>
+          Add Ticket Type
+        </WCRButton>
         
         <Text size="xs" c="dimmed" fs="italic">
           💡 Tip: Click Edit for complex settings like session selection and sale periods. Simple fields can be edited inline.

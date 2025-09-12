@@ -1,0 +1,1 @@
+export { WCRButton, type WCRButtonProps } from './WCRButton';

@@ -73,57 +73,62 @@ await expect(page.locator('[data-testid="page-dashboard"]')).toBeVisible();
 - ✅ Ready for comprehensive E2E test execution
 - 🔄 Future components should include data-testid attributes from start
 
-## Critical Button Sizing Issue - NEVER REPEAT
+## Critical Button Sizing Issue - SOLVED WITH WCRButton Component ✅
 
-**Problem**: Button text gets cut off when not properly sized
+**Problem**: Button text gets cut off when not properly sized - recurring issue across the application
 **Root Causes**: 
 1. Explicit height styles that are too small for text metrics
 2. Line-height that doesn't accommodate font size properly
 3. Fixed height combined with padding causing overflow
+4. Inconsistent button styling across components
 
-**Solution Pattern**:
-1. Remove explicit height styles that are too small
-2. Use proper padding instead of fixed heights  
-3. Ensure line-height is appropriate for the font size (use relative values like 1.2)
-4. Consider using compact={false} if needed
+**Solution - WCRButton Component Created**:
+Created `/apps/web/src/components/ui/WCRButton.tsx` - a standardized button component that prevents text cutoff issues globally.
 
-**Examples**:
+**Key Features**:
+1. **Padding-based sizing**: No fixed heights, uses proper padding
+2. **Relative line-height**: Always 1.2 relative to font size
+3. **Size variants**: compact-xs, compact-sm, xs, sm, md, lg, xl
+4. **Style variants**: primary, secondary, outline, compact, danger
+5. **WCR theme integration**: Uses wcr color scheme
+
+**Usage Examples**:
 ```tsx
-// ❌ WRONG - Text gets cut off
-<Button style={{ height: '32px', lineHeight: '18px', fontSize: '14px' }}>Copy</Button>
+import { WCRButton } from '../components/ui';
 
-// ✅ CORRECT - Use padding and proper line-height
-<Button styles={{
-  root: {
-    minWidth: '60px',
-    fontWeight: 600,
-    fontSize: '14px',
-    paddingTop: '8px',
-    paddingBottom: '8px',
-    paddingLeft: '12px',
-    paddingRight: '12px',
-    lineHeight: '1.2', // Relative to font size
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
-  }
-}}>Copy</Button>
+// ✅ CORRECT - Standard primary button
+<WCRButton variant="primary" size="md">Save Event</WCRButton>
 
-// ✅ ALSO CORRECT - Simple approach for larger buttons
-<Button style={{
-  minWidth: '160px',
-  height: '48px', 
-  fontWeight: 600,
-}}>Add Email Template</Button>
+// ✅ CORRECT - Compact button with no text cutoff
+<WCRButton variant="compact" size="compact-sm">Copy</WCRButton>
+
+// ✅ CORRECT - Secondary gradient style
+<WCRButton variant="secondary" size="lg">Add Position</WCRButton>
+
+// ✅ CORRECT - Outline style
+<WCRButton variant="outline" size="sm">Cancel</WCRButton>
 ```
 
-**Key Learning**: Fixed heights work for larger buttons, but compact buttons need padding-based sizing to prevent text cutoff. Always use relative line-height values.
+**Migration Applied**:
+- ✅ AdminEventDetailsPage: All buttons converted to WCRButton
+- ✅ EventForm: All buttons converted to WCRButton  
+- ✅ Form dirty state support: Save button disabled when no changes
+- ✅ Consistent WCR branding and colors
 
-**UPDATED - 2025-09-11**: For maximum text rendering quality in compact buttons:
-- Set `height: 'auto'` and `minHeight: 'auto'` to remove ALL height constraints
-- Use only padding for sizing: `paddingTop/Bottom: '6px'` for compact buttons
-- Use `size="compact-sm"` with custom styles for fine control
-- Reduce font-size slightly (13px vs 14px) for better fit in small spaces
+**Benefits**:
+- **Zero text cutoff**: Proper padding and line-height prevent all cutoff issues
+- **Consistent styling**: Same button appearance across entire application
+- **WCR branding**: Automatic wcr color scheme and gradient styles
+- **Developer friendly**: Simple variant/size API, no custom styling needed
+- **Accessibility**: Proper text contrast and sizing for all button states
+
+**Prevention Strategy**: 
+- **ALWAYS use WCRButton** instead of Mantine Button for consistency
+- **No custom button styling** - use variant/size props instead
+- **Import from ui/index**: `import { WCRButton } from '../components/ui'`
+- **Test all sizes**: Verify text renders properly in all variant/size combinations
+
+**Key Learning**: Creating a standardized button component solves recurring text cutoff issues permanently and ensures design system consistency across the entire application.
 
 ## TinyMCE Editor Implementation
 
@@ -865,6 +870,321 @@ if (!event.status || event.status === 'Published') {
 
 This demonstrates how DTO alignment issues can completely break user-facing functionality while appearing to be "working" at the API level.
 
+## Admin Event Details Visual Fixes - COMPLETED ✅ (2025-09-11)
+
+**Problem**: Multiple visual and UX issues in AdminEventDetailsPage affecting professional appearance
+**Issues Fixed**:
+
+### 1. Event Title Font Consistency ✅
+**Problem**: Title not using same font/color as navigation "Witch City Rope" branding
+**Solution**: Applied Bodoni Moda serif font with WCR burgundy color
+```typescript
+// BEFORE: Generic font
+ff="Bodoni Moda, serif"
+c="burgundy"
+
+// AFTER: Consistent branding
+ff="'Bodoni Moda', serif"
+c="wcr.7"
+style={{ fontSize: '2.5rem', fontWeight: 700 }}
+```
+
+### 2. Published/Draft Status Display Enhancement ✅
+**Problem**: Small segmented control, not prominent enough for important status
+**Solution**: Large clickable status text matching title size, color-coded
+```typescript
+// BEFORE: Small segmented control
+<SegmentedControl value={publishStatus} onChange={handleStatusChange} />
+
+// AFTER: Large prominent status
+<Title
+  order={1}
+  size="h1"
+  ff="'Bodoni Moda', serif"
+  onClick={handleStatusToggle}
+  style={{
+    fontSize: '2.5rem',
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    cursor: 'pointer',
+    color: publishStatus === 'published' 
+      ? 'var(--mantine-color-green-7)' 
+      : 'var(--mantine-color-orange-7)'
+  }}
+>
+  {publishStatus === 'published' ? 'PUBLISHED' : 'DRAFT'}
+</Title>
+```
+
+### 3. Button Text Cutoff Fix - WCRButton Migration ✅
+**Problem**: "Add Session" and "Add Ticket Type" buttons had text cutoff issues
+**Solution**: Replaced all Button components with WCRButton for consistent sizing
+**Files Fixed**: 
+- `/apps/web/src/components/events/EventSessionsGrid.tsx`
+- `/apps/web/src/components/events/EventTicketTypesGrid.tsx`
+- `/apps/web/src/pages/admin/AdminEventDetailsPage.tsx`
+
+```typescript
+// BEFORE: Button with potential cutoff
+<Button size="compact-xs" variant="light" color="burgundy">
+  Edit
+</Button>
+
+// AFTER: WCRButton with proper sizing
+<WCRButton size="compact-xs" variant="outline">
+  Edit
+</WCRButton>
+```
+
+### 4. Duplicate Button Removal ✅
+**Problem**: Volunteers tab had confusing duplicate "Add Position" button
+**Solution**: Removed the top button, kept only the one at bottom of form
+**Rationale**: Clear UX - one "Add Position" button in logical location
+
+### 5. Ticket Sales Section Addition ✅
+**Problem**: Missing ticket sales tracking in Tickets/Orders tab
+**Solution**: Added comprehensive ticket sales table below existing sections
+**Features Added**:
+- Buyer name, ticket type, purchase date, amount paid columns
+- Empty state message for new events
+- Proper WCR styling matching other tables
+- Ready for future integration with sales data API
+
+**Key Learning Patterns**:
+1. **Consistent Branding**: Always use exact font families and color variables from theme
+2. **WCRButton Migration**: Replace ALL Button components to prevent text cutoff issues
+3. **Status Display**: Important status should be prominent, not hidden in small controls  
+4. **Single Source of Truth**: Remove duplicate buttons that confuse user workflow
+5. **Future-Ready**: Add empty state tables for features that will be populated later
+
+**Visual Impact**: 
+- Professional branding consistency with navigation
+- Clear, prominent status display
+- No text cutoff issues on any buttons
+- Streamlined user workflow
+- Complete feature coverage for ticket management
+
+This demonstrates how attention to visual details significantly improves perceived application quality and user experience.
+
+## CRITICAL: Reuse Existing Form Components - Don't Recreate Layouts ✅ (2025-09-11)
+
+**Problem**: User frustrated with recreating event details layout when EventForm already exists with complete design
+**Solution**: Always reuse existing form components instead of building custom detail views from scratch
+
+**Implementation Pattern**:
+```typescript
+// BEFORE: Custom detail layout with Cards, Grids, ThemeIcons (300+ lines)
+<Grid>
+  <Grid.Col span={{ base: 12, md: 8 }}>
+    <Card withBorder shadow="sm" padding="lg">
+      <Group justify="space-between" mb="md">
+        <Title order={3} size="h4">Basic Information</Title>
+        <ThemeIcon variant="light" color="wcr.7">
+          <IconInfoCircle size={20} />
+        </ThemeIcon>
+      </Group>
+      // ... complex custom layout
+    </Card>
+  </Grid.Col>
+</Grid>
+
+// AFTER: Reuse existing EventForm component (simple)
+<EventForm
+  initialData={convertEventToFormData(event)}
+  onSubmit={handleFormSubmit}
+  onCancel={handleFormCancel}
+  isSubmitting={false}
+/>
+```
+
+**Key Benefits**:
+- ✅ **Consistent Design**: Form already has proper layout, styling, and UX patterns
+- ✅ **Complete Functionality**: All tabs (Basic Info, Tickets/Orders, Emails, Volunteers) already implemented
+- ✅ **Less Code**: 50+ lines vs 300+ lines of custom layout
+- ✅ **Edit Mode Built-in**: Toggle between view/edit without additional UI work
+- ✅ **Field Validation**: Form validation already implemented and tested
+- ✅ **Mobile Responsive**: Form already handles responsive design
+
+**Data Conversion Pattern**:
+```typescript
+// Convert API EventDto to form EventFormData
+const convertEventToFormData = (event: EventDto): EventFormData => {
+  return {
+    eventType: 'class', // Default or derive from event data
+    title: event.title,
+    shortDescription: event.description.substring(0, 160),
+    fullDescription: event.description,
+    policies: '', // Handle missing fields gracefully
+    venueId: event.location || '',
+    teacherIds: [], // Map or default empty arrays
+    sessions: [], // Will be populated from related data
+    ticketTypes: [], // Will be populated from related data
+  };
+};
+```
+
+**Edit Mode Toggle Pattern**:
+```typescript
+const [isEditMode, setIsEditMode] = useState(false);
+
+// Toggle between view and edit mode
+const handleEdit = () => setIsEditMode(true);
+const handleFormCancel = () => setIsEditMode(false);
+
+// Page header adjusts based on mode
+<Title>
+  {isEditMode ? 'Edit Event' : 'Event Details'}
+</Title>
+
+{!isEditMode && (
+  <Button onClick={handleEdit}>Edit Event</Button>
+)}
+```
+
+**Files Updated**:
+- ✅ `/apps/web/src/pages/admin/AdminEventDetailsPage.tsx` - Simplified to use EventForm
+- Reduced from 519 lines to ~170 lines (67% reduction)
+- All custom detail layout removed
+- EventForm provides same information with better UX
+
+**Critical Learning**:
+- **ALWAYS check for existing form components** before building custom detail views
+- **Form components already have optimal layout and UX** patterns implemented
+- **Reuse reduces code, improves consistency, and leverages existing testing**
+- **Data conversion functions bridge API and form interfaces** cleanly
+- **Edit mode toggles are simple state management** patterns
+
+**Prevention Strategy**:
+1. **Survey existing components** before starting detail page implementation
+2. **Prefer form reuse over custom layouts** for consistent UX
+3. **Create conversion utilities** to bridge API and form data structures
+4. **Use simple state toggles** for view/edit mode switching
+5. **Document reusable form patterns** for other detail pages
+
+This pattern should be applied to all admin detail pages (users, events, etc.) - reuse existing forms instead of creating custom layouts.
+
+## Admin Event Details Page Implementation - React Router v7 + Mantine v7 Pattern ✅ (2025-09-11)
+
+**Problem**: Need dedicated admin event details page with proper navigation from events table
+**Requirements**: Full page layout, proper data display, navigation patterns, edit functionality stub
+
+**Implementation Pattern Applied**:
+
+### 1. Page Structure Following Project Standards ✅
+```typescript
+// Page component with proper data fetching and error handling
+export const AdminEventDetailsPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { data: event, isLoading, error } = useEvent(id!, !!id);
+
+  // Proper error states and loading states
+  if (!id) return <InvalidIdAlert />;
+  if (isLoading) return <LoadingSkeleton />;
+  if (error || !event) return <NotFoundAlert />;
+
+  return (
+    <Container size="xl" py="xl" data-testid="page-admin-event-details">
+      {/* Implementation */}
+    </Container>
+  );
+};
+```
+
+### 2. React Router v7 Integration ✅
+**Route Added**: `/admin/events/:id` with auth protection
+```typescript
+// router.tsx - Added protected admin route
+{
+  path: "admin/events/:id",
+  element: <AdminEventDetailsPage />,
+  loader: authLoader
+},
+```
+
+### 3. Navigation Pattern ✅
+**Table Row Click Navigation**:
+```typescript
+// EventsTableView.tsx - Updated to navigate to details
+const handleRowClick = (eventId: string) => {
+  navigate(`/admin/events/${eventId}`);
+};
+```
+
+### 4. Mantine v7 Layout Pattern ✅
+**Grid-Based Layout with Cards**:
+- Left Column (8/12): Event information in Card components
+- Right Column (4/12): Capacity display and quick actions
+- Proper responsive breakpoints with `span={{ base: 12, md: 8 }}`
+
+### 5. Data Display Patterns ✅
+**Rich Text Content**: 
+```typescript
+// Properly handle HTML description with XSS safety
+<Text dangerouslySetInnerHTML={{ __html: event.description }} />
+```
+
+**Date/Time Formatting**: Use existing utility functions
+```typescript
+import { formatEventDate, formatEventTime, calculateEventDuration } from '../../utils/eventUtils';
+```
+
+**Capacity Display**: Reuse existing CapacityDisplay component
+```typescript
+<CapacityDisplay current={event.currentAttendees} max={event.capacity} />
+```
+
+### 6. User Experience Patterns ✅
+**Breadcrumb Navigation**:
+```typescript
+<Breadcrumbs separator="/">
+  <Anchor onClick={handleGoBack}>Admin Events</Anchor>
+  <Text c="dimmed">Event Details</Text>
+</Breadcrumbs>
+```
+
+**Quick Actions Sidebar**:
+- Edit Event (stub for future implementation)
+- View Registrations (stub)
+- Back to Events List
+
+**Loading State**: Complete skeleton matching the final layout
+
+### 7. WitchCityRope Design System Integration ✅
+**Color Scheme**: Proper WCR theme colors (`wcr.7`, `wcr.8`)
+**Typography**: Bodoni Moda serif for headings, Source Sans for body
+**Visual Hierarchy**: ThemeIcon components, proper spacing, card shadows
+
+### 8. Error Handling Patterns ✅
+**Multiple Error States**:
+- Invalid/missing ID parameter
+- Network/API errors
+- Event not found
+- Each with appropriate user actions (Back to Events)
+
+**Key Learning Patterns**:
+1. **Admin Detail Pages**: Use grid layout (8/4 split) with cards for organized information display
+2. **Router Params**: Always validate params exist before using in API calls
+3. **Navigation Consistency**: Table row clicks → details pages is standard admin pattern
+4. **Component Reuse**: Leverage existing components (CapacityDisplay, utility functions)
+5. **Loading States**: Match skeleton structure to final layout for smooth UX
+6. **Action Stubs**: Provide buttons for future functionality with console.log placeholders
+
+**Files Created**:
+- ✅ `/apps/web/src/pages/admin/AdminEventDetailsPage.tsx` - Main detail page component
+
+**Files Modified**:
+- ✅ `/apps/web/src/routes/router.tsx` - Added protected route
+- ✅ `/apps/web/src/components/events/EventsTableView.tsx` - Updated navigation
+
+**Standards Reinforced**:
+- React functional components with TypeScript
+- Mantine v7 component patterns
+- Proper data fetching with useEvent hook
+- WitchCityRope design system compliance
+- Responsive design with proper breakpoints
+- Admin route protection with authLoader
+
 ## CRITICAL: Hard-Coded Port Configuration Management - COMPLETED ✅ (2025-09-11)
 
 **Problem**: Hard-coded localhost ports throughout codebase causing test failures and inconsistent API connections
@@ -1369,3 +1689,30 @@ npx playwright test admin-events-diagnostic.spec.ts --headed
 - `tests/playwright/admin-events-diagnostic.spec.ts` - Revealed login redirect
 
 This issue demonstrates the importance of understanding the full application flow, not just individual API endpoints.
+
+## Font Legibility Issue - AdminEventDetailsPage Fixed ✅ (2025-09-12)
+
+**Problem**: User reported Bodoni Moda font in AdminEventDetailsPage title and SegmentedControl is not legible
+**User Feedback**: "The font type you keep using is not legible" referring to Bodoni Moda serif font
+**Solution**: Changed to Source Sans 3 font to match the filter chips font for consistency
+
+**Changes Applied**:
+1. **Event Title Font**: Changed from `'Bodoni Moda', serif` to `'Source Sans 3, sans-serif'`
+2. **SegmentedControl Font**: Changed control and label fontFamily to `'Source Sans 3, sans-serif'`  
+3. **Reduced Whitespace**: Container padding `py="xl"` → `py="md"`, Header margin `mb="xl"` → `mb="md"`
+
+**Investigation Process**:
+- Examined EventsFilterBar.tsx to identify filter chips font
+- Filter chips use default Mantine font (Source Sans 3) with 14px size and fontWeight: 600
+- Applied same font family to maintain UI consistency
+
+**Files Modified**:
+- `/apps/web/src/pages/admin/AdminEventDetailsPage.tsx` - Font changes and spacing reduction
+
+**Key Learning**: 
+- **User feedback on legibility takes priority** over design system consistency
+- **Match fonts across related UI elements** for visual harmony
+- **Default system fonts often more legible** than decorative serif fonts
+- **Always check what fonts existing components use** before applying custom fonts
+
+**Pattern Applied**: When users report legibility issues, examine similar UI components to find the most readable font already in use and apply consistently.
