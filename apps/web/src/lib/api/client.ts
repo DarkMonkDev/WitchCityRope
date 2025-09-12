@@ -16,12 +16,44 @@ export const apiClient = axios.create({
 
 // Request interceptor for auth tokens and logging
 apiClient.interceptors.request.use(
-  (config) => {
-    // Token could be retrieved from authService or context
-    const token = localStorage.getItem('auth_token') // Fallback for validation
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+  async (config) => {
+    // Get token from multiple sources in priority order
+    try {
+      let token: string | null = null;
+      
+      // 1. Try to get token from auth store first
+      const authStore = (window as any).__AUTH_STORE__;
+      if (authStore?.getState) {
+        token = authStore.getState()?.actions?.getToken?.();
+      }
+      
+      // 2. Fallback to authService
+      if (!token) {
+        const { authService } = await import('../../services/authService');
+        token = authService.getToken();
+      }
+      
+      // 3. Final fallback to localStorage
+      if (!token) {
+        token = localStorage.getItem('auth_token');
+      }
+      
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+        console.debug(`🔑 Adding Authorization header for ${config.method?.toUpperCase()} ${config.url}`);
+      } else {
+        console.debug(`⚠️ No auth token available for ${config.method?.toUpperCase()} ${config.url}`);
+      }
+    } catch (error) {
+      console.warn('Error getting auth token:', error);
+      // Last resort fallback to localStorage
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+        console.debug(`🔑 Emergency fallback token from localStorage for ${config.method?.toUpperCase()} ${config.url}`);
+      }
     }
+    
     console.debug(`API Request: ${config.method?.toUpperCase()} ${config.url}`)
     return config
   },
@@ -51,13 +83,37 @@ apiClient.interceptors.response.use(
     })
     
     if (response?.status === 401) {
-      // Clear auth state and redirect to login
-      localStorage.removeItem('auth_token')
-      queryClient.clear()
+      // Check if this is an admin or demo page - different handling
+      const isOnDemoPage = window.location.pathname.includes('/demo') || 
+                          window.location.pathname.includes('/admin');
+      const isOnLoginPage = window.location.pathname.includes('/login');
       
-      // Only redirect if not already on login page
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login'
+      console.warn(`🚫 401 Unauthorized: ${config?.method?.toUpperCase()} ${config?.url}`);
+      
+      if (!isOnLoginPage) {
+        // Clear auth state
+        localStorage.removeItem('auth_token');
+        
+        // Clear auth store if available
+        try {
+          const authStore = (window as any).__AUTH_STORE__;
+          if (authStore?.getState) {
+            authStore.getState().actions.logout();
+          }
+        } catch (error) {
+          console.warn('Could not clear auth store:', error);
+        }
+        
+        // For admin/demo pages, show a more informative message
+        if (isOnDemoPage) {
+          console.error('🔐 Authentication required for admin access. Please log in first.');
+          // Still redirect but with context
+          window.location.href = '/login?returnUrl=' + encodeURIComponent(window.location.pathname);
+        } else {
+          // Clear query cache and redirect for normal pages
+          queryClient.clear();
+          window.location.href = '/login';
+        }
       }
     }
     

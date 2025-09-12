@@ -188,8 +188,11 @@ const useAuthStore = create<AuthStore>()(
           // Only persist essential, non-sensitive data
           user: state.user,
           isAuthenticated: state.isAuthenticated,
-          lastAuthCheck: state.lastAuthCheck
-          // NEVER persist token or tokenExpiresAt for security
+          lastAuthCheck: state.lastAuthCheck,
+          // TEMPORARY FIX: Persist token for event updates to work
+          // TODO: Move to httpOnly cookie-based authentication properly
+          token: state.token,
+          tokenExpiresAt: state.tokenExpiresAt
           // Don't persist isLoading - should always start as true for auth check
         })
       }
@@ -226,6 +229,11 @@ export const useAuth = () => {
 
 // Export the store itself for testing
 export { useAuthStore };
+
+// Expose auth store to window for API client access (development only)
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  (window as any).__AUTH_STORE__ = useAuthStore;
+}
 
 // Export types for use in other components
 export type { UserDto, AuthState, AuthActions };

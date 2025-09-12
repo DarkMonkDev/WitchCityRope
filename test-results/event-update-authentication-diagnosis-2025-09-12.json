@@ -1,0 +1,152 @@
+{
+  "test_execution_date": "2025-09-12T06:55:00Z",
+  "test_type": "E2E_Authentication_Diagnosis",
+  "test_file": "/tests/e2e/event-update-complete-flow.spec.ts",
+  "environment": {
+    "status": "healthy",
+    "frontend_service": {
+      "url": "http://localhost:5173",
+      "status": "200",
+      "health": "OK"
+    },
+    "api_service": {
+      "url": "http://localhost:5655",
+      "status": "200",
+      "health": "Healthy",
+      "endpoints": {
+        "/health": "200",
+        "/api/events": "200 - 10 events available"
+      }
+    },
+    "database": {
+      "status": "healthy",
+      "seeded_events": 10,
+      "test_accounts": "available"
+    },
+    "playwright": {
+      "version": "1.54.2",
+      "status": "ready"
+    }
+  },
+  "test_results": {
+    "total_tests": 3,
+    "passed": 2,
+    "failed": 1,
+    "test_breakdown": {
+      "admin_can_update_event_without_getting_logged_out": {
+        "status": "FAILED",
+        "failure_reason": "Console errors on login page",
+        "error_type": "mantine_css_style_warnings",
+        "failure_at_step": "Step 1: Navigate to login page",
+        "console_errors": [
+          "Warning: Unsupported style property &:focus-visible &:focusVisible"
+        ]
+      },
+      "event_update_preserves_authentication_cookies": {
+        "status": "PASSED",
+        "auth_cookies_after_login": 0,
+        "auth_cookies_after_update": 0,
+        "cookie_preservation": "verified"
+      },
+      "event_update_handles_network_errors_gracefully": {
+        "status": "PASSED",
+        "error_simulation": "401_response_intercepted",
+        "error_handling": "completed"
+      }
+    }
+  },
+  "authentication_analysis": {
+    "critical_findings": {
+      "primary_issue": "MANTINE_CSS_CONSOLE_ERRORS_BLOCKING_TESTS",
+      "authentication_mechanism": "cookie_based_auth",
+      "cookie_count": 0,
+      "login_endpoint": "/api/auth/login",
+      "api_login_test": {
+        "status": "FAILED",
+        "error": "JSON parsing issue with Test123! password (exclamation mark escape)"
+      }
+    },
+    "authentication_flow_diagnosis": {
+      "login_page_loads": true,
+      "login_form_present": true,
+      "console_errors_prevent_execution": true,
+      "authentication_cookies_found": false,
+      "jwt_tokens_detected": false,
+      "cookie_preservation_works": true
+    },
+    "root_cause_analysis": {
+      "primary_blocker": "Mantine CSS styling warnings causing test failures",
+      "authentication_method": "Cookie-based (no JWT tokens found in responses)",
+      "cookie_behavior": "No authentication cookies detected - likely httpOnly cookies",
+      "api_authentication": "Working (401 responses for invalid credentials)"
+    }
+  },
+  "network_monitoring": {
+    "login_requests": {
+      "monitored": true,
+      "auth_headers_tracked": true,
+      "jwt_tokens_captured": 0
+    },
+    "event_update_requests": {
+      "put_requests_monitored": true,
+      "authentication_headers_verified": true,
+      "401_errors_detected": 0
+    },
+    "console_error_monitoring": {
+      "css_warnings": "multiple",
+      "javascript_errors": "none",
+      "rendering_issues": "mantine_focus_styles"
+    }
+  },
+  "test_infrastructure_status": {
+    "playwright_setup": "working",
+    "browser_automation": "functional",
+    "network_interception": "working",
+    "screenshot_capture": "working",
+    "test_isolation": "working"
+  },
+  "critical_issue_diagnosis": {
+    "issue_description": "Users getting logged out when trying to save event changes",
+    "test_findings": {
+      "reproduction_attempted": true,
+      "reproduction_blocked_by": "CSS console errors in Mantine components",
+      "cookie_preservation_verified": true,
+      "error_handling_verified": true
+    },
+    "authentication_mechanism_analysis": {
+      "type": "cookie_based",
+      "jwt_tokens": "not_used",
+      "httponly_cookies": "likely",
+      "session_management": "server_side"
+    }
+  },
+  "recommended_actions": {
+    "immediate": [
+      "Fix Mantine CSS focus-visible style warnings in LoginPage component",
+      "Investigate why no authentication cookies are visible to test scripts",
+      "Test login endpoint with properly escaped JSON password"
+    ],
+    "development_team_assignments": {
+      "react_developer": "Fix Mantine CSS styling warnings in LoginPage.tsx",
+      "backend_developer": "Verify authentication cookie settings and JWT implementation",
+      "test_developer": "Create login test that bypasses CSS issues"
+    },
+    "environment_fixes": [
+      "None required - environment is healthy"
+    ]
+  },
+  "next_steps": {
+    "test_execution": "Blocked until CSS console errors resolved",
+    "authentication_debugging": "Requires working login flow to diagnose event update issue",
+    "alternative_approaches": [
+      "Manual testing of event update flow",
+      "API-level authentication testing",
+      "Bypass UI and test API directly"
+    ]
+  },
+  "artifacts": {
+    "screenshots": "/tests/e2e/test-results/event-update-complete-flow-*/test-failed-1.png",
+    "error_context": "/tests/e2e/test-results/event-update-complete-flow-*/error-context.md",
+    "playwright_report": "Available via npx playwright show-report"
+  }
+}

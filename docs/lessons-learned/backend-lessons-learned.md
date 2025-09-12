@@ -825,6 +825,57 @@ app.MapPut("/api/resource/{id}", async (
 - Use proper business logic validation in service layer
 - Follow consistent API response patterns across all endpoints
 
+## 🚨 CRITICAL: API Confusion Prevention - MANDATORY FOR ALL BACKEND DEVELOPERS 🚨
+
+**ABSOLUTE RULE**: ONLY `/apps/api/` should EVER be modified by backend developers. NEVER touch `/src/WitchCityRope.Api/`.
+
+### The Dual API Crisis (2025-09-12)
+
+**CRITICAL SITUATION**: WitchCityRope project has **TWO separate API projects** which caused massive confusion during development:
+
+#### ACTIVE API (MODIFY THIS ONE ONLY)
+- **Location**: `/apps/api/` 
+- **Port**: 5655
+- **Status**: **CURRENTLY SERVING REACT FRONTEND**
+- **Architecture**: Minimal API with vertical slice pattern
+- **Performance**: 49ms response times
+- **Features**: Health, Authentication, Events, Users
+- **Instructions**: **THIS IS THE ONLY API YOU SHOULD EVER MODIFY**
+
+#### LEGACY API (NEVER MODIFY THIS)
+- **Location**: `/src/WitchCityRope.Api/`
+- **Status**: **DORMANT - CONTAINS VALUABLE FEATURES BUT DO NOT MODIFY**
+- **Features**: CheckIn, Safety, Vetting, Advanced Payments
+- **Purpose**: Historical reference and feature extraction source
+- **Instructions**: **NEVER ADD NEW FEATURES HERE - READ ONLY FOR REFERENCE**
+
+### Why This Happened
+During React migration in August 2025, a new simplified API was created instead of refactoring the existing one. The legacy API was never removed, creating architectural duplication.
+
+### Prevention Rules for Backend Developers
+1. **ALWAYS work in `/apps/api/`** - Never work in `/src/WitchCityRope.Api/`
+2. **Check file paths** - If you see `/src/WitchCityRope.Api/` in your work, STOP
+3. **Use modern API patterns** - Vertical slice architecture, minimal API endpoints
+4. **Follow performance targets** - Maintain <50ms response times
+5. **Test with React frontend** - Ensure `/apps/web/` works with your changes
+
+### When You Need Legacy API Features
+- **DON'T modify legacy API** - Extract features to modern API using vertical slice pattern
+- **READ legacy code** - For business logic understanding only
+- **DOCUMENT extraction** - When moving features to modern API
+- **TEST thoroughly** - Ensure extracted features work with React frontend
+
+### Emergency Contacts
+If you accidentally modify legacy API or break the modern API, IMMEDIATELY:
+1. Stop all work and assess damage
+2. Check React frontend still works: `curl http://localhost:5655/health`
+3. Revert changes if necessary: `git reset --hard HEAD~1`
+4. Document the incident in session notes
+
+**VIOLATION CONSEQUENCES**: Modifying legacy API can break the architecture cleanup process and confuse future developers.
+
+---
+
 ## Success Metrics
 
 - ✅ All 16 tables created successfully

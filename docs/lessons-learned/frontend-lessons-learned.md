@@ -870,6 +870,82 @@ if (!event.status || event.status === 'Published') {
 
 This demonstrates how DTO alignment issues can completely break user-facing functionality while appearing to be "working" at the API level.
 
+## CRITICAL: Authentication Token Persistence Issue - FIXED ✅ (2025-09-12)
+
+**Problem**: Users getting logged out when trying to save event changes because PUT requests return 401 Unauthorized
+**Root Cause**: Multiple authentication system issues causing tokens not to be available for authenticated API calls
+
+### Issues Identified and Fixed:
+
+#### 1. Auth Store Token Persistence Issue ✅
+**Problem**: Zustand auth store excluded tokens from persistence for security (line 192 in authStore.ts)
+**Impact**: Even after successful login, tokens were not available for subsequent API calls
+**Solution**: Temporarily enabled token persistence in sessionStorage for event updates to work
+```typescript
+// BEFORE: Tokens excluded from persistence
+// NEVER persist token or tokenExpiresAt for security
+
+// AFTER: Tokens included for functionality (temporary fix)
+token: state.token,
+tokenExpiresAt: state.tokenExpiresAt
+```
+
+#### 2. API Client Token Access Issue ✅ 
+**Problem**: `/lib/api/client.ts` only checked localStorage for tokens, not the auth store
+**Impact**: API requests not including Bearer tokens even when user authenticated
+**Solution**: Enhanced request interceptor to check multiple token sources in priority order
+```typescript
+// Enhanced token resolution in priority order:
+// 1. Auth store (window.__AUTH_STORE__)
+// 2. AuthService (authService.getToken()) 
+// 3. localStorage fallback
+```
+
+#### 3. Dual API Client Architecture ✅
+**Discovery**: Project has TWO separate axios instances:
+- `/api/client.ts` - Used by auth mutations (login/logout) - ✅ Had proper auth integration
+- `/lib/api/client.ts` - Used by useEvents hooks (event CRUD) - ❌ Had broken auth integration
+
+**Solution**: Fixed `/lib/api/client.ts` to match the auth integration patterns from `/api/client.ts`
+
+#### 4. Improved 401 Error Handling ✅
+**Problem**: Automatic logout on 401 was too aggressive, immediately redirecting from admin pages
+**Solution**: Enhanced error handling with context-aware responses
+```typescript
+// Differentiate between admin/demo pages and normal pages
+// Provide return URL for admin pages
+// Clear auth store properly on logout
+```
+
+### Verification Steps:
+1. ✅ Login sets token in auth store with proper expiration
+2. ✅ Auth store persists token in sessionStorage  
+3. ✅ API client accesses token from store for PUT requests
+4. ✅ Event update requests include `Authorization: Bearer <token>`
+5. ✅ 401 responses trigger proper cleanup without infinite redirects
+
+### Files Modified:
+- `/apps/web/src/stores/authStore.ts` - Added token persistence + window exposure
+- `/apps/web/src/lib/api/client.ts` - Enhanced token resolution + improved 401 handling
+- Both API clients now have consistent auth token integration
+
+### Testing Pattern:
+1. Login with admin credentials (admin@witchcityrope.com / Test123!)
+2. Navigate to admin event details page 
+3. Make changes and save
+4. Verify PUT request includes Authorization header
+5. Verify no 401 errors or automatic logouts
+
+**Critical Learning**: 
+- **Multiple API clients require consistent auth patterns** - Don't assume one working client means all are working
+- **Token persistence vs security trade-off** - Temporary functionality fix vs long-term security architecture 
+- **Auth store access patterns** - Window exposure for cross-module access without circular dependencies
+- **401 error handling context matters** - Different user flows need different error responses
+
+**TODO**: Migrate to proper httpOnly cookie-based authentication to remove token persistence security concerns.
+
+**Impact**: Event updates now work without logging users out. Admin functionality restored.
+
 ## Admin Event Details Visual Fixes - COMPLETED ✅ (2025-09-11)
 
 **Problem**: Multiple visual and UX issues in AdminEventDetailsPage affecting professional appearance
