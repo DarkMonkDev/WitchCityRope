@@ -23,6 +23,8 @@ import { EventSessionsGrid, EventSession } from './EventSessionsGrid';
 import { EventTicketTypesGrid, EventTicketType } from './EventTicketTypesGrid';
 import { SessionFormModal } from './SessionFormModal';
 import { TicketTypeFormModal, EventTicketType as ModalTicketType } from './TicketTypeFormModal';
+import { VolunteerPositionsGrid } from './VolunteerPositionsGrid';
+import { VolunteerPositionFormModal, VolunteerPosition } from './VolunteerPositionFormModal';
 import { WCRButton } from '../ui';
 
 export interface EventFormData {
@@ -38,6 +40,9 @@ export interface EventFormData {
   // Sessions and Tickets
   sessions: EventSession[];
   ticketTypes: EventTicketType[];
+  
+  // Volunteer Positions
+  volunteerPositions: VolunteerPosition[];
 }
 
 interface EventFormProps {
@@ -63,8 +68,10 @@ export const EventForm: React.FC<EventFormProps> = ({
   // Modal state management
   const [sessionModalOpen, setSessionModalOpen] = useState(false);
   const [ticketModalOpen, setTicketModalOpen] = useState(false);
+  const [volunteerModalOpen, setVolunteerModalOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<EventSession | null>(null);
   const [editingTicketType, setEditingTicketType] = useState<EventTicketType | null>(null);
+  const [editingVolunteerPosition, setEditingVolunteerPosition] = useState<VolunteerPosition | null>(null);
 
   // Form state management
   const form = useForm<EventFormData>({
@@ -78,6 +85,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       teacherIds: [],
       sessions: [],
       ticketTypes: [],
+      volunteerPositions: [],
       ...initialData,
     },
     validate: {
@@ -240,6 +248,45 @@ export const EventForm: React.FC<EventFormProps> = ({
     };
   };
 
+  // Volunteer position management handlers
+  const handleEditVolunteerPosition = (positionId: string) => {
+    const position = form.values.volunteerPositions.find(p => p.id === positionId);
+    if (position) {
+      setEditingVolunteerPosition(position);
+      setVolunteerModalOpen(true);
+    }
+  };
+
+  const handleDeleteVolunteerPosition = (positionId: string) => {
+    const updatedPositions = form.values.volunteerPositions.filter(position => position.id !== positionId);
+    form.setFieldValue('volunteerPositions', updatedPositions);
+  };
+
+  const handleAddVolunteerPosition = () => {
+    setEditingVolunteerPosition(null);
+    setVolunteerModalOpen(true);
+  };
+
+  const handleVolunteerPositionSubmit = (positionData: Omit<VolunteerPosition, 'id' | 'volunteersAssigned'>) => {
+    if (editingVolunteerPosition) {
+      // Update existing position
+      const updatedPositions = form.values.volunteerPositions.map(position =>
+        position.id === editingVolunteerPosition.id
+          ? { ...positionData, id: editingVolunteerPosition.id, volunteersAssigned: editingVolunteerPosition.volunteersAssigned }
+          : position
+      );
+      form.setFieldValue('volunteerPositions', updatedPositions);
+    } else {
+      // Add new position
+      const newPosition: VolunteerPosition = {
+        ...positionData,
+        id: crypto.randomUUID(),
+        volunteersAssigned: 0, // Start with no volunteers assigned
+      };
+      form.setFieldValue('volunteerPositions', [...form.values.volunteerPositions, newPosition]);
+    }
+  };
+
   const handleSubmit = form.onSubmit((values) => {
     onSubmit(values);
   });
@@ -289,7 +336,7 @@ export const EventForm: React.FC<EventFormProps> = ({
   return (
     <Card shadow="md" radius="lg" p="xl" style={{ backgroundColor: 'white' }} data-testid="event-form">
       <form onSubmit={handleSubmit}>
-        <Tabs value={activeTab} onChange={setActiveTab} variant="pills" radius="md">
+        <Tabs value={activeTab} onChange={setActiveTab} variant="pills" radius="md" data-testid="tabs-event-management">
           <Tabs.List
             style={{
               backgroundColor: 'var(--mantine-color-gray-0)',
@@ -297,14 +344,15 @@ export const EventForm: React.FC<EventFormProps> = ({
               padding: 'var(--mantine-spacing-md)',
             }}
           >
-            <Tabs.Tab value="basic-info">Basic Info</Tabs.Tab>
-            <Tabs.Tab value="tickets-orders">Tickets/Orders</Tabs.Tab>
-            <Tabs.Tab value="emails">Emails</Tabs.Tab>
-            <Tabs.Tab value="volunteers">Volunteers</Tabs.Tab>
+            <Tabs.Tab value="basic-info" data-testid="tab-basic-info">Basic Info</Tabs.Tab>
+            <Tabs.Tab value="sessions" data-testid="tab-sessions">Sessions</Tabs.Tab>
+            <Tabs.Tab value="tickets" data-testid="tab-tickets">Tickets</Tabs.Tab>
+            <Tabs.Tab value="emails" data-testid="tab-emails">Emails</Tabs.Tab>
+            <Tabs.Tab value="volunteers" data-testid="tab-volunteers">Volunteers</Tabs.Tab>
           </Tabs.List>
 
           {/* Basic Info Tab */}
-          <Tabs.Panel value="basic-info" pt="xl">
+          <Tabs.Panel value="basic-info" pt="xl" data-testid="panel-basic-info">
             <Stack gap="xl">
               {/* Event Details Section - removed redundant title */}
               <div>
@@ -498,8 +546,8 @@ export const EventForm: React.FC<EventFormProps> = ({
             </Stack>
           </Tabs.Panel>
 
-          {/* Tickets/Orders Tab */}
-          <Tabs.Panel value="tickets-orders" pt="xl">
+          {/* Sessions Tab */}
+          <Tabs.Panel value="sessions" pt="xl" data-testid="panel-sessions">
             <Stack gap="xl">
               {/* Event Sessions */}
               <div>
@@ -513,7 +561,12 @@ export const EventForm: React.FC<EventFormProps> = ({
                   onAddSession={handleAddSession}
                 />
               </div>
+            </Stack>
+          </Tabs.Panel>
 
+          {/* Tickets Tab */}
+          <Tabs.Panel value="tickets" pt="xl" data-testid="panel-tickets">
+            <Stack gap="xl">
               {/* Ticket Types */}
               <div>
                 <Title order={2} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
@@ -582,7 +635,7 @@ export const EventForm: React.FC<EventFormProps> = ({
           </Tabs.Panel>
 
           {/* Emails Tab - EXACT WIREFRAME MATCH */}
-          <Tabs.Panel value="emails" pt="xl">
+          <Tabs.Panel value="emails" pt="xl" data-testid="panel-emails">
             <Stack gap="xl">
               <Title order={2} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
                 Email Templates
@@ -827,214 +880,20 @@ export const EventForm: React.FC<EventFormProps> = ({
             </Stack>
           </Tabs.Panel>
 
-          {/* Volunteers Tab - EXACT WIREFRAME MATCH */}
-          <Tabs.Panel value="volunteers" pt="xl">
+          {/* Volunteers Tab - Modal-based consistent with other tabs */}
+          <Tabs.Panel value="volunteers" pt="xl" data-testid="panel-volunteers">
             <Stack gap="xl">
-              {/* Volunteer Positions - EXACT TABLE STRUCTURE FROM WIREFRAME */}
+              {/* Volunteer Positions */}
               <div>
                 <Title order={2} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
                   Volunteer Positions
                 </Title>
-                
-                <Table
-                  striped
-                  highlightOnHover
-                  style={{
-                    backgroundColor: 'white',
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                  }}
-                >
-                  <Table.Thead style={{ backgroundColor: 'var(--mantine-color-burgundy-6)' }}>
-                    <Table.Tr>
-                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                        Edit
-                      </Table.Th>
-                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                        Position
-                      </Table.Th>
-                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                        Sessions
-                      </Table.Th>
-                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                        Time
-                      </Table.Th>
-                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                        Description
-                      </Table.Th>
-                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                        Needed
-                      </Table.Th>
-                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                        Assigned
-                      </Table.Th>
-                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                        Delete
-                      </Table.Th>
-                    </Table.Tr>
-                  </Table.Thead>
-                  <Table.Tbody>
-                    {/* Door Monitor Row */}
-                    <Table.Tr>
-                      <Table.Td>
-                        <ActionIcon size="sm" color="burgundy" variant="light">
-                          ✏️
-                        </ActionIcon>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text fw={600} c="burgundy">Door Monitor</Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text fw={600}>S1, S2</Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text size="sm" c="stone">6:00 PM - 7:00 PM</Text>
-                      </Table.Td>
-                      <Table.Td>Check IDs, welcome members</Table.Td>
-                      <Table.Td style={{ textAlign: 'center', fontWeight: 600 }}>2</Table.Td>
-                      <Table.Td>
-                        <div>
-                          <Text size="sm" c="green">✓ Jamie Davis</Text>
-                          <Text size="sm" c="yellow">○ 1 more needed</Text>
-                        </div>
-                      </Table.Td>
-                      <Table.Td>
-                        <ActionIcon size="sm" color="red">
-                          🗑️
-                        </ActionIcon>
-                      </Table.Td>
-                    </Table.Tr>
-
-                    {/* Safety Monitor Row */}
-                    <Table.Tr>
-                      <Table.Td>
-                        <ActionIcon size="sm" color="burgundy" variant="light">
-                          ✏️
-                        </ActionIcon>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text fw={600} c="burgundy">Safety Monitor</Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text fw={600}>All</Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text size="sm" c="stone">7:00 PM - 10:00 PM</Text>
-                      </Table.Td>
-                      <Table.Td>Monitor play areas, handle incidents</Table.Td>
-                      <Table.Td style={{ textAlign: 'center', fontWeight: 600 }}>3</Table.Td>
-                      <Table.Td>
-                        <div>
-                          <Text size="sm" c="green">✓ Sam Singh</Text>
-                          <Text size="sm" c="green">✓ Alex Chen</Text>
-                          <Text size="sm" c="yellow">○ 1 more needed</Text>
-                        </div>
-                      </Table.Td>
-                      <Table.Td>
-                        <ActionIcon size="sm" color="red">
-                          🗑️
-                        </ActionIcon>
-                      </Table.Td>
-                    </Table.Tr>
-
-                    {/* Setup Crew Row */}
-                    <Table.Tr>
-                      <Table.Td>
-                        <ActionIcon size="sm" color="burgundy" variant="light">
-                          ✏️
-                        </ActionIcon>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text fw={600} c="burgundy">Setup Crew</Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text fw={600}>S1</Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text size="sm" c="stone">6:00 PM - 7:00 PM</Text>
-                      </Table.Td>
-                      <Table.Td>Arrange furniture, setup equipment</Table.Td>
-                      <Table.Td style={{ textAlign: 'center', fontWeight: 600 }}>4</Table.Td>
-                      <Table.Td>
-                        <Text size="sm" c="red">⚠ 4 positions open</Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <ActionIcon size="sm" color="red">
-                          🗑️
-                        </ActionIcon>
-                      </Table.Td>
-                    </Table.Tr>
-                  </Table.Tbody>
-                </Table>
-
-                {/* Add Position Button removed - kept only at bottom of form */}
-              </div>
-
-              {/* Volunteer Position Edit Form - From Wireframe */}
-              <div>
-                <Title order={3} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
-                  Volunteer Position Management
-                </Title>
-                
-                <Text size="sm" c="dimmed" mb="md">
-                  Define volunteer positions and manage assignments
-                </Text>
-
-                {/* Add New Position Form */}
-                <Card withBorder p="md" style={{ backgroundColor: 'white', marginBottom: 'var(--mantine-spacing-md)' }}>
-                  <Title order={4} c="burgundy" mb="md">Add New Position</Title>
-                  
-                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 'var(--mantine-spacing-sm)', marginBottom: 'var(--mantine-spacing-md)', alignItems: 'end' }}>
-                    <TextInput
-                      label="Position Name"
-                      placeholder="Enter position name"
-                    />
-                    <Select
-                      label="Session"
-                      placeholder="Select session..."
-                      data={[
-                        { value: 's1', label: 'S1' },
-                        { value: 's2', label: 'S2' },
-                        { value: 's3', label: 'S3' },
-                        { value: 'all', label: 'All Sessions' },
-                      ]}
-                    />
-                    <TextInput
-                      type="time"
-                      label="Start Time"
-                      placeholder="Start time"
-                    />
-                    <TextInput
-                      type="time"
-                      label="End Time"
-                      placeholder="End time"
-                    />
-                  </div>
-                  
-                  <Textarea
-                    label="Description"
-                    placeholder="Describe the volunteer duties..."
-                    minRows={3}
-                    mb="md"
-                  />
-                  
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', gap: 'var(--mantine-spacing-md)' }}>
-                    <TextInput
-                      type="number"
-                      label="Number Needed"
-                      placeholder="1"
-                      min={1}
-                      style={{ width: '120px' }}
-                    />
-                    <WCRButton
-                      variant="secondary"
-                      size="lg"
-                    >
-                      Add Position
-                    </WCRButton>
-                  </div>
-                </Card>
+                <VolunteerPositionsGrid
+                  positions={form.values.volunteerPositions}
+                  onEditPosition={handleEditVolunteerPosition}
+                  onDeletePosition={handleDeleteVolunteerPosition}
+                  onAddPosition={handleAddVolunteerPosition}
+                />
               </div>
             </Stack>
           </Tabs.Panel>
@@ -1062,6 +921,18 @@ export const EventForm: React.FC<EventFormProps> = ({
         }}
         onSubmit={handleTicketTypeSubmit}
         ticketType={editingTicketType ? convertTicketTypeForModal(editingTicketType) : null}
+        availableSessions={form.values.sessions}
+      />
+
+      {/* Volunteer Position Form Modal */}
+      <VolunteerPositionFormModal
+        opened={volunteerModalOpen}
+        onClose={() => {
+          setVolunteerModalOpen(false);
+          setEditingVolunteerPosition(null);
+        }}
+        onSubmit={handleVolunteerPositionSubmit}
+        position={editingVolunteerPosition}
         availableSessions={form.values.sessions}
       />
     </Card>

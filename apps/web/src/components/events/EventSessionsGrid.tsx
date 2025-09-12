@@ -69,6 +69,7 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
         highlightOnHover
         withTableBorder
         className="wcr-data-table"
+        data-testid="grid-sessions"
         style={{
           backgroundColor: 'white',
           borderRadius: '12px',
@@ -109,24 +110,25 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
         </Table.Thead>
         <Table.Tbody>
           {sessions.map((session) => (
-            <Table.Tr key={session.id}>
+            <Table.Tr key={session.id} data-testid="session-row">
               <Table.Td>
                 <WCRButton
                   size="compact-xs"
                   variant="outline"
                   leftSection={<IconEdit size={14} />}
                   onClick={() => onEditSession(session.id)}
+                  data-testid="button-edit-session"
                 >
                   Edit
                 </WCRButton>
               </Table.Td>
               <Table.Td>
-                <Text fw={700} size="sm">
+                <Text fw={700} size="sm" data-testid="session-id">
                   {session.sessionIdentifier}
                 </Text>
               </Table.Td>
               <Table.Td>
-                <Text size="sm">{session.name}</Text>
+                <Text size="sm" data-testid="session-name">{session.name}</Text>
               </Table.Td>
               <Table.Td>
                 <Text size="sm">{formatDate(session.date)}</Text>
@@ -155,6 +157,7 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
                   color="red"
                   size="sm"
                   onClick={() => handleDeleteClick(session.id, session.name)}
+                  data-testid="button-delete-session"
                 >
                   <IconTrash size={14} />
                 </ActionIcon>
@@ -178,6 +181,7 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
           variant="secondary"
           size="lg"
           onClick={onAddSession}
+          data-testid="button-add-session"
         >
           Add Session
         </WCRButton>

@@ -114,6 +114,7 @@ export const AdminEventDetailsPage: React.FC = () => {
       teacherIds: [], // EventDto doesn't have teachers
       sessions: [], // EventDto doesn't have sessions
       ticketTypes: [], // EventDto doesn't have ticket types
+      volunteerPositions: [], // EventDto doesn't have volunteer positions
     };
   };
 

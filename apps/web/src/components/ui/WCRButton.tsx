@@ -1,10 +1,9 @@
 import React from 'react';
 import { Button, ButtonProps } from '@mantine/core';
 
-export interface WCRButtonProps extends Omit<ButtonProps, 'variant' | 'size' | 'styles'> {
+export interface WCRButtonProps extends Omit<ButtonProps, 'variant' | 'size'> {
   variant?: 'primary' | 'secondary' | 'outline' | 'compact' | 'danger';
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'compact-xs' | 'compact-sm';
-  styles?: ButtonProps['styles'];
 }
 
 /**

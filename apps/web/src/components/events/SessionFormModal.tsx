@@ -64,20 +64,24 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
     },
   });
 
-  const handleSubmit = form.onSubmit((values) => {
-    const sessionData: Omit<EventSession, 'id'> = {
-      sessionIdentifier: values.sessionIdentifier,
-      name: values.name,
-      date: values.date instanceof Date ? values.date.toISOString() : values.date,
-      startTime: values.startTime,
-      endTime: values.endTime,
-      capacity: values.capacity,
-      registeredCount: values.registeredCount,
-    };
-    onSubmit(sessionData);
-    form.reset();
-    onClose();
-  });
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); // Prevent default form submission that causes page refresh
+    
+    form.onSubmit((values) => {
+      const sessionData: Omit<EventSession, 'id'> = {
+        sessionIdentifier: values.sessionIdentifier,
+        name: values.name,
+        date: values.date instanceof Date ? values.date.toISOString() : values.date,
+        startTime: values.startTime,
+        endTime: values.endTime,
+        capacity: values.capacity,
+        registeredCount: values.registeredCount,
+      };
+      onSubmit(sessionData);
+      form.reset();
+      onClose();
+    })(event);
+  };
 
   // Generate session identifier suggestions
   const getNextSessionIdentifier = () => {
@@ -102,6 +106,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
       title={session ? 'Edit Session' : 'Add Session'}
       size="md"
       centered
+      data-testid={session ? "modal-edit-session" : "modal-add-session"}
     >
       <form onSubmit={handleSubmit}>
         <Stack gap="md">
@@ -118,12 +123,14 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
               ]}
               searchable
               required
+              data-testid="input-session-id"
               {...form.getInputProps('sessionIdentifier')}
             />
             <TextInput
               label="Session Name"
               placeholder="e.g., Morning Workshop"
               required
+              data-testid="input-session-name"
               {...form.getInputProps('name')}
             />
           </Group>
@@ -133,6 +140,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
             placeholder="Select date"
             required
             minDate={new Date()}
+            data-testid="input-session-date"
             {...form.getInputProps('date')}
           />
 
@@ -141,12 +149,14 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
               label="Start Time"
               placeholder="HH:MM"
               required
+              data-testid="input-session-start-time"
               {...form.getInputProps('startTime')}
             />
             <TimeInput
               label="End Time"
               placeholder="HH:MM"
               required
+              data-testid="input-session-end-time"
               {...form.getInputProps('endTime')}
             />
           </Group>
@@ -158,6 +168,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
               min={1}
               max={1000}
               required
+              data-testid="input-session-capacity"
               {...form.getInputProps('capacity')}
             />
             <NumberInput
@@ -170,11 +181,12 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
           </Group>
 
           <Group justify="flex-end" mt="md">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} data-testid="button-cancel-session">
               Cancel
             </Button>
             <Button
               type="submit"
+              data-testid="button-save-session"
               style={{
                 background: 'linear-gradient(135deg, var(--mantine-color-amber-6), #DAA520)',
                 border: 'none',
