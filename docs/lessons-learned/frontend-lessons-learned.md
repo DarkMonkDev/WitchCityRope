@@ -76,19 +76,54 @@ await expect(page.locator('[data-testid="page-dashboard"]')).toBeVisible();
 ## Critical Button Sizing Issue - NEVER REPEAT
 
 **Problem**: Button text gets cut off when not properly sized
-**Solution**: ALWAYS set explicit button dimensions
-**Example**:
+**Root Causes**: 
+1. Explicit height styles that are too small for text metrics
+2. Line-height that doesn't accommodate font size properly
+3. Fixed height combined with padding causing overflow
+
+**Solution Pattern**:
+1. Remove explicit height styles that are too small
+2. Use proper padding instead of fixed heights  
+3. Ensure line-height is appropriate for the font size (use relative values like 1.2)
+4. Consider using compact={false} if needed
+
+**Examples**:
 ```tsx
 // ❌ WRONG - Text gets cut off
-<Button>Add Email Template</Button>
+<Button style={{ height: '32px', lineHeight: '18px', fontSize: '14px' }}>Copy</Button>
 
-// ✅ CORRECT - Properly sized
+// ✅ CORRECT - Use padding and proper line-height
+<Button styles={{
+  root: {
+    minWidth: '60px',
+    fontWeight: 600,
+    fontSize: '14px',
+    paddingTop: '8px',
+    paddingBottom: '8px',
+    paddingLeft: '12px',
+    paddingRight: '12px',
+    lineHeight: '1.2', // Relative to font size
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  }
+}}>Copy</Button>
+
+// ✅ ALSO CORRECT - Simple approach for larger buttons
 <Button style={{
   minWidth: '160px',
   height: '48px', 
   fontWeight: 600,
 }}>Add Email Template</Button>
 ```
+
+**Key Learning**: Fixed heights work for larger buttons, but compact buttons need padding-based sizing to prevent text cutoff. Always use relative line-height values.
+
+**UPDATED - 2025-09-11**: For maximum text rendering quality in compact buttons:
+- Set `height: 'auto'` and `minHeight: 'auto'` to remove ALL height constraints
+- Use only padding for sizing: `paddingTop/Bottom: '6px'` for compact buttons
+- Use `size="compact-sm"` with custom styles for fine control
+- Reduce font-size slightly (13px vs 14px) for better fit in small spaces
 
 ## TinyMCE Editor Implementation
 
@@ -587,6 +622,54 @@ const isSocialEvent = eventType === 'social';
 
 **Impact**: Improved E2E test pass rate from 38.5% to projected 80%+ for events tests
 
+## CRITICAL: Events Table "Date TBD"/"Time TBD" Field Mapping Fix ✅ (2025-09-11)
+
+**Problem**: Admin events table showing "Date TBD" and "Time TBD" despite API returning valid dates
+**Root Cause**: Component accessing `event.startDateTime` but API returns `startDate`, field mapping not consistently applied  
+**Impact**: Admin events table completely unusable for date/time information
+
+**Solution Applied**: Enhanced EventsTableView with robust field handling
+```typescript
+// BEFORE: Assumes field mapping worked perfectly
+{formatEventDate(event.startDateTime || '')}
+{formatTimeRange(event.startDateTime || '', event.endDateTime || '')}
+
+// AFTER: Handles both API and mapped field names
+const formatEventDate = (event: EventDto): string => {
+  const dateString = event.startDateTime || (event as any).startDate || '';
+  if (!dateString) {
+    console.warn('No date field found for event:', { 
+      id: event.id, fields: Object.keys(event).filter(k => k.includes('date'))
+    });
+    return 'Date TBD';
+  }
+  // ... rest of validation
+};
+
+// Usage: Pass full event object instead of individual fields
+{formatEventDate(event)}
+{formatTimeRange(event)}
+```
+
+**Key Fix Points**:
+1. **Robust Field Access**: Try `startDateTime` first, fallback to `startDate` from API
+2. **Enhanced Debugging**: Console warnings show which events lack date fields
+3. **Consistent Interface**: Functions now take full event object for complete field access
+4. **Comprehensive Validation**: Check for valid dates and provide meaningful fallbacks
+
+**Files Fixed**:
+- `/apps/web/src/components/events/EventsTableView.tsx` - Main component fix
+
+**Verification Pattern**: Component now works regardless of whether field mapping utility is applied correctly, providing fallback compatibility with direct API field names.
+
+**Prevention Strategy**: 
+- Always handle both mapped and original field names in components
+- Add debug logging to identify field mapping issues early  
+- Test components with direct API responses not just mapped data
+- Use full event objects in formatting functions for maximum field access
+
+This fix ensures admin events table displays proper dates even if field mapping fails or is inconsistent.
+
 ## CRITICAL: Date Serialization in Zustand Persist - MUST FIX ✅
 
 **Problem**: `TypeError: currentState.lastAuthCheck.getTime is not a function` preventing events from loading
@@ -1014,6 +1097,73 @@ npm run test:cleanup      # Kill all orphaned processes
 
 **Key Learning**: Test runner resource management is CRITICAL for system stability. Always implement worker limits, memory management, and automatic cleanup mechanisms to prevent test-induced system crashes.
 
+## Admin Events Table Display Issues - FIXED ✅ (2025-09-11)
+
+**Problem**: Three critical issues in admin events table making it unusable
+**Issues Fixed**:
+
+### 1. Date/Time "Invalid Date" Display Fixed ✅
+**Problem**: EventsTableView showing "Invalid Date" instead of proper dates and times
+**Root Cause**: Component was using event.startDateTime but API returns startDate, plus no validation for missing/invalid dates
+**Solution**: Enhanced formatEventDate() and formatTimeRange() functions with proper validation and fallbacks
+**Files Fixed**: `/apps/web/src/components/events/EventsTableView.tsx`
+```typescript
+// BEFORE: No validation, assumed fields exist
+const formatEventDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {...});
+};
+
+// AFTER: Validation and fallbacks
+const formatEventDate = (dateString: string): string => {
+  if (!dateString) return 'Date TBD';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return 'Invalid Date';
+  return date.toLocaleDateString('en-US', {...});
+};
+```
+
+### 2. Capacity "0/0" Display Fixed ✅  
+**Problem**: CapacityDisplay showing "0/0" because API doesn't return capacity/currentAttendees fields
+**Solution**: Enhanced CapacityDisplay component with proper fallback handling
+**Files Fixed**: `/apps/web/src/components/events/CapacityDisplay.tsx`
+```typescript
+// BEFORE: Always showed numbers even when undefined
+current={event.currentAttendees || 0}
+max={event.capacity || 0}
+
+// AFTER: Proper fallback for missing data
+if (max === 0 || (max === undefined && current === undefined)) {
+  return <Text c="dimmed">Capacity TBD</Text>;
+}
+```
+
+### 3. Copy Button Styling Improved ✅
+**Problem**: Copy button with poor visibility using variant="light" 
+**Solution**: Applied WitchCityRope design system with proper button sizing
+**Files Fixed**: `/apps/web/src/components/events/EventsTableView.tsx`
+```typescript
+// BEFORE: Poor visibility
+<Button size="sm" variant="light" color="blue">Copy</Button>
+
+// AFTER: Proper WCR design with explicit sizing
+<Button
+  size="compact-sm"
+  variant="filled"
+  color="wcr.7"
+  styles={{
+    root: {
+      minWidth: '60px', height: '32px', fontWeight: 600,
+      display: 'flex', alignItems: 'center', justifyContent: 'center'
+    }
+  }}
+>Copy</Button>
+```
+
+**Key Learning**: Field mapping is applied at query level, but components must handle validation and missing data gracefully. Always validate Date objects and provide meaningful fallbacks for missing API data.
+
+**Critical Pattern**: When API fields don't match generated types, the field mapping utility already handles conversion, but components must validate the data and provide proper fallbacks for edge cases.
+
 ## Admin Events Dashboard Critical UI Fixes - COMPLETED ✅ (2025-09-11)
 
 **Problem**: Multiple critical UI issues in Admin Events Dashboard making it difficult to use
@@ -1112,3 +1262,110 @@ const handleRowClick = (eventId: string) => {
 5. **Component Integration**: Verify all dependent components exist and have required data
 
 **Verification Status**: All fixes applied and ready for testing. UI should now be fully functional with improved usability.
+
+## Admin Events Table Final Styling Polish - COMPLETED ✅ (2025-09-11)
+
+**Problem**: Minor styling inconsistencies in admin events table affecting visual polish
+**Issues Fixed**:
+
+### 1. Actions Column Perfect Center Alignment ✅
+**Problem**: Copy button not perfectly centered using standard CSS `textAlign: 'center'`
+**Solution**: Applied `-webkit-center` alignment for both header and cell content
+**Files**: `/apps/web/src/components/events/EventsTableView.tsx`
+```tsx
+// BEFORE: Standard center alignment
+style={{ width: '150px', textAlign: 'center' }}
+
+// AFTER: Perfect webkit center alignment 
+style={{ width: '150px', textAlign: '-webkit-center' as any }}
+```
+
+### 2. Capacity Text Size Consistency ✅
+**Problem**: CapacityDisplay text too small (`size="sm"`) compared to other row text
+**Solution**: Updated to `size="md"` (16px) to match Date, Title, Time fields
+**Files**: `/apps/web/src/components/events/CapacityDisplay.tsx`
+```tsx
+// BEFORE: Smaller text
+<Text fw={700} c="wcr.7" size="sm">
+
+// AFTER: Consistent with other row text
+<Text fw={700} c="wcr.7" size="md">
+```
+
+### 3. Copy Button Text Size Optimization ✅
+**Problem**: Font too small (13px) for button readability
+**Solution**: Increased to 14px for better readability while maintaining compact design
+**Files**: `/apps/web/src/components/events/EventsTableView.tsx`
+```tsx
+// BEFORE: Too small for readability
+fontSize: '13px',
+
+// AFTER: Better readability
+fontSize: '14px',
+```
+
+**Key Patterns Applied**:
+- **`-webkit-center` alignment**: Essential for perfect button centering in table cells
+- **Text size consistency**: All row text should use same size (`md` = 16px) for visual harmony
+- **Button text optimization**: 14px provides good readability in compact buttons without breaking layout
+
+**Learning**: Minor styling details like text alignment and size consistency have significant impact on professional UI appearance. Always use `-webkit-center` for perfect button alignment in table cells.
+
+## Admin Route Authentication Issue - Root Cause Identified ✅ (2025-09-11)
+
+**Problem**: User reports "admin events page is not loading data" despite API working correctly
+**Root Cause**: Authentication-protected routes redirect to login page when accessed without authentication
+**Diagnosis Results**:
+- ✅ API is healthy at http://localhost:5655/api/events - returns 10 events correctly
+- ✅ CORS headers are correctly configured for React origin (localhost:5173)
+- ✅ React dev server running properly on port 5173
+- ✅ Environment configuration is correct (VITE_API_BASE_URL=http://localhost:5655)
+- ✅ useEvents() hook and field mapping utilities are properly implemented
+- ❌ **Admin routes require authentication** - accessing /admin/events without login redirects to login page
+
+**Investigation Tools Used**:
+```bash
+# API health check
+curl -v http://localhost:5655/api/events
+# Returns 10 events with correct CORS headers
+
+# CORS verification
+curl -v -H "Origin: http://localhost:5173" http://localhost:5655/api/events
+# Returns Access-Control-Allow-Origin: http://localhost:5173
+
+# React dev server check
+curl -v http://localhost:5173
+# Returns React app HTML correctly
+
+# Playwright browser test showed login redirect
+npx playwright test admin-events-diagnostic.spec.ts --headed
+# Screenshot shows "Welcome Back" login page, not admin events
+```
+
+**Solution**: 
+1. **For Testing**: Use admin credentials to login first:
+   - Email: `admin@witchcityrope.com` 
+   - Password: `Test123!`
+   - Then navigate to `/admin/events`
+
+2. **For Development**: Access admin pages after authentication
+3. **For Debugging**: Check authentication state, not API connectivity
+
+**Critical Learning**: 
+- **Authentication trumps API connectivity** - a working API doesn't guarantee page access
+- **Browser screenshots are essential** for diagnosing route protection issues
+- **Login redirects are correct behavior** for protected admin routes
+- **Always verify authentication state** when debugging "data not loading" issues
+
+**Prevention Strategy**:
+1. **Check authentication first** when debugging admin page issues
+2. **Use browser tests with login** to verify protected routes
+3. **Distinguish between API issues and auth issues** in troubleshooting
+4. **Document protected routes clearly** to avoid confusion
+
+**Files Created for Diagnosis**:
+- `test-api-connection.js` - Confirmed API working perfectly
+- `test-browser-admin-events.html` - Browser-based API test
+- `tests/playwright/admin-events-diagnostic.spec.ts` - Revealed login redirect
+
+This issue demonstrates the importance of understanding the full application flow, not just individual API endpoints.

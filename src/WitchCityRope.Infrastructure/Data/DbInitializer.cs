@@ -192,6 +192,68 @@ public static class DbInitializer
 
         var events = new[]
         {
+            // Past events for testing "show past events" functionality
+            new Event(
+                title: "Rope Safety Fundamentals",
+                description: "Beginner-friendly class covering essential rope safety, basic knots, and communication skills. This class is perfect for those new to rope bondage.",
+                startDate: DateTime.UtcNow.AddDays(-7).AddHours(14), // Last week
+                endDate: DateTime.UtcNow.AddDays(-7).AddHours(16),
+                capacity: 25,
+                eventType: EventType.Class,
+                location: "The Rope Space - Main Room",
+                primaryOrganizer: adminUser,
+                pricingTiers: new[]
+                {
+                    Money.Create(50.00m, "USD"),
+                    Money.Create(40.00m, "USD"),
+                    Money.Create(30.00m, "USD")
+                }
+            ),
+            new Event(
+                title: "February Rope Social",
+                description: "Monthly casual social gathering for rope enthusiasts of all skill levels. Practice your ties, meet fellow riggers, and enjoy light refreshments.",
+                startDate: DateTime.UtcNow.AddDays(-30).AddHours(19), // Last month
+                endDate: DateTime.UtcNow.AddDays(-30).AddHours(22),
+                capacity: 60,
+                eventType: EventType.Social,
+                location: "The Rope Space - All Rooms",
+                primaryOrganizer: organizerUser,
+                pricingTiers: new[]
+                {
+                    Money.Create(0.00m, "USD") // Free RSVP social event
+                }
+            ),
+            new Event(
+                title: "Winter Suspension Workshop",
+                description: "Intensive workshop covering suspension fundamentals, safety protocols, and hands-on practice with certified instructors.",
+                startDate: DateTime.UtcNow.AddDays(-75).AddHours(13), // 2-3 months ago  
+                endDate: DateTime.UtcNow.AddDays(-75).AddHours(18),
+                capacity: 20,
+                eventType: EventType.Class,
+                location: "The Rope Space - Main Room",
+                primaryOrganizer: adminUser,
+                pricingTiers: new[]
+                {
+                    Money.Create(110.00m, "USD"),
+                    Money.Create(95.00m, "USD"),
+                    Money.Create(80.00m, "USD")
+                }
+            ),
+            new Event(
+                title: "Holiday Rope Party",
+                description: "Annual holiday celebration for vetted members. Festive rope play, holiday treats, and community bonding. Must be 21+ for this special members-only event.",
+                startDate: DateTime.UtcNow.AddDays(-365).AddHours(19), // Last December (about a year ago)
+                endDate: DateTime.UtcNow.AddDays(-365).AddHours(23),
+                capacity: 45,
+                eventType: EventType.Social,
+                location: "Private Holiday Venue",
+                primaryOrganizer: organizerUser,
+                pricingTiers: new[]
+                {
+                    Money.Create(35.00m, "USD"),
+                    Money.Create(25.00m, "USD")
+                }
+            ),
             // Upcoming events
             new Event(
                 title: "Introduction to Rope Safety",

@@ -364,6 +364,128 @@ public bool AllowsRSVP => EventType == EventType.Social;
 - Always add project references when using types from other projects
 - Test API endpoints after enum changes to verify DTO mapping works correctly
 
+## EventDto Missing Fields Implementation (2025-09-11)
+
+### CRITICAL FIX: EventDto Missing EndDate, Capacity, and CurrentAttendees Fields
+**Problem**: Admin dashboard showing "Invalid Date" and "0/0" capacity because EventDto was missing critical fields required by frontend.
+
+**Root Cause**: 
+- API project had its own simplified Event entity missing business logic
+- EventDto classes missing EndDate, Capacity, CurrentAttendees fields
+- Service layer mapping not including all required entity properties
+- Multiple EventDto classes across different layers causing confusion
+
+**Solution Implemented**:
+1. **Updated EventDto Classes** (`/apps/api/Features/Events/Models/EventDto.cs`, `/apps/api/Models/EventDto.cs`):
+   - Added `EndDate` (DateTime) property for time ranges
+   - Added `Capacity` (int) property for maximum attendees
+   - Added `CurrentAttendees` (int) property for confirmed registrations
+
+2. **Updated Service Layer Mapping** (`EventService.cs` files):
+   - Modified LINQ projections to include new fields
+   - Updated DTO creation to populate EndDate, Capacity, CurrentAttendees
+   - Used `GetCurrentAttendeeCount()` method for attendance calculation
+
+3. **Updated Fallback Data** (`EventEndpoints.cs`):
+   - Added new fields to hardcoded fallback events with realistic values
+   - Changed event types to align with simplified enum (Class/Social)
+   - Added proper end dates and capacity/attendance numbers
+
+4. **Added Mock Business Logic** (`/apps/api/Models/Event.cs`):
+   - Added `GetCurrentAttendeeCount()` method to API Event entity
+   - Implemented placeholder logic for current attendees calculation
+   - TODO: Replace with real integration to registration/RSVP system
+
+**Key Lessons**:
+- **Entity Architecture Confusion**: Project has both Core entities (`/src/WitchCityRope.Core/Entities/Event.cs`) with full business logic AND API entities (`/apps/api/Models/Event.cs`) that are simplified
+- **DTO Mapping Completeness**: Must ensure all DTO projections include ALL required fields for frontend functionality
+- **Multiple EventDto Classes**: Having multiple EventDto classes in different layers requires careful synchronization
+- **Database vs Code Mismatch**: API database schema may not match the Core entity definitions
+
+**Files Changed**:
+- `/apps/api/Features/Events/Models/EventDto.cs` - Added missing fields
+- `/apps/api/Models/EventDto.cs` - Added missing fields
+- `/apps/api/Services/EventService.cs` - Updated mapping
+- `/apps/api/Features/Events/Services/EventService.cs` - Updated mapping  
+- `/apps/api/Features/Events/Endpoints/EventEndpoints.cs` - Updated fallback data
+- `/apps/api/Models/Event.cs` - Added GetCurrentAttendeeCount method
+
+**Architecture Decision Needed**:
+⚠️ **CRITICAL**: Project needs to decide whether to:
+- **Option A**: Consolidate on Core entities and remove API-specific entities
+- **Option B**: Keep API entities but ensure they have all required business logic
+- **Current State**: Mixed approach causing confusion and maintenance issues
+
+**Frontend Impact**:
+✅ Admin dashboard should now display proper end dates and capacity ratios  
+✅ EventsTableView component will receive all required fields  
+✅ No more "Invalid Date" or "0/0" capacity displays
+
+**Pattern for Future Development**:
+```csharp
+// ✅ CORRECT - Include all fields needed by frontend
+.Select(e => new EventDto 
+{
+    Id = e.Id.ToString(),
+    Title = e.Title,
+    Description = e.Description,
+    StartDate = e.StartDate,
+    EndDate = e.EndDate,           // Don't forget end date
+    Location = e.Location,
+    EventType = e.EventType.ToString(),
+    Capacity = e.Capacity,         // Frontend needs for capacity display
+    CurrentAttendees = e.GetCurrentAttendeeCount() // Frontend needs for ratios
+})
+
+// ❌ WRONG - Missing critical fields breaks frontend
+.Select(e => new EventDto 
+{
+    Id = e.Id.ToString(),
+    Title = e.Title,
+    Description = e.Description,
+    StartDate = e.StartDate,
+    Location = e.Location
+    // Missing EndDate, Capacity, CurrentAttendees
+})
+```
+
+**CRITICAL FIX - EF Core LINQ Projection Issue (2025-09-11)**:
+**Problem**: Calling `GetCurrentAttendeeCount()` method inside LINQ projection caused EF Core translation failure.
+**Root Cause**: EF Core cannot translate custom business logic methods to SQL in database queries.
+**Solution**: Move DTO mapping outside database query to allow method calls on in-memory objects:
+
+```csharp
+// ❌ WRONG - EF Core cannot translate GetCurrentAttendeeCount() to SQL
+var events = await _context.Events
+    .Select(e => new EventDto 
+    {
+        // ... other properties
+        CurrentAttendees = e.GetCurrentAttendeeCount() // Fails!
+    })
+    .ToListAsync();
+
+// ✅ CORRECT - Query database first, then map to DTO in memory
+var events = await _context.Events
+    .AsNoTracking()
+    .Where(e => e.IsPublished && e.StartDate > DateTime.UtcNow)
+    .ToListAsync(cancellationToken);
+
+var eventDtos = events.Select(e => new EventDto
+{
+    // ... other properties
+    CurrentAttendees = e.GetCurrentAttendeeCount() // Works!
+}).ToList();
+```
+
+**Prevention**:
+- Always include all DTO fields required by frontend components
+- Test API endpoints after DTO changes to verify field presence
+- Maintain consistency between multiple EventDto classes
+- Consider consolidating on single EventDto definition
+- Document entity architecture decisions clearly
+- **NEVER call business logic methods inside LINQ database projections**
+- Move complex property calculations outside database queries
+
 ## Success Metrics
 
 - ✅ All 16 tables created successfully
@@ -380,7 +502,9 @@ public bool AllowsRSVP => EventType == EventType.Social;
 - ✅ EF Core check constraint warnings eliminated (23 → 16 warnings)
 - ✅ EventService.cs compilation errors fixed (21 → 0 errors)
 - ✅ EventType enum simplified to Class and Social only
+- ✅ EventDto fields added for EndDate, Capacity, CurrentAttendees
 - ⚠️ Business requirements mismatch identified and documented
+- ⚠️ Entity architecture confusion identified - Core vs API entities
 
 ## Port Configuration Refactoring (2025-09-11)
 
@@ -762,3 +886,292 @@ ticketType.UpdateSalesEndDate(endDate);
 - Test API responses with curl/Postman after DTO changes
 - Maintain consistency across multiple DTO classes for same entity
 - Document enum-to-string conversion requirements in service layer
+
+## Capacity State Variations and RSVP/Ticket Handling (2025-09-11)
+
+### IMPLEMENTATION SUCCESS: Enhanced Mock Data for Frontend Testing
+**Implementation**: Successfully enhanced API Event entity and service layer to provide varied capacity states and proper RSVP vs Ticket count differentiation.
+
+**Key Components Enhanced**:
+
+1. **Enhanced API Event Entity** (`/apps/api/Models/Event.cs`):
+   - Updated `GetCurrentAttendeeCount()` with deterministic capacity state distribution:
+     - 20% SOLD OUT (100% capacity) - Green progress bar
+     - 30% Nearly sold out (85-95%) - Green progress bar  
+     - 30% Moderately filled (50-80%) - Yellow progress bar
+     - 20% Low attendance (<50%) - Red progress bar
+   - Added `GetCurrentRSVPCount()` method for Social events (free RSVPs)
+   - Added `GetCurrentTicketCount()` method for paid registrations
+   - Uses deterministic seed based on event ID for consistent results
+
+2. **Enhanced EventDto Classes** (Both `/apps/api/Features/Events/Models/EventDto.cs` and `/apps/api/Models/EventDto.cs`):
+   - Added `CurrentRSVPs` field for free Social event RSVPs
+   - Added `CurrentTickets` field for paid registrations
+   - Maintained `CurrentAttendees` as total (RSVPs + Tickets)
+   - Documented business rules for Class vs Social events
+
+3. **Updated Service Layer Mapping**:
+   - Fixed EF Core LINQ translation issue by querying database first, then mapping in memory
+   - Updated both EventService implementations to populate new fields
+   - Applied lessons from previous EF Core projection errors
+
+4. **Enhanced Fallback Events** (`/apps/api/Features/Events/Endpoints/EventEndpoints.cs`):
+   - Added fourth fallback event to show low attendance scenario
+   - Configured realistic RSVP vs Ticket distributions
+   - Provided varied capacity states for thorough frontend testing
+
+**Business Logic Implemented**:
+- ✅ **Class Events**: Only `CurrentTickets` (all attendees pay)
+- ✅ **Social Events**: Both `CurrentRSVPs` (free) and `CurrentTickets` (optional support)
+- ✅ **Capacity Calculation**: Total = RSVPs + Tickets
+- ✅ **Frontend Testing**: Varied states trigger different progress bar colors
+
+**Technical Patterns Used**:
+```csharp
+// ✅ CORRECT - Query database first, then call business logic methods
+var events = await _context.Events
+    .AsNoTracking()
+    .Where(e => e.IsPublished && e.StartDate > DateTime.UtcNow)
+    .ToListAsync(cancellationToken);
+
+// Map to DTO in memory (can call custom methods now)
+var eventDtos = events.Select(e => new EventDto
+{
+    // ... other fields
+    CurrentAttendees = e.GetCurrentAttendeeCount(),
+    CurrentRSVPs = e.GetCurrentRSVPCount(),
+    CurrentTickets = e.GetCurrentTicketCount()
+}).ToList();
+
+// ❌ WRONG - EF Core cannot translate custom methods to SQL
+var events = await _context.Events
+    .Select(e => new EventDto 
+    {
+        CurrentAttendees = e.GetCurrentAttendeeCount() // Fails!
+    })
+    .ToListAsync();
+```
+
+**Mock Data Distribution**:
+- Deterministic based on event ID hash for consistent results
+- Provides realistic test scenarios for frontend capacity displays
+- Social events: ~70% RSVPs, ~30% paid tickets (reflects real usage)
+- Class events: 100% paid tickets (business rule enforcement)
+
+**Files Modified**:
+- `/apps/api/Models/Event.cs` - Enhanced with capacity variation logic
+- `/apps/api/Features/Events/Models/EventDto.cs` - Added RSVP/Ticket fields
+- `/apps/api/Models/EventDto.cs` - Added RSVP/Ticket fields  
+- `/apps/api/Services/EventService.cs` - Updated DTO mapping
+- `/apps/api/Features/Events/Services/EventService.cs` - Updated DTO mapping
+- `/apps/api/Features/Events/Endpoints/EventEndpoints.cs` - Enhanced fallback events
+
+**Build Results**:
+- ✅ API project compiles successfully with 0 errors, 19 warnings
+- ✅ EF Core LINQ translation issues resolved
+- ✅ All new fields properly integrated into service layer
+- ✅ Fallback events provide comprehensive test scenarios
+
+**Frontend Benefits**:
+- Color-coded progress bars will show varied capacity states
+- Admin dashboards can distinguish between free RSVPs and paid tickets
+- Real-world testing scenarios for low/medium/high attendance events
+- Proper business rule enforcement (Class vs Social event behavior)
+
+**Pattern for Future Development**:
+```csharp
+// ✅ CORRECT - Business-aware DTO with separate counts
+public class EventDto
+{
+    public int CurrentAttendees { get; set; }  // Total
+    public int CurrentRSVPs { get; set; }      // Free (Social only)
+    public int CurrentTickets { get; set; }    // Paid
+}
+
+// ✅ CORRECT - Mock data with realistic business logic
+public int GetCurrentRSVPCount()
+{
+    if (EventType != "Social") return 0;  // Business rule
+    var totalAttendees = GetCurrentAttendeeCount();
+    return (int)(totalAttendees * 0.7);    // 70% use free RSVP
+}
+```
+
+**Key Lessons**:
+- Always separate database queries from business logic method calls in EF Core
+- Provide deterministic mock data for consistent frontend testing  
+- Document business rules clearly in DTO and entity comments
+- Test varied scenarios to ensure robust frontend behavior
+- Maintain consistency between multiple DTO classes for same entity
+
+## CRITICAL FIX: RSVP/Ticket Double-Counting Logic Corrected (2025-09-11)
+
+### CRITICAL ISSUE: Wrong Business Logic Implementation 
+**Problem**: Both API and Core entities were implementing WRONG business logic for RSVP/ticket counting:
+- `GetCurrentAttendeeCount()` was returning RSVPs + Tickets (double-counting people who RSVP'd AND bought tickets)
+- This violated the correct business requirement where tickets are optional donations for Social events
+
+**Root Cause**: Misunderstanding of business requirements led to additive counting instead of primary/secondary relationship.
+
+**CORRECT Business Logic**:
+- **Social Events**: `currentAttendees` = RSVP count (everyone must RSVP to attend, tickets are optional support/donations)
+- **Class Events**: `currentAttendees` = ticket count (no RSVPs, only paid tickets)
+- **Tickets for Social Events**: Additional donations from people who already RSVPed, NOT additional attendees
+
+**Solution Implemented**:
+1. **Fixed Core Event Entity** (`/src/WitchCityRope.Core/Entities/Event.cs`):
+   ```csharp
+   // ❌ OLD WRONG LOGIC
+   public int GetCurrentAttendeeCount()
+   {
+       var rsvpCount = _rsvps.Count(r => r.Status == RSVPStatus.Confirmed);
+       var ticketCount = _registrations.Count(r => r.Status == RegistrationStatus.Confirmed);
+       return rsvpCount + ticketCount; // WRONG - Double counting!
+   }
+   
+   // ✅ NEW CORRECT LOGIC
+   public int GetCurrentAttendeeCount()
+   {
+       if (EventType == EventType.Social)
+       {
+           // Social events: Attendees = RSVPs (primary attendance metric)
+           return _rsvps.Count(r => r.Status == RSVPStatus.Confirmed);
+       }
+       else // EventType.Class
+       {
+           // Class events: Attendees = Tickets (only paid tickets)
+           return _registrations.Count(r => r.Status == RegistrationStatus.Confirmed);
+       }
+   }
+   ```
+
+2. **Fixed API Event Entity** (`/apps/api/Models/Event.cs`):
+   ```csharp
+   // ✅ CORRECT - Social events return RSVP count as attendance
+   public int GetCurrentAttendeeCount()
+   {
+       if (EventType == "Social")
+       {
+           // Social events: Attendees = RSVPs (primary attendance metric)
+           return GetCurrentRSVPCount();
+       }
+       else // Class
+       {
+           // Class events: Attendees = Tickets (only paid tickets)
+           return GetCurrentTicketCount();
+       }
+   }
+   ```
+
+3. **Updated Documentation**: Fixed all DTO comments to reflect correct business logic in both:
+   - `/apps/api/Models/EventDto.cs`
+   - `/apps/api/Features/Events/Models/EventDto.cs`
+
+**API Test Results** (Verified Correct Logic):
+- **Class Events**: `currentAttendees` = `currentTickets`, `currentRSVPs` = 0 ✅
+- **Social Events**: `currentAttendees` = `currentRSVPs`, `currentTickets` = optional donations ✅
+
+**Example Output**:
+```
+Introduction to Rope Safety: Class - 16/20 (0 RSVPs + 16 Tickets) ✅
+Community Rope Jam: Social - 18/30 (18 RSVPs + 5 Tickets) ✅ 
+```
+
+**Frontend Impact**:
+- **Social Events**: Will show "18/30" (18 RSVPs out of 30 capacity) with "(5 tickets)" as optional info
+- **Class Events**: Will show "16/20" (16 tickets out of 20 capacity) with no RSVP confusion
+
+**Files Changed**:
+- `/src/WitchCityRope.Core/Entities/Event.cs` - Fixed GetCurrentAttendeeCount() method
+- `/apps/api/Models/Event.cs` - Fixed GetCurrentAttendeeCount(), GetCurrentRSVPCount(), GetCurrentTicketCount()  
+- `/apps/api/Models/EventDto.cs` - Updated documentation comments
+- `/apps/api/Features/Events/Models/EventDto.cs` - Updated documentation comments
+
+**Key Business Rules Enforced**:
+- ✅ Social Events: RSVP is mandatory to attend, tickets are optional donations
+- ✅ Class Events: Only paid tickets allowed, no RSVPs
+- ✅ No double-counting of people who RSVP and buy tickets
+- ✅ Frontend gets clear separation between attendance count and support/donations
+
+**Prevention**:
+- Always validate business logic against real-world use cases
+- Question additive formulas that might double-count the same person
+- Test with realistic scenarios where someone might both RSVP and buy tickets
+- Document the PRIMARY attendance metric for each event type clearly
+
+## Database Reset and Fresh Seed Data Success (2025-09-11)
+
+### SUCCESSFUL PROCESS: API Reset with Varied Capacity States
+**Achievement**: Successfully reset database and regenerated seed data with comprehensive capacity state variations for frontend testing.
+
+**Process Used**:
+1. **Killed Multiple Running API Processes** - Multiple dotnet processes were running on different ports
+2. **Database Table Reset**: `docker exec witchcity-postgres psql -U postgres -d witchcityrope_dev -c "TRUNCATE TABLE \"Events\" RESTART IDENTITY CASCADE;"`
+3. **Fresh API Startup**: `dotnet run --project apps/api --environment Development --urls http://localhost:5655`
+4. **Automatic Database Initialization**: SeedDataService triggered automatically and created fresh events
+
+**Seed Data Results Achieved**:
+```bash
+# Excellent variety of capacity states for frontend testing:
+"Suspension Basics: 12/12 (100%) - Class"           # SOLD OUT - Green with sold-out text
+"Rope and Sensation Play: 7/8 (87%) - Class"        # NEARLY FULL - Green  
+"Advanced Floor Work: 8/10 (80%) - Class"           # NEARLY FULL - Green
+"Introduction to Rope Safety: 12/20 (60%) - Class"  # MODERATE - Yellow
+"Community Rope Jam: 18/30 (60%) - Social"          # MODERATE - Yellow
+"Photography and Rope: 3/6 (50%) - Class"           # MODERATE - Yellow
+"Rope Social & Discussion: 16/40 (40%) - Social"    # LOW ATTENDANCE - Red
+```
+
+**Business Logic Validation**:
+✅ **Class Events**: Show `0 RSVPs + X tickets` (paid only)  
+✅ **Social Events**: Show `Y RSVPs + X tickets` (RSVP primary + optional donations)  
+✅ **Capacity Logic**: Social events count RSVPs as attendance, tickets as optional support  
+✅ **API Response**: All fields present (`endDate`, `capacity`, `currentAttendees`, `currentRSVPs`, `currentTickets`)
+
+**API Health Verification**:
+```bash
+curl -s http://localhost:5655/health
+# {"status":"Healthy"}
+
+curl -s http://localhost:5655/api/events | jq '.data | length'
+# 10 events with varied capacity states
+```
+
+**Critical Discovery - Process Management**:
+- Multiple concurrent `dotnet run` processes can cause port conflicts and serve stale code
+- Always kill existing processes before starting fresh API instance
+- Database truncation triggers automatic re-seeding on next API startup
+- SeedDataService.cs now provides deterministic capacity variations for consistent frontend testing
+
+**Frontend Impact**:
+- Progress bars should now display correct colors based on capacity percentage
+- Sold-out events (100%) should show green with "SOLD OUT" indicator
+- Nearly full events (80-90%) should show green progress bars
+- Moderate events (50-70%) should show yellow progress bars  
+- Low attendance events (<50%) should show red progress bars
+- RSVP vs Ticket counts properly differentiated for Social vs Class events
+
+**Files Verified Working**:
+- `/apps/api/Services/SeedDataService.cs` - Generating varied capacity states
+- `/apps/api/Models/Event.cs` - GetCurrentAttendeeCount() business logic  
+- `/apps/api/Models/EventDto.cs` - All required fields populated
+- `/apps/api/Features/Events/Services/EventService.cs` - DTO mapping complete
+- Database seeding automatically triggered on API startup
+
+**Pattern for Future Development**:
+```bash
+# Quick database reset for fresh seed data
+docker exec witchcity-postgres psql -U postgres -d witchcityrope_dev -c "TRUNCATE TABLE \"Events\" RESTART IDENTITY CASCADE;"
+
+# Start clean API (kills existing processes first)
+pkill -f "dotnet run" && sleep 2 && dotnet run --project apps/api --environment Development --urls http://localhost:5655
+
+# Verify fresh data
+curl -s http://localhost:5655/api/events | jq '.data[] | "\(.title): \(.currentAttendees)/\(.capacity) (\((.currentAttendees * 100 / .capacity | floor))%)"'
+```
+
+**Prevention**:
+- Always check for running processes before starting new API instances
+- Use database table truncation to force fresh seed data generation
+- Verify API health and data variety before frontend testing
+- Document the capacity percentage thresholds used by frontend components

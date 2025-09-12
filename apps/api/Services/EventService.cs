@@ -29,23 +29,32 @@ public class EventService : IEventService
         {
             _logger.LogInformation("Querying published events from PostgreSQL database");
 
+            // Query database first (EF Core can translate this to SQL)
             var events = await _context.Events
                 .AsNoTracking() // Read-only for better performance
                 .Where(e => e.IsPublished && e.StartDate > DateTime.UtcNow) // Filter published and future events
                 .OrderBy(e => e.StartDate) // Sort by date
                 .Take(10) // Limit for POC performance
-                .Select(e => new EventDto // Project to DTO in database
-                {
-                    Id = e.Id.ToString(),
-                    Title = e.Title,
-                    Description = e.Description,
-                    StartDate = e.StartDate,
-                    Location = e.Location
-                })
                 .ToListAsync(cancellationToken);
 
-            _logger.LogInformation("Retrieved {EventCount} published events from database", events.Count);
-            return events;
+            // Map to DTO in memory (can call custom methods now)
+            var eventDtos = events.Select(e => new EventDto
+            {
+                Id = e.Id.ToString(),
+                Title = e.Title,
+                Description = e.Description,
+                StartDate = e.StartDate,
+                EndDate = e.EndDate,
+                Location = e.Location,
+                EventType = e.EventType,
+                Capacity = e.Capacity,
+                CurrentAttendees = e.GetCurrentAttendeeCount(),
+                CurrentRSVPs = e.GetCurrentRSVPCount(),
+                CurrentTickets = e.GetCurrentTicketCount()
+            }).ToList();
+
+            _logger.LogInformation("Retrieved {EventCount} published events from database", eventDtos.Count);
+            return eventDtos;
         }
         catch (Exception ex)
         {

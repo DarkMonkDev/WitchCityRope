@@ -1029,3 +1029,76 @@ This pattern prevents runtime crashes when API returns incomplete date data and 
 #critical #dates #api-data #error-handling #typescript #validation #runtime-safety
 
 ---
+
+## 🚨 CRITICAL: Mantine Button Text Cutoff Prevention 🚨
+
+**Date**: 2025-09-11  
+**Category**: Mantine UI Components  
+**Severity**: CRITICAL - RECURRING ISSUE
+
+### Context
+Recurring problem with button text being cut off on the top and bottom in Mantine components throughout the WitchCityRope app. This just happened again with the Copy button in the admin events table, and has occurred multiple times previously.
+
+### What We Learned
+**ROOT CAUSE**: Fixed heights on Mantine buttons that don't properly account for:
+- Font size and line-height
+- Internal padding requirements
+- Text metrics and rendering space
+
+**COMMON ISSUE PATTERN**: When developers set explicit heights like `height: '32px'` on Mantine buttons, the text gets clipped because the height doesn't account for proper text rendering space.
+
+### Action Items
+1. **NEVER use fixed heights** on Mantine buttons when possible
+2. **USE padding** to control button size instead of height
+3. **USE relative line-height** (1.2, 1.5) instead of fixed pixel values
+4. **TEST with different text** to ensure nothing gets cut off
+5. **CONSIDER `compact={false}`** prop if available
+
+### Prevention Pattern:
+```tsx
+// ❌ WRONG - Causes text cutoff
+<Button 
+  styles={{ 
+    root: { 
+      height: '32px',      // Fixed height too small
+      lineHeight: '18px'   // Fixed line-height
+    }
+  }}
+>
+  Copy Event ID
+</Button>
+
+// ✅ CORRECT - Text displays properly  
+<Button
+  styles={{
+    root: {
+      paddingTop: '8px',    // Use padding instead
+      paddingBottom: '8px', // of fixed height
+      lineHeight: '1.2'     // Relative line-height
+    }
+  }}
+>
+  Copy Event ID
+</Button>
+
+// ✅ ALSO CORRECT - Use compact prop
+<Button compact={false} size="sm">
+  Copy Event ID
+</Button>
+```
+
+### Debugging Checklist
+When button text appears cut off:
+1. **Check for fixed height** styles in Button component
+2. **Remove height constraints** and use padding instead
+3. **Verify line-height** is relative, not fixed pixels
+4. **Test with longer text** to ensure robustness
+5. **Use browser dev tools** to inspect text rendering bounds
+
+### Impact
+This is a RECURRING ISSUE that has affected multiple components. Prevention pattern must be applied to ALL button implementations to ensure professional appearance and proper text rendering.
+
+### Tags
+#critical #mantine #buttons #text-cutoff #recurring-issue #ui-components #styling
+
+---

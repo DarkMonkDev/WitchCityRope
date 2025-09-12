@@ -30,7 +30,6 @@ import { authLoader } from './loaders/authLoader';
 import { EventsListPage } from '../pages/events/EventsListPage';
 import { EventDetailPage } from '../pages/events/EventDetailPage';
 import { AdminEventsPage } from '../pages/admin/AdminEventsPage';
-import { AdminEventsTablePage } from '../pages/admin/AdminEventsTablePage';
 import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage';
 import { TestPage } from '../pages/TestPage';
 
@@ -144,11 +143,6 @@ export const router = createBrowserRouter([
       {
         path: "admin/events",
         element: <AdminEventsPage />,
-        loader: authLoader
-      },
-      {
-        path: "admin/events-table",
-        element: <AdminEventsTablePage />,
         loader: authLoader
       },
       

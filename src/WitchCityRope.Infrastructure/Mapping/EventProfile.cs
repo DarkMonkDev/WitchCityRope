@@ -15,7 +15,7 @@ namespace WitchCityRope.Infrastructure.Mapping
                 .ForMember(dest => dest.StartDateTime, opt => opt.MapFrom(src => src.StartDate))
                 .ForMember(dest => dest.EndDateTime, opt => opt.MapFrom(src => src.EndDate))
                 .ForMember(dest => dest.MaxAttendees, opt => opt.MapFrom(src => src.Capacity))
-                .ForMember(dest => dest.CurrentAttendees, opt => opt.MapFrom(src => src.GetConfirmedRegistrationCount()))
+                .ForMember(dest => dest.CurrentAttendees, opt => opt.MapFrom(src => src.GetCurrentAttendeeCount()))
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.PricingTiers.FirstOrDefault() != null ? src.PricingTiers.First().Amount : 0))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.IsPublished ? "Published" : "Draft"))
                 .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => new List<string>())) // Tags not in entity

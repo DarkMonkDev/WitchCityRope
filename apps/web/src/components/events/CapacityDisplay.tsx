@@ -1,41 +1,57 @@
 import React from 'react';
-import { Stack, Text, Progress } from '@mantine/core';
+import { Stack, Text, Progress, Box } from '@mantine/core';
 
 interface CapacityDisplayProps {
-  current: number;
-  max: number;
+  current?: number;
+  max?: number;
 }
 
 export const CapacityDisplay: React.FC<CapacityDisplayProps> = ({ 
   current, 
   max 
 }) => {
-  const percentage = max > 0 ? (current / max) * 100 : 0;
+  // Handle missing capacity data from API
+  if (max === 0 || (max === undefined && current === undefined)) {
+    return (
+      <Box ta="center">
+        <Text fw={500} c="dimmed" size="md">
+          Capacity TBD
+        </Text>
+      </Box>
+    );
+  }
+
+  // Fallback values for undefined/null
+  const currentValue = current ?? 0;
+  const maxValue = max ?? 0;
+  
+  const percentage = maxValue > 0 ? (currentValue / maxValue) * 100 : 0;
   
   const getColor = () => {
-    if (percentage >= 80) return 'red';
-    if (percentage >= 60) return 'yellow';
-    return 'green';
+    if (percentage >= 80) return 'green'; // High capacity = positive (nearly sold out!)
+    if (percentage >= 50) return 'yellow'; // Moderate capacity = okay
+    return 'red'; // Low capacity = concerning (needs more signups)
   };
 
   return (
-    <Stack gap="xs" align="center">
-      <Text fw={700} c="wcr.7" size="sm">
-        {current}/{max}
+    <Box ta="center">
+      <Text fw={700} c="wcr.7" size="md" mb={2}>
+        {currentValue}/{maxValue}
       </Text>
-      <Progress
-        value={percentage}
-        color={getColor()}
-        size="sm"
-        radius="xs"
-        w="100%"
-        style={{ minWidth: '60px' }}
-        // Accessibility attributes
-        aria-label={`${current} of ${max} spots filled`}
-        aria-valuenow={current}
-        aria-valuemin={0}
-        aria-valuemax={max}
-      />
-    </Stack>
+      <Box style={{ display: 'flex', justifyContent: 'center' }}>
+        <Progress
+          value={percentage}
+          color={getColor()}
+          size="sm"
+          radius="xs"
+          style={{ minWidth: '60px', maxWidth: '100px' }}
+          // Accessibility attributes
+          aria-label={`${currentValue} of ${maxValue} spots filled`}
+          aria-valuenow={currentValue}
+          aria-valuemin={0}
+          aria-valuemax={maxValue}
+        />
+      </Box>
+    </Box>
   );
 };

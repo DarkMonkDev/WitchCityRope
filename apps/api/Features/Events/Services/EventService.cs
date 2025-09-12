@@ -37,19 +37,26 @@ public class EventService
                 .Where(e => e.IsPublished && e.StartDate > DateTime.UtcNow) // Filter published and future events
                 .OrderBy(e => e.StartDate) // Sort by date
                 .Take(50) // Reasonable limit for performance
-                .Select(e => new EventDto // Project to DTO in database
-                {
-                    Id = e.Id.ToString(),
-                    Title = e.Title,
-                    Description = e.Description,
-                    StartDate = e.StartDate,
-                    Location = e.Location,
-                    EventType = e.EventType.ToString()
-                })
                 .ToListAsync(cancellationToken);
 
-            _logger.LogInformation("Retrieved {EventCount} published events from database", events.Count);
-            return (true, events, string.Empty);
+            // Map to DTO after database query to avoid EF Core translation issues
+            var eventDtos = events.Select(e => new EventDto
+            {
+                Id = e.Id.ToString(),
+                Title = e.Title,
+                Description = e.Description,
+                StartDate = e.StartDate,
+                EndDate = e.EndDate,
+                Location = e.Location,
+                EventType = e.EventType,
+                Capacity = e.Capacity,
+                CurrentAttendees = e.GetCurrentAttendeeCount(),
+                CurrentRSVPs = e.GetCurrentRSVPCount(),
+                CurrentTickets = e.GetCurrentTicketCount()
+            }).ToList();
+
+            _logger.LogInformation("Retrieved {EventCount} published events from database", eventDtos.Count);
+            return (true, eventDtos, string.Empty);
         }
         catch (Exception ex)
         {
@@ -90,8 +97,13 @@ public class EventService
                 Title = eventEntity.Title,
                 Description = eventEntity.Description,
                 StartDate = eventEntity.StartDate,
+                EndDate = eventEntity.EndDate,
                 Location = eventEntity.Location,
-                EventType = eventEntity.EventType.ToString()
+                EventType = eventEntity.EventType,
+                Capacity = eventEntity.Capacity,
+                CurrentAttendees = eventEntity.GetCurrentAttendeeCount(),
+                CurrentRSVPs = eventEntity.GetCurrentRSVPCount(),
+                CurrentTickets = eventEntity.GetCurrentTicketCount()
             };
 
             _logger.LogDebug("Event retrieved successfully: {EventId} ({Title})", eventId, eventEntity.Title);

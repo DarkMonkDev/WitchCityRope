@@ -140,18 +140,29 @@ namespace WitchCityRope.Core.Entities
         }
 
         /// <summary>
-        /// Gets the total number of confirmed attendees (registrations + RSVPs)
-        /// This includes both paid ticket holders and free RSVPs
+        /// Gets the total number of confirmed attendees based on CORRECT business logic:
+        /// - Social Events: Attendees = RSVPs (everyone must RSVP to attend, tickets are optional donations)
+        /// - Class Events: Attendees = Tickets (only paid tickets, no RSVPs)
+        /// This fixes the double-counting issue where people who RSVP and buy tickets were counted twice
         /// </summary>
         public int GetCurrentAttendeeCount()
         {
-            var rsvpCount = _rsvps.Count(r => r.Status == RSVPStatus.Confirmed);
-            var ticketCount = _registrations.Count(r => r.Status == RegistrationStatus.Confirmed);
-            return rsvpCount + ticketCount;
+            if (EventType == EventType.Social)
+            {
+                // Social events: Attendees = RSVPs (primary attendance metric)
+                return _rsvps.Count(r => r.Status == RSVPStatus.Confirmed);
+            }
+            else // EventType.Class
+            {
+                // Class events: Attendees = Tickets (only paid tickets)
+                return _registrations.Count(r => r.Status == RegistrationStatus.Confirmed);
+            }
         }
 
         /// <summary>
-        /// Gets the number of available spots (considering both RSVPs and tickets)
+        /// Gets the number of available spots based on correct attendance counting
+        /// - Social Events: Available spots = Capacity - RSVP count
+        /// - Class Events: Available spots = Capacity - Ticket count
         /// </summary>
         public int GetAvailableSpots()
         {
@@ -159,7 +170,7 @@ namespace WitchCityRope.Core.Entities
         }
 
         /// <summary>
-        /// Checks if the event has available capacity (considering both RSVPs and tickets)
+        /// Checks if the event has available capacity based on correct attendance counting
         /// </summary>
         public bool HasAvailableCapacity()
         {
