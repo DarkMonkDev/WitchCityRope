@@ -53,7 +53,7 @@ export default defineConfig(({ mode }) => {
           // Use container DNS when running in Docker, localhost for local dev
           target: process.env.DOCKER_ENV === 'true' 
             ? (process.env.VITE_API_CONTAINER_URL || 'http://api:8080')  // Container-to-container communication
-            : (process.env.VITE_API_BASE_URL || 'http://localhost:5655'), // Host communication (corrected default port)
+            : (process.env.VITE_API_BASE_URL || 'http://localhost:5653'), // Host communication (corrected default port)
           changeOrigin: true,
           secure: false,
           timeout: 30000, // 30 second timeout for API calls

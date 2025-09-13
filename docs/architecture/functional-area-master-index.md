@@ -30,6 +30,7 @@ This master index is maintained by the librarian agent to provide quick lookups 
 | **Dependencies Management** | `/docs/functional-areas/dependencies-management/` | N/A | Package dependency updates, security vulnerability management, NuGet and npm package compatibility | Planning | 2025-09-11 |
 | **API Cleanup** | `/docs/functional-areas/api-cleanup/` | `/docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/` | **CRITICAL** - Resolve duplicate API projects crisis by extracting valuable features from legacy API at /src/WitchCityRope.Api/ to modern API at /apps/api/ | **Phase 1 - Requirements** | 2025-09-12 |
 | **Testing Infrastructure** | `/docs/functional-areas/testing-infrastructure/` | `/docs/functional-areas/testing-infrastructure/new-work/2025-09-12-containerized-testing/` | **Research and planning for containerized testing infrastructure** - Investigate fresh Docker containers with blank PostgreSQL databases, GitHub Actions CI/CD compatibility, and orphaned container prevention | **Research Phase** | 2025-09-12 |
+| **Deployment** | `/docs/functional-areas/deployment/` | `/docs/functional-areas/deployment/2025-01-13-digitalocean-deployment/` | **NEW WORK** - DigitalOcean production deployment setup with comprehensive research from DarkMonk repository, existing docs audit, and deployment strategy planning | **Planning Phase** | 2025-01-13 |
 
 ## Active Development Work
 

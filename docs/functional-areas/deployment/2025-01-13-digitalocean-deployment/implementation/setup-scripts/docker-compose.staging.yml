@@ -1,0 +1,134 @@
+# WitchCityRope Staging Docker Compose Configuration
+# Lightweight configuration for staging environment
+# Usage: docker-compose -f docker-compose.staging.yml up -d
+
+version: '3.8'
+
+networks:
+  witchcity-staging:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.27.0.0/16
+
+volumes:
+  api_uploads_staging:
+    driver: local
+  web_dist_staging:
+    driver: local
+
+services:
+  # Staging API Service
+  api:
+    image: ${API_IMAGE:-registry.digitalocean.com/witchcityrope/witchcityrope-api:latest}
+    container_name: witchcity-api-staging
+    restart: unless-stopped
+    networks:
+      - witchcity-staging
+    ports:
+      - "5002:8080"  # Different port for staging
+    volumes:
+      - api_uploads_staging:/app/uploads
+      - /var/log/witchcityrope/staging:/app/logs
+    env_file:
+      - .env.staging
+    environment:
+      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_ENVIRONMENT=Staging
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.1'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-staging.rule=Host(`staging.witchcityrope.com`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api-staging.tls=true"
+
+  # Staging Web Service
+  web:
+    image: ${WEB_IMAGE:-registry.digitalocean.com/witchcityrope/witchcityrope-web:latest}
+    container_name: witchcity-web-staging
+    restart: unless-stopped
+    networks:
+      - witchcity-staging
+    ports:
+      - "3002:3000"  # Different port for staging
+    volumes:
+      - web_dist_staging:/app/dist
+      - /var/log/witchcityrope/staging:/app/logs
+    environment:
+      - NODE_ENV=staging
+      - VITE_API_BASE_URL=/api
+      - VITE_APP_ENVIRONMENT=staging
+      - VITE_APP_NAME=WitchCityRope Staging
+      - VITE_APP_VERSION=${APP_VERSION:-1.0.0-staging}
+      - VITE_ENABLE_DEBUG=true
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.05'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-staging.rule=Host(`staging.witchcityrope.com`)"
+      - "traefik.http.routers.web-staging.tls=true"
+
+# Health check service for staging
+  healthcheck:
+    image: alpine:latest
+    container_name: witchcity-healthcheck-staging
+    restart: "no"
+    networks:
+      - witchcity-staging
+    depends_on:
+      - api
+      - web
+    command: |
+      sh -c '
+        apk add --no-cache curl &&
+        echo "Testing staging services..." &&
+        curl -f http://api:8080/health &&
+        curl -f http://web:3000 &&
+        echo "All staging services healthy!"
+      '
+
+# Staging-specific configurations
+x-staging-defaults: &staging-defaults
+  restart: unless-stopped
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "5m"
+      max-file: "2"

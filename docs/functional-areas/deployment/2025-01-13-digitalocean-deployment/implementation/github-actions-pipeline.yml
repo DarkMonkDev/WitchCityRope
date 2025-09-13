@@ -1,0 +1,440 @@
+# GitHub Actions CI/CD Pipeline for WitchCityRope
+# This workflow handles automated testing, building, and deployment to DigitalOcean
+# Production deployments require manual approval for safety
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  REGISTRY: registry.digitalocean.com
+  REGISTRY_NAME: witchcityrope
+  API_IMAGE_NAME: witchcityrope-api
+  WEB_IMAGE_NAME: witchcityrope-web
+
+jobs:
+  # ==============================================================================
+  # TEST PHASE - Run all automated tests
+  # ==============================================================================
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: witchcityrope_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: testpassword123
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Install Node.js dependencies
+        working-directory: ./apps/web
+        run: npm ci
+
+      - name: Restore .NET dependencies
+        working-directory: ./apps/api
+        run: dotnet restore
+
+      - name: Run .NET unit tests
+        working-directory: ./apps/api
+        env:
+          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=witchcityrope_test;Username=postgres;Password=testpassword123"
+        run: |
+          dotnet test --no-restore --verbosity normal \
+            --logger "trx;LogFileName=test-results.trx" \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./TestResults/
+
+      - name: Run React unit tests
+        working-directory: ./apps/web
+        run: npm test -- --coverage --watchAll=false
+
+      - name: Run Playwright E2E tests
+        working-directory: ./tests/playwright
+        env:
+          CI: true
+          VITE_API_BASE_URL: http://localhost:5655
+        run: |
+          npm ci
+          npx playwright install --with-deps
+          npx playwright test
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            apps/api/TestResults/
+            apps/web/coverage/
+            tests/playwright/test-results/
+          retention-days: 7
+
+  # ==============================================================================
+  # BUILD PHASE - Build Docker images and push to registry
+  # ==============================================================================
+  build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch'
+
+    outputs:
+      api-image-tag: ${{ steps.image-tags.outputs.api-tag }}
+      web-image-tag: ${{ steps.image-tags.outputs.web-tag }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Log in to DO Container Registry
+        run: doctl registry login
+
+      - name: Generate image tags
+        id: image-tags
+        run: |
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          SHORT_SHA=${GITHUB_SHA::7}
+
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            API_TAG="${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.API_IMAGE_NAME }}:prod-${SHORT_SHA}-${TIMESTAMP}"
+            WEB_TAG="${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.WEB_IMAGE_NAME }}:prod-${SHORT_SHA}-${TIMESTAMP}"
+          else
+            API_TAG="${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.API_IMAGE_NAME }}:staging-${SHORT_SHA}-${TIMESTAMP}"
+            WEB_TAG="${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.WEB_IMAGE_NAME }}:staging-${SHORT_SHA}-${TIMESTAMP}"
+          fi
+
+          echo "api-tag=${API_TAG}" >> $GITHUB_OUTPUT
+          echo "web-tag=${WEB_TAG}" >> $GITHUB_OUTPUT
+          echo "API Image: ${API_TAG}"
+          echo "Web Image: ${WEB_TAG}"
+
+      - name: Build and push API image
+        run: |
+          docker build \
+            --file ./apps/api/Dockerfile.production \
+            --tag ${{ steps.image-tags.outputs.api-tag }} \
+            .
+          docker push ${{ steps.image-tags.outputs.api-tag }}
+
+      - name: Build and push Web image
+        run: |
+          docker build \
+            --file ./apps/web/Dockerfile.production \
+            --tag ${{ steps.image-tags.outputs.web-tag }} \
+            --build-arg VITE_API_BASE_URL=/api \
+            ./apps/web
+          docker push ${{ steps.image-tags.outputs.web-tag }}
+
+  # ==============================================================================
+  # STAGING DEPLOYMENT - Automatic deployment to staging environment
+  # ==============================================================================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/develop' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    environment: staging
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Deploy to staging server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.STAGING_SERVER_HOST }}
+          username: ${{ secrets.STAGING_SERVER_USER }}
+          key: ${{ secrets.STAGING_SERVER_SSH_KEY }}
+          script: |
+            # Login to DO Container Registry
+            echo "${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}" | docker login registry.digitalocean.com -u unused --password-stdin
+
+            # Navigate to staging directory
+            cd /opt/witchcityrope/staging
+
+            # Update environment variables
+            echo "API_IMAGE=${{ needs.build.outputs.api-image-tag }}" > .env.deploy
+            echo "WEB_IMAGE=${{ needs.build.outputs.web-image-tag }}" >> .env.deploy
+            echo "DEPLOY_TIME=$(date -Iseconds)" >> .env.deploy
+
+            # Pull new images
+            docker pull ${{ needs.build.outputs.api-image-tag }}
+            docker pull ${{ needs.build.outputs.web-image-tag }}
+
+            # Deploy new version
+            docker-compose -f docker-compose.staging.yml --env-file .env.deploy --env-file .env.staging down
+            docker-compose -f docker-compose.staging.yml --env-file .env.deploy --env-file .env.staging up -d
+
+            # Wait for services to be healthy
+            sleep 30
+
+            # Health check
+            if curl -f http://localhost:3002/health; then
+              echo "✅ Staging deployment successful"
+              # Clean up old images (keep last 3)
+              docker images --format "table {{.Repository}}:{{.Tag}}" | grep staging | tail -n +4 | xargs -r docker rmi
+            else
+              echo "❌ Staging deployment failed - rolling back"
+              docker-compose -f docker-compose.staging.yml logs
+              exit 1
+            fi
+
+      - name: Notify deployment status
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          text: |
+            Staging Deployment ${{ job.status }}
+            Branch: ${{ github.ref }}
+            Commit: ${{ github.sha }}
+            API Image: ${{ needs.build.outputs.api-image-tag }}
+            Web Image: ${{ needs.build.outputs.web-image-tag }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # ==============================================================================
+  # PRODUCTION DEPLOYMENT - Manual approval required
+  # ==============================================================================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build, deploy-staging]
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    environment:
+      name: production
+      url: https://witchcityrope.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Pre-deployment health check
+        run: |
+          echo "🔍 Verifying staging deployment is healthy..."
+          if curl -f https://staging.witchcityrope.com/health; then
+            echo "✅ Staging is healthy, proceeding with production deployment"
+          else
+            echo "❌ Staging is unhealthy, aborting production deployment"
+            exit 1
+          fi
+
+      - name: Create deployment backup
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PRODUCTION_SERVER_HOST }}
+          username: ${{ secrets.PRODUCTION_SERVER_USER }}
+          key: ${{ secrets.PRODUCTION_SERVER_SSH_KEY }}
+          script: |
+            # Create backup of current deployment
+            cd /opt/witchcityrope/production
+
+            # Backup current images and config
+            mkdir -p backups/$(date +%Y%m%d-%H%M%S)
+            BACKUP_DIR="backups/$(date +%Y%m%d-%H%M%S)"
+
+            # Save current image tags
+            docker-compose -f docker-compose.production.yml config > "${BACKUP_DIR}/docker-compose.backup.yml"
+            cp .env.production "${BACKUP_DIR}/.env.production.backup"
+
+            # Export current database (quick backup)
+            docker exec witchcity-postgres-prod pg_dump -U postgres witchcityrope_prod | gzip > "${BACKUP_DIR}/database-backup.sql.gz"
+
+            echo "✅ Backup created in ${BACKUP_DIR}"
+
+      - name: Deploy to production server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PRODUCTION_SERVER_HOST }}
+          username: ${{ secrets.PRODUCTION_SERVER_USER }}
+          key: ${{ secrets.PRODUCTION_SERVER_SSH_KEY }}
+          script: |
+            # Login to DO Container Registry
+            echo "${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}" | docker login registry.digitalocean.com -u unused --password-stdin
+
+            # Navigate to production directory
+            cd /opt/witchcityrope/production
+
+            # Update environment variables
+            echo "API_IMAGE=${{ needs.build.outputs.api-image-tag }}" > .env.deploy
+            echo "WEB_IMAGE=${{ needs.build.outputs.web-image-tag }}" >> .env.deploy
+            echo "DEPLOY_TIME=$(date -Iseconds)" >> .env.deploy
+
+            # Pull new images
+            docker pull ${{ needs.build.outputs.api-image-tag }}
+            docker pull ${{ needs.build.outputs.web-image-tag }}
+
+            # Rolling deployment strategy
+            echo "🚀 Starting rolling deployment..."
+
+            # Deploy API first (zero-downtime via load balancer)
+            docker-compose -f docker-compose.production.yml --env-file .env.deploy --env-file .env.production up -d --no-deps api
+
+            # Wait for API to be healthy
+            echo "⏳ Waiting for API to be healthy..."
+            for i in {1..30}; do
+              if curl -f http://localhost:5001/health; then
+                echo "✅ API is healthy"
+                break
+              fi
+              sleep 10
+              if [ $i -eq 30 ]; then
+                echo "❌ API health check failed"
+                exit 1
+              fi
+            done
+
+            # Deploy Web frontend
+            docker-compose -f docker-compose.production.yml --env-file .env.deploy --env-file .env.production up -d --no-deps web
+
+            # Wait for Web to be healthy
+            echo "⏳ Waiting for Web to be healthy..."
+            for i in {1..20}; do
+              if curl -f http://localhost:3001/health; then
+                echo "✅ Web is healthy"
+                break
+              fi
+              sleep 10
+              if [ $i -eq 20 ]; then
+                echo "❌ Web health check failed"
+                exit 1
+              fi
+            done
+
+            # Final end-to-end health check
+            echo "🔍 Running final health checks..."
+            sleep 30
+
+            if curl -f https://witchcityrope.com/health; then
+              echo "✅ Production deployment successful"
+
+              # Clean up old images (keep last 5 for rollback)
+              docker images --format "table {{.Repository}}:{{.Tag}}" | grep prod | tail -n +6 | xargs -r docker rmi
+
+              # Clean up old backups (keep last 10)
+              find backups/ -maxdepth 1 -type d | sort | head -n -10 | xargs -r rm -rf
+
+            else
+              echo "❌ Production deployment failed - manual intervention required"
+              docker-compose -f docker-compose.production.yml logs --tail=100
+              exit 1
+            fi
+
+      - name: Notify production deployment
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          text: |
+            🚀 PRODUCTION DEPLOYMENT ${{ job.status }}
+
+            📦 **Deployment Details:**
+            • Branch: ${{ github.ref }}
+            • Commit: ${{ github.sha }}
+            • API Image: ${{ needs.build.outputs.api-image-tag }}
+            • Web Image: ${{ needs.build.outputs.web-image-tag }}
+
+            🔗 **URLs:**
+            • Production: https://witchcityrope.com
+            • Staging: https://staging.witchcityrope.com
+
+            ${{ job.status == 'success' && '✅ Deployment completed successfully!' || '❌ Deployment failed - check logs!' }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # ==============================================================================
+  # POST-DEPLOYMENT VERIFICATION
+  # ==============================================================================
+  verify-deployment:
+    name: Post-Deployment Verification
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: success() && (github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production'))
+
+    steps:
+      - name: Verify production health
+        run: |
+          echo "🔍 Running post-deployment verification..."
+
+          # Test main endpoints
+          endpoints=(
+            "https://witchcityrope.com/health"
+            "https://witchcityrope.com/api/health"
+            "https://witchcityrope.com/api/v1/events"
+          )
+
+          for endpoint in "${endpoints[@]}"; do
+            echo "Testing ${endpoint}..."
+            if curl -f -s "${endpoint}" > /dev/null; then
+              echo "✅ ${endpoint} - OK"
+            else
+              echo "❌ ${endpoint} - FAILED"
+              exit 1
+            fi
+          done
+
+          echo "✅ All post-deployment checks passed!"
+
+      - name: Run smoke tests
+        working-directory: ./tests/playwright
+        run: |
+          npm ci
+          npx playwright install --with-deps
+          # Run critical path tests only
+          npx playwright test --grep "@smoke" --config=playwright.prod.config.js
+        env:
+          PLAYWRIGHT_BASE_URL: https://witchcityrope.com

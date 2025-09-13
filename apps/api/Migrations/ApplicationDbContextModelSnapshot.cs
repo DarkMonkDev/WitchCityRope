@@ -755,6 +755,844 @@ namespace WitchCityRope.Api.Migrations
                     b.ToTable("SafetyIncidents", "public");
                 });
 
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingApplication", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("AgreesToGuidelines")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("AgreesToTerms")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid?>("ApplicantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ApplicationNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid?>("AssignedReviewerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("ConsentToContact")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DecisionMadeAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("EncryptedConsentUnderstanding")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EncryptedEmail")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("EncryptedExpectationsGoals")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EncryptedExperienceDescription")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EncryptedFullName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("EncryptedPhone")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("EncryptedPronouns")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("EncryptedSafetyKnowledge")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EncryptedSceneName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("EncryptedWhyJoinCommunity")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("ExperienceLevel")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<DateTime?>("InterviewScheduledFor")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<bool>("IsAnonymous")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ReviewStartedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("SkillsInterests")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValue("[]");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("StatusToken")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("YearsExperience")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicantId");
+
+                    b.HasIndex("ApplicationNumber")
+                        .IsUnique()
+                        .HasDatabaseName("IX_VettingApplications_ApplicationNumber");
+
+                    b.HasIndex("AssignedReviewerId")
+                        .HasDatabaseName("IX_VettingApplications_AssignedReviewerId")
+                        .HasFilter("\"AssignedReviewerId\" IS NOT NULL");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("DeletedAt")
+                        .HasDatabaseName("IX_VettingApplications_DeletedAt")
+                        .HasFilter("\"DeletedAt\" IS NOT NULL");
+
+                    b.HasIndex("SkillsInterests")
+                        .HasDatabaseName("IX_VettingApplications_SkillsInterests");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SkillsInterests"), "gin");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("IX_VettingApplications_Status");
+
+                    b.HasIndex("StatusToken")
+                        .IsUnique()
+                        .HasDatabaseName("IX_VettingApplications_StatusToken");
+
+                    b.HasIndex("UpdatedBy");
+
+                    b.HasIndex("Status", "CreatedAt")
+                        .HasDatabaseName("IX_VettingApplications_Active_Status_CreatedAt")
+                        .HasFilter("\"DeletedAt\" IS NULL");
+
+                    b.HasIndex("Status", "Priority", "CreatedAt")
+                        .HasDatabaseName("IX_VettingApplications_Status_Priority_CreatedAt");
+
+                    b.ToTable("VettingApplications", "public");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingApplicationAuditLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ActionDescription")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ActionType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)");
+
+                    b.Property<string>("NewValues")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("OldValues")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActionType")
+                        .HasDatabaseName("IX_VettingApplicationAuditLog_ActionType");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_VettingApplicationAuditLog_CreatedAt");
+
+                    b.HasIndex("NewValues")
+                        .HasDatabaseName("IX_VettingApplicationAuditLog_NewValues");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("NewValues"), "gin");
+
+                    b.HasIndex("OldValues")
+                        .HasDatabaseName("IX_VettingApplicationAuditLog_OldValues");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("OldValues"), "gin");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ApplicationId", "CreatedAt")
+                        .HasDatabaseName("IX_VettingApplicationAuditLog_ApplicationId_CreatedAt");
+
+                    b.ToTable("VettingApplicationAuditLog", "public");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingApplicationNote", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<bool>("IsPrivate")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("ReviewerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TagsJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValue("[]");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_VettingApplicationNotes_ApplicationId");
+
+                    b.HasIndex("IsPrivate")
+                        .HasDatabaseName("IX_VettingApplicationNotes_IsPrivate");
+
+                    b.HasIndex("ReviewerId")
+                        .HasDatabaseName("IX_VettingApplicationNotes_ReviewerId");
+
+                    b.HasIndex("TagsJson")
+                        .HasDatabaseName("IX_VettingApplicationNotes_Tags");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("TagsJson"), "gin");
+
+                    b.HasIndex("ApplicationId", "Type", "CreatedAt")
+                        .HasDatabaseName("IX_VettingApplicationNotes_ApplicationId_Type_CreatedAt");
+
+                    b.ToTable("VettingApplicationNotes", "public");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingDecision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("AdditionalInfoDeadline")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("AdditionalInfoRequested")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("DecisionIpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)");
+
+                    b.Property<int>("DecisionType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DecisionUserAgent")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("InterviewNotes")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsFinalDecision")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("ProposedInterviewTime")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("Reasoning")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ReviewerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("Score")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_VettingDecisions_ApplicationId");
+
+                    b.HasIndex("DecisionType")
+                        .HasDatabaseName("IX_VettingDecisions_DecisionType");
+
+                    b.HasIndex("IsFinalDecision")
+                        .HasDatabaseName("IX_VettingDecisions_IsFinalDecision")
+                        .HasFilter("\"IsFinalDecision\" = true");
+
+                    b.HasIndex("ReviewerId")
+                        .HasDatabaseName("IX_VettingDecisions_ReviewerId");
+
+                    b.HasIndex("ApplicationId", "CreatedAt")
+                        .HasDatabaseName("IX_VettingDecisions_ApplicationId_CreatedAt");
+
+                    b.ToTable("VettingDecisions", "public");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingDecisionAuditLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ActionDescription")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ActionType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<Guid>("DecisionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("NewDecision")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PreviousDecision")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActionType")
+                        .HasDatabaseName("IX_VettingDecisionAuditLog_ActionType");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_VettingDecisionAuditLog_ApplicationId");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_VettingDecisionAuditLog_UserId")
+                        .HasFilter("\"UserId\" IS NOT NULL");
+
+                    b.HasIndex("DecisionId", "CreatedAt")
+                        .HasDatabaseName("IX_VettingDecisionAuditLog_DecisionId_CreatedAt");
+
+                    b.ToTable("VettingDecisionAuditLog", "public");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingNoteAttachment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("FileExtension")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("FileHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsConfidential")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("MimeType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("NoteId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("StoragePath")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FileHash")
+                        .HasDatabaseName("IX_VettingNoteAttachments_FileHash");
+
+                    b.HasIndex("IsConfidential")
+                        .HasDatabaseName("IX_VettingNoteAttachments_IsConfidential");
+
+                    b.HasIndex("NoteId")
+                        .HasDatabaseName("IX_VettingNoteAttachments_NoteId");
+
+                    b.HasIndex("NoteId", "FileName")
+                        .HasDatabaseName("IX_VettingNoteAttachments_NoteId_FileName");
+
+                    b.ToTable("VettingNoteAttachments", "public");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingNotification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("DeliveryStatus")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("text");
+
+                    b.Property<string>("MessageBody")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("MessageId")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("NextRetryAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<int>("NotificationType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RecipientEmail")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("SentAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("TemplateData")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("TemplateName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_VettingNotifications_ApplicationId");
+
+                    b.HasIndex("NotificationType")
+                        .HasDatabaseName("IX_VettingNotifications_NotificationType");
+
+                    b.HasIndex("TemplateData")
+                        .HasDatabaseName("IX_VettingNotifications_TemplateData");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("TemplateData"), "gin");
+
+                    b.HasIndex("CreatedAt", "RetryCount")
+                        .HasDatabaseName("IX_VettingNotifications_Failed_RetryCount")
+                        .HasFilter("\"Status\" = 4 AND \"RetryCount\" < 5");
+
+                    b.HasIndex("Status", "CreatedAt")
+                        .HasDatabaseName("IX_VettingNotifications_Status_CreatedAt");
+
+                    b.HasIndex("Status", "NextRetryAt", "CreatedAt")
+                        .HasDatabaseName("IX_VettingNotifications_DeliveryQueue")
+                        .HasFilter("\"Status\" IN (1, 4)");
+
+                    b.ToTable("VettingNotifications", "public");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingReference", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ContactedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("EncryptedEmail")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("EncryptedName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("EncryptedRelationship")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("FinalReminderSentAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<DateTime?>("FirstReminderSentAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<DateTime?>("FormExpiresAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<DateTime?>("ManualContactAttemptAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("ManualContactNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<int>("ReferenceOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("RequiresManualContact")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("RespondedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("ResponseToken")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("SecondReminderSentAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_VettingReferences_ApplicationId");
+
+                    b.HasIndex("ResponseToken")
+                        .IsUnique()
+                        .HasDatabaseName("IX_VettingReferences_ResponseToken");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("IX_VettingReferences_Status");
+
+                    b.HasIndex("ApplicationId", "ReferenceOrder")
+                        .IsUnique()
+                        .HasDatabaseName("IX_VettingReferences_ApplicationId_ReferenceOrder");
+
+                    b.HasIndex("Status", "ContactedAt", "FormExpiresAt")
+                        .HasDatabaseName("IX_VettingReferences_StatusProcessing")
+                        .HasFilter("\"Status\" IN (1, 2, 3)");
+
+                    b.ToTable("VettingReferences", "public");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingReferenceAuditLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ActionDescription")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ActionType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("DeliveryStatus")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("EmailMessageId")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("ReferenceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActionType")
+                        .HasDatabaseName("IX_VettingReferenceAuditLog_ActionType");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_VettingReferenceAuditLog_ApplicationId");
+
+                    b.HasIndex("EmailMessageId")
+                        .HasDatabaseName("IX_VettingReferenceAuditLog_EmailMessageId")
+                        .HasFilter("\"EmailMessageId\" IS NOT NULL");
+
+                    b.HasIndex("ReferenceId", "CreatedAt")
+                        .HasDatabaseName("IX_VettingReferenceAuditLog_ReferenceId_CreatedAt");
+
+                    b.ToTable("VettingReferenceAuditLog", "public");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingReferenceResponse", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("EncryptedAdditionalComments")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EncryptedCommunityReadiness")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EncryptedExperienceAssessment")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EncryptedRelationshipDuration")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EncryptedSafetyConcerns")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Recommendation")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ReferenceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ResponseIpAddress")
+                        .IsRequired()
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)");
+
+                    b.Property<string>("ResponseUserAgent")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsCompleted")
+                        .HasDatabaseName("IX_VettingReferenceResponses_IsCompleted");
+
+                    b.HasIndex("Recommendation")
+                        .HasDatabaseName("IX_VettingReferenceResponses_Recommendation");
+
+                    b.HasIndex("ReferenceId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_VettingReferenceResponses_ReferenceId");
+
+                    b.ToTable("VettingReferenceResponses", "public");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingReviewer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("ApprovalRate")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal>("AverageReviewTimeHours")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<int>("CurrentWorkload")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastActivityAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<int>("MaxWorkload")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SpecializationsJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValue("[]");
+
+                    b.Property<string>("TimeZone")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasDefaultValue("UTC");
+
+                    b.Property<int>("TotalReviewsCompleted")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UnavailableUntil")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("WorkingHoursJson")
+                        .HasColumnType("jsonb");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("IX_VettingReviewers_IsActive");
+
+                    b.HasIndex("SpecializationsJson")
+                        .HasDatabaseName("IX_VettingReviewers_Specializations");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SpecializationsJson"), "gin");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_VettingReviewers_UserId");
+
+                    b.HasIndex("IsActive", "IsAvailable", "CurrentWorkload", "MaxWorkload")
+                        .HasDatabaseName("IX_VettingReviewers_Workload")
+                        .HasFilter("\"IsActive\" = true");
+
+                    b.ToTable("VettingReviewers", "public");
+                });
+
             modelBuilder.Entity("WitchCityRope.Api.Models.ApplicationUser", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1396,6 +2234,177 @@ namespace WitchCityRope.Api.Migrations
                     b.Navigation("UpdatedByUser");
                 });
 
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingApplication", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "Applicant")
+                        .WithMany()
+                        .HasForeignKey("ApplicantId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("WitchCityRope.Api.Features.Vetting.Entities.VettingReviewer", "AssignedReviewer")
+                        .WithMany("AssignedApplications")
+                        .HasForeignKey("AssignedReviewerId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Applicant");
+
+                    b.Navigation("AssignedReviewer");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("UpdatedByUser");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingApplicationAuditLog", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Features.Vetting.Entities.VettingApplication", "Application")
+                        .WithMany("AuditLogs")
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Application");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingApplicationNote", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Features.Vetting.Entities.VettingApplication", "Application")
+                        .WithMany("Notes")
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WitchCityRope.Api.Features.Vetting.Entities.VettingReviewer", "Reviewer")
+                        .WithMany("Notes")
+                        .HasForeignKey("ReviewerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Application");
+
+                    b.Navigation("Reviewer");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingDecision", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Features.Vetting.Entities.VettingApplication", "Application")
+                        .WithMany("Decisions")
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WitchCityRope.Api.Features.Vetting.Entities.VettingReviewer", "Reviewer")
+                        .WithMany("Decisions")
+                        .HasForeignKey("ReviewerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Application");
+
+                    b.Navigation("Reviewer");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingDecisionAuditLog", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Features.Vetting.Entities.VettingDecision", "Decision")
+                        .WithMany("AuditLogs")
+                        .HasForeignKey("DecisionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Decision");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingNoteAttachment", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Features.Vetting.Entities.VettingApplicationNote", "Note")
+                        .WithMany("Attachments")
+                        .HasForeignKey("NoteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Note");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingNotification", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Features.Vetting.Entities.VettingApplication", "Application")
+                        .WithMany("Notifications")
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Application");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingReference", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Features.Vetting.Entities.VettingApplication", "Application")
+                        .WithMany("References")
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Application");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingReferenceAuditLog", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Features.Vetting.Entities.VettingReference", "Reference")
+                        .WithMany("AuditLogs")
+                        .HasForeignKey("ReferenceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Reference");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingReferenceResponse", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Features.Vetting.Entities.VettingReference", "Reference")
+                        .WithOne("Response")
+                        .HasForeignKey("WitchCityRope.Api.Features.Vetting.Entities.VettingReferenceResponse", "ReferenceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Reference");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingReviewer", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("WitchCityRope.Api.Models.Session", b =>
                 {
                     b.HasOne("WitchCityRope.Api.Models.Event", "Event")
@@ -1474,6 +2483,45 @@ namespace WitchCityRope.Api.Migrations
                     b.Navigation("AuditLogs");
 
                     b.Navigation("Notifications");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingApplication", b =>
+                {
+                    b.Navigation("AuditLogs");
+
+                    b.Navigation("Decisions");
+
+                    b.Navigation("Notes");
+
+                    b.Navigation("Notifications");
+
+                    b.Navigation("References");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingApplicationNote", b =>
+                {
+                    b.Navigation("Attachments");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingDecision", b =>
+                {
+                    b.Navigation("AuditLogs");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingReference", b =>
+                {
+                    b.Navigation("AuditLogs");
+
+                    b.Navigation("Response");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingReviewer", b =>
+                {
+                    b.Navigation("AssignedApplications");
+
+                    b.Navigation("Decisions");
+
+                    b.Navigation("Notes");
                 });
 
             modelBuilder.Entity("WitchCityRope.Api.Models.Event", b =>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
@@ -291,16 +291,23 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                   disabled
                   description="Email cannot be changed from this page"
                 />
-                <Select
-                  label="Pronouns"
-                  placeholder="Select pronouns"
-                  data={[
-                    { value: 'she/her', label: 'She/Her' },
-                    { value: 'he/him', label: 'He/Him' },
-                    { value: 'they/them', label: 'They/Them' },
-                    { value: 'other', label: 'Other' },
-                  ]}
-                  {...personalForm.register('pronouns')}
+                <Controller
+                  name="pronouns"
+                  control={personalForm.control}
+                  render={({ field }) => (
+                    <Select
+                      label="Pronouns"
+                      placeholder="Select pronouns"
+                      data={[
+                        { value: 'she/her', label: 'She/Her' },
+                        { value: 'he/him', label: 'He/Him' },
+                        { value: 'they/them', label: 'They/Them' },
+                        { value: 'other', label: 'Other' },
+                      ]}
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  )}
                 />
               </Group>
 
@@ -355,16 +362,23 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         <Tabs.Panel value="privacy" pt="md">
           <form onSubmit={privacyForm.handleSubmit(handlePrivacySubmit)}>
             <Stack gap="md">
-              <Select
-                label="Profile Visibility"
-                description="Who can see your full profile information"
-                data={[
-                  { value: 'public', label: 'Public - Anyone can see' },
-                  { value: 'members', label: 'Members - Only registered members' },
-                  { value: 'vetted', label: 'Vetted Only - Only vetted members' },
-                  { value: 'private', label: 'Private - Only you and admins' },
-                ]}
-                {...privacyForm.register('profileVisibility')}
+              <Controller
+                name="profileVisibility"
+                control={privacyForm.control}
+                render={({ field }) => (
+                  <Select
+                    label="Profile Visibility"
+                    description="Who can see your full profile information"
+                    data={[
+                      { value: 'public', label: 'Public - Anyone can see' },
+                      { value: 'members', label: 'Members - Only registered members' },
+                      { value: 'vetted', label: 'Vetted Only - Only vetted members' },
+                      { value: 'private', label: 'Private - Only you and admins' },
+                    ]}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                )}
               />
 
               <Divider label="Contact Information Visibility" />
@@ -444,15 +458,22 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                 {...preferencesForm.register('marketingEmails')}
               />
 
-              <Select
-                label="Notification Frequency"
-                description="How often would you like to receive non-urgent notifications?"
-                data={[
-                  { value: 'immediate', label: 'Immediate' },
-                  { value: 'daily', label: 'Daily Digest' },
-                  { value: 'weekly', label: 'Weekly Summary' },
-                ]}
-                {...preferencesForm.register('notificationFrequency')}
+              <Controller
+                name="notificationFrequency"
+                control={preferencesForm.control}
+                render={({ field }) => (
+                  <Select
+                    label="Notification Frequency"
+                    description="How often would you like to receive non-urgent notifications?"
+                    data={[
+                      { value: 'immediate', label: 'Immediate' },
+                      { value: 'daily', label: 'Daily Digest' },
+                      { value: 'weekly', label: 'Weekly Summary' },
+                    ]}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                )}
               />
 
               <Group justify="flex-end">

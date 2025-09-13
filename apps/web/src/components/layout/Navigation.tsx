@@ -70,7 +70,7 @@ export const Navigation: React.FC = () => {
       >
         {/* Admin link - only for administrators */}
         {/* Backend now returns user.roles - proper role-based access control */}
-        {user?.roles?.includes('Administrator') && (
+        {user?.roles?.includes('Admin') && (
           <Box
             component={Link}
             to="/admin"

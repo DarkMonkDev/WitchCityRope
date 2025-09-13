@@ -4,6 +4,12 @@ import { Button, ButtonProps } from '@mantine/core';
 export interface WCRButtonProps extends Omit<ButtonProps, 'variant' | 'size'> {
   variant?: 'primary' | 'secondary' | 'outline' | 'compact' | 'danger';
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'compact-xs' | 'compact-sm';
+  // Explicitly include the important button props that we need
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
+  loading?: boolean;
+  title?: string;
 }
 
 /**
