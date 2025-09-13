@@ -153,6 +153,181 @@ await expect(chip).toHaveAttribute('aria-checked', 'true');
 await expect(chip).toBeChecked();
 ```
 
+## 🚨 CRITICAL: TestContainers vs Simple Unit Tests - Decision Matrix
+
+**Date Added**: 2025-09-13
+**Lesson Learned**: Choosing the right testing approach prevents over-engineering while ensuring adequate coverage.
+
+### ✅ WHEN TO USE TESTCONTAINERS (Containerized Infrastructure)
+
+**Integration Tests with Real Database Dependencies**:
+- Testing services that query/modify multiple database tables
+- End-to-end workflow testing (authentication → database → response)
+- Testing database constraints, triggers, and PostgreSQL-specific behavior
+- Critical business logic that involves complex entity relationships
+- Testing migration scripts and database schema changes
+
+**Critical Path Testing**:
+- Authentication flows (login, registration, password reset)
+- Payment processing (if implemented)
+- User role and permission validation
+- Event registration and cancellation workflows
+- Data integrity scenarios (concurrent access, transaction rollbacks)
+
+**Performance and Load Testing**:
+- Database query performance under load
+- Connection pooling behavior
+- Container resource utilization testing
+- Multi-user concurrent access scenarios
+
+**Example Use Cases**:
+```csharp
+// ✅ CORRECT - Use TestContainers for complex integration
+[Collection("PostgreSQL Integration Tests")]
+public class EventRegistrationServiceTests : IntegrationTestBase
+{
+    [Fact]
+    public async Task RegisterForEvent_WhenEventFull_ShouldCreateWaitlistEntry()
+    {
+        // Tests complex business logic with multiple tables
+        // Verifies database constraints and triggers
+        // Tests real PostgreSQL behavior
+    }
+}
+```
+
+### ❌ WHEN NOT TO USE TESTCONTAINERS (Keep Simple Unit Tests)
+
+**Pure Business Logic Testing**:
+- Validation logic (FluentValidation rules)
+- DTO transformations and mapping
+- Simple calculations and algorithms
+- String manipulation and formatting
+- Date/time calculations without database
+
+**React Component Testing**:
+- Component rendering and props
+- User interaction handling
+- State management (Zustand stores)
+- Form validation and submission
+- UI behavior and responsive design
+
+**API Endpoint Mocking**:
+- Testing HTTP request/response handling
+- Testing API client error handling
+- Testing serialization/deserialization
+- Testing authentication headers
+
+**Quick Feedback During TDD**:
+- Red-Green-Refactor cycles need <100ms feedback
+- Testing specific methods in isolation
+- Testing error conditions and edge cases
+- Debugging specific algorithm implementations
+
+**Example Use Cases**:
+```csharp
+// ✅ CORRECT - Simple unit test for business logic
+public class EventValidationTests
+{
+    [Theory]
+    [InlineData("", false)]           // Empty title
+    [InlineData("Valid Event", true)] // Valid title
+    public void ValidateEventTitle_ShouldReturnExpectedResult(string title, bool expected)
+    {
+        // Fast, focused test without infrastructure
+        var validator = new EventValidator();
+        var result = validator.IsValidTitle(title);
+        result.Should().Be(expected);
+    }
+}
+```
+
+### 📊 TEST STRUCTURE GUIDANCE
+
+**Optimal Test Distribution** (based on testing pyramid):
+- **70% Unit Tests**: Fast, focused, no infrastructure
+- **20% Integration Tests**: TestContainers with real database
+- **10% E2E Tests**: Playwright with full stack
+
+**Container Test Organization**:
+```csharp
+// Use [Collection] attribute for container sharing
+[Collection("PostgreSQL Integration Tests")]
+public class UserManagementIntegrationTests : IntegrationTestBase
+{
+    // Shared container reduces test execution time
+    // Automatic cleanup with multi-layer strategy
+}
+```
+
+**Performance Optimization**:
+- **Container Pooling**: Single container shared across test collection
+- **Fast Reset**: Use Respawn for database cleanup between tests
+- **Parallel Execution**: Different collections run in parallel
+- **Resource Management**: Automatic container lifecycle management
+
+### 🏗️ ARCHITECTURE INTEGRATION NOTES
+
+**SeedDataService.cs Integration**:
+- **Single Source of Truth**: All test data definitions in one place
+- **7 Test Accounts**: Covers all role scenarios (admin, teacher, vetted, member, guest)
+- **12 Sample Events**: Realistic test data for development and testing
+- **Idempotent Operations**: Safe to run multiple times without conflicts
+- **Transaction Management**: Atomic operations with proper rollback
+
+**Test Data Usage Pattern**:
+```csharp
+// ✅ CORRECT - Leverage SeedDataService for integration tests
+public async Task<(bool Success, string Error)> SeedTestDataAsync()
+{
+    var seedService = new SeedDataService(_context, _logger, _userManager);
+    var result = await seedService.SeedAllDataAsync();
+    
+    // Returns comprehensive test environment:
+    // - admin@witchcityrope.com (Admin role)
+    // - teacher@witchcityrope.com (Teacher role) 
+    // - vetted@witchcityrope.com (Vetted member)
+    // - member@witchcityrope.com (General member)
+    // - guest@witchcityrope.com (Guest/Attendee)
+    // - Plus 12 realistic events with proper relationships
+    
+    return (result.Success, result.Error);
+}
+```
+
+**Container Cleanup Strategy**:
+- **Automatic Disposal**: Containers cleaned up after test collection completes
+- **Resource Monitoring**: Docker container resource usage tracked
+- **Failure Recovery**: Orphaned containers automatically removed
+- **Multi-Layer Cleanup**: Database reset + container disposal + resource cleanup
+
+### 🚀 PERFORMANCE TARGETS
+
+**Unit Tests** (No Containers):
+- **Execution Time**: <10ms per test
+- **Feedback Loop**: <5 seconds for entire suite
+- **Resource Usage**: Minimal memory/CPU
+- **Parallel Execution**: Unlimited concurrency
+
+**Integration Tests** (TestContainers):
+- **Container Startup**: <30 seconds (cached/shared)
+- **Test Execution**: <200ms per test
+- **Suite Completion**: <5 minutes total
+- **Resource Usage**: ~500MB RAM per container
+
+**Decision Framework**:
+1. **Ask**: "Does this test require real database behavior?"
+   - YES → Use TestContainers
+   - NO → Use simple unit test
+
+2. **Ask**: "Am I testing business logic or infrastructure?"
+   - Business Logic → Unit test with mocks
+   - Infrastructure → Integration test with containers
+
+3. **Ask**: "Do I need immediate feedback for TDD?"
+   - YES → Unit test for fast iteration
+   - NO → Integration test for comprehensive validation
+
 ## 🚨 CRITICAL: Always Run Health Checks First
 
 **Lesson Learned**: Port misconfigurations cause most test failures, not code issues.

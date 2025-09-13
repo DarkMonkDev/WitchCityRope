@@ -28,8 +28,22 @@ jobs:
     - name: Build
       run: dotnet build --no-restore --configuration Release
       
-    - name: Run tests
-      run: dotnet test --no-build --configuration Release --logger trx --results-directory "TestResults"
+    - name: Run unit tests (no containers)
+      run: |
+        dotnet test tests/WitchCityRope.Core.Tests/ \
+          --no-build --configuration Release \
+          --logger trx --results-directory "TestResults" \
+          --logger "console;verbosity=normal"
+      
+    - name: Run integration tests (with TestContainers)
+      run: |
+        dotnet test tests/WitchCityRope.IntegrationTests/ \
+          --no-build --configuration Release \
+          --logger trx --results-directory "TestResults" \
+          --logger "console;verbosity=normal"
+      env:
+        TESTCONTAINERS_RYUK_DISABLED: false
+        TESTCONTAINERS_REUSE_ENABLE: false
       
     - name: Upload test results
       uses: actions/upload-artifact@v4

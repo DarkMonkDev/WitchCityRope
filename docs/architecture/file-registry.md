@@ -55,6 +55,7 @@
 | 2025-09-12 | /docs/lessons-learned/test-developer-lessons-learned.md | MODIFIED | Added mandatory agent handoff documentation process section for workflow continuity | Workflow handoff system implementation | ACTIVE | Keep permanent |
 | 2025-09-12 | /docs/lessons-learned/test-executor-lessons-learned.md | MODIFIED | Added mandatory agent handoff documentation process section for workflow continuity | Workflow handoff system implementation | ACTIVE | Keep permanent |
 | 2025-09-12 | /docs/lessons-learned/ui-designer-lessons-learned.md | MODIFIED | Added mandatory agent handoff documentation process section for workflow continuity | Workflow handoff system implementation | ACTIVE | Keep permanent |
+| 2025-09-13 | /docs/lessons-learned/test-developer-lessons-learned.md | MODIFIED | Added comprehensive guidance on when to use TestContainers vs simple unit tests - decision matrix, performance targets, architecture integration with SeedDataService | Test Developer Agent - TestContainers Decision Matrix | ACTIVE | Keep permanent |
 
 ## Archived/Completed Files
 

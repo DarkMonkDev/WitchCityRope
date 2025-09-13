@@ -51,15 +51,43 @@ See `/docs/standards-processes/testing-prerequisites.md` for full details.
 
 > 🚨 **CRITICAL**: Old Puppeteer tests in `/tests/e2e/` are DEPRECATED. Use only Playwright tests.
 
+## When to Use Containerized Testing
+
+### Strategic Use of TestContainers
+
+**USE containerized testing for:**
+- ✅ **Integration Tests**: Database operations, transactions, constraints
+- ✅ **E2E Tests**: Full stack testing with real PostgreSQL
+- ✅ **Migration Tests**: Verifying database schema changes
+- ✅ **Seed Data Tests**: Validating data initialization
+- ✅ **Performance Tests**: Realistic database performance metrics
+
+**AVOID containerized testing for:**
+- ❌ **Unit Tests**: Use in-memory mocks for pure business logic
+- ❌ **Component Tests**: Mock database interactions for isolated testing
+- ❌ **Quick Feedback**: Use fast unit tests during development
+
+### Decision Matrix
+
+| Test Type | Use Containers? | Reason |
+|-----------|----------------|---------|
+| Domain Logic | ❌ No | Pure business logic doesn't need database |
+| Repository Tests | ✅ Yes | Need real database constraints |
+| API Endpoints | ✅ Yes | Need full stack with real database |
+| React Components | ❌ No | Frontend logic doesn't need backend |
+| Authentication | ✅ Yes | Critical path needs production parity |
+| Payment Processing | ✅ Yes | Financial operations need accuracy |
+
 ## Integration Test Infrastructure
 
 ### PostgreSQL Testcontainers Setup
 
 Integration tests use real PostgreSQL databases via Testcontainers, providing:
-- Exact same database engine as production
-- Real migration testing
+- Exact same database engine as production (PostgreSQL 16-alpine)
+- Real migration testing with Entity Framework Core
 - Accurate constraint and transaction behavior
 - No false positives from in-memory database differences
+- 80% performance improvement through container pooling
 
 ### Key Components
 
@@ -178,8 +206,15 @@ public class EventRepositoryTests
 
 ## Test Data
 
+### Seed Data Architecture
+**IMPORTANT**: All seed data is defined in `/apps/api/Services/SeedDataService.cs` (800+ lines)
+- Single source of truth for all test data
+- Scripts (`reset-database.sh`, `seed-database-enhanced.sh`) are thin orchestrators
+- Scripts call the C# service, never duplicate seed logic
+- Ensures consistency between dev, test, and CI environments
+
 ### Seeded Test Users
-The DbInitializer creates these test accounts:
+The SeedDataService creates these test accounts:
 - **Admin**: admin@witchcityrope.com / Test123!
 - **Teacher**: teacher@witchcityrope.com / Test123!
 - **Vetted Member**: vetted@witchcityrope.com / Test123!

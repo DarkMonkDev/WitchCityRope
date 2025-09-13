@@ -63,6 +63,35 @@ dotnet build
 
 **Evidence**: 208 compilation errors prevented all .NET testing, creating false impression of test failures.
 
+## 🚨 CRITICAL: Containerized Testing Infrastructure Usage
+
+**Problem**: Using containers for ALL tests adds unnecessary complexity and slowdown.
+**Solution**: Strategic use of TestContainers only when production parity matters.
+
+### When to Use TestContainers
+✅ **Integration Tests** - Database operations need real PostgreSQL
+✅ **E2E Tests** - Full stack needs production-like environment
+✅ **Migration Tests** - Schema changes need real database
+✅ **Critical Path Tests** - Authentication, payments need accuracy
+
+### When NOT to Use TestContainers
+❌ **Unit Tests** - Business logic doesn't need database
+❌ **React Component Tests** - UI logic is independent
+❌ **Quick Feedback** - Development iteration needs speed
+❌ **Simple Mocks Work** - Don't over-engineer when mocks suffice
+
+### Container Infrastructure Commands
+```bash
+# For integration tests that need containers
+dotnet test tests/WitchCityRope.IntegrationTests/
+
+# For unit tests (no containers needed)
+dotnet test tests/WitchCityRope.Core.Tests/
+
+# Clean up orphaned containers if needed
+docker ps -a | grep testcontainers | awk '{print $1}' | xargs -r docker rm -f
+```
+
 ## 🚨 CRITICAL: Environment Pre-Flight Checks Required
 
 **Problem**: Test failures often caused by unhealthy infrastructure, not test issues.
@@ -111,7 +140,7 @@ PGPASSWORD=WitchCity2024! psql -h localhost -p 5433 -U postgres -d witchcityrope
 **Solution**: Database seeding is handled ONLY through C# code in the API.
 
 ### Correct Pattern
-1. **Start the API container** - This triggers DatabaseInitializationService automatically
+1. **Start the API container** - This triggers SeedDataService automatically
 2. **Check API logs for initialization** - `docker logs witchcity-api | grep -i "database\|seed\|migration"`  
 3. **Verify through API endpoints** - Test `/api/health` and `/api/events` to confirm data exists
 4. **If database isn't seeded** - The issue is with the API service, NOT missing scripts
@@ -119,9 +148,14 @@ PGPASSWORD=WitchCity2024! psql -h localhost -p 5433 -U postgres -d witchcityrope
 ### NEVER DO
 - ❌ Write SQL scripts to insert test data
 - ❌ Use psql or database tools to manually insert data
-- ❌ Create bash scripts for database seeding
+- ❌ Create bash scripts for database seeding (except thin orchestrators)
 - ❌ Look for seed scripts (they don't exist by design)
 - ❌ Bypass the C# seeding mechanism
+
+### Important: Seed Scripts Are Thin Orchestrators
+- `/scripts/reset-database.sh` - Calls `dotnet ef database update`
+- `/scripts/seed-database-enhanced.sh` - Triggers C# SeedDataService
+- **Single Source of Truth**: `/apps/api/Services/SeedDataService.cs` (800+ lines)
 
 ## Compilation Error Patterns and Solutions
 
