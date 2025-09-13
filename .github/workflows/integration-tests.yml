@@ -1,0 +1,384 @@
+name: Integration Tests (TestContainers)
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - '.github/workflows/integration-tests.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - '.github/workflows/integration-tests.yml'
+  workflow_dispatch:
+    inputs:
+      run_performance_tests:
+        description: 'Run performance tests'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+
+jobs:
+  integration-tests:
+    name: Integration Tests with TestContainers
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        test-project: 
+          - 'tests/integration/WitchCityRope.IntegrationTests'
+          - 'tests/WitchCityRope.Core.Tests'
+          # Add more test projects as they are migrated to the new infrastructure
+      fail-fast: false
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.NUGET_PACKAGES }}
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Install Docker Compose (if needed)
+      run: |
+        if ! command -v docker-compose &> /dev/null; then
+          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+        fi
+
+    - name: Verify Docker setup
+      run: |
+        docker --version
+        docker-compose --version
+        docker system info
+        
+        # Check available disk space
+        df -h
+        
+        # Clean up any existing containers
+        docker container prune -f
+        docker image prune -f
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build solution
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Create test configuration
+      run: |
+        # Create test-specific configuration for TestContainers
+        cat > appsettings.Testing.json << EOF
+        {
+          "Logging": {
+            "LogLevel": {
+              "Default": "Information",
+              "Microsoft": "Warning",
+              "Microsoft.Hosting.Lifetime": "Information",
+              "Testcontainers": "Information"
+            }
+          },
+          "TestContainers": {
+            "PostgreSQL": {
+              "Image": "postgres:16-alpine",
+              "Database": "witchcityrope_test",
+              "Username": "test_user",
+              "Password": "Test123!",
+              "Port": 0,
+              "Cleanup": true,
+              "Labels": {
+                "project": "witchcityrope",
+                "purpose": "integration-testing",
+                "cleanup": "automatic"
+              }
+            },
+            "ResourceLimits": {
+              "Memory": "512m",
+              "CpuShares": 512
+            },
+            "HealthCheck": {
+              "TimeoutSeconds": 30,
+              "IntervalSeconds": 5,
+              "Retries": 6
+            }
+          }
+        }
+        EOF
+
+    - name: Pre-warm Docker images
+      run: |
+        echo "Pre-downloading PostgreSQL image..."
+        docker pull postgres:16-alpine
+        
+        echo "Pre-warming TestContainers Ryuk..."
+        docker pull testcontainers/ryuk:0.5.1
+
+    - name: Run health checks
+      run: |
+        echo "Running pre-test health checks..."
+        
+        # Check Docker daemon
+        if ! docker info >/dev/null 2>&1; then
+          echo "❌ Docker daemon not accessible"
+          exit 1
+        fi
+        
+        # Check available resources
+        FREE_SPACE=$(df / | awk 'NR==2{printf "%.1f", $4/1024/1024}')
+        echo "Available disk space: ${FREE_SPACE}GB"
+        
+        if (( $(echo "$FREE_SPACE < 2.0" | bc -l) )); then
+          echo "⚠️  Warning: Low disk space (${FREE_SPACE}GB)"
+        fi
+        
+        # Check memory
+        FREE_MEM=$(free -m | awk 'NR==2{printf "%.1f", $7/1024}')
+        echo "Available memory: ${FREE_MEM}GB"
+        
+        echo "✅ Health checks passed"
+
+    - name: Run integration tests with TestContainers
+      env:
+        ASPNETCORE_ENVIRONMENT: Testing
+        TestContainers__Enabled: "true"
+        TestContainers__ReuseContainers: "true"
+        TestContainers__PostgreSQL__Port: "0"
+        TestContainers__PostgreSQL__Cleanup: "true"
+        # Enable detailed logging for troubleshooting
+        Logging__LogLevel__Testcontainers: "Debug"
+        Logging__LogLevel__Docker: "Debug"
+      run: |
+        PROJECT_PATH="${{ matrix.test-project }}"
+        PROJECT_NAME=$(basename "$PROJECT_PATH")
+        
+        echo "Running integration tests for: $PROJECT_NAME"
+        echo "Project path: $PROJECT_PATH"
+        
+        if [ ! -d "$PROJECT_PATH" ]; then
+          echo "❌ Project directory not found: $PROJECT_PATH"
+          exit 1
+        fi
+        
+        # Use custom script if available, otherwise fallback to dotnet test
+        if [ -f "./scripts/run-integration-tests.sh" ]; then
+          echo "Using custom integration test script..."
+          chmod +x ./scripts/run-integration-tests.sh
+          ./scripts/run-integration-tests.sh --project "$PROJECT_PATH" --ci
+        else
+          echo "Using direct dotnet test..."
+          dotnet test "$PROJECT_PATH" \
+            --no-build \
+            --configuration Release \
+            --logger "trx;LogFileName=${PROJECT_NAME}-results.trx" \
+            --logger "console;verbosity=detailed" \
+            --collect:"XPlat Code Coverage" \
+            --results-directory "./TestResults/$PROJECT_NAME" \
+            --filter "Category=Integration|FullyQualifiedName~Integration" \
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+        fi
+
+    - name: Monitor container performance
+      if: always()
+      run: |
+        echo "Container performance metrics:"
+        
+        # List all containers with labels
+        echo "Containers with witchcityrope label:"
+        docker ps -a --filter "label=project=witchcityrope" --format "table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}"
+        
+        # Check container resource usage
+        if [ $(docker ps --filter "label=project=witchcityrope" -q | wc -l) -gt 0 ]; then
+          echo "Resource usage for active containers:"
+          docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}" \
+            $(docker ps --filter "label=project=witchcityrope" -q)
+        fi
+
+    - name: Collect container logs on failure
+      if: failure()
+      run: |
+        echo "Collecting container logs for debugging..."
+        
+        mkdir -p ./container-logs
+        
+        for container in $(docker ps -a --filter "label=project=witchcityrope" -q); do
+          container_name=$(docker inspect --format='{{.Name}}' $container | sed 's/^.//')
+          echo "Collecting logs for container: $container_name"
+          docker logs $container > "./container-logs/${container_name}.log" 2>&1
+        done
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: integration-test-results-${{ strategy.job-index }}
+        path: |
+          TestResults/**/*.trx
+          TestResults/**/*.xml
+          TestResults/**/*.json
+
+    - name: Upload container logs
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: container-logs-${{ strategy.job-index }}
+        path: container-logs/
+
+    - name: Container cleanup verification
+      if: always()
+      run: |
+        echo "Performing container cleanup verification..."
+        
+        # Count containers by status
+        RUNNING=$(docker ps --filter "label=project=witchcityrope" -q | wc -l)
+        STOPPED=$(docker ps -a --filter "label=project=witchcityrope" --filter "status=exited" -q | wc -l)
+        TOTAL=$(docker ps -a --filter "label=project=witchcityrope" -q | wc -l)
+        
+        echo "Container status summary:"
+        echo "  Running: $RUNNING"
+        echo "  Stopped: $STOPPED"
+        echo "  Total: $TOTAL"
+        
+        # List all containers for debugging
+        if [ $TOTAL -gt 0 ]; then
+          echo "All containers with witchcityrope label:"
+          docker ps -a --filter "label=project=witchcityrope" --format "table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.CreatedAt}}"
+        fi
+        
+        # Verify Ryuk cleanup
+        RYUK_CONTAINERS=$(docker ps -a --filter "label=org.testcontainers.ryuk" -q | wc -l)
+        echo "Ryuk containers: $RYUK_CONTAINERS"
+        
+        # Force cleanup of any remaining containers
+        if [ $TOTAL -gt 0 ]; then
+          echo "Cleaning up remaining containers..."
+          docker stop $(docker ps -q --filter "label=project=witchcityrope") 2>/dev/null || true
+          docker rm $(docker ps -aq --filter "label=project=witchcityrope") 2>/dev/null || true
+          
+          # Verify cleanup
+          REMAINING=$(docker ps -a --filter "label=project=witchcityrope" -q | wc -l)
+          if [ $REMAINING -eq 0 ]; then
+            echo "✅ All containers cleaned up successfully"
+          else
+            echo "⚠️  Warning: $REMAINING containers could not be cleaned up"
+            docker ps -a --filter "label=project=witchcityrope"
+          fi
+        else
+          echo "✅ No containers to clean up"
+        fi
+
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    needs: integration-tests
+    if: ${{ github.event.inputs.run_performance_tests == 'true' || github.event_name == 'workflow_dispatch' }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.NUGET_PACKAGES }}
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build solution
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Run performance tests
+      env:
+        ASPNETCORE_ENVIRONMENT: Testing
+        TestContainers__Enabled: "true"
+        TestContainers__PostgreSQL__Port: "0"
+      run: |
+        if [ -f "./scripts/run-performance-tests.sh" ]; then
+          chmod +x ./scripts/run-performance-tests.sh
+          ./scripts/run-performance-tests.sh --ci
+        else
+          echo "Performance test script not found, skipping..."
+        fi
+
+    - name: Upload performance results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: performance-test-results
+        path: |
+          TestResults/performance/**
+          performance-reports/**
+
+  summary:
+    name: Integration Test Summary
+    runs-on: ubuntu-latest
+    needs: [integration-tests, performance-tests]
+    if: always()
+    
+    steps:
+    - name: Check test results
+      run: |
+        echo "Integration Tests Status: ${{ needs.integration-tests.result }}"
+        echo "Performance Tests Status: ${{ needs.performance-tests.result }}"
+        
+        if [[ "${{ needs.integration-tests.result }}" == "failure" ]]; then
+          echo "❌ Integration tests failed"
+          exit 1
+        elif [[ "${{ needs.performance-tests.result }}" == "failure" && "${{ needs.performance-tests.result }}" != "skipped" ]]; then
+          echo "⚠️  Performance tests failed (non-blocking)"
+          echo "Integration tests passed successfully"
+        else
+          echo "✅ All integration tests passed!"
+        fi
+
+    - name: Final environment cleanup
+      run: |
+        echo "Performing final cleanup verification..."
+        
+        # Check for any remaining TestContainers-related containers
+        TESTCONTAINERS=$(docker ps -a --filter "label=org.testcontainers" -q | wc -l)
+        WITCHCITY=$(docker ps -a --filter "label=project=witchcityrope" -q | wc -l)
+        
+        echo "TestContainers-related containers: $TESTCONTAINERS"
+        echo "WitchCityRope containers: $WITCHCITY"
+        
+        if [ $TESTCONTAINERS -gt 0 ] || [ $WITCHCITY -gt 0 ]; then
+          echo "Found containers that may need cleanup:"
+          docker ps -a --filter "label=org.testcontainers"
+          docker ps -a --filter "label=project=witchcityrope"
+          
+          # Force cleanup
+          docker container prune -f
+          docker volume prune -f
+          docker network prune -f
+        fi
+        
+        echo "Final cleanup completed"

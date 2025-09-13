@@ -1,0 +1,372 @@
+name: Container Cleanup Verification
+
+on:
+  workflow_run:
+    workflows: 
+      - "Containerized Test Pipeline"
+      - "Integration Tests (TestContainers)"
+      - "E2E Tests (Containerized)"
+    types:
+      - completed
+  schedule:
+    # Run cleanup check every 6 hours to catch any orphaned containers
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      force_cleanup:
+        description: 'Force cleanup of all test containers'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+jobs:
+  cleanup-verification:
+    name: Verify Container Cleanup
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code (for scripts)
+      uses: actions/checkout@v4
+      if: github.event.inputs.force_cleanup == 'true'
+
+    - name: Check for orphaned containers
+      id: check-containers
+      run: |
+        echo "Checking for orphaned test containers..."
+        
+        # Check for WitchCityRope test containers
+        WITCHCITY_CONTAINERS=$(docker ps -a --filter "label=project=witchcityrope" -q)
+        WITCHCITY_COUNT=$(echo "$WITCHCITY_CONTAINERS" | grep -v '^$' | wc -l)
+        
+        # Check for TestContainers-related containers
+        TESTCONTAINERS=$(docker ps -a --filter "label=org.testcontainers" -q)
+        TESTCONTAINERS_COUNT=$(echo "$TESTCONTAINERS" | grep -v '^$' | wc -l)
+        
+        # Check for Ryuk containers (should be cleaned up automatically)
+        RYUK_CONTAINERS=$(docker ps -a --filter "label=org.testcontainers.ryuk" -q)
+        RYUK_COUNT=$(echo "$RYUK_CONTAINERS" | grep -v '^$' | wc -l)
+        
+        # Check for PostgreSQL test containers without proper labels
+        POSTGRES_TEST_CONTAINERS=$(docker ps -a --filter "ancestor=postgres:16-alpine" --filter "name=*test*" -q)
+        POSTGRES_COUNT=$(echo "$POSTGRES_TEST_CONTAINERS" | grep -v '^$' | wc -l)
+        
+        echo "Container Summary:"
+        echo "  WitchCityRope containers: $WITCHCITY_COUNT"
+        echo "  TestContainers: $TESTCONTAINERS_COUNT"
+        echo "  Ryuk containers: $RYUK_COUNT"
+        echo "  Unlabeled PostgreSQL test containers: $POSTGRES_COUNT"
+        
+        # Set outputs for later steps
+        echo "witchcity_count=$WITCHCITY_COUNT" >> $GITHUB_OUTPUT
+        echo "testcontainers_count=$TESTCONTAINERS_COUNT" >> $GITHUB_OUTPUT
+        echo "ryuk_count=$RYUK_COUNT" >> $GITHUB_OUTPUT
+        echo "postgres_count=$POSTGRES_COUNT" >> $GITHUB_OUTPUT
+        
+        # Calculate total problematic containers
+        TOTAL_PROBLEMATIC=$((WITCHCITY_COUNT + TESTCONTAINERS_COUNT + RYUK_COUNT + POSTGRES_COUNT))
+        echo "total_problematic=$TOTAL_PROBLEMATIC" >> $GITHUB_OUTPUT
+        
+        if [ $TOTAL_PROBLEMATIC -gt 0 ]; then
+          echo "🚨 Found $TOTAL_PROBLEMATIC potentially orphaned containers"
+          echo "needs_cleanup=true" >> $GITHUB_OUTPUT
+        else
+          echo "✅ No orphaned containers found"
+          echo "needs_cleanup=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: List problematic containers
+      if: steps.check-containers.outputs.needs_cleanup == 'true'
+      run: |
+        echo "Listing all potentially problematic containers:"
+        
+        echo "WitchCityRope containers:"
+        docker ps -a --filter "label=project=witchcityrope" --format "table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.CreatedAt}}\t{{.Command}}" || echo "None found"
+        
+        echo "TestContainers:"
+        docker ps -a --filter "label=org.testcontainers" --format "table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.CreatedAt}}\t{{.Command}}" || echo "None found"
+        
+        echo "Ryuk containers:"
+        docker ps -a --filter "label=org.testcontainers.ryuk" --format "table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.CreatedAt}}\t{{.Command}}" || echo "None found"
+        
+        echo "Unlabeled PostgreSQL test containers:"
+        docker ps -a --filter "ancestor=postgres:16-alpine" --filter "name=*test*" --format "table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.CreatedAt}}\t{{.Command}}" || echo "None found"
+
+    - name: Check container resource usage
+      if: steps.check-containers.outputs.needs_cleanup == 'true'
+      run: |
+        echo "Checking resource usage of orphaned containers..."
+        
+        # Get running containers that might be consuming resources
+        RUNNING_ORPHANED=$(docker ps --filter "label=project=witchcityrope" -q)
+        RUNNING_COUNT=$(echo "$RUNNING_ORPHANED" | grep -v '^$' | wc -l)
+        
+        if [ $RUNNING_COUNT -gt 0 ]; then
+          echo "⚠️  Found $RUNNING_COUNT running orphaned containers!"
+          echo "Resource usage:"
+          docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}" $RUNNING_ORPHANED
+        else
+          echo "✅ No running orphaned containers found"
+        fi
+        
+        # Check disk usage by stopped containers
+        echo "Disk usage by container layers:"
+        docker system df
+
+    - name: Generate cleanup report
+      if: steps.check-containers.outputs.needs_cleanup == 'true'
+      run: |
+        echo "Generating detailed cleanup report..."
+        
+        # Create a detailed report
+        cat > cleanup-report.md << EOF
+        # Container Cleanup Report
+        
+        **Date**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+        **Workflow**: ${{ github.workflow }}
+        **Run ID**: ${{ github.run_id }}
+        
+        ## Summary
+        - WitchCityRope containers: ${{ steps.check-containers.outputs.witchcity_count }}
+        - TestContainers: ${{ steps.check-containers.outputs.testcontainers_count }}
+        - Ryuk containers: ${{ steps.check-containers.outputs.ryuk_count }}
+        - Unlabeled PostgreSQL: ${{ steps.check-containers.outputs.postgres_count }}
+        - **Total**: ${{ steps.check-containers.outputs.total_problematic }}
+        
+        ## Detailed Listing
+        ### WitchCityRope Containers
+        \`\`\`
+        $(docker ps -a --filter "label=project=witchcityrope" --format "table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.CreatedAt}}" 2>/dev/null || echo "None found")
+        \`\`\`
+        
+        ### TestContainers
+        \`\`\`
+        $(docker ps -a --filter "label=org.testcontainers" --format "table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.CreatedAt}}" 2>/dev/null || echo "None found")
+        \`\`\`
+        
+        ### System Resource Usage
+        \`\`\`
+        $(docker system df)
+        \`\`\`
+        
+        ## Recommended Actions
+        1. **Immediate**: Stop any running orphaned containers
+        2. **Cleanup**: Remove stopped containers older than 1 hour
+        3. **Investigation**: Check recent test runs for cleanup failures
+        4. **Prevention**: Verify cleanup hooks in test infrastructure
+        EOF
+        
+        echo "Cleanup report generated:"
+        cat cleanup-report.md
+
+    - name: Perform automatic cleanup
+      if: steps.check-containers.outputs.needs_cleanup == 'true' || github.event.inputs.force_cleanup == 'true'
+      run: |
+        echo "Performing automatic cleanup..."
+        
+        # Stop running orphaned containers
+        RUNNING_ORPHANED=$(docker ps --filter "label=project=witchcityrope" -q)
+        if [ -n "$RUNNING_ORPHANED" ]; then
+          echo "Stopping running orphaned containers..."
+          docker stop $RUNNING_ORPHANED
+          echo "✅ Stopped orphaned containers"
+        fi
+        
+        # Remove containers older than 1 hour
+        echo "Removing old test containers..."
+        
+        # WitchCityRope containers
+        docker container prune -f --filter "label=project=witchcityrope"
+        
+        # TestContainers
+        docker container prune -f --filter "label=org.testcontainers"
+        
+        # Ryuk containers (these should auto-cleanup but sometimes don't)
+        docker container prune -f --filter "label=org.testcontainers.ryuk"
+        
+        # General container cleanup
+        docker container prune -f
+        
+        echo "✅ Automatic cleanup completed"
+
+    - name: Verify cleanup success
+      if: steps.check-containers.outputs.needs_cleanup == 'true' || github.event.inputs.force_cleanup == 'true'
+      run: |
+        echo "Verifying cleanup was successful..."
+        
+        # Re-check for remaining containers
+        REMAINING_WITCHCITY=$(docker ps -a --filter "label=project=witchcityrope" -q | wc -l)
+        REMAINING_TESTCONTAINERS=$(docker ps -a --filter "label=org.testcontainers" -q | wc -l)
+        REMAINING_RYUK=$(docker ps -a --filter "label=org.testcontainers.ryuk" -q | wc -l)
+        
+        echo "Remaining containers after cleanup:"
+        echo "  WitchCityRope: $REMAINING_WITCHCITY"
+        echo "  TestContainers: $REMAINING_TESTCONTAINERS"
+        echo "  Ryuk: $REMAINING_RYUK"
+        
+        TOTAL_REMAINING=$((REMAINING_WITCHCITY + REMAINING_TESTCONTAINERS + REMAINING_RYUK))
+        
+        if [ $TOTAL_REMAINING -eq 0 ]; then
+          echo "✅ Cleanup was successful - no orphaned containers remaining"
+        else
+          echo "⚠️  Warning: $TOTAL_REMAINING containers could not be cleaned up"
+          
+          # List what couldn't be cleaned
+          echo "Containers that couldn't be cleaned:"
+          docker ps -a --filter "label=project=witchcityrope" --format "{{.ID}}: {{.Names}} ({{.Status}})"
+          docker ps -a --filter "label=org.testcontainers" --format "{{.ID}}: {{.Names}} ({{.Status}})"
+        fi
+
+    - name: Clean up Docker system resources
+      if: steps.check-containers.outputs.needs_cleanup == 'true' || github.event.inputs.force_cleanup == 'true'
+      run: |
+        echo "Cleaning up Docker system resources..."
+        
+        # Remove unused volumes
+        echo "Removing unused volumes..."
+        docker volume prune -f
+        
+        # Remove unused networks
+        echo "Removing unused networks..."
+        docker network prune -f
+        
+        # Remove unused images (only dangling ones)
+        echo "Removing dangling images..."
+        docker image prune -f
+        
+        echo "Final system status:"
+        docker system df
+
+    - name: Upload cleanup report
+      if: steps.check-containers.outputs.needs_cleanup == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: cleanup-report-${{ github.run_id }}
+        path: cleanup-report.md
+
+    - name: Send Slack notification (if containers found)
+      if: steps.check-containers.outputs.needs_cleanup == 'true' && env.SLACK_WEBHOOK_URL != ''
+      run: |
+        # Send Slack notification about orphaned containers
+        curl -X POST -H 'Content-type: application/json' \
+          --data "{
+            \"text\": \"🚨 Orphaned Test Containers Detected\",
+            \"blocks\": [
+              {
+                \"type\": \"section\",
+                \"text\": {
+                  \"type\": \"mrkdwn\",
+                  \"text\": \"*Container Cleanup Alert*\n\nFound ${{ steps.check-containers.outputs.total_problematic }} orphaned test containers on GitHub Actions runner.\n\n*Breakdown:*\n• WitchCityRope: ${{ steps.check-containers.outputs.witchcity_count }}\n• TestContainers: ${{ steps.check-containers.outputs.testcontainers_count }}\n• Ryuk: ${{ steps.check-containers.outputs.ryuk_count }}\n• PostgreSQL: ${{ steps.check-containers.outputs.postgres_count }}\n\n*Action:* Automatic cleanup has been performed. Please check recent test runs for cleanup failures.\"
+                }
+              },
+              {
+                \"type\": \"actions\",
+                \"elements\": [
+                  {
+                    \"type\": \"button\",
+                    \"text\": {
+                      \"type\": \"plain_text\",
+                      \"text\": \"View Workflow Run\"
+                    },
+                    \"url\": \"https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+                  }
+                ]
+              }
+            ]
+          }" \
+          ${{ env.SLACK_WEBHOOK_URL }}
+
+    - name: Send success notification (if clean)
+      if: steps.check-containers.outputs.needs_cleanup == 'false' && github.event_name == 'workflow_dispatch'
+      run: |
+        echo "✅ No orphaned containers found - environment is clean!"
+        
+        if [ -n "${{ env.SLACK_WEBHOOK_URL }}" ]; then
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{
+              \"text\": \"✅ Container cleanup check passed - no orphaned containers found\"
+            }" \
+            ${{ env.SLACK_WEBHOOK_URL }}
+        fi
+
+    - name: Set up alerting for persistent issues
+      if: steps.check-containers.outputs.total_problematic > 5
+      run: |
+        echo "🚨 Critical: Found ${{ steps.check-containers.outputs.total_problematic }} orphaned containers"
+        echo "This suggests a systematic issue with test cleanup."
+        
+        # Create an issue if this is a scheduled run with many orphaned containers
+        if [ "${{ github.event_name }}" == "schedule" ]; then
+          echo "Consider creating a GitHub issue for investigation."
+          echo "Potential causes:"
+          echo "1. TestContainers cleanup hooks failing"
+          echo "2. Test processes being killed unexpectedly"
+          echo "3. Docker daemon issues during test runs"
+          echo "4. Resource exhaustion preventing cleanup"
+        fi
+
+  resource-monitoring:
+    name: Monitor Docker Resources
+    runs-on: ubuntu-latest
+    needs: cleanup-verification
+    if: always()
+    
+    steps:
+    - name: Check Docker resource usage
+      run: |
+        echo "Checking overall Docker resource usage..."
+        
+        # System overview
+        echo "Docker system info:"
+        docker system df
+        
+        # Available disk space
+        echo "Available disk space:"
+        df -h
+        
+        # Memory usage
+        echo "Memory usage:"
+        free -h
+        
+        # Running containers (all)
+        echo "All running containers:"
+        docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
+        
+        # Check for resource-intensive containers
+        echo "Resource usage of running containers:"
+        if [ $(docker ps -q | wc -l) -gt 0 ]; then
+          docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.PIDs}}"
+        else
+          echo "No running containers found"
+        fi
+
+    - name: Generate resource report
+      run: |
+        cat > resource-report.txt << EOF
+        # Docker Resource Report
+        Date: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+        Workflow: ${{ github.workflow }}
+        Run ID: ${{ github.run_id }}
+        
+        ## System Resources
+        $(docker system df)
+        
+        ## Disk Usage
+        $(df -h)
+        
+        ## Memory Usage
+        $(free -h)
+        
+        ## Running Containers
+        $(docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}")
+        EOF
+        
+        echo "Resource report generated"
+
+    - name: Upload resource report
+      uses: actions/upload-artifact@v4
+      with:
+        name: resource-report-${{ github.run_id }}
+        path: resource-report.txt

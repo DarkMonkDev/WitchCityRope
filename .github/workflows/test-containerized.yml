@@ -1,0 +1,405 @@
+name: Containerized Test Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+  NODE_VERSION: '20'
+
+jobs:
+  test-unit:
+    name: Unit Tests (Fast)
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.NUGET_PACKAGES }}
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build solution
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Run unit tests with coverage
+      run: |
+        dotnet test --no-build --configuration Release \
+          --filter "Category!=Integration&Category!=E2E" \
+          --logger "trx;LogFileName=unit-test-results.trx" \
+          --logger "console;verbosity=detailed" \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./TestResults \
+          -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+
+    - name: Upload unit test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: unit-test-results
+        path: |
+          TestResults/**/*.trx
+          TestResults/**/*.xml
+
+  test-integration:
+    name: Integration Tests (Containerized)
+    runs-on: ubuntu-latest
+    needs: test-unit
+    
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: witchcityrope_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: Test123!
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --label cleanup=automatic
+          --label project=witchcityrope
+          --label purpose=integration-testing
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.NUGET_PACKAGES }}
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build solution
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Wait for PostgreSQL
+      run: |
+        until pg_isready -h localhost -p 5432 -U test_user; do
+          echo "Waiting for PostgreSQL..."
+          sleep 2
+        done
+        echo "PostgreSQL is ready!"
+
+    - name: Verify database connectivity
+      run: |
+        PGPASSWORD=Test123! psql -h localhost -p 5432 -U test_user -d witchcityrope_test -c "SELECT version();"
+
+    - name: Run database migrations
+      env:
+        ConnectionStrings__DefaultConnection: Host=localhost;Port=5432;Database=witchcityrope_test;Username=test_user;Password=Test123!;Include Error Detail=true
+      run: |
+        cd apps/api
+        dotnet ef database update --no-build --configuration Release
+
+    - name: Seed test data
+      env:
+        ConnectionStrings__DefaultConnection: Host=localhost;Port=5432;Database=witchcityrope_test;Username=test_user;Password=Test123!;Include Error Detail=true
+      run: |
+        if [ -f "./scripts/seed-database-enhanced.sh" ]; then
+          chmod +x ./scripts/seed-database-enhanced.sh
+          ./scripts/seed-database-enhanced.sh test
+        else
+          echo "Seed script not found, skipping..."
+        fi
+
+    - name: Run containerized integration tests
+      env:
+        ConnectionStrings__DefaultConnection: Host=localhost;Port=5432;Database=witchcityrope_test;Username=test_user;Password=Test123!;Include Error Detail=true
+        TestContainers__UseExisting: "true"
+        TestContainers__PostgreSQLHost: "localhost"
+        TestContainers__PostgreSQLPort: "5432"
+      run: |
+        if [ -f "./scripts/run-integration-tests.sh" ]; then
+          chmod +x ./scripts/run-integration-tests.sh
+          ./scripts/run-integration-tests.sh --ci
+        else
+          # Fallback to direct dotnet test
+          dotnet test --no-build --configuration Release \
+            --filter "Category=Integration" \
+            --logger "trx;LogFileName=integration-test-results.trx" \
+            --logger "console;verbosity=detailed" \
+            --results-directory ./TestResults
+        fi
+
+    - name: Upload integration test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: integration-test-results
+        path: |
+          TestResults/**/*.trx
+          TestResults/**/*.xml
+
+    - name: Container cleanup verification
+      if: always()
+      run: |
+        echo "Checking for orphaned containers..."
+        ORPHANED=$(docker ps -a --filter "label=project=witchcityrope" --filter "status=exited" -q | wc -l)
+        RUNNING=$(docker ps --filter "label=project=witchcityrope" -q | wc -l)
+        
+        echo "Orphaned containers: $ORPHANED"
+        echo "Running containers: $RUNNING"
+        
+        if [ $ORPHANED -gt 1 ]; then
+          echo "Warning: Found $ORPHANED orphaned containers"
+          docker ps -a --filter "label=project=witchcityrope"
+          # Don't fail CI for orphaned containers, just warn
+        fi
+        
+        # Clean up any orphaned test containers
+        docker container prune -f --filter "label=project=witchcityrope"
+
+  test-e2e:
+    name: E2E Tests (Containerized)
+    runs-on: ubuntu-latest
+    needs: test-integration
+    
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: witchcityrope_e2e
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: Test123!
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --label cleanup=automatic
+          --label project=witchcityrope
+          --label purpose=e2e-testing
+        ports:
+          - 5433:5432
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.NUGET_PACKAGES }}
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Cache Node modules
+      uses: actions/cache@v4
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install dependencies
+      run: |
+        dotnet restore
+        npm ci
+
+    - name: Build solution
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Build React application
+      run: npm run build
+
+    - name: Wait for PostgreSQL (E2E)
+      run: |
+        until pg_isready -h localhost -p 5433 -U test_user; do
+          echo "Waiting for PostgreSQL E2E..."
+          sleep 2
+        done
+        echo "PostgreSQL E2E is ready!"
+
+    - name: Setup E2E database
+      env:
+        ConnectionStrings__DefaultConnection: Host=localhost;Port=5433;Database=witchcityrope_e2e;Username=test_user;Password=Test123!;Include Error Detail=true
+      run: |
+        cd apps/api
+        dotnet ef database update --no-build --configuration Release
+
+    - name: Seed E2E test data
+      env:
+        ConnectionStrings__DefaultConnection: Host=localhost;Port=5433;Database=witchcityrope_e2e;Username=test_user;Password=Test123!;Include Error Detail=true
+      run: |
+        if [ -f "./scripts/seed-database-enhanced.sh" ]; then
+          chmod +x ./scripts/seed-database-enhanced.sh
+          ./scripts/seed-database-enhanced.sh test
+        fi
+
+    - name: Start API service
+      env:
+        ConnectionStrings__DefaultConnection: Host=localhost;Port=5433;Database=witchcityrope_e2e;Username=test_user;Password=Test123!;Include Error Detail=true
+        ASPNETCORE_ENVIRONMENT: Testing
+        ASPNETCORE_URLS: http://localhost:5653
+      run: |
+        cd apps/api
+        dotnet run --no-build --configuration Release &
+        
+        # Wait for API to be ready
+        echo "Waiting for API to start..."
+        for i in {1..30}; do
+          if curl -f http://localhost:5653/health > /dev/null 2>&1; then
+            echo "API is ready!"
+            break
+          fi
+          echo "Attempt $i: API not ready yet..."
+          sleep 2
+        done
+
+    - name: Start Web application
+      env:
+        VITE_API_BASE_URL: http://localhost:5653
+        NODE_ENV: test
+      run: |
+        cd apps/web
+        npm run preview &
+        
+        # Wait for Web app to be ready
+        echo "Waiting for Web app to start..."
+        for i in {1..30}; do
+          if curl -f http://localhost:4173 > /dev/null 2>&1; then
+            echo "Web app is ready!"
+            break
+          fi
+          echo "Attempt $i: Web app not ready yet..."
+          sleep 2
+        done
+
+    - name: Install Playwright browsers
+      run: npx playwright install --with-deps
+
+    - name: Run E2E tests
+      env:
+        BASE_URL: http://localhost:4173
+        API_BASE_URL: http://localhost:5653
+      run: |
+        if [ -f "./scripts/run-e2e-tests.sh" ]; then
+          chmod +x ./scripts/run-e2e-tests.sh
+          ./scripts/run-e2e-tests.sh --ci
+        else
+          # Fallback to npm script
+          npm run test:e2e:playwright
+        fi
+
+    - name: Upload E2E test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: e2e-test-results
+        path: |
+          tests/e2e/test-results/
+          tests/e2e/playwright-report/
+          apps/web/test-results/
+
+    - name: Upload screenshots on failure
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: e2e-screenshots
+        path: |
+          tests/e2e/test-results/
+          apps/web/test-results/
+
+    - name: Container cleanup verification (E2E)
+      if: always()
+      run: |
+        echo "Checking for orphaned containers after E2E..."
+        ORPHANED=$(docker ps -a --filter "label=project=witchcityrope" --filter "status=exited" -q | wc -l)
+        
+        if [ $ORPHANED -gt 1 ]; then
+          echo "Warning: Found $ORPHANED orphaned containers"
+          docker ps -a --filter "label=project=witchcityrope"
+        fi
+        
+        # Clean up any orphaned test containers
+        docker container prune -f --filter "label=project=witchcityrope"
+
+  build-status:
+    name: Build Status
+    runs-on: ubuntu-latest
+    needs: [test-unit, test-integration, test-e2e]
+    if: always()
+    
+    steps:
+    - name: Check build status
+      run: |
+        echo "Unit Tests: ${{ needs.test-unit.result }}"
+        echo "Integration Tests: ${{ needs.test-integration.result }}"
+        echo "E2E Tests: ${{ needs.test-e2e.result }}"
+        
+        if [[ "${{ needs.test-unit.result }}" == "failure" ]]; then
+          echo "❌ Unit tests failed"
+          exit 1
+        elif [[ "${{ needs.test-integration.result }}" == "failure" ]]; then
+          echo "❌ Integration tests failed"
+          exit 1
+        elif [[ "${{ needs.test-e2e.result }}" == "failure" ]]; then
+          echo "❌ E2E tests failed"
+          exit 1
+        else
+          echo "✅ All tests passed!"
+        fi
+
+    - name: Final cleanup check
+      run: |
+        echo "Performing final container cleanup check..."
+        REMAINING=$(docker ps -a --filter "label=project=witchcityrope" -q | wc -l)
+        
+        if [ $REMAINING -gt 0 ]; then
+          echo "Found $REMAINING remaining containers with witchcityrope label"
+          docker ps -a --filter "label=project=witchcityrope"
+          
+          # Force cleanup
+          docker stop $(docker ps -q --filter "label=project=witchcityrope") 2>/dev/null || true
+          docker rm $(docker ps -aq --filter "label=project=witchcityrope") 2>/dev/null || true
+        else
+          echo "✅ No orphaned containers found"
+        fi

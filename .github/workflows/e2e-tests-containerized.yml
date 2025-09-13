@@ -1,0 +1,413 @@
+name: E2E Tests (Containerized)
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'apps/**'
+      - 'tests/e2e/**'
+      - 'packages/**'
+      - '.github/workflows/e2e-tests-containerized.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'apps/**'
+      - 'tests/e2e/**'
+      - 'packages/**'
+      - '.github/workflows/e2e-tests-containerized.yml'
+  workflow_dispatch:
+    inputs:
+      browser:
+        description: 'Browser to test (chromium, firefox, webkit, all)'
+        required: false
+        default: 'chromium'
+        type: choice
+        options:
+          - 'chromium'
+          - 'firefox'
+          - 'webkit'
+          - 'all'
+      headless:
+        description: 'Run in headless mode'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  NODE_VERSION: '20'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+
+jobs:
+  e2e-tests:
+    name: E2E Tests - ${{ matrix.browser }}
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        browser: 
+          - ${{ github.event.inputs.browser == 'all' && 'chromium' || github.event.inputs.browser || 'chromium' }}
+          - ${{ github.event.inputs.browser == 'all' && 'firefox' || '' }}
+          - ${{ github.event.inputs.browser == 'all' && 'webkit' || '' }}
+      fail-fast: false
+    
+    # Skip empty matrix items
+    if: ${{ matrix.browser != '' }}
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: witchcityrope_e2e
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: Test123!
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --label cleanup=automatic
+          --label project=witchcityrope
+          --label purpose=e2e-testing
+          --label browser=${{ matrix.browser }}
+        ports:
+          - 5433:5432
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.NUGET_PACKAGES }}
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Cache Node modules
+      uses: actions/cache@v4
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install dependencies
+      run: |
+        dotnet restore
+        npm ci
+
+    - name: Build .NET solution
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Build React applications
+      run: |
+        # Build shared types first
+        npm run generate:types
+        
+        # Build React web application
+        npm run build
+
+    - name: Wait for PostgreSQL
+      run: |
+        echo "Waiting for PostgreSQL to be ready..."
+        until pg_isready -h localhost -p 5433 -U test_user; do
+          echo "PostgreSQL not ready yet..."
+          sleep 2
+        done
+        echo "✅ PostgreSQL is ready!"
+
+    - name: Setup E2E database
+      env:
+        ConnectionStrings__DefaultConnection: Host=localhost;Port=5433;Database=witchcityrope_e2e;Username=test_user;Password=Test123!;Include Error Detail=true
+      run: |
+        echo "Setting up E2E database..."
+        
+        # Apply migrations
+        cd apps/api
+        dotnet ef database update --no-build --configuration Release
+        
+        echo "✅ Database migrations applied"
+
+    - name: Seed E2E test data
+      env:
+        ConnectionStrings__DefaultConnection: Host=localhost;Port=5433;Database=witchcityrope_e2e;Username=test_user;Password=Test123!;Include Error Detail=true
+      run: |
+        echo "Seeding E2E test data..."
+        
+        if [ -f "./scripts/seed-database-enhanced.sh" ]; then
+          chmod +x ./scripts/seed-database-enhanced.sh
+          ./scripts/seed-database-enhanced.sh test
+          echo "✅ Test data seeded"
+        else
+          echo "⚠️  Seed script not found, continuing without seeding..."
+        fi
+
+    - name: Start API service
+      env:
+        ConnectionStrings__DefaultConnection: Host=localhost;Port=5433;Database=witchcityrope_e2e;Username=test_user;Password=Test123!;Include Error Detail=true
+        ASPNETCORE_ENVIRONMENT: Testing
+        ASPNETCORE_URLS: http://localhost:5653
+      run: |
+        echo "Starting API service..."
+        
+        cd apps/api
+        dotnet run --no-build --configuration Release &
+        API_PID=$!
+        
+        echo "API_PID=$API_PID" >> $GITHUB_ENV
+        
+        # Wait for API to be ready with timeout
+        echo "Waiting for API to start..."
+        timeout=60
+        counter=0
+        
+        while [ $counter -lt $timeout ]; do
+          if curl -f -s http://localhost:5653/health > /dev/null 2>&1; then
+            echo "✅ API is ready at http://localhost:5653"
+            break
+          fi
+          
+          echo "Attempt $((counter + 1))/$timeout: API not ready yet..."
+          sleep 2
+          counter=$((counter + 2))
+        done
+        
+        if [ $counter -ge $timeout ]; then
+          echo "❌ API failed to start within ${timeout}s"
+          exit 1
+        fi
+
+    - name: Start Web application
+      env:
+        VITE_API_BASE_URL: http://localhost:5653
+        NODE_ENV: test
+      run: |
+        echo "Starting Web application..."
+        
+        cd apps/web
+        npm run preview -- --port 4173 --host 0.0.0.0 &
+        WEB_PID=$!
+        
+        echo "WEB_PID=$WEB_PID" >> $GITHUB_ENV
+        
+        # Wait for Web app to be ready with timeout
+        echo "Waiting for Web app to start..."
+        timeout=60
+        counter=0
+        
+        while [ $counter -lt $timeout ]; do
+          if curl -f -s http://localhost:4173 > /dev/null 2>&1; then
+            echo "✅ Web app is ready at http://localhost:4173"
+            break
+          fi
+          
+          echo "Attempt $((counter + 1))/$timeout: Web app not ready yet..."
+          sleep 2
+          counter=$((counter + 2))
+        done
+        
+        if [ $counter -ge $timeout ]; then
+          echo "❌ Web app failed to start within ${timeout}s"
+          exit 1
+        fi
+
+    - name: Install Playwright browsers
+      run: |
+        echo "Installing Playwright browsers for: ${{ matrix.browser }}"
+        
+        if [ "${{ matrix.browser }}" == "all" ]; then
+          npx playwright install --with-deps
+        else
+          npx playwright install --with-deps ${{ matrix.browser }}
+        fi
+
+    - name: Verify test environment
+      run: |
+        echo "Verifying test environment..."
+        
+        # Test API health
+        echo "API Health Check:"
+        curl -f http://localhost:5653/health || (echo "❌ API health check failed" && exit 1)
+        
+        # Test Web app
+        echo "Web App Check:"
+        curl -f http://localhost:4173 > /dev/null || (echo "❌ Web app check failed" && exit 1)
+        
+        # Test database connectivity
+        echo "Database Check:"
+        PGPASSWORD=Test123! psql -h localhost -p 5433 -U test_user -d witchcityrope_e2e -c "SELECT COUNT(*) FROM __EFMigrationsHistory;" || (echo "❌ Database check failed" && exit 1)
+        
+        echo "✅ All environment checks passed"
+
+    - name: Run E2E tests
+      env:
+        BASE_URL: http://localhost:4173
+        API_BASE_URL: http://localhost:5653
+        CI: true
+        HEADLESS: ${{ github.event.inputs.headless || 'true' }}
+        BROWSER: ${{ matrix.browser }}
+        PWTEST_HTML_REPORT: playwright-report-${{ matrix.browser }}
+      run: |
+        echo "Running E2E tests with browser: ${{ matrix.browser }}"
+        
+        # Create test results directory
+        mkdir -p test-results-${{ matrix.browser }}
+        
+        if [ -f "./scripts/run-e2e-tests.sh" ]; then
+          echo "Using custom E2E test script..."
+          chmod +x ./scripts/run-e2e-tests.sh
+          ./scripts/run-e2e-tests.sh --browser ${{ matrix.browser }} --ci --headless=${{ env.HEADLESS }}
+        else
+          echo "Using npm E2E test script..."
+          
+          # Run E2E tests with Playwright
+          cd apps/web
+          npm run test:e2e -- \
+            --project=${{ matrix.browser }} \
+            --reporter=html,line \
+            --output-dir=../../test-results-${{ matrix.browser }}
+        fi
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: e2e-test-results-${{ matrix.browser }}
+        path: |
+          test-results-${{ matrix.browser }}/
+          playwright-report-${{ matrix.browser }}/
+          apps/web/test-results/
+          tests/e2e/test-results/
+
+    - name: Upload screenshots on failure
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: e2e-screenshots-${{ matrix.browser }}
+        path: |
+          test-results-${{ matrix.browser }}/**/*.png
+          test-results-${{ matrix.browser }}/**/*.webm
+          apps/web/test-results/**/*.png
+          apps/web/test-results/**/*.webm
+
+    - name: Collect application logs
+      if: failure()
+      run: |
+        echo "Collecting application logs for debugging..."
+        
+        mkdir -p application-logs
+        
+        # Collect API logs (if available)
+        if [ -n "$API_PID" ]; then
+          echo "API process still running: $API_PID"
+          # API logs would be in stdout/stderr, already captured by GitHub Actions
+        fi
+        
+        # Collect Web app logs (if available)
+        if [ -n "$WEB_PID" ]; then
+          echo "Web process still running: $WEB_PID"
+          # Web logs would be in stdout/stderr, already captured by GitHub Actions
+        fi
+        
+        # Collect database logs if needed
+        docker logs $(docker ps --filter "label=project=witchcityrope" -q) > application-logs/database.log 2>&1 || echo "No database logs available"
+
+    - name: Upload application logs
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: application-logs-${{ matrix.browser }}
+        path: application-logs/
+
+    - name: Cleanup processes
+      if: always()
+      run: |
+        echo "Cleaning up processes..."
+        
+        # Stop API process
+        if [ -n "$API_PID" ]; then
+          kill $API_PID 2>/dev/null || true
+          echo "API process stopped"
+        fi
+        
+        # Stop Web process
+        if [ -n "$WEB_PID" ]; then
+          kill $WEB_PID 2>/dev/null || true
+          echo "Web process stopped"
+        fi
+        
+        # Kill any remaining processes on our ports
+        fuser -k 5653/tcp 2>/dev/null || true
+        fuser -k 4173/tcp 2>/dev/null || true
+
+    - name: Container cleanup verification
+      if: always()
+      run: |
+        echo "Verifying container cleanup..."
+        
+        POSTGRES_CONTAINERS=$(docker ps -a --filter "label=project=witchcityrope" --filter "label=purpose=e2e-testing" -q | wc -l)
+        echo "PostgreSQL E2E containers: $POSTGRES_CONTAINERS"
+        
+        if [ $POSTGRES_CONTAINERS -gt 1 ]; then
+          echo "⚠️  Warning: Found extra E2E containers"
+          docker ps -a --filter "label=project=witchcityrope" --filter "label=purpose=e2e-testing"
+        fi
+        
+        # Clean up any test containers
+        docker container prune -f --filter "label=project=witchcityrope" --filter "label=purpose=e2e-testing"
+        echo "✅ Container cleanup completed"
+
+  e2e-summary:
+    name: E2E Test Summary
+    runs-on: ubuntu-latest
+    needs: e2e-tests
+    if: always()
+    
+    steps:
+    - name: Check E2E results
+      run: |
+        echo "E2E Tests Status: ${{ needs.e2e-tests.result }}"
+        
+        if [[ "${{ needs.e2e-tests.result }}" == "failure" ]]; then
+          echo "❌ E2E tests failed"
+          exit 1
+        elif [[ "${{ needs.e2e-tests.result }}" == "cancelled" ]]; then
+          echo "⚠️  E2E tests were cancelled"
+          exit 1
+        else
+          echo "✅ All E2E tests passed!"
+        fi
+
+    - name: Final cleanup check
+      run: |
+        echo "Performing final cleanup check..."
+        
+        # Check for any remaining E2E containers
+        E2E_CONTAINERS=$(docker ps -a --filter "label=project=witchcityrope" --filter "label=purpose=e2e-testing" -q | wc -l)
+        
+        if [ $E2E_CONTAINERS -gt 0 ]; then
+          echo "Found $E2E_CONTAINERS remaining E2E containers"
+          docker ps -a --filter "label=project=witchcityrope" --filter "label=purpose=e2e-testing"
+          
+          # Force cleanup
+          docker stop $(docker ps -q --filter "label=project=witchcityrope" --filter "label=purpose=e2e-testing") 2>/dev/null || true
+          docker rm $(docker ps -aq --filter "label=project=witchcityrope" --filter "label=purpose=e2e-testing") 2>/dev/null || true
+        else
+          echo "✅ No remaining E2E containers found"
+        fi
