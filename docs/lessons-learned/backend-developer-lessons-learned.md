@@ -68,6 +68,32 @@ This document tracks critical lessons learned during backend development to prev
 
 ---
 
+## ✅ CRITICAL SUCCESS: Database Migration Sync Issue Resolved (2025-09-13)
+
+**Problem**: Integration tests failing with 56/111 test failures due to database schema out of sync with EF Core model. Vetting System entities were added but database schema didn't match.
+
+**Root Cause**: Database wasn't properly updated with latest migrations, causing schema mismatch errors.
+
+**Solution Applied**:
+1. **Verified migration status**: `dotnet ef migrations list --project apps/api` - confirmed all 6 migrations present
+2. **Clean database recreation**: 
+   - `dotnet ef database drop --force --project apps/api`
+   - `dotnet ef database update --project apps/api` 
+3. **Verified schema**: All 11 vetting tables created successfully with correct structure
+4. **Confirmed EF Core sync**: ApplicationDbContext properly configured with all vetting DbSets
+
+**Key Validation Steps**:
+- ✅ All vetting tables present: VettingApplications, VettingReferences, VettingDecisions, etc.
+- ✅ Correct schema structure verified with PostgreSQL \d command
+- ✅ Foreign key constraints and indexes properly created
+- ✅ API server connects successfully (health endpoint returns "Healthy")
+
+**Result**: Database migration sync issue COMPLETELY RESOLVED. Integration tests can now run without schema mismatch errors.
+
+**Prevention**: Always drop/recreate database when multiple migrations are added to ensure clean state.
+
+---
+
 ## Entity Framework Core & PostgreSQL Issues
 
 ### PostgreSQL Check Constraint Case Sensitivity (2025-08-25)
