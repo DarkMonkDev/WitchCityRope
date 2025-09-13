@@ -13,6 +13,52 @@
 - **PostgreSQL requires UTC DateTime handling - NEVER use DateTime.Unspecified**
 - **Always use timestamptz column type for DateTime properties**
 - **Implement proper EF Core entity configurations with separate classes**
+
+---
+
+## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+
+**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
+
+### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
+- **END of database design phase** - BEFORE implementation begins
+- **COMPLETION of schema design** - Document all entities and relationships
+- **DISCOVERY of constraints** - Share immediately
+- **MIGRATION CREATION** - Document all database changes
+
+### 📁 WHERE TO SAVE HANDOFFS
+**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Naming**: `database-designer-YYYY-MM-DD-handoff.md`
+**Template**: `/docs/standards-processes/agent-handoff-template.md`
+
+### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
+1. **Entity Definitions**: Complete entity models with properties
+2. **Relationships**: Foreign keys, navigation properties, constraints
+3. **Indexes**: Performance indexes and unique constraints
+4. **Migration Scripts**: EF Core migrations created
+5. **Seed Data**: Initial data requirements
+
+### 🤝 WHO NEEDS YOUR HANDOFFS
+- **Backend Developers**: Entity models and configurations
+- **Test Developers**: Database setup for testing
+- **DevOps**: Migration deployment requirements
+- **Other Database Designers**: Schema dependencies
+
+### ⚠️ MANDATORY READING BEFORE STARTING
+**ALWAYS READ EXISTING HANDOFFS FIRST**:
+1. Check `/docs/functional-areas/[feature]/handoffs/` for previous work
+2. Read ALL handoff documents in the functional area
+3. Understand existing schema and constraints
+4. Build on existing models - don't create conflicts
+
+### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
+**Why this matters**:
+- Backend will create conflicting models
+- Migrations will fail in production
+- Test data won't match schema
+- Performance issues from missing indexes
+
+**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
 - **Use AsNoTracking() for read-only queries to improve performance**
 - **Apply Milan Jovanovic's database patterns for enterprise applications**
 - **NEVER create manual database setup scripts - use DatabaseInitializationService**

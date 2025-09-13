@@ -2,6 +2,51 @@
 <!-- Last Updated: 2025-08-23 -->
 <!-- Next Review: 2025-09-23 -->
 
+## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+
+**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
+
+### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
+- **END of git operations** - Document branch state
+- **COMPLETION of merges** - Document merge decisions
+- **BRANCH CREATION** - Document branch purpose
+- **CONFLICT RESOLUTION** - Document resolution choices
+
+### 📁 WHERE TO SAVE HANDOFFS
+**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Naming**: `git-manager-YYYY-MM-DD-handoff.md`
+**Template**: `/docs/standards-processes/agent-handoff-template.md`
+
+### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
+1. **Branch Status**: Current branch and state
+2. **Commit History**: Key commits made
+3. **Merge Status**: Any merges performed
+4. **Conflicts**: Resolution decisions made
+5. **Next Steps**: Required git operations
+
+### 🤝 WHO NEEDS YOUR HANDOFFS
+- **All Developers**: Branch and merge status
+- **Orchestrator**: Workflow branch tracking
+- **DevOps**: Deployment branch readiness
+- **Other Git Managers**: Continuity of operations
+
+### ⚠️ MANDATORY READING BEFORE STARTING
+**ALWAYS READ EXISTING HANDOFFS FIRST**:
+1. Check `/docs/functional-areas/[feature]/handoffs/` for git status
+2. Understand current branch strategy
+3. Review recent merge history
+4. Continue existing git workflow
+
+### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
+**Why this matters**:
+- Work gets lost in wrong branches
+- Merge conflicts multiply
+- Deployment fails from wrong branch
+- History becomes unclear
+
+**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
+
+---
 
 ## 🚨 CRITICAL: Repository Branch Structure Reality Check (AUGUST 2025) ✅
 

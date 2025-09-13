@@ -107,6 +107,21 @@ All agents located in `/.claude/agents/`:
 **Human Reviews**: After requirements, after first vertical slice
 **Details**: See `/docs/functional-areas/ai-workflow-orchstration/`
 
+### 🚨 MANDATORY: Agent Handoff Documentation System
+**CRITICAL**: All agents MUST create and read handoff documents between phases.
+
+**Handoff Process Document**: `/docs/standards-processes/workflow-orchestration-process.md`
+**Handoff Template**: `/docs/standards-processes/agent-handoff-template.md`
+
+**Orchestrator Enforcement**:
+1. **VERIFY** handoff documents exist before phase transitions
+2. **REQUIRE** agents to read handoffs in delegation prompts
+3. **CHECK** `/docs/functional-areas/[feature]/handoffs/` for documents
+4. **BLOCK** workflow if handoffs are missing
+
+**All 15 agents have mandatory handoff instructions** in their lessons learned files.
+Failure to create/read handoffs = implementation failures.
+
 
 > 📚 **DOCUMENTATION STRUCTURE** 📚
 > 

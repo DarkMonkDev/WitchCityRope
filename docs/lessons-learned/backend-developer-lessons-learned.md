@@ -22,6 +22,52 @@ This document tracks critical lessons learned during backend development to prev
 
 ---
 
+## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+
+**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
+
+### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
+- **END of your work phase** - BEFORE ending session
+- **COMPLETION of backend API work** - Document endpoints and contracts
+- **DISCOVERY of important backend issues** - Share immediately
+- **DATABASE SCHEMA CHANGES** - Document migrations and model updates
+
+### 📁 WHERE TO SAVE HANDOFFS
+**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Naming**: `backend-developer-YYYY-MM-DD-handoff.md`
+**Template**: `/docs/standards-processes/agent-handoff-template.md`
+
+### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
+1. **API Endpoints**: New/modified endpoints with contracts
+2. **Database Changes**: Schema updates, migrations, constraints
+3. **Business Logic**: Validation rules and domain logic implemented
+4. **Integration Points**: External services and dependencies
+5. **Testing Requirements**: API test needs and data setup
+
+### 🤝 WHO NEEDS YOUR HANDOFFS
+- **React Developers**: API contracts and data shapes
+- **Test Developers**: API test requirements and endpoints
+- **Database Designers**: Schema impacts and constraints
+- **DevOps**: Deployment and configuration changes
+
+### ⚠️ MANDATORY READING BEFORE STARTING
+**ALWAYS READ EXISTING HANDOFFS FIRST**:
+1. Check `/docs/functional-areas/[feature]/handoffs/` for previous agent work
+2. Read ALL handoff documents in the functional area
+3. Understand API patterns already established
+4. Build on existing work - don't create conflicting endpoints
+
+### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
+**Why this matters**:
+- Frontend developers will create wrong API calls
+- Critical business rules get lost
+- Database constraints become inconsistent
+- API contracts conflict and break integration
+
+**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
+
+---
+
 ## Entity Framework Core & PostgreSQL Issues
 
 ### PostgreSQL Check Constraint Case Sensitivity (2025-08-25)

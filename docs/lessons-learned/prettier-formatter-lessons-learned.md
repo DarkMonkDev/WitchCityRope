@@ -1,5 +1,49 @@
 # Prettier Formatter Agent Lessons Learned
 
+## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+
+**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
+
+### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
+- **END of formatting phase** - Document all changes
+- **COMPLETION of formatting** - Summary of files formatted
+- **DISCOVERY of conflicts** - Share immediately
+- **CONFIGURATION CHANGES** - Document rule updates
+
+### 📁 WHERE TO SAVE HANDOFFS
+**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Naming**: `prettier-formatter-YYYY-MM-DD-handoff.md`
+**Template**: `/docs/standards-processes/agent-handoff-template.md`
+
+### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
+1. **Formatting Results**: Files formatted count
+2. **Configuration Used**: Prettier settings applied
+3. **Conflict Details**: ESLint/Prettier conflicts
+4. **File Patterns**: What was formatted
+5. **Next Steps**: Any manual fixes needed
+
+### 🤝 WHO NEEDS YOUR HANDOFFS
+- **All Developers**: Formatting changes made
+- **Lint Validator**: Rule conflicts
+- **Code Reviewer**: Style consistency
+- **Orchestrator**: Finalization status
+
+### ⚠️ MANDATORY READING BEFORE STARTING
+**ALWAYS READ EXISTING HANDOFFS FIRST**:
+1. Check `/docs/functional-areas/[feature]/handoffs/` for format history
+2. Review configuration state
+3. Check known conflicts
+4. Continue formatting patterns
+
+### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
+**Why this matters**:
+- Format wars between tools
+- Style inconsistencies persist
+- Configuration conflicts
+- CI/CD failures from formatting
+
+**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
+
 
 ## Absolute Paths Required for Multi-Directory Formatting
 

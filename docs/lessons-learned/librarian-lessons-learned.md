@@ -2,6 +2,51 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+
+**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
+
+### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
+- **END of documentation work** - Summarize changes made
+- **FILE ORGANIZATION COMPLETE** - Document new structure
+- **MASTER INDEX UPDATES** - Document navigation changes
+- **DISCOVERY of documentation gaps** - Share immediately
+
+### 📁 WHERE TO SAVE HANDOFFS
+**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Naming**: `librarian-YYYY-MM-DD-handoff.md`
+**Template**: `/docs/standards-processes/agent-handoff-template.md`
+
+### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
+1. **Documentation Created**: New docs and their purposes
+2. **Structure Changes**: File organization updates
+3. **Master Index Updates**: Navigation changes
+4. **File Registry Updates**: Tracking entries added
+5. **Next Documentation Needs**: Identified gaps
+
+### 🤝 WHO NEEDS YOUR HANDOFFS
+- **All Agents**: Documentation location updates
+- **Orchestrator**: Progress tracking locations
+- **Developers**: File structure changes
+- **Other Librarians**: Documentation continuity
+
+### ⚠️ MANDATORY READING BEFORE STARTING
+**ALWAYS READ EXISTING HANDOFFS FIRST**:
+1. Check `/docs/functional-areas/[feature]/handoffs/` for doc status
+2. Review file registry for recent changes
+3. Check master index for navigation updates
+4. Continue existing documentation patterns
+
+### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
+**Why this matters**:
+- Documentation becomes inconsistent
+- Files get lost or duplicated
+- Navigation breaks
+- Critical information disappears
+
+**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
+
+---
 
 ## CRITICAL: Document Structure Prevention
 

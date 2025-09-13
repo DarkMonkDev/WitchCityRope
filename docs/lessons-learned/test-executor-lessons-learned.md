@@ -4,6 +4,50 @@
 <!-- Owner: Test Team -->
 <!-- Status: Active -->
 
+## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+
+**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
+
+### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
+- **END of test execution** - Document results and failures
+- **COMPLETION of test runs** - Summary of all tests
+- **DISCOVERY of test failures** - Share immediately
+- **INFRASTRUCTURE SETUP** - Document configuration
+
+### 📁 WHERE TO SAVE HANDOFFS
+**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Naming**: `test-executor-YYYY-MM-DD-handoff.md`
+**Template**: `/docs/standards-processes/agent-handoff-template.md`
+
+### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
+1. **Test Results**: Pass/fail status and metrics
+2. **Failure Details**: Specific errors and stack traces
+3. **Infrastructure State**: Docker, database, services
+4. **Configuration Used**: Environment and settings
+5. **Next Steps**: Required fixes or retests
+
+### 🤝 WHO NEEDS YOUR HANDOFFS
+- **Backend Developers**: API test failures
+- **React Developers**: UI test failures
+- **Test Developers**: Test suite issues
+- **DevOps**: Infrastructure problems
+
+### ⚠️ MANDATORY READING BEFORE STARTING
+**ALWAYS READ EXISTING HANDOFFS FIRST**:
+1. Check `/docs/functional-areas/[feature]/handoffs/` for test history
+2. Review previous test results
+3. Understand known failures
+4. Continue test execution patterns
+
+### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
+**Why this matters**:
+- Developers don't know what failed
+- Same tests fail repeatedly
+- Infrastructure issues persist
+- Test coverage gaps remain
+
+**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
+
 ## 🚨 CRITICAL: Compilation Check is Mandatory First Step
 
 **Problem**: Running tests without checking compilation leads to misleading failures.

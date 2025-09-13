@@ -1,5 +1,50 @@
 # Functional Specification Lessons Learned
 
+## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+
+**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
+
+### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
+- **END of functional spec phase** - BEFORE implementation begins
+- **COMPLETION of technical specifications** - Document all decisions
+- **DISCOVERY of technical constraints** - Share immediately
+- **API CONTRACT FINALIZATION** - Document all endpoints
+
+### 📁 WHERE TO SAVE HANDOFFS
+**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Naming**: `functional-spec-YYYY-MM-DD-handoff.md`
+**Template**: `/docs/standards-processes/agent-handoff-template.md`
+
+### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
+1. **Technical Decisions**: Architecture choices and patterns
+2. **API Contracts**: Complete endpoint specifications
+3. **Data Models**: DTOs and domain models
+4. **Integration Points**: External services and dependencies
+5. **Performance Requirements**: SLAs and constraints
+
+### 🤝 WHO NEEDS YOUR HANDOFFS
+- **Backend Developers**: Technical implementation specs
+- **React Developers**: API contracts and data models
+- **Test Developers**: Technical test requirements
+- **Database Designers**: Data model requirements
+
+### ⚠️ MANDATORY READING BEFORE STARTING
+**ALWAYS READ EXISTING HANDOFFS FIRST**:
+1. Check `/docs/functional-areas/[feature]/handoffs/` for previous work
+2. Read business requirements handoff FIRST
+3. Understand technical decisions already made
+4. Build on existing specs - don't contradict decisions
+
+### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
+**Why this matters**:
+- Implementation will miss technical requirements
+- API contracts will be wrong
+- Performance requirements get ignored
+- Integration points fail
+
+**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
+
+---
 
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 

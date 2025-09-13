@@ -1,5 +1,51 @@
 # UI Designer Lessons Learned
 
+## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+
+**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
+
+### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
+- **END of UI design phase** - BEFORE implementation begins
+- **COMPLETION of wireframes** - Document design decisions
+- **APPROVAL from stakeholders** - Document approved designs
+- **DISCOVERY of UX constraints** - Share immediately
+
+### 📁 WHERE TO SAVE HANDOFFS
+**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Naming**: `ui-designer-YYYY-MM-DD-handoff.md`
+**Template**: `/docs/standards-processes/agent-handoff-template.md`
+
+### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
+1. **Design Decisions**: Component choices and patterns
+2. **Wireframe Locations**: Paths to all mockups
+3. **Mantine Components**: Specific components to use
+4. **Interaction Patterns**: User flows and behaviors
+5. **Responsive Breakpoints**: Mobile/tablet/desktop specs
+
+### 🤝 WHO NEEDS YOUR HANDOFFS
+- **React Developers**: Component specifications
+- **Functional Spec Agents**: Design requirements
+- **Test Developers**: UI test scenarios
+- **Other UI Designers**: Design system consistency
+
+### ⚠️ MANDATORY READING BEFORE STARTING
+**ALWAYS READ EXISTING HANDOFFS FIRST**:
+1. Check `/docs/functional-areas/[feature]/handoffs/` for requirements
+2. Read business requirements handoff FIRST
+3. Review existing wireframes and patterns
+4. Maintain design system consistency
+
+### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
+**Why this matters**:
+- Developers implement wrong designs
+- Components don't match wireframes
+- UX patterns become inconsistent
+- Mobile experience breaks
+
+**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
+
+---
+
 ## Design System v7 Implementation - August 2025
 
 ### CRITICAL: Design System v7 Color Enforcement

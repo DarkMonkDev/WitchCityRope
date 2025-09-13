@@ -1,5 +1,49 @@
 # Technology Researcher Lessons Learned
 
+## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+
+**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
+
+### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
+- **END of research phase** - Document findings and recommendations
+- **COMPLETION of evaluation** - Summary of technology decisions
+- **DISCOVERY of constraints** - Share immediately
+- **ARCHITECTURE DECISIONS** - Document choices made
+
+### 📁 WHERE TO SAVE HANDOFFS
+**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Naming**: `technology-researcher-YYYY-MM-DD-handoff.md`
+**Template**: `/docs/standards-processes/agent-handoff-template.md`
+
+### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
+1. **Research Findings**: Technology evaluations completed
+2. **Recommendations**: Chosen technologies and why
+3. **Decision Matrix**: Comparison of options
+4. **Constraints Discovered**: Limitations found
+5. **Implementation Guidance**: How to use chosen tech
+
+### 🤝 WHO NEEDS YOUR HANDOFFS
+- **All Developers**: Technology choices
+- **Orchestrator**: Architecture decisions
+- **Functional Spec**: Technical constraints
+- **UI Designers**: Frontend technology impacts
+
+### ⚠️ MANDATORY READING BEFORE STARTING
+**ALWAYS READ EXISTING HANDOFFS FIRST**:
+1. Check `/docs/functional-areas/[feature]/handoffs/` for tech decisions
+2. Review existing research documents
+3. Check architecture constraints
+4. Build on previous evaluations
+
+### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
+**Why this matters**:
+- Wrong technology choices
+- Conflicting implementations
+- Missed constraints cause failures
+- Architecture becomes inconsistent
+
+**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
+
 
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 

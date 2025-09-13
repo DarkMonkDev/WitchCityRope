@@ -53,6 +53,35 @@
 
 **NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
 
+### 🔒 ORCHESTRATOR HANDOFF ENFORCEMENT RESPONSIBILITIES
+
+**MANDATORY ENFORCEMENT ACTIONS**:
+1. **VERIFY** handoff exists before allowing phase transition
+2. **INCLUDE** in every delegation prompt: "Read handoff at `/docs/functional-areas/[feature]/handoffs/`"
+3. **CHECK** agent completion includes handoff creation
+4. **BLOCK** workflow if handoff missing - NO EXCEPTIONS
+
+**DELEGATION TEMPLATE WITH HANDOFF**:
+```
+Task: [agent-name]
+Prompt: [specific instructions]
+
+MANDATORY: Read existing handoffs FIRST:
+- Location: /docs/functional-areas/[feature]/handoffs/
+- Previous phase handoff: [specific-file.md]
+
+MANDATORY: Create handoff document AFTER completion:
+- Template: /docs/standards-processes/agent-handoff-template.md
+- Save to: /docs/functional-areas/[feature]/handoffs/[agent]-YYYY-MM-DD-handoff.md
+```
+
+**VERIFICATION CHECKLIST**:
+- [ ] Previous phase handoff exists and was referenced
+- [ ] Agent instructed to read handoffs
+- [ ] Agent instructed to create handoff
+- [ ] Handoff document created before phase transition
+- [ ] All 15 agents have handoff instructions in lessons learned
+
 ---
 
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨

@@ -2,6 +2,50 @@
 <!-- Last Updated: 2025-09-12 -->
 <!-- Next Review: 2025-10-12 -->
 
+## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+
+**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
+
+### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
+- **END of infrastructure work** - Document configuration
+- **COMPLETION of deployments** - Document process and settings
+- **DOCKER CHANGES** - Document container updates
+- **DISCOVERY of issues** - Share immediately
+
+### 📁 WHERE TO SAVE HANDOFFS
+**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Naming**: `devops-YYYY-MM-DD-handoff.md`
+**Template**: `/docs/standards-processes/agent-handoff-template.md`
+
+### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
+1. **Infrastructure Changes**: Docker, services, ports
+2. **Configuration Updates**: Environment variables, settings
+3. **Deployment Status**: What was deployed where
+4. **Known Issues**: Problems and workarounds
+5. **Next Steps**: Required operations
+
+### 🤝 WHO NEEDS YOUR HANDOFFS
+- **All Developers**: Infrastructure changes
+- **Test Executor**: Testing environment setup
+- **Other DevOps**: Operational continuity
+- **Orchestrator**: Deployment status
+
+### ⚠️ MANDATORY READING BEFORE STARTING
+**ALWAYS READ EXISTING HANDOFFS FIRST**:
+1. Check `/docs/functional-areas/[feature]/handoffs/` for infra status
+2. Review Docker configuration state
+3. Check deployment history
+4. Continue existing operations
+
+### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
+**Why this matters**:
+- Infrastructure breaks mysteriously
+- Deployments fail repeatedly
+- Configuration gets lost
+- Environments become inconsistent
+
+**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
+
 
 ## 🚨 CRITICAL: GitHub Push Blocked by Large Files
 

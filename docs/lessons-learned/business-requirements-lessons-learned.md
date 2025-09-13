@@ -18,6 +18,52 @@
 ### Business Requirements Agent Specific Rules:
 - **BEFORE creating ANY technical requirements, complete Architecture Discovery Phase**
 - **If work involves DTOs, APIs, or types → Check domain-layer-architecture.md FIRST**
+
+---
+
+## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+
+**CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
+
+### 📋 WHEN TO CREATE HANDOFF DOCUMENTS
+- **END of requirements phase** - BEFORE design begins
+- **COMPLETION of user stories** - Document critical business rules
+- **DISCOVERY of constraints** - Share immediately
+- **STAKEHOLDER DECISIONS** - Document all approvals and changes
+
+### 📁 WHERE TO SAVE HANDOFFS
+**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Naming**: `business-requirements-YYYY-MM-DD-handoff.md`
+**Template**: `/docs/standards-processes/agent-handoff-template.md`
+
+### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
+1. **Business Rules**: Critical rules that MUST be implemented
+2. **User Stories**: Complete stories with acceptance criteria
+3. **Stakeholder Decisions**: Approved requirements and changes
+4. **Constraints**: Technical and business limitations discovered
+5. **Success Criteria**: How to validate implementation
+
+### 🤝 WHO NEEDS YOUR HANDOFFS
+- **UI Designers**: User flow and interaction requirements
+- **Functional Spec Agents**: Business rules for technical specs
+- **Backend Developers**: Domain logic and validation rules
+- **Test Developers**: Acceptance criteria for test cases
+
+### ⚠️ MANDATORY READING BEFORE STARTING
+**ALWAYS READ EXISTING HANDOFFS FIRST**:
+1. Check `/docs/functional-areas/[feature]/handoffs/` for previous work
+2. Read ALL handoff documents in the functional area
+3. Understand business context already established
+4. Build on existing requirements - don't contradict decisions
+
+### 🚨 FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES
+**Why this matters**:
+- Design will miss critical business rules
+- Implementation will violate requirements
+- Test cases won't cover acceptance criteria
+- Features will need complete rework
+
+**NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
 - **Document: 'Verified no existing solution in: [docs checked]'**
 - **NEVER specify manual DTO creation - all types come from NSwag auto-generation**
 
