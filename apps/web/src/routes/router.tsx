@@ -32,7 +32,12 @@ import { EventDetailPage } from '../pages/events/EventDetailPage';
 import { AdminEventsPage } from '../pages/admin/AdminEventsPage';
 import { AdminEventDetailsPage } from '../pages/admin/AdminEventDetailsPage';
 import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage';
+import { AdminSafetyPage } from '../pages/admin/AdminSafetyPage';
 import { TestPage } from '../pages/TestPage';
+
+// Safety system pages
+import { SafetyReportPage } from '../pages/safety/SafetyReportPage';
+import { SafetyStatusPage } from '../pages/safety/SafetyStatusPage';
 
 /**
  * React Router v7 configuration following validated patterns
@@ -70,6 +75,16 @@ export const router = createBrowserRouter([
       {
         path: "events/:id",
         element: <EventDetailPage />
+      },
+      
+      // Safety system routes (public)
+      {
+        path: "safety/report",
+        element: <SafetyReportPage />
+      },
+      {
+        path: "safety/status",
+        element: <SafetyStatusPage />
       },
       
       // Test/Development routes (public for now)
@@ -149,6 +164,11 @@ export const router = createBrowserRouter([
       {
         path: "admin/events/:id",
         element: <AdminEventDetailsPage />,
+        loader: authLoader
+      },
+      {
+        path: "admin/safety",
+        element: <AdminSafetyPage />,
         loader: authLoader
       },
       

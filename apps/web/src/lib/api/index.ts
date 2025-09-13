@@ -9,6 +9,10 @@ export * from './hooks/useEvents'
 export * from './hooks/useMembers'
 export * from './hooks/useOptimistic'
 
+// Export safety hooks
+export * from '../../../features/safety/hooks/useSafetyIncidents'
+export * from '../../../features/safety/hooks/useSubmitIncident'
+
 // Export types
 export * from './types/api.types'
 export type { 
@@ -24,6 +28,9 @@ export type {
   MemberFilters, 
   MemberQueryKey 
 } from './types/members.types'
+
+// Export safety types
+export * from '../../features/safety/types/safety.types'
 
 // Export utilities
 export * from './utils/cache'
