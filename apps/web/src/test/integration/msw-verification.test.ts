@@ -39,9 +39,7 @@ describe('MSW Request Interception', () => {
   })
 
   it('should intercept protected welcome requests', async () => {
-    // Set a token first
-    authService.setToken('fake-jwt-token')
-
+    // With httpOnly cookies, authentication is automatic
     const response = await authService.getProtectedWelcome()
 
     expect(response).toHaveProperty('message')

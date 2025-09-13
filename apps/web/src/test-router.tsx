@@ -48,7 +48,7 @@ const LoginPage: React.FC = () => {
     };
     const mockToken = 'test-jwt-token';
     const mockExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
-    login(mockUser, mockToken, mockExpiresAt);
+    login(mockUser);
     
     // In real app, would redirect based on returnTo parameter
     window.location.href = '/dashboard';
