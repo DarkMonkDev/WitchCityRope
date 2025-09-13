@@ -33,6 +33,10 @@ public class EventService
 
             // Direct Entity Framework query with AsNoTracking for read performance
             var events = await _context.Events
+                .Include(e => e.Sessions) // Include related sessions
+                .Include(e => e.TicketTypes) // Include related ticket types
+                    .ThenInclude(tt => tt.Session) // Include session info for ticket types
+                .Include(e => e.Organizers) // Include organizers/teachers
                 .AsNoTracking() // Read-only for better performance
                 .Where(e => e.IsPublished && e.StartDate > DateTime.UtcNow) // Filter published and future events
                 .OrderBy(e => e.StartDate) // Sort by date
@@ -52,7 +56,10 @@ public class EventService
                 Capacity = e.Capacity,
                 CurrentAttendees = e.GetCurrentAttendeeCount(),
                 CurrentRSVPs = e.GetCurrentRSVPCount(),
-                CurrentTickets = e.GetCurrentTicketCount()
+                CurrentTickets = e.GetCurrentTicketCount(),
+                Sessions = e.Sessions.Select(s => new SessionDto(s)).ToList(),
+                TicketTypes = e.TicketTypes.Select(tt => new TicketTypeDto(tt)).ToList(),
+                TeacherIds = e.Organizers.Select(o => o.Id.ToString()).ToList()
             }).ToList();
 
             _logger.LogInformation("Retrieved {EventCount} published events from database", eventDtos.Count);
@@ -80,8 +87,12 @@ public class EventService
                 return (false, null, "Invalid event ID format");
             }
 
-            // Direct Entity Framework query for single event
+            // Direct Entity Framework query for single event with includes
             var eventEntity = await _context.Events
+                .Include(e => e.Sessions) // Include related sessions
+                .Include(e => e.TicketTypes) // Include related ticket types
+                    .ThenInclude(tt => tt.Session) // Include session info for ticket types
+                .Include(e => e.Organizers) // Include organizers/teachers
                 .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.Id == parsedId, cancellationToken);
 
@@ -103,7 +114,10 @@ public class EventService
                 Capacity = eventEntity.Capacity,
                 CurrentAttendees = eventEntity.GetCurrentAttendeeCount(),
                 CurrentRSVPs = eventEntity.GetCurrentRSVPCount(),
-                CurrentTickets = eventEntity.GetCurrentTicketCount()
+                CurrentTickets = eventEntity.GetCurrentTicketCount(),
+                Sessions = eventEntity.Sessions.Select(s => new SessionDto(s)).ToList(),
+                TicketTypes = eventEntity.TicketTypes.Select(tt => new TicketTypeDto(tt)).ToList(),
+                TeacherIds = eventEntity.Organizers.Select(o => o.Id.ToString()).ToList()
             };
 
             _logger.LogDebug("Event retrieved successfully: {EventId} ({Title})", eventId, eventEntity.Title);
@@ -139,8 +153,11 @@ public class EventService
                 return (false, null, "Update request cannot be null");
             }
 
-            // Find the existing event (with tracking for update)
+            // Find the existing event (with tracking for update) and include related data
             var eventEntity = await _context.Events
+                .Include(e => e.Sessions)
+                .Include(e => e.TicketTypes)
+                .Include(e => e.Organizers)
                 .FirstOrDefaultAsync(e => e.Id == parsedId, cancellationToken);
 
             if (eventEntity == null)
@@ -223,6 +240,24 @@ public class EventService
                 eventEntity.IsPublished = request.IsPublished.Value;
             }
 
+            // Handle sessions updates if provided
+            if (request.Sessions != null)
+            {
+                await UpdateEventSessionsAsync(eventEntity, request.Sessions, cancellationToken);
+            }
+
+            // Handle ticket types updates if provided
+            if (request.TicketTypes != null)
+            {
+                await UpdateEventTicketTypesAsync(eventEntity, request.TicketTypes, cancellationToken);
+            }
+
+            // Handle organizers/teachers updates if provided
+            if (request.TeacherIds != null)
+            {
+                await UpdateEventOrganizersAsync(eventEntity, request.TeacherIds, cancellationToken);
+            }
+
             // Update the UpdatedAt timestamp
             eventEntity.UpdatedAt = DateTime.UtcNow;
 
@@ -242,7 +277,10 @@ public class EventService
                 Capacity = eventEntity.Capacity,
                 CurrentAttendees = eventEntity.GetCurrentAttendeeCount(),
                 CurrentRSVPs = eventEntity.GetCurrentRSVPCount(),
-                CurrentTickets = eventEntity.GetCurrentTicketCount()
+                CurrentTickets = eventEntity.GetCurrentTicketCount(),
+                Sessions = eventEntity.Sessions.Select(s => new SessionDto(s)).ToList(),
+                TicketTypes = eventEntity.TicketTypes.Select(tt => new TicketTypeDto(tt)).ToList(),
+                TeacherIds = eventEntity.Organizers.Select(o => o.Id.ToString()).ToList()
             };
 
             _logger.LogInformation("Event updated successfully: {EventId} ({Title})", 
@@ -253,6 +291,120 @@ public class EventService
         {
             _logger.LogError(ex, "Failed to update event: {EventId}", eventId);
             return (false, null, "Failed to update event");
+        }
+    }
+
+    /// <summary>
+    /// Updates the sessions for an event, replacing all existing sessions
+    /// </summary>
+    private async Task UpdateEventSessionsAsync(
+        WitchCityRope.Api.Models.Event eventEntity,
+        List<SessionDto> newSessions,
+        CancellationToken cancellationToken)
+    {
+        // Remove existing sessions
+        eventEntity.Sessions.Clear();
+
+        // Add new sessions
+        foreach (var sessionDto in newSessions)
+        {
+            var session = new WitchCityRope.Api.Models.Session
+            {
+                EventId = eventEntity.Id,
+                SessionCode = sessionDto.SessionIdentifier,
+                Name = sessionDto.Name,
+                StartTime = sessionDto.StartTime.ToUniversalTime(),
+                EndTime = sessionDto.EndTime.ToUniversalTime(),
+                Capacity = sessionDto.Capacity,
+                CurrentAttendees = sessionDto.RegisteredCount
+            };
+
+            // If the session has an ID, try to preserve it
+            if (Guid.TryParse(sessionDto.Id, out var sessionId))
+            {
+                session.Id = sessionId;
+            }
+
+            eventEntity.Sessions.Add(session);
+        }
+    }
+
+    /// <summary>
+    /// Updates the ticket types for an event, replacing all existing ticket types
+    /// </summary>
+    private async Task UpdateEventTicketTypesAsync(
+        WitchCityRope.Api.Models.Event eventEntity,
+        List<TicketTypeDto> newTicketTypes,
+        CancellationToken cancellationToken)
+    {
+        // Remove existing ticket types
+        eventEntity.TicketTypes.Clear();
+
+        // Add new ticket types
+        foreach (var ticketTypeDto in newTicketTypes)
+        {
+            var ticketType = new WitchCityRope.Api.Models.TicketType
+            {
+                EventId = eventEntity.Id,
+                Name = ticketTypeDto.Name,
+                Description = $"{ticketTypeDto.Type} ticket",
+                Price = ticketTypeDto.MinPrice,
+                Available = ticketTypeDto.QuantityAvailable,
+                Sold = 0, // Start with 0 sold for new ticket types
+                IsRsvpMode = ticketTypeDto.Type == "rsvp"
+            };
+
+            // If the ticket type has an ID, try to preserve it
+            if (Guid.TryParse(ticketTypeDto.Id, out var ticketTypeId))
+            {
+                ticketType.Id = ticketTypeId;
+            }
+
+            // If this ticket type is for a specific session, find and link it
+            if (ticketTypeDto.SessionIdentifiers.Count == 1)
+            {
+                var sessionCode = ticketTypeDto.SessionIdentifiers.First();
+                var linkedSession = eventEntity.Sessions.FirstOrDefault(s => s.SessionCode == sessionCode);
+                if (linkedSession != null)
+                {
+                    ticketType.SessionId = linkedSession.Id;
+                }
+            }
+
+            eventEntity.TicketTypes.Add(ticketType);
+        }
+    }
+
+    /// <summary>
+    /// Updates the organizers/teachers for an event, replacing all existing associations
+    /// </summary>
+    private async Task UpdateEventOrganizersAsync(
+        WitchCityRope.Api.Models.Event eventEntity,
+        List<string> newTeacherIds,
+        CancellationToken cancellationToken)
+    {
+        // Remove existing organizers
+        eventEntity.Organizers.Clear();
+
+        // Find and add new organizers
+        foreach (var teacherIdString in newTeacherIds)
+        {
+            if (Guid.TryParse(teacherIdString, out var teacherId))
+            {
+                var user = await _context.Users.FindAsync(teacherId);
+                if (user != null)
+                {
+                    eventEntity.Organizers.Add(user);
+                }
+                else
+                {
+                    _logger.LogWarning("Teacher/organizer not found: {TeacherId}", teacherId);
+                }
+            }
+            else
+            {
+                _logger.LogWarning("Invalid teacher ID format: {TeacherId}", teacherIdString);
+            }
         }
     }
 }

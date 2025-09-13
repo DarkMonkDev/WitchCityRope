@@ -47,4 +47,22 @@ public class UpdateEventRequest
     /// Updated publishing status (optional)
     /// </summary>
     public bool? IsPublished { get; set; }
+
+    /// <summary>
+    /// Updated sessions list (optional)
+    /// If provided, will replace all existing sessions with these
+    /// </summary>
+    public List<SessionDto>? Sessions { get; set; }
+
+    /// <summary>
+    /// Updated ticket types list (optional)
+    /// If provided, will replace all existing ticket types with these
+    /// </summary>
+    public List<TicketTypeDto>? TicketTypes { get; set; }
+
+    /// <summary>
+    /// Updated teacher/organizer user IDs (optional)
+    /// If provided, will replace all existing teacher associations with these
+    /// </summary>
+    public List<string>? TeacherIds { get; set; }
 }

@@ -34,11 +34,11 @@ export const apiConfig = {
   // Common endpoints
   endpoints: {
     auth: {
-      login: '/api/v1/auth/login',
-      register: '/api/v1/auth/register',
-      logout: '/api/v1/auth/logout',
-      refresh: '/api/v1/auth/refresh',
-      user: '/api/auth/user',
+      login: '/api/auth/login',
+      register: '/api/auth/register',
+      logout: '/api/auth/logout',
+      refresh: '/api/auth/refresh',
+      currentUser: '/api/auth/current-user',
     },
     events: {
       list: '/api/events',

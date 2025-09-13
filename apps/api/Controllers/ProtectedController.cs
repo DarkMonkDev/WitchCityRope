@@ -4,6 +4,7 @@ using System.Security.Claims;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Models.Auth;
 using WitchCityRope.Api.Services;
+using WitchCityRope.Api.Features.Authentication.Models;
 
 namespace WitchCityRope.Api.Controllers;
 
@@ -101,7 +102,7 @@ public class ProtectedController : ControllerBase
     /// </summary>
     /// <returns>Current user profile</returns>
     [HttpGet("profile")]
-    [ProducesResponseType(typeof(ApiResponse<UserDto>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<AuthUserResponse>), 200)]
     [ProducesResponseType(typeof(ApiResponse<object>), 401)]
     public async Task<IActionResult> GetProfile()
     {
@@ -130,7 +131,7 @@ public class ProtectedController : ControllerBase
                 });
             }
 
-            return Ok(new ApiResponse<UserDto>
+            return Ok(new ApiResponse<AuthUserResponse>
             {
                 Success = true,
                 Data = user,
@@ -156,7 +157,7 @@ public class ProtectedController : ControllerBase
 public class ProtectedWelcomeResponse
 {
     public string Message { get; set; } = string.Empty;
-    public UserDto User { get; set; } = new();
+    public AuthUserResponse User { get; set; } = new();
     public DateTime ServerTime { get; set; }
     public TokenClaims TokenClaims { get; set; } = new();
 }

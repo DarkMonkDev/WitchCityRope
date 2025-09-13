@@ -91,6 +91,12 @@ public class Event
     public ICollection<TicketType> TicketTypes { get; set; } = new List<TicketType>();
 
     /// <summary>
+    /// Navigation property to organizers/teachers
+    /// Many-to-many relationship with ApplicationUser
+    /// </summary>
+    public ICollection<ApplicationUser> Organizers { get; set; } = new List<ApplicationUser>();
+
+    /// <summary>
     /// Gets the current number of confirmed attendees based on CORRECT business logic:
     /// - Social Events: CurrentAttendees = RSVPs (everyone must RSVP to attend, tickets are optional donations)
     /// - Class Events: CurrentAttendees = Tickets (only paid tickets, no RSVPs)

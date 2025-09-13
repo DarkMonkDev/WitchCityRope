@@ -87,8 +87,8 @@ const useAuthStore = create<AuthStore>()(
                 ? new Date(currentState.lastAuthCheck).getTime()
                 : currentState.lastAuthCheck.getTime();
               const timeSinceLastCheck = Date.now() - lastCheckTime;
-              if (timeSinceLastCheck < 5000) { // 5 seconds cooldown
-                console.log('🔍 Auth check skipped - recent check within 5 seconds');
+              if (timeSinceLastCheck < 30000) { // 30 seconds cooldown to prevent auth check on every action
+                console.log('🔍 Auth check skipped - recent check within 30 seconds');
                 return;
               }
             }

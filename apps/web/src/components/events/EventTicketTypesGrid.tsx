@@ -19,6 +19,7 @@ interface EventTicketTypesGridProps {
   onEditTicketType: (ticketTypeId: string) => void;
   onDeleteTicketType: (ticketTypeId: string) => void;
   onAddTicketType: () => void;
+  hasSessions?: boolean; // Optional prop to control ticket type creation
 }
 
 export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
@@ -26,6 +27,7 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
   onEditTicketType,
   onDeleteTicketType,
   onAddTicketType,
+  hasSessions = true, // Default to true for backward compatibility
 }) => {
   const handleDeleteClick = (ticketTypeId: string, ticketTypeName: string) => {
     if (window.confirm(`Are you sure you want to delete ticket type "${ticketTypeName}"?`)) {
@@ -190,6 +192,8 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
           variant="secondary"
           size="lg"
           onClick={onAddTicketType}
+          disabled={!hasSessions}
+          title={!hasSessions ? "Add at least one session before creating ticket types" : ""}
         >
           Add Ticket Type
         </WCRButton>

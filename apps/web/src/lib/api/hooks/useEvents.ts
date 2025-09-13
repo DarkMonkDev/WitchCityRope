@@ -7,7 +7,9 @@ import type {
   CreateEventDto, 
   UpdateEventDto, 
   EventFilters,
-  RegistrationDto 
+  RegistrationDto,
+  EventSessionDto,
+  EventTicketTypeDto 
 } from '../types/events.types'
 import type { ApiResponse, PaginatedResponse } from '../types/api.types'
 
@@ -35,6 +37,10 @@ interface ApiEvent {
   price?: number
   organizerName?: string
   requiresVetting?: boolean
+  // New fields added by backend
+  sessions?: EventSessionDto[]
+  ticketTypes?: EventTicketTypeDto[]
+  teacherIds?: string[]
 }
 
 // Transform API event to frontend EventDto
@@ -49,7 +55,11 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
     capacity: apiEvent.maxAttendees || 20, // Default capacity
     registrationCount: apiEvent.currentAttendees || 0,
     createdAt: new Date().toISOString(), // Placeholder - should come from API
-    updatedAt: new Date().toISOString()  // Placeholder - should come from API
+    updatedAt: new Date().toISOString(), // Placeholder - should come from API
+    // Map new fields from API response
+    sessions: apiEvent.sessions || [],
+    ticketTypes: apiEvent.ticketTypes || [],
+    teacherIds: apiEvent.teacherIds || []
   }
 }
 

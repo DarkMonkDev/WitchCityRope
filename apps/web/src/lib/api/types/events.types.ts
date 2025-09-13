@@ -12,6 +12,10 @@ export interface EventDto {
   registrationCount?: number
   createdAt: string
   updatedAt: string
+  // New fields from API
+  sessions?: EventSessionDto[]
+  ticketTypes?: EventTicketTypeDto[]
+  teacherIds?: string[]
 }
 
 export interface CreateEventDto {
@@ -33,6 +37,43 @@ export interface UpdateEventDto {
   capacity?: number
   price?: number
   isPublished?: boolean
+  eventType?: 'Class' | 'Social'
+  policies?: string
+  teacherIds?: string[]
+  sessions?: EventSessionDto[]
+  ticketTypes?: EventTicketTypeDto[]
+  volunteerPositions?: VolunteerPositionDto[]
+}
+
+// Supporting interfaces for complex fields
+export interface EventSessionDto {
+  id: string
+  name: string
+  startTime: string
+  endTime: string
+  capacity: number
+  description?: string
+}
+
+export interface EventTicketTypeDto {
+  id: string
+  name: string
+  type: string
+  price: number
+  maxPrice?: number
+  quantityAvailable: number
+  sessionIdentifiers?: string[]
+  salesEndDate?: string
+}
+
+export interface VolunteerPositionDto {
+  id: string
+  name: string
+  description: string
+  volunteersNeeded: number
+  volunteersAssigned: number
+  sessionId?: string
+  requirements?: string
 }
 
 export interface EventFilters extends PaginationParams {

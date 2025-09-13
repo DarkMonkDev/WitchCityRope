@@ -26,8 +26,9 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<UserDto | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true) // Start as loading to check initial auth state
   const [error, setError] = useState<string | null>(null)
+  const [isInitialized, setIsInitialized] = useState(false)
 
   const isAuthenticated = !!user
 
@@ -95,6 +96,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       throw err
     }
   }, [])
+
+  // Initialize authentication state on app startup
+  useEffect(() => {
+    const initializeAuth = async () => {
+      if (isInitialized) return
+      
+      try {
+        setIsLoading(true)
+        // Try to restore user from stored JWT token
+        const user = await authService.getCurrentUser()
+        if (user) {
+          setUser(user)
+          console.log('Restored authentication from stored token')
+        } else {
+          console.log('No valid stored authentication found')
+        }
+      } catch (error) {
+        // User is not authenticated, which is fine
+        console.log('Failed to restore authentication:', error)
+      } finally {
+        setIsLoading(false)
+        setIsInitialized(true)
+      }
+    }
+
+    initializeAuth()
+  }, [isInitialized])
 
   // Clear error on user state changes
   useEffect(() => {

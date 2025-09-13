@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -38,21 +38,52 @@ export const AdminEventDetailsPage: React.FC = () => {
   const [formDirty, setFormDirty] = useState(false);
   const [initialFormData, setInitialFormData] = useState<EventFormData | null>(null);
   
-  const { data: event, isLoading, error } = useEvent(id!, !!id);
+  // Always call hooks unconditionally - use empty string if no id
+  const { data: event, isLoading, error } = useEvent(id || '', !!id);
   const updateEventMutation = useUpdateEvent();
+  
+  // Convert EventDto to EventFormData - defined as a callback to use in effects
+  const convertEventToFormData = useCallback((event: EventDtoType): EventFormData => {
+    // Extract venue from location field (API returns location as string)
+    const venueId = event.location || '';
+    
+    // Map eventType from API response
+    const eventType = event.eventType === 'Class' ? 'class' as const : 
+                     event.eventType === 'Social' ? 'social' as const : 
+                     'class' as const; // Default fallback
+
+    return {
+      eventType,
+      title: event.title || '',
+      shortDescription: event.description?.substring(0, 160) || '', // Take first 160 chars as short desc
+      fullDescription: event.description || '',
+      policies: '', // EventDto doesn't have policies field - will be preserved from initial load
+      venueId, // Now properly extracted from API location field
+      teacherIds: event.teacherIds || [], // Now maps from API response
+      sessions: event.sessions || [], // Now maps from API response
+      ticketTypes: event.ticketTypes || [], // Now maps from API response
+      volunteerPositions: [], // EventDto doesn't have volunteers - will be managed by form state
+    };
+  }, []);
+
+  // Memoized form change handler to prevent unnecessary re-renders
+  const handleFormChange = useCallback(() => {
+    setFormDirty(true);
+  }, []);
   
   // Initialize publish status and form data from event
   React.useEffect(() => {
-    if (event) {
+    if (event && !initialFormData) {
       // Determine status from event data
       const status = event.status === 'Published' || !event.status ? 'published' : 'draft';
       setPublishStatus(status);
       
       // Store initial form data for change tracking
+      // Only set this once when event data first loads
       const initialData = convertEventToFormData(event as EventDtoType);
       setInitialFormData(initialData);
     }
-  }, [event]);  
+  }, [event, initialFormData, convertEventToFormData]);  
   
   if (!id) {
     return (
@@ -101,22 +132,6 @@ export const AdminEventDetailsPage: React.FC = () => {
       </Container>
     );
   }
-
-  // Convert EventDto to EventFormData
-  const convertEventToFormData = (event: EventDtoType): EventFormData => {
-    return {
-      eventType: 'class', // Default since EventDto doesn't have this field, could map from event.eventType
-      title: event.title || '',
-      shortDescription: event.description?.substring(0, 160) || '', // Take first 160 chars as short desc
-      fullDescription: event.description || '',
-      policies: '', // EventDto doesn't have policies field
-      venueId: '', // EventDto doesn't have location field in generated types
-      teacherIds: [], // EventDto doesn't have teachers
-      sessions: [], // EventDto doesn't have sessions
-      ticketTypes: [], // EventDto doesn't have ticket types
-      volunteerPositions: [], // EventDto doesn't have volunteer positions
-    };
-  };
 
   const handleEdit = () => {
     setIsEditMode(true);
@@ -283,11 +298,12 @@ export const AdminEventDetailsPage: React.FC = () => {
 
       {/* EventForm Component */}
       <EventForm
-        initialData={convertEventToFormData(event as EventDtoType)}
+        key={event?.id} // Force re-mount when event changes to ensure proper initialization
+        initialData={initialFormData || convertEventToFormData(event as EventDtoType)}
         onSubmit={handleFormSubmit}
         onCancel={handleFormCancel}
         isSubmitting={updateEventMutation.isPending}
-        onFormChange={() => setFormDirty(true)}
+        onFormChange={handleFormChange}
         formDirty={formDirty}
       />
       

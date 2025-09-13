@@ -93,6 +93,27 @@ public static class EventEndpoints
                     });
                 }
 
+                // If database fails or event not found, check fallback events
+                try
+                {
+                    var fallbackEvents = GetFallbackEvents();
+                    var fallbackEvent = fallbackEvents.FirstOrDefault(e => e.Id == id);
+                    
+                    if (fallbackEvent != null)
+                    {
+                        return Results.Ok(new ApiResponse<EventDto>
+                        {
+                            Success = true,
+                            Data = fallbackEvent,
+                            Message = "Event retrieved from fallback data"
+                        });
+                    }
+                }
+                catch
+                {
+                    // If fallback also fails, continue to error response
+                }
+
                 return Results.Json(new ApiResponse<EventDto>
                 {
                     Success = false,

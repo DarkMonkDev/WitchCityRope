@@ -38,4 +38,22 @@ public class EventDto
     /// - For Social events: optional paid tickets in addition to free RSVPs
     /// </summary>
     public int CurrentTickets { get; set; }
+
+    /// <summary>
+    /// List of sessions within this event
+    /// Empty for single-session events, populated for multi-session events
+    /// </summary>
+    public List<SessionDto> Sessions { get; set; } = new List<SessionDto>();
+
+    /// <summary>
+    /// List of ticket types available for this event
+    /// Includes pricing, availability, and session associations
+    /// </summary>
+    public List<TicketTypeDto> TicketTypes { get; set; } = new List<TicketTypeDto>();
+
+    /// <summary>
+    /// List of teacher/organizer user IDs
+    /// References to ApplicationUser entities who are teaching/organizing this event
+    /// </summary>
+    public List<string> TeacherIds { get; set; } = new List<string>();
 }

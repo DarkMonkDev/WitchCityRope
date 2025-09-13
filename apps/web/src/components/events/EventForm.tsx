@@ -15,6 +15,7 @@ import {
   Badge,
   Table,
   ActionIcon,
+  Switch,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { Editor } from '@tinymce/tinymce-react';
@@ -36,6 +37,9 @@ export interface EventFormData {
   policies: string;
   venueId: string;
   teacherIds: string[];
+  
+  // Status
+  status: 'Draft' | 'Published' | 'Cancelled' | 'Completed';
   
   // Sessions and Tickets
   sessions: EventSession[];
@@ -83,6 +87,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       policies: '',
       venueId: '',
       teacherIds: [],
+      status: 'Draft',
       sessions: [],
       ticketTypes: [],
       volunteerPositions: [],
@@ -102,16 +107,22 @@ export const EventForm: React.FC<EventFormProps> = ({
   
   // Track form changes
   const previousValues = useRef(form.values);
+  const onFormChangeRef = useRef(onFormChange);
+  
+  // Update the ref when the callback changes
+  useEffect(() => {
+    onFormChangeRef.current = onFormChange;
+  }, [onFormChange]);
   
   useEffect(() => {
     // Compare current values with previous values to detect changes
     if (JSON.stringify(form.values) !== JSON.stringify(previousValues.current)) {
-      if (onFormChange) {
-        onFormChange();
+      if (onFormChangeRef.current) {
+        onFormChangeRef.current();
       }
       previousValues.current = form.values;
     }
-  }, [form.values, onFormChange]);
+  }, [form.values]); // Remove onFormChange from dependency array to prevent loops
 
   // TinyMCE configuration (commented out - using simple textarea for now)
   // const tinyMCEConfig = {
@@ -211,7 +222,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       minPrice: ticketTypeData.price,
       maxPrice: ticketTypeData.price,
       quantityAvailable: ticketTypeData.quantityAvailable,
-      salesEndDate: undefined, // Could be enhanced later
+      salesEndDate: ticketTypeData.saleEndDate?.toISOString(),
     };
 
     if (editingTicketType) {
@@ -243,8 +254,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       quantityAvailable: ticketType.quantityAvailable || 100,
       quantitySold: 0, // Not tracked in current grid format
       allowMultiplePurchase: true, // Default value
-      isEarlyBird: false, // Default value
-      earlyBirdDiscount: undefined,
+      saleEndDate: ticketType.salesEndDate ? new Date(ticketType.salesEndDate) : undefined,
     };
   };
 
@@ -345,17 +355,21 @@ export const EventForm: React.FC<EventFormProps> = ({
             }}
           >
             <Tabs.Tab value="basic-info" data-testid="tab-basic-info">Basic Info</Tabs.Tab>
-            <Tabs.Tab value="sessions" data-testid="tab-sessions">Sessions</Tabs.Tab>
-            <Tabs.Tab value="tickets" data-testid="tab-tickets">Tickets</Tabs.Tab>
+            <Tabs.Tab value="setup" data-testid="setup-tab">Setup</Tabs.Tab>
             <Tabs.Tab value="emails" data-testid="tab-emails">Emails</Tabs.Tab>
             <Tabs.Tab value="volunteers" data-testid="tab-volunteers">Volunteers</Tabs.Tab>
+            <Tabs.Tab value="rsvp-tickets" data-testid="rsvp-tickets-tab">RSVP/Tickets</Tabs.Tab>
+            <Tabs.Tab value="attendees" data-testid="attendees-tab">Attendees</Tabs.Tab>
           </Tabs.List>
 
           {/* Basic Info Tab */}
           <Tabs.Panel value="basic-info" pt="xl" data-testid="panel-basic-info">
             <Stack gap="xl">
-              {/* Event Details Section - removed redundant title */}
+              {/* Event Details Section */}
               <div>
+                <Title order={2} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
+                  Event Details
+                </Title>
 
                 {/* Event Type Toggle */}
                 <Radio.Group
@@ -546,11 +560,11 @@ export const EventForm: React.FC<EventFormProps> = ({
             </Stack>
           </Tabs.Panel>
 
-          {/* Sessions Tab */}
-          <Tabs.Panel value="sessions" pt="xl" data-testid="panel-sessions">
+          {/* Setup Tab - Combined Sessions and Tickets */}
+          <Tabs.Panel value="setup" pt="xl" data-testid="setup-tab">
             <Stack gap="xl">
-              {/* Event Sessions */}
-              <div>
+              {/* Event Sessions Section */}
+              <div data-testid="sessions-section">
                 <Title order={2} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
                   Event Sessions
                 </Title>
@@ -561,14 +575,9 @@ export const EventForm: React.FC<EventFormProps> = ({
                   onAddSession={handleAddSession}
                 />
               </div>
-            </Stack>
-          </Tabs.Panel>
 
-          {/* Tickets Tab */}
-          <Tabs.Panel value="tickets" pt="xl" data-testid="panel-tickets">
-            <Stack gap="xl">
-              {/* Ticket Types */}
-              <div>
+              {/* Ticket Types Section */}
+              <div data-testid="tickets-section">
                 <Title order={2} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
                   Ticket Types
                 </Title>
@@ -577,59 +586,8 @@ export const EventForm: React.FC<EventFormProps> = ({
                   onEditTicketType={handleEditTicketType}
                   onDeleteTicketType={handleDeleteTicketType}
                   onAddTicketType={handleAddTicketType}
+                  hasSessions={form.values.sessions.length > 0}
                 />
-              </div>
-
-              {/* Ticket Sales */}
-              <div>
-                <Title order={2} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
-                  Ticket Sales
-                </Title>
-                <Text size="sm" c="dimmed" mb="lg">
-                  View all ticket purchases for this event. Track sales, manage refunds, and download attendee lists.
-                </Text>
-                
-                <Table
-                  striped
-                  highlightOnHover
-                  withTableBorder
-                  style={{
-                    backgroundColor: 'white',
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                  }}
-                >
-                  <Table.Thead style={{ backgroundColor: 'var(--mantine-color-burgundy-6)' }}>
-                    <Table.Tr>
-                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                        Buyer Name
-                      </Table.Th>
-                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                        Ticket Type
-                      </Table.Th>
-                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                        Purchase Date
-                      </Table.Th>
-                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                        Amount Paid
-                      </Table.Th>
-                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                        Status
-                      </Table.Th>
-                    </Table.Tr>
-                  </Table.Thead>
-                  <Table.Tbody>
-                    {/* Empty state for now - will be populated with real sales data */}
-                    <Table.Tr>
-                      <Table.Td colSpan={5}>
-                        <Text ta="center" c="dimmed" py="xl">
-                          No ticket sales yet. Sales will appear here once tickets are purchased.
-                        </Text>
-                      </Table.Td>
-                    </Table.Tr>
-                  </Table.Tbody>
-                </Table>
               </div>
             </Stack>
           </Tabs.Panel>
@@ -894,6 +852,180 @@ export const EventForm: React.FC<EventFormProps> = ({
                   onDeletePosition={handleDeleteVolunteerPosition}
                   onAddPosition={handleAddVolunteerPosition}
                 />
+              </div>
+            </Stack>
+          </Tabs.Panel>
+
+          {/* RSVP/Tickets Tab - Updated per requirements */}
+          <Tabs.Panel value="rsvp-tickets" pt="xl" data-testid="rsvp-tickets-tab">
+            <Stack gap="xl">
+              {/* RSVPs Table - Hidden for CLASS events */}
+              {form.values.eventType === 'social' && (
+                <div data-testid="rsvps-section">
+                  <Title order={2} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
+                    RSVPs Management
+                  </Title>
+                  <Text size="sm" c="dimmed" mb="lg">
+                    View and manage all RSVPs for this social event.
+                  </Text>
+                  
+                  <Table
+                    striped
+                    highlightOnHover
+                    withTableBorder
+                    data-testid="rsvps-table"
+                    style={{
+                      backgroundColor: 'white',
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                    }}
+                  >
+                    <Table.Thead style={{ backgroundColor: 'var(--mantine-color-burgundy-6)' }}>
+                      <Table.Tr>
+                        <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                          Name
+                        </Table.Th>
+                        <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                          Email
+                        </Table.Th>
+                        <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                          Status
+                        </Table.Th>
+                        <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                          RSVP Date
+                        </Table.Th>
+                        <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                          Actions
+                        </Table.Th>
+                      </Table.Tr>
+                    </Table.Thead>
+                    <Table.Tbody>
+                      {/* Empty state for now - will be populated with real RSVP data */}
+                      <Table.Tr>
+                        <Table.Td colSpan={5}>
+                          <Text ta="center" c="dimmed" py="xl">
+                            No RSVPs yet. RSVPs will appear here once people respond to invitations.
+                          </Text>
+                        </Table.Td>
+                      </Table.Tr>
+                    </Table.Tbody>
+                  </Table>
+                </div>
+              )}
+
+              {/* Tickets Sold Table */}
+              <div data-testid="tickets-sold-section">
+                <Title order={2} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
+                  Tickets Sold
+                </Title>
+                <Text size="sm" c="dimmed" mb="lg">
+                  View all sold tickets for this event.
+                </Text>
+                
+                <Table
+                  striped
+                  highlightOnHover
+                  withTableBorder
+                  data-testid="tickets-sold-table"
+                  style={{
+                    backgroundColor: 'white',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                  }}
+                >
+                  <Table.Thead style={{ backgroundColor: 'var(--mantine-color-burgundy-6)' }}>
+                    <Table.Tr>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Ticket Holder
+                      </Table.Th>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Ticket Type
+                      </Table.Th>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Sessions
+                      </Table.Th>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Purchase Date
+                      </Table.Th>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Amount Paid
+                      </Table.Th>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Actions
+                      </Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {/* Empty state for now - will be populated with real ticket data */}
+                    <Table.Tr>
+                      <Table.Td colSpan={6}>
+                        <Text ta="center" c="dimmed" py="xl">
+                          No tickets sold yet. Ticket purchases will appear here once people buy tickets.
+                        </Text>
+                      </Table.Td>
+                    </Table.Tr>
+                  </Table.Tbody>
+                </Table>
+              </div>
+            </Stack>
+          </Tabs.Panel>
+
+          {/* Attendees Tab - New tab for people who actually attended */}
+          <Tabs.Panel value="attendees" pt="xl" data-testid="attendees-tab">
+            <Stack gap="xl">
+              {/* Attendees List */}
+              <div data-testid="attendees-list">
+                <Title order={2} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
+                  Event Attendees
+                </Title>
+                <Text size="sm" c="dimmed" mb="lg">
+                  View and manage people who actually attended (checked in) to this event.
+                </Text>
+                
+                <Table
+                  striped
+                  highlightOnHover
+                  withTableBorder
+                  data-testid="attendees-table"
+                  style={{
+                    backgroundColor: 'white',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                  }}
+                >
+                  <Table.Thead style={{ backgroundColor: 'var(--mantine-color-burgundy-6)' }}>
+                    <Table.Tr>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Name
+                      </Table.Th>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Type
+                      </Table.Th>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Session(s)
+                      </Table.Th>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Check-in Time
+                      </Table.Th>
+                      <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Actions
+                      </Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {/* Empty state for now - will be populated with real attendee data */}
+                    <Table.Tr>
+                      <Table.Td colSpan={5}>
+                        <Text ta="center" c="dimmed" py="xl">
+                          No attendees checked in yet. Attendee check-ins will appear here during the event.
+                        </Text>
+                      </Table.Td>
+                    </Table.Tr>
+                  </Table.Tbody>
+                </Table>
               </div>
             </Stack>
           </Tabs.Panel>

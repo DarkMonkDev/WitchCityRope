@@ -104,7 +104,7 @@ const EventsTableSkeleton: React.FC = () => (
         <Table.Th c="white" style={{ width: '160px' }}>Date</Table.Th>
         <Table.Th c="white" style={{ minWidth: '200px' }}>Event Title</Table.Th>
         <Table.Th c="white" style={{ width: '200px', maxWidth: '200px', textAlign: 'center' }}>Time</Table.Th>
-        <Table.Th c="white" style={{ width: '160px', maxWidth: '160px', textAlign: 'center' }}>Capacity/Tickets</Table.Th>
+        <Table.Th c="white" style={{ width: '160px', maxWidth: '160px', textAlign: 'center' }}>Tickets/Capacity</Table.Th>
         <Table.Th c="white" style={{ width: '150px', textAlign: 'center' }}>Actions</Table.Th>
       </Table.Tr>
     </Table.Thead>
@@ -167,7 +167,7 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
             <Table.Th c="white" style={{ width: '160px' }}>Date</Table.Th>
             <Table.Th c="white" style={{ minWidth: '200px' }}>Event Title</Table.Th>
             <Table.Th c="white" style={{ width: '200px', maxWidth: '200px', textAlign: 'center' }}>Time</Table.Th>
-            <Table.Th c="white" style={{ width: '160px', maxWidth: '160px', textAlign: 'center' }}>Capacity/Tickets</Table.Th>
+            <Table.Th c="white" style={{ width: '160px', maxWidth: '160px', textAlign: 'center' }}>Tickets/Capacity</Table.Th>
             <Table.Th c="white" style={{ width: '150px', textAlign: '-webkit-center' as any }}>Actions</Table.Th>
           </Table.Tr>
         </Table.Thead>
@@ -216,7 +216,7 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
           </Table.Th>
           
           <Table.Th c="white" style={{ width: '200px', maxWidth: '200px', textAlign: 'center' }}>Time</Table.Th>
-          <Table.Th c="white" style={{ width: '160px', maxWidth: '160px', textAlign: 'center' }}>Capacity/Tickets</Table.Th>
+          <Table.Th c="white" style={{ width: '160px', maxWidth: '160px', textAlign: 'center' }}>Tickets/Capacity</Table.Th>
           <Table.Th c="white" style={{ width: '150px', textAlign: '-webkit-center' as any }}>Actions</Table.Th>
         </Table.Tr>
       </Table.Thead>

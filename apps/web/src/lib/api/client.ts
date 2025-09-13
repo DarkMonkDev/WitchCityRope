@@ -90,13 +90,17 @@ apiClient.interceptors.response.use(
       
       console.warn(`🚫 401 Unauthorized: ${config?.method?.toUpperCase()} ${config?.url}`);
       
-      if (!isOnLoginPage) {
+      // Check if token has expired or been invalidated
+      const authStore = (window as any).__AUTH_STORE__;
+      const isTokenExpired = authStore?.getState?.()?.actions?.isTokenExpired?.() ?? true;
+      
+      if (!isOnLoginPage && isTokenExpired) {
+        // Only redirect if token is actually expired/invalid
         // Clear auth state
         localStorage.removeItem('auth_token');
         
         // Clear auth store if available
         try {
-          const authStore = (window as any).__AUTH_STORE__;
           if (authStore?.getState) {
             authStore.getState().actions.logout();
           }
@@ -106,7 +110,7 @@ apiClient.interceptors.response.use(
         
         // For admin/demo pages, show a more informative message
         if (isOnDemoPage) {
-          console.error('🔐 Authentication required for admin access. Please log in first.');
+          console.error('🔐 Authentication expired. Please log in again.');
           // Still redirect but with context
           window.location.href = '/login?returnUrl=' + encodeURIComponent(window.location.pathname);
         } else {
@@ -114,6 +118,9 @@ apiClient.interceptors.response.use(
           queryClient.clear();
           window.location.href = '/login';
         }
+      } else {
+        // Token might still be valid, just a temporary auth issue
+        console.warn('🔄 Auth check failed but token may still be valid. Not redirecting.');
       }
     }
     

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Modal, TextInput, NumberInput, Group, Button, Stack, MultiSelect, Textarea, Switch } from '@mantine/core';
+import { DateInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 // Define the modal's own EventTicketType interface
 export interface EventTicketType {
@@ -11,8 +12,7 @@ export interface EventTicketType {
   quantityAvailable: number;
   quantitySold: number;
   allowMultiplePurchase: boolean;
-  isEarlyBird: boolean;
-  earlyBirdDiscount?: number;
+  saleEndDate?: Date;
 }
 import type { EventSession } from './EventSessionsGrid';
 
@@ -33,15 +33,14 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
 }) => {
   const form = useForm({
     initialValues: {
-      name: ticketType?.name || '',
-      description: ticketType?.description || '',
-      price: ticketType?.price || 0,
-      sessionsIncluded: ticketType?.sessionsIncluded || [],
-      quantityAvailable: ticketType?.quantityAvailable || 100,
-      quantitySold: ticketType?.quantitySold || 0,
-      allowMultiplePurchase: ticketType?.allowMultiplePurchase ?? true,
-      isEarlyBird: ticketType?.isEarlyBird ?? false,
-      earlyBirdDiscount: ticketType?.earlyBirdDiscount || 0,
+      name: '',
+      description: '',
+      price: 0,
+      sessionsIncluded: [],
+      quantityAvailable: 100,
+      quantitySold: 0,
+      allowMultiplePurchase: true,
+      saleEndDate: null,
     },
     validate: {
       name: (value) => (!value ? 'Ticket name is required' : null),
@@ -59,13 +58,6 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
         if (value < values.quantitySold) return 'Cannot be less than quantity already sold';
         return null;
       },
-      earlyBirdDiscount: (value, values) => {
-        if (values.isEarlyBird) {
-          if (value < 0) return 'Discount cannot be negative';
-          if (value > 100) return 'Discount cannot exceed 100%';
-        }
-        return null;
-      },
     },
   });
 
@@ -78,8 +70,7 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
       quantityAvailable: values.quantityAvailable,
       quantitySold: values.quantitySold,
       allowMultiplePurchase: values.allowMultiplePurchase,
-      isEarlyBird: values.isEarlyBird,
-      earlyBirdDiscount: values.isEarlyBird ? values.earlyBirdDiscount : undefined,
+      saleEndDate: values.saleEndDate || undefined,
     };
     onSubmit(ticketData);
     form.reset();
@@ -108,12 +99,69 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
     } else {
       form.setFieldValue('sessionsIncluded', value);
     }
+    
+    // Auto-set sale end date based on session selection
+    updateSaleEndDate(value);
   };
 
-  // Calculate effective price with early bird discount
-  const effectivePrice = form.values.isEarlyBird 
-    ? form.values.price * (1 - form.values.earlyBirdDiscount / 100)
-    : form.values.price;
+  // Smart sale end date defaults
+  const updateSaleEndDate = (selectedSessions: string[]) => {
+    if (selectedSessions.length === 0 || !availableSessions.length) return;
+    
+    let targetDate: Date | null = null;
+    
+    if (selectedSessions.includes('ALL')) {
+      // Use the earliest session start date/time
+      const earliestSession = availableSessions.reduce((earliest, session) => {
+        const sessionDateTime = new Date(`${session.date}T${session.startTime}`);
+        const earliestDateTime = new Date(`${earliest.date}T${earliest.startTime}`);
+        return sessionDateTime < earliestDateTime ? session : earliest;
+      });
+      targetDate = new Date(`${earliestSession.date}T${earliestSession.startTime}`);
+    } else {
+      // Find the selected session(s) and use the earliest
+      const selectedSessionsData = availableSessions.filter(s => 
+        selectedSessions.includes(s.sessionIdentifier)
+      );
+      
+      if (selectedSessionsData.length > 0) {
+        const earliestSelected = selectedSessionsData.reduce((earliest, session) => {
+          const sessionDateTime = new Date(`${session.date}T${session.startTime}`);
+          const earliestDateTime = new Date(`${earliest.date}T${earliest.startTime}`);
+          return sessionDateTime < earliestDateTime ? session : earliest;
+        });
+        targetDate = new Date(`${earliestSelected.date}T${earliestSelected.startTime}`);
+      }
+    }
+    
+    // Only auto-set if no sale end date is currently set
+    if (targetDate && !form.values.saleEndDate) {
+      form.setFieldValue('saleEndDate', targetDate);
+    }
+  };
+
+  // Handle modal opening and data population
+  React.useEffect(() => {
+    if (opened) {
+      if (ticketType) {
+        // Populate form with existing ticket type data for editing
+        form.setValues({
+          name: ticketType.name,
+          description: ticketType.description,
+          price: ticketType.price,
+          sessionsIncluded: ticketType.sessionsIncluded,
+          quantityAvailable: ticketType.quantityAvailable,
+          quantitySold: ticketType.quantitySold,
+          allowMultiplePurchase: ticketType.allowMultiplePurchase,
+          saleEndDate: ticketType.saleEndDate || null,
+        });
+      } else {
+        // Reset form for new ticket type
+        form.reset();
+      }
+    }
+  }, [opened, ticketType]);
+
 
   return (
     <Modal
@@ -188,34 +236,12 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
             {...form.getInputProps('allowMultiplePurchase', { type: 'checkbox' })}
           />
 
-          <Switch
-            label="Early Bird Pricing"
-            checked={form.values.isEarlyBird}
-            {...form.getInputProps('isEarlyBird', { type: 'checkbox' })}
+          <DateInput
+            label="Sale End Date"
+            placeholder="Select when ticket sales should end"
+            data-testid="ticket-sale-end-date-input"
+            {...form.getInputProps('saleEndDate')}
           />
-
-          {form.values.isEarlyBird && (
-            <Group grow>
-              <NumberInput
-                label="Early Bird Discount (%)"
-                placeholder="10"
-                min={0}
-                max={100}
-                {...form.getInputProps('earlyBirdDiscount')}
-              />
-              <TextInput
-                label="Effective Early Bird Price"
-                value={`$${effectivePrice.toFixed(2)}`}
-                disabled
-                styles={{
-                  input: {
-                    fontWeight: 600,
-                    color: 'var(--mantine-color-green-7)',
-                  },
-                }}
-              />
-            </Group>
-          )}
 
           <Group justify="flex-end" mt="md">
             <Button variant="outline" onClick={onClose}>

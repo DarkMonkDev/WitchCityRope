@@ -1,3 +1,5 @@
+using WitchCityRope.Api.Features.Authentication.Models;
+
 namespace WitchCityRope.Api.Models.Auth;
 
 /// <summary>
@@ -8,7 +10,7 @@ public class LoginResponse
 {
     public string Token { get; set; } = string.Empty;
     public DateTime ExpiresAt { get; set; }
-    public UserDto User { get; set; } = new();
+    public AuthUserResponse User { get; set; } = new();
 }
 
 /// <summary>

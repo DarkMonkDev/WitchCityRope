@@ -93,9 +93,23 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
   };
 
   React.useEffect(() => {
-    if (opened && !session) {
-      // Auto-suggest next session identifier for new sessions
-      form.setFieldValue('sessionIdentifier', getNextSessionIdentifier());
+    if (opened) {
+      if (session) {
+        // Populate form with existing session data for editing
+        form.setValues({
+          sessionIdentifier: session.sessionIdentifier,
+          name: session.name,
+          date: session.date ? new Date(session.date) : new Date(),
+          startTime: session.startTime,
+          endTime: session.endTime,
+          capacity: session.capacity,
+          registeredCount: session.registeredCount,
+        });
+      } else {
+        // Reset form for new session and auto-suggest next session identifier
+        form.reset();
+        form.setFieldValue('sessionIdentifier', getNextSessionIdentifier());
+      }
     }
   }, [opened, session]);
 

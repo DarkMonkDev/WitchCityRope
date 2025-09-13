@@ -149,17 +149,51 @@ public static class AuthenticationEndpoints
             .Produces(401)
             .Produces(404);
 
-        // Logout endpoint (placeholder for future implementation)
-        app.MapPost("/api/auth/logout", () =>
+        // Logout endpoint with proper token validation
+        app.MapPost("/api/auth/logout", async (
+            ClaimsPrincipal user,
+            ILogger<AuthenticationService> logger,
+            CancellationToken cancellationToken) =>
             {
-                // For throwaway implementation, just return success
-                // Real implementation would clear cookies and invalidate tokens
-                return Results.Ok(new { Success = true, Message = "Logged out successfully" });
+                try
+                {
+                    // Extract user ID from JWT token claims for logging
+                    var userId = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        logger.LogInformation("User logged out: {UserId}", userId);
+                    }
+                    
+                    // Currently JWT tokens are stateless, so logout is client-side only
+                    // In a production system, you would:
+                    // 1. Add tokens to a blacklist/revocation list
+                    // 2. Store revoked tokens in Redis with expiration matching token expiry
+                    // 3. Check blacklist in JWT Bearer validation middleware
+                    
+                    return Results.Ok(new { 
+                        Success = true, 
+                        Message = "Logged out successfully",
+                        // Instruct client to clear stored tokens
+                        ClearTokens = true 
+                    });
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Logout error occurred");
+                    // Still return success - logout should always succeed from user perspective
+                    return Results.Ok(new { 
+                        Success = true, 
+                        Message = "Logged out successfully" 
+                    });
+                }
             })
+            .RequireAuthorization() // Require JWT Bearer token
             .WithName("Logout")
             .WithSummary("Logout current user")
-            .WithDescription("Placeholder logout endpoint for future implementation")
+            .WithDescription("Logs out the current user and provides instruction to clear stored tokens")
             .WithTags("Authentication")
-            .Produces<object>(200);
+            .Produces<object>(200)
+            .Produces(401);
     }
 }
