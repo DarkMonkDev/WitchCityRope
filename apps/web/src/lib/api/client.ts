@@ -14,46 +14,9 @@ export const apiClient = axios.create({
   withCredentials: true, // Include httpOnly cookies for auth
 })
 
-// Request interceptor for auth tokens and logging
+// Request interceptor for logging (auth now handled by httpOnly cookies)
 apiClient.interceptors.request.use(
-  async (config) => {
-    // Get token from multiple sources in priority order
-    try {
-      let token: string | null = null;
-      
-      // 1. Try to get token from auth store first
-      const authStore = (window as any).__AUTH_STORE__;
-      if (authStore?.getState) {
-        token = authStore.getState()?.actions?.getToken?.();
-      }
-      
-      // 2. Fallback to authService
-      if (!token) {
-        const { authService } = await import('../../services/authService');
-        token = authService.getToken();
-      }
-      
-      // 3. Final fallback to localStorage
-      if (!token) {
-        token = localStorage.getItem('auth_token');
-      }
-      
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-        console.debug(`🔑 Adding Authorization header for ${config.method?.toUpperCase()} ${config.url}`);
-      } else {
-        console.debug(`⚠️ No auth token available for ${config.method?.toUpperCase()} ${config.url}`);
-      }
-    } catch (error) {
-      console.warn('Error getting auth token:', error);
-      // Last resort fallback to localStorage
-      const token = localStorage.getItem('auth_token');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-        console.debug(`🔑 Emergency fallback token from localStorage for ${config.method?.toUpperCase()} ${config.url}`);
-      }
-    }
-    
+  (config) => {
     console.debug(`API Request: ${config.method?.toUpperCase()} ${config.url}`)
     return config
   },
@@ -83,23 +46,14 @@ apiClient.interceptors.response.use(
     })
     
     if (response?.status === 401) {
-      // Check if this is an admin or demo page - different handling
-      const isOnDemoPage = window.location.pathname.includes('/demo') || 
-                          window.location.pathname.includes('/admin');
+      // Check if this is a login page to avoid redirect loops
       const isOnLoginPage = window.location.pathname.includes('/login');
       
       console.warn(`🚫 401 Unauthorized: ${config?.method?.toUpperCase()} ${config?.url}`);
       
-      // Check if token has expired or been invalidated
-      const authStore = (window as any).__AUTH_STORE__;
-      const isTokenExpired = authStore?.getState?.()?.actions?.isTokenExpired?.() ?? true;
-      
-      if (!isOnLoginPage && isTokenExpired) {
-        // Only redirect if token is actually expired/invalid
-        // Clear auth state
-        localStorage.removeItem('auth_token');
-        
+      if (!isOnLoginPage) {
         // Clear auth store if available
+        const authStore = (window as any).__AUTH_STORE__;
         try {
           if (authStore?.getState) {
             authStore.getState().actions.logout();
@@ -108,19 +62,9 @@ apiClient.interceptors.response.use(
           console.warn('Could not clear auth store:', error);
         }
         
-        // For admin/demo pages, show a more informative message
-        if (isOnDemoPage) {
-          console.error('🔐 Authentication expired. Please log in again.');
-          // Still redirect but with context
-          window.location.href = '/login?returnUrl=' + encodeURIComponent(window.location.pathname);
-        } else {
-          // Clear query cache and redirect for normal pages
-          queryClient.clear();
-          window.location.href = '/login';
-        }
-      } else {
-        // Token might still be valid, just a temporary auth issue
-        console.warn('🔄 Auth check failed but token may still be valid. Not redirecting.');
+        // Clear query cache and redirect to login
+        queryClient.clear();
+        window.location.href = '/login';
       }
     }
     

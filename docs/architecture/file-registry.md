@@ -63,6 +63,25 @@
 | 2025-09-11 | /docs/functional-areas/events/admin-activation/ui-design-2025-09-11.md | CREATED | UI design document for minimal Admin Dashboard activation with component specifications and wireframes | UI Designer admin dashboard activation | ACTIVE | Keep permanent |
 | 2025-09-11 | /docs/functional-areas/events/admin-activation/functional-specification-2025-09-11.md | CREATED | Technical functional specification for Admin Dashboard Events Management activation - details minimal implementation to connect existing assets | Functional Spec Agent admin events activation | ACTIVE | Keep permanent |
 | 2025-09-11 | /session-work/2025-09-11/event-session-matrix-investigation-report.md | CREATED | Comprehensive investigation report confirming Event Session Matrix system is fully implemented - no work was lost in recent merges | Librarian Event Session Matrix investigation | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/functional-areas/api-cleanup/ | CREATED | New functional area directory for critical API cleanup work | Librarian API cleanup documentation structure | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/functional-areas/api-cleanup/new-work/ | CREATED | Active work directory for API cleanup functional area | Librarian API cleanup documentation structure | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/ | CREATED | Specific work directory for legacy feature extraction from duplicate API crisis | Librarian API cleanup documentation structure | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/requirements/ | CREATED | Requirements subdirectory for business requirements and functional specifications | Librarian API cleanup documentation structure | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/design/ | CREATED | Design subdirectory for UI design and technical design documents | Librarian API cleanup documentation structure | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/implementation/ | CREATED | Implementation subdirectory for development work tracking | Librarian API cleanup documentation structure | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/testing/ | CREATED | Testing subdirectory for test plans and validation work | Librarian API cleanup documentation structure | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/reviews/ | CREATED | Reviews subdirectory for human review points and approvals | Librarian API cleanup documentation structure | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/handoffs/ | CREATED | Handoffs subdirectory for mandatory agent handoff documentation | Librarian API cleanup documentation structure | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/progress.md | CREATED | Progress tracking document with workflow status template for API cleanup and legacy feature extraction | Librarian API cleanup documentation structure | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/architecture/functional-area-master-index.md | MODIFIED | Added API Cleanup functional area with CRITICAL priority and updated active development work section | Librarian master index maintenance | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/functional-areas/api-cleanup/README.md | CREATED | Functional area overview document explaining duplicate API crisis, objectives, risk assessment, and workflow structure | Librarian API cleanup documentation structure | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/handoffs/librarian-2025-09-12-handoff.md | CREATED | Mandatory agent handoff document with complete context, next steps, and structure verification for API cleanup workflow | Librarian mandatory handoff documentation | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/requirements/technical-requirements.md | CREATED | Detailed technical requirements and implementation approach for API cleanup - defines phases, migration patterns, and success criteria | API Cleanup Orchestration | ACTIVE | Keep permanent |
+| 2025-09-12 | /home/chad/repos/witchcityrope-react/apps/api/Features/Authentication/Endpoints/AuthenticationEndpoints.cs | MODIFIED | Implemented BFF authentication pattern with httpOnly cookies - updated login/logout endpoints and added /auth/user and /auth/refresh endpoints | Backend Developer BFF implementation | ACTIVE | Keep permanent |
+| 2025-09-12 | /home/chad/repos/witchcityrope-react/apps/api/Services/JwtService.cs | MODIFIED | Added token validation methods for BFF pattern - IsTokenNearExpiry and ValidateTokenStructure for refresh scenarios | Backend Developer BFF implementation | ACTIVE | Keep permanent |
+| 2025-09-12 | /home/chad/repos/witchcityrope-react/apps/api/Services/IJwtService.cs | MODIFIED | Added interface methods for new JWT validation functions supporting BFF refresh token logic | Backend Developer BFF implementation | ACTIVE | Keep permanent |
+| 2025-09-12 | /home/chad/repos/witchcityrope-react/apps/api/Program.cs | MODIFIED | Enhanced JWT Bearer authentication to support both Authorization header and httpOnly cookies via OnMessageReceived event | Backend Developer BFF implementation | ACTIVE | Keep permanent |
+| 2025-09-12 | /session-work/2025-09-12/bff-authentication-implementation-summary.md | CREATED | Comprehensive implementation summary of BFF authentication pattern with httpOnly cookies addressing critical user timeout issues | Backend Developer implementation documentation | ACTIVE | Keep permanent |
 
 ## Archive Registry
 
@@ -106,6 +125,6 @@ Files moved to `/docs/_archive/` with historical value but no longer needed for 
 
 This registry must be updated by **every agent** that creates, modifies, or deletes files. No exceptions.
 
-**Last Updated**: 2025-09-12 - Added authentication research document entry
+**Last Updated**: 2025-09-12 - Added API cleanup functional area documentation structure
 **Maintained By**: All AI Agents
 **Review Frequency**: Weekly

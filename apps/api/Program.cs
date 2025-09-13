@@ -78,9 +78,30 @@ builder.Services.AddAuthentication(options =>
         NameClaimType = System.Security.Claims.ClaimTypes.NameIdentifier
     };
 
-    // Enhanced logging for development
+    // Enhanced logging and cookie support for BFF pattern
     options.Events = new JwtBearerEvents
     {
+        OnMessageReceived = context =>
+        {
+            // Check for token in Authorization header first (default behavior)
+            var authHeader = context.Request.Headers.Authorization.FirstOrDefault();
+            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+            {
+                context.Token = authHeader.Substring("Bearer ".Length).Trim();
+                return Task.CompletedTask;
+            }
+
+            // If no Bearer token, check for httpOnly cookie (BFF pattern)
+            var cookieToken = context.Request.Cookies["auth-token"];
+            if (!string.IsNullOrEmpty(cookieToken))
+            {
+                context.Token = cookieToken;
+                var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                logger.LogDebug("Using authentication token from httpOnly cookie");
+            }
+
+            return Task.CompletedTask;
+        },
         OnTokenValidated = context =>
         {
             var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();

@@ -22,4 +22,18 @@ public interface IJwtService
     /// <param name="token">Token to validate</param>
     /// <returns>True if valid</returns>
     bool ValidateToken(string token);
+
+    /// <summary>
+    /// Check if token is near expiry for refresh purposes
+    /// </summary>
+    /// <param name="token">Token to check</param>
+    /// <returns>True if token expires within 30 minutes</returns>
+    bool IsTokenNearExpiry(string token);
+
+    /// <summary>
+    /// Validate token structure without checking expiry (for refresh scenarios)
+    /// </summary>
+    /// <param name="token">Token to validate</param>
+    /// <returns>True if token structure is valid</returns>
+    bool ValidateTokenStructure(string token);
 }

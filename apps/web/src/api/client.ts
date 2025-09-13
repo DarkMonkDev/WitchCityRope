@@ -10,19 +10,10 @@ export const api = axios.create({
   },
 })
 
-// Request interceptor to add JWT token to Authorization header
+// Request interceptor for logging (auth handled by httpOnly cookies)
 api.interceptors.request.use(
-  async (config) => {
-    // Dynamically import to avoid circular dependency
-    const { useAuthStore } = await import('../stores/authStore')
-    const store = useAuthStore.getState()
-    
-    // Get valid token if available
-    const token = store.actions.getToken()
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    
+  (config) => {
+    // No token needed - auth handled by httpOnly cookies
     return config
   },
   (error) => {
@@ -35,13 +26,13 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      // Clear invalid token from auth store
+      // Clear auth state - no tokens to clear with httpOnly cookies
       const { useAuthStore } = await import('../stores/authStore')
       const store = useAuthStore.getState()
       store.actions.logout()
       
       // Don't try to redirect to login - let components handle navigation
-      console.log('401 Unauthorized - Authentication expired, token cleared')
+      console.log('401 Unauthorized - Authentication expired, state cleared')
     }
     return Promise.reject(error)
   }

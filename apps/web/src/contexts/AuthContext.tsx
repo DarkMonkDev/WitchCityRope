@@ -104,13 +104,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       try {
         setIsLoading(true)
-        // Try to restore user from stored JWT token
+        // Try to restore user from httpOnly cookie
         const user = await authService.getCurrentUser()
         if (user) {
           setUser(user)
-          console.log('Restored authentication from stored token')
+          console.log('Restored authentication from httpOnly cookie')
         } else {
-          console.log('No valid stored authentication found')
+          console.log('No valid authentication found')
         }
       } catch (error) {
         // User is not authenticated, which is fine

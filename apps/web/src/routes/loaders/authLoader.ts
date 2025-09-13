@@ -5,8 +5,7 @@ import { useAuthStore } from '../../stores/authStore';
  * Authentication loader for protected routes
  * Validates user authentication and redirects if necessary
  * 
- * Pattern from: /docs/functional-areas/routing-validation/requirements/functional-specification.md
- * Section 4.2.1 - Loader-based authentication
+ * Updated for httpOnly cookie-based authentication
  */
 export async function authLoader({ request }: LoaderFunctionArgs) {
   // Get current auth state from Zustand store
@@ -17,36 +16,22 @@ export async function authLoader({ request }: LoaderFunctionArgs) {
     return { user };
   }
   
-  // Check if we can validate auth with the server
+  // Check if we can validate auth with the server via httpOnly cookies
   try {
     // Set loading state
     actions.setLoading(true);
     
-    // Get JWT token for authentication
-    const token = actions.getToken();
-    if (!token) {
-      // No valid JWT token available
-      throw new Error('No valid token');
-    }
-    
-    // Attempt to get current session from server
+    // Attempt to get current session from server using httpOnly cookies
     const response = await fetch('/api/auth/user', {
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
+      credentials: 'include' // Use httpOnly cookies for auth
     });
     
     if (response.ok) {
       const apiResponse = await response.json();
       const userData = apiResponse.data || apiResponse;
       
-      // User is authenticated via JWT token - update store with current user data
-      // Keep existing token since it's valid
-      const currentState = useAuthStore.getState();
-      
-      actions.login(userData, currentState.token!, currentState.tokenExpiresAt!);
+      // User is authenticated via httpOnly cookie - update store with current user data
+      actions.login(userData);
       return { user: userData };
     }
   } catch (error) {

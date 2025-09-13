@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import { router } from './routes/router'
 import { useAuthActions } from './stores/authStore'
+import { useAuthRefresh } from './hooks/useAuthRefresh'
 import './App.css'
 
 /**
@@ -10,12 +11,16 @@ import './App.css'
  * Features:
  * - RouterProvider with data router (createBrowserRouter)
  * - Automatic auth check on app initialization (with safeguards)
+ * - Automatic token refresh to prevent logouts
  * - Integration with Zustand auth store
- * - No need for separate AuthProvider context
+ * - httpOnly cookie-based authentication
  */
 function App() {
   const { checkAuth } = useAuthActions();
   const hasCheckedAuth = useRef(false);
+
+  // Enable automatic token refresh
+  useAuthRefresh();
 
   // Check authentication status on app load (only once)
   useEffect(() => {

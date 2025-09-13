@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using WitchCityRope.Api.Features.Authentication.Models;
 using WitchCityRope.Api.Features.Authentication.Services;
+using WitchCityRope.Api.Services;
 
 namespace WitchCityRope.Api.Features.Authentication.Endpoints;
 
@@ -53,20 +54,42 @@ public static class AuthenticationEndpoints
             .Produces(404)
             .Produces(500);
 
-        // User login endpoint
+        // User login endpoint with httpOnly cookie support
         app.MapPost("/api/auth/login", async (
             LoginRequest request,
             AuthenticationService authService,
+            HttpContext context,
+            IConfiguration configuration,
             CancellationToken cancellationToken) =>
             {
                 var (success, response, error) = await authService.LoginAsync(request, cancellationToken);
 
-                return success 
-                    ? Results.Ok(response)
-                    : Results.Problem(
-                        title: "Login Failed",
-                        detail: error,
-                        statusCode: error.Contains("Invalid email or password") ? 401 : 400);
+                if (success && response != null)
+                {
+                    // Set httpOnly cookie with JWT token for BFF pattern
+                    var cookieOptions = new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = context.Request.IsHttps, // Use HTTPS in production
+                        SameSite = SameSiteMode.Strict,
+                        Path = "/",
+                        Expires = response.ExpiresAt
+                    };
+
+                    context.Response.Cookies.Append("auth-token", response.Token, cookieOptions);
+
+                    // Return user info without token (BFF pattern)
+                    return Results.Ok(new { 
+                        Success = true,
+                        User = response.User,
+                        Message = "Login successful" 
+                    });
+                }
+
+                return Results.Problem(
+                    title: "Login Failed",
+                    detail: error,
+                    statusCode: error.Contains("Invalid email or password") ? 401 : 400);
             })
             .WithName("Login")
             .WithSummary("Authenticate user with email and password")
@@ -149,33 +172,33 @@ public static class AuthenticationEndpoints
             .Produces(401)
             .Produces(404);
 
-        // Logout endpoint with proper token validation
+        // Logout endpoint with cookie clearing
         app.MapPost("/api/auth/logout", async (
-            ClaimsPrincipal user,
+            HttpContext context,
             ILogger<AuthenticationService> logger,
             CancellationToken cancellationToken) =>
             {
                 try
                 {
-                    // Extract user ID from JWT token claims for logging
-                    var userId = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                    
-                    if (!string.IsNullOrEmpty(userId))
+                    // Clear the httpOnly authentication cookie
+                    context.Response.Cookies.Delete("auth-token", new CookieOptions
                     {
-                        logger.LogInformation("User logged out: {UserId}", userId);
+                        HttpOnly = true,
+                        Secure = context.Request.IsHttps,
+                        SameSite = SameSiteMode.Strict,
+                        Path = "/"
+                    });
+
+                    // Log logout attempt (user info may not be available if cookie was invalid)
+                    var authCookie = context.Request.Cookies["auth-token"];
+                    if (!string.IsNullOrEmpty(authCookie))
+                    {
+                        logger.LogInformation("User logged out with valid cookie");
                     }
-                    
-                    // Currently JWT tokens are stateless, so logout is client-side only
-                    // In a production system, you would:
-                    // 1. Add tokens to a blacklist/revocation list
-                    // 2. Store revoked tokens in Redis with expiration matching token expiry
-                    // 3. Check blacklist in JWT Bearer validation middleware
                     
                     return Results.Ok(new { 
                         Success = true, 
-                        Message = "Logged out successfully",
-                        // Instruct client to clear stored tokens
-                        ClearTokens = true 
+                        Message = "Logged out successfully"
                     });
                 }
                 catch (Exception ex)
@@ -195,5 +218,182 @@ public static class AuthenticationEndpoints
             .WithTags("Authentication")
             .Produces<object>(200)
             .Produces(401);
+
+        // Get user information from httpOnly cookie
+        app.MapGet("/api/auth/user", async (
+            HttpContext context,
+            AuthenticationService authService,
+            IJwtService jwtService,
+            ILogger<AuthenticationService> logger,
+            CancellationToken cancellationToken) =>
+            {
+                try
+                {
+                    // Get token from httpOnly cookie
+                    var token = context.Request.Cookies["auth-token"];
+                    if (string.IsNullOrEmpty(token))
+                    {
+                        return Results.Problem(
+                            title: "Not Authenticated",
+                            detail: "Authentication cookie not found",
+                            statusCode: 401);
+                    }
+
+                    // Validate token and extract user ID
+                    if (!jwtService.ValidateToken(token))
+                    {
+                        // Clear invalid cookie
+                        context.Response.Cookies.Delete("auth-token", new CookieOptions
+                        {
+                            HttpOnly = true,
+                            Secure = context.Request.IsHttps,
+                            SameSite = SameSiteMode.Strict,
+                            Path = "/"
+                        });
+                        
+                        return Results.Problem(
+                            title: "Invalid Token",
+                            detail: "Authentication token is invalid or expired",
+                            statusCode: 401);
+                    }
+
+                    // Extract user ID from token
+                    var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                    var jsonToken = handler.ReadJwtToken(token);
+                    var userId = jsonToken?.Claims?.FirstOrDefault(x => x.Type == "sub")?.Value;
+
+                    if (string.IsNullOrEmpty(userId))
+                    {
+                        return Results.Problem(
+                            title: "Invalid Token",
+                            detail: "User ID not found in token",
+                            statusCode: 401);
+                    }
+
+                    var (success, response, error) = await authService.GetCurrentUserAsync(userId, cancellationToken);
+
+                    return success 
+                        ? Results.Ok(response)
+                        : Results.Problem(
+                            title: "Get Current User Failed",
+                            detail: error,
+                            statusCode: response == null ? 404 : 500);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Error getting user from cookie");
+                    return Results.Problem(
+                        title: "Authentication Error",
+                        detail: "Could not validate authentication",
+                        statusCode: 500);
+                }
+            })
+            .AllowAnonymous() // Uses cookie-based authentication
+            .WithName("GetUserFromCookie")
+            .WithSummary("Get current user information from httpOnly cookie")
+            .WithDescription("BFF pattern - validates httpOnly cookie and returns user info")
+            .WithTags("Authentication")
+            .Produces<AuthUserResponse>(200)
+            .Produces(401)
+            .Produces(404)
+            .Produces(500);
+
+        // Refresh token endpoint for silent token refresh
+        app.MapPost("/api/auth/refresh", async (
+            HttpContext context,
+            AuthenticationService authService,
+            IJwtService jwtService,
+            ILogger<AuthenticationService> logger,
+            CancellationToken cancellationToken) =>
+            {
+                try
+                {
+                    // Get current token from cookie
+                    var currentToken = context.Request.Cookies["auth-token"];
+                    if (string.IsNullOrEmpty(currentToken))
+                    {
+                        return Results.Problem(
+                            title: "No Token",
+                            detail: "No authentication token found for refresh",
+                            statusCode: 401);
+                    }
+
+                    // Validate current token structure (allow expired for refresh)
+                    var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                    System.IdentityModel.Tokens.Jwt.JwtSecurityToken jsonToken;
+                    
+                    try
+                    {
+                        jsonToken = handler.ReadJwtToken(currentToken);
+                    }
+                    catch
+                    {
+                        return Results.Problem(
+                            title: "Invalid Token",
+                            detail: "Token format is invalid",
+                            statusCode: 401);
+                    }
+
+                    // Extract user info from token
+                    var userId = jsonToken?.Claims?.FirstOrDefault(x => x.Type == "sub")?.Value;
+                    var email = jsonToken?.Claims?.FirstOrDefault(x => x.Type == "email")?.Value;
+
+                    if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(email))
+                    {
+                        return Results.Problem(
+                            title: "Invalid Token Claims",
+                            detail: "Required user information not found in token",
+                            statusCode: 401);
+                    }
+
+                    // Generate new token for the user
+                    var (success, response, error) = await authService.GetServiceTokenAsync(userId, email, cancellationToken);
+                    
+                    if (success && response != null)
+                    {
+                        // Set new httpOnly cookie
+                        var cookieOptions = new CookieOptions
+                        {
+                            HttpOnly = true,
+                            Secure = context.Request.IsHttps,
+                            SameSite = SameSiteMode.Strict,
+                            Path = "/",
+                            Expires = response.ExpiresAt
+                        };
+
+                        context.Response.Cookies.Append("auth-token", response.Token, cookieOptions);
+
+                        logger.LogDebug("Token refreshed successfully for user {UserId}", userId);
+                        
+                        return Results.Ok(new { 
+                            Success = true,
+                            Message = "Token refreshed successfully",
+                            ExpiresAt = response.ExpiresAt
+                        });
+                    }
+
+                    return Results.Problem(
+                        title: "Refresh Failed",
+                        detail: error,
+                        statusCode: 400);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Token refresh failed");
+                    return Results.Problem(
+                        title: "Refresh Error",
+                        detail: "Could not refresh authentication token",
+                        statusCode: 500);
+                }
+            })
+            .AllowAnonymous() // Uses cookie-based authentication
+            .WithName("RefreshToken")
+            .WithSummary("Refresh authentication token silently")
+            .WithDescription("BFF pattern - refreshes httpOnly cookie with new JWT token")
+            .WithTags("Authentication")
+            .Produces<object>(200)
+            .Produces(400)
+            .Produces(401)
+            .Produces(500);
     }
 }

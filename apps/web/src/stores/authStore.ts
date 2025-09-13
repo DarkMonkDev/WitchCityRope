@@ -8,19 +8,15 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   lastAuthCheck: Date | string | null; // Can be string when loaded from storage
-  token: string | null;
-  tokenExpiresAt: Date | null;
 }
 
 // Auth actions interface from functional specification
 interface AuthActions {
-  login: (user: UserDto, token: string, expiresAt: Date) => void;
+  login: (user: UserDto) => void;
   logout: () => void;
   updateUser: (updates: Partial<UserDto>) => void;
   checkAuth: () => Promise<void>;
   setLoading: (loading: boolean) => void;
-  getToken: () => string | null;
-  isTokenExpired: () => boolean;
 }
 
 // Combined store type
@@ -37,16 +33,12 @@ const useAuthStore = create<AuthStore>()(
         isAuthenticated: false,
         isLoading: false, // Changed to false to prevent initial render loops
         lastAuthCheck: null,
-        token: null,
-        tokenExpiresAt: null,
         
         // Actions
         actions: {
-          login: (user, token, expiresAt) => set(
+          login: (user) => set(
             { 
-              user, 
-              token,
-              tokenExpiresAt: expiresAt,
+              user,
               isAuthenticated: true, 
               isLoading: false,
               lastAuthCheck: new Date()
@@ -58,8 +50,6 @@ const useAuthStore = create<AuthStore>()(
           logout: () => set(
             { 
               user: null,
-              token: null,
-              tokenExpiresAt: null,
               isAuthenticated: false, 
               isLoading: false,
               lastAuthCheck: null
@@ -102,32 +92,35 @@ const useAuthStore = create<AuthStore>()(
             set({ isLoading: true }, false, 'auth/checkAuth/start');
             
             try {
-              // Check if we have a valid token first
-              if (!currentState.token || get().actions.isTokenExpired()) {
-                console.log('🔍 No valid token found - setting unauthenticated state');
-                // No valid token, user is not authenticated
-                set(
-                  { 
-                    user: null,
-                    token: null,
-                    tokenExpiresAt: null,
-                    isAuthenticated: false, 
-                    isLoading: false,
-                    lastAuthCheck: new Date()
-                  },
-                  false,
-                  'auth/checkAuth/no-token'
-                );
-                return;
+              console.log('🔍 Checking auth with API...');
+              // Use fetch directly with credentials to check auth via cookies
+              const response = await fetch('/api/auth/user', {
+                credentials: 'include'
+              });
+              
+              if (!response.ok) {
+                if (response.status === 401) {
+                  // User is not authenticated
+                  console.log('🔍 Auth check: User not authenticated');
+                  set(
+                    { 
+                      user: null,
+                      isAuthenticated: false, 
+                      isLoading: false,
+                      lastAuthCheck: new Date()
+                    },
+                    false,
+                    'auth/checkAuth/not-authenticated'
+                  );
+                  return;
+                }
+                throw new Error('Failed to check authentication');
               }
               
-              console.log('🔍 Checking auth with API...');
-              // Import api client dynamically to avoid circular dependency
-              const { apiClient } = await import('../lib/api/client');
-              const response = await apiClient.get('/api/auth/user');
+              const data = await response.json();
               
               // Handle nested response structure: { success: true, data: {...} }
-              const user = response.data.data || response.data;
+              const user = data.data || data;
               
               console.log('🔍 Auth check successful:', user.sceneName);
               // Update state directly instead of calling login action to avoid circular updates
@@ -142,13 +135,11 @@ const useAuthStore = create<AuthStore>()(
                 'auth/checkAuth/success'
               );
             } catch (error) {
-              console.log('🔍 Auth check failed:', error.response?.status || error.message);
+              console.log('🔍 Auth check failed:', error.message);
               // Update state directly instead of calling logout action
               set(
                 { 
                   user: null,
-                  token: null,
-                  tokenExpiresAt: null,
                   isAuthenticated: false, 
                   isLoading: false,
                   lastAuthCheck: new Date()
@@ -164,21 +155,7 @@ const useAuthStore = create<AuthStore>()(
             { isLoading: loading },
             false,
             'auth/setLoading'
-          ),
-          
-          getToken: () => {
-            const state = get();
-            if (!state.token || get().actions.isTokenExpired()) {
-              return null;
-            }
-            return state.token;
-          },
-          
-          isTokenExpired: () => {
-            const state = get();
-            if (!state.tokenExpiresAt) return true;
-            return new Date() >= state.tokenExpiresAt;
-          }
+          )
         }
       }),
       {
@@ -188,12 +165,8 @@ const useAuthStore = create<AuthStore>()(
           // Only persist essential, non-sensitive data
           user: state.user,
           isAuthenticated: state.isAuthenticated,
-          lastAuthCheck: state.lastAuthCheck,
-          // TEMPORARY FIX: Persist token for event updates to work
-          // TODO: Move to httpOnly cookie-based authentication properly
-          token: state.token,
-          tokenExpiresAt: state.tokenExpiresAt
-          // Don't persist isLoading - should always start as true for auth check
+          lastAuthCheck: state.lastAuthCheck
+          // Don't persist isLoading - should always start as false
         })
       }
     ),
@@ -210,8 +183,8 @@ export const useIsAuthenticated = () => useAuthStore((state) => state.isAuthenti
 export const useIsLoading = () => useAuthStore((state) => state.isLoading);
 export const useAuthActions = () => useAuthStore((state) => state.actions);
 export const useUserSceneName = () => useAuthStore((state) => state.user?.sceneName || '');
-export const useToken = () => useAuthStore((state) => state.actions.getToken());
-export const useIsTokenExpired = () => useAuthStore((state) => state.actions.isTokenExpired());
+
+// Token hooks no longer needed with httpOnly cookies
 
 // Composite hook for components that need multiple auth values
 // Note: This creates new objects on every render, use individual selectors when possible

@@ -118,4 +118,56 @@ public class JwtService : IJwtService
             return false;
         }
     }
+
+    /// <summary>
+    /// Check if token is near expiry (within 30 minutes) for refresh purposes
+    /// </summary>
+    public bool IsTokenNearExpiry(string token)
+    {
+        try
+        {
+            var jsonToken = _tokenHandler.ReadJwtToken(token);
+            var expiry = jsonToken.ValidTo;
+            var now = DateTime.UtcNow;
+            
+            // Token is near expiry if it expires within the next 30 minutes
+            return expiry.Subtract(now).TotalMinutes <= 30;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug("Failed to check token expiry: {Error}", ex.Message);
+            return true; // Assume near expiry if we can't parse
+        }
+    }
+
+    /// <summary>
+    /// Validate token structure without checking expiry (for refresh scenarios)
+    /// </summary>
+    public bool ValidateTokenStructure(string token)
+    {
+        try
+        {
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
+
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = false, // Skip lifetime validation for refresh
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = _issuer,
+                ValidAudience = _audience,
+                IssuerSigningKey = key,
+                ClockSkew = TimeSpan.Zero
+            };
+
+            var principal = _tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
+            return validatedToken != null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug("Token structure validation failed: {Error}", ex.Message);
+            return false;
+        }
+    }
 }

@@ -14,7 +14,6 @@ export interface RegisterCredentials {
 
 export interface AuthResponse {
   user: UserDto
-  token: string
 }
 
 export interface ProtectedWelcomeResponse {
@@ -24,62 +23,15 @@ export interface ProtectedWelcomeResponse {
 }
 
 class AuthService {
-  private token: string | null = null
-  private readonly TOKEN_KEY = 'witchcityrope_jwt_token'
-  private readonly TOKEN_EXPIRY_KEY = 'witchcityrope_jwt_expiry'
 
-  constructor() {
-    // Restore token from localStorage on initialization
-    this.initializeFromStorage()
-  }
-
-  private initializeFromStorage(): void {
-    try {
-      const storedToken = localStorage.getItem(this.TOKEN_KEY)
-      const storedExpiry = localStorage.getItem(this.TOKEN_EXPIRY_KEY)
-      
-      if (storedToken && storedExpiry) {
-        const expiryTime = new Date(storedExpiry)
-        if (new Date() < expiryTime) {
-          // Token is still valid
-          this.token = storedToken
-        } else {
-          // Token expired, clean up
-          this.clearStoredAuth()
-        }
-      }
-    } catch (error) {
-      console.warn('Failed to restore auth from localStorage:', error)
-      this.clearStoredAuth()
-    }
-  }
-
-  private storeAuth(token: string, expiresAt: string): void {
-    try {
-      localStorage.setItem(this.TOKEN_KEY, token)
-      localStorage.setItem(this.TOKEN_EXPIRY_KEY, expiresAt)
-      this.token = token
-    } catch (error) {
-      console.warn('Failed to store auth in localStorage:', error)
-      // Fall back to memory-only storage
-      this.token = token
-    }
-  }
-
-  private clearStoredAuth(): void {
-    try {
-      localStorage.removeItem(this.TOKEN_KEY)
-      localStorage.removeItem(this.TOKEN_EXPIRY_KEY)
-    } catch (error) {
-      console.warn('Failed to clear auth from localStorage:', error)
-    }
-    this.token = null
-  }
+  // No longer needed - auth is handled via httpOnly cookies
 
   async login(credentials: LoginRequest): Promise<AuthResponse> {
-    const response = await apiRequest(apiConfig.endpoints.auth.login, {
+    const response = await fetch(getApiUrl('/api/auth/login'), {
       method: 'POST',
-      body: JSON.stringify(credentials),
+      credentials: 'include', // CRITICAL: Include cookies
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials)
     })
 
     if (!response.ok) {
@@ -89,24 +41,17 @@ class AuthService {
 
     const data = await response.json()
     console.log('Login API response:', data)
-    // API returns flat structure directly: { token, user, refreshToken, expiresAt }
+    // API now sets httpOnly cookie, no token in response
     
-    // Store JWT token persistently with expiration
-    if (data.token && data.expiresAt) {
-      this.storeAuth(data.token, data.expiresAt)
-    } else {
-      // Fallback for missing expiry - assume 8 hours
-      const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString()
-      this.storeAuth(data.token, expiresAt)
-    }
-    
-    return data
+    return { user: data.user }
   }
 
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {
-    const response = await apiRequest(apiConfig.endpoints.auth.register, {
+    const response = await fetch(getApiUrl('/api/auth/register'), {
       method: 'POST',
-      body: JSON.stringify(credentials),
+      credentials: 'include', // CRITICAL: Include cookies
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials)
     })
 
     if (!response.ok) {
@@ -115,40 +60,26 @@ class AuthService {
     }
 
     const data = await response.json()
-    // API returns flat structure directly: { token, user, refreshToken, expiresAt }
+    // API now sets httpOnly cookie, no token in response
     
-    // Store JWT token persistently with expiration
-    if (data.token && data.expiresAt) {
-      this.storeAuth(data.token, data.expiresAt)
-    } else {
-      // Fallback for missing expiry - assume 8 hours
-      const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString()
-      this.storeAuth(data.token, expiresAt)
-    }
-    
-    return data
+    return { user: data.user }
   }
 
   async logout(): Promise<void> {
     try {
-      // Call API logout even though it's currently a placeholder
-      // This will be important when proper token blacklisting is implemented
-      await apiRequest(apiConfig.endpoints.auth.logout, {
+      await fetch(getApiUrl('/api/auth/logout'), {
         method: 'POST',
-        headers: this.token ? { Authorization: `Bearer ${this.token}` } : {},
+        credentials: 'include' // Use cookie for auth
       })
     } catch (error) {
       console.error('Logout error:', error)
-      // Don't fail logout due to API errors
-    } finally {
-      // Always clear stored authentication
-      this.clearStoredAuth()
+      // Don't fail logout due to API errors - cookie will still be cleared by API
     }
   }
 
   async getProtectedWelcome(): Promise<ProtectedWelcomeResponse> {
-    const response = await apiRequest(apiConfig.endpoints.protected.welcome, {
-      headers: this.token ? { Authorization: `Bearer ${this.token}` } : {},
+    const response = await fetch(getApiUrl('/api/protected/welcome'), {
+      credentials: 'include' // Use cookie for auth
     })
 
     if (!response.ok) {
@@ -161,56 +92,20 @@ class AuthService {
     return response.json()
   }
 
-  getToken(): string | null {
-    return this.token
-  }
-
-  setToken(token: string | null): void {
-    if (token) {
-      // When manually setting token, assume 8-hour expiry
-      const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString()
-      this.storeAuth(token, expiresAt)
-    } else {
-      this.clearStoredAuth()
-    }
-  }
-
-  /**
-   * Check if current token is expired
-   */
-  isTokenExpired(): boolean {
-    if (!this.token) return true
-    
-    try {
-      const storedExpiry = localStorage.getItem(this.TOKEN_EXPIRY_KEY)
-      if (!storedExpiry) return true
-      
-      const expiryTime = new Date(storedExpiry)
-      return new Date() >= expiryTime
-    } catch (error) {
-      console.warn('Failed to check token expiry:', error)
-      return true
-    }
-  }
+  // Token methods no longer needed - auth is handled via httpOnly cookies
 
   /**
    * Get current user info to restore authentication state
    */
   async getCurrentUser(): Promise<UserDto | null> {
-    if (!this.token || this.isTokenExpired()) {
-      this.clearStoredAuth()
-      return null
-    }
-
     try {
-      const response = await apiRequest(apiConfig.endpoints.auth.currentUser, {
-        headers: { Authorization: `Bearer ${this.token}` },
+      const response = await fetch(getApiUrl('/api/auth/user'), {
+        credentials: 'include' // Use cookie for auth
       })
 
       if (!response.ok) {
         if (response.status === 401) {
-          // Token is invalid, clear it
-          this.clearStoredAuth()
+          // User is not authenticated
           return null
         }
         throw new Error('Failed to get current user')
@@ -220,7 +115,6 @@ class AuthService {
       return userData
     } catch (error) {
       console.warn('Failed to get current user:', error)
-      this.clearStoredAuth()
       return null
     }
   }
