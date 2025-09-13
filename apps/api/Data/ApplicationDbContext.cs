@@ -7,6 +7,8 @@ using WitchCityRope.Api.Features.CheckIn.Entities;
 using WitchCityRope.Api.Features.CheckIn.Entities.Configuration;
 using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Features.Vetting.Entities.Configuration;
+using WitchCityRope.Api.Features.Payments.Entities;
+using WitchCityRope.Api.Features.Payments.Data;
 
 namespace WitchCityRope.Api.Data;
 
@@ -135,6 +137,31 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     /// VettingNoteAttachments table for note file attachments
     /// </summary>
     public DbSet<VettingNoteAttachment> VettingNoteAttachments { get; set; }
+
+    /// <summary>
+    /// Payments table for payment processing with sliding scale pricing
+    /// </summary>
+    public DbSet<Payment> Payments { get; set; }
+
+    /// <summary>
+    /// PaymentMethods table for saved payment methods
+    /// </summary>
+    public DbSet<PaymentMethod> PaymentMethods { get; set; }
+
+    /// <summary>
+    /// PaymentRefunds table for refund tracking
+    /// </summary>
+    public DbSet<PaymentRefund> PaymentRefunds { get; set; }
+
+    /// <summary>
+    /// PaymentAuditLog table for comprehensive payment audit trails
+    /// </summary>
+    public DbSet<PaymentAuditLog> PaymentAuditLog { get; set; }
+
+    /// <summary>
+    /// PaymentFailures table for detailed failure tracking
+    /// </summary>
+    public DbSet<PaymentFailure> PaymentFailures { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -720,6 +747,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         modelBuilder.ApplyConfiguration(new VettingDecisionAuditLogConfiguration());
         modelBuilder.ApplyConfiguration(new VettingNotificationConfiguration());
         modelBuilder.ApplyConfiguration(new VettingNoteAttachmentConfiguration());
+
+        // Apply Payment System configurations
+        modelBuilder.ApplyConfiguration(new PaymentConfiguration());
+        modelBuilder.ApplyConfiguration(new PaymentMethodConfiguration());
+        modelBuilder.ApplyConfiguration(new PaymentRefundConfiguration());
+        modelBuilder.ApplyConfiguration(new PaymentAuditLogConfiguration());
+        modelBuilder.ApplyConfiguration(new PaymentFailureConfiguration());
     }
 
     /// <summary>
@@ -1125,6 +1159,92 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             if (entry.State == EntityState.Added)
             {
                 entry.Entity.CreatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Handle Payment entities
+        var paymentEntries = ChangeTracker.Entries<Payment>();
+        foreach (var entry in paymentEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+
+                // Ensure ProcessedAt is UTC if set
+                if (entry.Entity.ProcessedAt.HasValue && entry.Entity.ProcessedAt.Value.Kind != DateTimeKind.Utc)
+                {
+                    entry.Entity.ProcessedAt = DateTime.SpecifyKind(entry.Entity.ProcessedAt.Value, DateTimeKind.Utc);
+                }
+
+                // Ensure RefundedAt is UTC if set
+                if (entry.Entity.RefundedAt.HasValue && entry.Entity.RefundedAt.Value.Kind != DateTimeKind.Utc)
+                {
+                    entry.Entity.RefundedAt = DateTime.SpecifyKind(entry.Entity.RefundedAt.Value, DateTimeKind.Utc);
+                }
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+
+                // Ensure ProcessedAt is UTC if set
+                if (entry.Entity.ProcessedAt.HasValue && entry.Entity.ProcessedAt.Value.Kind != DateTimeKind.Utc)
+                {
+                    entry.Entity.ProcessedAt = DateTime.SpecifyKind(entry.Entity.ProcessedAt.Value, DateTimeKind.Utc);
+                }
+
+                // Ensure RefundedAt is UTC if set
+                if (entry.Entity.RefundedAt.HasValue && entry.Entity.RefundedAt.Value.Kind != DateTimeKind.Utc)
+                {
+                    entry.Entity.RefundedAt = DateTime.SpecifyKind(entry.Entity.RefundedAt.Value, DateTimeKind.Utc);
+                }
+            }
+        }
+
+        // Handle PaymentMethod entities
+        var paymentMethodEntries = ChangeTracker.Entries<PaymentMethod>();
+        foreach (var entry in paymentMethodEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Handle PaymentRefund entities
+        var paymentRefundEntries = ChangeTracker.Entries<PaymentRefund>();
+        foreach (var entry in paymentRefundEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+                entry.Entity.ProcessedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Handle PaymentAuditLog entities
+        var paymentAuditLogEntries = ChangeTracker.Entries<PaymentAuditLog>();
+        foreach (var entry in paymentAuditLogEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Handle PaymentFailure entities
+        var paymentFailureEntries = ChangeTracker.Entries<PaymentFailure>();
+        foreach (var entry in paymentFailureEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+                entry.Entity.FailedAt = DateTime.UtcNow;
             }
         }
     }

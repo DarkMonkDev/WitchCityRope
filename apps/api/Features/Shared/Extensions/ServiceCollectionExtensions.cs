@@ -8,6 +8,8 @@ using WitchCityRope.Api.Features.Safety.Validation;
 using WitchCityRope.Api.Features.CheckIn.Extensions;
 using WitchCityRope.Api.Features.Vetting.Services;
 using WitchCityRope.Api.Features.Vetting.Validators;
+using WitchCityRope.Api.Features.Payments.Services;
+using WitchCityRope.Api.Features.Payments.Validators;
 using WitchCityRope.Api.Services;
 
 namespace WitchCityRope.Api.Features.Shared.Extensions;
@@ -52,6 +54,14 @@ public static class ServiceCollectionExtensions
         
         // FluentValidation for Vetting feature
         services.AddValidatorsFromAssemblyContaining<CreateApplicationValidator>();
+
+        // Payment feature services
+        services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<IStripeService, StripeService>();
+        services.AddScoped<IRefundService, RefundService>();
+        
+        // FluentValidation for Payment feature
+        services.AddValidatorsFromAssemblyContaining<ProcessPaymentApiRequestValidator>();
 
         // Database initialization services
         services.AddScoped<ISeedDataService, SeedDataService>();
