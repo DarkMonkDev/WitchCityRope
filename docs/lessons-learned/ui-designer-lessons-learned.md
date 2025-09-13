@@ -525,6 +525,200 @@ const handleSubmissionError = (error) => {
 - Submit button prominence with confirmation
 - Success state with clear next steps
 
+## CheckIn System Mobile-First Design Patterns - September 2025
+
+### CRITICAL: Mobile-First Volunteer Interface Requirements
+**Problem**: Event check-in performed by volunteer staff using phones/tablets at venue entrances with poor WiFi
+**Solution**: 
+- Touch-optimized interface with 44px+ targets
+- Offline capability with local data storage
+- Simple volunteer workflow requiring minimal training
+- Quick processing for lines of 30+ attendees
+
+### Touch Optimization Standards
+**Touch Target Requirements**:
+- **Minimum Size**: 44px × 44px for all interactive elements
+- **Button Spacing**: 8px minimum between touch targets
+- **Primary Actions**: 48px height, full-width on mobile
+- **Search Input**: 56px height for comfortable typing
+
+**Gesture Support Patterns**:
+```jsx
+// Swipe-to-refresh for attendee list
+const SwipeRefresh = () => (
+  <div 
+    className="swipe-refresh"
+    onTouchStart={handleTouchStart}
+    onTouchMove={handleTouchMove}
+    onTouchEnd={handleRefresh}
+  >
+    <AttendeeList />
+  </div>
+);
+
+// Long-press for additional options
+const LongPressActions = () => (
+  <div
+    onTouchStart={startLongPress}
+    onTouchEnd={clearLongPress}
+    onContextMenu={showActions}
+  >
+    <AttendeeCard />
+  </div>
+);
+```
+
+### Offline Capability Design Patterns
+**Local Storage Strategy**:
+```typescript
+interface OfflineData {
+  eventId: string;
+  attendees: Attendee[];
+  checkIns: CheckInRecord[];
+  lastSync: timestamp;
+  pendingActions: PendingAction[];
+}
+
+// Sync when connection restored
+const syncPendingCheckIns = async () => {
+  const pending = getPendingActions();
+  for (const action of pending) {
+    try {
+      await submitCheckIn(action);
+      removePendingAction(action.id);
+    } catch (error) {
+      markActionFailed(action.id);
+    }
+  }
+};
+```
+
+**Offline UI Indicators**:
+- Connection status prominent in header
+- Pending actions badge showing unsynced check-ins
+- Manual sync trigger when connection restored
+- Data freshness timestamp display
+
+### Volunteer-Friendly Interface Patterns
+**Simplified Check-In Flow**:
+1. Search attendee by name/email
+2. Select from filtered list
+3. Review basic attendee info
+4. Single "CHECK IN" button
+5. Success confirmation with visual feedback
+6. Return to search automatically
+
+**Error Prevention**:
+- Large, clear status indicators
+- Color-coded attendee states (checked-in, expected, waitlist)
+- Confirmation dialogs for critical actions
+- Undo capability for accidental check-ins
+
+### Performance Optimization for Mobile
+**Battery Life Considerations**:
+- Screen wake lock during check-in periods
+- Reduced animations option for battery saving
+- Efficient polling intervals based on event activity
+- Minimal background processing
+
+**Memory Management**:
+- Virtual scrolling for large attendee lists (100+ people)
+- Lazy loading of attendee details
+- Image compression for attendee photos
+- Local cache management with size limits
+
+### Responsive Breakpoint Strategy
+**Mobile Portrait (375px)**:
+- Single column layout
+- Full-width buttons
+- Compressed cards with essential info only
+- Sticky header with event info
+- Bottom actions in thumb-reach zone
+
+**Mobile Landscape (667px)**:
+- Two-column: search + attendee list
+- Horizontal scrolling table view
+- Compact header design
+- Side panel for attendee details
+
+**Tablet (768px+)**:
+- Three-column: search, list, details/overview
+- Full table view with all information
+- Modal dialogs for confirmations
+- Multi-select capabilities
+
+### Visual Feedback Patterns
+**Check-In Success Animation**:
+```jsx
+const CheckInSuccess = ({ attendee }) => (
+  <motion.div
+    initial={{ scale: 0.8, opacity: 0 }}
+    animate={{ scale: 1, opacity: 1 }}
+    transition={{ duration: 0.5, ease: "easeOut" }}
+    style={{
+      backgroundColor: '#228B22',
+      borderRadius: '12px',
+      padding: '24px',
+      textAlign: 'center',
+      color: 'white'
+    }}
+  >
+    <motion.div
+      animate={{ scale: [1, 1.2, 1] }}
+      transition={{ duration: 0.6, times: [0, 0.5, 1] }}
+    >
+      ✅
+    </motion.div>
+    <Text size="xl" weight={600}>Check-In Successful</Text>
+    <Text>{attendee.name}</Text>
+  </motion.div>
+);
+```
+
+**Status Badge System**:
+```jsx
+const StatusBadge = ({ status, count }) => {
+  const statusConfig = {
+    'checked-in': { color: '#228B22', icon: '✅', label: 'Checked In' },
+    'expected': { color: '#DAA520', icon: '⏳', label: 'Expected' },
+    'waitlist': { color: '#DC143C', icon: '⚠️', label: 'Waitlist' },
+    'no-show': { color: '#8B8680', icon: '❌', label: 'No Show' }
+  };
+  
+  const config = statusConfig[status];
+  
+  return (
+    <Badge
+      color={config.color}
+      variant="filled"
+      size="lg"
+      style={{
+        borderRadius: '12px 6px 12px 6px',
+        fontFamily: 'Montserrat, sans-serif',
+        fontWeight: 600,
+        textTransform: 'uppercase',
+        letterSpacing: '0.5px'
+      }}
+    >
+      {config.icon} {config.label} {count && `(${count})`}
+    </Badge>
+  );
+};
+```
+
+### Accessibility for Venue Conditions
+**Outdoor/Variable Lighting**:
+- High contrast mode toggle
+- Large text options (150% scaling)
+- Color-independent status indicators
+- Dark mode for evening events
+
+**Emergency Accessibility**:
+- Voice commands for hands-free operation
+- Screen reader optimization
+- External switch support
+- Quick emergency contact access
+
 ## Stakeholder Feedback Integration - September 2025
 
 ### CRITICAL: Design Simplification Based on Stakeholder Feedback
@@ -655,6 +849,18 @@ const handleSubmissionError = (error) => {
 - [ ] Emergency accessibility features included
 - [ ] Error handling preserves data privacy
 
+### CheckIn System Mobile-First Validation
+- [ ] Touch targets minimum 44px, preferred 48px for primary actions
+- [ ] Offline capability designed with local storage and sync indicators
+- [ ] Volunteer-friendly interface with minimal training requirements
+- [ ] Quick processing flow optimized for lines of 30+ attendees
+- [ ] Battery life considerations implemented
+- [ ] Connection status clearly displayed
+- [ ] Success animations provide clear feedback
+- [ ] Status badges use consistent color coding
+- [ ] Swipe gestures with button fallbacks
+- [ ] High contrast mode for variable lighting conditions
+
 ### Stakeholder Feedback Integration Validation
 - [ ] Simplified designs match actual business requirements
 - [ ] Removed unnecessary complexity based on feedback
@@ -685,6 +891,11 @@ const handleSubmissionError = (error) => {
 **Location**: `/docs/functional-areas/api-cleanup/new-work/[date]/design/`
 **Naming**: `safety-system-ui-design.md`
 **Include**: Complete UI specifications, privacy requirements, legal compliance notes
+
+### CheckIn System Documentation
+**Location**: `/docs/functional-areas/api-cleanup/new-work/[date]/design/`
+**Naming**: `checkin-system-ui-design.md`
+**Include**: Mobile-first wireframes, touch optimization, offline capability, volunteer workflow design
 
 ## Common Mistakes to Avoid
 
@@ -719,6 +930,12 @@ const handleSubmissionError = (error) => {
 29. **DON'T** include incident type categorization (stakeholders don't use this)
 30. **DON'T** design SMS notification systems (email only required)
 31. **DON'T** assume 2-year data retention for all data (only temp data, database records permanent)
+32. **DON'T** design touch targets smaller than 44px for mobile interfaces
+33. **DON'T** ignore offline capability requirements for venue-based systems
+34. **DON'T** create complex volunteer interfaces requiring extensive training
+35. **DON'T** forget battery life optimization for mobile-first applications
+36. **DON'T** skip connection status indicators for offline-capable apps
+37. **DON'T** use complex gestures without button alternatives
 
 ## Stakeholder Communication
 
@@ -773,4 +990,15 @@ const handleSubmissionError = (error) => {
 5. Document what was simplified and why
 6. Update designs immediately based on feedback
 
-This comprehensive approach ensures all future wireframes will be consistent with the approved Design System v7, meet stakeholder expectations, and support critical legal compliance requirements for community safety.
+### Mobile-First Communication
+**Lesson**: Volunteer-operated systems require different communication approach
+**Solution**: Emphasize operational benefits and volunteer ease-of-use
+**Process**:
+1. Highlight touch optimization and large targets
+2. Demonstrate offline capability for poor venue WiFi
+3. Show quick processing workflow for event lines
+4. Emphasize minimal training requirements
+5. Present battery life and performance considerations
+6. Document venue-specific accessibility features
+
+This comprehensive approach ensures all future wireframes will be consistent with the approved Design System v7, meet stakeholder expectations, support critical legal compliance requirements for community safety, and provide mobile-first experiences optimized for volunteer staff operations.

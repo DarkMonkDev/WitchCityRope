@@ -69,10 +69,10 @@ namespace WitchCityRope.Tests.Common.Fixtures
                     .WithLabel("created", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"))
                     .Build();
 
-                // Register container with cleanup service
-                ContainerCleanupService.RegisterContainer(_container.Id, "DatabaseTestFixture");
-
                 await _container.StartAsync();
+
+                // Register container with cleanup service (after container is started and has an ID)
+                ContainerCleanupService.RegisterContainer(_container.Id, "DatabaseTestFixture");
 
                 var startupTime = _performanceTimer.Elapsed;
                 _logger.LogInformation("Container started in {StartupTime:F2} seconds. Target: <5 seconds", 
@@ -166,6 +166,11 @@ namespace WitchCityRope.Tests.Common.Fixtures
         {
             var options = new DbContextOptionsBuilder<WitchCityRopeDbContext>()
                 .UseNpgsql(ConnectionString)
+                .ConfigureWarnings(warnings =>
+                {
+                    // Ignore pending model changes warning in test environment
+                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning);
+                })
                 .Options;
             
             return new WitchCityRopeDbContext(options);

@@ -218,18 +218,18 @@
 
 ## Comprehensive Technology Removal Pattern
 
-**Problem**: Worktree technology completely removed from project but references scattered across 20+ files.
-**Solution**: Systematic deletion of ALL references - documentation, scripts, guides, functional areas, gitignore entries, and validation checks.
+**Problem**: When technology is deemed harmful or incompatible, references remain scattered across documentation, scripts, and functional areas.
+**Solution**: Systematic removal of ALL references - documentation, scripts, guides, functional areas, configuration files, and validation checks.
 
 **Successful Removal Checklist**:
 - Archive decision documents (don't delete - historical context needed)
 - Delete implementation scripts and utilities
-- Remove guides and setup documentation  
+- Remove guides and setup documentation
 - Delete entire functional areas built around the technology
 - Clean configuration files (.gitignore, validation scripts)
 - Update file registry with comprehensive deletion log
 
-**Pattern**: When technology is deemed harmful (worktrees broke Docker compatibility), remove ALL traces to prevent future confusion or accidental re-adoption.
+**Pattern**: When technology causes architectural problems, remove ALL traces to prevent future confusion or accidental re-adoption.
 
 ## 🚨 CRITICAL: Duplicate API Projects Detection 🚨
 

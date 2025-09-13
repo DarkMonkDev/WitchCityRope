@@ -6,8 +6,7 @@
 # Purpose: Prevent documentation/process failures before they happen
 # Must run at the start of EVERY Claude Code session
 # 
-# This script prevents the catastrophic failures we experienced on 2025-09-10
-# where work was scattered across worktrees and main branch
+# This script prevents common documentation and process failures
 
 set -e
 
@@ -92,7 +91,7 @@ CRITICAL_FILES=(
     "CLAUDE.md"
     "docs/architecture/functional-area-master-index.md"
     "docs/architecture/file-registry.md"
-    "docs/lessons-learned/RECOVERY-PLAN.md"
+    "docs/standards-processes/documentation-process/DOCUMENTATION_GUIDE.md"
     ".env"
     "docker-compose.yml"
 )

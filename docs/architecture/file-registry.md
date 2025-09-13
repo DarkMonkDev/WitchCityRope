@@ -35,6 +35,9 @@
 | 2025-09-12 | `/docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/design/safety-system-database-design.md` | CREATED | Comprehensive database schema design for Safety incident reporting system with PostgreSQL optimization, encrypted storage, audit trails, and EF Core configuration | Database Designer Safety System | ACTIVE | Keep permanent |
 | 2025-09-12 | `/docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/handoffs/database-designer-2025-09-12-handoff.md` | CREATED | Mandatory database designer handoff documenting completed schema design, security patterns, performance optimization, and next steps for backend implementation | Database Designer Handoff | ACTIVE | Keep permanent |
 | 2025-09-12 | `/docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/design/safety-system-technical-design.md` | CREATED | Comprehensive technical architecture for Safety System implementation - vertical slice structure, service layers, API endpoints, validation, encryption, testing strategy, and implementation roadmap | Backend Developer Safety System Technical Design | ACTIVE | Keep permanent |
+| 2025-09-12 | `/docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/design/checkin-system-ui-design.md` | CREATED | Comprehensive UI/UX design for CheckIn System - mobile-first, offline-capable event attendee management with touch optimization, responsive design, and volunteer-friendly interface | UI Designer CheckIn System Design | ACTIVE | Keep permanent |
+| 2025-09-13 | `/docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/requirements/checkin-system-functional-spec.md` | CREATED | Comprehensive functional specification for CheckIn System based on approved UI design - defines staff workflows, API specifications, business rules, offline capability for event attendee management | Business Requirements Agent CheckIn System | ACTIVE | Keep permanent |
+| 2025-09-13 | `/docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/design/checkin-system-database-design.md` | CREATED | Comprehensive database schema design for CheckIn System with PostgreSQL optimization, offline sync capability, audit trails, Entity Framework configuration for event attendee management | Database Designer Agent CheckIn System | ACTIVE | Keep permanent |
 
 ## Active File Registry
 
@@ -47,64 +50,35 @@
 | 2025-09-12 | /docs/lessons-learned/functional-spec-lessons-learned.md | MODIFIED | Added mandatory agent handoff documentation process section for workflow continuity | Workflow handoff system implementation | ACTIVE | Keep permanent |
 | 2025-09-12 | /docs/lessons-learned/git-manager-lessons-learned.md | MODIFIED | Added mandatory agent handoff documentation process section for workflow continuity | Workflow handoff system implementation | ACTIVE | Keep permanent |
 | 2025-09-12 | /docs/lessons-learned/librarian-lessons-learned.md | MODIFIED | Added mandatory agent handoff documentation process section for workflow continuity | Workflow handoff system implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | /docs/lessons-learned/ui-designer-lessons-learned.md | MODIFIED | Added mandatory agent handoff documentation process section for workflow continuity | Workflow handoff system implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | /docs/lessons-learned/test-executor-lessons-learned.md | MODIFIED | Added mandatory agent handoff documentation process section for workflow continuity | Workflow handoff system implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | /docs/lessons-learned/devops-lessons-learned.md | MODIFIED | Added mandatory agent handoff documentation process section for workflow continuity | Workflow handoff system implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | /docs/lessons-learned/lint-validator-lessons-learned.md | MODIFIED | Added mandatory agent handoff documentation process section for workflow continuity | Workflow handoff system implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | /docs/lessons-learned/prettier-formatter-lessons-learned.md | MODIFIED | Added mandatory agent handoff documentation process section for workflow continuity | Workflow handoff system implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | /docs/lessons-learned/test-developer-lessons-learned.md | MODIFIED | Added mandatory agent handoff documentation process section for workflow continuity | Workflow handoff system implementation | ACTIVE | Keep permanent |
 | 2025-09-12 | /docs/lessons-learned/react-developer-lessons-learned.md | MODIFIED | Added mandatory agent handoff documentation process section for workflow continuity | Workflow handoff system implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | /docs/lessons-learned/technology-researcher-lessons-learned.md | MODIFIED | Added mandatory agent handoff documentation process section for workflow continuity | Workflow handoff system implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | `/docs/functional-areas/testing-infrastructure/new-work/2025-09-12-containerized-testing/design/implementation-plan.md` | CREATED | Comprehensive 3-phase implementation plan for enhanced containerized testing infrastructure - detailed tasks, timeline, risk mitigation, success metrics for TestContainers v4.7.0 enhancement | Containerized Testing Infrastructure Research Project | ACTIVE | Keep permanent |
-| 2025-09-12 | `/docs/functional-areas/testing-infrastructure/new-work/2025-09-12-containerized-testing/executive-summary.md` | CREATED | Executive summary of containerized testing research with primary recommendation to enhance existing TestContainers v4.7.0, all stakeholder concerns addressed, implementation overview | Containerized Testing Infrastructure Research Project | ACTIVE | Keep permanent |
-| 2025-09-12 | `/docs/functional-areas/testing-infrastructure/new-work/2025-09-12-containerized-testing/handoffs/orchestrator-2025-09-12-handoff.md` | CREATED | Mandatory orchestrator handoff document for completed containerized testing research project - workflow completed, agents coordinated, deliverables created, stakeholder decision pending | Orchestrator Handoff Documentation | ACTIVE | Keep permanent |
-| 2025-09-12 | `/apps/web/src/features/safety/types/safety.types.ts` | CREATED | Complete TypeScript types for Safety System - DTOs, enums, form data types, severity configs following backend API design | Safety System React Frontend Implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | `/apps/web/src/features/safety/api/safetyApi.ts` | CREATED | Safety API service layer with all HTTP requests for incident management - submit, status, admin functions with cookie auth | Safety System React Frontend Implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | `/apps/web/src/features/safety/hooks/useSafetyIncidents.ts` | CREATED | React Query hooks for safety incidents - dashboard, search, update, user reports with cache management and error handling | Safety System React Frontend Implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | `/apps/web/src/features/safety/hooks/useSubmitIncident.ts` | CREATED | Specialized hook for incident form submission with form data conversion and status tracking | Safety System React Frontend Implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | `/apps/web/src/features/safety/components/IncidentReportForm.tsx` | CREATED | Main incident report form component - anonymous/identified reporting, severity levels, mobile-responsive Mantine design | Safety System React Frontend Implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | `/apps/web/src/features/safety/components/SubmissionConfirmation.tsx` | CREATED | Post-submission confirmation screen with reference number, tracking info, and next actions | Safety System React Frontend Implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | `/apps/web/src/features/safety/components/SafetyDashboard.tsx` | CREATED | Admin safety dashboard with statistics, filters, search, and incident management interface | Safety System React Frontend Implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | `/apps/web/src/features/safety/components/IncidentList.tsx` | CREATED | Incident table display with pagination, severity badges, status indicators, and action buttons | Safety System React Frontend Implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | `/apps/web/src/features/safety/components/IncidentDetails.tsx` | CREATED | Detailed incident view for admin with audit trail, status updates, assignment, and edit capabilities | Safety System React Frontend Implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | `/apps/web/src/pages/safety/SafetyReportPage.tsx` | CREATED | Public page for safety incident reporting with form integration | Safety System React Frontend Implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | `/apps/web/src/pages/safety/SafetyStatusPage.tsx` | CREATED | Public status tracking page with reference number lookup and incident progress display | Safety System React Frontend Implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | `/apps/web/src/pages/admin/AdminSafetyPage.tsx` | CREATED | Protected admin page for safety team with access control and dashboard integration | Safety System React Frontend Implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | `/apps/web/src/features/safety/components/index.ts` | CREATED | Component export index for safety system components | Safety System React Frontend Implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | `/apps/web/src/features/safety/index.ts` | CREATED | Main safety feature export index for components, hooks, types, and API | Safety System React Frontend Implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | `/apps/web/src/routes/router.tsx` | MODIFIED | Added safety system routes - /safety/report, /safety/status, /admin/safety with proper auth protection | Safety System React Frontend Implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | `/apps/web/src/lib/api/index.ts` | MODIFIED | Added exports for safety hooks and types to main API index | Safety System React Frontend Implementation | ACTIVE | Keep permanent |
-| 2025-09-12 | `/docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/handoffs/react-developer-2025-09-12-handoff.md` | CREATED | Comprehensive handoff document for Safety System React frontend implementation - components, patterns, architecture decisions, next steps | React Developer Handoff - Safety System | ACTIVE | Keep permanent |
-| 2025-09-12 | `/docs/lessons-learned/react-developer-lessons-learned.md` | MODIFIED | Added critical Safety System implementation patterns with feature organization, privacy controls, mobile-responsive design patterns | React Developer Lessons Learned Update | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/lessons-learned/test-developer-lessons-learned.md | MODIFIED | Added mandatory agent handoff documentation process section for workflow continuity | Workflow handoff system implementation | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/lessons-learned/test-executor-lessons-learned.md | MODIFIED | Added mandatory agent handoff documentation process section for workflow continuity | Workflow handoff system implementation | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/lessons-learned/ui-designer-lessons-learned.md | MODIFIED | Added mandatory agent handoff documentation process section for workflow continuity | Workflow handoff system implementation | ACTIVE | Keep permanent |
 
-## Historical Registry (Archived/Completed Files)
+## Archived/Completed Files
 
-| Date | File Path | Action | Purpose | Session/Task | Status | Archive Date |
-|------|-----------|--------|---------|--------------|--------|--------------|
-| 2025-08-15 | `/docs/sessions/2025-08-15-project-restructure/` | CREATED | Complete session documentation for infrastructure setup | Infrastructure Session | COMPLETED | 2025-08-16 |
+| Date | File Path | Action | Purpose | Status |
+|------|-----------|--------|---------|--------|
+| *Coming Soon* | Various archived documents | ARCHIVED | Historical reference | ARCHIVED |
 
-## Maintenance Notes
+## File Cleanup Guidelines
 
-This file serves as the single source of truth for tracking all file operations performed by AI agents.
+### When to Clean Up
+- **Temporary files**: After session/task completion
+- **Draft documents**: When final version is created
+- **Duplicate files**: Immediately when identified
+- **Outdated research**: When newer versions exist
 
-### Rules for Updates:
-1. **EVERY** file creation, modification, or deletion must be logged immediately
-2. Include **absolute path** to the file
-3. Specify **exact action** taken (CREATED/MODIFIED/DELETED)
-4. Provide **clear purpose** description
-5. Include **session context** for future reference
-6. Update **status** as work progresses
-7. Set **cleanup date** for temporary files
+### When to Keep Permanent
+- **Architecture decisions**: Always permanent
+- **API specifications**: Always permanent
+- **Database schemas**: Always permanent
+- **Business requirements**: Always permanent
+- **Implementation guides**: Keep unless superseded
+- **Lessons learned**: Always permanent
 
-### Status Definitions:
-- **ACTIVE**: File is currently being worked on or recently completed
-- **COMPLETED**: File serves its purpose and should be retained
-- **TEMPORARY**: File will be cleaned up on specified date
-- **ARCHIVED**: Moved to archive location, no longer active
-
-### Cleanup Guidelines:
-- Session work files: Archive after 30 days
-- Temporary analysis files: Delete after 7 days
-- Research documents: Keep permanently if decision-critical
-- Implementation files: Keep permanently
-- Test files: Keep permanently
+### Regular Maintenance
+- Weekly review of temporary files
+- Monthly archive of completed work
+- Quarterly cleanup of outdated documents
+- Annual review of permanent file status

@@ -41,8 +41,8 @@ Event (metadata)
 ### References
 
 This implementation follows the analysis and recommendations from:
-- [Multi-Ticket Type Analysis](/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/docs/functional-areas/events/new-work/2025-08-24-events-management/requirements/multi-ticket-type-analysis.md) - Solution 3 (Event Session Matrix)
-- [Events Business Requirements](/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/docs/functional-areas/events/requirements/business-requirements.md) - Core business rules
+- [Multi-Ticket Type Analysis](/home/chad/repos/witchcityrope-react/docs/functional-areas/events/new-work/2025-08-24-events-management/requirements/multi-ticket-type-analysis.md) - Solution 3 (Event Session Matrix)
+- [Events Business Requirements](/home/chad/repos/witchcityrope-react/docs/functional-areas/events/requirements/business-requirements.md) - Core business rules
 
 ## 2. Database Schema
 

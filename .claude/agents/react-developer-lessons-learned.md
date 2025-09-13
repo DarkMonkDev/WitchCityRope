@@ -28,15 +28,7 @@ When debugging React components:
 4. Check browser console with Playwright's page.evaluate()
 5. Take screenshots with Playwright for visual debugging
 
-## WORKTREE COMPLIANCE - MANDATORY
-
-### YOU MUST WORK IN THE CORRECT DIRECTORY
-- **ALWAYS** check current directory with `pwd` first
-- **REQUIRED**: Work in `/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/`
-- **NEVER** work in the main repository at `/home/chad/repos/witchcityrope-react/`
-- **VERIFY** all file paths include `.worktrees/feature-2025-08-24-events-management/`
-
-### File Organization Rules
+## File Organization Rules
 - React components go in `apps/web/src/components/`
 - Pages go in `apps/web/src/pages/`
 - Types go in `apps/web/src/types/`
@@ -88,5 +80,4 @@ test('component renders', async ({ page }) => {
 ## Remember
 - **PLAYWRIGHT ONLY** for browser testing
 - **NO NEW TESTING PACKAGES** without permission
-- **ALWAYS WORK IN WORKTREE** directory
 - **ASK BEFORE INSTALLING** any packages

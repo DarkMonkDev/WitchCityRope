@@ -130,7 +130,7 @@ test.describe('RSVP Business Rules Testing', () => {
     
     // Take screenshot for analysis
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/test-results/events-demo-page.png',
+      path: '/home/chad/repos/witchcityrope-react/test-results/events-demo-page.png',
       fullPage: true 
     });
     
@@ -171,7 +171,7 @@ test.describe('RSVP Business Rules Testing', () => {
     
     // Take screenshot
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/test-results/public-events-page.png',
+      path: '/home/chad/repos/witchcityrope-react/test-results/public-events-page.png',
       fullPage: true 
     });
     
@@ -345,7 +345,7 @@ test.describe('RSVP Business Rules Testing', () => {
     // Write report to file system
     const fs = require('fs').promises;
     await fs.writeFile(
-      '/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/test-results/rsvp-business-rules-report.json',
+      '/home/chad/repos/witchcityrope-react/test-results/rsvp-business-rules-report.json',
       JSON.stringify(report, null, 2)
     );
     

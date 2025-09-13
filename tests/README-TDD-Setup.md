@@ -95,8 +95,8 @@ Implementation needed to make tests pass:
 # Ensure Docker is running for TestContainers
 sudo systemctl start docker
 
-# Navigate to worktree directory
-cd /home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management
+# Navigate to project directory
+cd /home/chad/repos/witchcityrope-react
 ```
 
 ### Backend API Tests

@@ -41,7 +41,7 @@ The Events Management System business requirements have been **completely revise
 ## Requirements Document Review
 
 ### Document Location
-**Full Requirements**: `/home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/docs/functional-areas/events/new-work/2025-08-24-events-management/requirements/business-requirements.md`
+**Full Requirements**: `/home/chad/repos/witchcityrope-react/docs/functional-areas/events/new-work/2025-08-24-events-management/requirements/business-requirements.md`
 
 ### Coverage Assessment
 
