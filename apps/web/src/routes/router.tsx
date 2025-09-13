@@ -39,6 +39,10 @@ import { TestPage } from '../pages/TestPage';
 import { SafetyReportPage } from '../pages/safety/SafetyReportPage';
 import { SafetyStatusPage } from '../pages/safety/SafetyStatusPage';
 
+// CheckIn system pages
+import { CheckInPage } from '../pages/checkin/CheckInPage';
+import { CheckInDashboardPage } from '../pages/checkin/CheckInDashboardPage';
+
 /**
  * React Router v7 configuration following validated patterns
  * Reference: /docs/functional-areas/routing-validation/requirements/functional-specification.md
@@ -75,6 +79,18 @@ export const router = createBrowserRouter([
       {
         path: "events/:id",
         element: <EventDetailPage />
+      },
+      
+      // CheckIn system routes (protected)
+      {
+        path: "events/:eventId/checkin",
+        element: <CheckInPage />,
+        loader: authLoader
+      },
+      {
+        path: "events/:eventId/checkin/dashboard",
+        element: <CheckInDashboardPage />,
+        loader: authLoader
       },
       
       // Safety system routes (public)
