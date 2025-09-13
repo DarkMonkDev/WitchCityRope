@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Models;
+using WitchCityRope.Api.Features.Safety.Entities;
 
 namespace WitchCityRope.Api.Data;
 
@@ -40,6 +41,21 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     /// VolunteerPositions table for event volunteer opportunities
     /// </summary>
     public DbSet<VolunteerPosition> VolunteerPositions { get; set; }
+
+    /// <summary>
+    /// SafetyIncidents table for safety incident reporting
+    /// </summary>
+    public DbSet<SafetyIncident> SafetyIncidents { get; set; }
+
+    /// <summary>
+    /// IncidentAuditLogs table for audit trail
+    /// </summary>
+    public DbSet<IncidentAuditLog> IncidentAuditLogs { get; set; }
+
+    /// <summary>
+    /// IncidentNotifications table for email notifications
+    /// </summary>
+    public DbSet<IncidentNotification> IncidentNotifications { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -379,6 +395,233 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             entity.HasIndex(v => v.SessionId)
                   .HasDatabaseName("IX_VolunteerPositions_SessionId");
         });
+
+        // SafetyIncident entity configuration
+        modelBuilder.Entity<SafetyIncident>(entity =>
+        {
+            entity.ToTable("SafetyIncidents", "public");
+            entity.HasKey(e => e.Id);
+
+            // String properties
+            entity.Property(e => e.ReferenceNumber)
+                  .IsRequired()
+                  .HasMaxLength(20);
+
+            entity.Property(e => e.Location)
+                  .IsRequired()
+                  .HasMaxLength(200);
+
+            entity.Property(e => e.EncryptedDescription)
+                  .IsRequired()
+                  .HasColumnType("text");
+
+            entity.Property(e => e.EncryptedInvolvedParties)
+                  .HasColumnType("text");
+
+            entity.Property(e => e.EncryptedWitnesses)
+                  .HasColumnType("text");
+
+            entity.Property(e => e.EncryptedContactEmail)
+                  .HasMaxLength(500);
+
+            entity.Property(e => e.EncryptedContactPhone)
+                  .HasMaxLength(200);
+
+            // DateTime properties - CRITICAL: Use timestamptz for PostgreSQL
+            entity.Property(e => e.IncidentDate)
+                  .IsRequired()
+                  .HasColumnType("timestamptz");
+
+            entity.Property(e => e.ReportedAt)
+                  .IsRequired()
+                  .HasColumnType("timestamptz");
+
+            entity.Property(e => e.CreatedAt)
+                  .IsRequired()
+                  .HasColumnType("timestamptz");
+
+            entity.Property(e => e.UpdatedAt)
+                  .IsRequired()
+                  .HasColumnType("timestamptz");
+
+            // Enum properties
+            entity.Property(e => e.Severity)
+                  .IsRequired()
+                  .HasConversion<int>();
+
+            entity.Property(e => e.Status)
+                  .IsRequired()
+                  .HasConversion<int>();
+
+            // Indexes
+            entity.HasIndex(e => e.ReferenceNumber)
+                  .IsUnique()
+                  .HasDatabaseName("IX_SafetyIncidents_ReferenceNumber");
+
+            entity.HasIndex(e => e.Severity)
+                  .HasDatabaseName("IX_SafetyIncidents_Severity");
+
+            entity.HasIndex(e => e.Status)
+                  .HasDatabaseName("IX_SafetyIncidents_Status");
+
+            entity.HasIndex(e => e.ReportedAt)
+                  .HasDatabaseName("IX_SafetyIncidents_ReportedAt");
+
+            entity.HasIndex(e => e.ReporterId)
+                  .HasDatabaseName("IX_SafetyIncidents_ReporterId")
+                  .HasFilter("\"ReporterId\" IS NOT NULL");
+
+            entity.HasIndex(e => new { e.Status, e.Severity, e.ReportedAt })
+                  .HasDatabaseName("IX_SafetyIncidents_Status_Severity_ReportedAt");
+
+            // Foreign key relationships
+            entity.HasOne(e => e.Reporter)
+                  .WithMany()
+                  .HasForeignKey(e => e.ReporterId)
+                  .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.AssignedUser)
+                  .WithMany()
+                  .HasForeignKey(e => e.AssignedTo)
+                  .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.CreatedByUser)
+                  .WithMany()
+                  .HasForeignKey(e => e.CreatedBy)
+                  .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.UpdatedByUser)
+                  .WithMany()
+                  .HasForeignKey(e => e.UpdatedBy)
+                  .OnDelete(DeleteBehavior.SetNull);
+
+            // One-to-many relationships
+            entity.HasMany(e => e.AuditLogs)
+                  .WithOne(a => a.Incident)
+                  .HasForeignKey(a => a.IncidentId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(e => e.Notifications)
+                  .WithOne(n => n.Incident)
+                  .HasForeignKey(n => n.IncidentId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // IncidentAuditLog entity configuration
+        modelBuilder.Entity<IncidentAuditLog>(entity =>
+        {
+            entity.ToTable("IncidentAuditLog", "public");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.ActionType)
+                  .IsRequired()
+                  .HasMaxLength(50);
+
+            entity.Property(e => e.ActionDescription)
+                  .IsRequired()
+                  .HasColumnType("text");
+
+            entity.Property(e => e.OldValues)
+                  .HasColumnType("jsonb");
+
+            entity.Property(e => e.NewValues)
+                  .HasColumnType("jsonb");
+
+            entity.Property(e => e.IpAddress)
+                  .HasMaxLength(45);
+
+            entity.Property(e => e.UserAgent)
+                  .HasMaxLength(500);
+
+            entity.Property(e => e.CreatedAt)
+                  .IsRequired()
+                  .HasColumnType("timestamptz");
+
+            // Indexes
+            entity.HasIndex(e => new { e.IncidentId, e.CreatedAt })
+                  .HasDatabaseName("IX_IncidentAuditLog_IncidentId_CreatedAt");
+
+            entity.HasIndex(e => e.ActionType)
+                  .HasDatabaseName("IX_IncidentAuditLog_ActionType");
+
+            entity.HasIndex(e => e.CreatedAt)
+                  .HasDatabaseName("IX_IncidentAuditLog_CreatedAt");
+
+            // GIN indexes for JSONB columns
+            entity.HasIndex(e => e.OldValues)
+                  .HasDatabaseName("IX_IncidentAuditLog_OldValues")
+                  .HasMethod("gin");
+
+            entity.HasIndex(e => e.NewValues)
+                  .HasDatabaseName("IX_IncidentAuditLog_NewValues")
+                  .HasMethod("gin");
+
+            // Foreign key relationships
+            entity.HasOne(e => e.User)
+                  .WithMany()
+                  .HasForeignKey(e => e.UserId)
+                  .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // IncidentNotification entity configuration
+        modelBuilder.Entity<IncidentNotification>(entity =>
+        {
+            entity.ToTable("IncidentNotifications", "public");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.NotificationType)
+                  .IsRequired()
+                  .HasMaxLength(20);
+
+            entity.Property(e => e.RecipientType)
+                  .IsRequired()
+                  .HasMaxLength(20);
+
+            entity.Property(e => e.RecipientEmail)
+                  .IsRequired()
+                  .HasMaxLength(255);
+
+            entity.Property(e => e.Subject)
+                  .IsRequired()
+                  .HasMaxLength(200);
+
+            entity.Property(e => e.MessageBody)
+                  .IsRequired()
+                  .HasColumnType("text");
+
+            entity.Property(e => e.Status)
+                  .IsRequired()
+                  .HasMaxLength(20);
+
+            entity.Property(e => e.ErrorMessage)
+                  .HasColumnType("text");
+
+            entity.Property(e => e.SentAt)
+                  .HasColumnType("timestamptz");
+
+            entity.Property(e => e.CreatedAt)
+                  .IsRequired()
+                  .HasColumnType("timestamptz");
+
+            entity.Property(e => e.UpdatedAt)
+                  .IsRequired()
+                  .HasColumnType("timestamptz");
+
+            // Indexes
+            entity.HasIndex(e => e.IncidentId)
+                  .HasDatabaseName("IX_IncidentNotifications_IncidentId");
+
+            entity.HasIndex(e => new { e.Status, e.CreatedAt })
+                  .HasDatabaseName("IX_IncidentNotifications_Status_CreatedAt");
+
+            entity.HasIndex(e => e.RecipientType)
+                  .HasDatabaseName("IX_IncidentNotifications_RecipientType");
+
+            // Partial index for failed notifications
+            entity.HasIndex(e => new { e.CreatedAt, e.RetryCount })
+                  .HasDatabaseName("IX_IncidentNotifications_Failed_RetryCount")
+                  .HasFilter("\"Status\" = 'Failed' AND \"RetryCount\" < 5");
+        });
     }
 
     /// <summary>
@@ -509,6 +752,53 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         // Handle VolunteerPosition entities
         var volunteerEntries = ChangeTracker.Entries<VolunteerPosition>();
         foreach (var entry in volunteerEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Handle SafetyIncident entities
+        var safetyIncidentEntries = ChangeTracker.Entries<SafetyIncident>();
+        foreach (var entry in safetyIncidentEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+                entry.Entity.ReportedAt = DateTime.UtcNow;
+
+                // Ensure IncidentDate is UTC
+                if (entry.Entity.IncidentDate.Kind != DateTimeKind.Utc)
+                {
+                    entry.Entity.IncidentDate = DateTime.SpecifyKind(entry.Entity.IncidentDate, DateTimeKind.Utc);
+                }
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Handle IncidentAuditLog entities
+        var auditLogEntries = ChangeTracker.Entries<IncidentAuditLog>();
+        foreach (var entry in auditLogEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Handle IncidentNotification entities
+        var notificationEntries = ChangeTracker.Entries<IncidentNotification>();
+        foreach (var entry in notificationEntries)
         {
             if (entry.State == EntityState.Added)
             {

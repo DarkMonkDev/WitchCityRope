@@ -2,6 +2,7 @@ using WitchCityRope.Api.Features.Health.Endpoints;
 using WitchCityRope.Api.Features.Authentication.Endpoints;
 using WitchCityRope.Api.Features.Events.Endpoints;
 using WitchCityRope.Api.Features.Users.Endpoints;
+using WitchCityRope.Api.Features.Safety.Endpoints;
 
 namespace WitchCityRope.Api.Features.Shared.Extensions;
 
@@ -28,6 +29,9 @@ public static class WebApplicationExtensions
 
         // Users feature endpoints
         app.MapUserEndpoints();
+
+        // Safety feature endpoints
+        app.MapSafetyEndpoints();
 
         return app;
     }

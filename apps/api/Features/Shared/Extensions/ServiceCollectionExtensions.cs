@@ -1,7 +1,10 @@
+using FluentValidation;
 using WitchCityRope.Api.Features.Health.Services;
 using WitchCityRope.Api.Features.Authentication.Services;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Features.Users.Services;
+using WitchCityRope.Api.Features.Safety.Services;
+using WitchCityRope.Api.Features.Safety.Validation;
 using WitchCityRope.Api.Services;
 
 namespace WitchCityRope.Api.Features.Shared.Extensions;
@@ -29,6 +32,14 @@ public static class ServiceCollectionExtensions
 
         // Users feature services
         services.AddScoped<UserManagementService>();
+
+        // Safety feature services  
+        services.AddScoped<ISafetyService, SafetyService>();
+        services.AddScoped<IEncryptionService, EncryptionService>();
+        services.AddScoped<IAuditService, AuditService>();
+        
+        // FluentValidation for Safety feature
+        services.AddValidatorsFromAssemblyContaining<CreateIncidentValidator>();
 
         // Database initialization services
         services.AddScoped<ISeedDataService, SeedDataService>();
