@@ -141,41 +141,57 @@ api:
 
 ## 🔐 Authentication Flow
 
-### Architecture Pattern: JWT Service-to-Service Authentication
+### Architecture Pattern: BFF (Backend-for-Frontend) with httpOnly Cookies
 
-The application uses a **hybrid authentication approach** with JWT service-to-service communication:
+The application uses a **secure BFF authentication pattern** with httpOnly cookie management:
 
 1. **React Frontend Authentication**
-   - Uses httpOnly cookies with ASP.NET Core Identity backend
-   - HttpOnly cookies prevent XSS attacks while maintaining security
-   - React handles login/logout UI interactions
+   - Uses httpOnly cookies exclusively (no localStorage token storage)
+   - HttpOnly cookies prevent XSS attacks and provide automatic CSRF protection
+   - React handles login/logout UI interactions with seamless cookie management
    - **Frontend**: React + TypeScript + Mantine UI Framework
 
-2. **Service-to-Service JWT Authentication**
-   - React app calls authentication endpoints that return httpOnly cookies
-   - All React→API calls use cookie-based authentication
-   - JWT tokens used for service-to-service communication (future microservices)
-   - **📖 See detailed implementation**: `/docs/functional-areas/authentication/jwt-service-to-service-auth.md`
+2. **BFF Authentication Pattern**
+   - React app calls authentication endpoints that set httpOnly cookies
+   - All React→API calls use cookie-based authentication automatically
+   - Silent token refresh prevents authentication timeouts
+   - **📖 See detailed implementation**: `/session-work/2025-09-12/bff-authentication-implementation-summary.md`
 
 3. **API Service Authentication**  
-   - Validates authentication cookies for all protected endpoints
-   - ASP.NET Core Identity manages user sessions and roles
-   - JWT capability maintained for future service expansion
+   - Validates JWT tokens from httpOnly cookies for all protected endpoints
+   - Automatic token refresh mechanism prevents user interruption
+   - Dual authentication support (Bearer tokens + cookies) for backwards compatibility
 
 ### Authentication Components
 
-**React Frontend (API-based authentication):**
+**React Frontend (BFF authentication):**
 ```typescript
-// src/services/authService.ts
+// BFF pattern - no token handling in JavaScript
 export const authService = {
   async login(email: string, password: string) {
     const response = await fetch('/api/auth/login', {
       method: 'POST',
-      credentials: 'include', // Include cookies
+      credentials: 'include', // Essential for httpOnly cookies
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
+    // Cookie set automatically, no token in response body
     return response.ok;
+  },
+  
+  async getCurrentUser() {
+    const response = await fetch('/api/auth/user', {
+      credentials: 'include'
+    });
+    return response.ok ? response.json() : null;
+  },
+  
+  async refresh() {
+    const response = await fetch('/api/auth/refresh', {
+      method: 'POST',
+      credentials: 'include'
+    });
+    return response.ok; // Silent refresh
   }
 };
 ```
@@ -189,13 +205,14 @@ export const authService = {
 - Jwt__ExpiresInMinutes=60
 ```
 
-### User Information Flow
+### BFF Authentication Flow
 
 ```
 1. User logs in via React UI → Calls /api/auth/login → API sets httpOnly cookie
-2. React needs data → Calls API with cookie authentication
-3. API validates cookie → Returns data to React
-4. React displays data → User sees result
+2. React automatically sends cookies with all requests → No token management needed
+3. API validates JWT from cookie → Returns data to React
+4. Token nears expiry → Silent refresh via /api/auth/refresh → New cookie set
+5. User logs out → /api/auth/logout → Cookie deleted server-side
 ```
 
 **Evidence in Code:**
@@ -391,13 +408,21 @@ const user = await fetch('/api/users/profile').then(r => r.json());
 ```typescript
 // ❌ WRONG - Storing tokens in localStorage (XSS risk)
 localStorage.setItem('token', token);
+fetch('/api/data', {
+  headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+});
 
-// ✅ CORRECT - Using httpOnly cookies via API endpoints
+// ✅ CORRECT - BFF pattern with httpOnly cookies
 const response = await fetch('/api/auth/login', {
   method: 'POST',
-  credentials: 'include', // Important for cookies
+  credentials: 'include', // Essential for httpOnly cookies
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ email, password })
+});
+
+// ✅ CORRECT - All subsequent requests automatically include cookies
+fetch('/api/data', {
+  credentials: 'include' // No manual token management needed
 });
 ```
 

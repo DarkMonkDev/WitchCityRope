@@ -4,6 +4,12 @@
 > 
 > **Purpose**: Track all files to prevent orphaned documents and maintain project cleanliness.
 
+| Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
+|------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-09-12 | `/docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/requirements/dashboard-events-comparison.md` | CREATED | Comprehensive analysis comparing Dashboard and Events Enhancement features between legacy and modern APIs for extraction decision | Dashboard and Events feature analysis | ACTIVE | N/A |
+| 2025-09-12 | `/docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/requirements/safety-system-functional-spec.md` | CREATED | Complete functional specification for Safety incident reporting system based on approved UI design - defines workflows, API endpoints, security requirements | Safety System Implementation | ACTIVE | Keep permanent |
+| 2025-09-12 | `/docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/design/safety-system-database-design.md` | CREATED | Comprehensive database schema design for Safety incident reporting system with PostgreSQL optimization, encrypted storage, audit trails, and EF Core configuration | Database Designer Safety System | ACTIVE | Keep permanent |
+
 ## Active File Registry
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
@@ -77,11 +83,25 @@
 | 2025-09-12 | /docs/functional-areas/api-cleanup/README.md | CREATED | Functional area overview document explaining duplicate API crisis, objectives, risk assessment, and workflow structure | Librarian API cleanup documentation structure | ACTIVE | Keep permanent |
 | 2025-09-12 | /docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/handoffs/librarian-2025-09-12-handoff.md | CREATED | Mandatory agent handoff document with complete context, next steps, and structure verification for API cleanup workflow | Librarian mandatory handoff documentation | ACTIVE | Keep permanent |
 | 2025-09-12 | /docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/requirements/technical-requirements.md | CREATED | Detailed technical requirements and implementation approach for API cleanup - defines phases, migration patterns, and success criteria | API Cleanup Orchestration | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/requirements/legacy-api-feature-analysis.md | CREATED | Comprehensive analysis of legacy API features with extraction priority matrix and business criticality assessment | Backend Developer Analysis | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/handoffs/backend-developer-2025-09-12-handoff.md | CREATED | Backend developer handoff with feature analysis results and critical safety system finding | Backend Developer Handoff | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/progress.md | MODIFIED | Updated progress tracking with Phase 1 completion status and human review checkpoint | Orchestrator Progress Update | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/reviews/phase1-requirements-review.md | CREATED | Mandatory human review document for Phase 1 requirements with critical safety system finding | Orchestrator Review Document | ACTIVE | Keep permanent |
 | 2025-09-12 | /home/chad/repos/witchcityrope-react/apps/api/Features/Authentication/Endpoints/AuthenticationEndpoints.cs | MODIFIED | Implemented BFF authentication pattern with httpOnly cookies - updated login/logout endpoints and added /auth/user and /auth/refresh endpoints | Backend Developer BFF implementation | ACTIVE | Keep permanent |
 | 2025-09-12 | /home/chad/repos/witchcityrope-react/apps/api/Services/JwtService.cs | MODIFIED | Added token validation methods for BFF pattern - IsTokenNearExpiry and ValidateTokenStructure for refresh scenarios | Backend Developer BFF implementation | ACTIVE | Keep permanent |
 | 2025-09-12 | /home/chad/repos/witchcityrope-react/apps/api/Services/IJwtService.cs | MODIFIED | Added interface methods for new JWT validation functions supporting BFF refresh token logic | Backend Developer BFF implementation | ACTIVE | Keep permanent |
 | 2025-09-12 | /home/chad/repos/witchcityrope-react/apps/api/Program.cs | MODIFIED | Enhanced JWT Bearer authentication to support both Authorization header and httpOnly cookies via OnMessageReceived event | Backend Developer BFF implementation | ACTIVE | Keep permanent |
 | 2025-09-12 | /session-work/2025-09-12/bff-authentication-implementation-summary.md | CREATED | Comprehensive implementation summary of BFF authentication pattern with httpOnly cookies addressing critical user timeout issues | Backend Developer implementation documentation | ACTIVE | Keep permanent |
+| 2025-09-12 | /home/chad/repos/witchcityrope-react/ARCHITECTURE.md | MODIFIED | Updated authentication documentation to reflect BFF pattern with httpOnly cookies, removed JWT localStorage references, enhanced security guidance | Librarian authentication documentation update | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/_archive/authentication-localstorage-legacy-2025-09-12/ | CREATED | Archive directory for legacy localStorage authentication pattern with security vulnerabilities | Librarian legacy code archival | ARCHIVED | Keep permanent |
+| 2025-09-12 | /docs/_archive/authentication-localstorage-legacy-2025-09-12/useAuth.ts | ARCHIVED | Legacy authentication hooks with localStorage JWT tokens - archived due to XSS vulnerability and authentication timeout issues | Librarian legacy code archival | ARCHIVED | Keep permanent |
+| 2025-09-12 | /docs/_archive/authentication-localstorage-legacy-2025-09-12/README.md | CREATED | Archive explanation documenting why localStorage authentication was retired and replaced with BFF pattern | Librarian archival documentation | ARCHIVED | Keep permanent |
+| 2025-09-12 | /docs/functional-areas/authentication/README.md | MODIFIED | Updated authentication system overview to reflect BFF pattern implementation, security improvements, and current feature status | Librarian authentication functional area update | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/functional-areas/authentication/bff-authentication-implementation-guide.md | CREATED | Permanent copy of BFF authentication implementation guide for functional area documentation | Librarian documentation migration | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/functional-areas/authentication/authentication-migration-summary-2025-09-12.md | CREATED | Comprehensive migration summary documenting transition from JWT localStorage to BFF httpOnly cookies with security analysis and implementation timeline | Librarian migration documentation | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/functional-areas/authentication/handoffs/librarian-2025-09-12-authentication-migration-handoff.md | CREATED | Mandatory agent handoff documenting complete authentication documentation migration with security analysis and team guidance | Librarian mandatory handoff | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/lessons-learned/librarian-lessons-learned.md | MODIFIED | Added Authentication Documentation Migration Pattern with systematic approach for major architecture documentation updates | Librarian lessons learned enhancement | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/architecture/functional-area-master-index.md | MODIFIED | Updated Authentication status to BFF PATTERN COMPLETE with secure httpOnly cookies implementation | Librarian master index update | ACTIVE | Keep permanent |
 
 ## Archive Registry
 
@@ -125,6 +145,6 @@ Files moved to `/docs/_archive/` with historical value but no longer needed for 
 
 This registry must be updated by **every agent** that creates, modifies, or deletes files. No exceptions.
 
-**Last Updated**: 2025-09-12 - Added API cleanup functional area documentation structure
-**Maintained By**: All AI Agents
+**Last Updated**: 2025-09-12 - Added Safety System database design document
+**Maintained By**: All AI Agents  
 **Review Frequency**: Weekly
