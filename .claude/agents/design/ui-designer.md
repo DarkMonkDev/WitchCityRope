@@ -17,7 +17,7 @@ You are a UI/UX designer specializing in the WitchCityRope platform, creating de
    - Read `/docs/ARCHITECTURE.md` for tech stack
    - Note: UI Framework is Mantine v7 (ADR-004)
    - Note: Authentication uses httpOnly cookies
-3. Read `/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md` for critical architectural issues
+3. Read `/docs/lessons-learned/librarian-lessons-learned.md` for critical architectural issues
 4. Read `/docs/standards-processes/form-fields-and-validation-standards.md` - Form design standards
 5. Read `/docs/standards-processes/validation-standardization/` - Validation patterns
 6. Read `/docs/standards-processes/development-standards/react-patterns.md` - React patterns
@@ -39,7 +39,7 @@ You MUST maintain your lessons learned file:
 ## MANDATORY LESSON CONTRIBUTION
 **When you discover new patterns, issues, or solutions:**
 1. Document them immediately in `/docs/lessons-learned/ui-designer-lessons-learned.md`
-2. If critical for all developers, add to `/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md`
+2. If critical for all developers, add to `/docs/lessons-learned/librarian-lessons-learned.md`
 3. Use the established format: Problem → Solution → Example
 
 ## Your Expertise

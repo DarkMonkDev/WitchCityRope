@@ -8,6 +8,8 @@
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-09-12 | /docs/lessons-learned/backend-developer-lessons-learned.backup.md | CREATED | Backup of original backend lessons learned before cleanup | Lessons learned cleanup task | ACTIVE | 2025-09-19 |
+| 2025-09-12 | /docs/lessons-learned/backend-lessons-learned.md | MODIFIED | Cleaned up from 2013 lines to 133 lines - removed status reports, kept prevention patterns and technical solutions | Lessons learned cleanup per LESSONS-LEARNED-RULES.md | ACTIVE | N/A |
 | 2025-01-09 | /apps/web/src/components/layout/Navigation.tsx | MODIFIED | Updated navigation for logged-in users: replaced user greeting+logout with Dashboard CTA, added Admin link for administrators | Navigation Updates Implementation | ACTIVE | N/A |
 | 2025-01-09 | /apps/web/src/components/layout/UtilityBar.tsx | MODIFIED | Updated utility bar layout: added user greeting on LEFT, logout link on RIGHT, changed justify from flex-end to space-between | Navigation Updates Implementation | ACTIVE | N/A |
 | 2025-09-10 | /tests/playwright/login-and-events-verification.spec.ts | CREATED | Comprehensive E2E test for login and events verification per user requirements | Test executor login/events testing | ACTIVE | Keep permanent |
@@ -99,6 +101,11 @@
 | 2025-09-12 | /docs/lessons-learned/test-executor-lessons-learned.md | MODIFIED | Enhanced major success login solution with documentation integration section - records creation of formal testing standards | Librarian testing documentation integration | ACTIVE | Keep permanent |
 | 2025-09-12 | /docs/lessons-learned/librarian-lessons-learned.md | MODIFIED | Added testing standards documentation excellence pattern - how to extract proven solutions from lessons learned into formal team standards | Librarian lessons documentation | ACTIVE | Keep permanent |
 | 2025-09-12 | /docs/functional-areas/events/new-work/2025-09-12-admin-events-edit-screen-bug-fixes/requirements/business-requirements.md | CREATED | Comprehensive TDD business requirements for Admin Events Edit Screen bug fixes - covers session management, ticket creation, volunteer positions, UI consistency, and seed data requirements | Business Requirements Agent TDD bug fixes | ACTIVE | Keep permanent |
+| 2025-09-12 | /.claude/agents/testing/test-executor.md | MODIFIED | CRITICAL UPDATE: Clarified test-executor handles ALL testing tasks including infrastructure (Docker, database, migrations, services) - NOT just test execution | Librarian agent responsibility clarification | ACTIVE | Keep permanent |
+| 2025-09-12 | /.claude/agents/implementation/backend-developer.md | MODIFIED | CRITICAL UPDATE: Clarified backend-developer ONLY writes code, does NOT handle testing infrastructure or execution | Librarian agent responsibility clarification | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/lessons-learned/test-executor-lessons-learned.md | MODIFIED | CRITICAL: Added comprehensive section clarifying test-executor handles ALL testing infrastructure, not just execution | Librarian agent responsibility clarification | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/lessons-learned/backend-developer-lessons-learned.md | MODIFIED | CRITICAL: Added comprehensive section clarifying backend-developer ONLY writes code, does NOT handle testing or infrastructure | Librarian agent responsibility clarification | ACTIVE | Keep permanent |
+| 2025-09-12 | /docs/standards-processes/agent-boundaries.md | MODIFIED | CRITICAL UPDATE: Enhanced agent boundaries to clarify distinction between code development vs testing infrastructure management | Librarian agent responsibility clarification | ACTIVE | Keep permanent |
 
 ## File Management Guidelines
 

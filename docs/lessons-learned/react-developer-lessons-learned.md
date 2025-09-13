@@ -1024,3 +1024,307 @@ When button text appears cut off:
 #critical #mantine #buttons #text-cutoff #recurring-issue #ui-components #styling
 
 ---
+
+
+## Frontend-Specific UI Patterns (Migrated from frontend-lessons-learned.md - 2025-09-12)
+
+```typescript
+// BEFORE: Poor visibility
+<Button size="sm" variant="light" color="blue">Copy</Button>
+
+// AFTER: Proper WCR design with explicit sizing
+<Button
+  size="compact-sm"
+  variant="filled"
+  color="wcr.7"
+  styles={{
+    root: {
+      minWidth: '60px', height: '32px', fontWeight: 600,
+      display: 'flex', alignItems: 'center', justifyContent: 'center'
+    }
+  }}
+>Copy</Button>
+```
+
+## Admin Events Dashboard Critical UI Fixes
+
+### 1. Layout Consolidated to Single Line
+```tsx
+// BEFORE: Stack with multiple lines
+<Stack gap="md" mb="lg">
+  <Group>Filter controls</Group>
+  <Group justify="space-between">Search + toggle</Group>
+</Stack>
+
+// AFTER: Single line layout
+<Group mb="lg" justify="space-between" align="center" wrap="nowrap">
+  <Group align="center" gap="md">
+    Filter: [Social] [Class] [Show Past Events]
+  </Group>
+  <TextInput>Search</TextInput>
+</Group>
+```
+
+### 2. Perfect Center Alignment
+```tsx
+// BEFORE: Standard center alignment
+style={{ width: '150px', textAlign: 'center' }}
+
+// AFTER: Perfect webkit center alignment 
+style={{ width: '150px', textAlign: '-webkit-center' as any }}
+```
+
+**Key Patterns**:
+- **`-webkit-center` alignment**: Essential for perfect button centering in table cells
+- **Text size consistency**: All row text should use same size (`md` = 16px) for visual harmony
+- **Button text optimization**: 14px provides good readability in compact buttons without breaking layout
+
+## Admin Route Authentication Issue
+
+**Problem**: User reports "admin events page is not loading data" despite API working correctly
+**Root Cause**: Authentication-protected routes redirect to login page when accessed without authentication
+
+**Critical Learning**: 
+- **Authentication trumps API connectivity** - a working API doesn't guarantee page access
+- **Browser screenshots are essential** for diagnosing route protection issues
+- **Login redirects are correct behavior** for protected admin routes
+- **Always verify authentication state** when debugging "data not loading" issues
+
+**Prevention Strategy**:
+1. **Check authentication first** when debugging admin page issues
+2. **Use browser tests with login** to verify protected routes
+3. **Distinguish between API issues and auth issues** in troubleshooting
+4. **Document protected routes clearly** to avoid confusion
+
+## Font Legibility Issue
+
+**Problem**: User reported Bodoni Moda font in AdminEventDetailsPage title and SegmentedControl is not legible
+**Solution**: Changed to Source Sans 3 font to match the filter chips font for consistency
+
+**Key Learning**: 
+- **User feedback on legibility takes priority** over design system consistency
+- **Match fonts across related UI elements** for visual harmony
+- **Default system fonts often more legible** than decorative serif fonts
+- **Always check what fonts existing components use** before applying custom fonts
+
+## Admin Event Update API Integration Pattern
+
+### 1. Data Transformation Layer
+```typescript
+// Convert form data to API format with partial updates
+export function convertEventFormDataToUpdateDto(
+  eventId: string, 
+  formData: EventFormData, 
+  isPublished?: boolean
+): UpdateEventDto
+
+// Track only changed fields for efficient API calls
+export function getChangedEventFields(
+  eventId: string,
+  current: EventFormData, 
+  initial: EventFormData,
+  isPublished?: boolean
+): UpdateEventDto
+```
+
+### 2. Form Integration Pattern
+```typescript
+const updateEventMutation = useUpdateEvent();
+const [initialFormData, setInitialFormData] = useState<EventFormData | null>(null);
+
+const handleFormSubmit = async (data: EventFormData) => {
+  // Get only changed fields for efficient partial updates
+  const changedFields = initialFormData 
+    ? getChangedEventFields(id, data, initialFormData)
+    : convertEventFormDataToUpdateDto(id, data);
+    
+  await updateEventMutation.mutateAsync(changedFields);
+};
+
+// Handle publish/draft toggle separately
+const confirmStatusChange = async () => {
+  await updateEventMutation.mutateAsync({
+    id,
+    isPublished: pendingStatus === 'published'
+  });
+};
+```
+
+**Key Learning Patterns**:
+1. **Data Transformation Layer**: Always create utility functions to convert between form data and API formats
+2. **Partial Updates**: Track changed fields and only send modifications to the API
+3. **Separate Publish Logic**: Handle publish/draft status changes as separate operations
+4. **Comprehensive Error Handling**: Provide specific error messages and fallback handling
+5. **Form State Management**: Track initial data to enable change detection and dirty state
+
+## CRITICAL React Unit Test Fixes
+
+### Problem: ProfilePage Tests Failing Due to Multiple "Profile" Elements
+**Solution**: Use specific role-based selectors instead of generic text matching:
+```typescript
+// ❌ WRONG - finds multiple "Profile" elements
+expect(screen.getByText('Profile')).toBeInTheDocument()
+
+// ✅ CORRECT - targets specific heading role and level
+expect(screen.getByRole('heading', { name: 'Profile', level: 1 })).toBeInTheDocument()
+expect(screen.getByRole('heading', { name: 'Profile Information', level: 2 })).toBeInTheDocument()
+```
+
+### Problem: Mantine CSS Warnings Cluttering Test Output
+**Solution**: Filter console warnings in test setup file:
+```typescript
+// In src/test/setup.ts - Filter out Mantine CSS warnings
+const originalError = console.error
+const originalWarn = console.warn
+
+console.error = (...args) => {
+  const message = args.join(' ')
+  if (
+    message.includes('Unsupported style property') ||
+    message.includes('Did you mean') ||
+    message.includes('mantine-') ||
+    message.includes('@media')
+  ) {
+    return
+  }
+  originalError.apply(console, args)
+}
+```
+
+### Problem: MSW Handlers Using Wrong API Endpoints
+**Solution**: Match MSW handlers to actual API endpoints used by components:
+```typescript
+// ❌ WRONG - mocks wrong endpoint
+http.get('http://localhost:5655/api/Protected/profile', () => {...})
+
+// ✅ CORRECT - matches useCurrentUser hook endpoint
+http.get('/api/auth/user', () => {
+  return HttpResponse.json({
+    success: true,
+    data: { /* user data */ }
+  })
+})
+```
+
+### Problem: TanStack Query v5 cacheTime vs gcTime
+**Solution**: Use correct property name for Query Client v5:
+```typescript
+// ❌ WRONG - v4 syntax
+queries: { retry: false, cacheTime: 0 }
+
+// ✅ CORRECT - v5 syntax  
+queries: { retry: false, gcTime: 0 }
+```
+
+**Key Lessons**:
+1. Always check what API endpoints React Query hooks are actually calling
+2. Use role-based selectors for better test specificity and accessibility
+3. Add explicit test IDs to components when accessibility roles aren't sufficient
+4. Filter out framework warnings that aren't test failures to improve test output clarity
+5. Disable query caching and retries in tests for predictable behavior
+6. Use TanStack Query v5 API (gcTime not cacheTime)
+
+## API Response Structure Enhancement - Sessions, TicketTypes, TeacherIds Support (2025-09-12)
+
+**Problem**: API now returns additional fields (sessions, ticketTypes, teacherIds) in event responses but React frontend was not handling them
+**Solution**: Updated frontend to properly map and utilize the new API response fields
+
+### 1. EventDto Interface Enhancement
+**Updated**: `/apps/web/src/lib/api/types/events.types.ts`
+```typescript
+export interface EventDto {
+  id: string
+  title: string
+  description: string
+  startDate: string
+  endDate?: string
+  location: string
+  capacity?: number
+  registrationCount?: number
+  createdAt: string
+  updatedAt: string
+  // New fields from API
+  sessions?: EventSessionDto[]
+  ticketTypes?: EventTicketTypeDto[]
+  teacherIds?: string[]
+}
+```
+
+### 2. API Transformation Layer Update
+**Updated**: `/apps/web/src/lib/api/hooks/useEvents.ts`
+```typescript
+// API event structure includes new fields
+interface ApiEvent {
+  // ... existing fields
+  sessions?: EventSessionDto[]
+  ticketTypes?: EventTicketTypeDto[]
+  teacherIds?: string[]
+}
+
+// Transform function maps new fields
+function transformApiEvent(apiEvent: ApiEvent): EventDto {
+  return {
+    // ... existing field mapping
+    sessions: apiEvent.sessions || [],
+    ticketTypes: apiEvent.ticketTypes || [],
+    teacherIds: apiEvent.teacherIds || []
+  }
+}
+```
+
+### 3. Form Data Conversion Enhancement
+**Updated**: `/apps/web/src/pages/admin/AdminEventDetailsPage.tsx`
+```typescript
+const convertEventToFormData = useCallback((event: EventDtoType): EventFormData => {
+  return {
+    eventType,
+    title: event.title || '',
+    shortDescription: event.description?.substring(0, 160) || '',
+    fullDescription: event.description || '',
+    policies: '',
+    venueId: event.location || '',
+    teacherIds: event.teacherIds || [], // Now maps from API response
+    sessions: event.sessions || [], // Now maps from API response
+    ticketTypes: event.ticketTypes || [], // Now maps from API response
+    volunteerPositions: [],
+  };
+}, []);
+```
+
+### 4. Data Persistence Already Supported
+**Verified**: `/apps/web/src/utils/eventDataTransformation.ts` already properly handles:
+- Converting sessions from form data to API format
+- Converting ticketTypes from form data to API format  
+- Converting teacherIds from form data to API format
+- Change detection for all new fields
+- Partial updates including only modified fields
+
+### Expected Behavior Achieved
+- ✅ When fetching an event, sessions, ticketTypes, and teacherIds are populated from API response
+- ✅ When saving form changes, these fields are sent to the API via PUT request
+- ✅ Data persists across page refreshes
+- ✅ Form properly displays the data when loaded from the API
+- ✅ Change detection works for all new fields
+
+### Key Learning Patterns
+1. **API Response Enhancement**: When backend adds new fields, update both the ApiEvent interface and EventDto interface
+2. **Transformation Layer**: Ensure transformApiEvent function maps all new fields with proper fallbacks
+3. **Form Integration**: Update convertEventToFormData to map API data to form structure
+4. **Data Persistence**: Verify transformation utilities handle new fields for saving changes
+5. **Type Safety**: Import required types at module level to ensure proper TypeScript validation
+
+### Critical Success Metrics
+- ✅ Form loads with sessions, ticketTypes, and teacherIds from API
+- ✅ Form saves include all modified fields to API
+- ✅ No data loss between form sessions
+- ✅ TypeScript compilation passes with no errors
+- ✅ Existing functionality remains unaffected
+
+**Prevention Strategy**: When backend adds new response fields, follow this pattern:
+1. Update API interfaces first (ApiEvent and EventDto)
+2. Update transformation functions (transformApiEvent)
+3. Update form conversion functions (convertEventToFormData)
+4. Verify transformation utilities handle the new fields (usually already implemented)
+5. Test the complete data flow from API → Form → Save → API
+
+This pattern ensures seamless integration of new API fields without breaking existing functionality.

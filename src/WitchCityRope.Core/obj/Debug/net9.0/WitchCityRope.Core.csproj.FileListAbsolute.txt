@@ -13,6 +13,10 @@
 /home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Core/obj/Debug/net9.0/WitchCityRope.Core.xml
 /home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Core/obj/Debug/net9.0/WitchCityRope.Core.pdb
 /home/chad/repos/witchcityrope-react/.worktrees/feature-2025-08-24-events-management/src/WitchCityRope.Core/obj/Debug/net9.0/ref/WitchCityRope.Core.dll
+/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/bin/Debug/net9.0/WitchCityRope.Core.deps.json
+/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/bin/Debug/net9.0/WitchCityRope.Core.dll
+/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/bin/Debug/net9.0/WitchCityRope.Core.pdb
+/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/bin/Debug/net9.0/WitchCityRope.Core.xml
 /home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/obj/Debug/net9.0/WitchCityRope.Core.csproj.AssemblyReference.cache
 /home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/obj/Debug/net9.0/WitchCityRope.Core.GeneratedMSBuildEditorConfig.editorconfig
 /home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/obj/Debug/net9.0/WitchCityRope.Core.AssemblyInfoInputs.cache
@@ -23,8 +27,4 @@
 /home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/obj/Debug/net9.0/refint/WitchCityRope.Core.dll
 /home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/obj/Debug/net9.0/WitchCityRope.Core.xml
 /home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/obj/Debug/net9.0/WitchCityRope.Core.pdb
-/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/bin/Debug/net9.0/WitchCityRope.Core.deps.json
-/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/bin/Debug/net9.0/WitchCityRope.Core.dll
-/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/bin/Debug/net9.0/WitchCityRope.Core.pdb
-/home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/bin/Debug/net9.0/WitchCityRope.Core.xml
 /home/chad/repos/witchcityrope-react/src/WitchCityRope.Core/obj/Debug/net9.0/ref/WitchCityRope.Core.dll

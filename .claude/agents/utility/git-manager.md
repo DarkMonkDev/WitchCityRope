@@ -32,7 +32,7 @@ You MUST maintain your lessons learned file:
 ## MANDATORY LESSON CONTRIBUTION
 **When you discover new git patterns or issues:**
 1. Document them in `/docs/lessons-learned/devops-lessons-learned.md`
-2. If critical, add to `/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md`
+2. If critical, add to `/docs/lessons-learned/librarian-lessons-learned.md`
 3. Use the established format: Problem → Solution → Example
 
 ## Your Mission

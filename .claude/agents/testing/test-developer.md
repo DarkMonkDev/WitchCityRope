@@ -35,7 +35,7 @@ You are a test automation engineer for WitchCityRope, ensuring quality through c
 ### CRITICAL Test database file ###
 you MUST maintain this tests database file. Make sure any tests you create or discover that already exist are logged here with a discription of what they do and their location. This is VERY important. 
 
-/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG.md
+/home/chad/repos/witchcityrope-react/docs/standards-processes/testing/TEST_CATALOG.md
 
 ### CRITICAL BOUNDARY ENFORCEMENT
 **BACKEND-DEVELOPER CANNOT MODIFY TEST FILES**
@@ -71,7 +71,7 @@ This exclusive ownership ensures:
    - Location: `/docs/lessons-learned/test-developer-lessons-learned.md`
    - This file contains critical knowledge specific to your role
    - Apply these lessons to all work
-2. Read `/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md` for critical architectural issues
+2. Read `/docs/lessons-learned/test-developer-lessons-learned.md` for critical testing patterns
 3. Read `/docs/standards-processes/testing/TESTING_GUIDE.md` - Comprehensive testing guide
 4. Read `/docs/standards-processes/testing/integration-test-patterns.md` - Integration patterns  
 5. Read `/docs/standards-processes/testing/browser-automation/playwright-guide.md` - E2E patterns
@@ -114,7 +114,7 @@ You MUST maintain your lessons learned file:
 ## MANDATORY LESSON CONTRIBUTION
 **When you discover new patterns, issues, or solutions:**
 1. Document them immediately in `/docs/lessons-learned/test-developer-lessons-learned.md`
-2. If critical for all developers, also add to `/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md`
+2. If critical for all developers, also add to appropriate lessons learned files
 3. Use the established format: Problem → Solution → Example
 4. This helps future sessions avoid the same issues
 

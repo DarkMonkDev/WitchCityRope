@@ -7,22 +7,38 @@
 ## PURPOSE
 Defines strict boundaries between agents to prevent role violations and maintain clear ownership of directories and responsibilities.
 
-## CRITICAL ENFORCEMENT RULE
-**BACKEND-DEVELOPER CANNOT MODIFY ANY TEST FILES - ABSOLUTE PROHIBITION**
+## CRITICAL ENFORCEMENT RULES
+**BACKEND-DEVELOPER ONLY WRITES CODE - NO TESTING INFRASTRUCTURE**
+
+**TWO CRITICAL DISTINCTIONS:**
+1. **backend-developer CANNOT modify test files** - ABSOLUTE PROHIBITION
+2. **backend-developer CANNOT handle testing infrastructure** - test-executor does ALL testing tasks
+
+**TESTING INFRASTRUCTURE INCLUDES:**
+- Running test suites (unit, integration, E2E)
+- Managing Docker containers for testing
+- Running database migrations
+- Applying seed data
+- Starting/stopping services for testing
+- Setting up test environments
+- Managing TestContainers
+- Configuring testing tools
 
 ## File Access Matrix
 
-| Agent | Forbidden Paths | Allowed Write Access | Read Access | Primary Role |
-|-------|----------------|---------------------|-------------|-------------|
-| **backend-developer** | ❌ `/tests/**/*`<br>❌ `**/*.Tests/**/*`<br>❌ `**/e2e/**/*`<br>❌ `**/*.spec.*`<br>❌ `**/*.test.*`<br>❌ `**/playwright/**/*`<br>❌ `**/cypress/**/*` | ✅ `/src/WitchCityRope.Api/`<br>✅ `/src/WitchCityRope.Core/`<br>✅ `/src/WitchCityRope.Infrastructure/` | All docs | API/Business logic |
-| **test-developer** | None | ✅ **ALL TEST PATHS**<br>✅ `/tests/**/*`<br>✅ `**/*.Tests/**/*`<br>✅ `**/e2e/**/*`<br>✅ `**/*.spec.*`<br>✅ `**/*.test.*` | All docs + src | Test implementation |
+| Agent | Forbidden Paths | Forbidden Activities | Allowed Write Access | Read Access | Primary Role |
+|-------|----------------|---------------------|---------------------|-------------|-------------|
+| **backend-developer** | ❌ `/tests/**/*`<br>❌ `**/*.Tests/**/*`<br>❌ `**/e2e/**/*`<br>❌ `**/*.spec.*`<br>❌ `**/*.test.*`<br>❌ `**/playwright/**/*`<br>❌ `**/cypress/**/*` | ❌ Running tests<br>❌ Managing Docker<br>❌ Running migrations<br>❌ Managing services<br>❌ Setting up test infrastructure | ✅ `/apps/api/`<br>✅ `/src/WitchCityRope.Api/`<br>✅ `/src/WitchCityRope.Core/`<br>✅ `/src/WitchCityRope.Infrastructure/` | All docs | **CODE ONLY** - No testing execution |
+| **test-executor** | ❌ Source code modification | ❌ Writing source code<br>❌ Fixing business logic | ✅ **ALL TESTING INFRASTRUCTURE**<br>✅ Docker management<br>✅ Database setup<br>✅ Service management<br>✅ Test execution<br>✅ Environment configuration | All docs + src | **ALL TESTING TASKS** |
 | **blazor-developer** | ❌ `/tests/**/*`<br>❌ `**/*.Tests/**/*`<br>❌ `/src/WitchCityRope.Api/`<br>❌ `/src/WitchCityRope.Core/` | ✅ `/src/WitchCityRope.Web/` | All docs | UI/Components |
 | **orchestrator** | ❌ **ALL IMPLEMENTATION PATHS**<br>❌ `/src/**/*`<br>❌ `/tests/**/*` | ✅ `/.claude/workflow-data/`<br>✅ `/PROGRESS.md` | All docs | Coordination only |
 
 ## BACKEND-DEVELOPER RESTRICTIONS (CRITICAL)
 
 ### ABSOLUTE PROHIBITIONS
-The backend-developer agent is **STRICTLY FORBIDDEN** from modifying:
+The backend-developer agent is **STRICTLY FORBIDDEN** from:
+
+**1. MODIFYING TEST FILES:**
 
 ```
 ❌ /tests/                              # Any test directory
@@ -44,6 +60,20 @@ The backend-developer agent is **STRICTLY FORBIDDEN** from modifying:
 ❌ jest.config.*                        # Jest config
 ```
 
+**2. HANDLING TESTING INFRASTRUCTURE:**
+```
+❌ Running test suites (unit, integration, E2E)
+❌ Managing Docker containers
+❌ Running database migrations  
+❌ Applying seed data
+❌ Starting/stopping services
+❌ Setting up test environments
+❌ Managing TestContainers
+❌ Configuring testing tools
+❌ Running health checks
+❌ Installing testing dependencies
+```
+
 ### VIOLATION DETECTION PATTERNS
 If backend-developer attempts to modify any path matching these patterns:
 ```regex
@@ -62,41 +92,55 @@ If backend-developer attempts to modify any path matching these patterns:
 
 **IMMEDIATE ACTION REQUIRED**: STOP and delegate to test-developer
 
-## TEST-DEVELOPER EXCLUSIVE OWNERSHIP
+## TEST-EXECUTOR COMPREHENSIVE RESPONSIBILITIES
 
-### EXCLUSIVE CONTROL
-The test-developer agent has **EXCLUSIVE OWNERSHIP** of:
+### COMPLETE TESTING OWNERSHIP
+The test-executor agent has **COMPLETE RESPONSIBILITY** for:
+
+**1. TEST FILE EXECUTION (not modification):**
 
 ```
-✅ /tests/                              # All test directories
-✅ /e2e/                               # End-to-end tests
-✅ **/*.Tests/                          # Test projects
-✅ **/*.test.*                          # Test files
-✅ **/*.spec.*                          # Spec files
-✅ **/playwright/                       # Playwright tests
-✅ **/cypress/                          # Cypress tests
-✅ package.json (test scripts section)
-✅ playwright.config.*                  # Playwright config
-✅ jest.config.*                        # Jest config
-✅ **/TestData/                         # Test data
-✅ **/Fixtures/                         # Test fixtures
-✅ **/Mocks/                            # Test mocks
+✅ Running all test suites
+✅ Managing test execution
+✅ Configuring test environments
+```
+
+**2. TESTING INFRASTRUCTURE (complete management):**
+```
+✅ Docker container management (start/stop/restart/logs)
+✅ Database setup and configuration
+✅ Running database migrations
+✅ Applying seed data and test fixtures
+✅ Service management (API, web services)
+✅ TestContainers setup and management
+✅ Health check execution
+✅ Testing tool installation and configuration
+✅ Network and port configuration for testing
+✅ Environment variable setup for testing
+✅ CI/CD pipeline testing configuration
 ```
 
 ### MANDATORY DELEGATION RULES
 
-**ANY modification to test files MUST be delegated to test-developer:**
+**ANY testing task MUST be delegated correctly:**
 
 ```python
-# CORRECT
+# CORRECT - Code issues
 Task(
-    subagent_type="test-developer",
-    description="Fix test compilation errors",
-    prompt="Fix the failing test in UserServiceTests.cs..."
+    subagent_type="backend-developer",
+    description="Fix business logic bug in UserService.cs",
+    prompt="Fix the validation logic in UserService..."
+)
+
+# CORRECT - Testing infrastructure
+Task(
+    subagent_type="test-executor",
+    description="Run integration tests and manage Docker setup",
+    prompt="Set up test database, run migrations, and execute integration tests..."
 )
 
 # VIOLATION
-# backend-developer modifying UserServiceTests.cs directly
+# backend-developer running tests or managing infrastructure
 ```
 
 ## ORCHESTRATOR ENFORCEMENT
@@ -126,17 +170,21 @@ def validate_delegation(agent_type, file_paths):
 ```
 
 ### DELEGATION RULES
-1. **BEFORE delegating to backend-developer**: Check all file paths for test patterns
-2. **IF test files detected**: Automatically delegate to test-developer instead
-3. **NEVER allow backend-developer to touch test files**: Even for "related" changes
+1. **Code development tasks** → backend-developer (source code only)
+2. **Testing execution tasks** → test-executor (infrastructure and execution)
+3. **Test file modification** → test-developer (writing test code)
+4. **NEVER ask backend-developer to run tests or manage infrastructure**
+5. **NEVER ask backend-developer to touch test files**: Even for "related" changes
 
 ## VIOLATION CONSEQUENCES
 
 ### IMMEDIATE DETECTION
-If backend-developer attempts test file modification:
+If backend-developer attempts test file modification OR testing infrastructure:
 1. **STOP immediately**
 2. **Log violation** in orchestration failures
-3. **Re-delegate to test-developer**
+3. **Re-delegate appropriately**: 
+   - Test file changes → test-developer
+   - Testing infrastructure → test-executor
 4. **Update file registry** with violation note
 
 ### ESCALATION PROCESS

@@ -9,7 +9,7 @@ You are a senior React developer for WitchCityRope, implementing high-quality co
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
 1. **Read Your Lessons Learned** (MANDATORY)
-   - Location: `/docs/lessons-learned/frontend-lessons-learned.md`
+   - Location: `/docs/lessons-learned/react-developer-lessons-learned.md`
    - This file contains critical knowledge specific to your role
    - Apply these lessons to all work
 2. **Check Architecture Decisions** (MANDATORY)
@@ -17,7 +17,7 @@ You are a senior React developer for WitchCityRope, implementing high-quality co
    - Read `/docs/ARCHITECTURE.md` for tech stack
    - Note: UI Framework is Mantine v7 (ADR-004)
    - Note: Authentication uses httpOnly cookies
-3. Read `/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md` for critical architectural issues
+3. Read `/docs/lessons-learned/react-developer-lessons-learned.md` for critical patterns and lessons
 4. Read `/docs/architecture/react-migration/react-architecture.md` - Core React architecture decisions
 5. Read `/docs/standards-processes/form-fields-and-validation-standards.md` - Form validation patterns
 6. Read `/docs/standards-processes/validation-standardization/` - Validation library and patterns
@@ -56,8 +56,8 @@ You MUST maintain your lessons learned file:
 
 ## MANDATORY LESSON CONTRIBUTION
 **When you discover new patterns, issues, or solutions:**
-1. Document them immediately in `/docs/lessons-learned/frontend-lessons-learned.md`
-2. If critical for all developers, also add to `/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md`
+1. Document them immediately in `/docs/lessons-learned/react-developer-lessons-learned.md`
+2. If critical for all developers, also add to appropriate lessons learned files
 3. Use the established format: Problem → Solution → Example
 4. This helps future sessions avoid the same issues
 

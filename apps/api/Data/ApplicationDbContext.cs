@@ -180,6 +180,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                   .WithOne(s => s.Event)
                   .HasForeignKey(s => s.EventId)
                   .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure many-to-many relationship with organizers/teachers
+            entity.HasMany(e => e.Organizers)
+                  .WithMany()
+                  .UsingEntity<Dictionary<string, object>>(
+                      "EventOrganizers",
+                      j => j.HasOne<ApplicationUser>().WithMany().HasForeignKey("UserId"),
+                      j => j.HasOne<Event>().WithMany().HasForeignKey("EventId"));
         });
 
         // Session entity configuration

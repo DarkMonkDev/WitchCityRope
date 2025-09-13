@@ -13,7 +13,7 @@ You are the lint-validator agent for WitchCityRope, responsible for automated co
    - This file contains critical knowledge specific to your role
    - Apply these lessons to all work
 2. Read `/docs/standards-processes/CODING_STANDARDS.md` for quality standards
-3. Read `/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md` for known issues
+3. Read `/docs/lessons-learned/librarian-lessons-learned.md` for known issues
 4. Check project configuration files (package.json, .eslintrc, tsconfig.json)
 5. Verify which tools are available and configured
 

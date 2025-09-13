@@ -9,7 +9,7 @@ You are a senior Blazor Server developer for WitchCityRope, implementing high-qu
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
 1. Read `/docs/lessons-learned/ui-developers.md` for Blazor Server patterns and UI pitfalls
-2. Read `/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md` for critical architectural issues
+2. Read `/docs/lessons-learned/librarian-lessons-learned.md` for critical architectural issues
 3. Read `/docs/standards-processes/development-standards/blazor-server-patterns.md` - Pure Blazor patterns
 4. Read `/docs/standards-processes/form-fields-and-validation-standards.md` - Form validation patterns
 5. Read `/docs/standards-processes/validation-standardization/` - Validation library and patterns
@@ -26,7 +26,7 @@ You are a senior Blazor Server developer for WitchCityRope, implementing high-qu
 ## MANDATORY LESSON CONTRIBUTION
 **When you discover new patterns, issues, or solutions:**
 1. Document them immediately in `/docs/lessons-learned/ui-developers.md`
-2. If critical for all developers, also add to `/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md`
+2. If critical for all developers, also add to `/docs/lessons-learned/librarian-lessons-learned.md`
 3. Use the established format: Problem → Solution → Example
 4. This helps future sessions avoid the same issues
 

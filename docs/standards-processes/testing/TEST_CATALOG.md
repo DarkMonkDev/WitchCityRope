@@ -17,6 +17,15 @@ This catalog provides a comprehensive inventory of all tests in the WitchCityRop
 
 ## Recent Additions (September 2025)
 
+### 🚨 CRITICAL: E2E Timeout Consistency Fix - 2025-09-12 🚨
+**Fixed**: Inconsistent timeout configurations across E2E test files
+**Problem**: Individual `test.setTimeout()` calls and mismatched config values overrode global 90-second timeout
+**Solution**: 
+- Removed `test.setTimeout(60000)` from `/tests/playwright/quick-manual-test.spec.ts`
+- Updated `/apps/web/playwright.config.ts` from 60 seconds to 90 seconds
+- **All E2E tests now consistently use 90-second (1.5 minute) global timeout**
+**Impact**: Eliminates timeout inconsistency issues, ensures predictable test behavior
+
 ### 🚨 CRITICAL: TDD E2E Tests for Admin Events Edit Screen Bug Fixes - 2025-09-12 🚨
 **Added**: Comprehensive TDD E2E test suite for Admin Events Edit Screen bugs following Red-Green-Refactor cycle
 **Purpose**: Test-driven development approach to fixing critical admin events management bugs

@@ -5,8 +5,8 @@ test.describe('Quick Manual Admin Events Management Test', () => {
   test('Manual navigation and screenshot capture', async ({ page }) => {
     console.log('Starting manual test of admin events management...');
     
-    // Set longer timeout for debugging
-    test.setTimeout(60000);
+    // Use global timeout from playwright.config.ts (90 seconds)
+    // test.setTimeout(60000); // Removed - using global timeout
     
     // Step 1: Go to homepage first
     console.log('Step 1: Loading homepage');

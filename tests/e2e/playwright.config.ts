@@ -11,8 +11,8 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-  /* Use 15 parallel workers for maximum test execution speed */
-  workers: process.env.CI ? 1 : 15,
+  /* Use 25 parallel workers for maximum test execution speed */
+  workers: process.env.CI ? 1 : 25,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -25,7 +25,14 @@ export default defineConfig({
 
     /* Screenshot on failure */
     screenshot: 'only-on-failure',
+    
+    /* Timeouts for actions and navigation */
+    actionTimeout: 30000,
+    navigationTimeout: 30000,
   },
+  
+  /* Global test timeout - 1.5 minutes per test */
+  timeout: 90 * 1000,
 
   /* Configure projects for major browsers */
   projects: [

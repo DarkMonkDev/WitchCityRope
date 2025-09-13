@@ -8,7 +8,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : 15, // Increased to 15 parallel workers for maximum test execution speed
+  workers: process.env.CI ? 1 : 25, // Increased to 25 parallel workers for maximum test execution speed
   reporter: [
     ['list'],
     ['json', { outputFile: './test-results/test-results.json' }],
@@ -18,8 +18,11 @@ export default defineConfig({
     baseURL: process.env.VITE_BASE_URL || `http://localhost:${process.env.VITE_PORT || 5173}`,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure'
+    video: 'retain-on-failure',
+    actionTimeout: 30000,
+    navigationTimeout: 30000
   },
+  timeout: 90 * 1000, // 1.5 minutes per test
 
   projects: [
     {

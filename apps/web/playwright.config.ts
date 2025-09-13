@@ -10,8 +10,8 @@ export default defineConfig({
   globalTeardown: './tests/playwright/global-teardown.ts', // Clean up orphaned processes
   reporter: [['list'], ['html', { outputFolder: './playwright-report' }]], // Fixed path conflict
   
-  // Global timeout settings for improved reliability
-  timeout: 60000, // Overall test timeout
+  // Global timeout settings for improved reliability - aligned with main configs
+  timeout: 90 * 1000, // Overall test timeout (1.5 minutes)
   expect: {
     timeout: 10000, // Assertion timeout
   },

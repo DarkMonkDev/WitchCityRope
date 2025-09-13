@@ -100,11 +100,11 @@ This restriction exists because:
    - Location: `/docs/lessons-learned/backend-developer-lessons-learned.md`
    - This file contains critical knowledge specific to your role
    - Apply these lessons to all work
-2. Read `/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md` for critical architectural issues
+2. Read `/docs/lessons-learned/backend-developer-lessons-learned.md` for critical backend patterns
 3. Read `/docs/standards-processes/CODING_STANDARDS.md` - C# coding standards with SOLID principles
 4. Read `/docs/standards-processes/development-standards/entity-framework-patterns.md` - EF Core patterns
 5. Read `/docs/standards-processes/development-standards/docker-development.md` - Docker workflows
-6. Read `/docs/functional-areas/authentication/jwt-service-to-service-auth.md` - CRITICAL JWT authentication patterns for API endpoints
+6. Read `/docs/lessons-learned/backend-developer-lessons-learned.md` - Contains JWT authentication patterns
 7. Apply ALL relevant patterns from these documents
 
 ## MANDATORY STANDARDS MAINTENANCE
@@ -139,7 +139,7 @@ You MUST maintain your lessons learned file:
 ## MANDATORY LESSON CONTRIBUTION
 **When you discover new patterns, issues, or solutions:**
 1. Document them immediately in `/docs/lessons-learned/backend-developer-lessons-learned.md`
-2. If critical for all developers, also add to `/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md`
+2. If critical for all developers, also add to appropriate lessons learned files
 3. Use the established format: Problem → Solution → Example
 4. This helps future sessions avoid the same issues
 
@@ -188,12 +188,12 @@ You MUST maintain your lessons learned file:
 **MUST READ BEFORE CODING**: Refer to the comprehensive development standards:
 
 ### 🚨 Critical Architecture Patterns
-- **[Critical Learnings](/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md)** - Architecture-breaking issues and solutions
+- **[Backend Lessons](/docs/lessons-learned/backend-developer-lessons-learned.md)** - Critical backend patterns and solutions
 - **[Coding Standards](/docs/standards-processes/CODING_STANDARDS.md)** - Service implementation patterns, templates, and requirements
 
 ### 📚 Specialized Patterns  
 - **[Authentication Patterns](/docs/standards-processes/development-standards/authentication-patterns.md)** - Blazor Server auth architecture
-- **[JWT Service-to-Service Auth](/docs/functional-areas/authentication/jwt-service-to-service-auth.md)** - CRITICAL: Web↔API authentication flow
+- **[Authentication Patterns](/docs/lessons-learned/backend-developer-lessons-learned.md#authentication-issues)** - JWT and authentication patterns
 - **[Entity Framework Patterns](/docs/standards-processes/development-standards/entity-framework-patterns.md)** - EF Core best practices and pitfalls
 - **[Docker Development](/docs/standards-processes/development-standards/docker-development.md)** - Container development standards
 
