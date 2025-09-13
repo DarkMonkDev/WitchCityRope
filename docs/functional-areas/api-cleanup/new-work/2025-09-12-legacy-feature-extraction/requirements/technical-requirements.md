@@ -100,8 +100,9 @@ The codebase currently contains two complete API implementations:
    - Monitoring: Application Insights integration
 
 3. **Authentication Consistency**
-   - JWT Bearer token implementation
-   - httpOnly cookie management
+   - Cookie-based user authentication (NOT JWT for users)
+   - httpOnly cookie management for user sessions
+   - JWT tokens ONLY for service-to-service authentication
    - Role-based authorization
    - Session management patterns
 
@@ -153,7 +154,7 @@ The codebase currently contains two complete API implementations:
 
 **Unit Testing**:
 - xUnit test framework
-- In-memory database for service tests
+- TestContainers for ALL database tests (NO in-memory database)
 - Moq for dependency mocking
 - FluentAssertions for readable tests
 
@@ -163,11 +164,11 @@ The codebase currently contains two complete API implementations:
 - Complete endpoint coverage
 - Authentication/authorization testing
 
-**Performance Testing**:
-- Load testing with NBomber
-- Response time validation
-- Memory leak detection
-- Concurrent user simulation
+**Performance Testing** (Optional - Light Touch):
+- Basic response time validation
+- Simple concurrent user tests (5-10 users max)
+- Focus on maintaining <50ms baseline
+- No extensive load testing needed (small user base)
 
 ### Phase 3: Legacy API Archival
 
@@ -194,19 +195,30 @@ The codebase currently contains two complete API implementations:
 
 #### 3.2 Archival Technical Requirements
 
-**Git Operations**:
+**Git Operations with Incremental Commits**:
 ```bash
-# Create archive branch
-git checkout -b archive/legacy-api-2025-09-12
+# Commit current state before ANY changes
+git add -A && git commit -m "chore: checkpoint before API cleanup work"
 
-# Move to archive location
+# Create feature branch for cleanup work
+git checkout -b feature/api-cleanup-2025-09-12
+
+# Each major step gets its own commit:
+# 1. After feature analysis
+git add -A && git commit -m "docs: complete legacy API feature analysis"
+
+# 2. After each feature extraction
+git add -A && git commit -m "feat: extract [feature] to modern API"
+
+# 3. Before archival
+git add -A && git commit -m "chore: checkpoint before legacy API archival"
+
+# 4. After archival
 git mv src/WitchCityRope.Api docs/_archive/api-legacy-2025-09-12/
+git add -A && git commit -m "chore: archive legacy API to documentation"
 
-# Update solution file
-# Remove project reference from WitchCityRope.sln
-
-# Clean Docker configurations
-# Remove from docker-compose files
+# 5. After cleanup
+git add -A && git commit -m "chore: clean all legacy API references"
 ```
 
 **Build System Cleanup**:
