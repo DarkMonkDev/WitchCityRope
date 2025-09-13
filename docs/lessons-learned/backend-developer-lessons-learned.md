@@ -1940,3 +1940,139 @@ curl -s http://localhost:5655/api/events | jq '.data[] | "\(.title): \(.currentA
 - Use database table truncation to force fresh seed data generation
 - Verify API health and data variety before frontend testing
 - Document the capacity percentage thresholds used by frontend components
+
+## Legacy API Feature Analysis (2025-09-12)
+
+### CRITICAL DISCOVERY: Comprehensive Feature Gap Analysis
+**Problem**: WitchCityRope has two API projects with modern API missing critical business features that exist in legacy API.
+
+**Root Cause**: During React migration, a simplified API was created rather than migrating existing comprehensive features.
+
+**Key Findings**:
+1. **Safety System**: MISSING from modern API - legal compliance risk for incident reporting
+2. **CheckIn System**: MISSING - core event functionality with QR codes, staff validation, attendee details
+3. **Vetting System**: MISSING - member approval workflow with references and scoring
+4. **Enhanced Payments**: Modern API has basic implementation, legacy has comprehensive Stripe integration
+
+**Legacy API Analysis Results**:
+- 7 feature systems analyzed: CheckIn, Safety, Vetting, Payments, Dashboard, Events, Auth
+- Safety system has encryption, anonymous reporting, severity-based alerts
+- CheckIn supports QR codes, confirmation codes, manual lookup with staff permissions
+- Vetting has multi-stage workflow with external reference validation
+- Payments includes Stripe customer management, saved payment methods, post-payment automation
+
+**Feature Priority Matrix Created**:
+- **CRITICAL**: Safety System (legal compliance, community safety)
+- **HIGH**: CheckIn System (core event functionality), Vetting System (community management)
+- **MEDIUM**: Enhanced Payments (revenue optimization), Events enhancement, Dashboard
+
+**Architecture Migration Strategy**:
+- Use modern API's vertical slice pattern for all migrations
+- Simplify legacy MediatR/CQRS patterns to direct Entity Framework
+- Preserve critical business logic and validation rules
+- Implement TestContainers for all database testing
+
+**Implementation Timeline**: 4 weeks across 4 phases
+1. **Week 1**: Safety system (critical legal compliance)
+2. **Week 2**: CheckIn system and Events enhancement
+3. **Week 3**: Vetting system and Dashboard
+4. **Week 4**: Enhanced Payments and integration
+
+**Files Created**:
+- `/docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/requirements/legacy-api-feature-analysis.md`
+- `/docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/handoffs/backend-developer-2025-09-12-handoff.md`
+
+**Pattern for Future API Analysis**:
+```bash
+# Comprehensive feature inventory process
+1. List all legacy feature directories
+2. Analyze each feature's business logic and data models
+3. Compare with modern API implementation
+4. Document gaps and business impact
+5. Create priority matrix based on business value and compliance
+6. Design migration strategy preserving business rules
+```
+
+**Key Business Rules Discovered**:
+- CheckIn system requires staff role validation (CheckInStaff, Organizer, Admin)
+- Safety incidents have severity-based escalation (Critical → immediate alerts)
+- Vetting requires minimum 2 references with external validation
+- Payment processing includes comprehensive post-payment automation
+
+**Critical Legal/Compliance Issues**:
+- Safety incident reporting required for community liability protection
+- Anonymous reporting with data encryption required for sensitive incidents
+- Audit trails required for all safety and vetting actions
+
+**Prevention**:
+- Always analyze legacy systems comprehensively before declaring features "migrated"
+- Document business rules and compliance requirements during analysis
+- Create feature gap analysis comparing legacy vs. modern implementations
+- Prioritize features based on legal compliance and business impact
+- Plan incremental migration preserving critical business logic
+
+## Dashboard and Events Enhancement Analysis (2025-09-12)
+
+### CRITICAL DECISION: Dashboard Features Need Extraction, Events Enhancement Can Be Archived
+
+**Analysis Results**: Deep comparison of Dashboard and Events Enhancement features between legacy API (`/src/WitchCityRope.Api/`) and modern API (`/apps/api/`) revealed:
+
+**Dashboard Features: HIGH PRIORITY EXTRACTION NEEDED**
+- **Legacy Implementation**: 3 endpoints with rich user engagement features
+  - Personal dashboard with vetting status (`GET /api/dashboard/{userId}`)
+  - Upcoming events widget for member planning (`GET /api/dashboard/users/{userId}/upcoming-events`)
+  - Membership statistics for engagement tracking (`GET /api/dashboard/users/{userId}/stats`)
+- **Modern Implementation**: NONE - Complete gap
+- **Business Impact**: HIGH - Member retention, engagement tracking, administrative insights
+- **Recommendation**: EXTRACT - 2 week effort, high business value
+
+**Events Enhancement: ARCHIVE CANDIDATE**
+- **Legacy Implementation**: Full CRUD for sessions and ticket types with complex authorization
+- **Modern Implementation**: 95% complete - has DTOs, business logic, core endpoints
+- **Business Impact**: LOW - Modern API already supports complex multi-session events, ticket types, RSVP vs tickets
+- **Recommendation**: ARCHIVE - Core functionality already implemented with better architecture
+
+**Key Technical Findings**:
+```csharp
+// Legacy has comprehensive engagement tracking
+var eventsAttended = await _context.Registrations
+    .CountAsync(r => r.UserId == userId && 
+                    r.Event.EndDate < DateTime.UtcNow &&
+                    r.Status == RegistrationStatus.Confirmed);
+
+// Modern API already has session/ticket support
+public class SessionDto { /* Full implementation */ }
+public class TicketTypeDto { /* Complete with pricing tiers */ }
+```
+
+**Architecture Benefits**:
+- Modern API's vertical slice pattern is superior to legacy MediatR/CQRS complexity
+- Events functionality is already well-implemented in modern API
+- Dashboard features provide unique member engagement value not found anywhere else
+
+**Updated Extraction Priority**:
+1. **CRITICAL**: Safety System (legal compliance)
+2. **HIGH**: CheckIn System (core event functionality)
+3. **HIGH**: Vetting System (community management)
+4. **MEDIUM**: Dashboard System (member engagement) - **NEWLY ADDED**
+5. **MEDIUM**: Enhanced Payments (revenue optimization)
+6. **ARCHIVE**: Events Enhancement - **MOVED TO ARCHIVE**
+
+**Files Created**:
+- `/docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/requirements/dashboard-events-comparison.md` - Comprehensive feature comparison
+
+**For Future Backend Developers**:
+- Dashboard extraction should follow modern API's minimal API + vertical slice pattern
+- Don't rebuild Events enhancement - the modern API implementation is superior
+- Focus extraction efforts on features that provide unique business value not available elsewhere
+- Use comprehensive feature gap analysis to make extraction vs archive decisions
+
+**Pattern for Feature Analysis**:
+```markdown
+## Analysis Template
+1. **Legacy Implementation**: What exists, file locations, endpoints
+2. **Modern Implementation**: What's built, gaps identified
+3. **Business Impact**: Revenue, compliance, user engagement value
+4. **Architecture Comparison**: Legacy vs modern patterns
+5. **Recommendation**: Extract, Archive, or Enhance with clear rationale
+```

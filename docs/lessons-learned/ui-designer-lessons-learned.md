@@ -419,6 +419,171 @@ const actionTileHover = {
 - Component structure supports additional admin functionality
 - Maintains separation between dashboard overview and specific admin tools
 
+## Safety System UI Design Patterns - September 2025
+
+### CRITICAL: Legal Compliance Design Requirements
+**Problem**: Safety incident reporting system requires strict privacy protection and legal compliance
+**Solution**: 
+- Anonymous reporting must have NO user identification tracking
+- Severity-based color coding and alert escalation
+- Encryption requirements for all sensitive user content
+- Complete audit trail logging for legal compliance
+
+### Privacy-First Design Patterns
+**Anonymous Reporting**:
+- Radio button toggle between anonymous and identified reporting
+- When anonymous selected, all contact fields disappear
+- Clear privacy notices explaining data protection
+- No session tracking or IP logging for anonymous reports
+
+**Data Sensitivity Indicators**:
+- 🔒 icons for encrypted fields
+- Privacy notices prominently displayed
+- Color-coded severity levels with specific meanings
+- Clear explanation of who can access what information
+
+### Severity-Based Color System
+**Implementation**: Specific colors for incident severity (NOT generic status colors):
+```css
+.severity-low { color: #228B22; background: rgba(34, 139, 34, 0.1); }
+.severity-medium { color: #DAA520; background: rgba(218, 165, 32, 0.1); }
+.severity-high { color: #DC143C; background: rgba(220, 20, 60, 0.1); }
+.severity-critical { color: #8B0000; background: rgba(139, 0, 0, 0.1); }
+```
+
+### Legal Compliance UI Elements
+**Required Components**:
+- Audit trail timeline with user attribution
+- Encrypted data indicators (lock icons)
+- Role-based access control visual feedback
+- Reference number generation and display
+- Status tracking with timestamp history
+
+### Form Design for Sensitive Data
+**Pattern**: Floating labels with encryption indicators
+- ALL text inputs use floating label animation
+- Sensitive fields marked with 🔒 icon
+- Clear field descriptions explaining data use
+- Optional vs required field distinction
+- Privacy toggle controls prominently placed
+
+### Admin Safety Dashboard Patterns
+**Layout Strategy**:
+- Statistics cards showing incident counts by severity
+- Color-coded urgency indicators
+- Real-time alert badges for critical incidents
+- Filter controls for incident management
+- Export controls with privacy protection
+
+**Table Design**:
+- Severity badges with color coding
+- Encrypted data indicators
+- Quick action buttons (View, Assign, Update)
+- Sortable columns with proper data formatting
+- Reference number prominence for tracking
+
+### Mobile Safety Form Optimization
+**Critical Requirements**:
+- Single column layout on mobile
+- Touch-friendly form controls (44px minimum)
+- Emergency contact information easily accessible
+- Severity selection with large, clear options
+- Submit button always visible (sticky positioning)
+
+### Error Handling for Sensitive Forms
+**Pattern**: Non-revealing error messages
+- Generic "submission failed" rather than specific validation errors
+- Success confirmations with tracking numbers
+- Clear retry instructions without exposing sensitive data
+- Graceful degradation for network issues
+
+**Implementation**:
+```jsx
+// Safe error messaging
+const handleSubmissionError = (error) => {
+  showNotification({
+    title: 'Submission Issue',
+    message: 'Unable to submit report. Please try again or contact safety team directly.',
+    color: 'red'
+  });
+  // Log detailed error privately, don't expose to user
+};
+```
+
+### Accessibility for Emergency Situations
+**Requirements**: Enhanced accessibility for users in crisis
+- High contrast mode available
+- Large text options
+- Voice-to-text support indicators
+- Screen reader optimized form structure
+- Keyboard navigation priority
+
+**Crisis-Appropriate Design**:
+- Minimal cognitive load in form design
+- Clear progress indicators
+- Emergency contact information always visible
+- Submit button prominence with confirmation
+- Success state with clear next steps
+
+## Stakeholder Feedback Integration - September 2025
+
+### CRITICAL: Design Simplification Based on Stakeholder Feedback
+**Problem**: Initial Safety System design included unnecessary complexity that didn't match stakeholder needs
+**Solution**: Streamline designs based on actual business requirements
+
+### Key Feedback Patterns
+**What Stakeholders Actually Need**:
+- Simple severity categorization (not incident types)
+- Email notifications only (no SMS complexity)
+- Long-term database retention for legal compliance
+- Focus on core functionality over feature richness
+
+**What to Remove Immediately**:
+- Complex categorization systems
+- Multiple notification channels
+- Overly detailed workflows
+- Features mentioned but not actually needed
+
+### Implementation of Feedback
+**Before Stakeholder Review**:
+- Incident type dropdowns and categorization
+- SMS notification options
+- Complex data retention policies
+- Multiple user role definitions
+
+**After Stakeholder Feedback**:
+- Simple severity levels only (Low/Medium/High/Critical)
+- Email notifications only
+- Database records permanent, only temp data has shorter retention
+- Focus on current roles (Teacher/Event Coordinator noted for future)
+
+### Communication Strategy for Complex Features
+**Lesson**: Present complex features incrementally with stakeholder validation
+**Process**:
+1. Start with minimal viable design
+2. Show core functionality first
+3. Present additional features as optional extensions
+4. Get explicit approval before adding complexity
+5. Document what was simplified and why
+
+### Design Iteration Based on Feedback
+**Pattern**: Rapid iteration with clear change documentation
+```markdown
+### Version 2.0 Changes
+**Removed**: [List specific elements]
+**Simplified**: [List simplified workflows]
+**Updated**: [List clarified requirements]
+```
+
+### Future Stakeholder Review Process
+**Lesson**: Regular check-ins prevent over-engineering
+**Implementation**:
+1. Present wireframes at 50% completion
+2. Validate core workflows before details
+3. Confirm feature scope before implementation
+4. Document all feedback and changes
+5. Update lessons learned immediately
+
 ## Quality Validation Checklist
 
 ### Pre-Delivery Validation
@@ -479,6 +644,26 @@ const actionTileHover = {
 - [ ] Layout integration maintains existing user experience
 - [ ] No duplicate code or conflicting styles
 
+### Safety System Design Validation
+- [ ] Anonymous reporting path completely separate from identified reporting
+- [ ] Severity levels use specific safety colors (not generic status colors)
+- [ ] All sensitive data fields marked for encryption in designs
+- [ ] Privacy notices prominent and legally compliant
+- [ ] Audit trail design supports complete action logging
+- [ ] Role-based access control visually indicated
+- [ ] Mobile responsive safety forms with touch optimization
+- [ ] Emergency accessibility features included
+- [ ] Error handling preserves data privacy
+
+### Stakeholder Feedback Integration Validation
+- [ ] Simplified designs match actual business requirements
+- [ ] Removed unnecessary complexity based on feedback
+- [ ] Core functionality prioritized over feature richness
+- [ ] Email notifications only (no SMS)
+- [ ] Severity categorization only (no incident types)
+- [ ] Long-term database retention clarified
+- [ ] Change documentation complete and clear
+
 ## File Organization
 
 ### Wireframe Storage Pattern
@@ -495,6 +680,11 @@ const actionTileHover = {
 **Location**: `/docs/functional-areas/events/admin-activation/`
 **Naming**: Date-stamped design documents
 **Include**: ASCII wireframes, component specs, navigation flows, implementation priorities
+
+### Safety System Documentation
+**Location**: `/docs/functional-areas/api-cleanup/new-work/[date]/design/`
+**Naming**: `safety-system-ui-design.md`
+**Include**: Complete UI specifications, privacy requirements, legal compliance notes
 
 ## Common Mistakes to Avoid
 
@@ -520,6 +710,15 @@ const actionTileHover = {
 20. **DON'T** create duplicate layout components when existing ones can be extended
 21. **DON'T** change existing AdminEventsPage styling or behavior
 22. **DON'T** ignore existing component patterns when building admin dashboard
+23. **DON'T** mix anonymous and identified reporting data patterns
+24. **DON'T** use generic status colors for safety incident severity levels
+25. **DON'T** expose sensitive data in error messages or debugging
+26. **DON'T** skip privacy notices and encryption indicators for sensitive forms
+27. **DON'T** forget crisis-appropriate accessibility features for emergency forms
+28. **DON'T** over-engineer designs without stakeholder validation
+29. **DON'T** include incident type categorization (stakeholders don't use this)
+30. **DON'T** design SMS notification systems (email only required)
+31. **DON'T** assume 2-year data retention for all data (only temp data, database records permanent)
 
 ## Stakeholder Communication
 
@@ -553,4 +752,25 @@ const actionTileHover = {
 4. Emphasize preservation of working systems
 5. Present implementation as low-risk activation rather than new development
 
-This comprehensive approach ensures all future wireframes will be consistent with the approved Design System v7 and meet stakeholder expectations.
+### Legal Compliance Communication
+**Lesson**: Safety system design requires explicit legal compliance documentation
+**Solution**: Document privacy protection and legal requirements prominently
+**Process**:
+1. Highlight anonymous reporting capabilities
+2. Document encryption requirements clearly
+3. Show audit trail and access control designs
+4. Emphasize crisis-appropriate accessibility features
+5. Present as legal risk mitigation rather than optional feature
+
+### Feature Simplification Communication
+**Lesson**: Stakeholders clarify actual needs vs assumed requirements during design review
+**Solution**: Present simplified versions and get explicit approval for additional complexity
+**Process**:
+1. Start with minimal viable feature set
+2. Present core functionality clearly
+3. List potential additions as optional
+4. Get stakeholder feedback on what's actually needed
+5. Document what was simplified and why
+6. Update designs immediately based on feedback
+
+This comprehensive approach ensures all future wireframes will be consistent with the approved Design System v7, meet stakeholder expectations, and support critical legal compliance requirements for community safety.

@@ -147,6 +147,8 @@
 
 **Ruthlessly edit for conciseness** - If a lesson takes more than 3 sentences to explain, it probably belongs in a different type of document.
 
+**Authentication migration completed successfully** - BFF pattern with httpOnly cookies documented across ARCHITECTURE.md, functional area README, and comprehensive migration summary with legacy code properly archived.
+
 ## Lessons Learned File Management
 
 **Problem**: Files becoming project documentation instead of prevention patterns.
@@ -271,3 +273,22 @@
 4. Include troubleshooting sections
 5. Update main documentation to reference new standards
 6. Cross-reference between lessons learned and formal standards
+
+## Authentication Documentation Migration Pattern
+
+**Problem**: Major architecture changes (localStorage JWT → BFF httpOnly cookies) require comprehensive documentation updates across multiple files.
+**Solution**: Systematic documentation migration with clear archival process.
+
+**Migration Process**:
+1. **Archive Legacy Code**: Move outdated implementation to `/docs/_archive/` with explanatory README
+2. **Update Architecture Documentation**: Replace outdated patterns in ARCHITECTURE.md with current implementation
+3. **Update Functional Area Documentation**: Refresh README and implementation guides in functional area
+4. **Create Migration Summary**: Document what changed, why, and security benefits achieved
+5. **Update File Registry**: Log all documentation changes for traceability
+6. **Update Master Index**: Reflect completion status and implementation changes
+
+**Key Success Factors**:
+- **Clear Archive Documentation**: Explain why legacy approach was retired
+- **Complete Migration Timeline**: Document implementation phases and dates
+- **Security Impact Analysis**: Highlight vulnerabilities eliminated and protections added
+- **No Breaking Changes**: Maintain backwards compatibility during transition
