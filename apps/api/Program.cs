@@ -124,6 +124,9 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 
+// Add memory cache for CheckIn system performance
+builder.Services.AddMemoryCache();
+
 // New vertical slice feature services
 builder.Services.AddFeatureServices();
 

@@ -5,6 +5,7 @@ using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Features.Users.Services;
 using WitchCityRope.Api.Features.Safety.Services;
 using WitchCityRope.Api.Features.Safety.Validation;
+using WitchCityRope.Api.Features.CheckIn.Extensions;
 using WitchCityRope.Api.Services;
 
 namespace WitchCityRope.Api.Features.Shared.Extensions;
@@ -40,6 +41,9 @@ public static class ServiceCollectionExtensions
         
         // FluentValidation for Safety feature
         services.AddValidatorsFromAssemblyContaining<CreateIncidentValidator>();
+
+        // CheckIn feature services
+        services.AddCheckInServices();
 
         // Database initialization services
         services.AddScoped<ISeedDataService, SeedDataService>();

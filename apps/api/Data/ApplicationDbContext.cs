@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Features.Safety.Entities;
+using WitchCityRope.Api.Features.CheckIn.Entities;
+using WitchCityRope.Api.Features.CheckIn.Entities.Configuration;
 
 namespace WitchCityRope.Api.Data;
 
@@ -56,6 +58,26 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     /// IncidentNotifications table for email notifications
     /// </summary>
     public DbSet<IncidentNotification> IncidentNotifications { get; set; }
+
+    /// <summary>
+    /// EventAttendees table for event registration and check-in
+    /// </summary>
+    public DbSet<EventAttendee> EventAttendees { get; set; }
+
+    /// <summary>
+    /// CheckIns table for actual check-in records
+    /// </summary>
+    public DbSet<CheckIn> CheckIns { get; set; }
+
+    /// <summary>
+    /// CheckInAuditLogs table for check-in audit trail
+    /// </summary>
+    public DbSet<CheckInAuditLog> CheckInAuditLogs { get; set; }
+
+    /// <summary>
+    /// OfflineSyncQueues table for offline synchronization
+    /// </summary>
+    public DbSet<OfflineSyncQueue> OfflineSyncQueues { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -622,6 +644,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                   .HasDatabaseName("IX_IncidentNotifications_Failed_RetryCount")
                   .HasFilter("\"Status\" = 'Failed' AND \"RetryCount\" < 5");
         });
+
+        // Apply CheckIn System configurations
+        modelBuilder.ApplyConfiguration(new EventAttendeeConfiguration());
+        modelBuilder.ApplyConfiguration(new CheckInConfiguration());
+        modelBuilder.ApplyConfiguration(new CheckInAuditLogConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflineSyncQueueConfiguration());
     }
 
     /// <summary>
@@ -808,6 +836,63 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             else if (entry.State == EntityState.Modified)
             {
                 entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Handle EventAttendee entities
+        var attendeeEntries = ChangeTracker.Entries<EventAttendee>();
+        foreach (var entry in attendeeEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Handle CheckIn entities
+        var checkInEntries = ChangeTracker.Entries<CheckIn>();
+        foreach (var entry in checkInEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+                
+                // Ensure CheckInTime is UTC
+                if (entry.Entity.CheckInTime.Kind != DateTimeKind.Utc)
+                {
+                    entry.Entity.CheckInTime = DateTime.SpecifyKind(entry.Entity.CheckInTime, DateTimeKind.Utc);
+                }
+            }
+        }
+
+        // Handle CheckInAuditLog entities
+        var checkInAuditLogEntries = ChangeTracker.Entries<CheckInAuditLog>();
+        foreach (var entry in checkInAuditLogEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Handle OfflineSyncQueue entities
+        var syncQueueEntries = ChangeTracker.Entries<OfflineSyncQueue>();
+        foreach (var entry in syncQueueEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+                
+                // Ensure LocalTimestamp is UTC
+                if (entry.Entity.LocalTimestamp.Kind != DateTimeKind.Utc)
+                {
+                    entry.Entity.LocalTimestamp = DateTime.SpecifyKind(entry.Entity.LocalTimestamp, DateTimeKind.Utc);
+                }
             }
         }
     }
