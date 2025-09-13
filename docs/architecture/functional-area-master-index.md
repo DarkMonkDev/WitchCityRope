@@ -29,6 +29,7 @@ This master index is maintained by the librarian agent to provide quick lookups 
 | **Browser Testing** | `/docs/functional-areas/browser-testing/` | N/A | Browser automation and testing tools configuration | Active | 2025-08-22 |
 | **Dependencies Management** | `/docs/functional-areas/dependencies-management/` | N/A | Package dependency updates, security vulnerability management, NuGet and npm package compatibility | Planning | 2025-09-11 |
 | **API Cleanup** | `/docs/functional-areas/api-cleanup/` | `/docs/functional-areas/api-cleanup/new-work/2025-09-12-legacy-feature-extraction/` | **CRITICAL** - Resolve duplicate API projects crisis by extracting valuable features from legacy API at /src/WitchCityRope.Api/ to modern API at /apps/api/ | **Phase 1 - Requirements** | 2025-09-12 |
+| **Testing Infrastructure** | `/docs/functional-areas/testing-infrastructure/` | `/docs/functional-areas/testing-infrastructure/new-work/2025-09-12-containerized-testing/` | **Research and planning for containerized testing infrastructure** - Investigate fresh Docker containers with blank PostgreSQL databases, GitHub Actions CI/CD compatibility, and orphaned container prevention | **Research Phase** | 2025-09-12 |
 
 ## Active Development Work
 
