@@ -14,18 +14,22 @@ RUN apt-get update && apt-get install -y \
     vim \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy project file first for dependency caching
-COPY *.csproj ./
+# Copy all project files for dependency caching
+COPY apps/api/*.csproj ./
+COPY src/WitchCityRope.Core/*.csproj ./WitchCityRope.Core/
+COPY src/WitchCityRope.Infrastructure/*.csproj ./WitchCityRope.Infrastructure/
 
 # Restore dependencies with retries for network issues
 RUN dotnet restore --verbosity normal
 
 # Copy source code
-COPY . ./
+COPY apps/api/ ./
+COPY src/WitchCityRope.Core/ ./WitchCityRope.Core/
+COPY src/WitchCityRope.Infrastructure/ ./WitchCityRope.Infrastructure/
 
-# Expose ports for API (5655) and debugging (5656)
-EXPOSE 5655
-EXPOSE 5656
+# Expose ports for API (8080 internal) and debugging (40000)
+EXPOSE 8080
+EXPOSE 40000
 
 # Configure hot reload environment
 ENV DOTNET_USE_POLLING_FILE_WATCHER=true
@@ -33,19 +37,27 @@ ENV DOTNET_WATCH_RESTART_ON_RUDE_EDIT=true
 ENV ASPNETCORE_ENVIRONMENT=Development
 
 # Run with hot reload and specific binding
-CMD ["dotnet", "watch", "run", "--urls", "http://0.0.0.0:5655", "--no-restore"]
+CMD ["dotnet", "watch", "run", "--urls", "http://0.0.0.0:8080", "--no-restore"]
 
 # Production build stage
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 
 WORKDIR /app
 
-# Copy and restore dependencies
-COPY *.csproj ./
+# Copy all project files for dependency caching
+COPY apps/api/*.csproj ./
+COPY src/WitchCityRope.Core/*.csproj ./WitchCityRope.Core/
+COPY src/WitchCityRope.Infrastructure/*.csproj ./WitchCityRope.Infrastructure/
+
+# Restore dependencies
 RUN dotnet restore
 
-# Copy source and build
-COPY . ./
+# Copy source code
+COPY apps/api/ ./
+COPY src/WitchCityRope.Core/ ./WitchCityRope.Core/
+COPY src/WitchCityRope.Infrastructure/ ./WitchCityRope.Infrastructure/
+
+# Build the application
 RUN dotnet build -c Release --no-restore
 
 # Publish application

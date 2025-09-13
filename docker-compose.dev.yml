@@ -55,8 +55,8 @@ services:
   # ==========================================================================
   api:
     build:
-      context: ./apps/api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/api/Dockerfile
       target: development  # Multi-stage development target
     
     # External access for API testing and debugging
@@ -95,6 +95,8 @@ services:
     volumes:
       # Source code mounting for hot reload
       - ./apps/api:/app:cached
+      - ./src/WitchCityRope.Core:/app/WitchCityRope.Core:cached
+      - ./src/WitchCityRope.Infrastructure:/app/WitchCityRope.Infrastructure:cached
       
       # Package cache for faster builds
       - nuget_cache:/root/.nuget/packages
@@ -102,6 +104,10 @@ services:
       # Exclude build artifacts from host
       - /app/bin
       - /app/obj
+      - /app/WitchCityRope.Core/bin
+      - /app/WitchCityRope.Core/obj
+      - /app/WitchCityRope.Infrastructure/bin
+      - /app/WitchCityRope.Infrastructure/obj
     
     # Development command with hot reload
     command: ["dotnet", "watch", "run", "--project", "/app/WitchCityRope.Api.csproj", "--urls", "http://0.0.0.0:8080"]
