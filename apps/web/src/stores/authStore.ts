@@ -94,6 +94,7 @@ const useAuthStore = create<AuthStore>()(
             try {
               console.log('🔍 Checking auth with API...');
               // Use fetch directly with credentials to check auth via cookies
+              // Use relative URL to leverage Vite proxy in development
               const response = await fetch('/api/auth/user', {
                 credentials: 'include'
               });

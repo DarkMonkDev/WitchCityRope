@@ -8,17 +8,10 @@ import type {
   LoginResponse
 } from '@witchcityrope/shared-types'
 
-// Extended LoginResponse with JWT token fields (until NSwag is updated)
-interface LoginResponseWithToken {
-  token: string;
-  expiresAt: string;
-  user: UserDto;
-}
-
-// API Response wrapper
-interface ApiResponse<T> {
+// API Response for httpOnly cookie authentication (no tokens)
+interface LoginResponseData {
   success: boolean;
-  data: T;
+  user: UserDto;
   message?: string;
 }
 
@@ -40,19 +33,17 @@ export function useLogin() {
   const navigate = useNavigate()
   
   return useMutation({
-    mutationFn: async (credentials: LoginRequest): Promise<LoginResponseWithToken> => {
-      const response = await api.post('/api/Auth/login', credentials)
+    mutationFn: async (credentials: LoginRequest): Promise<LoginResponseData> => {
+      const response = await api.post('/api/auth/login', credentials)
       return response.data
     },
     onSuccess: (data, variables, context) => {
-      // Handle flat response structure from API
-      // The API returns { token: '...', expiresAt: '...', user: {...}, refreshToken: '...' }
+      // Handle httpOnly cookie authentication - no tokens in response
+      // The API returns { success: true, user: {...}, message: '...' }
       const userData = data.user
-      const token = data.token
-      const expiresAt = new Date(data.expiresAt)
       
-      // Update Zustand store with user data and JWT token
-      login(userData, token, expiresAt)
+      // Update Zustand store with user data (httpOnly cookies handle auth)
+      login(userData)
       
       // Invalidate any user-related queries (if they exist)
       queryClient.invalidateQueries({ queryKey: ['user'] })
@@ -83,7 +74,7 @@ export function useRegister() {
   
   return useMutation({
     mutationFn: async (credentials: RegisterCredentials): Promise<UserDto> => {
-      const response = await api.post('/api/Auth/register', credentials)
+      const response = await api.post('/api/auth/register', credentials)
       return response.data
     },
     onSuccess: (userData) => {
@@ -113,7 +104,7 @@ export function useLogout() {
   
   return useMutation({
     mutationFn: async (_?: void): Promise<void> => {
-      await api.post('/api/Auth/logout')
+      await api.post('/api/auth/logout')
     },
     onSuccess: () => {
       // Update Zustand store (clear auth state)

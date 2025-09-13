@@ -47,7 +47,7 @@ describe('AuthStore', () => {
     it('should update state correctly on login', () => {
       const { actions } = useAuthStore.getState();
       
-      actions.login(mockUser, mockToken, mockExpiresAt);
+      actions.login(mockUser);
       
       const state = useAuthStore.getState();
       expect(state.isAuthenticated).toBe(true);
@@ -63,7 +63,7 @@ describe('AuthStore', () => {
       };
       
       const { actions } = useAuthStore.getState();
-      actions.login(userWithDifferentName, mockToken, mockExpiresAt);
+      actions.login(userWithDifferentName);
       
       const state = useAuthStore.getState();
       expect(state.user?.sceneName).toBe('RopeEnthusiast42');
@@ -75,7 +75,7 @@ describe('AuthStore', () => {
     it('should clear state', () => {
       // Setup authenticated state
       const { actions } = useAuthStore.getState();
-      actions.login(mockUser, mockToken, mockExpiresAt);
+      actions.login(mockUser);
       
       // Verify initial authenticated state
       expect(useAuthStore.getState().isAuthenticated).toBe(true);
@@ -101,7 +101,7 @@ describe('AuthStore', () => {
       const { actions } = useAuthStore.getState();
       
       // Setup authenticated state
-      actions.login(mockUser, mockToken, mockExpiresAt);
+      actions.login(mockUser);
       
       // Update user with new scene name
       actions.updateUser({ sceneName: 'UpdatedSceneName' });
@@ -229,7 +229,7 @@ describe('AuthStore', () => {
   describe('store state access', () => {
     it('should provide correct state values', () => {
       const { actions } = useAuthStore.getState();
-      actions.login(mockUser, mockToken, mockExpiresAt);
+      actions.login(mockUser);
       
       // Test direct state access
       const state = useAuthStore.getState();
@@ -245,7 +245,7 @@ describe('AuthStore', () => {
   describe('selector hooks', () => {
     it('should provide scene name via direct state access', () => {
       const { actions } = useAuthStore.getState();
-      actions.login(mockUser, mockToken, mockExpiresAt);
+      actions.login(mockUser);
       
       // Test selector function directly with state
       const state = useAuthStore.getState();

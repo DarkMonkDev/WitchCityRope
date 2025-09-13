@@ -273,7 +273,7 @@ describe('useLogout', () => {
       createdAt: '2025-08-19T00:00:00Z',
       updatedAt: '2025-08-19T10:00:00Z',
       // lastLoginAt: '2025-08-19T10:00:00Z' // TODO: Fix UserDto type resolution
-    }, mockToken, mockExpiresAt)
+    })
     mockNavigate.mockClear()
     mockFetch.mockClear()
     // Mock fetch for auth store logout calls to resolve immediately
