@@ -8,23 +8,49 @@ Lessons learned files contain ONLY prevention patterns and mistakes to avoid. Th
 ✅ **Prevention patterns** (what to avoid and why)
 ✅ **Common mistakes** and their solutions  
 ✅ **Brief "Problem/Solution" pairs** (max 2 sentences each)
-✅ **Code snippets** showing wrong vs right (max 3 lines)
+✅ **Code snippets** showing wrong vs right (NO LINE LIMIT for valuable examples)
 ✅ **Error patterns** and how to prevent them
 
-## ABSOLUTELY FORBIDDEN:
+## VALUABLE PATTERNS TO KEEP (NOT REMOVE):
+
+🔧 **"Pattern for Future Development"** sections WITH FULL CODE
+🔧 **Complete working code examples** that show correct implementation
+🔧 **Architecture decision patterns** with rationales
+🔧 **Migration strategies** that prevent issues
+🔧 **Configuration requirements** and examples
+🔧 **Testing patterns** that avoid common failures
+🔧 **Performance optimization** patterns
+🔧 **Security patterns** and requirements
+🔧 **Integration patterns** between systems
+🔧 **Common pitfall warnings** with solutions
+🔧 **Root cause analyses** that prevent recurrence
+🔧 **Critical warnings** about system behavior
+🔧 **API usage patterns** that prevent errors
+🔧 **Deployment patterns** that avoid failures
+🔧 **Debugging strategies** for common issues
+
+These patterns are LESSONS LEARNED - they teach future sessions how to avoid problems!
+
+## ABSOLUTELY FORBIDDEN IN LESSONS LEARNED:
 
 ❌ **Status reports** or progress updates
 ❌ **"Successfully completed" entries**
 ❌ **Project history** or timelines
-❌ **Implementation guides** or tutorials
-❌ **Code examples** longer than 3 lines
 ❌ **Celebration or achievement entries**
 ❌ **Task completion summaries**
 ❌ **"MAJOR SUCCESS" declarations**
-❌ **Integration strategy descriptions**
-❌ **Detailed workflow explanations**
 ❌ **Results summaries**
 ❌ **Context sections with project details**
+❌ **Business impact sections**
+
+## VALUABLE CONTENT THAT BELONGS ELSEWHERE:
+
+📚 **Implementation guides** → `/docs/guides-setup/` or `/docs/functional-areas/[area]/implementation/`
+📚 **Code examples** (>3 lines) → `/docs/functional-areas/[area]/code-examples/`
+📚 **Integration strategies** → `/docs/architecture/` or `/docs/functional-areas/[area]/architecture/`
+📚 **Detailed workflows** → `/docs/standards-processes/` or `/docs/functional-areas/[area]/workflows/`
+📚 **API documentation** → `/docs/functional-areas/[area]/api/`
+📚 **Testing strategies** → `/docs/functional-areas/testing/strategies/`
 
 ## CORRECT FORMAT EXAMPLES:
 
@@ -53,12 +79,26 @@ Lessons learned files contain ONLY prevention patterns and mistakes to avoid. Th
 **RESULTS**: Zero duplicate files, no information loss...
 ```
 
-## FORMAT VIOLATIONS = IMMEDIATE REJECTION
+## CRITICAL: CODE EXAMPLES ARE LESSONS LEARNED
 
-- Any lessons learned entry that includes status reports will be rejected
-- Files must be rewritten to contain only prevention patterns
-- Maximum 75 lines per file to prevent bloat
-- Must be scannable in under 30 seconds
+**NEVER REMOVE:**
+- ✅ CORRECT code examples (these show what works!)
+- ❌ WRONG code examples (these show what to avoid!)
+- Complete endpoint implementations
+- Full configuration examples
+- Multi-line code patterns that work
+- JWT/authentication examples
+- Error handling patterns
+- Service layer implementations
+
+**Code examples ARE the lesson** - they're not "implementation details" to remove!
+
+## FORMAT GUIDELINES
+
+- Any lessons learned entry that includes pure status reports should be removed
+- Keep ALL technical patterns and code examples
+- Focus on preserving knowledge over reducing file size
+- Organize by topic for easy scanning
 
 ## ENFORCEMENT PROCESS:
 
@@ -76,4 +116,13 @@ Lessons learned files contain ONLY prevention patterns and mistakes to avoid. Th
 - **Prevent file bloat** - keep focused on actionable knowledge
 - **Clear boundaries** - prevents confusion about file purpose
 
-Remember: If it's not a mistake or prevention pattern, it doesn't belong in lessons learned.
+## IMPORTANT: PRESERVE VALUABLE CONTENT
+
+When cleaning up lessons learned files:
+1. **DON'T DELETE** implementation guides - move them to appropriate locations
+2. **DON'T DELETE** useful code examples - move to code-examples folders
+3. **DON'T DELETE** architectural decisions - move to architecture docs
+4. **CREATE NEW FILES** for valuable content that doesn't fit lessons learned format
+5. **UPDATE FILE REGISTRY** when moving content to new locations
+
+Remember: If it's not a mistake or prevention pattern, it doesn't belong in lessons learned - but it may still be valuable documentation that belongs elsewhere!

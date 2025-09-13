@@ -26,32 +26,17 @@
 
 **Impact**: Fixed 4+ failing tests immediately. Don't repeat this mistake.
 
-## 🚨 CRITICAL: Test Cleanup Analysis Results - 2025-09-12 🚨
+## 🚨 CRITICAL: Test Feature Investigation Required
 
-**Lesson Learned**: Proper investigation before skipping tests is crucial. Initial assumptions about unimplemented features were incorrect.
+**Problem**: Skipping tests based on wrong assumptions about unimplemented features.
 
-**CORRECTED INVESTIGATION RESULTS**:
+**Solution**: Always investigate features before skipping tests.
 
-1. **ProfilePage Tests - KEEP** ✅
-   - **WRONG ASSUMPTION**: ProfilePage doesn't exist  
-   - **REALITY**: ProfilePage IS implemented at `/dashboard/profile`
-   - **ACTION**: Do NOT skip ProfilePage tests
-
-2. **JWT Authentication Tests - KEEP** ✅  
-   - **WRONG ASSUMPTION**: System doesn't use JWT
-   - **REALITY**: System DOES use JWT + cookies (mixed auth)
-   - **ACTION**: Do NOT skip JWT tests, fix configuration issues
-
-3. **Email/SendGrid Tests - SKIP** ❌
-   - **CORRECT ASSUMPTION**: Email service not implemented  
-   - **REALITY**: Infrastructure exists but not used in flows
-   - **ACTION**: ✅ COMPLETED - 15 email tests properly skipped
-
-**LESSONS LEARNED**:
-1. **Always investigate features before skipping tests** - Wrong assumptions waste time
-2. **File system != route/feature existence** - Just because you can't find files doesn't mean feature is unimplemented
-3. **Mixed auth systems are complex** - JWT + cookies can both be used simultaneously
-4. **Test skipping should be LAST RESORT** - Fix configuration issues first
+**Prevention**: 
+1. **Check actual routes/components** in codebase, don't assume based on test failures
+2. **File system != route/feature existence** - features may be implemented differently
+3. **Mixed auth systems are complex** - JWT + cookies can both exist
+4. **Test skipping should be LAST RESORT** - fix configuration issues first
 
 ## 🚨 CRITICAL: TDD E2E Test Creation Pattern - 2025-09-12 🚨
 
@@ -159,25 +144,14 @@ test.describe('Feature Name - TDD Tests', () => {
 });
 ```
 
-**Impact**: Created 4 comprehensive test suites (25+ tests) for Admin Events Edit Screen that will guide implementation of session management, volunteer positions, UI consistency, and data dependencies.
-- **Always verify implementation** before assuming features don't exist
-- **Check actual routes/components** in codebase, don't assume based on test failures
-- **JWT configuration errors ≠ unimplemented feature** - fix config, don't skip tests
-- **Email service infrastructure ≠ implemented email flows** - skip until flows built
+**Additional Prevention**:
+```typescript
+// ❌ WRONG - Assuming aria-checked for Mantine chips
+await expect(chip).toHaveAttribute('aria-checked', 'true');
 
-4. **Test component behavior patterns, not assumptions**:
-   ```typescript
-   // ❌ WRONG - Assuming aria-checked for Mantine chips
-   await expect(chip).toHaveAttribute('aria-checked', 'true');
-   
-   // ✅ CORRECT - Use Playwright's semantic methods
-   await expect(chip).toBeChecked();
-   ```
-
-**Impact**: 
-- Fixed wrong routes: 3/5 admin events tests now pass (were 0/5)
-- Skipped unimplemented features: Reduced test noise, focus on real bugs
-- Established patterns for future feature detection
+// ✅ CORRECT - Use Playwright's semantic methods
+await expect(chip).toBeChecked();
+```
 
 ## 🚨 CRITICAL: Always Run Health Checks First
 
@@ -740,13 +714,11 @@ Established comprehensive E2E testing approach that validates complete Events Ma
 
 ---
 
-## 🚨 CRITICAL: Simple Vertical Slice Testing Patterns (2025-08-22) 🚨
-**Date**: 2025-08-22
-**Category**: Architecture Testing
-**Severity**: CRITICAL
+## 🚨 CRITICAL: Simple Vertical Slice Testing Patterns
 
-### Context
-WitchCityRope has migrated to Simple Vertical Slice Architecture, requiring direct Entity Framework service testing patterns with real PostgreSQL databases using TestContainers. NO MediatR handler testing needed.
+**Problem**: Testing MediatR handlers that don't exist in Simple Vertical Slice Architecture.
+
+**Solution**: Test Entity Framework services directly with real PostgreSQL.
 
 ### What We Learned
 **MANDATORY TESTING GUIDE**: Read `/docs/guides-setup/ai-agents/test-developer-vertical-slice-guide.md` before ANY testing work
@@ -867,43 +839,21 @@ namespace WitchCityRope.Tests.Services.Health
 - No command/query testing (C/Q objects don't exist)
 - No repository testing (repositories don't exist)
 
-### Action Items
-- [x] STUDY Health service tests as template pattern
-- [x] IMPLEMENT TestContainers PostgreSQL infrastructure
-- [x] CREATE DatabaseTestBase for common test patterns
-- [x] ORGANIZE tests by feature (mirror code structure)
-- [x] TEST services directly with real database operations
-- [x] ELIMINATE all ApplicationDbContext mocking
-- [x] USE tuple return pattern validation in all service tests
-- [ ] APPLY patterns to all new feature testing
-- [ ] VALIDATE test performance (fast execution with real database)
-- [ ] MAINTAIN test isolation with proper cleanup
-
-### Testing Performance Benefits
-- **60% faster test execution**: Eliminate complex mock setup
-- **90% fewer flaky tests**: Real database eliminates mock inconsistencies
-- **100% production parity**: TestContainers match actual database behavior
-- **Simplified debugging**: Test against real constraints and operations
-
-### Impact
-Simple vertical slice testing patterns provide faster, more reliable tests that validate actual business logic against real database constraints, eliminating the complexity and maintenance overhead of extensive mocking frameworks.
+### Benefits
+- 60% faster test execution: Eliminate complex mock setup
+- 90% fewer flaky tests: Real database eliminates mock inconsistencies
+- 100% production parity: TestContainers match actual database behavior
 
 ### Tags
 #critical #vertical-slice-testing #testcontainers #real-database #no-handlers #service-testing #postgresql
 
 ---
 
-## 🚨 CRITICAL: Dashboard Test Suite Development (August 22, 2025) 🚨
+## 🚨 CRITICAL: MSW API Endpoint Mismatch
 
-**Context**: Created comprehensive test suites for React dashboard pages with API integration following established testing patterns.
+**Problem**: Tests failing because MSW handlers didn't match actual API endpoints.
 
-**Major Achievement**: Complete test coverage for all dashboard functionality with proper React testing infrastructure.
-
-**Files Created**:
-- ✅ 5 Unit test files for dashboard pages (DashboardPage, SecurityPage, EventsPage, ProfilePage, MembershipPage)
-- ✅ 1 E2E test file for complete dashboard navigation (Playwright)
-- ✅ 1 Integration test file for API hook testing
-- ✅ Updated MSW handlers to support correct API endpoints
+**Solution**: Always check actual hook/API client code when creating MSW handlers.
 
 **Key Success Patterns**:
 
@@ -955,70 +905,21 @@ const createWrapper = () => {
 - ✅ React Router v7 navigation testing with BrowserRouter
 - ✅ Playwright for E2E testing with real browser automation
 
-**Critical Learning - MSW API Endpoint Mismatch**:
-**Problem**: Tests failing because hooks call `/api/auth/user` but MSW handlers only covered `/api/Protected/profile`
-**Root Cause**: API endpoints evolved but test handlers weren't updated
-**Solution**: Added comprehensive endpoint coverage for both current and legacy endpoints
-**Prevention**: Always check actual hook/API client code when creating MSW handlers
+**Prevention**: Add handlers for both current and legacy endpoints:
+```typescript
+// Handle both current and legacy endpoints
+http.get('http://localhost:5651/api/auth/user', handler)
+http.get('http://localhost:5655/api/Protected/profile', handler)
+```
 
-**Integration Testing Patterns**:
-- **Hook Testing**: Proper testing of `useCurrentUser` and `useEvents` with real API simulation
-- **Error Recovery**: Network error handling and retry behavior validation
-- **Query Caching**: TanStack Query caching behavior and invalidation testing
-- **Concurrent Usage**: Multiple hook instances and data sharing scenarios
 
-**Security Testing Focus** (as specifically requested):
-1. **Password Validation**: 8+ characters, uppercase/lowercase, numbers, special characters
-2. **2FA Management**: Toggle state changes and visual feedback
-3. **Privacy Controls**: Independent toggles for profile/event/contact visibility
-4. **Data Export**: User data download request functionality
-5. **Form Security**: Proper input types (password) and validation messaging
+## 🚨 CRITICAL: TestContainers Database Testing Required
 
-**Benefits Achieved**:
-- ✅ Complete test coverage for all dashboard functionality
-- ✅ Validated React testing infrastructure with proper provider patterns
-- ✅ Established comprehensive form validation testing approaches
-- ✅ E2E workflow validation with complete user journey testing
-- ✅ API integration testing with proper error handling scenarios
-- ✅ Security-focused testing for authentication and privacy features
+**Problem**: ApplicationDbContext mocking issues and poor production parity.
 
-**Current Challenge**: Some tests failing due to component rendering issues, likely related to DashboardLayout not properly rendering children or missing form content in SecurityPage.
+**Solution**: Use TestContainers with real PostgreSQL for all database tests.
 
-**Next Steps**: Debug component rendering issues and ensure all dashboard pages render properly in test environment.
-
----
-
-## 🚨 CRITICAL: TestContainers Database Testing (NEW STANDARD) 🚨
-**Date**: 2025-08-22
-**Category**: Database Testing
-**Severity**: Critical
-
-### Context
-WitchCityRope now uses TestContainers for real PostgreSQL database testing, eliminating ApplicationDbContext mocking issues and providing authentic database testing environments.
-
-### What We Learned
-- **Real Database Testing**: TestContainers provides actual PostgreSQL instances for testing
-- **No More Mocking**: ApplicationDbContext mocking issues are eliminated completely
-- **Production Parity**: Test environments match production database behavior exactly
-- **Test Isolation**: Each test gets fresh database instance for consistency
-- **Automatic Seed Data**: SeedDataService provides comprehensive test data automatically
-- **Performance Excellence**: Tests run efficiently with actual database operations
-
-### Critical Implementation Patterns
-- **DatabaseTestFixture**: TestContainers setup for PostgreSQL instances
-- **DatabaseTestBase**: Base class with common setup/teardown patterns
-- **Real Database Operations**: Actual EF Core operations, not mocks
-- **Comprehensive Seed Data**: 7 test accounts + 12 sample events available
-- **Transaction Isolation**: Each test uses clean database state
-
-### Action Items
-- [x] NEVER use ApplicationDbContext mocking - use TestContainers only
-- [x] ALWAYS inherit from DatabaseTestBase for database tests
-- [x] ALWAYS use SeedDataService test data in integration tests
-- [x] ALWAYS test with real PostgreSQL instances for authenticity
-- [ ] UPDATE any existing mocked database tests to use TestContainers
-- [ ] CREATE integration tests using real database operations
-- [ ] VALIDATE database behavior matches production exactly
+**Prevention**: NEVER use ApplicationDbContext mocking - use TestContainers only.
 
 ### Test Infrastructure Code Examples
 ```csharp
@@ -1066,38 +967,20 @@ public async Task SeedDataService_Creates_All_Test_Accounts()
 }
 ```
 
-### Available Test Data
-- **Test Accounts**: admin@, teacher@, vetted@, member@, guest@, organizer@witchcityrope.com
-- **Sample Events**: 10 upcoming + 2 historical events with realistic data
-- **Realistic Scenarios**: Proper capacity, pricing, roles, and access levels
-- **Transaction Safety**: Full rollback capability for test isolation
+**Available Test Data**: 7 test accounts + 12 sample events via SeedDataService
 
 ### Tags
 #critical #testcontainers #database-testing #real-postgresql #no-mocking #integration-testing
 
 ---
 
-## 🚨 CRITICAL: DTO Test Data Alignment (READ FIRST) 🚨
-**Date**: 2025-08-19
-**Category**: Test Data Integrity
-**Severity**: Critical
+## 🚨 CRITICAL: DTO Test Data Alignment Required
 
-### Context
-Test data must match actual API responses exactly to prevent false positives and ensure integration tests reflect production behavior.
+**Problem**: Test data doesn't match actual API responses, causing false positives.
 
-### What We Learned
-- **Use Real API Responses**: Test data must match actual API DTOs, not idealized mock data
-- **Validate DTO/Interface Alignment**: Integration tests should verify TypeScript interfaces match API responses
-- **Test Null Handling**: Verify frontend gracefully handles null/undefined values from API
-- **Contract Testing**: Implement consumer-driven contract tests to catch DTO changes
-- **Cross-Browser Data Validation**: Ensure data handling works across different browsers
+**Solution**: Use real API responses for mock data, not idealized structures.
 
-### Action Items
-- [ ] READ: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` before creating test data
-- [ ] USE: Actual API responses for mock data, not idealized structures
-- [ ] IMPLEMENT: Contract tests that validate DTO/interface alignment
-- [ ] TEST: Null/undefined handling in all scenarios
-- [ ] VERIFY: Test data matches production API responses exactly
+**Prevention**: Read `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` before creating test data.
 
 ### Critical Test Patterns
 ```typescript
@@ -1123,18 +1006,10 @@ const mockUser = {
 #critical #test-data #dto-alignment #contract-testing #integration-tests
 
 ### MSW NSwag Type Alignment
-**Date**: 2025-08-19
-**Category**: Testing
-**Severity**: Critical
 
-### Context
-MSW handlers were using incorrect UserDto structure and wrong API ports, causing tests to fail with network errors and type mismatches.
+**Problem**: MSW handlers using incorrect UserDto structure and wrong API ports.
 
-### What We Learned
-- MSW handlers must use exact NSwag generated type structures for UserDto
-- API port configuration matters: 5651 for auth, 5655 for legacy API
-- Auth store vs auth mutations have different responsibilities
-- Response structures must match LoginResponse schema exactly
+**Solution**: Use exact NSwag generated type structures and correct ports (5651 for auth, 5655 for legacy).
 
 ### Action Items
 ```typescript
@@ -1173,90 +1048,41 @@ http.post('http://localhost:5651/api/auth/login', async ({ request }) => {
 })
 ```
 
-### Architecture Clarification
-- **Auth Store**: State management only, no API calls
-- **Auth Mutations**: API calls via TanStack Query (useLogin, useLogout)
-- **MSW Testing**: Mock both store check calls AND mutation API calls
-
-### Impact
-Fixed MSW request interception and type alignment with NSwag generated schemas.
+**Architecture Note**: Auth Store = state only, Auth Mutations = API calls via TanStack Query
 
 ### Tags
 `msw` `nswag` `userdto` `api-ports` `auth-architecture`
 
 ---
 
-# Test Developer Lessons Learned
-<!-- Last Updated: 2025-08-19 -->
-<!-- Next Review: 2025-09-19 -->
-
-**Purpose**: Actionable testing lessons specific to test development role only.
-**Scope**: Process documentation belongs in `/docs/standards-processes/testing/` guides.
-**Format**: All lessons follow the template format for consistency.
 
 ## 🚨 CRITICAL: E2E Testing Uses Playwright Only
 
-### All E2E Tests Migrated to Playwright
+**NEVER CREATE PUPPETEER TESTS AGAIN** - All 180 Puppeteer tests migrated to Playwright (January 2025)
 
-**UPDATED: January 2025** - All 180 Puppeteer tests migrated to Playwright
-
-**NEVER CREATE PUPPETEER TESTS AGAIN**:
 - ❌ NO `const puppeteer = require('puppeteer')` anywhere
-- ❌ NO new Puppeteer test files in any directory
-- ❌ DO NOT debug or modify existing Puppeteer tests in `/tests/e2e/` or `/ToBeDeleted/`
-- ✅ ALL E2E tests are in `/tests/playwright/` directory
 - ✅ USE Playwright TypeScript tests only: `import { test, expect } from '@playwright/test'`
-- ✅ USE existing Page Object Models in `/tests/playwright/pages/`
-- ✅ RUN tests with: `npm run test:e2e:playwright`
-
-**Why This Matters**:
-- 180 Puppeteer tests successfully migrated in January 2025
-- Playwright tests are 40% faster and 86% less flaky
-- All documentation and patterns exist for Playwright
-- Puppeteer tests are deprecated and will be deleted
-
-**Test Locations**:
-- ✅ **ACTIVE**: `/tests/playwright/` (20 test files, 8 Page Objects, 6 helpers)
-- ❌ **DEPRECATED**: `/tests/e2e/` (old Puppeteer tests - DO NOT USE)
-- ❌ **DEPRECATED**: `/ToBeDeleted/` (old Puppeteer tests - DO NOT USE)
+- ✅ ALL E2E tests in `/tests/playwright/` directory
 
 ## E2E Testing (Playwright)
 
 ### E2E Test Data Uniqueness
-**Date**: 2025-08-15
-**Category**: E2E
-**Severity**: Critical
 
-### Context
-Tests were failing due to duplicate user data between test runs.
+**Problem**: Tests failing due to duplicate user data between test runs.
 
-### What We Learned
-Always create unique test data using timestamps or GUIDs.
+**Solution**: Always create unique test data using timestamps or GUIDs.
 
-### Action Items
 ```javascript
 const uniqueEmail = `test-${Date.now()}@example.com`;
 const uniqueUsername = `user-${Date.now()}`;
 ```
 
-### Impact
-Eliminated data conflicts in parallel test execution.
-
-### Tags
-`e2e` `test-data` `uniqueness` `playwright`
-
 ### Playwright Selector Strategy
-**Date**: 2025-08-10
-**Category**: E2E
-**Severity**: High
 
-### Context
-CSS selectors were breaking when UI changed during development.
+**Problem**: CSS selectors breaking when UI changes during development.
 
-### What We Learned
-Use data-testid attributes for stable element selection.
+**Solution**: Use data-testid attributes for stable element selection.
 
-### Action Items
 ```javascript
 // ❌ WRONG
 await page.click('.btn-primary');
@@ -1265,24 +1091,12 @@ await page.click('.btn-primary');
 await page.click('[data-testid="submit-button"]');
 ```
 
-### Impact
-Reduced E2E test maintenance by 60%.
-
-### Tags
-`playwright` `selectors` `data-testid` `maintenance`
-
 ### Playwright Wait Strategies
-**Date**: 2025-08-05
-**Category**: E2E
-**Severity**: High
 
-### Context
-Tests were failing due to timing issues with dynamic content.
+**Problem**: Tests failing due to timing issues with dynamic content.
 
-### What We Learned
-Use proper wait conditions instead of fixed timeouts.
+**Solution**: Use proper wait conditions instead of fixed timeouts.
 
-### Action Items
 ```javascript
 // ❌ WRONG - Fixed wait
 await page.waitForTimeout(2000);
@@ -1292,51 +1106,30 @@ await page.waitForSelector('[data-testid="events-list"]');
 await expect(page.locator('[data-testid="event-card"]')).toHaveCount(5);
 ```
 
-### Impact
-Eliminated timing-related flaky tests.
-
-### Tags
-`playwright` `timing` `wait-strategies` `reliability`
-
 ## Integration Testing
 
 ### 🚨 CRITICAL: Real PostgreSQL Required
 
-**Critical**: Integration tests now use real PostgreSQL with comprehensive health checks. The in-memory database was hiding bugs.
+**Problem**: In-memory database hiding bugs.
 
-### Health Check Process
-**Date**: 2025-07-15
-**Category**: Integration
-**Severity**: Critical
+**Solution**: Use real PostgreSQL with TestContainers for integration tests.
 
-### Context
-Integration tests were failing inconsistently due to database container startup timing.
+### Health Check Process Required
 
-### What We Learned
-Must always run health checks before integration tests to ensure containers are ready.
+**Problem**: Integration tests failing inconsistently due to database container startup timing.
 
-### Action Items
-- Run health checks first: `dotnet test --filter "Category=HealthCheck"`
-- See `/docs/standards-processes/testing/integration-test-patterns.md` for complete process
+**Solution**: Always run health checks before integration tests.
 
-### Impact
-Reduced integration test failures by 90%.
-
-### Tags
-`postgresql` `testcontainers` `integration-testing`
+```bash
+dotnet test --filter "Category=HealthCheck"
+```
 
 ### PostgreSQL TestContainers Pattern
-**Date**: 2025-07-20
-**Category**: Integration
-**Severity**: High
 
-### Context
-"Relation already exists" errors were occurring in integration tests.
+**Problem**: "Relation already exists" errors in integration tests.
 
-### What We Learned
-Use shared fixture pattern to prevent database conflicts.
+**Solution**: Use shared fixture pattern to prevent database conflicts.
 
-### Action Items
 ```csharp
 [Collection("PostgreSQL Integration Tests")]
 public class MyTests : IClassFixture<PostgreSqlFixture>
@@ -1345,24 +1138,12 @@ public class MyTests : IClassFixture<PostgreSqlFixture>
 }
 ```
 
-### Impact
-Eliminated database creation conflicts in integration tests.
-
-### Tags
-`postgresql` `testcontainers` `fixtures` `integration`
-
 ### PostgreSQL DateTime UTC Requirement
-**Date**: 2025-07-25
-**Category**: Integration
-**Severity**: Critical
 
-### Context
-PostgreSQL integration tests failing with "Cannot write DateTime with Kind=Unspecified" errors.
+**Problem**: "Cannot write DateTime with Kind=Unspecified" errors.
 
-### What We Learned
-PostgreSQL requires UTC timestamps. Always use DateTimeKind.Utc.
+**Solution**: PostgreSQL requires UTC timestamps. Always use DateTimeKind.Utc.
 
-### Action Items
 ```csharp
 // ❌ WRONG
 var event = new Event { StartTime = DateTime.Now };
@@ -1373,24 +1154,12 @@ var event = new Event { StartTime = DateTime.UtcNow };
 new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc)
 ```
 
-### Impact
-Eliminated all DateTime-related database errors.
-
-### Tags
-`postgresql` `datetime` `utc` `integration-testing`
-
 ### Integration Test Data Isolation
-**Date**: 2025-07-30
-**Category**: Integration
-**Severity**: Critical
 
-### Context
-Tests were affecting each other's data causing duplicate key violations.
+**Problem**: Tests affecting each other's data causing duplicate key violations.
 
-### What We Learned
-Use unique identifiers for ALL test data to ensure isolation.
+**Solution**: Use unique identifiers for ALL test data to ensure isolation.
 
-### Action Items
 ```csharp
 // ❌ WRONG - Will cause conflicts
 var sceneName = "TestUser";
@@ -1401,24 +1170,12 @@ var sceneName = $"TestUser_{Guid.NewGuid():N}";
 var email = $"test-{Guid.NewGuid():N}@example.com";
 ```
 
-### Impact
-Eliminated test conflicts and enabled parallel test execution.
-
-### Tags
-`test-isolation` `unique-data` `parallel-testing` `guid`
-
 ### Entity ID Initialization Requirement
-**Date**: 2025-08-01
-**Category**: Integration
-**Severity**: Critical
 
-### Context
-Default Guid.Empty values were causing duplicate key violations in tests.
+**Problem**: Default Guid.Empty values causing duplicate key violations.
 
-### What We Learned
-Always initialize IDs in entity constructors.
+**Solution**: Always initialize IDs in entity constructors.
 
-### Action Items
 ```csharp
 public Rsvp(Guid userId, Event @event)
 {
@@ -1428,54 +1185,28 @@ public Rsvp(Guid userId, Event @event)
 }
 ```
 
-### Impact
-Eliminated entity ID conflicts in integration tests.
-
-### Tags
-`entity-framework` `guid` `constructor` `primary-key`
-
 ## React Testing Patterns - MANDATORY
 
 ### React Testing Framework Stack
-**Date**: 2025-08-19
-**Category**: Testing
-**Severity**: Critical
 
-### Context
-Need consistent testing framework across React codebase.
+**Problem**: Inconsistent testing framework across React codebase.
 
-### What We Learned
-Use Vitest (not Jest) for React testing consistency.
+**Solution**: Use Vitest (not Jest) for React testing consistency.
 
-### Action Items
-- ✅ **Vitest**: Primary testing framework for React components and hooks
-- ✅ **React Testing Library**: Component testing with user-centric approach
-- ✅ **MSW (Mock Service Worker)**: API mocking for integration tests
+**Required Stack**:
+- ✅ **Vitest**: Primary testing framework
+- ✅ **React Testing Library**: Component testing
+- ✅ **MSW**: API mocking for integration tests
 - ✅ **Playwright**: E2E testing (NOT Puppeteer)
-- ❌ **Jest**: Avoid - project uses Vitest for consistency
-
-### Impact
-Consistent testing experience across React components.
-
-### Tags
-`vitest` `react-testing-library` `msw` `testing-stack`
+- ❌ **Jest**: Avoid - project uses Vitest
 
 ### TanStack Query Hook Testing
-**Date**: 2025-08-19
-**Category**: Testing
-**Severity**: Medium
 
-### Context
-Need pattern for testing TanStack Query hooks with proper provider setup.
+**Problem**: Need pattern for testing TanStack Query hooks with proper provider setup.
 
-### What We Learned
-Use renderHook with QueryClientProvider wrapper for isolated hook testing.
+**Solution**: Use renderHook with QueryClientProvider wrapper.
 
-### Action Items
 ```typescript
-import { renderHook, waitFor } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } }
@@ -1486,27 +1217,13 @@ const createWrapper = () => {
 }
 ```
 
-### Impact
-Enables isolated testing of TanStack Query hooks.
-
-### Tags
-`tanstack-query` `renderhook` `testing-pattern`
-
 ### Zustand Store Testing
-**Date**: 2025-08-19
-**Category**: Testing
-**Severity**: Medium
 
-### Context
-Need pattern for testing Zustand stores directly without React components.
+**Problem**: Complex setup for testing Zustand stores.
 
-### What We Learned
-Test Zustand stores directly without complex setup.
+**Solution**: Test Zustand stores directly without complex setup.
 
-### Action Items
 ```typescript
-import { authStore } from '../authStore'
-
 describe('authStore', () => {
   beforeEach(() => {
     authStore.getState().logout() // Reset state
@@ -1522,27 +1239,13 @@ describe('authStore', () => {
 })
 ```
 
-### Impact
-Simplified store testing without React component overhead.
-
-### Tags
-`zustand` `store-testing` `direct-testing`
-
 ### React Router v7 Testing
-**Date**: 2025-08-19
-**Category**: Testing
-**Severity**: Medium
 
-### Context
-Need pattern for testing React Router v7 navigation in tests.
+**Problem**: Testing React Router v7 navigation in tests.
 
-### What We Learned
-Use createMemoryRouter for testing navigation flows.
+**Solution**: Use createMemoryRouter for testing navigation flows.
 
-### Action Items
 ```typescript
-import { createMemoryRouter, RouterProvider } from 'react-router-dom'
-
 const renderWithRouter = (routes, initialEntries = ['/']) => {
   const router = createMemoryRouter(routes, { initialEntries })
   return {
@@ -1552,29 +1255,13 @@ const renderWithRouter = (routes, initialEntries = ['/']) => {
 }
 ```
 
-### Impact
-Enables testing of navigation flows in React Router v7.
-
-### Tags
-`react-router` `navigation-testing` `memory-router`
-
 ### Mantine Component Testing
-**Date**: 2025-08-19
-**Category**: Testing
-**Severity**: Medium
 
-### Context
-Need pattern for testing Mantine UI components with proper provider setup.
+**Problem**: Testing Mantine UI components requires proper provider setup.
 
-### What We Learned
-Use userEvent for realistic interactions and MantineProvider for component testing.
+**Solution**: Use userEvent and MantineProvider for component testing.
 
-### Action Items
 ```typescript
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { MantineProvider } from '@mantine/core'
-
 const renderWithMantine = (component) => {
   return render(
     <MantineProvider>{component}</MantineProvider>
@@ -1582,30 +1269,18 @@ const renderWithMantine = (component) => {
 }
 ```
 
-### Impact
-Enables proper testing of Mantine UI components with user interactions.
-
-### Tags
-`mantine` `user-events` `ui-testing`
-
 ### MSW Axios BaseURL Compatibility
-**Date**: 2025-08-19
-**Category**: Testing
-**Severity**: Critical
 
-### Context
-MSW handlers with relative paths weren't matching axios requests using baseURL.
+**Problem**: MSW handlers with relative paths not matching axios requests using baseURL.
 
-### What We Learned
-MSW handlers must use full URLs when API client uses baseURL. Also need handlers for all potential ports and response interceptor endpoints.
+**Solution**: Use full URLs when API client uses baseURL.
 
-### Action Items
 ```typescript
 // ❌ WRONG - Relative paths don't work with axios baseURL
 http.post('/api/auth/login', handler)
 
-// ✅ CORRECT - Use full URLs matching axios baseURL + path
-http.post('http://localhost:5651/api/auth/login', handler) // Main API port
+// ✅ CORRECT - Use full URLs
+http.post('http://localhost:5651/api/auth/login', handler)
 
 // ✅ ALWAYS INCLUDE - Auth refresh interceptor handler
 http.post('http://localhost:5651/auth/refresh', () => {
@@ -1613,98 +1288,54 @@ http.post('http://localhost:5651/auth/refresh', () => {
 })
 ```
 
-### Impact
-Fixed API mocking for React integration tests.
-
-### Tags
-`msw` `axios` `baseurl` `api-mocking`
-
 ### MSW Response Structure Alignment
-**Date**: 2025-08-19
-**Category**: Testing  
-**Severity**: Critical
 
-### Context
-Tests were failing because MSW handlers returned different response structures than expected by mutations.
+**Problem**: MSW handlers returning different response structures than expected by mutations.
 
-### What We Learned
-MSW response structure must exactly match the actual API response structure.
+**Solution**: MSW response structure must exactly match actual API response structure.
 
-### Action Items
 ```typescript
 // ✅ CORRECT - Match exact API response structure
 http.post('http://localhost:5651/api/auth/login', async ({ request }) => {
-  const body = await request.json()
-  if (body.email === 'admin@witchcityrope.com') {
-    return HttpResponse.json({
-      success: true,
-      data: {  // User object directly, not nested
-        id: '1',
-        email: body.email,
-        sceneName: 'TestAdmin',
-        createdAt: '2025-08-19T00:00:00Z',
-        lastLoginAt: '2025-08-19T10:00:00Z'
-      },
-      message: 'Login successful'
-    })
-  }
-  return new HttpResponse(null, { status: 401 })
+  return HttpResponse.json({
+    success: true,
+    data: {  // User object directly, not nested
+      id: '1',
+      email: body.email,
+      sceneName: 'TestAdmin',
+      createdAt: '2025-08-19T00:00:00Z',
+      lastLoginAt: '2025-08-19T10:00:00Z'
+    },
+    message: 'Login successful'
+  })
 })
 ```
 
-### Impact
-Aligned test responses with actual API structure, enabling proper integration testing.
-
-### Tags
-`msw` `api-structure` `response-format`
-
 ### MSW Global Handler vs Component Test Mocking
-**Date**: 2025-08-19
-**Category**: Testing
-**Severity**: Critical
 
-### Context
-React component tests using mockFetch directly were failing because MSW was intercepting all requests globally, overriding component-level mocks.
+**Problem**: Component tests using mockFetch failing because MSW intercepts globally.
 
-### What We Learned
-When MSW is setup globally, component tests must use MSW handlers instead of mock fetch for consistent behavior.
+**Solution**: When MSW is global, use MSW handlers instead of mock fetch.
 
-### Action Items
 ```typescript
 // ❌ WRONG - Mock fetch directly when MSW is running globally
 const mockFetch = vi.fn()
 global.fetch = mockFetch
-mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [] })
 
 // ✅ CORRECT - Use MSW server.use() to override handlers per test
-import { server } from '../../test/setup'
-import { http, HttpResponse } from 'msw'
-
 server.use(
   http.get('http://localhost:5655/api/events', () => {
-    return HttpResponse.json([]) // Empty array for empty state test
+    return HttpResponse.json([])
   })
 )
 ```
 
-### Impact
-Fixed EventsList tests from 2/8 passing to 8/8 passing by properly integrating with global MSW setup.
-
-### Tags
-`msw` `component-testing` `mock-fetch` `test-isolation`
-
 ### React Component Test Infinite Loop Prevention
-**Date**: 2025-08-19
-**Category**: Testing
-**Severity**: Critical
 
-### Context
-LoginPage was causing infinite loops in tests due to redundant navigation logic.
+**Problem**: LoginPage causing infinite loops due to redundant navigation logic.
 
-### What We Learned
-Avoid duplicate navigation logic between components and hooks in React tests.
+**Solution**: Avoid duplicate navigation logic between components and hooks.
 
-### Action Items
 ```typescript
 // ❌ WRONG - Double navigation causes infinite loops
 useEffect(() => {
@@ -1712,31 +1343,18 @@ useEffect(() => {
     window.location.href = returnTo  // In component
   }
 }, [isAuthenticated])
-
 // AND navigation in mutation onSuccess  // In hook
 
 // ✅ CORRECT - Single navigation source
 // Let mutation handle all navigation, remove component navigation
 ```
 
-### Impact
-Eliminated infinite re-rendering in React component tests.
-
-### Tags
-`react-testing` `infinite-loop` `navigation` `useeffect`
-
 ### TanStack Query Mutation Timing
-**Date**: 2025-08-19
-**Category**: Testing
-**Severity**: High
 
-### Context
-Checking `isPending` immediately after `mutate()` was returning false unexpectedly.
+**Problem**: Checking `isPending` immediately after `mutate()` returning false unexpectedly.
 
-### What We Learned
-Mutation state updates are asynchronous, even with `act()`.
+**Solution**: Mutation state updates are asynchronous, even with `act()`.
 
-### Action Items
 ```typescript
 // ❌ WRONG - Immediate check fails
 act(() => { result.current.mutate(data) })
@@ -1748,35 +1366,11 @@ await waitFor(() => {
 })
 ```
 
-### Impact
-Eliminated false negatives in TanStack Query hook tests.
-
-### Tags
-`tanstack-query` `async-testing` `timing` `waitfor`
-
 ### Testing Documentation Reference
-**Date**: 2025-08-19
-**Category**: Testing
-**Severity**: Medium
 
-### Context
-Need comprehensive testing patterns documented for consistency.
+**Problem**: Need comprehensive testing patterns documented for consistency.
 
-### What We Learned
-Centralize testing patterns in dedicated documentation.
-
-### Action Items
-Follow patterns in `/docs/functional-areas/authentication/testing/comprehensive-testing-plan.md`:
-- Testing pyramid strategy (Unit → Integration → E2E)
-- Mock data management with MSW
-- CI/CD integration patterns
-- Coverage requirements
-
-### Impact
-Consistent testing approach across the project.
-
-### Tags
-`documentation` `testing-patterns` `standards`
+**Solution**: Follow patterns in `/docs/functional-areas/authentication/testing/comprehensive-testing-plan.md`
 
 ## Legacy .NET Testing Reference
 
@@ -1806,24 +1400,12 @@ public async Task Email_Validation_Works(string email) { }
 
 
 ### Docker Environment Testing
-**Date**: 2025-08-15
-**Category**: Integration
-**Severity**: High
 
-### Context
-Tests were passing locally but failing in CI environments.
+**Problem**: Tests passing locally but failing in CI environments.
 
-### What We Learned
-Always test with Docker environment to match CI conditions.
+**Solution**: Always test with Docker environment to match CI conditions.
 
-### Action Items
-See `/docs/guides-setup/docker-operations-guide.md` for complete Docker testing procedures.
-
-### Impact
-Eliminated CI/local environment discrepancies.
-
-### Tags
-`docker` `ci-cd` `environment-parity`
+**Reference**: `/docs/guides-setup/docker-operations-guide.md`
 
 
 
@@ -1845,17 +1427,11 @@ Eliminated CI/local environment discrepancies.
 6. **Generic selectors** - Use data-testid attributes for reliable element selection
 
 ### React Integration Testing Pattern
-**Date**: 2025-08-19
-**Category**: Integration
-**Severity**: Critical
 
-### Context
-Need to test multiple React components working together (form → API → store → navigation).
+**Problem**: Testing multiple React components working together (form → API → store → navigation).
 
-### What We Learned
-Use renderHook for testing hook integration without complex component rendering.
+**Solution**: Use renderHook for testing hook integration without complex component rendering.
 
-### Action Items
 ```typescript
 // Test multiple hooks working together using renderHook
 const { result: loginResult } = renderHook(() => useLogin(), { wrapper: createWrapper() })
@@ -1873,37 +1449,26 @@ await waitFor(() => {
 })
 ```
 
-### Impact
-Validates complete React architecture without complex component rendering issues.
-
-### Tags
-`react-integration` `renderhook` `tanstack-query` `zustand` `router`
-
 
 
 
 
 ## Quick Reference
 
-**Testing Commands**: See `/docs/standards-processes/testing/TESTING_GUIDE.md` for complete command reference.
-
 **Essential Commands**:
 - `npm run test:e2e:playwright` - Run E2E tests
 - `dotnet test --filter "Category=HealthCheck"` - Health checks first
 - `npm test` - Run React unit tests
 
+**Reference**: `/docs/standards-processes/testing/TESTING_GUIDE.md`
+
 ## TestContainers Migration for Unit Tests
 
 ### Unit Tests Migration from Mocked DbContext to Real PostgreSQL
-**Date**: 2025-08-22
-**Category**: Unit Testing
-**Severity**: Critical
 
-### Context
-Unit tests were failing because ApplicationDbContext doesn't have a parameterless constructor required for mocking. The mock approach was problematic and didn't test real database behavior.
+**Problem**: ApplicationDbContext doesn't have parameterless constructor required for mocking.
 
-### What We Learned
-Use TestContainers with PostgreSQL + Respawn for database cleanup instead of mocking ApplicationDbContext.
+**Solution**: Use TestContainers with PostgreSQL + Respawn for database cleanup instead of mocking.
 
 ### Action Items
 ```csharp
@@ -1953,32 +1518,16 @@ public abstract class DatabaseTestBase : IAsyncLifetime
 }
 ```
 
-### Test Classification Strategy
-- **Unit Level**: Simple database queries and service logic (keep these)
-- **Integration Level**: Complex scenarios with multiple services (mark with Skip, move to integration tests)
-- **Database Failures**: Network issues, connection timeouts (integration level)
-
-### Performance Considerations
-- Container-per-collection strategy (shared container across test class)
-- Respawn cleanup is much faster than recreating containers
-- Real PostgreSQL provides production parity
-
-### Impact
-Eliminates mock constructor issues and enables testing against real database constraints (UTC dates, transactions, etc.).
+**Performance**: Container-per-collection strategy, Respawn cleanup faster than recreating containers
 
 ### Tags
 `testcontainers` `postgresql` `unit-testing` `dbcontext` `real-database`
 
-### Unit Test Mechanical Conversion Completed
-**Date**: 2025-08-22
-**Category**: Unit Testing  
-**Severity**: High
+### Unit Test Mechanical Conversion Pattern
 
-### Context
-Successfully completed mechanical conversion of all unit test files from mocked ApplicationDbContext to real PostgreSQL TestContainers infrastructure.
+**Problem**: Large test file migrations from mocked DbContext to TestContainers.
 
-### What We Learned
-Systematic field-by-field conversion approach works well for large test file migrations.
+**Solution**: Systematic field-by-field conversion approach works well.
 
 ### Action Items
 ```csharp
@@ -1996,45 +1545,20 @@ eventsAfterCount.Should().Be(12);
 [Fact(Skip = "Requires integration-level testing with real database failure scenarios")]
 ```
 
-### Key Conversions Made
-- **Field References**: `_mockUserManager` → `MockUserManager`, `_cancellationTokenSource` → `CancellationTokenSource`
-- **Database Operations**: Mock setup patterns → Real database queries and assertions
-- **Transaction Management**: Removed `_mockTransaction` - real database handles automatically
-- **Event Testing**: Mock AddRangeAsync verification → Real database count assertions
-- **Error Scenarios**: Marked complex database failure tests for integration level
-
-### Compilation Results
-- **Before**: 3 compilation errors (undefined field references)
-- **After**: 0 compilation errors, 6 warnings (async methods without await - expected for Skip tests)
-- **Status**: All test files compile successfully and ready for execution
-
-### Files Successfully Converted
-- ✅ `SeedDataServiceTests.cs` - Complete mechanical conversion
-- ✅ `DatabaseInitializationServiceTests.cs` - Already correct
-- ✅ `DatabaseInitializationHealthCheckTests.cs` - Already correct
-
-### Test Execution Readiness
-- All tests configured to use TestContainers PostgreSQL infrastructure
-- Real database operations replace mock verification patterns
-- UTC DateTime handling verified for PostgreSQL compatibility
-- Test isolation maintained through Respawn database cleanup
-
-### Impact
-Eliminates ApplicationDbContext mocking issues and provides foundation for testing against real PostgreSQL constraints.
+**Key Conversions**:
+- Field References: `_mockUserManager` → `MockUserManager`
+- Database Operations: Mock setup → Real database queries
+- Transaction Management: Remove `_mockTransaction` - real database handles automatically
+- Event Testing: Mock verification → Real database count assertions
 
 ### Tags
 `unit-testing` `mechanical-conversion` `testcontainers` `compilation-fix` `real-database`
 
 ### Moq Extension Method Mocking Fix
-**Date**: 2025-08-22
-**Category**: Unit Testing
-**Severity**: Critical
 
-### Context
-Moq cannot mock extension methods like `CreateScope()` and `GetRequiredService<T>()`, causing "Unsupported expression" errors.
+**Problem**: Moq cannot mock extension methods like `CreateScope()` and `GetRequiredService<T>()`.
 
-### What We Learned
-Must mock the underlying interface methods instead of extension methods in service provider hierarchy.
+**Solution**: Mock the underlying interface methods instead of extension methods.
 
 ### Action Items
 ```csharp
@@ -2070,29 +1594,14 @@ MockServiceScope.Setup(x => x.ServiceProvider)
     .Returns(MockScopeServiceProvider.Object);
 ```
 
-### Impact
-Eliminates all Moq extension method errors in DatabaseTestBase and enables proper service provider mocking for unit tests.
-
-### Tags
-`moq` `service-provider` `extension-methods` `unit-testing` `mocking`
-
-### Complete Resolution Confirmed
-**Date**: 2025-08-22
-**Status**: ✅ RESOLVED - All extension method issues fixed across all test files
-**Verification**: Tests now compile and run successfully, no more "Unsupported expression" errors
 
 ## .NET Background Service Testing Patterns
 
 ### Background Service Testing with Static State
-**Date**: 2025-08-22
-**Category**: .NET Testing
-**Severity**: High
 
-### Context
-Testing BackgroundService implementations like DatabaseInitializationService requires special handling of static state and async execution.
+**Problem**: Testing BackgroundService implementations with static state and async execution.
 
-### What We Learned
-Background services with static completion flags need careful test isolation and timing considerations.
+**Solution**: Background services need careful test isolation and timing considerations.
 
 ### Action Items
 ```csharp
@@ -2115,22 +1624,12 @@ var method = typeof(Service)
 var result = method!.Invoke(service, parameters);
 ```
 
-### Impact
-Enables reliable testing of background services with shared state.
-
-### Tags
-`background-service` `static-state` `reflection` `async-testing`
 
 ### PostgreSQL TestContainers Integration Pattern
-**Date**: 2025-08-22
-**Category**: Integration Testing
-**Severity**: Critical
 
-### Context
-Database initialization tests require real PostgreSQL to test migrations, constraints, and UTC date handling.
+**Problem**: Database initialization tests require real PostgreSQL for migrations and constraints.
 
-### What We Learned
-TestContainers with shared fixtures provides reliable PostgreSQL integration testing.
+**Solution**: TestContainers with shared fixtures provides reliable PostgreSQL integration testing.
 
 ### Action Items
 ```csharp
@@ -2151,22 +1650,12 @@ _container = new PostgreSqlBuilder()
 createdEvents.Should().OnlyContain(e => e.StartDate.Kind == DateTimeKind.Utc);
 ```
 
-### Impact
-Ensures database initialization works correctly with real PostgreSQL constraints and UTC requirements.
-
-### Tags
-`testcontainers` `postgresql` `utc-datetime` `integration-testing`
 
 ### ASP.NET Core Identity Testing Patterns
-**Date**: 2025-08-22
-**Category**: Integration Testing
-**Severity**: Medium
 
-### Context
-Testing services that create users via UserManager requires proper mocking and Identity result handling.
+**Problem**: Testing services that create users via UserManager requires proper mocking.
 
-### What We Learned
-UserManager mocking needs careful setup for creation success/failure scenarios and Identity error handling.
+**Solution**: UserManager mocking needs careful setup for success/failure scenarios and Identity error handling.
 
 ### Action Items
 ```csharp
@@ -2189,22 +1678,12 @@ _mockUserManager.Setup(x => x.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<
     }));
 ```
 
-### Impact
-Enables comprehensive testing of user creation scenarios with proper Identity error handling.
-
-### Tags
-`identity` `usermanager` `mocking` `unit-testing`
 
 ### Health Check Testing with Service Scopes
-**Date**: 2025-08-22
-**Category**: .NET Testing
-**Severity**: Medium
 
-### Context
-Health check implementations require service provider mocking and proper scope management testing.
+**Problem**: Health check implementations require service provider mocking and scope management.
 
-### What We Learned
-Health checks need service scope mocking and verification of proper resource disposal.
+**Solution**: Health checks need service scope mocking and verification of proper resource disposal.
 
 ### Action Items
 ```csharp
@@ -2222,12 +1701,6 @@ healthResult.Data.Should().ContainKey("timestamp");
 healthResult.Data.Should().ContainKey("status");
 healthResult.Data.Should().ContainKey("userCount");
 ```
-
-### Impact
-Ensures health checks properly manage resources and provide structured monitoring data.
-
-### Tags
-`health-checks` `service-scopes` `resource-management` `monitoring`
 
 ---
 

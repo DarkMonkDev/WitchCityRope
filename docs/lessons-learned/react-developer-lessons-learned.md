@@ -157,9 +157,6 @@ ls -la *.js *.ts *.sh debug-*.* build-*.* dev-*.* 2>/dev/null
 **Category**: API Integration
 **Severity**: CRITICAL
 
-### Context
-WitchCityRope backend has migrated to Simple Vertical Slice Architecture with minimal impact on frontend integration. API contracts are maintained for backward compatibility, but developers must understand the improvements.
-
 ### What We Learned
 **MANDATORY API GUIDE**: Read `/docs/guides-setup/ai-agents/react-developer-api-changes-guide.md` for complete integration patterns
 
@@ -272,14 +269,6 @@ export function useEvents() {
 - [ ] MAINTAIN backward compatibility awareness
 - [ ] TEST error scenarios with new Problem Details format
 
-### Performance Benefits for Frontend
-- **Faster API responses**: Backend overhead elimination improves response times
-- **Better caching opportunities**: Consistent response formats enable better caching
-- **Reduced bundle sizes**: More focused DTO models reduce generated type sizes
-- **Improved developer experience**: Better type safety and error messages
-
-### Impact
-API architecture improvements provide better developer experience, improved performance, and more consistent error handling while maintaining complete backward compatibility for existing frontend code.
 
 ### Tags
 #critical #api-integration #backend-changes #improved-patterns #error-handling #type-generation
@@ -290,9 +279,6 @@ API architecture improvements provide better developer experience, improved perf
 **Date**: 2025-08-22
 **Category**: Form Components
 **Severity**: CRITICAL
-
-### Context
-Security page was using plain Mantine TextInput components instead of the approved animated form components that provide beautiful tapered underline animations and floating labels.
 
 ### What We Learned
 - Animated form components exist at `/apps/web/src/components/forms/MantineFormInputs.tsx`
@@ -307,12 +293,6 @@ Security page was using plain Mantine TextInput components instead of the approv
 - [ ] NEVER use plain Mantine TextInput/PasswordInput in forms
 - [ ] CHECK existing animated components before creating new ones
 
-### Impact
-Using animated form components ensures:
-- Consistent beautiful animations across all forms
-- Better user experience with floating labels
-- Design System v7 color compliance
-- Professional appearance matching the design standards
 
 ### Required Implementation Pattern:
 ```typescript
@@ -355,9 +335,6 @@ import { MantineTextInput, MantinePasswordInput } from '@/components/forms/Manti
 **Category**: Styling Standards
 **Severity**: CRITICAL
 
-### Context
-Discovered multiple instances of inline styling on buttons and components when standardized CSS classes already exist in the project.
-
 ### What We Learned
 - The project has standardized button classes: `btn`, `btn-primary`, `btn-secondary`, `btn-primary-alt`
 - These classes are defined in `/apps/web/src/index.css` 
@@ -371,13 +348,6 @@ Discovered multiple instances of inline styling on buttons and components when s
 - [ ] CHECK for existing component styles before creating new ones
 - [ ] MAINTAIN consistency by using the design system CSS classes
 
-### Impact
-Using standardized CSS classes ensures:
-- Consistent UI across the entire application
-- No text cutoff or rendering issues
-- Easier maintenance and updates
-- Proper hover states and transitions
-- Accessibility compliance
 
 ### Standard Button Classes Available:
 ```html
@@ -537,9 +507,6 @@ Using standardized CSS classes ensures:
 **Category**: API Integration
 **Severity**: CRITICAL
 
-### Context
-Successfully implemented Phase 3 frontend integration for Event Session Matrix, connecting existing demo UI to 8 new backend API endpoints. Discovered critical patterns for React Query + TypeScript integration.
-
 ### What We Learned
 **MANDATORY API INTEGRATION PATTERN**: Read `/docs/functional-areas/events/new-work/2025-08-24-events-management/handoffs/phase3-frontend-to-testing.md` for complete implementation patterns
 
@@ -623,8 +590,6 @@ export function useCreateEventSession(eventId: string) {
 - [ ] **EXTEND with modals** - implement CRUD modals using established hooks
 - [ ] **ADD real-time updates** - WebSocket integration for live data
 
-### Impact
-This pattern enables rapid development of complex API integrations while maintaining type safety and excellent user experience. The Event Session Matrix demo went from mock data to full backend integration in a single implementation session.
 
 ### Tags
 #critical #api-integration #react-query #typescript #event-session-matrix #backend-integration
@@ -637,9 +602,6 @@ This pattern enables rapid development of complex API integrations while maintai
 **Date**: 2025-01-09
 **Category**: API Integration
 **Severity**: CRITICAL
-
-### Context
-Fixed critical authentication and events system issues where API response handling was expecting wrapped responses but the actual API returns flat data structures.
 
 ### What We Learned
 - **API Returns Flat Structures**: The WitchCityRope API returns data directly, not wrapped in `.data` properties
@@ -699,13 +661,6 @@ const eventsArray: EventDto[] = events || []; // Real API data only
 const eventsArray = events || mockEvents; // Hides API issues
 ```
 
-### Impact
-This fix enables:
-- ✅ **Working Authentication**: Login/register/logout flow operational
-- ✅ **Real Events Data**: Events list and detail pages using live API
-- ✅ **Proper Error Handling**: No more hidden failures due to mock fallbacks
-- ✅ **Type Safety**: Response handlers match actual API contracts
-- ✅ **Performance**: Direct data access without unnecessary wrapping
 
 ### Tags
 #critical #api-integration #authentication #events-system #response-handling #mock-data-removal
@@ -716,9 +671,6 @@ This fix enables:
 **Date**: 2025-01-10
 **Category**: API Integration
 **Severity**: CRITICAL
-
-### Context  
-Fixed events page showing no events despite API returning data correctly. The issue was a mismatch between expected response structure in React Query hook and actual API response.
 
 ### What We Learned
 - **API Returns Direct Arrays**: `/api/events` returns `Event[]` directly, not `{events: Event[]}`
@@ -753,8 +705,6 @@ return data.events?.map(transformApiEvent) || [] // data.events doesn't exist
 - [x] **UPDATE lessons learned** immediately when discovering API mismatches
 - [ ] **APPLY this pattern** to all other API endpoint hooks
 
-### Impact
-Events page now displays all 6 events from the API correctly, fixing a complete feature breakdown.
 
 ### Tags
 #critical #api-integration #react-query #events-system #response-structure
@@ -773,9 +723,6 @@ Events page now displays all 6 events from the API correctly, fixing a complete 
 **Date**: 2025-08-19
 **Category**: React Hooks Critical Bug
 **Severity**: Critical
-
-### Context
-Fixed "Maximum update depth exceeded" error that occurred when visiting any test page. The error was caused by an infinite loop in the App.tsx useEffect dependency array.
 
 ### What We Learned
 - **useEffect Dependency Arrays with Zustand**: Functions returned from Zustand stores get recreated on every state update
@@ -799,9 +746,6 @@ Fixed "Maximum update depth exceeded" error that occurred when visiting any test
 **Date**: 2025-08-19
 **Category**: Zustand Critical Bug
 **Severity**: Critical - Root Cause
-
-### Context
-Fixed the ACTUAL root cause of "Maximum update depth exceeded" error. The infinite loop was caused by Zustand selectors that return new objects on every render, causing all components using those selectors to re-render infinitely.
 
 ### What We Learned
 - **Object Selector Anti-Pattern**: Zustand selectors that return new objects (`{ user: state.user, isAuthenticated: state.isAuthenticated }`) create new references on every render
@@ -840,9 +784,6 @@ const { user, isAuthenticated } = useAuthStore(state => ({
 **Date**: 2025-08-23
 **Category**: Form Components
 **Severity**: Critical
-
-### Context
-Critical patterns learned from complex form implementation work requiring precise component usage, CSS targeting, and user experience optimization.
 
 ### Framework-First Component Usage
 - **ALWAYS use framework components** (MantineTextInput, MantinePasswordInput) - NEVER create custom HTML
@@ -894,9 +835,6 @@ For detailed form implementation patterns, see: `/docs/lessons-learned/form-impl
 **Date**: 2025-08-25
 **Category**: Security & Configuration
 **Severity**: CRITICAL
-
-### Context
-Implemented secure TinyMCE API key configuration following security best practices to enable premium features while maintaining security standards.
 
 ### What We Learned
 - **NEVER hardcode API keys** in source code - security vulnerability
@@ -957,12 +895,6 @@ VITE_TINYMCE_API_KEY=your_api_key_here
 const apiKey = import.meta.env.VITE_TINYMCE_API_KEY;
 ```
 
-### Impact
-Secure API key configuration enables TinyMCE premium features while:
-- Protecting sensitive configuration from source control
-- Providing clear setup instructions for new developers  
-- Gracefully handling missing configuration
-- Following industry security best practices
 
 ### Reference
 Complete setup guide: `/docs/guides-setup/tinymce-api-key-setup.md`
@@ -976,9 +908,6 @@ Complete setup guide: `/docs/guides-setup/tinymce-api-key-setup.md`
 
 **Date**: 2025-09-10  
 **File**: `/apps/web/src/components/dashboard/EventsWidget.tsx`
-
-### Context
-EventsWidget component was throwing `RangeError: Invalid time value` when trying to format dates from API responses. The error occurred when calling `Date.toISOString()` on invalid Date objects created from null/undefined/empty string date values.
 
 ### What We Learned
 **NEVER assume API date fields are valid strings:**
@@ -1022,8 +951,6 @@ const formatEventForWidget = (event: EventDto) => {
 };
 ```
 
-### Impact
-This pattern prevents runtime crashes when API returns incomplete date data and provides graceful degradation with meaningful fallback values. Essential for any component displaying API date/time data.
 
 ### Tags
 #critical #dates #api-data #error-handling #typescript #validation #runtime-safety
@@ -1035,9 +962,6 @@ This pattern prevents runtime crashes when API returns incomplete date data and 
 **Date**: 2025-09-11  
 **Category**: Mantine UI Components  
 **Severity**: CRITICAL - RECURRING ISSUE
-
-### Context
-Recurring problem with button text being cut off on the top and bottom in Mantine components throughout the WitchCityRope app. This just happened again with the Copy button in the admin events table, and has occurred multiple times previously.
 
 ### What We Learned
 **ROOT CAUSE**: Fixed heights on Mantine buttons that don't properly account for:
@@ -1095,8 +1019,6 @@ When button text appears cut off:
 4. **Test with longer text** to ensure robustness
 5. **Use browser dev tools** to inspect text rendering bounds
 
-### Impact
-This is a RECURRING ISSUE that has affected multiple components. Prevention pattern must be applied to ALL button implementations to ensure professional appearance and proper text rendering.
 
 ### Tags
 #critical #mantine #buttons #text-cutoff #recurring-issue #ui-components #styling
