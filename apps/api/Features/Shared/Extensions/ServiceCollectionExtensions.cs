@@ -3,6 +3,7 @@ using WitchCityRope.Api.Features.Health.Services;
 using WitchCityRope.Api.Features.Authentication.Services;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Features.Users.Services;
+using WitchCityRope.Api.Features.Dashboard.Services;
 using WitchCityRope.Api.Features.Safety.Services;
 using WitchCityRope.Api.Features.Safety.Validation;
 using WitchCityRope.Api.Features.CheckIn.Extensions;
@@ -37,6 +38,9 @@ public static class ServiceCollectionExtensions
 
         // Users feature services
         services.AddScoped<UserManagementService>();
+
+        // Dashboard feature services
+        services.AddScoped<IUserDashboardService, UserDashboardService>();
 
         // Safety feature services  
         services.AddScoped<ISafetyService, SafetyService>();
