@@ -128,7 +128,7 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddMemoryCache();
 
 // New vertical slice feature services
-builder.Services.AddFeatureServices();
+builder.Services.AddFeatureServices(builder.Configuration);
 
 // Health checks for database monitoring
 builder.Services.AddHealthChecks()
@@ -146,6 +146,24 @@ builder.Services.AddCors(options =>
             .AllowCredentials()
             .SetIsOriginAllowed(origin => true)); // Allow any origin in development
 });
+
+// Validate environment configuration
+var environment = builder.Environment.EnvironmentName;
+var useMocks = builder.Configuration.GetValue<bool>("USE_MOCK_PAYMENT_SERVICE");
+
+if (environment == "Production" && useMocks)
+{
+    throw new InvalidOperationException("Cannot use mock services in production!");
+}
+
+if (environment == "Test" && !useMocks)
+{
+    // CI/CD should always use mocks
+    Console.WriteLine("⚠️ Warning: Test environment should use mock services for CI/CD");
+}
+
+var logger = LoggerFactory.Create(config => config.AddConsole()).CreateLogger<Program>();
+logger.LogInformation($"Environment: {environment}, Using Mock PayPal: {useMocks}");
 
 var app = builder.Build();
 

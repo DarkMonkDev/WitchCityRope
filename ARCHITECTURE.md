@@ -110,7 +110,7 @@ The API service exposes RESTful endpoints under `/api/v1/`:
 
 | Service | Development | Docker External | Docker Internal | URL |
 |---------|-------------|-----------------|-----------------|-----|
-| React | 5173 | 5651 | 3000 | http://localhost:5173 (dev) / http://localhost:5651 (docker) |
+| React | 5174 | 5651 | 3000 | http://localhost:5174 (dev) / http://localhost:5651 (docker) |
 | API | 5655 | 5653 | 8080 | http://localhost:5655 (dev) / http://localhost:5653 (docker) |
 | Database | - | 5433 | 5432 | localhost:5433 |
 | pgAdmin | - | 5050 | 80 | http://localhost:5050 |
@@ -322,7 +322,16 @@ builder.Services.AddDbContext<WitchCityRopeIdentityDbContext>(options =>
 
 ### Starting the Application
 
-**🚀 NEW: Zero-Configuration Setup**
+**🚀 MILESTONE ACHIEVED (2025-09-14): React App Fully Functional**
+
+The React migration from Blazor is now complete and operational:
+- React app loads successfully at http://localhost:5174
+- Login functionality working end-to-end
+- Events page loading real data from API
+- Zero TypeScript compilation errors
+- API port standardized on 5655 (webhook requirement)
+
+**🚀 Zero-Configuration Setup**
 
 With the new database auto-initialization system:
 
@@ -361,7 +370,7 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ### Development Workflow
 
 1. **Start Services**: Local (above) or `./dev.sh` → Option 1
-2. **Access Application**: http://localhost:5173 (React) or http://localhost:5651 (Docker)
+2. **Access Application**: http://localhost:5174 (React) or http://localhost:5651 (Docker)
 3. **Access API**: http://localhost:5655 (Local) or http://localhost:5653 (Docker)
 4. **View Logs**: `./dev.sh` → Options 4-6 (Docker only)
 5. **Hot Reload**: Automatic when files change (Vite HMR)

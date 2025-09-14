@@ -147,3 +147,8 @@
 /home/chad/repos/witchcityrope-react/apps/api/obj/Release/net9.0/WitchCityRope.Api.pdb
 /home/chad/repos/witchcityrope-react/apps/api/obj/Release/net9.0/WitchCityRope.Api.genruntimeconfig.cache
 /home/chad/repos/witchcityrope-react/apps/api/obj/Release/net9.0/ref/WitchCityRope.Api.dll
+/home/chad/repos/witchcityrope-react/apps/api/bin/Release/net9.0/FluentValidation.dll
+/home/chad/repos/witchcityrope-react/apps/api/bin/Release/net9.0/FluentValidation.AspNetCore.dll
+/home/chad/repos/witchcityrope-react/apps/api/bin/Release/net9.0/FluentValidation.DependencyInjectionExtensions.dll
+/home/chad/repos/witchcityrope-react/apps/api/bin/Release/net9.0/PayPalCheckoutSdk.dll
+/home/chad/repos/witchcityrope-react/apps/api/bin/Release/net9.0/PayPalHttp-Dotnet.dll

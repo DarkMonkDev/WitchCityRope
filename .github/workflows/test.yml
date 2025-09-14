@@ -43,7 +43,17 @@ jobs:
     - name: Build solution
       run: dotnet build --no-restore --configuration Release
 
+    - name: Setup test environment
+      run: |
+        cp .env.test .env
+        echo "USE_MOCK_PAYMENT_SERVICE=true" >> $GITHUB_ENV
+        echo "ASPNETCORE_ENVIRONMENT=Test" >> $GITHUB_ENV
+
     - name: Run tests with coverage
+      env:
+        USE_MOCK_PAYMENT_SERVICE: true
+        ASPNETCORE_ENVIRONMENT: Test
+        SKIP_WEBHOOK_VERIFICATION: true
       run: |
         dotnet test --no-build --configuration Release \
           --logger "trx;LogFileName=test-results.trx" \
@@ -113,18 +123,18 @@ jobs:
     needs: test
     
     services:
-      sqlserver:
-        image: mcr.microsoft.com/mssql/server:2022-latest
+      postgres:
+        image: postgres:15
         env:
-          ACCEPT_EULA: Y
-          SA_PASSWORD: YourStrong@Passw0rd
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test
         options: >-
-          --health-cmd "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong@Passw0rd -Q 'SELECT 1'"
+          --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 1433:1433
+          - 5432:5432
 
     steps:
     - name: Checkout code
@@ -149,9 +159,18 @@ jobs:
     - name: Build solution
       run: dotnet build --no-restore --configuration Release
 
+    - name: Setup test environment
+      run: |
+        cp .env.test .env
+        echo "USE_MOCK_PAYMENT_SERVICE=true" >> $GITHUB_ENV
+        echo "ASPNETCORE_ENVIRONMENT=Test" >> $GITHUB_ENV
+
     - name: Run integration tests
       env:
-        ConnectionStrings__DefaultConnection: "Server=localhost,1433;Database=WitchCityRopeTest;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true"
+        DATABASE_CONNECTION_STRING: "Host=localhost;Port=5432;Database=test;Username=postgres;Password=postgres"
+        USE_MOCK_PAYMENT_SERVICE: true
+        ASPNETCORE_ENVIRONMENT: Test
+        SKIP_WEBHOOK_VERIFICATION: true
       run: |
         dotnet test tests/WitchCityRope.IntegrationTests/WitchCityRope.IntegrationTests.csproj \
           --no-build --configuration Release \

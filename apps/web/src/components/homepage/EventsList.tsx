@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Event } from '../../types/Event';
 import { EventCard } from './EventCard';
-import { api } from '../../api/client';
+import { apiClient } from '../../lib/api/client';
 import { queryKeys } from '../../api/queryKeys';
 
 interface EventsListProps {
@@ -27,7 +27,7 @@ const useEventsForHomepage = (enabled: boolean = true) => {
   return useQuery({
     queryKey: queryKeys.events(),
     queryFn: async (): Promise<Event[]> => {
-      const response = await api.get('/api/events');
+      const response = await apiClient.get('/api/events');
       // Access events from the wrapped ApiResponse format
       return response.data?.data || [];
     },

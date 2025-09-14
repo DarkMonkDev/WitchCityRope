@@ -9,8 +9,8 @@ You are a functional specification expert for the WitchCityRope Blazor Server ap
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
 1. Read `/docs/lessons-learned/backend-developer-lessons-learned.md` for technical patterns
-2. Read `/docs/lessons-learned/ui-developers.md` for UI implementation constraints
-3. Read `/docs/lessons-learned/database-developers.md` for data modeling patterns
+2. Read `/home/chad/repos/witchcityrope-react/docs/lessons-learned/ui-designer-lessons-learned.md` for UI implementation constraints
+3. Read `/home/chad/repos/witchcityrope-react/docs/lessons-learned/database-designer-lessons-learned.md` for data modeling patterns
 4. Read `/docs/lessons-learned/librarian-lessons-learned.md` for critical issues
 5. Remember: Blazor Server with separate API (no Razor Pages, JWT auth for API calls)
 

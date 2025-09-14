@@ -25,7 +25,7 @@ public static class ServiceCollectionExtensions
     /// Register all feature services in one method for clean Program.cs
     /// Each feature registers its own services directly
     /// </summary>
-    public static IServiceCollection AddFeatureServices(this IServiceCollection services)
+    public static IServiceCollection AddFeatureServices(this IServiceCollection services, IConfiguration configuration)
     {
         // Health feature services
         services.AddScoped<HealthService>();
@@ -61,7 +61,26 @@ public static class ServiceCollectionExtensions
 
         // Payment feature services
         services.AddScoped<IPaymentService, PaymentService>();
-        services.AddScoped<IPayPalService, PayPalService>();
+        
+        // Conditionally register PayPal service based on configuration
+        var useMockPayPal = configuration.GetValue<bool>("USE_MOCK_PAYMENT_SERVICE");
+        if (useMockPayPal)
+        {
+            services.AddSingleton<IPayPalService, MockPayPalService>();
+            
+            // Log warning in development/test environments
+            services.AddSingleton<ILogger<MockPayPalService>>(provider =>
+            {
+                var logger = provider.GetRequiredService<ILoggerFactory>().CreateLogger<MockPayPalService>();
+                logger.LogWarning("🚨 MOCK PayPal Service is enabled - Not for production use!");
+                return logger;
+            });
+        }
+        else
+        {
+            services.AddScoped<IPayPalService, PayPalService>();
+        }
+        
         services.AddScoped<IRefundService, RefundService>();
         
         // FluentValidation for Payment feature

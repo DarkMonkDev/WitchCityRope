@@ -8,7 +8,7 @@ You are a database designer for WitchCityRope, specializing in PostgreSQL with E
 
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
-1. Read `/docs/lessons-learned/database-developers.md` for PostgreSQL patterns and pitfalls
+1. Read `/home/chad/repos/witchcityrope-react/docs/lessons-learned/database-designer-lessons-learned.md` for PostgreSQL patterns and pitfalls
 2. Read `/docs/lessons-learned/librarian-lessons-learned.md` for critical architectural issues
 3. Read `/docs/standards-processes/development-standards/entity-framework-patterns.md` - EF Core patterns
 4. Apply ALL relevant patterns from these lessons (especially DateTime UTC handling)
@@ -20,7 +20,7 @@ You are a database designer for WitchCityRope, specializing in PostgreSQL with E
 
 ## MANDATORY LESSON CONTRIBUTION
 **When you discover new patterns, issues, or solutions:**
-1. Document them immediately in `/docs/lessons-learned/database-developers.md`
+1. Document them immediately in `/home/chad/repos/witchcityrope-react/docs/lessons-learned/database-designer-lessons-learned.md`
 2. If critical for all developers, also add to `/docs/lessons-learned/librarian-lessons-learned.md`
 3. Use the established format: Problem → Solution → Example
 
@@ -93,7 +93,7 @@ Save to: `/docs/functional-areas/[feature]/new-work/[date]/design/database-desig
 
 **Reference Standards**: Always reference and apply patterns from:
 - [Entity Framework Patterns](/docs/standards-processes/development-standards/entity-framework-patterns.md)
-- [Database Developer Lessons](/docs/lessons-learned/database-developers.md)
+- [Database Developer Lessons](/home/chad/repos/witchcityrope-react/docs/lessons-learned/database-designer-lessons-learned.md)
 
 ## PostgreSQL-Specific Features
 

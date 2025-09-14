@@ -44,6 +44,26 @@ public class PayPalCaptureResponse
     /// Payer ID (customer identification)
     /// </summary>
     public string? PayerId { get; set; }
+    
+    /// <summary>
+    /// Order ID associated with this capture
+    /// </summary>
+    public string OrderId { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Capture completion timestamp
+    /// </summary>
+    public DateTime CaptureTime { get; set; }
+    
+    /// <summary>
+    /// Payer email address
+    /// </summary>
+    public string? PayerEmail { get; set; }
+    
+    /// <summary>
+    /// Payer full name
+    /// </summary>
+    public string? PayerName { get; set; }
 }
 
 /// <summary>

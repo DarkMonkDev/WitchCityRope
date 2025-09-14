@@ -1,0 +1,77 @@
+{
+  "id": "WH-TEST-PAYMENT-COMPLETED-001",
+  "event_version": "1.0",
+  "create_time": "2025-09-14T12:00:00.000Z",
+  "resource_type": "capture",
+  "resource_version": "2.0",
+  "event_type": "PAYMENT.CAPTURE.COMPLETED",
+  "summary": "Payment completed successfully",
+  "resource": {
+    "id": "CAPTURE-TEST-123456789",
+    "amount": {
+      "currency_code": "USD",
+      "value": "50.00"
+    },
+    "final_capture": true,
+    "seller_protection": {
+      "status": "ELIGIBLE",
+      "dispute_categories": [
+        "ITEM_NOT_RECEIVED",
+        "UNAUTHORIZED_TRANSACTION"
+      ]
+    },
+    "seller_receivable_breakdown": {
+      "gross_amount": {
+        "currency_code": "USD",
+        "value": "50.00"
+      },
+      "paypal_fee": {
+        "currency_code": "USD",
+        "value": "1.75"
+      },
+      "net_amount": {
+        "currency_code": "USD",
+        "value": "48.25"
+      }
+    },
+    "invoice_id": "EVENT-123-USER-456",
+    "custom_id": "EVENT-123-USER-456",
+    "status": "COMPLETED",
+    "supplementary_data": {
+      "related_ids": {
+        "order_id": "ORDER-TEST-123456789"
+      }
+    },
+    "create_time": "2025-09-14T12:00:00.000Z",
+    "update_time": "2025-09-14T12:00:00.000Z",
+    "links": [
+      {
+        "href": "https://api.sandbox.paypal.com/v2/payments/captures/CAPTURE-TEST-123456789",
+        "rel": "self",
+        "method": "GET"
+      },
+      {
+        "href": "https://api.sandbox.paypal.com/v2/payments/captures/CAPTURE-TEST-123456789/refund",
+        "rel": "refund",
+        "method": "POST"
+      },
+      {
+        "href": "https://api.sandbox.paypal.com/v2/checkout/orders/ORDER-TEST-123456789",
+        "rel": "up",
+        "method": "GET"
+      }
+    ]
+  },
+  "links": [
+    {
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-TEST-PAYMENT-COMPLETED-001",
+      "rel": "self",
+      "method": "GET"
+    },
+    {
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-TEST-PAYMENT-COMPLETED-001/resend",
+      "rel": "resend",
+      "method": "POST"
+    }
+  ]
+}

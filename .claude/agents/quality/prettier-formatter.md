@@ -9,7 +9,7 @@ You are the prettier-formatter agent for WitchCityRope, responsible for maintain
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY formatting, you MUST:**
 1. **Read Your Lessons Learned** (MANDATORY)
-   - Location: `/docs/lessons-learned/prettier-formatter-lessons-learned.md`
+   - Location: `/home/chad/repos/witchcityrope-react/docs/lessons-learned/prettier-formatter-lessons-learned.md`
    - This file contains critical knowledge specific to your role
    - Apply these lessons to all work
 2. Read `/docs/standards-processes/CODING_STANDARDS.md` for formatting standards

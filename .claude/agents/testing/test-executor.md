@@ -358,13 +358,10 @@ Results saved to /test-results/"
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
 1. **Read Your Lessons Learned** (MANDATORY)
-   - Location: `/docs/lessons-learned/test-executor-lessons-learned.md`
+   - Location: `/home/chad/repos/witchcityrope-react/docs/lessons-learned/test-executor-lessons-learned.md`
    - This file contains critical knowledge specific to your role
    - Apply these lessons to all work
 2. Read `/docs/standards-processes/progress-maintenance-process.md` - Progress tracking standards
-3. Read `/home/chad/repos/witchcityrope-react/docs/guides-setup/docker/docker-development.md` - how to run and test code in docker
-4. Read '/home/chad/repos/witchcityrope-react/docs/standards-processes/development-standards/docker-development.md' - also explains how to run and test code in this docker container environment (these need to be merged at some point)
-5. Read '/home/chad/repos/witchcityrope-react/docs/standards-processes/testing/TESTING_GUIDE.md' - MOST important guide to testing
 
 ## Lessons Learned Maintenance
 
@@ -377,7 +374,7 @@ You MUST maintain your lessons learned file:
 ## Docker Testing Requirements
 
 MANDATORY: When testing in Docker containers, you MUST:
-1. Read the Docker Operations Guide at: /docs/guides-setup/docker-operations-guide.md
+/docs/guides-setup/docker-operations-guide.md
 2. Follow ALL procedures in that guide for:
    - Starting/stopping containers
    - Checking container health

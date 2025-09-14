@@ -2,37 +2,31 @@
 
 ## Prerequisites
 1. PayPal Developer Account (sandbox or production)
-2. ngrok installed (run `./scripts/install-ngrok.sh`)
-3. API running locally on port 5653
+2. Cloudflare Tunnel configured (automatic on terminal open)
+3. API running locally on port 5655
 
 ## Step 1: Start Your Local API
 ```bash
 cd apps/api
-dotnet run
-# API should be running on http://localhost:5653
+dotnet run --urls http://localhost:5655
+# API should be running on http://localhost:5655
 ```
 
-## Step 2: Start ngrok Tunnel
+## Step 2: Verify Cloudflare Tunnel (Auto-Started)
+
+The tunnel starts automatically when you open a terminal. To verify:
+
 ```bash
-# If you installed ngrok with our script:
-~/bin/ngrok http 5653
+# Check if tunnel is running
+ps aux | grep cloudflared
 
-# Or if ngrok is in your PATH:
-ngrok http 5653
+# View tunnel logs
+tail -f ~/.cloudflare-tunnel.log
 ```
 
-You'll see output like:
-```
-Session Status                online
-Account                       your-email@example.com (Plan: Free)
-Version                       3.28.0
-Region                        United States (us)
-Latency                       34ms
-Web Interface                 http://127.0.0.1:4040
-Forwarding                    https://abc123def456.ngrok-free.app -> http://localhost:5653
-```
+**Your permanent URL:** `https://dev-api.chadfbennett.com`
 
-**Copy the HTTPS URL** (e.g., `https://abc123def456.ngrok-free.app`)
+This URL never changes and always points to `localhost:5655`.
 
 ## Step 3: Configure PayPal Webhooks
 
@@ -43,14 +37,20 @@ Forwarding                    https://abc123def456.ngrok-free.app -> http://loca
 4. Click "Add Webhook"
 
 ### Webhook URL Configuration
-Enter your webhook URL:
+
+**For Local Development:**
 ```
-https://YOUR-NGROK-SUBDOMAIN.ngrok-free.app/api/webhooks/paypal
+https://dev-api.chadfbennett.com/api/webhooks/paypal
 ```
 
-Example:
+**For Staging:**
 ```
-https://abc123def456.ngrok-free.app/api/webhooks/paypal
+https://staging-api.witchcityrope.com/api/webhooks/paypal
+```
+
+**For Production:**
+```
+https://api.witchcityrope.com/api/webhooks/paypal
 ```
 
 ### Select Events to Listen For
@@ -73,13 +73,25 @@ Check the following events (minimum required):
 - `CUSTOMER.DISPUTE.CREATED`
 - `CUSTOMER.DISPUTE.RESOLVED`
 
-## Step 4: Get Webhook ID
-After creating the webhook:
-1. Copy the **Webhook ID** shown in PayPal dashboard
-2. Update your `.env` file:
-```env
-PAYPAL_WEBHOOK_ID=YOUR_WEBHOOK_ID_HERE
-```
+## Step 4: Webhook IDs (Already Configured)
+
+### Local Development
+- **Webhook ID**: `1PH29187W48812152`
+- **PayPal App**: WitchCityRopeSandbox
+- **URL**: `https://dev-api.chadfbennett.com/api/webhooks/paypal`
+- **File**: `.env.development`
+
+### Staging
+- **Webhook ID**: `1GN678263B992340W`
+- **PayPal App**: WitchCityRopeSandbox
+- **URL**: `https://staging-api.witchcityrope.com/api/webhooks/paypal`
+- **File**: `.env.staging`
+
+### Production
+- **Webhook ID**: `93J292600X332032T`
+- **PayPal App**: WitchCityRopeLive
+- **URL**: `https://api.witchcityrope.com/api/webhooks/paypal`
+- **File**: `.env.production`
 
 ## Step 5: Test the Webhook
 
@@ -93,7 +105,7 @@ PAYPAL_WEBHOOK_ID=YOUR_WEBHOOK_ID_HERE
 ### Manual Testing with API
 ```bash
 # Create a test payment
-curl -X POST http://localhost:5653/api/payments/process \
+curl -X POST http://localhost:5655/api/payments/process \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
@@ -107,11 +119,14 @@ curl -X POST http://localhost:5653/api/payments/process \
 
 ## Step 6: Monitor Webhook Activity
 
-### Check ngrok Dashboard
-Open http://127.0.0.1:4040 in your browser to see:
-- All incoming webhook requests
-- Request/response details
-- Replay capability for debugging
+### Check Cloudflare Tunnel Logs
+```bash
+# View tunnel logs
+tail -f ~/.cloudflare-tunnel.log
+
+# Check tunnel status
+ps aux | grep cloudflared
+```
 
 ### Check API Logs
 ```bash
@@ -142,9 +157,9 @@ tail -f apps/api/logs/*.log
 ## Important Notes
 
 ### For Development
-- ngrok URLs change each time you restart (free plan)
-- Update PayPal webhook URL when ngrok URL changes
-- Consider ngrok paid plan for stable URLs
+- Cloudflare tunnel provides permanent URL: `https://dev-api.chadfbennett.com`
+- Tunnel auto-starts when you open a terminal
+- No need to update PayPal webhook URLs
 
 ### For Production
 - Use your actual domain (e.g., `https://api.witchcityrope.com/api/webhooks/paypal`)
@@ -161,8 +176,8 @@ tail -f apps/api/logs/*.log
 ## Troubleshooting
 
 ### Webhook Not Receiving Events
-1. Check ngrok is running and URL is correct
-2. Verify API is running on correct port (5653)
+1. Check Cloudflare tunnel is running: `ps aux | grep cloudflared`
+2. Verify API is running on port 5655
 3. Check PayPal webhook is Active (not Disabled)
 4. Ensure events are selected in PayPal dashboard
 
@@ -175,20 +190,20 @@ tail -f apps/api/logs/*.log
 1. Check API logs for errors
 2. Verify database connection is working
 3. Check Payment entity configuration
-4. Review ngrok dashboard for request/response details
+4. Review Cloudflare tunnel logs: `tail -f ~/.cloudflare-tunnel.log`
 
 ## Testing Checklist
 
-- [ ] ngrok tunnel established
-- [ ] Webhook URL configured in PayPal
-- [ ] Webhook ID saved in `.env`
+- [ ] Cloudflare tunnel running (auto-started)
+- [ ] Webhook URLs configured in PayPal
+- [ ] Webhook IDs in correct `.env` files
 - [ ] Test event sent from PayPal Simulator
-- [ ] Event received in ngrok dashboard
+- [ ] Event received at `https://dev-api.chadfbennett.com`
 - [ ] Event processed by API successfully
 - [ ] Payment record created/updated in database
 - [ ] Response returned to PayPal (200 OK)
 
 ## Resources
 - [PayPal Webhooks Documentation](https://developer.paypal.com/docs/api/webhooks/v1/)
-- [ngrok Documentation](https://ngrok.com/docs)
+- [Cloudflare Tunnel Documentation](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/)
 - [PayPal Webhook Events Reference](https://developer.paypal.com/docs/api-basics/notifications/webhooks/event-names/)

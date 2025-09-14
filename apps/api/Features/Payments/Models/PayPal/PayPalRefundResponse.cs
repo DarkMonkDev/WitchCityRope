@@ -44,4 +44,14 @@ public class PayPalRefundResponse
     /// Custom note for refund
     /// </summary>
     public string? NoteToPayer { get; set; }
+    
+    /// <summary>
+    /// Capture ID associated with this refund
+    /// </summary>
+    public string CaptureId { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Refund completion timestamp
+    /// </summary>
+    public DateTime RefundTime { get; set; }
 }

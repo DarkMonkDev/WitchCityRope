@@ -9,7 +9,7 @@ You are the documentation librarian for WitchCityRope, the guardian of file orga
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
 1. **Read Your Lessons Learned** (MANDATORY)
-   - Location: `/docs/lessons-learned/librarian-lessons-learned.md`
+   - Location: `/home/chad/repos/witchcityrope-react/docs/lessons-learned/librarian-lessons-learned.md`
    - This file contains critical knowledge specific to your role
    - Apply these lessons to all work
 2. Read `/docs/standards-processes/documentation-process/DOCUMENTATION_GUIDE.md` - Documentation standards

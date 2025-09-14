@@ -68,10 +68,10 @@ This exclusive ownership ensures:
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
 1. **Read Your Lessons Learned** (MANDATORY)
-   - Location: `/docs/lessons-learned/test-developer-lessons-learned.md`
+   - Location: `/home/chad/repos/witchcityrope-react/docs/lessons-learned/test-developer-lessons-learned.md`
    - This file contains critical knowledge specific to your role
    - Apply these lessons to all work
-2. Read `/docs/lessons-learned/test-developer-lessons-learned.md` for critical testing patterns
+2. Read `/home/chad/repos/witchcityrope-react/docs/lessons-learned/test-developer-lessons-learned.md` for critical testing patterns
 3. Read `/docs/standards-processes/testing/TESTING_GUIDE.md` - Comprehensive testing guide
 4. Read `/docs/standards-processes/testing/integration-test-patterns.md` - Integration patterns  
 5. Read `/docs/standards-processes/testing/browser-automation/playwright-guide.md` - E2E patterns
@@ -91,7 +91,7 @@ This exclusive ownership ensures:
 ## Docker Development Requirements
 
 MANDATORY: When developing tests for Docker containers, you MUST:
-1. Read the Docker Operations Guide at: /docs/guides-setup/docker-operations-guide.md
+/docs/guides-setup/docker-operations-guide.md
 2. Follow ALL procedures in that guide for:
    - Test environment container setup
    - Container health verification for testing
@@ -113,7 +113,7 @@ You MUST maintain your lessons learned file:
 
 ## MANDATORY LESSON CONTRIBUTION
 **When you discover new patterns, issues, or solutions:**
-1. Document them immediately in `/docs/lessons-learned/test-developer-lessons-learned.md`
+1. Document them immediately in `/home/chad/repos/witchcityrope-react/docs/lessons-learned/test-developer-lessons-learned.md`
 2. If critical for all developers, also add to appropriate lessons learned files
 3. Use the established format: Problem → Solution → Example
 4. This helps future sessions avoid the same issues

@@ -1,0 +1,396 @@
+name: PayPal Integration Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'apps/api/Features/Payments/**'
+      - 'tests/**/*PayPal*'
+      - 'tests/**/payment*'
+      - '.github/workflows/paypal-integration-tests.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'apps/api/Features/Payments/**'
+      - 'tests/**/*PayPal*'
+      - 'tests/**/payment*'
+      - '.github/workflows/paypal-integration-tests.yml'
+  workflow_dispatch:
+    inputs:
+      test_stage:
+        description: 'Test stage to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - health
+          - mock
+          - webhooks
+          - cicd
+      use_real_paypal:
+        description: 'Use real PayPal sandbox (requires secrets)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  NODE_VERSION: '20.x'
+
+jobs:
+  # Job 1: Health and Configuration Tests
+  health-tests:
+    runs-on: ubuntu-latest
+    name: Health & Configuration Tests
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run health and configuration tests
+        run: |
+          ./scripts/test/run-paypal-integration-tests.sh health --verbose
+        env:
+          USE_MOCK_PAYMENT_SERVICE: 'true'
+          PAYPAL_CLIENT_ID: 'test-client-id'
+          PAYPAL_CLIENT_SECRET: 'test-client-secret'
+          PAYPAL_WEBHOOK_ID: 'test-webhook-id'
+
+      - name: Upload health test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: health-test-results
+          path: test-results/paypal-integration-test-results.log
+
+  # Job 2: Mock Service Tests
+  mock-service-tests:
+    runs-on: ubuntu-latest
+    name: Mock Service Tests
+    needs: health-tests
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Setup PostgreSQL
+        uses: harmon758/postgresql-action@v1
+        with:
+          postgresql version: '16'
+          postgresql db: 'test_witchcityrope'
+          postgresql user: 'testuser'
+          postgresql password: 'testpass'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run mock service tests
+        run: |
+          ./scripts/test/run-paypal-integration-tests.sh mock --verbose --mock-only
+        env:
+          USE_MOCK_PAYMENT_SERVICE: 'true'
+          DATABASE_CONNECTION_STRING: 'Host=localhost;Port=5432;Database=test_witchcityrope;Username=testuser;Password=testpass'
+          PAYPAL_CLIENT_ID: 'test-client-id'
+          PAYPAL_CLIENT_SECRET: 'test-client-secret'
+          PAYPAL_WEBHOOK_ID: 'test-webhook-id'
+
+      - name: Upload mock test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mock-test-results
+          path: test-results/paypal-integration-test-results.log
+
+  # Job 3: Webhook Tests
+  webhook-tests:
+    runs-on: ubuntu-latest
+    name: Webhook Integration Tests
+    needs: mock-service-tests
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Setup PostgreSQL
+        uses: harmon758/postgresql-action@v1
+        with:
+          postgresql version: '16'
+          postgresql db: 'test_witchcityrope'
+          postgresql user: 'testuser'
+          postgresql password: 'testpass'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run webhook tests
+        run: |
+          ./scripts/test/run-paypal-integration-tests.sh webhooks --verbose
+        env:
+          USE_MOCK_PAYMENT_SERVICE: 'true'
+          SKIP_WEBHOOK_VERIFICATION: 'true'
+          DATABASE_CONNECTION_STRING: 'Host=localhost;Port=5432;Database=test_witchcityrope;Username=testuser;Password=testpass'
+          PAYPAL_CLIENT_ID: 'test-client-id'
+          PAYPAL_CLIENT_SECRET: 'test-client-secret'
+          PAYPAL_WEBHOOK_ID: 'test-webhook-id'
+
+      - name: Upload webhook test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: webhook-test-results
+          path: test-results/paypal-integration-test-results.log
+
+  # Job 4: E2E Tests
+  e2e-tests:
+    runs-on: ubuntu-latest
+    name: End-to-End Tests
+    needs: webhook-tests
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'apps/web/package-lock.json'
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Setup PostgreSQL
+        uses: harmon758/postgresql-action@v1
+        with:
+          postgresql version: '16'
+          postgresql db: 'test_witchcityrope'
+          postgresql user: 'testuser'
+          postgresql password: 'testpass'
+
+      - name: Build API
+        run: |
+          dotnet restore
+          dotnet build --no-restore --configuration Release
+
+      - name: Install web dependencies
+        run: |
+          cd apps/web
+          npm ci
+
+      - name: Install Playwright browsers
+        run: |
+          cd apps/web
+          npx playwright install
+
+      - name: Start API service
+        run: |
+          cd apps/api
+          dotnet run --no-build --configuration Release &
+          sleep 10
+        env:
+          USE_MOCK_PAYMENT_SERVICE: 'true'
+          DATABASE_CONNECTION_STRING: 'Host=localhost;Port=5432;Database=test_witchcityrope;Username=testuser;Password=testpass'
+          ASPNETCORE_ENVIRONMENT: 'Test'
+          ASPNETCORE_URLS: 'http://localhost:5655'
+
+      - name: Run PayPal E2E tests
+        run: |
+          cd apps/web
+          npx playwright test tests/e2e/paypal-integration.spec.ts --reporter=html
+        env:
+          CI: 'true'
+          API_URL: 'http://localhost:5655'
+          USE_MOCK_PAYMENT_SERVICE: 'true'
+
+      - name: Upload E2E test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-test-results
+          path: |
+            apps/web/playwright-report/
+            apps/web/test-results/
+
+  # Job 5: Real PayPal Sandbox Tests (Optional, requires secrets)
+  sandbox-tests:
+    runs-on: ubuntu-latest
+    name: Real PayPal Sandbox Tests
+    needs: mock-service-tests
+    if: ${{ github.event.inputs.use_real_paypal == 'true' && contains(github.ref, 'refs/heads/main') }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Setup PostgreSQL
+        uses: harmon758/postgresql-action@v1
+        with:
+          postgresql version: '16'
+          postgresql db: 'test_witchcityrope'
+          postgresql user: 'testuser'
+          postgresql password: 'testpass'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run real PayPal sandbox tests
+        run: |
+          ./scripts/test/run-paypal-integration-tests.sh sandbox --verbose --real-only
+        env:
+          USE_MOCK_PAYMENT_SERVICE: 'false'
+          DATABASE_CONNECTION_STRING: 'Host=localhost;Port=5432;Database=test_witchcityrope;Username=testuser;Password=testpass'
+          PAYPAL_CLIENT_ID: ${{ secrets.PAYPAL_SANDBOX_CLIENT_ID }}
+          PAYPAL_CLIENT_SECRET: ${{ secrets.PAYPAL_SANDBOX_CLIENT_SECRET }}
+          PAYPAL_WEBHOOK_ID: ${{ secrets.PAYPAL_SANDBOX_WEBHOOK_ID }}
+
+      - name: Upload sandbox test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sandbox-test-results
+          path: test-results/paypal-integration-test-results.log
+
+  # Job 6: CI/CD Integration Tests
+  cicd-tests:
+    runs-on: ubuntu-latest
+    name: CI/CD Integration Tests
+    needs: [health-tests, mock-service-tests, webhook-tests]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Setup PostgreSQL
+        uses: harmon758/postgresql-action@v1
+        with:
+          postgresql version: '16'
+          postgresql db: 'test_witchcityrope'
+          postgresql user: 'testuser'
+          postgresql password: 'testpass'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run CI/CD integration tests
+        run: |
+          ./scripts/test/run-paypal-integration-tests.sh cicd --verbose
+        env:
+          CI: 'true'
+          GITHUB_ACTIONS: 'true'
+          USE_MOCK_PAYMENT_SERVICE: 'true'
+          DATABASE_CONNECTION_STRING: 'Host=localhost;Port=5432;Database=test_witchcityrope;Username=testuser;Password=testpass'
+          PAYPAL_CLIENT_ID: 'ci-test-client-id'
+          PAYPAL_CLIENT_SECRET: 'ci-test-client-secret'
+          PAYPAL_WEBHOOK_ID: 'ci-test-webhook-id'
+
+      - name: Upload CI/CD test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cicd-test-results
+          path: test-results/paypal-integration-test-results.log
+
+  # Job 7: Test Summary
+  test-summary:
+    runs-on: ubuntu-latest
+    name: Test Summary
+    needs: [health-tests, mock-service-tests, webhook-tests, e2e-tests, cicd-tests]
+    if: always()
+    
+    steps:
+      - name: Download all test artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all-test-results
+
+      - name: Generate test summary
+        run: |
+          echo "# PayPal Integration Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Check each job status
+          jobs=("health-tests" "mock-service-tests" "webhook-tests" "e2e-tests" "cicd-tests")
+          
+          for job in "${jobs[@]}"; do
+            if [[ "${{ needs[job].result }}" == "success" ]]; then
+              echo "✅ $job - **PASSED**" >> $GITHUB_STEP_SUMMARY
+            elif [[ "${{ needs[job].result }}" == "failure" ]]; then
+              echo "❌ $job - **FAILED**" >> $GITHUB_STEP_SUMMARY
+            elif [[ "${{ needs[job].result }}" == "skipped" ]]; then
+              echo "⏭️ $job - **SKIPPED**" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❓ $job - **${{ needs[job].result }}**" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Test Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- Log files and test reports are available in the artifacts section above" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ github.event.inputs.use_real_paypal }}" == "true" ]]; then
+            if [[ "${{ needs.sandbox-tests.result }}" == "success" ]]; then
+              echo "- ✅ Real PayPal sandbox tests also **PASSED**" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- ❌ Real PayPal sandbox tests **FAILED** or were **SKIPPED**" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+      - name: Check overall result
+        run: |
+          # Fail the workflow if any critical tests failed
+          if [[ "${{ needs.health-tests.result }}" != "success" ]] || \
+             [[ "${{ needs.mock-service-tests.result }}" != "success" ]] || \
+             [[ "${{ needs.webhook-tests.result }}" != "success" ]] || \
+             [[ "${{ needs.cicd-tests.result }}" != "success" ]]; then
+            echo "❌ Critical PayPal integration tests failed"
+            exit 1
+          fi
+          
+          echo "✅ All critical PayPal integration tests passed"

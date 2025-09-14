@@ -1,0 +1,65 @@
+{
+  "id": "WH-TEST-PAYMENT-REFUNDED-001",
+  "event_version": "1.0",
+  "create_time": "2025-09-14T13:00:00.000Z",
+  "resource_type": "refund",
+  "resource_version": "2.0",
+  "event_type": "PAYMENT.CAPTURE.REFUNDED",
+  "summary": "Payment refunded successfully",
+  "resource": {
+    "id": "REFUND-TEST-123456789",
+    "amount": {
+      "currency_code": "USD",
+      "value": "50.00"
+    },
+    "seller_payable_breakdown": {
+      "gross_amount": {
+        "currency_code": "USD",
+        "value": "50.00"
+      },
+      "paypal_fee": {
+        "currency_code": "USD",
+        "value": "-1.75"
+      },
+      "net_amount": {
+        "currency_code": "USD",
+        "value": "48.25"
+      },
+      "total_refunded_amount": {
+        "currency_code": "USD",
+        "value": "50.00"
+      }
+    },
+    "invoice_id": "EVENT-123-USER-456",
+    "custom_id": "EVENT-123-USER-456",
+    "status": "COMPLETED",
+    "reason": "Customer requested refund",
+    "note_to_payer": "Your refund has been processed. Please allow 3-5 business days for funds to appear.",
+    "create_time": "2025-09-14T13:00:00.000Z",
+    "update_time": "2025-09-14T13:00:00.000Z",
+    "links": [
+      {
+        "href": "https://api.sandbox.paypal.com/v2/payments/refunds/REFUND-TEST-123456789",
+        "rel": "self",
+        "method": "GET"
+      },
+      {
+        "href": "https://api.sandbox.paypal.com/v2/payments/captures/CAPTURE-TEST-123456789",
+        "rel": "up",
+        "method": "GET"
+      }
+    ]
+  },
+  "links": [
+    {
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-TEST-PAYMENT-REFUNDED-001",
+      "rel": "self",
+      "method": "GET"
+    },
+    {
+      "href": "https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-TEST-PAYMENT-REFUNDED-001/resend",
+      "rel": "resend",
+      "method": "POST"
+    }
+  ]
+}
