@@ -55,3 +55,7 @@ lerna-debug.log*
 .playwright/
 tests/**/bin/
 tests/**/obj/
+# Playwright binaries
+tests/WitchCityRope.E2E.Tests/bin/
+tests/WitchCityRope.E2E.Tests/obj/
+*/.playwright/
