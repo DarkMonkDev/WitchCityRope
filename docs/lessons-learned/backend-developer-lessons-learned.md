@@ -512,6 +512,28 @@ public bool AllowsRSVP => EventType == EventType.Social;
 - Always add project references when using types from other projects
 - Test API endpoints after enum changes to verify DTO mapping works correctly
 
+## PayPal Webhook Dependency Issue Fix (2025-09-14)
+### CRITICAL FIX: Removed Unnecessary IEncryptionService Dependency
+**Problem**: PayPal webhook endpoint failing with 500 error when `USE_MOCK_PAYMENT_SERVICE=false` due to unused dependency in PayPalService constructor.
+
+**Root Cause**: PayPalService constructor required `IEncryptionService` but never used it anywhere in the implementation. This was a vestige from planned functionality that wasn't implemented.
+
+**Solution**: Removed the unused IEncryptionService dependency from PayPalService:
+```csharp
+// ❌ BEFORE: Unnecessary dependency causing DI failures
+public PayPalService(IConfiguration configuration, IEncryptionService encryptionService, ILogger<PayPalService> logger)
+
+// ✅ AFTER: Clean constructor only requiring needed services  
+public PayPalService(IConfiguration configuration, ILogger<PayPalService> logger)
+```
+
+**Files Modified**:
+- `/apps/api/Features/Payments/Services/PayPalService.cs` - Removed IEncryptionService dependency
+
+**Key Learning**: Always verify that constructor dependencies are actually used in the implementation. Unused dependencies cause unnecessary coupling and DI failures.
+
+**Prevention**: Review service constructors during code review to ensure all dependencies are utilized.
+
 ## TDD Implementation Discovery (2025-09-12)
 
 ### CRITICAL FINDING: Event Update API Already Fully Implemented 

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WitchCityRope.Api.Features.Payments.Services;
+using WitchCityRope.Api.Features.Payments.Extensions;
 
 namespace WitchCityRope.Api.Features.Payments.Endpoints;
 
@@ -81,9 +82,9 @@ public class WebhookEndpoints : ControllerBase
 
             var paypalEvent = validationResult.Value;
 
-            // Extract event type and ID for logging
-            var eventType = paypalEvent.TryGetValue("event_type", out var eventTypeObj) ? eventTypeObj?.ToString() : "unknown";
-            var eventId = paypalEvent.TryGetValue("id", out var eventIdObj) ? eventIdObj?.ToString() : "unknown";
+            // Extract event type and ID for logging using extension methods
+            var eventType = paypalEvent.GetStringValue("event_type") ?? "unknown";
+            var eventId = paypalEvent.GetStringValue("id") ?? "unknown";
 
             _logger.LogInformation(
                 "Valid PayPal webhook received: {EventType}, Event ID: {EventId}",

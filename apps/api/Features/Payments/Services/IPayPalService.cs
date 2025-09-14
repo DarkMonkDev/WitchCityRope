@@ -59,9 +59,24 @@ public interface IPayPalService
         string webhookId);
 
     /// <summary>
+    /// Validate PayPal webhook signature and return strongly-typed model
+    /// </summary>
+    Result<PayPalWebhookEvent> ValidateWebhookSignatureTyped(
+        string payload,
+        string signature,
+        string webhookId);
+
+    /// <summary>
     /// Process PayPal webhook event
     /// </summary>
     Task<Result> ProcessWebhookEventAsync(
         Dictionary<string, object> webhookEvent,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Process PayPal webhook event from strongly-typed model
+    /// </summary>
+    Task<Result> ProcessWebhookEventAsync(
+        PayPalWebhookEvent webhookEvent,
         CancellationToken cancellationToken = default);
 }

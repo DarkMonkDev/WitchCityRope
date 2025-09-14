@@ -173,6 +173,37 @@ public class MockPayPalService : IPayPalService
         return Result<Dictionary<string, object>>.Success(webhookData);
     }
 
+    public Result<PayPalWebhookEvent> ValidateWebhookSignatureTyped(
+        string payload,
+        string signature,
+        string webhookId)
+    {
+        // Always return valid in mock mode
+        _logger.LogInformation("Mock webhook signature validation (typed) - always returns valid");
+        
+        var webhookEvent = new PayPalWebhookEvent
+        {
+            Id = $"MOCK-WEBHOOK-{Guid.NewGuid():N}".ToUpper(),
+            EventType = "PAYMENT.CAPTURE.COMPLETED",
+            CreateTime = DateTime.UtcNow,
+            ResourceType = "capture",
+            EventVersion = "1.0",
+            Summary = "Mock payment completed for testing",
+            Resource = new Dictionary<string, object>
+            {
+                ["id"] = $"MOCK-CAPTURE-{Guid.NewGuid():N}".ToUpper(),
+                ["status"] = "COMPLETED",
+                ["amount"] = new { value = "50.00", currency_code = "USD" }
+            },
+            Links = new List<PayPalLink>
+            {
+                new() { Href = "/mock/webhook/self", Rel = "self", Method = "GET" }
+            }
+        };
+
+        return Result<PayPalWebhookEvent>.Success(webhookEvent);
+    }
+
     public Task<Result> ProcessWebhookEventAsync(
         Dictionary<string, object> webhookEvent,
         CancellationToken cancellationToken = default)
@@ -180,6 +211,17 @@ public class MockPayPalService : IPayPalService
         var eventType = webhookEvent.GetValueOrDefault("event_type")?.ToString() ?? "UNKNOWN";
         
         _logger.LogInformation("Mock webhook event processed: {EventType}", eventType);
+        
+        // Always return success in mock mode
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result> ProcessWebhookEventAsync(
+        PayPalWebhookEvent webhookEvent,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Mock webhook event processed (typed): {EventType}, ID: {EventId}", 
+            webhookEvent.EventType, webhookEvent.Id);
         
         // Always return success in mock mode
         return Task.FromResult(Result.Success());
