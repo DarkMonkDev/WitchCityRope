@@ -1,279 +1,217 @@
-import React from 'react';
-import { Box, Title, Text, Paper, Group, Button, Grid, Stack, Loader, Alert, SimpleGrid } from '@mantine/core';
-import { Link } from 'react-router-dom';
-import { useCurrentUser } from '../../features/auth/api/queries';
-import { useEvents } from '../../features/events/api/queries';
-import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
-import { EventsWidget } from '../../components/dashboard/EventsWidget';
-import { ProfileWidget } from '../../components/dashboard/ProfileWidget';
-import { RegistrationHistory } from '../../components/dashboard/RegistrationHistory';
-import { MembershipWidget } from '../../components/dashboard/MembershipWidget';
-import type { EventDto } from '@witchcityrope/shared-types';
+// DashboardPage Component
+// Main dashboard page layout with all dashboard components
 
-// Helper function to format event for display
-const formatEventForDashboard = (event: EventDto) => {
-  const startDate = new Date(event.startDateTime || '');
-  const endDate = new Date(event.endDateTime || '');
-  
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-  };
-  
-  return {
-    id: event.id,
-    title: event.title,
-    date: startDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
-    time: `${formatTime(startDate)} - ${formatTime(endDate)}`,
-    status: event.status === 'Published' ? 'Open' : 'Closed',
-    statusColor: event.status === 'Published' ? '#228B22' : '#DAA520',
-  };
-};
+import React from 'react';
+import {
+  Container,
+  Stack,
+  SimpleGrid,
+  Title,
+  Text,
+  Alert,
+  Button,
+  Group,
+  Loader,
+  Center,
+  Box
+} from '@mantine/core';
+import {
+  IconAlertCircle,
+  IconRefresh,
+  IconCalendarEvent,
+  IconHome
+} from '@tabler/icons-react';
+import { useNavigate } from 'react-router-dom';
+import { UserDashboard } from '../../features/dashboard/components/UserDashboard';
+import { UpcomingEvents } from '../../features/dashboard/components/UpcomingEvents';
+import { MembershipStatistics } from '../../features/dashboard/components/MembershipStatistics';
+import { useDashboardData, useDashboardError } from '../../features/dashboard/hooks/useDashboard';
 
 /**
- * Dashboard Landing Page
- * Shows user's upcoming events and quick actions
- * Uses real API data via TanStack Query hooks
+ * DashboardPage Component
+ * Main user dashboard with responsive layout
  */
 export const DashboardPage: React.FC = () => {
-  const { data: user, isLoading: userLoading, error: userError } = useCurrentUser();
-  const { data: events, isLoading: eventsLoading, error: eventsError } = useEvents();
+  const navigate = useNavigate();
+  const {
+    isLoading,
+    isError,
+    error,
+    isSuccess,
+    data,
+    refetchAll
+  } = useDashboardData(3);
   
-  // Format events for dashboard display
-  const upcomingEvents = events ? events
-    .filter(event => event.startDateTime && new Date(event.startDateTime) > new Date()) // Only future events
-    .sort((a, b) => {
-      const dateA = new Date(a.startDateTime || 0).getTime();
-      const dateB = new Date(b.startDateTime || 0).getTime();
-      return dateA - dateB;
-    }) // Sort by date
-    .slice(0, 5) // Show only first 5
-    .map(formatEventForDashboard) : [];
+  const dashboardError = useDashboardError(error);
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const day = date.getDate();
-    const month = date.toLocaleDateString('en-US', { month: 'short' });
-    return { day, month };
+  // Navigation handlers
+  const handleViewAllEvents = () => {
+    navigate('/events');
   };
 
-  return (
-    <DashboardLayout data-testid="page-dashboard">
-      {/* Welcome Header */}
-      <Box data-testid="dashboard-title" mb="xl">
-        {userLoading ? (
-          <Box style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Loader size="sm" color="#880124" />
-            <Title
-              order={1}
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: '28px',
-                fontWeight: 800,
-                color: '#880124',
-                textTransform: 'uppercase',
-                letterSpacing: '-0.5px',
-              }}
-            >
-              Loading...
+  const handleGoToEvents = () => {
+    navigate('/events');
+  };
+
+  // Global loading state
+  if (isLoading) {
+    return (
+      <Container size="xl" py="xl">
+        <Stack gap="xl">
+          <Box>
+            <Title order={1} size="h2" mb="sm">
+              Dashboard
             </Title>
+            <Text c="dimmed">
+              Loading your personal dashboard...
+            </Text>
           </Box>
-        ) : userError ? (
-          <Alert color="red" style={{ background: 'rgba(220, 20, 60, 0.1)', border: '1px solid rgba(220, 20, 60, 0.3)' }}>
-            Failed to load user information
-          </Alert>
-        ) : (
-          <Title
-            order={1}
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: '28px',
-              fontWeight: 800,
-              color: '#880124',
-              textTransform: 'uppercase',
-              letterSpacing: '-0.5px',
-            }}
+          
+          <Center py="xl">
+            <Stack gap="md" align="center">
+              <Loader size="lg" color="wcr" />
+              <Text size="sm" c="dimmed">
+                Fetching your latest information
+              </Text>
+            </Stack>
+          </Center>
+        </Stack>
+      </Container>
+    );
+  }
+
+  // Global error state
+  if (isError) {
+    return (
+      <Container size="xl" py="xl">
+        <Stack gap="xl">
+          <Box>
+            <Title order={1} size="h2" mb="sm">
+              Dashboard
+            </Title>
+            <Text c="dimmed">
+              Your personal WitchCityRope dashboard
+            </Text>
+          </Box>
+          
+          <Alert
+            icon={<IconAlertCircle size={20} />}
+            color="red"
+            title="Unable to Load Dashboard"
+            variant="light"
           >
-            Welcome back, {user?.sceneName || 'User'}
+            <Stack gap="md">
+              <Text>
+                {dashboardError?.message || 'We encountered an issue loading your dashboard. Please try again.'}
+              </Text>
+              
+              <Group gap="sm">
+                <Button
+                  leftSection={<IconRefresh size={16} />}
+                  onClick={refetchAll}
+                  variant="light"
+                  color="blue"
+                >
+                  Try Again
+                </Button>
+                
+                <Button
+                  leftSection={<IconHome size={16} />}
+                  onClick={() => navigate('/')}
+                  variant="subtle"
+                >
+                  Go to Homepage
+                </Button>
+              </Group>
+            </Stack>
+          </Alert>
+        </Stack>
+      </Container>
+    );
+  }
+
+  return (
+    <Container size="xl" py="xl">
+      <Stack gap="xl">
+        {/* Page header */}
+        <Box>
+          <Title order={1} size="h2" mb="sm">
+            Dashboard
           </Title>
-        )}
-      </Box>
+          <Text c="dimmed">
+            Your personal WitchCityRope dashboard
+          </Text>
+        </Box>
 
-      {/* Section Divider */}
-      <Box
-        style={{
-          width: 'calc(100% + 24px)',
-          height: '2px',
-          background: 'linear-gradient(90deg, #880124, rgba(183, 109, 117, 0.3))',
-          margin: '16px -24px 20px 0',
-        }}
-      />
+        {/* Main dashboard layout */}
+        <SimpleGrid
+          cols={{ base: 1, lg: 3 }}
+          spacing="lg"
+          verticalSpacing="lg"
+        >
+          {/* Left column - User info (spans 2 cols on desktop) */}
+          <Box style={{ gridColumn: 'span 2' }}>
+            <Stack gap="lg">
+              <UserDashboard />
+              <UpcomingEvents
+                count={3}
+                onViewAllEvents={handleViewAllEvents}
+              />
+            </Stack>
+          </Box>
 
-      {/* Dashboard Cards Grid */}
-      <SimpleGrid
-        cols={{ base: 1, sm: 2 }}
-        spacing="md"
-        mb="xl"
-      >
-        <EventsWidget data-testid="widget-events" limit={3} />
-        <ProfileWidget data-testid="widget-profile" />
-        <RegistrationHistory data-testid="widget-registrations" limit={4} showOnlyUpcoming={true} />
-        <MembershipWidget />
-      </SimpleGrid>
+          {/* Right column - Statistics */}
+          <Box>
+            <MembershipStatistics />
+          </Box>
+        </SimpleGrid>
 
-      {/* Quick Actions Section */}
-      <Paper
-        style={{
-          background: '#FFF8F0',
-          borderLeft: '3px solid #880124',
-          padding: '16px',
-          marginTop: '24px',
-        }}
-      >
-        <Title
-          order={3}
-          mb="md"
-          style={{
-            fontFamily: "'Montserrat', sans-serif",
-            fontSize: '16px',
-            fontWeight: 700,
-            color: '#2B2B2B',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
+        {/* Quick actions */}
+        <Alert
+          color="blue"
+          variant="light"
+          styles={{
+            root: {
+              backgroundColor: 'var(--mantine-color-blue-0)',
+              border: '1px solid var(--mantine-color-blue-3)',
+            }
           }}
         >
-          Quick Actions
-        </Title>
-
-        <Grid>
-          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-            <Text
-              component={Link}
-              to="/events"
-              data-testid="button-quick-events"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '8px',
-                color: '#880124',
-                textDecoration: 'none',
-                borderRadius: '4px',
-                transition: 'all 0.3s ease',
-                fontSize: '14px',
-                fontWeight: 500,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(136, 1, 36, 0.05)';
-                e.currentTarget.style.transform = 'translateX(2px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.transform = 'translateX(0)';
-              }}
+          <Group gap="md" justify="space-between" align="center">
+            <Box>
+              <Text size="sm" fw={500} mb="xs">
+                Looking for something to do?
+              </Text>
+              <Text size="xs" c="dimmed">
+                Browse our upcoming events and join the community!
+              </Text>
+            </Box>
+            
+            <Button
+              leftSection={<IconCalendarEvent size={16} />}
+              onClick={handleGoToEvents}
+              variant="filled"
+              color="blue"
+              size="sm"
             >
-              <span>📅</span>
-              <span>Browse All Events</span>
-            </Text>
-          </Grid.Col>
+              Browse Events
+            </Button>
+          </Group>
+        </Alert>
 
-          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-            <Text
-              component={Link}
-              to="/dashboard/profile"
-              data-testid="button-quick-profile"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '8px',
-                color: '#880124',
-                textDecoration: 'none',
-                borderRadius: '4px',
-                transition: 'all 0.3s ease',
-                fontSize: '14px',
-                fontWeight: 500,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(136, 1, 36, 0.05)';
-                e.currentTarget.style.transform = 'translateX(2px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.transform = 'translateX(0)';
-              }}
-            >
-              <span>👤</span>
-              <span>Update Profile</span>
+        {/* Debug info (only in development) */}
+        {import.meta.env.DEV && isSuccess && (
+          <Alert color="gray" variant="light" title="Debug Info (Development Only)">
+            <Text size="xs" c="dimmed">
+              Dashboard loaded successfully. Data freshness:
+              <br />
+              • Dashboard: {data.dashboard ? '✅ Loaded' : '❌ Missing'}
+              • Events: {data.events ? `✅ ${data.events.upcomingEvents.length} events` : '❌ Missing'}
+              • Statistics: {data.statistics ? '✅ Loaded' : '❌ Missing'}
             </Text>
-          </Grid.Col>
-
-          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-            <Text
-              component={Link}
-              to="/dashboard/membership"
-              data-testid="button-quick-membership"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '8px',
-                color: '#880124',
-                textDecoration: 'none',
-                borderRadius: '4px',
-                transition: 'all 0.3s ease',
-                fontSize: '14px',
-                fontWeight: 500,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(136, 1, 36, 0.05)';
-                e.currentTarget.style.transform = 'translateX(2px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.transform = 'translateX(0)';
-              }}
-            >
-              <span>🎯</span>
-              <span>Membership Status</span>
-            </Text>
-          </Grid.Col>
-
-          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-            <Text
-              component={Link}
-              to="/dashboard/security"
-              data-testid="button-quick-security"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '8px',
-                color: '#880124',
-                textDecoration: 'none',
-                borderRadius: '4px',
-                transition: 'all 0.3s ease',
-                fontSize: '14px',
-                fontWeight: 500,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(136, 1, 36, 0.05)';
-                e.currentTarget.style.transform = 'translateX(2px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.transform = 'translateX(0)';
-              }}
-            >
-              <span>🔒</span>
-              <span>Security Settings</span>
-            </Text>
-          </Grid.Col>
-        </Grid>
-      </Paper>
-    </DashboardLayout>
+          </Alert>
+        )}
+      </Stack>
+    </Container>
   );
 };
