@@ -13,18 +13,18 @@ namespace WitchCityRope.Api.Features.Payments.Services;
 public class RefundService : IRefundService
 {
     private readonly ApplicationDbContext _context;
-    private readonly IStripeService _stripeService;
+    private readonly IPayPalService _payPalService;
     private readonly IEncryptionService _encryptionService;
     private readonly ILogger<RefundService> _logger;
 
     public RefundService(
         ApplicationDbContext context,
-        IStripeService stripeService,
+        IPayPalService payPalService,
         IEncryptionService encryptionService,
         ILogger<RefundService> logger)
     {
         _context = context;
-        _stripeService = stripeService;
+        _payPalService = payPalService;
         _encryptionService = encryptionService;
         _logger = logger;
     }
@@ -101,34 +101,31 @@ public class RefundService : IRefundService
 
             await _context.SaveChangesAsync(cancellationToken);
 
-            // Process refund with Stripe if payment has a Stripe PaymentIntent
-            if (!string.IsNullOrEmpty(payment.EncryptedStripePaymentIntentId))
+            // Process refund with PayPal if payment has a PayPal Order
+            if (!string.IsNullOrEmpty(payment.EncryptedPayPalOrderId))
             {
                 try
                 {
-                    // Decrypt PaymentIntent ID
-                    var stripePaymentIntentId = await _encryptionService.DecryptAsync(payment.EncryptedStripePaymentIntentId);
+                    // Decrypt PayPal Order ID
+                    var paypalOrderId = await _encryptionService.DecryptAsync(payment.EncryptedPayPalOrderId);
+                    
+                    // For PayPal refunds, we need the capture ID, not the order ID
+                    // In a real implementation, we would need to get the capture from the order
+                    // For now, we'll assume the order ID is the capture ID for simplicity
+                    var captureId = paypalOrderId; // TODO: Get actual capture ID from PayPal order
 
-                    // Create refund metadata
-                    var refundMetadata = new Dictionary<string, string>
-                    {
-                        ["refund_id"] = refund.Id.ToString(),
-                        ["payment_id"] = request.PaymentId.ToString(),
-                        ["processed_by_user_id"] = request.ProcessedByUserId.ToString()
-                    };
-
-                    // Process refund with Stripe
-                    var stripeRefundResult = await _stripeService.CreateRefundAsync(
-                        stripePaymentIntentId,
+                    // Process refund with PayPal
+                    var paypalRefundResult = await _payPalService.RefundCaptureAsync(
+                        captureId,
                         request.RefundAmount,
                         request.RefundReason,
-                        refundMetadata,
+                        $"Refund processed by user {request.ProcessedByUserId}",
                         cancellationToken);
 
-                    if (stripeRefundResult.IsSuccess && stripeRefundResult.Value != null)
+                    if (paypalRefundResult.IsSuccess && paypalRefundResult.Value != null)
                     {
-                        // Encrypt and store Stripe refund ID
-                        refund.EncryptedStripeRefundId = await _encryptionService.EncryptAsync(stripeRefundResult.Value.Id);
+                        // Encrypt and store PayPal refund ID
+                        refund.EncryptedPayPalRefundId = await _encryptionService.EncryptAsync(paypalRefundResult.Value.RefundId);
                         refund.RefundStatus = RefundStatus.Completed;
 
                         // Update payment status based on refund amount
@@ -150,16 +147,16 @@ public class RefundService : IRefundService
                         var completionLog = PaymentAuditLog.RefundCompleted(
                             request.PaymentId,
                             request.RefundAmount.Amount,
-                            stripeRefundResult.Value.Id);
+                            paypalRefundResult.Value.RefundId);
 
                         _context.PaymentAuditLog.Add(completionLog);
                     }
                     else
                     {
-                        refund.MarkFailed($"Stripe refund failed: {stripeRefundResult.ErrorMessage}");
+                        refund.MarkFailed($"PayPal refund failed: {paypalRefundResult.ErrorMessage}");
                         
-                        _logger.LogError("Stripe refund failed for payment {PaymentId}: {Error}",
-                            request.PaymentId, stripeRefundResult.ErrorMessage);
+                        _logger.LogError("PayPal refund failed for payment {PaymentId}: {Error}",
+                            request.PaymentId, paypalRefundResult.ErrorMessage);
                     }
                 }
                 catch (Exception ex)

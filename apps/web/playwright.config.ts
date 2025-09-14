@@ -54,11 +54,12 @@ export default defineConfig({
     },
   ],
 
-  webServer: [
-    {
-      command: 'npm run dev',
-      port: parseInt(process.env.VITE_PORT || '5173', 10),
-      reuseExistingServer: true,
-    },
-  ],
+  // REMOVED webServer configuration - use existing Docker services
+  // 
+  // Tests expect services to be running via Docker at:
+  // - Web: http://localhost:5173 (React + Vite)  
+  // - API: http://localhost:5655 (Minimal API) 
+  // - Database: PostgreSQL on localhost:5433
+  // 
+  // Start services first with: ./dev.sh from project root
 });

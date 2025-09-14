@@ -49,7 +49,7 @@ public interface IPaymentService
     Task<Result<Payment>> UpdatePaymentStatusAsync(
         Guid paymentId,
         PaymentStatus status,
-        string? stripePaymentIntentId = null,
+        string? paypalOrderId = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -82,9 +82,8 @@ public class ProcessPaymentRequest
     public ValueObjects.Money OriginalAmount { get; set; } = null!;
     public decimal SlidingScalePercentage { get; set; }
     public PaymentMethodType PaymentMethodType { get; set; }
-    public string? SavedPaymentMethodId { get; set; }
-    public string? StripePaymentMethodId { get; set; }
-    public bool SavePaymentMethod { get; set; }
+    public string? ReturnUrl { get; set; }
+    public string? CancelUrl { get; set; }
     public string IpAddress { get; set; } = string.Empty;
     public string UserAgent { get; set; } = string.Empty;
 }

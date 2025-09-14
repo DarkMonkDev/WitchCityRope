@@ -39,10 +39,11 @@ import { useOfflineSync } from '../hooks/useOfflineSync';
 import type { 
   CheckInAttendee, 
   AttendeeSearchParams,
-  RegistrationStatus,
   ManualEntryData,
-  CheckInResponse
+  CheckInResponse,
+  CheckInDashboard as CheckInDashboardType
 } from '../types/checkin.types';
+import { RegistrationStatus } from '../types/checkin.types';
 import { TOUCH_TARGETS } from '../types/checkin.types';
 
 interface CheckInInterfaceProps {
@@ -236,7 +237,12 @@ export function CheckInInterface({
     isLoading: loadingDashboard,
     error: dashboardError,
     refetch: refetchDashboard
-  } = useEventDashboard(eventId);
+  } = useEventDashboard(eventId) as {
+    data: CheckInDashboardType | undefined;
+    isLoading: boolean;
+    error: Error | null;
+    refetch: () => void;
+  };
 
   const checkInMutation = useCheckInAttendee(eventId);
   const manualEntryMutation = useCreateManualEntry(eventId);
@@ -260,7 +266,7 @@ export function CheckInInterface({
         notes: undefined,
         overrideCapacity: false,
         isManualEntry: false
-      });
+      }) as CheckInResponse;
 
       setSelectedAttendee(attendee);
       setCheckInResponse(response);
@@ -285,7 +291,7 @@ export function CheckInInterface({
         userId: 'manual',
         sceneName: data.name,
         email: data.email,
-        registrationStatus: 'checked-in',
+        registrationStatus: RegistrationStatus.CheckedIn,
         isFirstTime: true, // Assume manual entries are first-time
         hasCompletedWaiver: data.hasCompletedWaiver,
         dietaryRestrictions: data.dietaryRestrictions || undefined,
@@ -293,7 +299,7 @@ export function CheckInInterface({
       };
 
       setSelectedAttendee(tempAttendee);
-      setCheckInResponse(response);
+      setCheckInResponse(response as CheckInResponse);
       closeManualEntry();
       openConfirmation();
     } catch (error) {
@@ -335,9 +341,9 @@ export function CheckInInterface({
           </Group>
 
           <CheckInDashboard
-            dashboard={dashboard}
+            dashboard={dashboard || {} as CheckInDashboardType}
             isLoading={loadingDashboard}
-            error={dashboardError}
+            error={dashboardError?.message || null}
             onRefresh={refetchDashboard}
             canExport={true}
           />
@@ -400,7 +406,7 @@ export function CheckInInterface({
           searchValue={searchTerm}
           statusFilter={statusFilter}
           isLoading={loadingAttendees}
-          resultCount={attendeesResponse?.attendees.length}
+          resultCount={(attendeesResponse as any)?.attendees?.length}
           placeholder="Search name, email, or ticket #"
         />
 
@@ -435,12 +441,12 @@ export function CheckInInterface({
 
         {/* Attendee List */}
         <AttendeeList
-          attendees={attendeesResponse?.attendees || []}
+          attendees={(attendeesResponse as any)?.attendees || []}
           onCheckIn={handleCheckIn}
           isLoading={loadingAttendees}
-          error={attendeesError}
+          error={attendeesError as string}
           isCheckingIn={checkInMutation.isPending}
-          checkingInAttendeeId={checkInMutation.variables?.attendeeId}
+          checkingInAttendeeId={(checkInMutation as any).variables?.attendeeId}
         />
 
         {/* Check-in Confirmation Modal */}

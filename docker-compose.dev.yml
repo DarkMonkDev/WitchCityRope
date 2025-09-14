@@ -93,15 +93,10 @@ services:
       DOTNET_WATCH_RESTART_ON_RUDE_EDIT: "true"
     
     volumes:
-      # Source code mounting for hot reload
-      - ./apps/api:/app:cached
-      - ./src/WitchCityRope.Core:/app/WitchCityRope.Core:cached
-      - ./src/WitchCityRope.Infrastructure:/app/WitchCityRope.Infrastructure:cached
-      
       # Package cache for faster builds
       - nuget_cache:/root/.nuget/packages
       
-      # Exclude build artifacts from host
+      # Exclude build artifacts from host to prevent conflicts
       - /app/bin
       - /app/obj
       - /app/WitchCityRope.Core/bin
@@ -109,8 +104,8 @@ services:
       - /app/WitchCityRope.Infrastructure/bin
       - /app/WitchCityRope.Infrastructure/obj
     
-    # Development command with hot reload
-    command: ["dotnet", "watch", "run", "--project", "/app/WitchCityRope.Api.csproj", "--urls", "http://0.0.0.0:8080"]
+    # Development command with hot reload  
+    command: ["dotnet", "watch", "run", "--urls", "http://0.0.0.0:8080"]
     
     # Override health check for development (more frequent)
     healthcheck:

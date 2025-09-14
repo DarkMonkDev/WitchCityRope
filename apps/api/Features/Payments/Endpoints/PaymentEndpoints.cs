@@ -77,9 +77,8 @@ public class PaymentEndpoints : ControllerBase
                 OriginalAmount = Money.Create(request.OriginalAmount, request.Currency),
                 SlidingScalePercentage = request.SlidingScalePercentage,
                 PaymentMethodType = request.PaymentMethodType,
-                SavedPaymentMethodId = request.SavedPaymentMethodId,
-                StripePaymentMethodId = request.StripePaymentMethodId,
-                SavePaymentMethod = request.SavePaymentMethod,
+                ReturnUrl = request.ReturnUrl,
+                CancelUrl = request.CancelUrl,
                 IpAddress = clientInfo.IpAddress,
                 UserAgent = clientInfo.UserAgent
             };

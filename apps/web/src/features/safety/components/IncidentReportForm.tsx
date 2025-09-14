@@ -111,7 +111,7 @@ export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormP
     
     try {
       const result = await submitIncident(values, user?.id);
-      onSubmissionComplete?.(result.referenceNumber);
+      onSubmissionComplete?.((result as any).referenceNumber);
     } catch (error) {
       console.error('Submission failed:', error);
     }
@@ -128,7 +128,7 @@ export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormP
   if (isSuccess && submissionResult) {
     return (
       <SubmissionConfirmation 
-        submissionResult={submissionResult}
+        submissionResult={submissionResult as any}
         onNewReport={handleNewReport}
       />
     );

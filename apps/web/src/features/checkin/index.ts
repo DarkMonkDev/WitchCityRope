@@ -2,7 +2,15 @@
 // Main exports for the CheckIn system
 
 // Components
-export * from './components';
+export { 
+  AttendeeSearch, 
+  CompactAttendeeSearch,
+  AttendeeList,
+  CheckInConfirmation,
+  CheckInInterface
+} from './components';
+export { CheckInDashboard } from './components/CheckInDashboard';
+export { SyncStatus, CompactSyncStatus, SyncProgress } from './components/SyncStatus';
 
 // Hooks
 export * from './hooks/useCheckIn';

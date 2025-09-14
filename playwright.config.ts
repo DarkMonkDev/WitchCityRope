@@ -1,26 +1,50 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Playwright configuration for Admin Events Management testing
+ * Playwright configuration for E2E testing against existing Docker services
+ * 
+ * IMPORTANT: This configuration is designed to work with existing Docker containers:
+ * - Web Service: http://localhost:5173 (React + Vite)
+ * - API Service: http://localhost:5655 (Minimal API)
+ * - Database: PostgreSQL on localhost:5433
+ * 
+ * Start services first with: ./dev.sh
  */
 export default defineConfig({
-  testDir: './tests/playwright', // Look for tests in tests/playwright directory
+  testDir: './tests/playwright',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : 25, // Increased to 25 parallel workers for maximum test execution speed
+  workers: process.env.CI ? 1 : 6, // Reduced workers to prevent port conflicts
+  globalSetup: './tests/e2e/global-setup.ts', // Verify Docker services before tests
   reporter: [
     ['list'],
     ['json', { outputFile: './test-results/test-results.json' }],
     ['html', { outputFolder: './test-results/html-report' }]
   ],
   use: {
-    baseURL: process.env.VITE_BASE_URL || `http://localhost:${process.env.VITE_PORT || 5173}`,
+    // Use existing Docker web service
+    baseURL: 'http://localhost:5173',
+    
+    // API endpoint for tests that need direct API access
+    extraHTTPHeaders: {
+      'Accept': 'application/json',
+    },
+    
     trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
+    screenshot: 'only-on-failure', 
     video: 'retain-on-failure',
     actionTimeout: 30000,
-    navigationTimeout: 30000
+    navigationTimeout: 30000,
+    
+    // Additional reliability settings for Docker environment
+    launchOptions: {
+      args: [
+        '--disable-web-security', // Allow cross-origin requests for API testing
+        '--disable-dev-shm-usage', // Overcome limited resource problems
+        '--no-sandbox', // Required for containerized environments
+      ],
+    },
   },
   timeout: 90 * 1000, // 1.5 minutes per test
 
@@ -31,10 +55,10 @@ export default defineConfig({
     }
   ],
 
-  webServer: {
-    command: 'npm run dev',
-    url: process.env.VITE_BASE_URL || `http://localhost:${process.env.VITE_PORT || 5173}`,
-    reuseExistingServer: true, // Use existing dev server
-    timeout: 30 * 1000,
-  },
+  // REMOVED webServer configuration - use existing Docker services
+  // Tests expect services to be running at:
+  // - Web: http://localhost:5173 
+  // - API: http://localhost:5655
+  // 
+  // Start with: ./dev.sh before running tests
 });

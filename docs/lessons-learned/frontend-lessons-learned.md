@@ -531,85 +531,119 @@ const { data: dashboard } = useQuery() as {
 
 ---
 
-## 💳 COMPLETED: Payment System Frontend Implementation (2025-09-13) 💳
+## 💳 COMPLETED: PayPal Payment System Migration (2025-09-13) 💳
 **Date**: 2025-09-13
-**Category**: Feature Implementation
-**Severity**: HIGH - CRITICAL BUSINESS FEATURE
+**Category**: Feature Implementation - Payment Provider Migration
+**Severity**: CRITICAL BUSINESS FEATURE
 
 ### What We Accomplished
-**COMPLETE PAYMENT SYSTEM FRONTEND**: Successfully implemented comprehensive payment system with dignified sliding scale pricing interface, fully aligned with community values and backend API requirements.
+**COMPLETE STRIPE TO PAYPAL MIGRATION**: Successfully replaced all Stripe payment components with PayPal/Venmo integration while maintaining dignified sliding scale pricing and community values.
 
-**KEY IMPLEMENTATION SUCCESS**:
-- **TypeScript-First Architecture**: Complete type definitions matching backend DTOs with strict type safety
-- **Dignified Sliding Scale Interface**: Honor-based 0-75% discount system with community-focused messaging
-- **Stripe Integration Ready**: Full Stripe Elements integration with secure card input and error handling
-- **Mantine v7 Compliance**: All components using Mantine v7 patterns with proper prop usage (`gap` not `spacing`)
-- **Mobile-First Design**: Responsive components with touch targets 44px+ and compact variants
-- **Complete Payment Flow**: 3-step stepper UI (pricing → payment → confirmation) with error recovery
+**KEY MIGRATION SUCCESS**:
+- **Payment Provider Migration**: Complete replacement of Stripe with PayPal SDK (@paypal/react-paypal-js)
+- **Maintained Sliding Scale System**: Preserved honor-based 0-75% discount system with dignified messaging
+- **PayPal + Venmo Integration**: Automatic Venmo support on mobile devices
+- **Simplified Payment Flow**: Eliminated card input forms - users redirected to PayPal for secure payment
+- **Backend API Alignment**: Updated request/response types to match PayPal backend expectations
+- **Success/Cancel Flow**: Proper handling of PayPal redirects with dedicated success/cancel pages
 
 **CRITICAL SUCCESS PATTERNS**:
 ```typescript
-// ✅ CORRECT: Dignified sliding scale implementation
-export const SlidingScaleSelector = ({ basePrice, onAmountChange }) => {
+// ✅ CORRECT: PayPal button integration with sliding scale
+export const PayPalButton: React.FC<PayPalButtonProps> = (props) => {
   return (
-    <Paper bg="#FAF6F2" style={{ border: '2px solid #D4A5A5' }}>
-      <Radio.Group>
-        <Radio value="full" label="Full Price" 
-               description="Support our community at standard rates" />
-        <Radio value="sliding" label="Sliding Scale" 
-               description="Pay what works within your means" />
-      </Radio.Group>
-      
-      {/* Honor-based slider with community messaging */}
-      <Alert icon={<IconHeart />} color="wcr" variant="light">
-        Our community thrives when everyone can participate. 
-        Choose the amount that works for your situation - no questions asked.
-      </Alert>
-    </Paper>
+    <PayPalScriptProvider 
+      options={{
+        clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID,
+        currency: props.eventInfo.currency || "USD",
+        intent: "capture",
+        "enable-funding": "venmo", // Venmo automatically on mobile
+        "disable-funding": "" 
+      }}
+    >
+      <PayPalButtons
+        createOrder={async () => {
+          const response = await fetch('/api/payments/process', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include', // httpOnly cookies
+            body: JSON.stringify({
+              eventRegistrationId: eventInfo.registrationId,
+              originalAmount: eventInfo.basePrice,
+              slidingScalePercentage,
+              paymentMethodType: PaymentMethodType.PayPal,
+              returnUrl: window.location.origin + '/payment/success',
+              cancelUrl: window.location.origin + '/payment/cancel'
+            })
+          });
+          const orderData = await response.json();
+          return orderData.orderId;
+        }}
+        onApprove={async (data) => onPaymentSuccess?.(data.orderID)}
+        onError={onPaymentError}
+      />
+    </PayPalScriptProvider>
   );
 };
 
-// ✅ CORRECT: Stripe integration with proper error handling
-const { processPayment } = usePayment(registrationId);
-const paymentResult = await processPayment({
-  originalAmount: eventInfo.basePrice,
-  slidingScalePercentage: discountPercentage,
-  paymentMethodType: PaymentMethodType.NewCard,
-  stripePaymentMethodId: paymentMethod.id,
-  savePaymentMethod: values.savePaymentMethod
-}) as PaymentResponse;
+// ✅ CORRECT: Updated request types for PayPal backend
+export interface ProcessPaymentRequest {
+  eventRegistrationId: string;
+  originalAmount: number;
+  slidingScalePercentage: number;
+  paymentMethodType: PaymentMethodType;
+  returnUrl: string;    // PayPal success URL
+  cancelUrl: string;    // PayPal cancel URL
+  savePaymentMethod: boolean;
+  metadata?: Record<string, any>;
+  // Removed: stripePaymentMethodId
+}
 
-// ✅ CORRECT: Mantine v7 component usage
-<Stack gap="md">  {/* NOT spacing="md" */}
-  <Group gap="sm">  {/* NOT spacing="sm" */}
-    <Text>Mantine v7 compliant</Text>
-  </Group>
-</Stack>
+// ✅ CORRECT: PayPal response with approval URL
+export interface PaymentResponse {
+  // ... existing fields
+  payPalApprovalUrl?: string;  // Instead of clientSecret
+}
 ```
 
-**FILES IMPLEMENTED**:
-- `/apps/web/src/features/payments/` - Complete feature implementation
-  - `types/payment.types.ts` - TypeScript types matching backend DTOs
-  - `api/paymentApi.ts` - API service with error handling and utilities
-  - `hooks/useSlidingScale.ts` - Sliding scale calculation logic
-  - `hooks/usePayment.ts` - Payment processing with Stripe integration
-  - `components/SlidingScaleSelector.tsx` - CRITICAL: Dignified pricing interface
-  - `components/PaymentForm.tsx` - Stripe Elements payment form
-  - `components/PaymentConfirmation.tsx` - Success confirmation screen
-  - `components/PaymentSummary.tsx` - Order summary with price breakdown
-  - `pages/EventPaymentPage.tsx` - Complete payment flow page
-  - `index.ts` - Feature exports
-- `/apps/web/src/pages/PaymentTestPage.tsx` - Interactive component demo
-- Routes added to `/apps/web/src/routes/router.tsx`
-- Stripe packages installed: `@stripe/stripe-js`, `@stripe/react-stripe-js`
-- Environment variable added: `VITE_STRIPE_PUBLISHABLE_KEY`
+**FILES MIGRATED/CREATED**:
+- **REMOVED**: `@stripe/stripe-js`, `@stripe/react-stripe-js` packages
+- **ADDED**: `@paypal/react-paypal-js` package
+- **UPDATED**: Environment variables (`.env.local`, `.env.example`)
+  - Removed: `VITE_STRIPE_PUBLISHABLE_KEY`
+  - Added: `VITE_PAYPAL_CLIENT_ID=AUDFPb1c8YzskQ9gpMaFJN2MWvtiErUaBXPMFMadPE8Hn78PJziXrQt70C-bn0X5PUF_g_GfhArsivuU`
 
-**COMMUNITY VALUES IMPLEMENTATION**:
-- **Honor-Based System**: No verification or documentation required for sliding scale
-- **Dignified Language**: "Pay what works for your means" not "financial assistance"
-- **Privacy Assured**: Clear messaging about confidential sliding scale usage
+- **MIGRATED COMPONENTS**:
+  - `types/payment.types.ts` - Updated for PayPal API (added returnUrl/cancelUrl, removed stripePaymentMethodId)
+  - `components/PaymentForm.tsx` - Complete rewrite for PayPal integration
+  - `components/PayPalButton.tsx` - NEW: PayPal/Venmo button component
+  - `hooks/usePayment.ts` - Updated for PayPal flow (removed Stripe dependencies)
+  - `api/paymentApi.ts` - Updated utility functions for PayPal validation
+
+- **NEW SUCCESS/CANCEL FLOW**:
+  - `pages/payments/PaymentSuccessPage.tsx` - PayPal success redirect handler
+  - `pages/payments/PaymentCancelPage.tsx` - PayPal cancel redirect handler
+  - Routes added to `/apps/web/src/routes/router.tsx` for `/payment/success` and `/payment/cancel`
+
+- **UPDATED TEST PAGES**:
+  - `pages/PaymentTestPage.tsx` - Updated for PayPal testing environment
+
+**MAINTAINED COMMUNITY VALUES**:
+- **Honor-Based Sliding Scale**: Preserved 0-75% discount system with dignified messaging
+- **No Card Forms**: Eliminated complex card input - users redirected to PayPal/Venmo
+- **Mobile-First**: Venmo button automatically appears on mobile devices  
 - **Community Support**: Messaging focuses on mutual aid, not charity
-- **Accessibility**: WCAG 2.1 AA compliant with mobile-first design
+- **Accessibility**: WCAG 2.1 AA compliant with simplified payment flow
+- **Security**: No card data handling - all processed securely by PayPal
+
+**CRITICAL PAYPAL INTEGRATION LESSONS**:
+1. **PayPal SDK Configuration**: Use `clientId` (camelCase) not `"client-id"` in PayPalScriptProvider options
+2. **Venmo Support**: Automatic on mobile - just add `"enable-funding": "venmo"` to options
+3. **Sandbox Environment**: Use provided sandbox Client ID for testing - no production payments
+4. **Payment Flow**: Simplified - no card input, user redirected to PayPal, returns to success/cancel URLs
+5. **Backend Integration**: Must handle returnUrl/cancelUrl in payment requests, remove Stripe fields
+6. **Error Handling**: PayPal handles payment errors, but still need network/API error handling
+7. **Success Handling**: User redirected to success page with payment details for confirmation
 
 ### Action Items
 - [x] **IMPLEMENT complete payment feature structure** following established patterns

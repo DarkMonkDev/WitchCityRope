@@ -59,14 +59,19 @@ public class Payment
     public PaymentMethodType PaymentMethodType { get; set; }
     
     /// <summary>
-    /// Encrypted Stripe Payment Intent ID (for PCI compliance)
+    /// Encrypted PayPal Order ID (for PCI compliance)
     /// </summary>
-    public string? EncryptedStripePaymentIntentId { get; set; }
+    public string? EncryptedPayPalOrderId { get; set; }
     
     /// <summary>
-    /// Encrypted Stripe Customer ID (for PCI compliance)
+    /// Encrypted PayPal Payer ID (for PCI compliance)
     /// </summary>
-    public string? EncryptedStripeCustomerId { get; set; }
+    public string? EncryptedPayPalPayerId { get; set; }
+    
+    /// <summary>
+    /// Venmo username if payment was made via Venmo (nullable)
+    /// </summary>
+    public string? VenmoUsername { get; set; }
     
     #endregion
     
@@ -107,9 +112,9 @@ public class Payment
     public DateTime? RefundedAt { get; set; }
     
     /// <summary>
-    /// Encrypted Stripe Refund ID (for PCI compliance)
+    /// Encrypted PayPal Refund ID (for PCI compliance)
     /// </summary>
-    public string? EncryptedStripeRefundId { get; set; }
+    public string? EncryptedPayPalRefundId { get; set; }
     
     /// <summary>
     /// Reason for the refund

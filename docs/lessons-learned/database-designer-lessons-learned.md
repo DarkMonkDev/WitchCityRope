@@ -66,6 +66,236 @@
 
 ---
 
+## 🚨 CRITICAL: Payment System PCI-Compliant Database Architecture (NEW) 🚨
+**Date**: 2025-09-13
+**Category**: Security Architecture
+**Severity**: Critical
+
+### Context
+The Payment System database design revealed critical patterns for PCI-compliant financial data storage, sliding scale pricing support, and comprehensive audit trails in PostgreSQL while maintaining community values.
+
+### What We Learned
+- **Never store credit card data**: Only encrypted Stripe tokens are acceptable for PCI compliance
+- **Sliding scale pricing requires honor system**: 0-75% discount with no verification constraints
+- **Money value objects avoid nullable owned entity issues**: Use separate decimal/currency fields
+- **JSONB metadata enables flexible payment processing**: Stripe webhooks and processing details
+- **Comprehensive audit trails are legally required**: All payment operations must be logged
+- **Partial indexes optimize payment queries**: Status-specific indexes improve performance dramatically
+
+### Critical Payment System Patterns
+```sql
+-- ✅ CORRECT - PCI compliant payment storage (never store card numbers)
+CREATE TABLE "Payments" (
+    "Id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "EncryptedStripePaymentIntentId" TEXT NULL,  -- Encrypted tokens only
+    "AmountValue" DECIMAL(10,2) NOT NULL CHECK ("AmountValue" >= 0),
+    "SlidingScalePercentage" DECIMAL(5,2) NOT NULL DEFAULT 0.00 
+        CHECK ("SlidingScalePercentage" >= 0 AND "SlidingScalePercentage" <= 75.00),
+    "Status" INTEGER NOT NULL DEFAULT 0,
+    "Metadata" JSONB NOT NULL DEFAULT '{}',
+    "CreatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ✅ CORRECT - Performance optimization with partial indexes
+CREATE INDEX "IX_Payments_PendingStatus" ON "Payments"("CreatedAt" DESC) 
+    WHERE "Status" = 0; -- Pending payments only
+
+-- ✅ CORRECT - Comprehensive audit trail with JSONB
+CREATE TABLE "PaymentAuditLog" (
+    "Id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "PaymentId" UUID NOT NULL,
+    "ActionType" VARCHAR(50) NOT NULL,
+    "OldValues" JSONB NULL,
+    "NewValues" JSONB NULL,
+    "IpAddress" INET NULL,  -- Security tracking
+    "CreatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ✅ CORRECT - GIN indexes for JSONB audit queries
+CREATE INDEX "IX_PaymentAuditLog_OldValues_Gin" ON "PaymentAuditLog" USING GIN ("OldValues");
+```
+
+### Payment System Business Rules Implementation
+```csharp
+// ✅ CORRECT - Money value object avoiding nullable owned entity issues
+public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
+{
+    public void Configure(EntityTypeBuilder<Payment> builder)
+    {
+        // Separate properties instead of owned entity to avoid EF Core nullable issues
+        builder.Property(p => p.AmountValue)
+               .HasColumnType("decimal(10,2)")
+               .HasColumnName("AmountValue");
+               
+        builder.Property(p => p.Currency)
+               .HasMaxLength(3)
+               .HasDefaultValue("USD");
+        
+        // Sliding scale percentage with business rule constraints
+        builder.Property(p => p.SlidingScalePercentage)
+               .HasColumnType("decimal(5,2)");
+        
+        // JSONB for flexible Stripe metadata
+        builder.Property(p => p.Metadata)
+               .HasColumnType("jsonb")
+               .HasDefaultValue("{}");
+        
+        // Critical: UTC DateTime handling for PostgreSQL
+        builder.Property(p => p.CreatedAt)
+               .HasColumnType("timestamptz");
+    }
+}
+
+// ✅ CORRECT - Business rule enforcement with database constraints
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<Payment>()
+        .ToTable("Payments", t => t.HasCheckConstraint(
+            "CHK_Payments_SlidingScale_Range", 
+            "\"SlidingScalePercentage\" >= 0 AND \"SlidingScalePercentage\" <= 75.00"
+        ));
+}
+```
+
+### PCI Compliance Database Architecture
+- **Encryption Strategy**: Application-level encryption for all Stripe identifiers before database storage
+- **Audit Requirements**: Complete change tracking with user context, IP addresses, and before/after values
+- **Access Control**: Role-based database permissions with potential Row Level Security for multi-tenancy
+- **Data Retention**: Payment logs retained per legal requirements with secure deletion after retention period
+- **Backup Security**: Encrypted backups with separate key management for payment data
+
+### Payment System Performance Patterns
+```sql
+-- ✅ CORRECT - Multi-layered indexing strategy for payment queries
+-- Primary performance indexes
+CREATE INDEX "IX_Payments_UserId" ON "Payments"("UserId");
+CREATE INDEX "IX_Payments_Status" ON "Payments"("Status");
+CREATE INDEX "IX_Payments_ProcessedAt" ON "Payments"("ProcessedAt" DESC);
+
+-- Partial indexes for specific use cases (much faster than full table scans)
+CREATE INDEX "IX_Payments_PendingStatus" ON "Payments"("CreatedAt" DESC) 
+    WHERE "Status" = 0;
+CREATE INDEX "IX_Payments_FailedStatus" ON "Payments"("ProcessedAt" DESC) 
+    WHERE "Status" = 2;
+
+-- Unique business rule constraints
+CREATE UNIQUE INDEX "UX_Payments_EventRegistration_Completed" 
+    ON "Payments"("EventRegistrationId") 
+    WHERE "Status" = 1; -- Only one completed payment per registration
+
+-- JSONB GIN indexes for flexible metadata queries
+CREATE INDEX "IX_Payments_Metadata_Gin" ON "Payments" USING GIN ("Metadata");
+```
+
+### Database Developer Action Items
+- [x] IMPLEMENT PCI-compliant storage patterns (encrypted tokens only, never card data)
+- [x] DESIGN sliding scale pricing with honor system constraints (0-75% discount)
+- [x] CONFIGURE Money value objects using separate decimal/currency properties
+- [x] CREATE comprehensive audit trail with JSONB old/new values tracking
+- [x] OPTIMIZE performance with partial indexes for status-specific queries
+- [ ] TEST payment workflows with encrypted Stripe token storage
+- [ ] VALIDATE audit log performance with GIN indexes under load
+- [ ] IMPLEMENT Row Level Security if multi-tenant requirements emerge
+
+### Community Values in Database Design
+The Payment System design preserves WitchCityRope's core community values:
+- **Sliding Scale Pricing**: Database constraints support 0-75% discounts with no verification required
+- **Privacy Protection**: All sensitive data encrypted, sliding scale usage private
+- **Economic Inclusivity**: Honor system implementation respects member dignity
+- **Transparency**: Complete audit trails for financial accountability
+
+### Tags
+#critical #payment-system #pci-compliance #sliding-scale-pricing #stripe-integration #audit-trails #postgresql-optimization #money-value-objects #jsonb-performance #partial-indexes #community-values
+
+---
+
+## 🚨 CRITICAL: Vetting System Migration Sync Issues (NEW) 🚨
+**Date**: 2025-09-13
+**Category**: Database Migration
+**Severity**: Critical
+
+### Context
+The Vetting System implementation revealed a critical database migration sync issue where EF Core migrations were created but never applied to the database, causing schema mismatches and integration test failures.
+
+### What We Learned
+- **Migration status verification is crucial**: Always check `dotnet ef migrations list` to see pending migrations
+- **Database schema can drift from EF model**: Migrations in code != migrations applied to database
+- **Integration tests fail on schema mismatch**: TestContainers require matching database schema
+- **Drop and recreate is fastest resolution**: For development databases, fresh start prevents accumulated drift
+- **Complex entity relationships require careful planning**: 11-entity system with encryption and audit patterns
+
+### Critical Migration Patterns
+```csharp
+// ✅ CORRECT - Always verify migration status before testing
+dotnet ef migrations list --project src/WitchCityRope.Infrastructure --startup-project apps/api
+// Look for: [ ] (pending) vs [X] (applied)
+
+// ✅ CORRECT - Fresh database creation for sync issues
+dotnet ef database drop --project src/WitchCityRope.Infrastructure --startup-project apps/api --force
+dotnet ef database update --project src/WitchCityRope.Infrastructure --startup-project apps/api
+
+// ✅ CORRECT - Entity with proper ID initialization and UTC handling
+public class VettingRequest
+{
+    public VettingRequest()
+    {
+        Id = Guid.NewGuid();  // CRITICAL: Prevents duplicate key violations
+        CreatedAt = DateTime.UtcNow;  // CRITICAL: PostgreSQL timestamptz compatibility
+        UpdatedAt = DateTime.UtcNow;
+    }
+    
+    public Guid Id { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
+// ✅ CORRECT - Complex entity relationships with proper foreign keys
+public class VettingDecision
+{
+    public Guid Id { get; set; }
+    public Guid VettingRequestId { get; set; }  // Foreign key
+    public Guid ReviewerId { get; set; }        // Foreign key to User
+    
+    // Navigation properties configured in EntityTypeConfiguration
+    public VettingRequest VettingRequest { get; set; } = null!;
+}
+```
+
+### Vetting System Architecture Lessons
+- **11 Entity Tables**: VettingRequest, VettingDecision, VettingDocument, etc.
+- **Encryption Integration**: PII fields require special handling in database design
+- **Audit Log Pattern**: CreatedAt/UpdatedAt fields on all entities with UTC handling
+- **JSONB Columns**: Flexible metadata storage with GIN indexes for performance
+- **Complex Relationships**: Many-to-one, one-to-many patterns with proper foreign key constraints
+
+### Database Developer Action Items
+- [x] ALWAYS check migration status with `dotnet ef migrations list` before testing
+- [x] VERIFY database schema matches EF model before running integration tests
+- [x] USE drop/recreate approach for development database sync issues
+- [x] IMPLEMENT proper entity ID initialization in constructors
+- [x] ENSURE all DateTime fields use UTC for PostgreSQL compatibility
+- [ ] CREATE migration verification step in CI/CD pipeline
+- [ ] DOCUMENT migration status checking in developer onboarding
+- [ ] ADD database health checks to detect schema drift
+
+### Migration Sync Prevention Strategies
+1. **Pre-Test Verification**: Always check migration status before running integration tests
+2. **Automated Checks**: Include migration status in health check endpoints
+3. **Developer Training**: Document the migration workflow clearly
+4. **CI/CD Integration**: Verify migrations are applied in deployment pipeline
+5. **Schema Drift Detection**: Regular database schema validation
+
+### Production Considerations
+- **Never drop/recreate production databases**: Use proper migration rollback strategies
+- **Test migrations on staging first**: Validate schema changes with production-like data
+- **Backup before migrations**: Always have rollback plan for production changes
+- **Monitor migration performance**: Large table migrations may require maintenance windows
+
+### Tags
+#critical #database-migration #vetting-system #schema-sync #entity-framework #integration-tests #postgresql
+
+---
+
 ## 🚨 CRITICAL: Event Session Matrix Migration Patterns (NEW) 🚨
 **Date**: 2025-08-25
 **Category**: Database Migration

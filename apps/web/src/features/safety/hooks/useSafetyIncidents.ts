@@ -8,7 +8,8 @@ import type {
   SearchIncidentsRequest,
   UpdateIncidentRequest,
   IncidentSeverity,
-  IncidentStatus
+  IncidentStatus,
+  SafetyIncidentDto
 } from '../types/safety.types';
 
 // Query keys for cache management
@@ -48,15 +49,15 @@ export function useSubmitIncident() {
 
 /**
  * Get incident status by reference number
- * Public endpoint for tracking incident progress
+ * Public endpoint, no auth required
  */
 export function useIncidentStatus(referenceNumber: string, enabled: boolean = true) {
   return useQuery({
     queryKey: safetyKeys.status(referenceNumber),
     queryFn: () => safetyApi.getIncidentStatus(referenceNumber),
     enabled: enabled && !!referenceNumber,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: false // Don't retry if incident not found
+    staleTime: 60 * 1000, // 1 minute (status doesn't change rapidly)
+    retry: false // Don't retry failed status lookups
   });
 }
 
@@ -65,7 +66,7 @@ export function useIncidentStatus(referenceNumber: string, enabled: boolean = tr
  * Requires safety team authorization
  */
 export function useIncidentDetail(incidentId: string, enabled: boolean = true) {
-  return useQuery({
+  return useQuery<SafetyIncidentDto>({
     queryKey: safetyKeys.incident(incidentId),
     queryFn: () => safetyApi.getIncidentDetail(incidentId),
     enabled: enabled && !!incidentId,
@@ -81,18 +82,16 @@ export function useIncidentDetail(incidentId: string, enabled: boolean = true) {
 }
 
 /**
- * Get safety dashboard data for admin interface
+ * Get safety dashboard data for admin overview
  * Requires safety team authorization
  */
-export function useSafetyDashboard(enabled: boolean = true) {
+export function useSafetyDashboard() {
   return useQuery({
     queryKey: safetyKeys.dashboard(),
-    queryFn: () => safetyApi.getDashboardData(),
-    enabled,
+    queryFn: () => safetyApi.getSafetyDashboard(),
     staleTime: 2 * 60 * 1000, // 2 minutes
-    refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
+    refetchOnWindowFocus: true, // Dashboard should be current when visible
     retry: (failureCount, error: any) => {
-      // Don't retry on 403 errors
       if (error?.response?.status === 403) {
         return false;
       }
@@ -102,18 +101,29 @@ export function useSafetyDashboard(enabled: boolean = true) {
 }
 
 /**
- * Search and filter incidents for admin management
+ * Search incidents with filtering
  * Requires safety team authorization
  */
-export function useSearchIncidents(request: SearchIncidentsRequest, enabled: boolean = true) {
+export function useSearchIncidents(filters: SearchIncidentsRequest) {
   return useQuery({
-    queryKey: safetyKeys.search(request),
-    queryFn: () => safetyApi.searchIncidents(request),
-    enabled,
-    staleTime: 1 * 60 * 1000, // 1 minute
-    keepPreviousData: true, // Keep previous results while loading new ones
+    queryKey: safetyKeys.search(filters),
+    queryFn: () => safetyApi.searchIncidents(filters),
+    enabled: Object.keys(filters).some(key => filters[key as keyof SearchIncidentsRequest] !== undefined),
+    staleTime: 60 * 1000, // 1 minute
+    keepPreviousData: true // Maintain search results while fetching new ones
+  });
+}
+
+/**
+ * Get user's own incident reports
+ * For authenticated users to track their reports
+ */
+export function useUserReports() {
+  return useQuery({
+    queryKey: safetyKeys.userReports(),
+    queryFn: () => safetyApi.getUserReports(),
+    staleTime: 5 * 60 * 1000, // 5 minutes (user reports don't change often)
     retry: (failureCount, error: any) => {
-      // Don't retry on 403 errors
       if (error?.response?.status === 403) {
         return false;
       }
@@ -123,8 +133,8 @@ export function useSearchIncidents(request: SearchIncidentsRequest, enabled: boo
 }
 
 /**
- * Update incident status and assignment
- * Requires safety team authorization with optimistic updates
+ * Update incident status, assignment, or add notes
+ * Requires safety team authorization
  */
 export function useUpdateIncident() {
   const queryClient = useQueryClient();
@@ -132,101 +142,66 @@ export function useUpdateIncident() {
   return useMutation({
     mutationFn: ({ incidentId, request }: { incidentId: string; request: UpdateIncidentRequest }) =>
       safetyApi.updateIncident(incidentId, request),
-    
-    onMutate: async ({ incidentId, request }) => {
-      // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: safetyKeys.incident(incidentId) });
-      
-      // Snapshot previous value
-      const previousIncident = queryClient.getQueryData(safetyKeys.incident(incidentId));
-      
-      // Optimistically update the incident
-      queryClient.setQueryData(safetyKeys.incident(incidentId), (old: any) => {
-        if (!old) return old;
-        return { ...old, ...request, updatedAt: new Date().toISOString() };
-      });
-      
-      return { previousIncident };
-    },
-    
-    onError: (err, { incidentId }, context) => {
-      // Rollback on error
-      if (context?.previousIncident) {
-        queryClient.setQueryData(safetyKeys.incident(incidentId), context.previousIncident);
-      }
-      console.error('Failed to update incident:', err);
-    },
-    
-    onSuccess: (data, { incidentId }) => {
-      // Update the cache with the response data
-      queryClient.setQueryData(safetyKeys.incident(incidentId), data);
-      
+    onSuccess: (_, { incidentId }) => {
       // Invalidate related queries
+      queryClient.invalidateQueries({ queryKey: safetyKeys.incident(incidentId) });
       queryClient.invalidateQueries({ queryKey: safetyKeys.dashboard() });
       queryClient.invalidateQueries({ queryKey: safetyKeys.incidents() });
-      
-      console.log('Incident updated successfully:', data.referenceNumber);
+    },
+    onError: (error) => {
+      console.error('Failed to update incident:', error);
     }
   });
 }
 
 /**
- * Get user's own incident reports
- * Requires authentication
+ * Delete incident (admin only)
+ * Requires admin authorization
  */
-export function useUserReports(enabled: boolean = true) {
-  return useQuery({
-    queryKey: safetyKeys.userReports(),
-    queryFn: () => safetyApi.getUserReports(),
-    enabled,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: (failureCount, error: any) => {
-      // Don't retry on 401/403 errors
-      if (error?.response?.status === 401 || error?.response?.status === 403) {
-        return false;
-      }
-      return failureCount < 2;
+export function useDeleteIncident() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (incidentId: string) => safetyApi.deleteIncident(incidentId),
+    onSuccess: () => {
+      // Invalidate all incident-related queries
+      queryClient.invalidateQueries({ queryKey: safetyKeys.all });
+    },
+    onError: (error) => {
+      console.error('Failed to delete incident:', error);
     }
   });
 }
 
 /**
- * Composite hook for admin incident management
- * Combines dashboard data and recent incidents
+ * Bulk actions on incidents
+ * For admin batch operations
  */
-export function useSafetyAdminData(enabled: boolean = true) {
-  const dashboardQuery = useSafetyDashboard(enabled);
+export function useBulkUpdateIncidents() {
+  const queryClient = useQueryClient();
   
-  const searchQuery = useSearchIncidents({
-    page: 1,
-    pageSize: 25
-  }, enabled);
-  
-  return {
-    dashboard: dashboardQuery.data,
-    recentIncidents: searchQuery.data?.items || [],
-    totalIncidents: searchQuery.data?.total || 0,
-    isLoading: dashboardQuery.isLoading || searchQuery.isLoading,
-    error: dashboardQuery.error || searchQuery.error,
-    refetch: async () => {
-      await Promise.all([
-        dashboardQuery.refetch(),
-        searchQuery.refetch()
-      ]);
+  return useMutation({
+    mutationFn: ({ incidentIds, updates }: { incidentIds: string[]; updates: UpdateIncidentRequest }) =>
+      safetyApi.bulkUpdateIncidents(incidentIds, updates),
+    onSuccess: () => {
+      // Invalidate all incident-related queries
+      queryClient.invalidateQueries({ queryKey: safetyKeys.all });
+    },
+    onError: (error) => {
+      console.error('Failed to bulk update incidents:', error);
     }
-  };
+  });
 }
 
 /**
- * Helper hook to check if user has safety team access
- * Based on API response patterns
+ * Export incidents data
+ * For compliance and reporting
  */
-export function useSafetyTeamAccess() {
-  const dashboardQuery = useSafetyDashboard(true);
-  
-  return {
-    hasAccess: !dashboardQuery.error || dashboardQuery.data !== undefined,
-    isLoading: dashboardQuery.isLoading,
-    error: dashboardQuery.error
-  };
+export function useExportIncidents() {
+  return useMutation({
+    mutationFn: (filters: SearchIncidentsRequest) => safetyApi.exportIncidents(filters),
+    onError: (error) => {
+      console.error('Failed to export incidents:', error);
+    }
+  });
 }

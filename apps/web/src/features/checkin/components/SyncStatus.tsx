@@ -327,7 +327,6 @@ export function SyncStatus({
             color="yellow" 
             variant="light" 
             mt="sm"
-            size="sm"
             styles={{
               root: { padding: '8px 12px' }
             }}
@@ -398,7 +397,7 @@ export function SyncProgress({
         )}
       </Stack>
 
-      <style jsx>{`
+      <style>{`
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }

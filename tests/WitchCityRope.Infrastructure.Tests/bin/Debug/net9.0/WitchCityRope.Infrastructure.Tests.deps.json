@@ -2335,6 +2335,7 @@
           "Bogus": "35.6.3",
           "FluentAssertions": "8.4.0",
           "Microsoft.EntityFrameworkCore": "9.0.6",
+          "Microsoft.EntityFrameworkCore.InMemory": "9.0.6",
           "Microsoft.Extensions.Configuration": "9.0.6",
           "Microsoft.Extensions.Configuration.Binder": "9.0.6",
           "Microsoft.Extensions.DependencyInjection": "9.0.6",

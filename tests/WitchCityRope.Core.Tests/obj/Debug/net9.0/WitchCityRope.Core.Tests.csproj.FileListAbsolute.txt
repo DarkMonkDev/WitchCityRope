@@ -373,3 +373,4 @@
 /home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/obj/Debug/net9.0/WitchCit.4757D9D6.Up2Date
 /home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/obj/Debug/net9.0/WitchCityRope.Core.Tests.genruntimeconfig.cache
 /home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/obj/Debug/net9.0/ref/WitchCityRope.Core.Tests.dll
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/bin/Debug/net9.0/Microsoft.EntityFrameworkCore.InMemory.dll

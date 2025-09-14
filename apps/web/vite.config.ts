@@ -32,12 +32,8 @@ export default defineConfig(({ mode }) => {
       port: parseInt(process.env.VITE_PORT || '5173'), // Use environment variable
       strictPort: false, // Allow port flexibility for development
       
-      // HMR Configuration for containers - Use environment variables
-      hmr: {
-        port: parseInt(process.env.VITE_HMR_PORT || '24679'), // Use environment variable
-        host: process.env.VITE_HMR_HOST || '0.0.0.0', // Use environment variable
-        clientPort: parseInt(process.env.VITE_HMR_CLIENT_PORT || '24679'), // Use environment variable
-      },
+      // HMR Configuration - disabled due to WebSocket issues causing refresh loops
+      hmr: false, // Disable HMR to prevent constant refreshing
       
       // File watching configuration for containers
       watch: {
@@ -53,7 +49,7 @@ export default defineConfig(({ mode }) => {
           // Use container DNS when running in Docker, localhost for local dev
           target: process.env.DOCKER_ENV === 'true' 
             ? (process.env.VITE_API_CONTAINER_URL || 'http://api:8080')  // Container-to-container communication
-            : (process.env.VITE_API_BASE_URL || 'http://localhost:5653'), // Host communication (corrected default port)
+            : (process.env.VITE_API_BASE_URL || 'http://localhost:5656'), // Host communication (API port)
           changeOrigin: true,
           secure: false,
           timeout: 30000, // 30 second timeout for API calls

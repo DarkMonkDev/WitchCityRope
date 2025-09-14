@@ -5,6 +5,7 @@ using Xunit;
 
 namespace WitchCityRope.Core.Tests.ValueObjects
 {
+    [Trait("Category", "Unit")]
     public class EmailAddressTests
     {
         [Theory]

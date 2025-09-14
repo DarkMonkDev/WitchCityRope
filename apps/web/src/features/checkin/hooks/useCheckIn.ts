@@ -86,12 +86,12 @@ export function useCheckInAttendee(eventId: string) {
       });
 
       // Optimistically update attendee status
-      const previousData = queryClient.getQueriesData({ 
-        queryKey: checkinKeys.eventAttendees(eventId) 
-      });
+      const previousData = queryClient.getQueryData(
+        checkinKeys.eventAttendees(eventId)
+      );
 
-      queryClient.setQueriesData(
-        { queryKey: checkinKeys.eventAttendees(eventId) },
+      queryClient.setQueryData(
+        checkinKeys.eventAttendees(eventId),
         (old: any) => {
           if (!old?.attendees) return old;
           
@@ -138,9 +138,10 @@ export function useCheckInAttendee(eventId: string) {
     onError: (error, variables, context) => {
       // Rollback optimistic updates on error
       if (context?.previousData) {
-        context.previousData.forEach(([queryKey, data]) => {
-          queryClient.setQueryData(queryKey, data);
-        });
+        queryClient.setQueryData(
+          checkinKeys.eventAttendees(eventId),
+          context.previousData
+        );
       }
 
       // Show error notification

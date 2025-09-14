@@ -41,22 +41,16 @@ public class ProcessPaymentApiRequestValidator : AbstractValidator<ProcessPaymen
             .IsInEnum()
             .WithMessage("Invalid payment method type");
 
-        // Conditional validation based on payment method type
-        RuleFor(x => x.SavedPaymentMethodId)
-            .NotEmpty()
-            .When(x => x.PaymentMethodType == PaymentMethodType.SavedCard)
-            .WithMessage("Saved payment method ID is required when using saved card");
+        // PayPal URL validation
+        RuleFor(x => x.ReturnUrl)
+            .Must(BeValidUrl)
+            .When(x => !string.IsNullOrEmpty(x.ReturnUrl))
+            .WithMessage("Return URL must be a valid URL");
 
-        RuleFor(x => x.StripePaymentMethodId)
-            .NotEmpty()
-            .When(x => x.PaymentMethodType == PaymentMethodType.NewCard)
-            .WithMessage("Stripe payment method ID is required when using new card");
-
-        // Ensure only one payment method ID is provided
-        RuleFor(x => x)
-            .Must(HaveOnlyOnePaymentMethodId)
-            .WithMessage("Provide either saved payment method ID or Stripe payment method ID, not both")
-            .WithName("PaymentMethodIds");
+        RuleFor(x => x.CancelUrl)
+            .Must(BeValidUrl)
+            .When(x => !string.IsNullOrEmpty(x.CancelUrl))
+            .WithMessage("Cancel URL must be a valid URL");
     }
 
     private static bool BeValidCurrency(string currency)
@@ -65,17 +59,13 @@ public class ProcessPaymentApiRequestValidator : AbstractValidator<ProcessPaymen
         return validCurrencies.Contains(currency?.ToUpperInvariant());
     }
 
-    private static bool HaveOnlyOnePaymentMethodId(ProcessPaymentApiRequest request)
+    private static bool BeValidUrl(string? url)
     {
-        var hasSavedId = !string.IsNullOrEmpty(request.SavedPaymentMethodId);
-        var hasStripeId = !string.IsNullOrEmpty(request.StripePaymentMethodId);
-
-        return request.PaymentMethodType switch
-        {
-            PaymentMethodType.SavedCard => hasSavedId && !hasStripeId,
-            PaymentMethodType.NewCard => hasStripeId && !hasSavedId,
-            _ => !hasSavedId && !hasStripeId // For future payment types
-        };
+        if (string.IsNullOrEmpty(url))
+            return true; // Optional URLs are valid when empty
+            
+        return Uri.TryCreate(url, UriKind.Absolute, out var validUri) 
+               && (validUri.Scheme == Uri.UriSchemeHttp || validUri.Scheme == Uri.UriSchemeHttps);
     }
 }
 

@@ -8,14 +8,45 @@
 This catalog provides a comprehensive inventory of all tests in the WitchCityRope project, organized by type and location. This is the single source of truth for understanding our test coverage.
 
 ## Quick Reference
-- **Unit Tests**: ~75 tests files across Core/API/Web projects
-- **Integration Tests**: 133 tests (PostgreSQL with TestContainers)
+- **Unit Tests**: 202 tests with **100% pass rate** (Core.Tests) - Pure business logic, in-memory database
+- **Integration Tests**: 133 tests (Infrastructure.Tests) - Real PostgreSQL with TestContainers
 - **E2E Tests**: 46 Playwright test spec files (Migrated from Puppeteer + Events Management)
 - **Performance Tests**: Basic load testing infrastructure
 
-**Status**: Major migration completed January 2025 - All Puppeteer tests migrated to Playwright
+**Status**: 
+- Major migration completed January 2025 - All Puppeteer tests migrated to Playwright
+- **MAJOR SUCCESS September 2025** - Unit test isolation achieved 100% pass rate transformation
 
 ## Recent Additions (September 2025)
+
+### 🚨 MAJOR SUCCESS: Unit Test Isolation Transformation - 2025-09-13 🚨
+**ACHIEVEMENT**: Complete isolation of unit tests from infrastructure dependencies with **100% pass rate**
+
+**Problem Solved**: Unit tests in `/tests/WitchCityRope.Core.Tests/` were contaminated with infrastructure dependencies
+- ServiceHealthCheckTests were checking PostgreSQL connections, API endpoints
+- Unit tests failed when Docker containers were misconfigured  
+- Tests couldn't run offline or without full infrastructure setup
+- Pass rate was only 50.8% due to infrastructure failures
+
+**Solution Implemented**:
+1. **Infrastructure Tests Moved**: ServiceHealthCheckTests relocated to `/tests/WitchCityRope.Infrastructure.Tests/HealthChecks/`
+2. **New Test Base Classes Created**:
+   - `UnitTestBase`: In-memory database mocking for pure business logic
+   - `ServiceTestBase`: Entity creation helpers with in-memory data
+3. **Test Categories Added**: [Trait("Category", "Unit")] for filtering
+4. **InMemory Database**: Microsoft.EntityFrameworkCore.InMemory package added
+
+**Results**:
+- ✅ **100% pass rate**: Core.Tests now 202 passed, 0 failed, 1 skipped
+- ✅ **Blazing fast**: ~292ms execution time (vs previous timeouts)
+- ✅ **Offline capable**: Unit tests run without Docker/database dependencies
+- ✅ **Category filtering**: `dotnet test --filter "Category=Unit"` finds 36 isolated tests
+- ✅ **Developer experience**: Instant feedback for business logic changes
+
+**New Test Hierarchy**:
+- **Unit Tests (Core.Tests)**: Pure business logic, in-memory database, run offline
+- **Integration Tests (Infrastructure.Tests)**: Real database, TestContainers, infrastructure dependencies
+- **E2E Tests**: Full application workflows, Docker services, browser automation
 
 ### 🚨 CRITICAL: Enhanced Containerized Testing Infrastructure - Phase 2 Complete - 2025-09-12 🚨
 **Completed**: Phase 2 Test Suite Integration of Enhanced Containerized Testing Infrastructure

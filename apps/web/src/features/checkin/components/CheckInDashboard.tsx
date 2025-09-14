@@ -107,7 +107,7 @@ function StatisticsCard({ capacity }: { capacity: CapacityInfo }) {
         </Group>
 
         {isAtCapacity && (
-          <Alert color="red" variant="light" size="sm">
+          <Alert color="red" variant="light">
             <Group align="center" gap="xs">
               <IconAlertCircle size={16} />
               <Text size="sm">Event at capacity</Text>

@@ -572,3 +572,4 @@
 /home/chad/repos/witchcityrope-react/tests/WitchCityRope.PerformanceTests/obj/Debug/net9.0/WitchCityRope.PerformanceTests.pdb
 /home/chad/repos/witchcityrope-react/tests/WitchCityRope.PerformanceTests/obj/Debug/net9.0/WitchCityRope.PerformanceTests.genruntimeconfig.cache
 /home/chad/repos/witchcityrope-react/tests/WitchCityRope.PerformanceTests/obj/Debug/net9.0/ref/WitchCityRope.PerformanceTests.dll
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.PerformanceTests/bin/Debug/net9.0/Microsoft.EntityFrameworkCore.InMemory.dll

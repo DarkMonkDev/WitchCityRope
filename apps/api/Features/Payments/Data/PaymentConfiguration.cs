@@ -64,10 +64,13 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
                .HasConversion<int>();
         
         // Encrypted fields for PCI compliance
-        builder.Property(p => p.EncryptedStripePaymentIntentId)
+        builder.Property(p => p.EncryptedPayPalOrderId)
                .HasColumnType("text");
                
-        builder.Property(p => p.EncryptedStripeCustomerId)
+        builder.Property(p => p.EncryptedPayPalPayerId)
+               .HasColumnType("text");
+               
+        builder.Property(p => p.VenmoUsername)
                .HasColumnType("text");
         
         #endregion
@@ -100,7 +103,7 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(p => p.RefundedAt)
                .HasColumnType("timestamptz");
                
-        builder.Property(p => p.EncryptedStripeRefundId)
+        builder.Property(p => p.EncryptedPayPalRefundId)
                .HasColumnType("text");
         
         builder.Property(p => p.RefundReason)

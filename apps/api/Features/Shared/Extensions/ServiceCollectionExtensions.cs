@@ -61,7 +61,7 @@ public static class ServiceCollectionExtensions
 
         // Payment feature services
         services.AddScoped<IPaymentService, PaymentService>();
-        services.AddScoped<IStripeService, StripeService>();
+        services.AddScoped<IPayPalService, PayPalService>();
         services.AddScoped<IRefundService, RefundService>();
         
         // FluentValidation for Payment feature

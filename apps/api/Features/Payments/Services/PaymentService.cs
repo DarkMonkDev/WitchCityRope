@@ -12,18 +12,18 @@ namespace WitchCityRope.Api.Features.Payments.Services;
 public class PaymentService : IPaymentService
 {
     private readonly ApplicationDbContext _context;
-    private readonly IStripeService _stripeService;
+    private readonly IPayPalService _payPalService;
     private readonly IEncryptionService _encryptionService;
     private readonly ILogger<PaymentService> _logger;
 
     public PaymentService(
         ApplicationDbContext context,
-        IStripeService stripeService,
+        IPayPalService payPalService,
         IEncryptionService encryptionService,
         ILogger<PaymentService> logger)
     {
         _context = context;
-        _stripeService = stripeService;
+        _payPalService = payPalService;
         _encryptionService = encryptionService;
         _logger = logger;
     }
@@ -83,55 +83,40 @@ public class PaymentService : IPaymentService
 
             await _context.SaveChangesAsync(cancellationToken);
 
-            // Get or create Stripe customer
+            // Get user for PayPal order creation
             var user = await _context.Users.FindAsync(new object[] { request.UserId }, cancellationToken);
             if (user == null)
             {
                 return Result<Payment>.Failure("User not found.");
             }
 
-            var customerResult = await _stripeService.CreateOrRetrieveCustomerAsync(
-                request.UserId,
-                user.Email ?? "",
-                user.SceneName,
-                cancellationToken);
-
-            if (!customerResult.IsSuccess || customerResult.Value == null)
-            {
-                await LogPaymentFailureAsync(payment.Id, "stripe_customer_creation_failed", 
-                    customerResult.ErrorMessage, cancellationToken);
-                return Result<Payment>.Failure($"Failed to create Stripe customer: {customerResult.ErrorMessage}");
-            }
-
-            // Encrypt and store Stripe customer ID
-            payment.EncryptedStripeCustomerId = await _encryptionService.EncryptAsync(customerResult.Value.Id);
-
-            // Create PaymentIntent with Stripe
-            var paymentIntentMetadata = new Dictionary<string, string>
+            // Create PayPal order with metadata
+            var paypalOrderMetadata = new Dictionary<string, string>
             {
                 ["payment_id"] = payment.Id.ToString(),
                 ["user_id"] = request.UserId.ToString(),
                 ["event_registration_id"] = request.EventRegistrationId.ToString(),
-                ["sliding_scale_percentage"] = request.SlidingScalePercentage.ToString("F2")
+                ["sliding_scale_percentage"] = request.SlidingScalePercentage.ToString("F2"),
+                ["user_email"] = user.Email ?? "",
+                ["user_scene_name"] = user.SceneName
             };
 
-            var paymentIntentResult = await _stripeService.CreatePaymentIntentAsync(
+            var paypalOrderResult = await _payPalService.CreateOrderAsync(
                 finalAmount,
-                finalAmount.Currency,
                 request.UserId,
-                request.StripePaymentMethodId,
-                paymentIntentMetadata,
+                (int)request.SlidingScalePercentage,
+                paypalOrderMetadata,
                 cancellationToken);
 
-            if (!paymentIntentResult.IsSuccess || paymentIntentResult.Value == null)
+            if (!paypalOrderResult.IsSuccess || paypalOrderResult.Value == null)
             {
-                await LogPaymentFailureAsync(payment.Id, "stripe_payment_intent_failed",
-                    paymentIntentResult.ErrorMessage, cancellationToken);
-                return Result<Payment>.Failure($"Failed to create payment intent: {paymentIntentResult.ErrorMessage}");
+                await LogPaymentFailureAsync(payment.Id, "paypal_order_creation_failed",
+                    paypalOrderResult.ErrorMessage, cancellationToken);
+                return Result<Payment>.Failure($"Failed to create PayPal order: {paypalOrderResult.ErrorMessage}");
             }
 
-            // Encrypt and store PaymentIntent ID
-            payment.EncryptedStripePaymentIntentId = await _encryptionService.EncryptAsync(paymentIntentResult.Value.Id);
+            // Encrypt and store PayPal Order ID
+            payment.EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(paypalOrderResult.Value.OrderId);
 
             await _context.SaveChangesAsync(cancellationToken);
 
@@ -234,7 +219,7 @@ public class PaymentService : IPaymentService
     public async Task<Result<Payment>> UpdatePaymentStatusAsync(
         Guid paymentId,
         PaymentStatus status,
-        string? stripePaymentIntentId = null,
+        string? paypalOrderId = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -255,7 +240,7 @@ public class PaymentService : IPaymentService
                 // Create completion audit log
                 var completionLog = PaymentAuditLog.PaymentCompleted(
                     paymentId,
-                    stripePaymentIntentId ?? "unknown",
+                    paypalOrderId ?? "unknown",
                     payment.AmountValue);
 
                 _context.PaymentAuditLog.Add(completionLog);

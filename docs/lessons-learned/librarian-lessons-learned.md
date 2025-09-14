@@ -147,7 +147,12 @@
 
 **Ruthlessly edit for conciseness** - If a lesson takes more than 3 sentences to explain, it probably belongs in a different type of document.
 
-**Authentication migration completed successfully** - BFF pattern with httpOnly cookies documented across ARCHITECTURE.md, functional area README, and comprehensive migration summary with legacy code properly archived.
+## Package Dependency Investigation vs Build Error Assumptions
+
+**Problem**: Assuming packages are "missing" when they're actually unlinked - leads to wrong solutions.
+**Solution**: Systematic investigation: package exists → built → linked → workspace configured.
+**Pattern**: In monorepos, "missing package" usually means linking issue, not missing implementation.
+**Investigation Report**: Document findings comprehensively to prevent repeated investigations.
 
 ## Lessons Learned File Management
 
@@ -176,6 +181,18 @@
 
 **Root Cause**: Authentication system migrated from Blazor to React in August 2025 with complete milestone documentation, but agents may not check existing documentation before investigating.
 **Prevention**: Check master index status and milestone documentation before investigating "missing" implementations.
+
+## 🚨 CRITICAL: Missing Package Dependencies Investigation Pattern 🚨
+
+**Problem**: 27 files importing from `@witchcityrope/shared-types` but package missing from dependencies, causing build failures.
+**Root Cause**: Package exists and is built but was never properly linked to consuming application - monorepo workspace not configured.
+**Investigation Pattern**: 
+1. Verify package exists: `ls packages/shared-types/`
+2. Check package.json dependencies: `grep @witchcityrope/shared-types apps/web/package.json`
+3. Look for import statements: `grep -r "@witchcityrope/shared-types" apps/web/src/`
+4. Check workspace configuration: `grep workspaces package.json`
+**Solution**: Add file dependency: `npm install ../../packages/shared-types`
+**Prevention**: Always check monorepo package linking when investigating "missing" packages - they often exist but aren't properly linked.
 
 ## Critical Architecture Issue Session Documentation
 

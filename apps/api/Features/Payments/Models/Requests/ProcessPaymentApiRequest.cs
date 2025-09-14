@@ -34,19 +34,14 @@ public class ProcessPaymentApiRequest
     public PaymentMethodType PaymentMethodType { get; set; }
 
     /// <summary>
-    /// Saved payment method ID (if using saved payment method)
+    /// PayPal return URL after successful payment
     /// </summary>
-    public string? SavedPaymentMethodId { get; set; }
+    public string? ReturnUrl { get; set; }
 
     /// <summary>
-    /// Stripe payment method ID (for new payment methods)
+    /// PayPal cancel URL if payment is cancelled
     /// </summary>
-    public string? StripePaymentMethodId { get; set; }
-
-    /// <summary>
-    /// Whether to save the payment method for future use
-    /// </summary>
-    public bool SavePaymentMethod { get; set; }
+    public string? CancelUrl { get; set; }
 }
 
 /// <summary>

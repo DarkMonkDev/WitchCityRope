@@ -460,3 +460,5 @@
 /home/chad/repos/witchcityrope-react/apps/api/bin/Debug/net9.0/FluentValidation.dll
 /home/chad/repos/witchcityrope-react/apps/api/bin/Debug/net9.0/FluentValidation.AspNetCore.dll
 /home/chad/repos/witchcityrope-react/apps/api/bin/Debug/net9.0/FluentValidation.DependencyInjectionExtensions.dll
+/home/chad/repos/witchcityrope-react/apps/api/bin/Debug/net9.0/PayPalCheckoutSdk.dll
+/home/chad/repos/witchcityrope-react/apps/api/bin/Debug/net9.0/PayPalHttp-Dotnet.dll

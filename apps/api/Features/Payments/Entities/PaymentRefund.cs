@@ -45,9 +45,9 @@ public class PaymentRefund
     public RefundStatus RefundStatus { get; set; } = RefundStatus.Processing;
     
     /// <summary>
-    /// Encrypted Stripe Refund ID (for PCI compliance)
+    /// Encrypted PayPal Refund ID (for PCI compliance)
     /// </summary>
-    public string? EncryptedStripeRefundId { get; set; }
+    public string? EncryptedPayPalRefundId { get; set; }
     
     #endregion
     

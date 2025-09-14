@@ -51,7 +51,7 @@ public class PaymentRefundConfiguration : IEntityTypeConfiguration<PaymentRefund
                .IsRequired()
                .HasConversion<int>();
         
-        builder.Property(r => r.EncryptedStripeRefundId)
+        builder.Property(r => r.EncryptedPayPalRefundId)
                .HasColumnType("text");
         
         #endregion

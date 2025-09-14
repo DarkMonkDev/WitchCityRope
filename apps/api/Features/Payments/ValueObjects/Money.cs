@@ -99,27 +99,32 @@ public class Money : IEquatable<Money>, IComparable<Money>
     }
 
     /// <summary>
-    /// Convert to Stripe amount (cents as integer)
+    /// Convert to PayPal amount string format
     /// </summary>
-    public long ToStripeAmount()
+    public string ToPayPalAmount()
     {
         return Currency switch
         {
-            "USD" or "EUR" or "GBP" or "CAD" => (long)Math.Round(Amount * 100, MidpointRounding.AwayFromZero),
-            _ => throw new NotSupportedException($"Currency {Currency} is not supported for Stripe conversion")
+            "USD" or "EUR" or "GBP" or "CAD" or "JPY" => Amount.ToString("F2"),
+            _ => throw new NotSupportedException($"Currency {Currency} is not supported for PayPal conversion")
         };
     }
 
     /// <summary>
-    /// Create Money from Stripe amount (cents as integer)
+    /// Create Money from PayPal amount string
     /// </summary>
-    public static Money FromStripeAmount(long stripeAmount, string currency = "USD")
+    public static Money FromPayPalAmount(string paypalAmount, string currency = "USD")
     {
-        var amount = currency switch
+        if (!decimal.TryParse(paypalAmount, out var amount))
         {
-            "USD" or "EUR" or "GBP" or "CAD" => stripeAmount / 100m,
-            _ => throw new NotSupportedException($"Currency {currency} is not supported for Stripe conversion")
-        };
+            throw new ArgumentException($"Invalid PayPal amount format: {paypalAmount}");
+        }
+
+        var supportedCurrencies = new[] { "USD", "EUR", "GBP", "CAD", "JPY" };
+        if (!supportedCurrencies.Contains(currency))
+        {
+            throw new NotSupportedException($"Currency {currency} is not supported for PayPal conversion");
+        }
 
         return Create(amount, currency);
     }
