@@ -19,9 +19,6 @@
     "test:verify": "./scripts/verify-test-config.sh"
   },
   "dependencies": {
-    "@chakra-ui/react": "^3.24.2",
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
     "@hookform/resolvers": "^5.2.1",
     "@mantine/core": "^7.17.8",
     "@mantine/dates": "^7.17.8",

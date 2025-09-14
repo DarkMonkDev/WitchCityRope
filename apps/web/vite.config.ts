@@ -98,7 +98,7 @@ export default defineConfig(({ mode }) => {
           manualChunks: {
             vendor: ['react', 'react-dom'],
             router: ['react-router-dom'],
-            ui: ['@chakra-ui/react'],
+            ui: ['@mantine/core', '@mantine/notifications'],
             query: ['@tanstack/react-query'],
             forms: ['react-hook-form', 'zod'],
           },
@@ -116,7 +116,8 @@ export default defineConfig(({ mode }) => {
         'react',
         'react-dom',
         'react-router-dom',
-        '@chakra-ui/react',
+        '@mantine/core',
+        '@mantine/notifications',
         '@tanstack/react-query',
       ],
     },
