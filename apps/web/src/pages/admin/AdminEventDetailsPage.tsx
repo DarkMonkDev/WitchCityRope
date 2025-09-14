@@ -60,8 +60,9 @@ export const AdminEventDetailsPage: React.FC = () => {
       policies: '', // EventDto doesn't have policies field - will be preserved from initial load
       venueId, // Now properly extracted from API location field
       teacherIds: event.teacherIds || [], // Now maps from API response
-      sessions: event.sessions || [], // Now maps from API response
-      ticketTypes: event.ticketTypes || [], // Now maps from API response
+      status: ((event as any)?.status as 'Draft' | 'Published' | 'Cancelled' | 'Completed') || 'Draft', // Map API status to form status
+      sessions: (event.sessions as any) || [], // Now maps from API response
+      ticketTypes: (event.ticketTypes as any) || [], // Now maps from API response
       volunteerPositions: [], // EventDto doesn't have volunteers - will be managed by form state
     };
   }, []);
@@ -75,7 +76,7 @@ export const AdminEventDetailsPage: React.FC = () => {
   React.useEffect(() => {
     if (event && !initialFormData) {
       // Determine status from event data
-      const status = event.status === 'Published' || !event.status ? 'published' : 'draft';
+      const status = (event as any)?.status === 'Published' || !(event as any)?.status ? 'published' : 'draft';
       setPublishStatus(status);
       
       // Store initial form data for change tracking
@@ -258,7 +259,7 @@ export const AdminEventDetailsPage: React.FC = () => {
           c="wcr.7"
           style={{ fontSize: '2.5rem', fontWeight: 700 }}
         >
-          {event?.title || 'New Event'}
+          {(event as any)?.title || 'New Event'}
         </Title>
         
         {!isEditMode && (
@@ -298,7 +299,7 @@ export const AdminEventDetailsPage: React.FC = () => {
 
       {/* EventForm Component */}
       <EventForm
-        key={event?.id} // Force re-mount when event changes to ensure proper initialization
+        key={(event as any)?.id} // Force re-mount when event changes to ensure proper initialization
         initialData={initialFormData || convertEventToFormData(event as EventDtoType)}
         onSubmit={handleFormSubmit}
         onCancel={handleFormCancel}

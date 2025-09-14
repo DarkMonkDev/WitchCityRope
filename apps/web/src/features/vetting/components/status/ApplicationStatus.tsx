@@ -110,16 +110,16 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
   }
 
   // Get status configuration
-  const statusConfig = APPLICATION_STATUS_CONFIGS[statusData.status as ApplicationStatus];
+  const statusConfig = APPLICATION_STATUS_CONFIGS[(statusData as any)?.status as ApplicationStatus];
 
   // Timeline step mapping
   const getTimelineSteps = () => {
-    const progress = statusData.progress;
+    const progress = (statusData as any)?.progress;
     
     return [
       {
         title: 'Application Submitted',
-        description: `Submitted on ${new Date(statusData.submittedAt).toLocaleDateString()}`,
+        description: `Submitted on ${new Date((statusData as any)?.submittedAt).toLocaleDateString()}`,
         completed: progress.applicationSubmitted,
         icon: IconCircleCheck,
         color: 'green'
@@ -158,7 +158,7 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
         description: 'Final approval status',
         completed: progress.decisionMade,
         icon: IconFlag,
-        color: isComplete ? (statusData.status === 'approved' ? 'green' : 'red') : 'gray'
+        color: isComplete ? ((statusData as any)?.status === 'approved' ? 'green' : 'red') : 'gray'
       }
     ].filter(step => !step.optional || step.completed);
   };
@@ -177,7 +177,7 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
                 Application Status
               </Text>
               <Text size="lg" c="dimmed">
-                Application #{statusData.applicationNumber}
+                Application #{(statusData as any)?.applicationNumber}
               </Text>
             </Box>
             
@@ -188,7 +188,7 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
                 variant="filled"
                 leftSection={statusConfig?.icon}
               >
-                {statusConfig?.label || statusData.status}
+                {statusConfig?.label || (statusData as any)?.status}
               </Badge>
               <Button
                 variant="light"
@@ -213,7 +213,7 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
             </Group>
             <Progress
               value={getProgressPercentage()}
-              color={isComplete ? (statusData.status === 'approved' ? 'green' : 'red') : 'blue'}
+              color={isComplete ? ((statusData as any)?.status === 'approved' ? 'green' : 'red') : 'blue'}
               size="lg"
               radius="md"
             />
@@ -235,7 +235,7 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
       <Alert
         icon={statusConfig?.icon ? <statusConfig.icon /> : <IconInfoCircle />}
         color={statusConfig?.color || 'blue'}
-        title={`Status: ${statusConfig?.label || statusData.status}`}
+        title={`Status: ${statusConfig?.label || (statusData as any)?.status}`}
         mb="lg"
       >
         <Text size="sm">
@@ -296,14 +296,14 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
       </Paper>
 
       {/* Recent Updates */}
-      {statusData.recentUpdates && statusData.recentUpdates.length > 0 && (
+      {(statusData as any)?.recentUpdates && (statusData as any)?.recentUpdates.length > 0 && (
         <Paper p="xl" shadow="sm" mb="lg">
           <Text size="lg" fw={600} c="wcr.7" mb="md">
             Recent Updates
           </Text>
           
           <Stack gap="md">
-            {statusData.recentUpdates.map((update, index) => (
+            {(statusData as any)?.recentUpdates.map((update, index) => (
               <Box key={index}>
                 <Group gap="xs" mb="xs">
                   <Text size="sm" fw={500}>
@@ -316,7 +316,7 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
                 <Text size="sm" c="dimmed">
                   {update.message}
                 </Text>
-                {index < statusData.recentUpdates.length - 1 && <Divider mt="md" />}
+                {index < (statusData as any)?.recentUpdates.length - 1 && <Divider mt="md" />}
               </Box>
             ))}
           </Stack>
@@ -324,7 +324,7 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
       )}
 
       {/* Final Status Messages */}
-      {statusData.status === 'approved' && (
+      {(statusData as any)?.status === 'approved' && (
         <Alert
           icon={<IconCircleCheck />}
           color="green"
@@ -341,7 +341,7 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
         </Alert>
       )}
 
-      {statusData.status === 'denied' && (
+      {(statusData as any)?.status === 'denied' && (
         <Alert
           icon={<IconAlertTriangle />}
           color="red"
@@ -385,9 +385,9 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
       {/* Last Updated */}
       <Group justify="center" mt="md">
         <Text size="xs" c="dimmed">
-          Last updated: {statusData.lastUpdateAt 
-            ? new Date(statusData.lastUpdateAt).toLocaleString()
-            : new Date(statusData.submittedAt).toLocaleString()
+          Last updated: {(statusData as any)?.lastUpdateAt 
+            ? new Date((statusData as any)?.lastUpdateAt).toLocaleString()
+            : new Date((statusData as any)?.submittedAt).toLocaleString()
           }
         </Text>
       </Group>

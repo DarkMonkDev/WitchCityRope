@@ -15,8 +15,12 @@ import { enableMocking } from './mocks'
 console.log('🔍 Starting React app initialization...')
 
 // Create error boundary to catch React render errors
-class ErrorBoundary extends React.Component {
-  constructor(props: any) {
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
+class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
+  constructor(props: ErrorBoundaryProps) {
     super(props)
     this.state = { hasError: false, error: null }
   }

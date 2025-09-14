@@ -2,6 +2,60 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 ULTRA CRITICAL: DTO ALIGNMENT STRATEGY - NEVER IGNORE 🚨
+
+**393 TYPESCRIPT ERRORS HAPPENED BECAUSE THIS WAS IGNORED!!**
+
+### ⚠️ MANDATORY READING BEFORE ANY API INTEGRATION:
+📖 **READ FIRST**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
+
+### 🛑 CRITICAL RULES FOR REACT DEVELOPERS:
+1. **NEVER manually create DTO interfaces** - Import from `@witchcityrope/shared-types`
+2. **ALWAYS use generated types** from NSwag pipeline, not manual interfaces
+3. **RUN `npm run generate:types`** after ANY backend DTO changes
+4. **NEVER assume DTO structures** - always verify actual API responses
+5. **COORDINATE with backend** before expecting new DTO properties
+
+### 💥 WHAT HAPPENS WHEN YOU IGNORE THIS:
+```typescript
+// ❌ WRONG - Manual interface creation (CAUSES 393 ERRORS!)
+interface User {
+  firstName: string;  // API doesn't return this
+  lastName: string;   // API doesn't return this  
+  email: string;      // API doesn't return this
+}
+
+// ✅ CORRECT - Import generated types
+import { User } from '@witchcityrope/shared-types';
+```
+
+### 🚨 EMERGENCY PROTOCOL - IF YOU SEE 100+ TYPESCRIPT ERRORS:
+1. **STOP** - Don't try to "fix" individual property errors
+2. **CHECK** - Are you importing from `@witchcityrope/shared-types`?
+3. **VERIFY** - Is shared-types package up to date?
+4. **COORDINATE** - Contact backend-developer about recent DTO changes
+5. **REGENERATE** - Run `npm run generate:types` to sync with API
+6. **VALIDATE** - Ensure all imports resolve correctly
+
+### 📋 PRE-FLIGHT CHECK FOR EVERY API INTEGRATION:
+```bash
+# Verify shared-types package is current
+ls -la packages/shared-types/src/
+
+# Check for recent API changes
+git log --oneline apps/api/ | head -10
+
+# Ensure types generate correctly
+npm run generate:types
+
+# Verify TypeScript compilation
+npm run type-check
+```
+
+**REMEMBER**: Manual interfaces = 393 errors. Generated types = success!
+
+---
+
 ## 🚨 CRITICAL: Testing Requirements for React Developers
 
 **MANDATORY BEFORE ANY TESTING**: Even for quick test runs, you MUST:
@@ -73,11 +127,11 @@
 
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 
-### Critical Architecture Documents (MUST READ BEFORE ANY WORK):
-1. **React Architecture Index**: `/docs/architecture/REACT-ARCHITECTURE-INDEX.md` - **PRIMARY ARCHITECTURE RESOURCE**
-2. **API Changes Guide**: `/docs/guides-setup/ai-agents/react-developer-api-changes-guide.md`
-3. **Migration Architecture**: `/docs/architecture/react-migration/domain-layer-architecture.md`
-4. **DTO Strategy**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
+### 🚨 ULTRA CRITICAL ARCHITECTURE DOCUMENTS (MUST READ FIRST): 🚨
+1. **🛑 DTO ALIGNMENT STRATEGY**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` - **PREVENTS 393 TYPESCRIPT ERRORS**
+2. **React Architecture Index**: `/docs/architecture/REACT-ARCHITECTURE-INDEX.md` - **PRIMARY ARCHITECTURE RESOURCE**
+3. **API Changes Guide**: `/docs/guides-setup/ai-agents/react-developer-api-changes-guide.md`
+4. **Migration Architecture**: `/docs/architecture/react-migration/domain-layer-architecture.md`
 5. **Design System**: `/docs/design/current/design-system-v7.md`
 
 ### Validation Gates (MUST COMPLETE):

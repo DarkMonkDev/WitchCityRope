@@ -61,13 +61,11 @@ export function CheckInDashboardPage() {
   }
 
   // Check permissions for dashboard access
-  const canViewDashboard = user.roles?.some(role => 
-    ['CheckInStaff', 'EventOrganizer', 'Administrator'].includes(role)
-  );
+  const canViewDashboard = user.role && 
+    ['CheckInStaff', 'EventOrganizer', 'Administrator'].includes(user.role);
 
-  const canExport = user.roles?.some(role => 
-    ['EventOrganizer', 'Administrator'].includes(role)
-  );
+  const canExport = user.role && 
+    ['EventOrganizer', 'Administrator'].includes(user.role);
 
   if (!canViewDashboard) {
     return (
@@ -110,7 +108,7 @@ export function CheckInDashboardPage() {
                 fw={700}
                 style={{ fontFamily: 'Bodoni Moda, serif' }}
               >
-                {dashboard?.eventTitle || 'Event Dashboard'}
+                {(dashboard as any)?.eventTitle || 'Event Dashboard'}
               </Text>
             </Group>
           </Group>
@@ -120,9 +118,9 @@ export function CheckInDashboardPage() {
 
         {/* Dashboard Content */}
         <CheckInDashboard
-          dashboard={dashboard}
+          dashboard={dashboard as any}
           isLoading={isLoading}
-          error={error}
+          error={error?.message || ''}
           onRefresh={refetch}
           onExport={canExport ? handleExport : undefined}
           canExport={canExport}
@@ -132,7 +130,7 @@ export function CheckInDashboardPage() {
         {canExport && dashboard && (
           <Group justify="center" mt="xl">
             <Text size="sm" c="dimmed" ta="center">
-              Event ID: {eventId} • {dashboard.capacity.checkedInCount} attendees checked in
+              Event ID: {eventId} • {(dashboard as any)?.capacity?.checkedInCount || 0} attendees checked in
             </Text>
           </Group>
         )}

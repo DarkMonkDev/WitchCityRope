@@ -95,7 +95,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ form }) => {
                 {...field}
                 placeholder=" "
                 leftSection={<IconUser size={16} />}
-                styles={floatingLabelStyles}
+                styles={floatingLabelStyles as any}
                 error={errors.personalInfo?.fullName?.message}
               />
             )}
@@ -131,7 +131,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ form }) => {
                 {...field}
                 placeholder=" "
                 leftSection={<IconUser size={16} />}
-                styles={floatingLabelStyles}
+                styles={floatingLabelStyles as any}
                 error={errors.personalInfo?.sceneName?.message}
                 description="The name you use in the rope bondage community"
               />
@@ -167,7 +167,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ form }) => {
               <TextInput
                 {...field}
                 placeholder=" "
-                styles={floatingLabelStyles}
+                styles={floatingLabelStyles as any}
                 description="Optional - helps us address you respectfully"
               />
             )}
@@ -204,7 +204,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ form }) => {
                 type="email"
                 placeholder=" "
                 leftSection={<IconMail size={16} />}
-                styles={floatingLabelStyles}
+                styles={floatingLabelStyles as any}
                 error={errors.personalInfo?.email?.message}
                 description="Used for all vetting communication and status updates"
               />
@@ -242,7 +242,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ form }) => {
                 type="tel"
                 placeholder=" "
                 leftSection={<IconPhone size={16} />}
-                styles={floatingLabelStyles}
+                styles={floatingLabelStyles as any}
                 description="Optional - for urgent communications or interview scheduling"
               />
             )}

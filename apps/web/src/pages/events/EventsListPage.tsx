@@ -110,8 +110,8 @@ export const EventsListPage: React.FC = () => {
   } = useEvents(apiFilters);
   
   
-  // Use real API data only
-  const eventsArray: EventDto[] = events || [];
+  // Use real API data only - ensure events is always an array
+  const eventsArray: EventDto[] = Array.isArray(events) ? events : [];
   const instructors = useMemo(() => getUniqueInstructors(eventsArray), [eventsArray]);
   const groupedEvents = useMemo(() => groupEventsByDate(eventsArray), [eventsArray]);
   

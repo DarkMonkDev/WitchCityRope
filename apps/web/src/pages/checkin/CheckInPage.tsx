@@ -35,7 +35,7 @@ export function CheckInPage() {
   }, [user]);
 
   // Validate event ID
-  const currentEvent = activeEvents?.find(event => event.id === eventId);
+  const currentEvent = (activeEvents as any)?.find((event: any) => event.id === eventId);
 
   if (!eventId) {
     return (
@@ -68,9 +68,8 @@ export function CheckInPage() {
   }
 
   // Check if user has check-in permissions
-  const canCheckIn = user.roles?.some(role => 
-    ['CheckInStaff', 'EventOrganizer', 'Administrator'].includes(role)
-  );
+  const canCheckIn = user.role && 
+    ['CheckInStaff', 'EventOrganizer', 'Administrator'].includes(user.role);
 
   if (!canCheckIn) {
     return (
@@ -106,7 +105,7 @@ export function CheckInPage() {
       <Container size="md" py="xl">
         <Alert color="red" title="Error Loading Events">
           <Stack gap="md">
-            <Text>{eventsError}</Text>
+            <Text>{eventsError instanceof Error ? eventsError.message : String(eventsError)}</Text>
             <Button onClick={() => window.location.reload()} color="blue">
               Retry
             </Button>

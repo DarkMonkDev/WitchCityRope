@@ -10,8 +10,8 @@ export * from './hooks/useMembers'
 export * from './hooks/useOptimistic'
 
 // Export safety hooks
-export * from '../../../features/safety/hooks/useSafetyIncidents'
-export * from '../../../features/safety/hooks/useSubmitIncident'
+export * from '../../features/safety/hooks/useSafetyIncidents'
+export * from '../../features/safety/hooks/useSubmitIncident'
 
 // Export types
 export * from './types/api.types'

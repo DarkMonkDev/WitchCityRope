@@ -62,16 +62,16 @@ export const useApplicationStatus = (trackingToken?: string) => {
   };
 
   // Check if status indicates application is complete (final state)
-  const isComplete = statusData?.status === 'approved' || statusData?.status === 'denied' || statusData?.status === 'withdrawn';
+  const isComplete = (statusData as any)?.status === 'approved' || (statusData as any)?.status === 'denied' || (statusData as any)?.status === 'withdrawn';
 
   // Check if additional information is needed
-  const needsAdditionalInfo = statusData?.status === 'pending-additional-info';
+  const needsAdditionalInfo = (statusData as any)?.status === 'pending-additional-info';
 
   // Get user-friendly status message
   const getStatusMessage = (): string => {
     if (!statusData) return '';
 
-    switch (statusData.status) {
+    switch ((statusData as any)?.status) {
       case 'submitted':
         return 'Your application has been received and is in the queue for review.';
       case 'references-contacted':
@@ -89,15 +89,15 @@ export const useApplicationStatus = (trackingToken?: string) => {
       case 'withdrawn':
         return 'Your application has been withdrawn as requested.';
       default:
-        return statusData.statusDescription || 'Status unknown.';
+        return (statusData as any)?.statusDescription || 'Status unknown.';
     }
   };
 
   // Get estimated time remaining
   const getTimeEstimate = (): string => {
-    if (!statusData?.estimatedDaysRemaining) return '';
+    if (!(statusData as any)?.estimatedDaysRemaining) return '';
     
-    const days = statusData.estimatedDaysRemaining;
+    const days = (statusData as any)?.estimatedDaysRemaining;
     if (days <= 1) return 'Decision expected within 1 day';
     if (days <= 7) return `Decision expected within ${days} days`;
     if (days <= 14) return `Decision expected within ${Math.ceil(days / 7)} ${Math.ceil(days / 7) === 1 ? 'week' : 'weeks'}`;
@@ -106,12 +106,12 @@ export const useApplicationStatus = (trackingToken?: string) => {
 
   // Get progress percentage for UI
   const getProgressPercentage = (): number => {
-    return statusData?.progress?.progressPercentage || 0;
+    return (statusData as any)?.progress?.progressPercentage || 0;
   };
 
   // Get current phase name
   const getCurrentPhase = (): string => {
-    return statusData?.progress?.currentPhase || 'Unknown';
+    return (statusData as any)?.progress?.currentPhase || 'Unknown';
   };
 
   return {

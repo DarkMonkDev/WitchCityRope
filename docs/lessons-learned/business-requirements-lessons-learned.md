@@ -3,9 +3,9 @@
 
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 
-### Critical Architecture Documents (MUST READ BEFORE ANY WORK):
-1. **Migration Architecture**: `/docs/architecture/react-migration/domain-layer-architecture.md`
-2. **DTO Strategy**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
+### 🚨 ULTRA CRITICAL Architecture Documents (MUST READ FIRST): 🚨
+1. **🛑 DTO ALIGNMENT STRATEGY**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` - **PREVENTS 393 TYPESCRIPT ERRORS**
+2. **Migration Architecture**: `/docs/architecture/react-migration/domain-layer-architecture.md`
 3. **Architecture Discovery Process**: `/docs/standards-processes/architecture-discovery-process.md`
 4. **Migration Plan**: `/docs/architecture/react-migration/migration-plan.md`
 

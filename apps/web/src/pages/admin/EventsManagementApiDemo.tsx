@@ -122,9 +122,9 @@ export const EventsManagementApiDemo: React.FC = () => {
                 </Alert>
               )}
 
-              {legacyEvents && legacyEvents.length > 0 && (
+              {legacyEvents && (legacyEvents as any)?.length > 0 && (
                 <Grid>
-                  {legacyEvents.map((event: LegacyEventDto) => (
+                  {(legacyEvents as any)?.map((event: LegacyEventDto) => (
                     <Grid.Col key={event.id} span={{ base: 12, md: 6, lg: 4 }}>
                       <Card 
                         shadow="sm" 
@@ -165,16 +165,16 @@ export const EventsManagementApiDemo: React.FC = () => {
                   <Title order={3} mb="md">Selected Event Details</Title>
                   <Stack gap="md">
                     <div>
-                      <Title order={4}>{legacyEventDetails.title}</Title>
-                      <Text c="dimmed">{legacyEventDetails.description}</Text>
+                      <Title order={4}>{(legacyEventDetails as any)?.title}</Title>
+                      <Text c="dimmed">{(legacyEventDetails as any)?.description}</Text>
                     </div>
                     <Group>
                       <Text fw={500}>Date:</Text>
-                      <Text>{new Date(legacyEventDetails.startDate).toLocaleString()}</Text>
+                      <Text>{new Date((legacyEventDetails as any)?.startDate).toLocaleString()}</Text>
                     </Group>
                     <Group>
                       <Text fw={500}>Location:</Text>
-                      <Text>{legacyEventDetails.location}</Text>
+                      <Text>{(legacyEventDetails as any)?.location}</Text>
                     </Group>
                     <Text size="xs" c="dimmed" mt="md">
                       <strong>Integration Status:</strong> Successfully connected to backend API at {apiClient.defaults.baseURL}

@@ -165,55 +165,55 @@ export function SafetyStatusPage() {
                     Incident Status
                   </Title>
                   <Text c="dimmed" size="sm">
-                    Reference: {statusData.referenceNumber}
+                    Reference: {(statusData as any)?.referenceNumber}
                   </Text>
                 </Box>
                 <Badge 
                   size="lg" 
-                  color={getStatusColor(statusData.status)}
+                  color={getStatusColor((statusData as any)?.status || '')}
                   leftSection={
-                    statusData.status.toLowerCase() === 'resolved' 
+                    (statusData as any)?.status?.toLowerCase() === 'resolved' 
                       ? <IconCheck size={12} />
                       : <IconClock size={12} />
                   }
                 >
-                  {getStatusLabel(statusData.status)}
+                  {getStatusLabel((statusData as any)?.status || '')}
                 </Badge>
               </Group>
               
               <Alert 
                 variant="light" 
-                color={getStatusColor(statusData.status)}
+                color={getStatusColor((statusData as any)?.status || '')}
                 icon={
-                  statusData.status.toLowerCase() === 'resolved' 
+                  (statusData as any)?.status?.toLowerCase() === 'resolved' 
                     ? <IconCheck />
                     : <IconClock size={16} />
                 }
               >
                 <Stack gap="xs">
                   <Text size="sm" fw={500}>
-                    {statusData.status.toLowerCase() === 'new' && 'Your report has been received'}
-                    {statusData.status.toLowerCase() === 'inprogress' && 'Your report is being investigated'}
-                    {statusData.status.toLowerCase() === 'resolved' && 'Your report has been resolved'}
-                    {statusData.status.toLowerCase() === 'archived' && 'Your report has been archived'}
+                    {(statusData as any)?.status?.toLowerCase() === 'new' && 'Your report has been received'}
+                    {(statusData as any)?.status?.toLowerCase() === 'inprogress' && 'Your report is being investigated'}
+                    {(statusData as any)?.status?.toLowerCase() === 'resolved' && 'Your report has been resolved'}
+                    {(statusData as any)?.status?.toLowerCase() === 'archived' && 'Your report has been archived'}
                   </Text>
                   <Text size="sm">
-                    {statusData.status.toLowerCase() === 'new' && 
+                    {(statusData as any)?.status?.toLowerCase() === 'new' && 
                       'The safety team has been notified and will review your report shortly.'}
-                    {statusData.status.toLowerCase() === 'inprogress' && 
+                    {(statusData as any)?.status?.toLowerCase() === 'inprogress' && 
                       'The safety team is actively investigating this incident.'}
-                    {statusData.status.toLowerCase() === 'resolved' && 
+                    {(statusData as any)?.status?.toLowerCase() === 'resolved' && 
                       'The safety team has completed their investigation and taken appropriate action.'}
-                    {statusData.status.toLowerCase() === 'archived' && 
+                    {(statusData as any)?.status?.toLowerCase() === 'archived' && 
                       'This incident has been resolved and archived for record keeping.'}
                   </Text>
                   <Text size="xs" c="dimmed">
-                    Last updated: {formatLastUpdated(statusData.lastUpdated)}
+                    Last updated: {formatLastUpdated((statusData as any)?.lastUpdated)}
                   </Text>
                 </Stack>
               </Alert>
               
-              {statusData.canProvideMoreInfo && (
+              {(statusData as any)?.canProvideMoreInfo && (
                 <Alert variant="light" color="blue" icon={<IconInfoCircle />}>
                   <Stack gap="xs">
                     <Text size="sm" fw={500}>Additional Information Welcome</Text>

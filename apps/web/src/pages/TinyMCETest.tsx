@@ -30,11 +30,9 @@ export const TinyMCETestPage: React.FC = () => {
         </Title>
         
         <TinyMCERichTextEditor
-          label="Test Editor"
-          description="This should be a TinyMCE editor with toolbar, not a plain textarea"
           value={content}
           onChange={setContent}
-          height={300}
+          minRows={10}
           placeholder="Type something here to test the editor..."
         />
       </Card>

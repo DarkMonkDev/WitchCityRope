@@ -41,7 +41,7 @@ export function convertEventFormDataToUpdateDto(
       startTime: session.startTime,
       endTime: session.endTime,
       capacity: session.capacity,
-      description: session.description || ''
+      description: (session as any).description || ''
     }));
   }
 
@@ -68,12 +68,12 @@ export function convertEventFormDataToUpdateDto(
   if (formData.volunteerPositions && formData.volunteerPositions.length > 0) {
     updateDto.volunteerPositions = formData.volunteerPositions.map(position => ({
       id: position.id,
-      name: position.name,
+      name: (position as any).name,
       description: position.description,
       volunteersNeeded: position.volunteersNeeded,
       volunteersAssigned: position.volunteersAssigned,
-      sessionId: position.sessionId,
-      requirements: position.requirements
+      sessionId: (position as any).sessionId,
+      requirements: (position as any).requirements
     }));
   }
 
@@ -187,7 +187,7 @@ export function getChangedEventFields(
       startTime: session.startTime,
       endTime: session.endTime,
       capacity: session.capacity,
-      description: session.description || ''
+      description: (session as any).description || ''
     }));
   }
 
@@ -214,12 +214,12 @@ export function getChangedEventFields(
   if (JSON.stringify(current.volunteerPositions) !== JSON.stringify(initial.volunteerPositions)) {
     changes.volunteerPositions = current.volunteerPositions?.map(position => ({
       id: position.id,
-      name: position.name,
+      name: (position as any).name,
       description: position.description,
       volunteersNeeded: position.volunteersNeeded,
       volunteersAssigned: position.volunteersAssigned,
-      sessionId: position.sessionId,
-      requirements: position.requirements
+      sessionId: (position as any).sessionId,
+      requirements: (position as any).requirements
     }));
   }
 

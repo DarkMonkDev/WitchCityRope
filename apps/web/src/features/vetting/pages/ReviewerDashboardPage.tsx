@@ -77,7 +77,7 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
   };
 
   // Check if user has reviewer permissions
-  const hasReviewerAccess = user?.roles?.includes('VettingReviewer') || user?.roles?.includes('VettingAdmin');
+  const hasReviewerAccess = user?.role === 'VettingReviewer' || user?.role === 'VettingAdmin' || user?.role === 'Admin';
 
   if (!hasReviewerAccess) {
     return (
@@ -126,7 +126,6 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
         centered
         overlayProps={{ opacity: 0.55, blur: 3 }}
         styles={{
-          modal: { maxHeight: '90vh', overflow: 'hidden' },
           body: { padding: 0, height: '100%' }
         }}
       >
@@ -147,15 +146,15 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
           )}
 
           {applicationDetail && (
-            <Tabs value={activeTab} onTabChange={setActiveTab} keepMounted={false} style={{ height: '100%' }}>
+            <Tabs value={activeTab} onChange={setActiveTab} style={{ height: '100%' }}>
               <Tabs.List grow>
-                <Tabs.Tab value="details" icon={<IconEye size={16} />}>
+                <Tabs.Tab value="details" leftSection={<IconEye size={16} />}>
                   Application Details
                 </Tabs.Tab>
-                <Tabs.Tab value="references" icon={<IconUser size={16} />}>
+                <Tabs.Tab value="references" leftSection={<IconUser size={16} />}>
                   References
                 </Tabs.Tab>
-                <Tabs.Tab value="review" icon={<IconNotes size={16} />}>
+                <Tabs.Tab value="review" leftSection={<IconNotes size={16} />}>
                   Review & Decision
                 </Tabs.Tab>
               </Tabs.List>
@@ -168,16 +167,16 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
                     <Group justify="apart" mb="md">
                       <Group gap="md">
                         <Badge
-                          color={APPLICATION_STATUS_CONFIGS[applicationDetail.status]?.color || 'gray'}
+                          color={APPLICATION_STATUS_CONFIGS[(applicationDetail as any)?.status]?.color || 'gray'}
                           variant="filled"
                           size="lg"
                         >
-                          {APPLICATION_STATUS_CONFIGS[applicationDetail.status]?.label || applicationDetail.status}
+                          {APPLICATION_STATUS_CONFIGS[(applicationDetail as any)?.status]?.label || (applicationDetail as any)?.status}
                         </Badge>
                         
-                        {applicationDetail.assignedReviewerName && (
+                        {(applicationDetail as any)?.assignedReviewerName && (
                           <Text size="sm" c="dimmed">
-                            Assigned to: {applicationDetail.assignedReviewerName}
+                            Assigned to: {(applicationDetail as any)?.assignedReviewerName}
                           </Text>
                         )}
                       </Group>
@@ -185,7 +184,7 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
                       <Group gap="xs">
                         <IconClock size={16} />
                         <Text size="sm" c="dimmed">
-                          Submitted {new Date(applicationDetail.submittedAt).toLocaleDateString()}
+                          Submitted {new Date((applicationDetail as any)?.submittedAt).toLocaleDateString()}
                         </Text>
                       </Group>
                     </Group>
@@ -196,29 +195,29 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
                     <Text fw={600} size="md" mb="md" c="wcr.7">
                       Personal Information
                     </Text>
-                    <SimpleGrid cols={2} breakpoints={[{ maxWidth: 'sm', cols: 1 }]}>
+                    <SimpleGrid cols={{ base: 1, sm: 2 }}>
                       <Box>
                         <Text size="sm" fw={500} c="dimmed">Full Name</Text>
-                        <Text size="sm">{applicationDetail.personalInfo.fullName}</Text>
+                        <Text size="sm">{(applicationDetail as any)?.personalInfo?.fullName}</Text>
                       </Box>
                       <Box>
                         <Text size="sm" fw={500} c="dimmed">Scene Name</Text>
-                        <Text size="sm">{applicationDetail.personalInfo.sceneName}</Text>
+                        <Text size="sm">{(applicationDetail as any)?.personalInfo?.sceneName}</Text>
                       </Box>
-                      {applicationDetail.personalInfo.pronouns && (
+                      {(applicationDetail as any)?.personalInfo?.pronouns && (
                         <Box>
                           <Text size="sm" fw={500} c="dimmed">Pronouns</Text>
-                          <Text size="sm">{applicationDetail.personalInfo.pronouns}</Text>
+                          <Text size="sm">{(applicationDetail as any)?.personalInfo?.pronouns}</Text>
                         </Box>
                       )}
                       <Box>
                         <Text size="sm" fw={500} c="dimmed">Email</Text>
-                        <Text size="sm">{applicationDetail.personalInfo.email}</Text>
+                        <Text size="sm">{(applicationDetail as any)?.personalInfo?.email}</Text>
                       </Box>
-                      {applicationDetail.personalInfo.phone && (
+                      {(applicationDetail as any)?.personalInfo?.phone && (
                         <Box>
                           <Text size="sm" fw={500} c="dimmed">Phone</Text>
-                          <Text size="sm">{applicationDetail.personalInfo.phone}</Text>
+                          <Text size="sm">{(applicationDetail as any)?.personalInfo?.phone}</Text>
                         </Box>
                       )}
                     </SimpleGrid>
@@ -230,35 +229,35 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
                       Experience & Knowledge
                     </Text>
                     <Stack gap="md">
-                      <SimpleGrid cols={2} breakpoints={[{ maxWidth: 'sm', cols: 1 }]}>
+                      <SimpleGrid cols={{ base: 1, sm: 2 }}>
                         <Box>
                           <Text size="sm" fw={500} c="dimmed">Experience Level</Text>
-                          <Text size="sm">{EXPERIENCE_LEVEL_CONFIGS[applicationDetail.experience.level]?.label}</Text>
+                          <Text size="sm">{EXPERIENCE_LEVEL_CONFIGS[(applicationDetail as any)?.experience?.level]?.label}</Text>
                         </Box>
                         <Box>
                           <Text size="sm" fw={500} c="dimmed">Years of Experience</Text>
-                          <Text size="sm">{applicationDetail.experience.yearsExperience} years</Text>
+                          <Text size="sm">{(applicationDetail as any)?.experience?.yearsExperience} years</Text>
                         </Box>
                       </SimpleGrid>
                       
                       <Box>
                         <Text size="sm" fw={500} c="dimmed" mb="xs">Experience Description</Text>
                         <Paper p="sm" bg="gray.0" withBorder>
-                          <Text size="sm">{applicationDetail.experience.description}</Text>
+                          <Text size="sm">{(applicationDetail as any)?.experience?.description}</Text>
                         </Paper>
                       </Box>
                       
                       <Box>
                         <Text size="sm" fw={500} c="dimmed" mb="xs">Safety Knowledge</Text>
                         <Paper p="sm" bg="gray.0" withBorder>
-                          <Text size="sm">{applicationDetail.experience.safetyKnowledge}</Text>
+                          <Text size="sm">{(applicationDetail as any)?.experience?.safetyKnowledge}</Text>
                         </Paper>
                       </Box>
                       
                       <Box>
                         <Text size="sm" fw={500} c="dimmed" mb="xs">Consent Understanding</Text>
                         <Paper p="sm" bg="gray.0" withBorder>
-                          <Text size="sm">{applicationDetail.experience.consentUnderstanding}</Text>
+                          <Text size="sm">{(applicationDetail as any)?.experience?.consentUnderstanding}</Text>
                         </Paper>
                       </Box>
                     </Stack>
@@ -273,14 +272,14 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
                       <Box>
                         <Text size="sm" fw={500} c="dimmed" mb="xs">Why Join Community</Text>
                         <Paper p="sm" bg="gray.0" withBorder>
-                          <Text size="sm">{applicationDetail.community.whyJoin}</Text>
+                          <Text size="sm">{(applicationDetail as any)?.community?.whyJoin}</Text>
                         </Paper>
                       </Box>
                       
                       <Box>
                         <Text size="sm" fw={500} c="dimmed" mb="xs">Skills & Interests</Text>
                         <Group gap="xs">
-                          {applicationDetail.community.skillsInterests.map(skill => (
+                          {(applicationDetail as any)?.community?.skillsInterests?.map((skill: string) => (
                             <Badge key={skill} size="sm" color="wcr.7" variant="light">
                               {skill}
                             </Badge>
@@ -291,7 +290,7 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
                       <Box>
                         <Text size="sm" fw={500} c="dimmed" mb="xs">Expectations & Goals</Text>
                         <Paper p="sm" bg="gray.0" withBorder>
-                          <Text size="sm">{applicationDetail.community.expectations}</Text>
+                          <Text size="sm">{(applicationDetail as any)?.community?.expectations}</Text>
                         </Paper>
                       </Box>
                     </Stack>
@@ -302,37 +301,37 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
               {/* References Tab */}
               <Tabs.Panel value="references" p="md" style={{ height: 'calc(100% - 42px)', overflowY: 'auto' }}>
                 <Stack gap="lg">
-                  {applicationDetail.references.map((reference, index) => (
+                  {(applicationDetail as any)?.references?.map((reference: any, index: number) => (
                     <Paper key={reference.id} p="md" withBorder>
                       <Group justify="apart" mb="md">
                         <Text fw={600} size="md" c="wcr.7">
                           Reference #{index + 1}
                         </Text>
                         <Badge
-                          color={reference.status === 'responded' ? 'green' : reference.status === 'contacted' ? 'yellow' : 'gray'}
+                          color={reference?.status === 'responded' ? 'green' : reference?.status === 'contacted' ? 'yellow' : 'gray'}
                           variant="filled"
                         >
-                          {reference.status}
+                          {reference?.status}
                         </Badge>
                       </Group>
                       
-                      <SimpleGrid cols={2} breakpoints={[{ maxWidth: 'sm', cols: 1 }]} mb="md">
+                      <SimpleGrid cols={{ base: 1, sm: 2 }} mb="md">
                         <Box>
                           <Text size="sm" fw={500} c="dimmed">Name</Text>
-                          <Text size="sm">{reference.name}</Text>
+                          <Text size="sm">{reference?.name}</Text>
                         </Box>
                         <Box>
                           <Text size="sm" fw={500} c="dimmed">Email</Text>
-                          <Text size="sm">{reference.email}</Text>
+                          <Text size="sm">{reference?.email}</Text>
                         </Box>
                         <Box>
                           <Text size="sm" fw={500} c="dimmed">Relationship</Text>
-                          <Text size="sm">{reference.relationship}</Text>
+                          <Text size="sm">{reference?.relationship}</Text>
                         </Box>
                         <Box>
                           <Text size="sm" fw={500} c="dimmed">Contact Status</Text>
                           <Text size="sm">
-                            {reference.contactedAt 
+                            {reference?.contactedAt 
                               ? `Contacted ${new Date(reference.contactedAt).toLocaleDateString()}`
                               : 'Not contacted yet'
                             }
@@ -340,15 +339,15 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
                         </Box>
                       </SimpleGrid>
                       
-                      {reference.response && (
+                      {reference?.response && (
                         <Paper p="sm" bg="green.0" withBorder>
                           <Text size="sm" fw={500} mb="xs">Reference Response</Text>
                           <Stack gap="xs">
-                            <Text size="xs"><strong>Recommendation:</strong> {reference.response.recommendation}</Text>
-                            <Text size="xs"><strong>Relationship Duration:</strong> {reference.response.relationshipDuration}</Text>
-                            <Text size="xs"><strong>Experience Assessment:</strong> {reference.response.experienceAssessment}</Text>
-                            {reference.response.additionalComments && (
-                              <Text size="xs"><strong>Additional Comments:</strong> {reference.response.additionalComments}</Text>
+                            <Text size="xs"><strong>Recommendation:</strong> {reference?.response?.recommendation}</Text>
+                            <Text size="xs"><strong>Relationship Duration:</strong> {reference?.response?.relationshipDuration}</Text>
+                            <Text size="xs"><strong>Experience Assessment:</strong> {reference?.response?.experienceAssessment}</Text>
+                            {reference?.response?.additionalComments && (
+                              <Text size="xs"><strong>Additional Comments:</strong> {reference?.response?.additionalComments}</Text>
                             )}
                           </Stack>
                         </Paper>
@@ -362,21 +361,21 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
               <Tabs.Panel value="review" p="md" style={{ height: 'calc(100% - 42px)', overflowY: 'auto' }}>
                 <Stack gap="lg">
                   {/* Previous Notes */}
-                  {applicationDetail.reviewNotes && applicationDetail.reviewNotes.length > 0 && (
+                  {(applicationDetail as any)?.reviewNotes && (applicationDetail as any)?.reviewNotes.length > 0 && (
                     <Paper p="md" withBorder>
                       <Text fw={600} size="md" mb="md" c="wcr.7">
                         Review Notes
                       </Text>
                       <Stack gap="sm">
-                        {applicationDetail.reviewNotes.map(note => (
-                          <Paper key={note.id} p="sm" bg="blue.0" withBorder>
+                        {(applicationDetail as any)?.reviewNotes.map((note: any) => (
+                          <Paper key={note?.id} p="sm" bg="blue.0" withBorder>
                             <Group justify="apart" mb="xs">
-                              <Text size="sm" fw={500}>{note.reviewerName}</Text>
+                              <Text size="sm" fw={500}>{note?.reviewerName}</Text>
                               <Text size="xs" c="dimmed">
-                                {new Date(note.createdAt).toLocaleDateString()}
+                                {new Date(note?.createdAt).toLocaleDateString()}
                               </Text>
                             </Group>
-                            <Text size="sm">{note.content}</Text>
+                            <Text size="sm">{note?.content}</Text>
                           </Paper>
                         ))}
                       </Stack>

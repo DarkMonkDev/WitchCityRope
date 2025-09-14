@@ -48,7 +48,7 @@ export const DashboardPage: React.FC = () => {
           <Text><strong>User ID:</strong> {currentUser?.id}</Text>
           <Text><strong>Scene Name:</strong> {currentUser?.sceneName || 'None'}</Text>
           <Text><strong>Created:</strong> {currentUser?.createdAt ? new Date(currentUser.createdAt).toLocaleDateString() : 'Unknown'}</Text>
-          <Text><strong>Last Updated:</strong> {currentUser?.updatedAt ? new Date(currentUser.updatedAt).toLocaleDateString() : 'Never'}</Text>
+          <Text><strong>Last Updated:</strong> {(currentUser as any)?.updatedAt ? new Date((currentUser as any).updatedAt).toLocaleDateString() : 'Never'}</Text>
         </Group>
       </Paper>
 

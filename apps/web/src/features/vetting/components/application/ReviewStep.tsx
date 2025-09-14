@@ -341,7 +341,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ form }) => {
                   </Text>
                 </Box>
                 <Switch
-                  {...field}
+                  {...(field as any)}
                   checked={field.value}
                   color="wcr.7"
                   size="md"
@@ -356,18 +356,18 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ form }) => {
             control={control}
             render={({ field }) => (
               <Checkbox
-                {...field}
+                {...(field as any)}
                 checked={field.value}
                 label="I consent to be contacted by the vetting team during the review process"
                 description="We may need to contact you for clarification or additional information"
-                styles={(theme) => ({
+                styles={((theme) => ({
                   input: {
                     '&:checked': {
                       backgroundColor: theme.colors.wcr[7],
                       borderColor: theme.colors.wcr[7]
                     }
                   }
-                })}
+                })) as any}
               />
             )}
           />
@@ -385,7 +385,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ form }) => {
           control={control}
           render={({ field }) => (
             <Checkbox
-              {...field}
+              {...(field as any)}
               checked={field.value}
               label={
                 <Text size="sm">
@@ -394,7 +394,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ form }) => {
                 </Text>
               }
               error={errors.review?.agreesToTerms?.message}
-              styles={(theme) => ({
+              styles={((theme) => ({
                 input: {
                   '&:checked': {
                     backgroundColor: theme.colors.wcr[7],
@@ -405,7 +405,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ form }) => {
                   fontFamily: 'Source Sans 3, sans-serif',
                   fontWeight: 500
                 }
-              })}
+              })) as any}
               required
             />
           )}

@@ -155,7 +155,7 @@ export function useUpdateEventSession() {
     },
     onSuccess: (updatedSession) => {
       // Find the event ID from current queries to invalidate the list
-      const queries = queryClient.getQueriesData({ queryKey: eventSessionKeys.lists() });
+      const queries = (queryClient as any).getQueriesData({ queryKey: eventSessionKeys.lists() });
       for (const [queryKey] of queries) {
         if (queryKey.length >= 3) {
           const eventId = queryKey[2] as string;

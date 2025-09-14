@@ -2,7 +2,7 @@
 import type { EventDto } from './events.types';
 
 // Extended Event DTO with sessions and ticket types
-export interface EventWithSessionsDto extends EventDto {
+export interface EventWithSessionsDto {
   sessions: EventSessionDto[];
   ticketTypes: EventTicketTypeDto[];
 }

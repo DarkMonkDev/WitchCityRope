@@ -9,7 +9,7 @@ import {
   Button,
   TextInput,
   Select,
-  DatePickerInput,
+  // DatePickerInput, // Not available in Mantine v7 base - needs @mantine/dates
   Stack,
   Badge,
   ActionIcon,
@@ -175,7 +175,7 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
 
             <Menu.Dropdown>
               <Menu.Item
-                icon={<IconEye size={14} />}
+                leftSection={<IconEye size={14} />}
                 onClick={(e) => {
                   e.stopPropagation();
                   onApplicationSelect?.(application);
@@ -185,7 +185,7 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
               </Menu.Item>
               
               <Menu.Item
-                icon={<IconUserCheck size={14} />}
+                leftSection={<IconUserCheck size={14} />}
                 onClick={(e) => {
                   e.stopPropagation();
                   // quickActions.assignToMe(application.id, currentUserId);
@@ -197,7 +197,7 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
               <Menu.Divider />
               
               <Menu.Item
-                icon={<IconMail size={14} />}
+                leftSection={<IconMail size={14} />}
                 onClick={(e) => {
                   e.stopPropagation();
                   quickActions.requestInfo(application.id, 'Additional information requested');
@@ -233,7 +233,6 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
           <Alert
             color="red"
             variant="light"
-            size="sm"
             icon={<IconAlertTriangle />}
             styles={{ root: { padding: '8px 12px' } }}
           >
@@ -281,12 +280,12 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
       </Group>
 
       {/* Statistics Cards */}
-      <SimpleGrid cols={4} breakpoints={[{ maxWidth: 'md', cols: 2 }, { maxWidth: 'sm', cols: 1 }]} mb="xl">
+      <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} mb="xl">
         {statsCards.map((stat) => (
           <Paper key={stat.title} p="lg" withBorder>
             <Group justify="apart">
               <Box>
-                <Text size="xs" color="dimmed" transform="uppercase" fw={600}>
+                <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
                   {stat.title}
                 </Text>
                 <Text size="xl" fw={700} c="wcr.8" mt="xs">
@@ -364,7 +363,7 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
         {showFilters && (
           <>
             <Divider mb="md" />
-            <SimpleGrid cols={3} breakpoints={[{ maxWidth: 'md', cols: 2 }, { maxWidth: 'sm', cols: 1 }]}>
+            <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }}>
               <Select
                 label="Date Range"
                 placeholder="Select range"
@@ -379,21 +378,23 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
 
               {filters.dateRange === 'custom' && (
                 <>
-                  <DatePickerInput
+                  <TextInput
                     label="From Date"
-                    placeholder="Select start date"
-                    value={filters.customDateFrom ? new Date(filters.customDateFrom) : null}
-                    onChange={(date) => updateFilters({ 
-                      customDateFrom: date?.toISOString().split('T')[0] 
+                    placeholder="YYYY-MM-DD"
+                    type="date"
+                    value={filters.customDateFrom || ''}
+                    onChange={(event) => updateFilters({ 
+                      customDateFrom: event.currentTarget.value 
                     })}
                   />
                   
-                  <DatePickerInput
+                  <TextInput
                     label="To Date"
-                    placeholder="Select end date"
-                    value={filters.customDateTo ? new Date(filters.customDateTo) : null}
-                    onChange={(date) => updateFilters({ 
-                      customDateTo: date?.toISOString().split('T')[0] 
+                    placeholder="YYYY-MM-DD"
+                    type="date"
+                    value={filters.customDateTo || ''}
+                    onChange={(event) => updateFilters({ 
+                      customDateTo: event.currentTarget.value 
                     })}
                   />
                 </>
@@ -405,11 +406,7 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
 
       {/* Applications Grid */}
       <SimpleGrid
-        cols={3}
-        breakpoints={[
-          { maxWidth: 'lg', cols: 2 },
-          { maxWidth: 'sm', cols: 1 }
-        ]}
+        cols={{ base: 1, sm: 2, lg: 3 }}
         mb="lg"
       >
         {applications.map((application) => (
@@ -443,7 +440,7 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
           <Pagination
             total={pagination.totalPages}
             value={pagination.currentPage}
-            onChange={(page) => updateFilters({ page })}
+            onChange={(page) => updateFilters({ page: page } as any)}
             color="wcr.7"
           />
         </Group>

@@ -267,8 +267,6 @@ describe('Authentication Flow Integration Tests', () => {
       useAuthStore.getState().actions.login({
         id: '1',
         email: 'admin@witchcityrope.com',
-        
-        lastName: 'Admin',
         sceneName: 'TestAdmin',
         role: 'Admin',
       })
@@ -387,8 +385,6 @@ describe('Authentication Flow Integration Tests', () => {
       useAuthStore.getState().actions.login({
         id: '1',
         email: 'member@witchcityrope.com',
-        
-        lastName: 'Member',
         sceneName: 'TestMember',
         role: 'GeneralMember',
       })
@@ -398,7 +394,7 @@ describe('Authentication Flow Integration Tests', () => {
 
       // Update user to admin
       useAuthStore.getState().actions.updateUser({
-        roles: ['Admin']
+        role: 'Admin'
       })
 
       authState = useAuthStore.getState()

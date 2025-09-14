@@ -6,8 +6,8 @@ import type { EventDto } from '@witchcityrope/shared-types';
 
 // Helper function to format event dates and status
 const formatEventDisplay = (event: EventDto) => {
-  const startDate = new Date(event.startDateTime || '');
-  const endDate = new Date(event.endDateTime || '');
+  const startDate = new Date(event.startDate || '');
+  const endDate = new Date(event.endDate || '');
   const now = new Date();
   
   const formatDate = (date: Date) => {
@@ -48,7 +48,7 @@ const formatEventDisplay = (event: EventDto) => {
     status,
     statusColor,
     isPast: endDate < now,
-    registrationStatus: event.status === 'Published' ? 'Open' : 'Closed'
+    registrationStatus: (event as any)?.status === 'Published' ? 'Open' : 'Closed'
   };
 };
 

@@ -77,7 +77,7 @@ export const useReviewerDashboard = () => {
       ]);
       
       return {
-        stats: dashboardData.stats,
+        stats: (dashboardData as any).stats,
         applications: applicationsData.items,
         pagination: {
           totalCount: applicationsData.totalCount,
@@ -94,7 +94,7 @@ export const useReviewerDashboard = () => {
   // Get application detail
   const getApplicationDetail = useCallback(
     (applicationId: string) => {
-      return queryClient.fetchQuery({
+      return (queryClient as any).fetchQuery({
         queryKey: ['application-detail', applicationId],
         queryFn: () => vettingApi.getApplicationDetail(applicationId),
         staleTime: 5 * 60 * 1000 // 5 minutes
@@ -215,14 +215,14 @@ export const useReviewerDashboard = () => {
 
   // Get filtered applications count
   const getFilteredCount = useCallback((): number => {
-    return dashboardData?.applications.length || 0;
+    return (dashboardData as any)?.applications.length || 0;
   }, [dashboardData]);
 
   // Get statistics with current filters applied
   const getFilteredStats = useCallback((): Partial<DashboardStats> => {
-    if (!dashboardData?.applications) return {};
+    if (!(dashboardData as any)?.applications) return {};
 
-    const applications = dashboardData.applications;
+    const applications = (dashboardData as any).applications;
     const stats = {
       totalApplications: applications.length,
       newApplications: applications.filter(app => app.status === 'submitted').length,
@@ -262,9 +262,9 @@ export const useReviewerDashboard = () => {
 
   return {
     // Data
-    applications: dashboardData?.applications || [],
-    stats: dashboardData?.stats,
-    pagination: dashboardData?.pagination,
+    applications: (dashboardData as any)?.applications || [],
+    stats: (dashboardData as any)?.stats,
+    pagination: (dashboardData as any)?.pagination,
     
     // Filters
     filters,

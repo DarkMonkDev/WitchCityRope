@@ -38,7 +38,7 @@ export const useAdminEventFilters = () => {
 
   // Helper function to check if event is past
   const isPastEvent = (event: EventDto): boolean => {
-    const eventEndDate = new Date(event.endDateTime || event.startDateTime || '');
+    const eventEndDate = new Date(event.endDate || event.startDate || '');
     return eventEndDate < new Date();
   };
 
@@ -81,8 +81,8 @@ export const useAdminEventFilters = () => {
         .sort((a, b) => {
           if (!filterState.sortColumn) {
             // Default sort by date ascending
-            const dateA = new Date(a.startDateTime || '').getTime();
-            const dateB = new Date(b.startDateTime || '').getTime();
+            const dateA = new Date(a.startDate || '').getTime();
+            const dateB = new Date(b.startDate || '').getTime();
             return dateA - dateB;
           }
 
@@ -90,8 +90,8 @@ export const useAdminEventFilters = () => {
           let bValue: string | Date;
 
           if (filterState.sortColumn === 'date') {
-            aValue = new Date(a.startDateTime || '');
-            bValue = new Date(b.startDateTime || '');
+            aValue = new Date(a.startDate || '');
+            bValue = new Date(b.startDate || '');
           } else {
             aValue = a.title || '';
             bValue = b.title || '';

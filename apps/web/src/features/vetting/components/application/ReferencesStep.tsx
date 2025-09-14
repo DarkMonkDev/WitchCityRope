@@ -95,7 +95,7 @@ export const ReferencesStep: React.FC<ReferencesStepProps> = ({ form }) => {
                 {...field}
                 placeholder=" "
                 leftSection={<IconUser size={16} />}
-                styles={(theme) => floatingLabelStyles(theme, !!errors.references?.[referenceKey]?.name)}
+                styles={floatingLabelStyles as any}
                 error={errors.references?.[referenceKey]?.name?.message}
               />
             )}
@@ -132,7 +132,7 @@ export const ReferencesStep: React.FC<ReferencesStepProps> = ({ form }) => {
                 type="email"
                 placeholder=" "
                 leftSection={<IconMail size={16} />}
-                styles={(theme) => floatingLabelStyles(theme, !!errors.references?.[referenceKey]?.email)}
+                styles={floatingLabelStyles as any}
                 error={errors.references?.[referenceKey]?.email?.message}
               />
             )}
@@ -168,7 +168,7 @@ export const ReferencesStep: React.FC<ReferencesStepProps> = ({ form }) => {
                 {...field}
                 placeholder=" "
                 leftSection={<IconHeart size={16} />}
-                styles={(theme) => floatingLabelStyles(theme, !!errors.references?.[referenceKey]?.relationship)}
+                styles={floatingLabelStyles as any}
                 error={errors.references?.[referenceKey]?.relationship?.message}
                 description="e.g., 'Rope partner for 2 years', 'Workshop instructor', 'Community friend'"
               />

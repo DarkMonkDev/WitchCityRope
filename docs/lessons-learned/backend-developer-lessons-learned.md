@@ -2,6 +2,59 @@
 
 This document tracks critical lessons learned during backend development to prevent recurring issues and speed up future development.
 
+## 🚨 ULTRA CRITICAL: DTO ALIGNMENT STRATEGY - SOURCE OF TRUTH 🚨
+
+**393 TYPESCRIPT ERRORS WERE CAUSED BY IGNORING THIS!!**
+
+⚠️ **MANDATORY READING BEFORE ANY API CHANGES** ⚠️  
+📖 **READ**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
+
+### 🛑 CRITICAL RULES - NO EXCEPTIONS:
+1. **API DTOs ARE THE SOURCE OF TRUTH** - Frontend adapts to backend, NEVER the reverse
+2. **ANY DTO changes REQUIRE frontend type regeneration** - `npm run generate:types`
+3. **NEVER modify DTOs without coordinating** with React developers first
+4. **ALL new DTOs MUST include OpenAPI annotations** for type generation
+5. **Breaking DTO changes require 30-day notice** and change control approval
+
+### 🚨 WHAT HAPPENS WHEN YOU IGNORE THIS:
+- ✅ **TypeScript errors**: 580 → 200 (partial fix)
+- ❌ **393 remaining errors** from DTO mismatches
+- ❌ **Complete React app failure** - components expect different data shapes
+- ❌ **Hours of debugging** "Property does not exist" errors
+- ❌ **Broken frontend build pipeline**
+
+### 📋 MANDATORY BEFORE ANY DTO WORK:
+```csharp
+// ✅ ALWAYS add OpenAPI annotations for type generation
+[ApiController]
+public class EventsController : ControllerBase
+{
+    /// <summary>
+    /// Gets user profile information
+    /// </summary>
+    /// <returns>User profile data</returns>
+    [HttpGet("{id}")]
+    [ProducesResponseType<UserDto>(200)]
+    public async Task<UserDto> GetUser(Guid id) { ... }
+}
+
+// ✅ NOTIFY frontend team BEFORE making breaking changes
+// ✅ RUN: npm run generate:types after DTO changes
+// ✅ COORDINATE: Test with frontend team before deployment
+```
+
+### 💥 EMERGENCY PROTOCOL:
+If you see 100+ TypeScript errors after your API changes:
+1. **STOP** - Don't try to "fix" TypeScript manually
+2. **CHECK** - Did you modify DTOs without regenerating types?
+3. **COORDINATE** - Contact React developers immediately
+4. **REGENERATE** - Run `npm run generate:types` from shared-types package
+5. **VALIDATE** - Ensure all DTO changes are properly typed
+
+**REMEMBER**: Frontend 393 errors = DTO misalignment. Check this FIRST!
+
+---
+
 ## 🚨 CRITICAL: Legacy API Archived 2025-09-13
 
 **MANDATORY**: ALL backend development must use the modern API only:

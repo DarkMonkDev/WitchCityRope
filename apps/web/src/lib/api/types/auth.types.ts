@@ -2,8 +2,7 @@
 export type { 
   UserDto, 
   LoginRequest, 
-  LoginResponse,
-  UserRole
+  LoginResponse
 } from '@witchcityrope/shared-types'
 
 // Local types not covered by generated types yet

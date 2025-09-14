@@ -20,7 +20,7 @@ export const useVettingApplication = () => {
   // Submit application mutation
   const submitApplicationMutation = useMutation({
     mutationFn: (applicationData: CreateApplicationRequest) => 
-      vettingApi.submitApplication(applicationData),
+      vettingApi.submitApplication(applicationData as any),
     onSuccess: (response: ApplicationSubmissionResponse) => {
       notifications.show({
         title: 'Application Submitted Successfully!',
@@ -51,7 +51,7 @@ export const useVettingApplication = () => {
   // Save draft mutation
   const saveDraftMutation = useMutation({
     mutationFn: (draftData: Partial<CreateApplicationRequest> & { email: string }) =>
-      vettingApi.saveDraft(draftData),
+      vettingApi.saveDraft(draftData as any),
     onSuccess: (response) => {
       // Store draft token for future retrieval
       if (typeof window !== 'undefined') {

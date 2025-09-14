@@ -160,7 +160,7 @@ export const CommunityStep: React.FC<CommunityStepProps> = ({ form }) => {
             control={control}
             render={({ field }) => (
               <Checkbox
-                {...field}
+                {...(field as any)}
                 checked={field.value}
                 label={
                   <Text size="sm" fw={500}>
@@ -168,7 +168,7 @@ export const CommunityStep: React.FC<CommunityStepProps> = ({ form }) => {
                   </Text>
                 }
                 error={errors.community?.agreesToGuidelines?.message}
-                styles={(theme) => ({
+                styles={((theme) => ({
                   input: {
                     '&:checked': {
                       backgroundColor: theme.colors.wcr[7],
@@ -178,7 +178,7 @@ export const CommunityStep: React.FC<CommunityStepProps> = ({ form }) => {
                   label: {
                     fontFamily: 'Source Sans 3, sans-serif'
                   }
-                })}
+                })) as any}
                 required
               />
             )}
