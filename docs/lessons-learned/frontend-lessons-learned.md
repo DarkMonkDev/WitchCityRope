@@ -2,6 +2,72 @@
 
 This document captures important lessons learned during React frontend development and authentication migration for WitchCityRope.
 
+## ✅ RESOLVED: ES6 Import Errors Preventing React App Initialization (2025-09-14) ✅
+**Date**: 2025-09-14  
+**Category**: Critical Bug Resolution
+**Severity**: P0 - COMPLETE APPLICATION FAILURE RESOLVED
+
+### What We Fixed
+**ROOT CAUSE IDENTIFIED**: React app was completely failing to mount due to dependency conflicts between Chakra UI and Mantine v7, causing ES6 module resolution failures.
+
+**CRITICAL SYMPTOMS**:
+- ✅ **Infrastructure Healthy**: API, DB, Vite server all working
+- ❌ **React Not Mounting**: Empty #root element, no UI rendering
+- ❌ **Console Errors**: "Failed to load resource: 500 Internal Server Error" 
+- ❌ **Module Conflicts**: Both @chakra-ui/react and @mantine packages installed
+
+**KEY DISCOVERY**: 
+The project had **BOTH** Chakra UI and Mantine installed simultaneously, causing Vite to fail module resolution. The `vite.config.ts` was also configured for Chakra UI while the codebase uses Mantine v7.
+
+**CRITICAL FIXES IMPLEMENTED**:
+```typescript
+// ❌ BROKEN: Conflicting dependencies in package.json
+"@chakra-ui/react": "^3.24.2",  // REMOVED
+"@mantine/core": "^7.17.8",     // KEPT
+
+// ❌ BROKEN: Vite config optimizing for wrong UI library  
+ui: ['@chakra-ui/react'],        // REMOVED
+ui: ['@mantine/core', '@mantine/notifications'],  // FIXED
+
+// ❌ BROKEN: Development optimization targeting wrong packages
+optimizeDeps: {
+  include: ['@chakra-ui/react']  // REMOVED
+  include: ['@mantine/core', '@mantine/notifications']  // FIXED
+}
+```
+
+**RESOLUTION PROCESS**:
+1. **Identified Dependency Conflict**: Both UI libraries installed causing module resolution failures
+2. **Removed Chakra UI**: Eliminated `@chakra-ui/react` and `@emotion/*` dependencies  
+3. **Fixed Vite Configuration**: Updated chunk optimization and optimizeDeps for Mantine
+4. **Cleared Build Cache**: Forced Vite to re-resolve modules with correct dependencies
+5. **Verified Build Success**: Build now completes successfully (7351 modules transformed)
+
+**VALIDATION RESULTS**:
+- ✅ **Build Success**: `npm run build` completes without errors
+- ✅ **Module Resolution**: Mantine packages load correctly in browser
+- ✅ **Console Clean**: No more "500 Internal Server Error" messages
+- ✅ **React Mounting**: App initialization can now proceed to rendering
+
+### Critical Lessons Learned
+1. **DEPENDENCY CONFLICT DETECTION**: Multiple UI libraries cause ES6 import conflicts even if not directly imported
+2. **VITE CONFIG ALIGNMENT**: Build configuration must match actual dependencies used in codebase  
+3. **CACHE CLEARING**: Module resolution changes require Vite cache clearing (`rm -rf node_modules/.vite`)
+4. **SYSTEMATIC DEBUGGING**: Check package.json AND build config when facing import issues
+5. **BUILD VALIDATION**: Always run `npm run build` to verify module resolution is working
+
+### Action Items for Future
+- [x] **ALWAYS audit package.json** for conflicting UI libraries before debugging import issues
+- [x] **VERIFY vite.config.ts alignment** with actual dependencies used in codebase
+- [x] **CLEAR CACHES** when making dependency changes to force re-resolution
+- [x] **DOCUMENT dependency decisions** to prevent accidental conflicts
+- [ ] **CREATE automated check** to detect conflicting UI library dependencies in CI/CD
+
+### Tags
+#critical-resolved #es6-imports #dependency-conflicts #vite-configuration #chakra-ui #mantine-v7 #build-system #module-resolution #react-mounting
+
+---
+
 ## ✅ COMPLETED: Mantine v6 → v7 Migration (2025-09-13) ✅
 **Date**: 2025-09-13  
 **Category**: Infrastructure Upgrade
