@@ -10,7 +10,7 @@
  * Falls back to development default if not configured
  */
 export const getApiBaseUrl = (): string => {
-  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5655'
+  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5656'
 }
 
 /**

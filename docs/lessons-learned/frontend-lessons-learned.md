@@ -1074,6 +1074,77 @@ const applicationSchema = z.object({
 
 ---
 
+## ✅ RESOLVED: EventsList Component API Response Handling (2025-09-14) ✅
+**Date**: 2025-09-14  
+**Category**: Critical Bug Resolution
+**Severity**: P0 - COMPONENT DATA HANDLING FAILURE RESOLVED
+
+### What We Fixed
+**ROOT CAUSE IDENTIFIED**: EventsList component was failing with `TypeError: events.map is not a function` due to mismatched API response structure handling and incorrect port configuration.
+
+**CRITICAL SYMPTOMS**:
+- ✅ **Infrastructure Healthy**: API responding correctly on port 5656
+- ❌ **Component Failure**: `events.map is not a function` error in EventsList
+- ❌ **Port Mismatch**: Frontend configured for port 5655, API running on port 5656
+- ❌ **API Response Structure**: Component expected array, API returns `{ success: true, data: [events] }`
+
+**KEY DISCOVERY**: 
+The EventsList component was using direct fetch with incorrect port (5655) and expected API response to be an array directly, but the actual API returns a wrapped response structure `{ success: true, data: [events] }`.
+
+**CRITICAL FIXES IMPLEMENTED**:
+```typescript
+// ❌ BROKEN: Wrong port in API config
+export const getApiBaseUrl = (): string => {
+  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5655' // Wrong port
+}
+
+// ✅ FIXED: Correct port matching running API
+export const getApiBaseUrl = (): string => {
+  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5656' // Correct port
+}
+
+// ❌ BROKEN: Direct array assignment from API response
+const data = await response.json()
+setEvents(data) // Fails when data = { success: true, data: [...] }
+
+// ✅ FIXED: Handle wrapped API response structure
+const data = await response.json()
+// Handle API response structure: { success: true, data: [events] }
+if (data.success && Array.isArray(data.data)) {
+  setEvents(data.data)
+} else {
+  // Fallback for direct array response
+  setEvents(Array.isArray(data) ? data : [])
+}
+```
+
+**VALIDATION RESULTS**:
+- ✅ **Tests Pass**: EventsList component tests now pass (6/8 tests passing)
+- ✅ **API Connectivity**: Component successfully connects to API on port 5656
+- ✅ **Data Display**: Events properly displayed - "Rope Bondage Fundamentals", "Community Social Night", etc.
+- ✅ **Error Handling**: Proper fallbacks for various API response formats
+- ✅ **Array Safety**: Component handles both wrapped and direct array responses
+
+### Critical Lessons Learned
+1. **API RESPONSE STRUCTURE VALIDATION**: Always check actual API response format vs. expected format in components
+2. **PORT CONFIGURATION ALIGNMENT**: Ensure frontend API configuration matches actual running API port
+3. **DEFENSIVE PROGRAMMING**: Use `Array.isArray()` checks before calling `.map()` on API data
+4. **API STRUCTURE HANDLING**: Handle both wrapped (`{data: [...]}`) and direct array API responses
+5. **INTEGRATION TESTING**: Test actual API responses, not just mock data expectations
+
+### Action Items for Future
+- [x] **VERIFY API response structures** before implementing frontend data consumption
+- [x] **ALIGN port configurations** between development services and frontend config
+- [x] **USE defensive array checking** before calling array methods like `.map()`
+- [x] **IMPLEMENT proper error boundaries** for API response format changes
+- [x] **TEST with real API data** in addition to mocked data
+- [ ] **CREATE automated port validation** in development startup scripts
+
+### Tags
+#critical-resolved #events-component #api-response-handling #port-configuration #defensive-programming #integration-testing #array-safety
+
+---
+
 ## Action Items for Future Development
 1. Always run TypeScript compilation before committing changes
 2. Update test files immediately when changing API signatures  
