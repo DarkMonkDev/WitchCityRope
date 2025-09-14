@@ -94,6 +94,38 @@ This document tracks critical lessons learned during backend development to prev
 
 ---
 
+## ✅ Dashboard Feature Extraction Success (2025-09-13)
+
+**Problem**: Extracting legacy dashboard features to modern API architecture while adapting to data model changes
+**Solution**: Vertical slice implementation with direct Entity Framework access and proper data model mapping
+**Key Technical Insights**:
+- **Data Model Migration**: Modern API uses `TicketPurchases` instead of `Registrations` - all dashboard queries needed updating
+- **Enum Conversion**: Vetting status requires explicit casting: `(int)(vettingApp?.Status ?? 0)` for API response
+- **LINQ Expression Limitations**: Range operators `[..8]` not supported in expression trees, use `.Substring(0, 8)` instead
+- **Payment Status Mapping**: TicketPurchase.PaymentStatus needs user-friendly mapping ("Completed" → "Registered")
+- **JWT Claims Extraction**: Use `ClaimsPrincipal.FindFirst("sub")` or `FindFirst(ClaimTypes.NameIdentifier)` for user ID
+- **Performance Optimization**: AsNoTracking() essential for read-only dashboard queries
+- **Result Pattern**: Provides clean error handling and eliminates exception-based control flow
+- **UTC DateTime**: PostgreSQL TIMESTAMPTZ with EF Core handles UTC automatically, no manual conversion needed
+
+**Architecture Patterns Applied**:
+- Vertical slice organization: `/Features/Dashboard/Services|Models|Endpoints`
+- Service registration via extension methods for clean Program.cs
+- Minimal API endpoints with proper authentication attributes
+- Entity Framework Include() for efficient relationship loading
+
+**Implementation Files Created**:
+```
+/apps/api/Features/Dashboard/
+├── Services/IUserDashboardService.cs & UserDashboardService.cs
+├── Models/UserDashboardResponse.cs, UserEventsResponse.cs, UserStatisticsResponse.cs  
+├── Endpoints/DashboardEndpoints.cs
+```
+
+**Result**: Complete user dashboard API successfully implemented with 3 endpoints, modern authentication, and comprehensive handoff documentation created.
+
+---
+
 ## Entity Framework Core & PostgreSQL Issues
 
 ### PostgreSQL Check Constraint Case Sensitivity (2025-08-25)
