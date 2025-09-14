@@ -2,6 +2,13 @@
 
 This document tracks critical lessons learned during backend development to prevent recurring issues and speed up future development.
 
+## 🚨 CRITICAL: Legacy API Archived 2025-09-13
+
+**MANDATORY**: ALL backend development must use the modern API only:
+- ✅ **Use**: `/apps/api/` - Modern Vertical Slice Architecture
+- ❌ **NEVER use**: `/src/_archive/WitchCityRope.Api/` - ARCHIVED legacy API
+- **Note**: Legacy API archived 2025-09-13 with all features migrated to modern API
+
 ## 🚨 CRITICAL: Testing Requirements for Backend Developers
 
 **MANDATORY BEFORE ANY TESTING**: Even for quick test runs, you MUST:
@@ -218,38 +225,38 @@ This document tracks critical lessons learned during backend development to prev
 **Solution**: Created complete RSVP system alongside existing Registration system
 
 **Key Components Created**:
-1. **RSVP Entity** (`/src/WitchCityRope.Core/Entities/RSVP.cs`)
+1. **RSVP Entity** (`/src/_archive/WitchCityRope.Core/Entities/RSVP.cs`) - ARCHIVED
    - Separate entity for free social event RSVPs
    - Business rules enforced: Only Social events allow RSVP
    - Capacity validation with combined RSVP + Registration count
    - Cancellation support with reasons and timestamps
    - Link to optional ticket purchase (upgrade path)
 
-2. **RSVPStatus Enum** (`/src/WitchCityRope.Core/Enums/RSVPStatus.cs`)
+2. **RSVPStatus Enum** (`/src/_archive/WitchCityRope.Core/Enums/RSVPStatus.cs`) - ARCHIVED
    - Confirmed, Cancelled, CheckedIn states
    - Simple enum compared to Registration complexity
 
-3. **Updated Event Entity** (`/src/WitchCityRope.Core/Entities/Event.cs`)
+3. **Updated Event Entity** (`/src/_archive/WitchCityRope.Core/Entities/Event.cs`) - ARCHIVED
    - Added RSVPs navigation property
    - Business rule properties: `AllowsRSVP`, `RequiresPayment`
    - Updated capacity calculations: `GetCurrentAttendeeCount()` includes both RSVPs and Registrations
    - `GetAvailableSpots()` now considers total attendance
 
-4. **EF Core Configuration** (`/src/WitchCityRope.Infrastructure/Data/Configurations/RSVPConfiguration.cs`)
+4. **EF Core Configuration** (`/src/_archive/WitchCityRope.Infrastructure/Data/Configurations/RSVPConfiguration.cs`) - ARCHIVED
    - Proper foreign key relationships
    - Unique constraint on active RSVPs per user/event
    - Performance indexes on Status, CreatedAt, ConfirmationCode
 
-5. **DTOs and API Layer** (`/src/WitchCityRope.Api/Features/Events/DTOs/RSVPDto.cs`)
+5. **DTOs and API Layer** (`/src/_archive/WitchCityRope.Api/Features/Events/DTOs/RSVPDto.cs`) - ARCHIVED
    - RSVPDto, RSVPRequest, AttendanceStatusDto
    - Clean separation between RSVP and Ticket information
 
-6. **Service Layer** (`/src/WitchCityRope.Api/Features/Events/Services/EventsManagementService.cs`)
+6. **Service Layer** (`/src/_archive/WitchCityRope.Api/Features/Events/Services/EventsManagementService.cs`) - ARCHIVED
    - CreateRSVPAsync, GetAttendanceStatusAsync, CancelRSVPAsync
    - Full business rule validation
    - Comprehensive error handling and logging
 
-7. **API Endpoints** (`/src/WitchCityRope.Api/Features/Events/Endpoints/EventsManagementEndpoints.cs`)
+7. **API Endpoints** (`/src/_archive/WitchCityRope.Api/Features/Events/Endpoints/EventsManagementEndpoints.cs`) - ARCHIVED
    - POST `/api/events/{id}/rsvp` - Create RSVP
    - GET `/api/events/{id}/attendance` - Get attendance status
    - DELETE `/api/events/{id}/rsvp` - Cancel RSVP
@@ -424,12 +431,12 @@ if (request.StartDate.HasValue || request.EndDate.HasValue)
 
 
 **Files Changed**:
-- `/src/WitchCityRope.Core/Enums/EventType.cs`
-- `/src/WitchCityRope.Api/Features/Events/Models/Enums.cs`
+- `/src/_archive/WitchCityRope.Core/Enums/EventType.cs` - ARCHIVED
+- `/src/_archive/WitchCityRope.Api/Features/Events/Models/Enums.cs` - ARCHIVED
 - `/apps/api/Services/SeedDataService.cs`
-- `/src/WitchCityRope.Core/Entities/Event.cs`
-- `/src/WitchCityRope.Infrastructure/Mapping/EventProfile.cs`
-- `/src/WitchCityRope.Infrastructure/Data/DbInitializer.cs`
+- `/src/_archive/WitchCityRope.Core/Entities/Event.cs` - ARCHIVED
+- `/src/_archive/WitchCityRope.Infrastructure/Mapping/EventProfile.cs` - ARCHIVED
+- `/src/_archive/WitchCityRope.Infrastructure/Data/DbInitializer.cs` - ARCHIVED
 - `/apps/api/WitchCityRope.Api.csproj`
 
 **Pattern for Future Development**:
@@ -759,7 +766,7 @@ for (int day = 0; day < numberOfDays; day++)
 ### PUT /api/events/{id} Endpoint Implementation
 **Problem**: The running API at `/apps/api/` (minimal API on port 5655) was missing the PUT endpoint for updating events, causing 405 Method Not Allowed errors for the frontend.
 
-**Root Cause**: While EventsManagementService implementation existed in `/src/WitchCityRope.Api/`, the minimal API at `/apps/api/` only had GET endpoints in EventEndpoints.cs.
+**Root Cause**: While EventsManagementService implementation existed in the archived legacy API (`/src/_archive/WitchCityRope.Api/`), the minimal API at `/apps/api/` only had GET endpoints in EventEndpoints.cs.
 
 **Solution Implemented**:
 
@@ -920,7 +927,7 @@ app.MapPut("/api/resource/{id}", async (
 
 
 **INFRASTRUCTURE TEST FAILURES EXPLAINED**:
-- The failing tests in `WitchCityRope.Infrastructure.Tests` are for the **LEGACY BLAZOR SYSTEM** (`/src/WitchCityRope.Core/`, `/src/WitchCityRope.Infrastructure/`)
+- The failing tests in `WitchCityRope.Infrastructure.Tests` are for the **ARCHIVED LEGACY BLAZOR SYSTEM** (`/src/_archive/WitchCityRope.Core/`, `/src/_archive/WitchCityRope.Infrastructure/`)
 - These tests reference the old database schema and Core entities that don't match the new React API system
 - **The new React API at `/apps/api/` has its own database schema and entities**
 - Migration failures in legacy tests are **EXPECTED and IRRELEVANT** to the working React API system
@@ -1130,7 +1137,7 @@ using WitchCityRope.Api.Features.Authentication.Models;
 **ROOT CAUSES IDENTIFIED AND FIXED**:
 
 1. **Solution File Referenced Broken Test Projects**:
-   - `WitchCityRope.Api.Tests` was moved to `WitchCityRope.Api.Tests.legacy-obsolete`
+   - `WitchCityRope.Api.Tests` was moved to `WitchCityRope.Api.Tests.legacy-obsolete` - NOW ARCHIVED
    - `WitchCityRope.IntegrationTests` was moved to `WitchCityRope.IntegrationTests.blazor-obsolete`
    - Solution file still had references to non-existent paths
 
@@ -1153,7 +1160,7 @@ using WitchCityRope.Api.Features.Authentication.Models;
 
 
 **CRITICAL INSIGHT - Dual API Architecture**:
-- Project has TWO API projects: LEGACY `/src/WitchCityRope.Api/` and NEW `/apps/api/`
+- Project previously had TWO API projects: ARCHIVED LEGACY `/src/_archive/WitchCityRope.Api/` and ACTIVE `/apps/api/`
 - NEW API is the ACTIVE one serving React frontend on port 5655
 - LEGACY API should NEVER be modified - used only for reference
 - Test files mixing the two architectures will cause compilation failures
@@ -1186,13 +1193,13 @@ curl http://localhost:5655/health    # Should return {"status":"Healthy"}
 **Problem Solved**: Solution file contained references to obsolete and broken projects preventing clean TDD development.
 
 **Issues Identified and Fixed**:
-1. **Old Blazor API Inclusion**: `src/WitchCityRope.Api` was included but is obsolete (legacy system)
+1. **Old Blazor API Inclusion**: `src/WitchCityRope.Api` was included but is now archived at `/src/_archive/`
 2. **New React API Missing**: `apps/api/WitchCityRope.Api.csproj` was not included in solution
 3. **Broken E2E Tests**: `WitchCityRope.E2E.Tests` had 50 FluentAssertions compilation errors
 
 **Solution Commands Executed**:
 ```bash
-dotnet sln remove src/WitchCityRope.Api/WitchCityRope.Api.csproj        # Remove legacy API
+# Legacy API was archived 2025-09-13, solution file needs backend developer cleanup
 dotnet sln add apps/api/WitchCityRope.Api.csproj                        # Add active API  
 dotnet sln remove tests/WitchCityRope.E2E.Tests/WitchCityRope.E2E.Tests.csproj  # Remove broken E2E
 ```
@@ -1206,8 +1213,7 @@ dotnet sln remove tests/WitchCityRope.E2E.Tests/WitchCityRope.E2E.Tests.csproj  
 **Final Solution Structure**:
 ```
 apps/api/WitchCityRope.Api.csproj                    # ACTIVE React API ✅
-src/WitchCityRope.Core/WitchCityRope.Core.csproj     # Business logic ✅  
-src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj  # Data layer ✅
+# Legacy projects archived 2025-09-13 - backend developer needs to clean solution file
 tests/WitchCityRope.Core.Tests/WitchCityRope.Core.Tests.csproj        # Core tests ✅
 tests/WitchCityRope.Infrastructure.Tests/WitchCityRope.Infrastructure.Tests.csproj  # Infrastructure tests ✅
 tests/WitchCityRope.PerformanceTests/WitchCityRope.PerformanceTests.csproj         # Performance tests ✅
@@ -1254,7 +1260,7 @@ dotnet test --no-build --filter "Category!=HealthCheck"  # Run non-infrastructur
 
 ## 🚨 CRITICAL: API Confusion Prevention - MANDATORY FOR ALL BACKEND DEVELOPERS 🚨
 
-**ABSOLUTE RULE**: ONLY `/apps/api/` should EVER be modified by backend developers. NEVER touch `/src/WitchCityRope.Api/`.
+**ABSOLUTE RULE**: ONLY `/apps/api/` should EVER be modified by backend developers. Legacy API at `/src/_archive/WitchCityRope.Api/` is ARCHIVED and must NEVER be modified.
 
 ### The Dual API Crisis (2025-09-12)
 
@@ -1270,7 +1276,7 @@ dotnet test --no-build --filter "Category!=HealthCheck"  # Run non-infrastructur
 - **Instructions**: **THIS IS THE ONLY API YOU SHOULD EVER MODIFY**
 
 #### LEGACY API (NEVER MODIFY THIS)
-- **Location**: `/src/WitchCityRope.Api/`
+- **Location**: `/src/_archive/WitchCityRope.Api/` - ARCHIVED 2025-09-13
 - **Status**: **DORMANT - CONTAINS VALUABLE FEATURES BUT DO NOT MODIFY**
 - **Features**: CheckIn, Safety, Vetting, Advanced Payments
 - **Purpose**: Historical reference and feature extraction source
@@ -1280,8 +1286,8 @@ dotnet test --no-build --filter "Category!=HealthCheck"  # Run non-infrastructur
 During React migration in August 2025, a new simplified API was created instead of refactoring the existing one. The legacy API was never removed, creating architectural duplication.
 
 ### Prevention Rules for Backend Developers
-1. **ALWAYS work in `/apps/api/`** - Never work in `/src/WitchCityRope.Api/`
-2. **Check file paths** - If you see `/src/WitchCityRope.Api/` in your work, STOP
+1. **ALWAYS work in `/apps/api/`** - Never work in archived legacy API
+2. **Check file paths** - If you see `/src/_archive/WitchCityRope.Api/` in your work, STOP - it's archived
 3. **Use modern API patterns** - Vertical slice architecture, minimal API endpoints
 4. **Follow performance targets** - Maintain <50ms response times
 5. **Test with React frontend** - Ensure `/apps/web/` works with your changes
@@ -1454,7 +1460,7 @@ public AuthUserResponse(ApplicationUser user)
    - Npgsql.EntityFrameworkCore.PostgreSQL: 9.0.3 → 9.0.4
    - System.IdentityModel.Tokens.Jwt: 8.2.1 → 8.3.1
 
-2. **Updated Infrastructure Packages** (`/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj`):
+2. **Updated Infrastructure Packages** (`/src/_archive/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj`) - ARCHIVED:
    - Microsoft.Extensions.DependencyInjection.Abstractions: 9.0.* → 9.0.6 (removed wildcard)
    - System.IdentityModel.Tokens.Jwt: 8.12.1 → 8.3.1 (standardized version)
 
@@ -1471,9 +1477,9 @@ public AuthUserResponse(ApplicationUser user)
 
 **Files Changed**:
 - `/apps/api/WitchCityRope.Api.csproj` - Updated to latest compatible .NET 9 packages
-- `/src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj` - Standardized versions
-- `/src/WitchCityRope.Infrastructure/Data/Configurations/EventSessionConfiguration.cs` - Fixed obsolete constraints
-- `/src/WitchCityRope.Infrastructure/Data/Configurations/EventTicketTypeConfiguration.cs` - Fixed obsolete constraints
+- `/src/_archive/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj` - ARCHIVED
+- `/src/_archive/WitchCityRope.Infrastructure/Data/Configurations/EventSessionConfiguration.cs` - ARCHIVED
+- `/src/_archive/WitchCityRope.Infrastructure/Data/Configurations/EventTicketTypeConfiguration.cs` - ARCHIVED
 
 **Build Results**:
 - ✅ Apps API project compiles with 3 warnings (down from 3 - no change, but packages updated)
@@ -1496,7 +1502,7 @@ public AuthUserResponse(ApplicationUser user)
 **Problem**: NuGet package updates failed to eliminate the primary target - NU1603 version mismatch warnings:
 ```
 warning NU1603: WitchCityRope.Tests.Common depends on Testcontainers.PostgreSql (>= 4.2.2) but Testcontainers.PostgreSql 4.2.2 was not found. Testcontainers.PostgreSql 4.3.0 was resolved instead.
-warning NU1603: WitchCityRope.Api.Tests depends on xunit.runner.visualstudio (>= 2.9.3) but xunit.runner.visualstudio 2.9.3 was not found. xunit.runner.visualstudio 3.0.0 was resolved instead.
+warning NU1603: WitchCityRope.Api.Tests (ARCHIVED) depends on xunit.runner.visualstudio (>= 2.9.3) but xunit.runner.visualstudio 2.9.3 was not found. xunit.runner.visualstudio 3.0.0 was resolved instead.
 ```
 
 **Root Cause**: Package version mismatches across test projects where requested versions weren't available, causing NuGet to resolve to newer versions but still showing warnings.
@@ -1509,7 +1515,7 @@ warning NU1603: WitchCityRope.Api.Tests depends on xunit.runner.visualstudio (>=
 
 2. **Updated All Test Projects to Latest Versions**:
    - `WitchCityRope.Tests.Common.csproj`: Testcontainers.PostgreSql 4.2.2 → 4.7.0 ✅
-   - `WitchCityRope.Api.Tests.csproj`: xunit.runner.visualstudio 2.9.3 → 3.1.4 ✅
+   - `WitchCityRope.Api.Tests.csproj` (ARCHIVED): xunit.runner.visualstudio 2.9.3 → 3.1.4 ✅
    - `WitchCityRope.Infrastructure.Tests.csproj`: Testcontainers 4.6.0 → 4.7.0 ✅
    - `WitchCityRope.Infrastructure.Tests.csproj`: Testcontainers.PostgreSql 4.6.0 → 4.7.0 ✅
 
@@ -1517,7 +1523,8 @@ warning NU1603: WitchCityRope.Api.Tests depends on xunit.runner.visualstudio (>=
 
 **Verification**:
 ```bash
-dotnet build src/ tests/WitchCityRope.Tests.Common/ tests/WitchCityRope.Api.Tests/ tests/WitchCityRope.Core.Tests/ tests/WitchCityRope.Infrastructure.Tests/ 2>&1 | grep "NU1603" || echo "NO NU1603 WARNINGS FOUND"
+# Legacy projects archived 2025-09-13, build command updated:
+dotnet build apps/api/ tests/WitchCityRope.Tests.Common/ tests/WitchCityRope.Core.Tests/ tests/WitchCityRope.Infrastructure.Tests/ 2>&1 | grep "NU1603" || echo "NO NU1603 WARNINGS FOUND"
 # Result: NO NU1603 WARNINGS FOUND
 ```
 
@@ -1589,8 +1596,8 @@ ticketType.UpdateQuantityAvailable(quantity);
 ticketType.UpdateSalesEndDate(endDate);
 ```
 
-**Files Fixed**:
-- `/src/WitchCityRope.Api/Features/Events/Services/EventService.cs`
+**Files Fixed** (ARCHIVED):
+- `/src/_archive/WitchCityRope.Api/Features/Events/Services/EventService.cs` - ARCHIVED
 
 
 **Prevention**:
@@ -1879,7 +1886,7 @@ if (!success || response == null) {
 - **Tickets for Social Events**: Additional donations from people who already RSVPed, NOT additional attendees
 
 **Solution Implemented**:
-1. **Fixed Core Event Entity** (`/src/WitchCityRope.Core/Entities/Event.cs`):
+1. **Fixed Core Event Entity** (`/src/_archive/WitchCityRope.Core/Entities/Event.cs`) - ARCHIVED:
    ```csharp
    // ❌ OLD WRONG LOGIC
    public int GetCurrentAttendeeCount()
@@ -1942,7 +1949,7 @@ Community Rope Jam: Social - 18/30 (18 RSVPs + 5 Tickets) ✅
 - **Class Events**: Will show "16/20" (16 tickets out of 20 capacity) with no RSVP confusion
 
 **Files Changed**:
-- `/src/WitchCityRope.Core/Entities/Event.cs` - Fixed GetCurrentAttendeeCount() method
+- `/src/_archive/WitchCityRope.Core/Entities/Event.cs` - ARCHIVED - Fixed GetCurrentAttendeeCount() method
 - `/apps/api/Models/Event.cs` - Fixed GetCurrentAttendeeCount(), GetCurrentRSVPCount(), GetCurrentTicketCount()  
 - `/apps/api/Models/EventDto.cs` - Updated documentation comments
 - `/apps/api/Features/Events/Models/EventDto.cs` - Updated documentation comments
@@ -2073,7 +2080,7 @@ curl -s http://localhost:5655/api/events | jq '.data[] | "\(.title): \(.currentA
 
 ### CRITICAL DECISION: Dashboard Features Need Extraction, Events Enhancement Can Be Archived
 
-**Analysis Results**: Deep comparison of Dashboard and Events Enhancement features between legacy API (`/src/WitchCityRope.Api/`) and modern API (`/apps/api/`) revealed:
+**Analysis Results**: Deep comparison of Dashboard and Events Enhancement features between archived legacy API (`/src/_archive/WitchCityRope.Api/`) and modern API (`/apps/api/`) revealed:
 
 **Dashboard Features: HIGH PRIORITY EXTRACTION NEEDED**
 - **Legacy Implementation**: 3 endpoints with rich user engagement features

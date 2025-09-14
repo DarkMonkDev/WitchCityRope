@@ -1,8 +1,15 @@
 # Test Executor Lessons Learned
 <!-- Last Updated: 2025-09-13 -->
-<!-- Version: 16.1 -->
+<!-- Version: 16.2 -->
 <!-- Owner: Test Team -->
 <!-- Status: Active -->
+
+## 🚨 CRITICAL: Legacy API Archived 2025-09-13
+
+**MANDATORY**: ALL testing work must target modern API only:
+- ✅ **Test**: `/apps/api/` - Modern API on port 5655
+- ❌ **NEVER test**: `/src/_archive/WitchCityRope.*` - ARCHIVED legacy system
+- **Note**: Legacy API system fully archived - all tests must use modern API endpoints
 
 ## 🚨 NEW CRITICAL DISCOVERY: ES6 Import Errors Blocking React App Execution (2025-09-13)
 
@@ -345,7 +352,7 @@ curl -f http://localhost:5173 # Returns: React app HTML
 ### Pattern Discovered
 ```bash
 # Container appears to start but logs show:
-# "Could not find a part of the path '/src/WitchCityRope.Core/WitchCityRope.Core.csproj'"
+# "Could not find a part of the path '/src/_archive/WitchCityRope.Core/WitchCityRope.Core.csproj'" - ARCHIVED
 
 # Root cause: Dockerfile or docker-compose configuration points to wrong paths
 # Projects are in /apps/ and /src/ but container expects different structure

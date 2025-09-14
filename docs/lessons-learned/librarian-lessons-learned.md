@@ -2,6 +2,13 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 CRITICAL: Legacy API Archived 2025-09-13
+
+**MANDATORY**: ALL documentation must reference modern API only:
+- ✅ **Reference**: `/apps/api/` - Modern API architecture
+- ❌ **NEVER reference**: `/src/_archive/WitchCityRope.*` - ARCHIVED legacy system
+- **Action**: Update any found references to legacy API paths to archived locations
+
 ## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
 
 **CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.

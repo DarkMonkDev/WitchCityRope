@@ -2,7 +2,7 @@
 /* tslint:disable */
 /**
  * API Client wrapper for type-safe API calls
- * Generated on: 2025-08-19T07:40:03.499Z
+ * Generated on: 2025-09-14T02:15:05.595Z
  */
 
 import type { 
@@ -10,12 +10,18 @@ import type {
   EventDto, 
   LoginRequest, 
   LoginResponse,
-  CreateEventRequest,
-  EventListResponse,
+  RegisterRequest,
+  AuthUserResponse,
+  UpdateEventRequest,
+  EventDtoListApiResponse,
+  EventDtoApiResponse,
+  AdminDashboardResponse,
+  CreateIncidentRequest,
+  SubmissionResponse,
   ApiError
 } from './api-helpers';
 
-const API_BASE_URL = process.env.VITE_API_BASE_URL || 'http://localhost:5655';
+const API_BASE_URL = process.env.VITE_API_BASE_URL || 'http://localhost:5656';
 
 class ApiClient {
   private baseUrl: string;
@@ -81,8 +87,12 @@ class ApiClient {
   }
 
   // Auth endpoints
-  async getCurrentUser(): Promise<UserDto> {
-    return this.request<UserDto>('/api/auth/user');
+  async getCurrentUser(): Promise<AuthUserResponse> {
+    return this.request<AuthUserResponse>('/api/auth/current-user');
+  }
+
+  async getUserFromCookie(): Promise<AuthUserResponse> {
+    return this.request<AuthUserResponse>('/api/auth/user');
   }
 
   async login(credentials: LoginRequest): Promise<LoginResponse> {
@@ -92,46 +102,66 @@ class ApiClient {
     });
   }
 
+  async register(data: RegisterRequest): Promise<AuthUserResponse> {
+    return this.request<AuthUserResponse>('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   async logout(): Promise<void> {
     await this.request<void>('/api/auth/logout', {
       method: 'POST',
     });
   }
 
-  // Events endpoints
-  async getEvents(params: { page?: number; pageSize?: number } = {}): Promise<EventListResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.pageSize) searchParams.set('pageSize', params.pageSize.toString());
-    
-    const query = searchParams.toString();
-    const endpoint = query ? `/api/events?${query}` : '/api/events';
-    
-    return this.request<EventListResponse>(endpoint);
-  }
-
-  async createEvent(event: CreateEventRequest): Promise<EventDto> {
-    return this.request<EventDto>('/api/events', {
+  async refreshToken(): Promise<void> {
+    await this.request<void>('/api/auth/refresh', {
       method: 'POST',
-      body: JSON.stringify(event),
     });
   }
 
-  async getEvent(id: string): Promise<EventDto> {
-    return this.request<EventDto>(`/api/events/${id}`);
+  // Events endpoints
+  async getEvents(): Promise<EventDtoListApiResponse> {
+    return this.request<EventDtoListApiResponse>('/api/events');
   }
 
-  async updateEvent(id: string, event: Partial<EventDto>): Promise<EventDto> {
-    return this.request<EventDto>(`/api/events/${id}`, {
+  async getEvent(id: string): Promise<EventDtoApiResponse> {
+    return this.request<EventDtoApiResponse>(`/api/events/${id}`);
+  }
+
+  async updateEvent(id: string, event: UpdateEventRequest): Promise<EventDtoApiResponse> {
+    return this.request<EventDtoApiResponse>(`/api/events/${id}`, {
       method: 'PUT',
       body: JSON.stringify(event),
     });
   }
 
-  async deleteEvent(id: string): Promise<void> {
-    await this.request<void>(`/api/events/${id}`, {
-      method: 'DELETE',
+  // Health endpoints
+  async getHealth(): Promise<any> {
+    return this.request<any>('/api/health');
+  }
+
+  async getDetailedHealth(): Promise<any> {
+    return this.request<any>('/api/health/detailed');
+  }
+
+  // Safety endpoints
+  async submitIncident(incident: CreateIncidentRequest): Promise<SubmissionResponse> {
+    return this.request<SubmissionResponse>('/api/safety/incidents', {
+      method: 'POST',
+      body: JSON.stringify(incident),
     });
+  }
+
+  // User profile endpoints
+  async getUserProfile(): Promise<UserDto> {
+    return this.request<UserDto>('/api/users/profile');
+  }
+
+  // Dashboard endpoints (admin only)
+  async getSafetyDashboard(): Promise<AdminDashboardResponse> {
+    return this.request<AdminDashboardResponse>('/api/safety/admin/dashboard');
   }
 }
 

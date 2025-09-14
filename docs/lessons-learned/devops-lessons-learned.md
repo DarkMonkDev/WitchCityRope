@@ -2,6 +2,13 @@
 <!-- Last Updated: 2025-09-13 -->
 <!-- Next Review: 2025-10-12 -->
 
+## 🚨 CRITICAL: Legacy API Archived 2025-09-13
+
+**MANDATORY**: ALL DevOps work must use modern API only:
+- ✅ **Use**: `/apps/api/` - Modern API active on port 5655
+- ❌ **NEVER use**: `/src/_archive/WitchCityRope.*` - ARCHIVED legacy components
+- **Note**: Legacy API system fully archived with all components moved to `/src/_archive/`
+
 ## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
 
 **CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
@@ -924,8 +931,8 @@ cd apps/web && npm run dev
 ### React Migration Specific
 
 During Blazor → React migration:
-- **Remove**: `src/WitchCityRope.Api` (old Blazor API)
-- **Add**: `apps/api/WitchCityRope.Api` (new React API)
+- **✅ Archived**: `src/_archive/WitchCityRope.Api` (archived 2025-09-13)
+- **Add**: `apps/api/WitchCityRope.Api` (active React API)
 - **Remove**: Broken E2E test projects if compilation fails
 - **Keep**: Core domain projects (`WitchCityRope.Core`, `WitchCityRope.Infrastructure`)
 
@@ -1045,12 +1052,12 @@ git commit -m "fix: remove build artifacts from tracking"
 
 **ACTIVE PROJECTS** (in solution file):
 - `apps/api/WitchCityRope.Api.csproj` - Current API
-- `src/WitchCityRope.Core/` - Domain models
-- `src/WitchCityRope.Infrastructure/` - Data access
+- `src/_archive/WitchCityRope.Core/` - ARCHIVED domain models
+- `src/_archive/WitchCityRope.Infrastructure/` - ARCHIVED data access
 - `tests/WitchCityRope.Core.Tests/` - Unit tests  
 
 **LEGACY PROJECTS** (NOT in solution):
-- `src/WitchCityRope.Api/` - Old Blazor API (reference only)
+- `src/_archive/WitchCityRope.Api/` - ARCHIVED Blazor API (historical reference only)
 - Any project causing compilation errors
 
 ### Key Principle

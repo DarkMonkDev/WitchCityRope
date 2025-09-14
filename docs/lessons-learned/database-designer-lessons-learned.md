@@ -1,5 +1,11 @@
 # Database Developer Lessons Learned
 
+## 🚨 CRITICAL: Legacy API Archived 2025-09-13
+
+**MANDATORY**: ALL database work must target modern API only:
+- ✅ **Use**: `/apps/api/` - Modern API for migrations and schema
+- ❌ **NEVER use**: `/src/_archive/WitchCityRope.Infrastructure/` - ARCHIVED legacy data layer
+- **Note**: Legacy Infrastructure project archived - use modern API for all database operations
 
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 
@@ -227,12 +233,16 @@ The Vetting System implementation revealed a critical database migration sync is
 ### Critical Migration Patterns
 ```csharp
 // ✅ CORRECT - Always verify migration status before testing
-dotnet ef migrations list --project src/WitchCityRope.Infrastructure --startup-project apps/api
+# Legacy Infrastructure project archived 2025-09-13
+# dotnet ef migrations list --project src/_archive/WitchCityRope.Infrastructure --startup-project apps/api  # ARCHIVED
+# Use modern API migration commands instead
 // Look for: [ ] (pending) vs [X] (applied)
 
 // ✅ CORRECT - Fresh database creation for sync issues
-dotnet ef database drop --project src/WitchCityRope.Infrastructure --startup-project apps/api --force
-dotnet ef database update --project src/WitchCityRope.Infrastructure --startup-project apps/api
+# Legacy Infrastructure project archived 2025-09-13
+# dotnet ef database drop --project src/_archive/WitchCityRope.Infrastructure --startup-project apps/api --force  # ARCHIVED
+# dotnet ef database update --project src/_archive/WitchCityRope.Infrastructure --startup-project apps/api  # ARCHIVED
+# Use modern API migration commands instead
 
 // ✅ CORRECT - Entity with proper ID initialization and UTC handling
 public class VettingRequest

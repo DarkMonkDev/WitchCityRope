@@ -7,9 +7,11 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "generate": "node scripts/generate-types-openapi.js",
-    "generate:watch": "nodemon --watch ../api --ext cs --exec npm run generate",
+    "generate:force": "npm run clean && npm run generate",
+    "generate:watch": "nodemon --watch ../../apps/api --ext cs --exec npm run generate",
     "postgenerate": "npm run build",
-    "clean": "rimraf dist src/generated"
+    "clean": "rimraf dist src/generated",
+    "validate": "npm run build && echo '✅ All types are valid'"
   },
   "devDependencies": {
     "openapi-typescript": "^7.4.4",

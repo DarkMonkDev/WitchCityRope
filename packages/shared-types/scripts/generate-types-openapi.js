@@ -7,25 +7,32 @@ const fs = require('fs');
 async function checkApiHealth() {
     console.log('📡 Checking API availability...');
     
-    try {
-        const response = await fetch('http://localhost:5655/health');
-        if (!response.ok) {
-            throw new Error(`API health check failed: ${response.status}`);
+    // Try common API ports in order
+    const apiPorts = ['5656', '5655', '5653'];
+    
+    for (const port of apiPorts) {
+        try {
+            const response = await fetch(`http://localhost:${port}/health`);
+            if (response.ok) {
+                console.log(`✅ API is running and healthy on port ${port}`);
+                return port;
+            }
+        } catch (error) {
+            console.log(`❌ No API found on port ${port}`);
         }
-        console.log('✅ API is running and healthy');
-        return true;
-    } catch (error) {
-        console.error('❌ API is not running or not healthy:', error.message);
-        console.error('Please start the API first using: ./dev.sh or cd apps/api && dotnet run');
-        return false;
     }
+    
+    console.error('❌ API is not running on any expected port (5656, 5655, 5653)');
+    console.error('Please start the API first using: ./dev.sh or cd apps/api && dotnet run');
+    return false;
 }
 
 async function generateTypes() {
     console.log('🔄 Generating TypeScript types from API...');
     
-    // For testing, use the local swagger file
-    const useTestFile = !await checkApiHealth();
+    // Check which port the API is running on
+    const apiPort = await checkApiHealth();
+    const useTestFile = !apiPort;
     
     // Ensure generated directory exists
     const generatedDir = path.join(__dirname, '../src/generated');
@@ -38,7 +45,7 @@ async function generateTypes() {
     
     const swaggerSource = useTestFile 
         ? path.join(__dirname, '../test-swagger.json')
-        : 'http://localhost:5655/swagger/v1/swagger.json';
+        : `http://localhost:${apiPort}/swagger/v1/swagger.json`;
     
     const outputPath = path.join(__dirname, '../src/generated/api-types.ts');
     
@@ -101,19 +108,37 @@ export type UserDto = schemas['UserDto'];
 export type EventDto = schemas['EventDto'];
 export type LoginRequest = schemas['LoginRequest'];
 export type LoginResponse = schemas['LoginResponse'];
-export type CreateEventRequest = schemas['CreateEventRequest'];
-export type EventListResponse = schemas['EventListResponse'];
-export type UserRole = schemas['UserRole'];
-export type EventType = schemas['EventType'];
-export type EventStatus = schemas['EventStatus'];
+export type RegisterRequest = schemas['RegisterRequest'];
+export type AuthUserResponse = schemas['AuthUserResponse'];
+export type UpdateEventRequest = schemas['UpdateEventRequest'];
+export type EventDtoListApiResponse = schemas['EventDtoListApiResponse'];
+export type EventDtoApiResponse = schemas['EventDtoApiResponse'];
+
+// Dashboard types
+export type AdminDashboardResponse = schemas['AdminDashboardResponse'];
+export type ApplicationDetailResponse = schemas['ApplicationDetailResponse'];
+export type ApplicationSummaryDto = schemas['ApplicationSummaryDto'];
+
+// Safety types
+export type CreateIncidentRequest = schemas['CreateIncidentRequest'];
+export type IncidentResponse = schemas['IncidentResponse'];
+export type SubmissionResponse = schemas['SubmissionResponse'];
+
+// Check-in types
+export type CheckInRequest = schemas['CheckInRequest'];
+export type ManualEntryData = schemas['ManualEntryData'];
+
+// Health types
+export type HealthResponse = schemas['HealthResponse'];
+export type DetailedHealthResponse = schemas['DetailedHealthResponse'];
 
 // API operation types
-export type GetCurrentUserResponse = ApiResponse<'/api/auth/me', 'get'>;
+export type GetCurrentUserResponse = ApiResponse<'/api/auth/current-user', 'get'>;
 export type LoginApiRequest = ApiRequestBody<'/api/auth/login', 'post'>;
 export type LoginApiResponse = ApiResponse<'/api/auth/login', 'post'>;
 export type GetEventsResponse = ApiResponse<'/api/events', 'get'>;
-export type CreateEventApiRequest = ApiRequestBody<'/api/events', 'post'>;
-export type CreateEventApiResponse = ApiResponse<'/api/events', 'post'>;
+export type UpdateEventApiRequest = ApiRequestBody<'/api/events/{id}', 'put'>;
+export type UpdateEventApiResponse = ApiResponse<'/api/events/{id}', 'put'>;
 
 // Type guards
 export const isUserDto = (obj: any): obj is UserDto => {
@@ -164,15 +189,20 @@ async function createClientWrapper() {
 
 import type { 
   UserDto, 
-  EventDto, 
   LoginRequest, 
   LoginResponse,
-  CreateEventRequest,
-  EventListResponse,
+  RegisterRequest,
+  AuthUserResponse,
+  UpdateEventRequest,
+  EventDtoListApiResponse,
+  EventDtoApiResponse,
+  AdminDashboardResponse,
+  CreateIncidentRequest,
+  SubmissionResponse,
   ApiError
 } from './api-helpers';
 
-const API_BASE_URL = process.env.VITE_API_BASE_URL || 'http://localhost:5655';
+const API_BASE_URL = process.env.VITE_API_BASE_URL || 'http://localhost:5656';
 
 class ApiClient {
   private baseUrl: string;
@@ -238,8 +268,12 @@ class ApiClient {
   }
 
   // Auth endpoints
-  async getCurrentUser(): Promise<UserDto> {
-    return this.request<UserDto>('/api/auth/me');
+  async getCurrentUser(): Promise<AuthUserResponse> {
+    return this.request<AuthUserResponse>('/api/auth/current-user');
+  }
+
+  async getUserFromCookie(): Promise<AuthUserResponse> {
+    return this.request<AuthUserResponse>('/api/auth/user');
   }
 
   async login(credentials: LoginRequest): Promise<LoginResponse> {
@@ -249,46 +283,66 @@ class ApiClient {
     });
   }
 
+  async register(data: RegisterRequest): Promise<AuthUserResponse> {
+    return this.request<AuthUserResponse>('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   async logout(): Promise<void> {
     await this.request<void>('/api/auth/logout', {
       method: 'POST',
     });
   }
 
-  // Events endpoints
-  async getEvents(params: { page?: number; pageSize?: number } = {}): Promise<EventListResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.pageSize) searchParams.set('pageSize', params.pageSize.toString());
-    
-    const query = searchParams.toString();
-    const endpoint = query ? \`/api/events?\${query}\` : '/api/events';
-    
-    return this.request<EventListResponse>(endpoint);
-  }
-
-  async createEvent(event: CreateEventRequest): Promise<EventDto> {
-    return this.request<EventDto>('/api/events', {
+  async refreshToken(): Promise<void> {
+    await this.request<void>('/api/auth/refresh', {
       method: 'POST',
-      body: JSON.stringify(event),
     });
   }
 
-  async getEvent(id: string): Promise<EventDto> {
-    return this.request<EventDto>(\`/api/events/\${id}\`);
+  // Events endpoints
+  async getEvents(): Promise<EventDtoListApiResponse> {
+    return this.request<EventDtoListApiResponse>('/api/events');
   }
 
-  async updateEvent(id: string, event: Partial<EventDto>): Promise<EventDto> {
-    return this.request<EventDto>(\`/api/events/\${id}\`, {
+  async getEvent(id: string): Promise<EventDtoApiResponse> {
+    return this.request<EventDtoApiResponse>(\`/api/events/\${id}\`);
+  }
+
+  async updateEvent(id: string, event: UpdateEventRequest): Promise<EventDtoApiResponse> {
+    return this.request<EventDtoApiResponse>(\`/api/events/\${id}\`, {
       method: 'PUT',
       body: JSON.stringify(event),
     });
   }
 
-  async deleteEvent(id: string): Promise<void> {
-    await this.request<void>(\`/api/events/\${id}\`, {
-      method: 'DELETE',
+  // Health endpoints
+  async getHealth(): Promise<any> {
+    return this.request<any>('/api/health');
+  }
+
+  async getDetailedHealth(): Promise<any> {
+    return this.request<any>('/api/health/detailed');
+  }
+
+  // Safety endpoints
+  async submitIncident(incident: CreateIncidentRequest): Promise<SubmissionResponse> {
+    return this.request<SubmissionResponse>('/api/safety/incidents', {
+      method: 'POST',
+      body: JSON.stringify(incident),
     });
+  }
+
+  // User profile endpoints
+  async getUserProfile(): Promise<UserDto> {
+    return this.request<UserDto>('/api/users/profile');
+  }
+
+  // Dashboard endpoints (admin only)
+  async getSafetyDashboard(): Promise<AdminDashboardResponse> {
+    return this.request<AdminDashboardResponse>('/api/safety/admin/dashboard');
   }
 }
 

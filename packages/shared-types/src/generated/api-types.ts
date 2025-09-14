@@ -4,13 +4,61 @@
  */
 
 export interface paths {
-    "/api/auth/user": {
+    "/api/admin/users": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
+        /**
+         * Get paginated list of users (admin only)
+         * @description Returns a paginated list of users with optional filtering and sorting
+         */
+        get: operations["GetUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user by ID (admin only)
+         * @description Returns detailed user information by user ID
+         */
+        get: operations["GetUser"];
+        /**
+         * Update user by ID (admin only)
+         * @description Updates user information including role, status, and profile data
+         */
+        put: operations["UpdateUser"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/current-user": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get current authenticated user information
+         * @description Returns the current user's profile information based on JWT token
+         */
         get: operations["GetCurrentUser"];
         put?: never;
         post?: never;
@@ -29,7 +77,231 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * Authenticate user with email and password
+         * @description Validates user credentials and returns JWT token with user information
+         */
         post: operations["Login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Register new user account
+         * @description Creates a new user account with email, password, and scene name
+         */
+        post: operations["Register"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/service-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Generate JWT token for service-to-service authentication
+         * @description Used by Web Service to get JWT tokens for API calls using service secret authentication
+         */
+        post: operations["GetServiceToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Logout current user
+         * @description Logs out the current user and provides instruction to clear stored tokens
+         */
+        post: operations["Logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/user": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get current user information from httpOnly cookie
+         * @description BFF pattern - validates httpOnly cookie and returns user info
+         */
+        get: operations["GetUserFromCookie"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh authentication token silently
+         * @description BFF pattern - refreshes httpOnly cookie with new JWT token
+         */
+        post: operations["RefreshToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/checkin/events/{eventId}/attendees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get attendees for event check-in
+         * @description Returns attendees list with search and filtering for check-in interface
+         */
+        get: operations["GetEventAttendees"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/checkin/events/{eventId}/checkin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Process attendee check-in
+         * @description Check in an attendee for the event with capacity validation
+         */
+        post: operations["ProcessCheckIn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/checkin/events/{eventId}/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get event check-in dashboard
+         * @description Returns real-time check-in statistics and recent activity
+         */
+        get: operations["GetEventDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/checkin/events/{eventId}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync offline check-in data
+         * @description Process pending check-ins from offline operation with conflict detection
+         */
+        post: operations["SyncOfflineCheckIns"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/checkin/events/{eventId}/manual-entry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create manual entry for walk-in attendee
+         * @description Register and check in a walk-in attendee who isn't pre-registered
+         */
+        post: operations["CreateManualEntry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/checkin/sync/pending-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get pending sync operations count
+         * @description Returns the number of pending offline operations for the current user
+         */
+        get: operations["GetPendingSyncCount"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -43,9 +315,746 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Get all published events
+         * @description Returns all published future events from the database with fallback data
+         */
         get: operations["GetEvents"];
         put?: never;
-        post: operations["CreateEvent"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get single event by ID
+         * @description Returns a specific event by its unique identifier
+         */
+        get: operations["GetEvent"];
+        /**
+         * Update an existing event
+         * @description Updates an event with the provided data. Supports partial updates (only non-null fields will be updated). Business rules: Cannot update past events, cannot reduce capacity below current attendance.
+         */
+        put: operations["UpdateEvent"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get basic API health status
+         * @description Returns basic health information including database connectivity and user count
+         */
+        get: operations["GetHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/health/detailed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get detailed API health information
+         * @description Returns comprehensive health metrics including database version and active user counts
+         */
+        get: operations["GetDetailedHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Legacy health check endpoint
+         * @description Simple health check for compatibility with existing monitoring
+         */
+        get: operations["GetLegacyHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/Protected/welcome": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProtectedWelcomeResponse"];
+                        "application/json": components["schemas"]["ProtectedWelcomeResponse"];
+                        "text/json": components["schemas"]["ProtectedWelcomeResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ObjectApiResponse"];
+                        "application/json": components["schemas"]["ObjectApiResponse"];
+                        "text/json": components["schemas"]["ObjectApiResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/Protected/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AuthUserResponseApiResponse"];
+                        "application/json": components["schemas"]["AuthUserResponseApiResponse"];
+                        "text/json": components["schemas"]["AuthUserResponseApiResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ObjectApiResponse"];
+                        "application/json": components["schemas"]["ObjectApiResponse"];
+                        "text/json": components["schemas"]["ObjectApiResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/safety/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit safety incident report
+         * @description Submit a new safety incident report (anonymous or identified)
+         */
+        post: operations["SubmitIncident"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/safety/incidents/{referenceNumber}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get incident status for tracking
+         * @description Get current status of incident by reference number (public access)
+         */
+        get: operations["GetIncidentStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/safety/admin/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get safety team dashboard data
+         * @description Get dashboard statistics and recent incidents for safety team
+         */
+        get: operations["GetSafetyDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/safety/admin/incidents/{incidentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get detailed incident information
+         * @description Get full incident details with decrypted data for safety team
+         */
+        get: operations["GetIncidentDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/safety/my-reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user's incident reports
+         * @description Get list of incident reports submitted by current user
+         */
+        get: operations["GetUserReports"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get current user profile
+         * @description Returns the current user's profile information based on JWT token
+         */
+        get: operations["GetUserProfile"];
+        /**
+         * Update current user profile
+         * @description Updates the current user's profile information (scene name, pronouns)
+         */
+        put: operations["UpdateUserProfile"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/Vetting/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CreateApplicationRequest"];
+                    "text/json": components["schemas"]["CreateApplicationRequest"];
+                    "application/*+json": components["schemas"]["CreateApplicationRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApplicationSubmissionResponse"];
+                        "application/json": components["schemas"]["ApplicationSubmissionResponse"];
+                        "text/json": components["schemas"]["ApplicationSubmissionResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/Vetting/applications/status/{statusToken}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    statusToken: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApplicationStatusResponse"];
+                        "application/json": components["schemas"]["ApplicationStatusResponse"];
+                        "text/json": components["schemas"]["ApplicationStatusResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/Vetting/reviewer/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["ApplicationFilterRequest"];
+                    "text/json": components["schemas"]["ApplicationFilterRequest"];
+                    "application/*+json": components["schemas"]["ApplicationFilterRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApplicationSummaryDtoPagedResult"];
+                        "application/json": components["schemas"]["ApplicationSummaryDtoPagedResult"];
+                        "text/json": components["schemas"]["ApplicationSummaryDtoPagedResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/Vetting/reviewer/applications/{applicationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    applicationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApplicationDetailResponse"];
+                        "application/json": components["schemas"]["ApplicationDetailResponse"];
+                        "text/json": components["schemas"]["ApplicationDetailResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/Vetting/reviewer/applications/{applicationId}/decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    applicationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["ReviewDecisionRequest"];
+                    "text/json": components["schemas"]["ReviewDecisionRequest"];
+                    "application/*+json": components["schemas"]["ReviewDecisionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ReviewDecisionResponse"];
+                        "application/json": components["schemas"]["ReviewDecisionResponse"];
+                        "text/json": components["schemas"]["ReviewDecisionResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/Vetting/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -56,76 +1065,180 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        UserDto: {
+        ActionItem: {
+            /** Format: uuid */
+            incidentId?: string;
+            referenceNumber?: string | null;
+            actionNeeded?: string | null;
+            priority?: components["schemas"]["IncidentSeverity"];
+            /** Format: date-time */
+            dueDate?: string;
+        };
+        AdminDashboardResponse: {
+            statistics?: components["schemas"]["SafetyStatistics"];
+            recentIncidents?: components["schemas"]["IncidentSummaryResponse"][] | null;
+            pendingActions?: components["schemas"]["ActionItem"][] | null;
+        };
+        ApplicationDetailResponse: {
             /** Format: uuid */
             id?: string;
-            /** Format: email */
-            email?: string;
+            applicationNumber?: string | null;
+            status?: string | null;
+            /** Format: date-time */
+            submittedAt?: string;
+            /** Format: date-time */
+            lastActivityAt?: string | null;
+            fullName?: string | null;
             sceneName?: string | null;
-            firstName?: string | null;
-            lastName?: string | null;
-            roles?: components["schemas"]["UserRole"][];
-            isActive?: boolean;
+            pronouns?: string | null;
+            email?: string | null;
+            phone?: string | null;
+            experienceLevel?: string | null;
+            /** Format: int32 */
+            yearsExperience?: number;
+            experienceDescription?: string | null;
+            safetyKnowledge?: string | null;
+            consentUnderstanding?: string | null;
+            whyJoinCommunity?: string | null;
+            skillsInterests?: string[] | null;
+            expectationsGoals?: string | null;
+            agreesToGuidelines?: boolean;
+            isAnonymous?: boolean;
+            agreesToTerms?: boolean;
+            consentToContact?: boolean;
+            assignedReviewerName?: string | null;
             /** Format: date-time */
-            createdAt?: string;
+            reviewStartedAt?: string | null;
+            /** Format: int32 */
+            priority?: number;
             /** Format: date-time */
-            updatedAt?: string;
+            interviewScheduledFor?: string | null;
+            references?: components["schemas"]["ReferenceDetailDto"][] | null;
+            notes?: components["schemas"]["ApplicationNoteDto"][] | null;
+            decisions?: components["schemas"]["ReviewDecisionDto"][] | null;
+        };
+        ApplicationFilterRequest: {
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            pageSize?: number;
+            statusFilters?: string[] | null;
+            onlyMyAssignments?: boolean | null;
+            onlyUnassigned?: boolean | null;
+            /** Format: uuid */
+            assignedReviewerId?: string | null;
+            priorityFilters?: number[] | null;
+            experienceLevelFilters?: number[] | null;
+            /** Format: int32 */
+            minYearsExperience?: number | null;
+            /** Format: int32 */
+            maxYearsExperience?: number | null;
+            skillsFilters?: string[] | null;
             /** Format: date-time */
-            lastLoginAt?: string | null;
+            submittedAfter?: string | null;
+            /** Format: date-time */
+            submittedBefore?: string | null;
+            /** Format: date-time */
+            lastActivityAfter?: string | null;
+            /** Format: date-time */
+            lastActivityBefore?: string | null;
+            searchQuery?: string | null;
+            onlyCompleteReferences?: boolean | null;
+            onlyPendingReferences?: boolean | null;
+            sortBy?: string | null;
+            sortDirection?: string | null;
         };
-        /** @enum {string} */
-        UserRole: "Admin" | "Teacher" | "VettedMember" | "GeneralMember" | "Guest";
-        LoginRequest: {
-            /** Format: email */
-            email: string;
-            password: string;
-            /** @default false */
-            rememberMe?: boolean;
-        };
-        LoginResponse: {
-            success?: boolean;
-            user?: components["schemas"]["UserDto"];
-            message?: string | null;
-        };
-        EventDto: {
+        ApplicationNoteDto: {
             /** Format: uuid */
             id?: string;
-            title?: string;
-            description?: string | null;
-            /** Format: date-time */
-            startDateTime?: string;
-            /** Format: date-time */
-            endDateTime?: string;
-            /** Format: int32 */
-            capacity?: number;
-            /** Format: int32 */
-            currentAttendees?: number;
-            eventType?: components["schemas"]["EventType"];
-            status?: components["schemas"]["EventStatus"];
-            /** Format: uuid */
-            createdBy?: string;
+            content?: string | null;
+            type?: string | null;
+            isPrivate?: boolean;
+            tags?: string[] | null;
+            reviewerName?: string | null;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
             updatedAt?: string;
         };
-        /** @enum {string} */
-        EventType: "Workshop" | "Performance" | "Social" | "Private";
-        /** @enum {string} */
-        EventStatus: "Draft" | "Published" | "Cancelled" | "Completed";
-        CreateEventRequest: {
-            title: string;
-            description?: string | null;
-            /** Format: date-time */
-            startDateTime: string;
-            /** Format: date-time */
-            endDateTime: string;
+        ApplicationProgressSummary: {
+            applicationSubmitted?: boolean;
+            referencesContacted?: boolean;
+            referencesReceived?: boolean;
+            underReview?: boolean;
+            interviewScheduled?: boolean;
+            decisionMade?: boolean;
             /** Format: int32 */
-            capacity: number;
-            eventType: components["schemas"]["EventType"];
+            progressPercentage?: number;
+            currentPhase?: string | null;
         };
-        EventListResponse: {
-            events?: components["schemas"]["EventDto"][];
+        ApplicationReferenceStatus: {
+            /** Format: int32 */
+            totalReferences?: number;
+            /** Format: int32 */
+            contactedReferences?: number;
+            /** Format: int32 */
+            respondedReferences?: number;
+            allReferencesComplete?: boolean;
+            /** Format: date-time */
+            oldestPendingReferenceDate?: string | null;
+        };
+        ApplicationStatusResponse: {
+            applicationNumber?: string | null;
+            status?: string | null;
+            /** Format: date-time */
+            submittedAt?: string;
+            statusDescription?: string | null;
+            /** Format: date-time */
+            lastUpdateAt?: string | null;
+            /** Format: int32 */
+            estimatedDaysRemaining?: number | null;
+            progress?: components["schemas"]["ApplicationProgressSummary"];
+            recentUpdates?: components["schemas"]["StatusUpdateSummary"][] | null;
+        };
+        ApplicationSubmissionResponse: {
+            /** Format: uuid */
+            applicationId?: string;
+            applicationNumber?: string | null;
+            statusToken?: string | null;
+            /** Format: date-time */
+            submittedAt?: string;
+            confirmationMessage?: string | null;
+            /** Format: int32 */
+            estimatedReviewDays?: number;
+            nextSteps?: string | null;
+            referenceStatuses?: components["schemas"]["ReferenceStatusSummary"][] | null;
+        };
+        ApplicationSummaryDto: {
+            /** Format: uuid */
+            id?: string;
+            applicationNumber?: string | null;
+            status?: string | null;
+            /** Format: date-time */
+            submittedAt?: string;
+            /** Format: date-time */
+            lastActivityAt?: string | null;
+            sceneName?: string | null;
+            experienceLevel?: string | null;
+            /** Format: int32 */
+            yearsExperience?: number;
+            isAnonymous?: boolean;
+            assignedReviewerName?: string | null;
+            /** Format: date-time */
+            reviewStartedAt?: string | null;
+            /** Format: int32 */
+            priority?: number;
+            /** Format: int32 */
+            daysInCurrentStatus?: number;
+            referenceStatus?: components["schemas"]["ApplicationReferenceStatus"];
+            hasRecentNotes?: boolean;
+            hasPendingActions?: boolean;
+            /** Format: date-time */
+            interviewScheduledFor?: string | null;
+            skillsTags?: string[] | null;
+        };
+        ApplicationSummaryDtoPagedResult: {
+            items?: components["schemas"]["ApplicationSummaryDto"][] | null;
             /** Format: int32 */
             totalCount?: number;
             /** Format: int32 */
@@ -134,6 +1247,496 @@ export interface components {
             pageSize?: number;
             /** Format: int32 */
             totalPages?: number;
+            hasPreviousPage?: boolean;
+            hasNextPage?: boolean;
+        };
+        AuditLogDto: {
+            /** Format: uuid */
+            id?: string;
+            actionType?: string | null;
+            actionDescription?: string | null;
+            /** Format: uuid */
+            userId?: string | null;
+            userName?: string | null;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        AuthUserResponse: {
+            /** Format: uuid */
+            id?: string;
+            email?: string | null;
+            sceneName?: string | null;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            lastLoginAt?: string | null;
+            role?: string | null;
+            roles?: string[] | null;
+        };
+        AuthUserResponseApiResponse: {
+            success?: boolean;
+            data?: components["schemas"]["AuthUserResponse"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        CheckInRequest: {
+            attendeeId: string;
+            checkInTime: string;
+            staffMemberId: string;
+            notes?: string | null;
+            overrideCapacity?: boolean;
+            isManualEntry?: boolean;
+            manualEntryData?: components["schemas"]["ManualEntryData"];
+        };
+        CreateApplicationRequest: {
+            fullName: string;
+            sceneName: string;
+            pronouns?: string | null;
+            /** Format: email */
+            email: string;
+            /** Format: tel */
+            phone?: string | null;
+            /** Format: int32 */
+            experienceLevel: number;
+            /** Format: int32 */
+            yearsExperience: number;
+            experienceDescription: string;
+            safetyKnowledge: string;
+            consentUnderstanding: string;
+            whyJoinCommunity: string;
+            skillsInterests: string[];
+            expectationsGoals: string;
+            agreesToGuidelines: boolean;
+            references: components["schemas"]["ReferenceRequest"][];
+            agreesToTerms: boolean;
+            isAnonymous: boolean;
+            consentToContact: boolean;
+        };
+        CreateIncidentRequest: {
+            /** Format: uuid */
+            reporterId?: string | null;
+            severity?: components["schemas"]["IncidentSeverity"];
+            /** Format: date-time */
+            incidentDate?: string;
+            location?: string | null;
+            description?: string | null;
+            involvedParties?: string | null;
+            witnesses?: string | null;
+            isAnonymous?: boolean;
+            requestFollowUp?: boolean;
+            contactEmail?: string | null;
+            contactPhone?: string | null;
+        };
+        DetailedHealthResponse: {
+            status?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+            databaseConnected?: boolean;
+            /** Format: int32 */
+            userCount?: number;
+            version?: string | null;
+            databaseVersion?: string | null;
+            /** Format: int32 */
+            activeUserCount?: number;
+            environment?: string | null;
+        };
+        EventDto: {
+            id?: string | null;
+            title?: string | null;
+            description?: string | null;
+            /** Format: date-time */
+            startDate?: string;
+            /** Format: date-time */
+            endDate?: string;
+            location?: string | null;
+            eventType?: string | null;
+            /** Format: int32 */
+            capacity?: number;
+            /** Format: int32 */
+            currentAttendees?: number;
+            /** Format: int32 */
+            currentRSVPs?: number;
+            /** Format: int32 */
+            currentTickets?: number;
+            sessions?: components["schemas"]["SessionDto"][] | null;
+            ticketTypes?: components["schemas"]["TicketTypeDto"][] | null;
+            teacherIds?: string[] | null;
+        };
+        EventDtoApiResponse: {
+            success?: boolean;
+            data?: components["schemas"]["EventDto"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        EventDtoListApiResponse: {
+            success?: boolean;
+            data?: components["schemas"]["EventDto"][] | null;
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        HealthResponse: {
+            status?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+            databaseConnected?: boolean;
+            /** Format: int32 */
+            userCount?: number;
+            version?: string | null;
+        };
+        IncidentResponse: {
+            /** Format: uuid */
+            id?: string;
+            referenceNumber?: string | null;
+            /** Format: uuid */
+            reporterId?: string | null;
+            reporterName?: string | null;
+            severity?: components["schemas"]["IncidentSeverity"];
+            /** Format: date-time */
+            incidentDate?: string;
+            /** Format: date-time */
+            reportedAt?: string;
+            location?: string | null;
+            description?: string | null;
+            involvedParties?: string | null;
+            witnesses?: string | null;
+            contactEmail?: string | null;
+            contactPhone?: string | null;
+            isAnonymous?: boolean;
+            requestFollowUp?: boolean;
+            status?: components["schemas"]["IncidentStatus"];
+            /** Format: uuid */
+            assignedTo?: string | null;
+            assignedUserName?: string | null;
+            auditTrail?: components["schemas"]["AuditLogDto"][] | null;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        /**
+         * Format: int32
+         * @enum {integer}
+         */
+        IncidentSeverity: 1 | 2 | 3 | 4;
+        /**
+         * Format: int32
+         * @enum {integer}
+         */
+        IncidentStatus: 1 | 2 | 3 | 4;
+        IncidentStatusResponse: {
+            referenceNumber?: string | null;
+            status?: string | null;
+            /** Format: date-time */
+            lastUpdated?: string;
+            canProvideMoreInfo?: boolean;
+        };
+        IncidentSummaryResponse: {
+            /** Format: uuid */
+            id?: string;
+            referenceNumber?: string | null;
+            severity?: components["schemas"]["IncidentSeverity"];
+            /** Format: date-time */
+            incidentDate?: string;
+            /** Format: date-time */
+            reportedAt?: string;
+            location?: string | null;
+            isAnonymous?: boolean;
+            status?: components["schemas"]["IncidentStatus"];
+            /** Format: uuid */
+            assignedTo?: string | null;
+            assignedUserName?: string | null;
+        };
+        LoginRequest: {
+            /** Format: email */
+            email: string;
+            password: string;
+        };
+        LoginResponse: {
+            token?: string | null;
+            /** Format: date-time */
+            expiresAt?: string;
+            user?: components["schemas"]["AuthUserResponse"];
+        };
+        ManualEntryData: {
+            name: string;
+            /** Format: email */
+            email: string;
+            /** Format: tel */
+            phone: string;
+            dietaryRestrictions?: string | null;
+            accessibilityNeeds?: string | null;
+            hasCompletedWaiver?: boolean;
+        };
+        ObjectApiResponse: {
+            success?: boolean;
+            data?: unknown;
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        PendingCheckIn: {
+            localId: string;
+            attendeeId: string;
+            checkInTime: string;
+            staffMemberId: string;
+            notes?: string | null;
+            isManualEntry?: boolean;
+            manualEntryData?: components["schemas"]["ManualEntryData"];
+        };
+        ProblemDetails: {
+            type?: string | null;
+            title?: string | null;
+            /** Format: int32 */
+            status?: number | null;
+            detail?: string | null;
+            instance?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
+        ProtectedWelcomeResponse: {
+            message?: string | null;
+            user?: components["schemas"]["AuthUserResponse"];
+            /** Format: date-time */
+            serverTime?: string;
+            tokenClaims?: components["schemas"]["TokenClaims"];
+        };
+        ReferenceDetailDto: {
+            /** Format: uuid */
+            id?: string;
+            name?: string | null;
+            email?: string | null;
+            relationship?: string | null;
+            /** Format: int32 */
+            order?: number;
+            status?: string | null;
+            /** Format: date-time */
+            contactedAt?: string | null;
+            /** Format: date-time */
+            respondedAt?: string | null;
+            /** Format: date-time */
+            formExpiresAt?: string | null;
+            response?: components["schemas"]["ReferenceResponseDto"];
+        };
+        ReferenceRequest: {
+            name: string;
+            /** Format: email */
+            email: string;
+            relationship: string;
+            /** Format: int32 */
+            order?: number;
+        };
+        ReferenceResponseDto: {
+            relationshipDuration?: string | null;
+            experienceAssessment?: string | null;
+            safetyConcerns?: string | null;
+            communityReadiness?: string | null;
+            recommendation?: string | null;
+            additionalComments?: string | null;
+            /** Format: date-time */
+            respondedAt?: string;
+        };
+        ReferenceStatusSummary: {
+            name?: string | null;
+            email?: string | null;
+            status?: string | null;
+            /** Format: date-time */
+            contactedAt?: string | null;
+            /** Format: date-time */
+            respondedAt?: string | null;
+        };
+        RegisterRequest: {
+            /** Format: email */
+            email: string;
+            password: string;
+            sceneName: string;
+        };
+        ReviewDecisionDto: {
+            /** Format: uuid */
+            id?: string;
+            decisionType?: string | null;
+            reasoning?: string | null;
+            /** Format: int32 */
+            score?: number | null;
+            isFinalDecision?: boolean;
+            additionalInfoRequested?: string | null;
+            /** Format: date-time */
+            additionalInfoDeadline?: string | null;
+            /** Format: date-time */
+            proposedInterviewTime?: string | null;
+            interviewNotes?: string | null;
+            reviewerName?: string | null;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        ReviewDecisionRequest: {
+            /** Format: int32 */
+            decisionType: number;
+            reasoning: string;
+            /** Format: int32 */
+            score?: number | null;
+            isFinalDecision?: boolean;
+            additionalInfoRequested?: string | null;
+            /** Format: date-time */
+            additionalInfoDeadline?: string | null;
+            /** Format: date-time */
+            proposedInterviewTime?: string | null;
+            interviewNotes?: string | null;
+        };
+        ReviewDecisionResponse: {
+            /** Format: uuid */
+            decisionId?: string;
+            decisionType?: string | null;
+            /** Format: date-time */
+            submittedAt?: string;
+            newApplicationStatus?: string | null;
+            confirmationMessage?: string | null;
+            actionsTriggered?: string[] | null;
+        };
+        SafetyStatistics: {
+            /** Format: int32 */
+            criticalCount?: number;
+            /** Format: int32 */
+            highCount?: number;
+            /** Format: int32 */
+            mediumCount?: number;
+            /** Format: int32 */
+            lowCount?: number;
+            /** Format: int32 */
+            totalCount?: number;
+            /** Format: int32 */
+            newCount?: number;
+            /** Format: int32 */
+            inProgressCount?: number;
+            /** Format: int32 */
+            resolvedCount?: number;
+            /** Format: int32 */
+            thisMonth?: number;
+        };
+        ServiceTokenRequest: {
+            userId?: string | null;
+            email?: string | null;
+        };
+        SessionDto: {
+            id?: string | null;
+            sessionIdentifier?: string | null;
+            name?: string | null;
+            /** Format: date-time */
+            date?: string;
+            /** Format: date-time */
+            startTime?: string;
+            /** Format: date-time */
+            endTime?: string;
+            /** Format: int32 */
+            capacity?: number;
+            /** Format: int32 */
+            registeredCount?: number;
+        };
+        StatusUpdateSummary: {
+            /** Format: date-time */
+            updatedAt?: string;
+            message?: string | null;
+            type?: string | null;
+        };
+        SubmissionResponse: {
+            referenceNumber?: string | null;
+            trackingUrl?: string | null;
+            /** Format: date-time */
+            submittedAt?: string;
+        };
+        SyncRequest: {
+            deviceId: string;
+            pendingCheckIns: components["schemas"]["PendingCheckIn"][];
+            lastSyncTimestamp: string;
+        };
+        TicketTypeDto: {
+            id?: string | null;
+            name?: string | null;
+            type?: string | null;
+            sessionIdentifiers?: string[] | null;
+            /** Format: double */
+            minPrice?: number;
+            /** Format: double */
+            maxPrice?: number;
+            /** Format: int32 */
+            quantityAvailable?: number;
+            /** Format: date-time */
+            salesEndDate?: string | null;
+        };
+        TokenClaims: {
+            userId?: string | null;
+            email?: string | null;
+            sceneName?: string | null;
+        };
+        UpdateEventRequest: {
+            title?: string | null;
+            description?: string | null;
+            /** Format: date-time */
+            startDate?: string | null;
+            /** Format: date-time */
+            endDate?: string | null;
+            location?: string | null;
+            /** Format: int32 */
+            capacity?: number | null;
+            pricingTiers?: string | null;
+            isPublished?: boolean | null;
+            sessions?: components["schemas"]["SessionDto"][] | null;
+            ticketTypes?: components["schemas"]["TicketTypeDto"][] | null;
+            teacherIds?: string[] | null;
+        };
+        UpdateProfileRequest: {
+            sceneName?: string | null;
+            pronouns?: string | null;
+        };
+        UpdateUserRequest: {
+            sceneName?: string | null;
+            role?: string | null;
+            pronouns?: string | null;
+            isActive?: boolean | null;
+            isVetted?: boolean | null;
+            emailConfirmed?: boolean | null;
+            /** Format: int32 */
+            vettingStatus?: number | null;
+        };
+        UserDto: {
+            /** Format: uuid */
+            id?: string;
+            email?: string | null;
+            sceneName?: string | null;
+            role?: string | null;
+            pronouns?: string | null;
+            isActive?: boolean;
+            isVetted?: boolean;
+            emailConfirmed?: boolean;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            lastLoginAt?: string | null;
+            /** Format: int32 */
+            vettingStatus?: number;
+        };
+        UserListResponse: {
+            users?: components["schemas"]["UserDto"][] | null;
+            /** Format: int32 */
+            totalCount?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            pageSize?: number;
+            /** Format: int32 */
+            readonly totalPages?: number;
+            readonly hasPreviousPage?: boolean;
+            readonly hasNextPage?: boolean;
         };
     };
     responses: never;
@@ -144,6 +1747,167 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    GetUsers: {
+        parameters: {
+            query: {
+                SearchTerm?: string;
+                Role?: string;
+                IsActive?: boolean;
+                IsVetted?: boolean;
+                Page: number;
+                PageSize: number;
+                SortBy: string;
+                SortDescending: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserListResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateUserRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     GetCurrentUser: {
         parameters: {
             query?: never;
@@ -153,17 +1917,31 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserDto"];
+                    "application/json": components["schemas"]["AuthUserResponse"];
                 };
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -178,13 +1956,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
                 "application/json": components["schemas"]["LoginRequest"];
             };
         };
         responses: {
-            /** @description Success */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -209,39 +1987,16 @@ export interface operations {
             };
         };
     };
-    GetEvents: {
-        parameters: {
-            query?: {
-                page?: number;
-                pageSize?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EventListResponse"];
-                };
-            };
-        };
-    };
-    CreateEvent: {
+    Register: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateEventRequest"];
+                "application/json": components["schemas"]["RegisterRequest"];
             };
         };
         responses: {
@@ -251,7 +2006,38 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EventDto"];
+                    "application/json": components["schemas"]["AuthUserResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetServiceToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceTokenRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginResponse"];
                 };
             };
             /** @description Bad Request */
@@ -268,8 +2054,719 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Logout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetUserFromCookie: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthUserResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RefreshToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetEventAttendees: {
+        parameters: {
+            query?: {
+                search?: string;
+                status?: string;
+                page?: number;
+                pageSize?: number;
+            };
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ProcessCheckIn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckInRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetEventDashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SyncOfflineCheckIns: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SyncRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CreateManualEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManualEntryData"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetPendingSyncCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventDtoListApiResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventDtoApiResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateEventRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventDtoApiResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetDetailedHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DetailedHealthResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetLegacyHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SubmitIncident: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateIncidentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetIncidentStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                referenceNumber: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentStatusResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetSafetyDashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminDashboardResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetIncidentDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetUserReports: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentSummaryResponse"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetUserProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateUserProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

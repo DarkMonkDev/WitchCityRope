@@ -2,7 +2,7 @@
 /* tslint:disable */
 /**
  * Helper functions for working with the generated API types
- * Generated on: 2025-08-19T07:40:03.498Z
+ * Generated on: 2025-09-14T02:15:05.594Z
  */
 
 import type { paths, components } from './api-types';
@@ -27,19 +27,37 @@ export type UserDto = schemas['UserDto'];
 export type EventDto = schemas['EventDto'];
 export type LoginRequest = schemas['LoginRequest'];
 export type LoginResponse = schemas['LoginResponse'];
-export type CreateEventRequest = schemas['CreateEventRequest'];
-export type EventListResponse = schemas['EventListResponse'];
-export type UserRole = schemas['UserRole'];
-export type EventType = schemas['EventType'];
-export type EventStatus = schemas['EventStatus'];
+export type RegisterRequest = schemas['RegisterRequest'];
+export type AuthUserResponse = schemas['AuthUserResponse'];
+export type UpdateEventRequest = schemas['UpdateEventRequest'];
+export type EventDtoListApiResponse = schemas['EventDtoListApiResponse'];
+export type EventDtoApiResponse = schemas['EventDtoApiResponse'];
+
+// Dashboard types
+export type AdminDashboardResponse = schemas['AdminDashboardResponse'];
+export type ApplicationDetailResponse = schemas['ApplicationDetailResponse'];
+export type ApplicationSummaryDto = schemas['ApplicationSummaryDto'];
+
+// Safety types
+export type CreateIncidentRequest = schemas['CreateIncidentRequest'];
+export type IncidentResponse = schemas['IncidentResponse'];
+export type SubmissionResponse = schemas['SubmissionResponse'];
+
+// Check-in types
+export type CheckInRequest = schemas['CheckInRequest'];
+export type ManualEntryData = schemas['ManualEntryData'];
+
+// Health types
+export type HealthResponse = schemas['HealthResponse'];
+export type DetailedHealthResponse = schemas['DetailedHealthResponse'];
 
 // API operation types
-export type GetCurrentUserResponse = ApiResponse<'/api/auth/user', 'get'>;
+export type GetCurrentUserResponse = ApiResponse<'/api/auth/current-user', 'get'>;
 export type LoginApiRequest = ApiRequestBody<'/api/auth/login', 'post'>;
 export type LoginApiResponse = ApiResponse<'/api/auth/login', 'post'>;
 export type GetEventsResponse = ApiResponse<'/api/events', 'get'>;
-export type CreateEventApiRequest = ApiRequestBody<'/api/events', 'post'>;
-export type CreateEventApiResponse = ApiResponse<'/api/events', 'post'>;
+export type UpdateEventApiRequest = ApiRequestBody<'/api/events/{id}', 'put'>;
+export type UpdateEventApiResponse = ApiResponse<'/api/events/{id}', 'put'>;
 
 // Type guards
 export const isUserDto = (obj: any): obj is UserDto => {
