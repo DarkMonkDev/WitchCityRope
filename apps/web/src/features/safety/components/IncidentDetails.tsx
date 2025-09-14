@@ -117,7 +117,7 @@ export function IncidentDetails({ incidentId, onClose }: IncidentDetailsProps) {
   
   if (error || !incident) {
     return (
-      <Alert variant="light" color="red" icon={<IconAlertTriangle size={16} />}>
+      <Alert variant="light" color="red" icon={<IconAlertTriangle />}>
         <Text size="sm">
           {error instanceof Error && error.message.includes('403')
             ? 'Access denied - insufficient permissions'

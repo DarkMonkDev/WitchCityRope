@@ -80,11 +80,11 @@ export const ReferencesStep: React.FC<ReferencesStepProps> = ({ form }) => {
     isRequired?: boolean;
   }) => (
     <Paper p="lg" withBorder bg={isRequired ? 'blue.0' : 'gray.0'}>
-      <Text weight={600} size="md" mb="md" c={isRequired ? 'blue.7' : 'gray.7'}>
+      <Text fw={600} size="md" mb="md" c={isRequired ? 'blue.7' : 'gray.7'}>
         {title} {isRequired && <Text component="span" c="red">*</Text>}
       </Text>
       
-      <Stack spacing="md">
+      <Stack gap="md">
         {/* Reference Name */}
         <Box pos="relative">
           <Controller
@@ -94,7 +94,7 @@ export const ReferencesStep: React.FC<ReferencesStepProps> = ({ form }) => {
               <TextInput
                 {...field}
                 placeholder=" "
-                leftIcon={<IconUser size={16} />}
+                leftSection={<IconUser size={16} />}
                 styles={(theme) => floatingLabelStyles(theme, !!errors.references?.[referenceKey]?.name)}
                 error={errors.references?.[referenceKey]?.name?.message}
               />
@@ -131,7 +131,7 @@ export const ReferencesStep: React.FC<ReferencesStepProps> = ({ form }) => {
                 {...field}
                 type="email"
                 placeholder=" "
-                leftIcon={<IconMail size={16} />}
+                leftSection={<IconMail size={16} />}
                 styles={(theme) => floatingLabelStyles(theme, !!errors.references?.[referenceKey]?.email)}
                 error={errors.references?.[referenceKey]?.email?.message}
               />
@@ -167,7 +167,7 @@ export const ReferencesStep: React.FC<ReferencesStepProps> = ({ form }) => {
               <TextInput
                 {...field}
                 placeholder=" "
-                leftIcon={<IconHeart size={16} />}
+                leftSection={<IconHeart size={16} />}
                 styles={(theme) => floatingLabelStyles(theme, !!errors.references?.[referenceKey]?.relationship)}
                 error={errors.references?.[referenceKey]?.relationship?.message}
                 description="e.g., 'Rope partner for 2 years', 'Workshop instructor', 'Community friend'"
@@ -199,10 +199,10 @@ export const ReferencesStep: React.FC<ReferencesStepProps> = ({ form }) => {
   );
 
   return (
-    <Stack spacing="xl">
+    <Stack gap="xl">
       {/* Section Header */}
       <Box>
-        <Text size="xl" weight={700} c="wcr.7" mb="xs">
+        <Text size="xl" fw={700} c="wcr.7" mb="xs">
           References
         </Text>
         <Text c="dimmed">
@@ -239,7 +239,7 @@ export const ReferencesStep: React.FC<ReferencesStepProps> = ({ form }) => {
         </Text>
       </Alert>
 
-      <Stack spacing="lg">
+      <Stack gap="lg">
         {/* Reference 1 - Required */}
         <ReferenceCard
           referenceKey="reference1"
@@ -296,7 +296,7 @@ export const ReferencesStep: React.FC<ReferencesStepProps> = ({ form }) => {
       </Alert>
 
       {/* Required Fields Notice */}
-      <Group spacing="xs" align="center">
+      <Group gap="xs" align="center">
         <Text size="sm" c="dimmed">
           Two references are required to continue. The third reference is optional but recommended.
         </Text>

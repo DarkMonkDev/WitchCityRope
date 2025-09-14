@@ -273,7 +273,7 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
               </Radio.Group>
               
               <Alert 
-                icon={<IconAlertCircle size={16} />}
+                icon={<IconAlertCircle />}
                 color="blue" 
                 variant="light" 
                 mt="md"

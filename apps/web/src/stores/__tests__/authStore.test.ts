@@ -34,12 +34,10 @@ describe('AuthStore', () => {
     id: '1',
     email: 'test@witchcityrope.com',
     sceneName: 'TestUser',
-    firstName: null,
-    lastName: null,
-    roles: ['GeneralMember'],
+    role: 'GeneralMember',
     isActive: true,
     createdAt: '2025-08-19T10:00:00Z',
-    updatedAt: '2025-08-19T10:00:00Z',
+    lastLoginAt: '2025-08-19T10:00:00Z',
     // lastLoginAt: '2025-08-19T10:00:00Z' // TODO: Fix type resolution issue
   };
 
@@ -142,12 +140,10 @@ describe('AuthStore', () => {
         id: '1',
         email: 'admin@witchcityrope.com',
         sceneName: 'TestAdmin',
-        firstName: null,
-        lastName: null,
-        roles: ['Admin'],
+                roles: ['Admin'],
         isActive: true,
         createdAt: '2025-08-19T00:00:00Z',
-        updatedAt: '2025-08-19T10:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z',
         // lastLoginAt: '2025-08-19T10:00:00Z' // TODO: Fix type resolution issue
       });
       expect(state.isLoading).toBe(false);
@@ -163,12 +159,10 @@ describe('AuthStore', () => {
         id: '1',
         email: 'admin@witchcityrope.com',
         sceneName: 'TestAdmin',
-        firstName: null,
-        lastName: null,
-        roles: ['Admin'],
+                roles: ['Admin'],
         isActive: true,
         createdAt: '2025-08-19T00:00:00Z',
-        updatedAt: '2025-08-19T10:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z',
         // lastLoginAt: '2025-08-19T10:00:00Z' // TODO: Fix type resolution issue
       });
     });

@@ -76,13 +76,13 @@ export function SubmissionConfirmation({ submissionResult, onNewReport }: Submis
             variant="light" 
             color="blue" 
             style={{ width: '100%' }}
-            icon={<IconCalendar size={16} />}
+            icon={<IconCalendar />}
           >
             <Stack gap="xs">
               <Group justify="space-between" align="center">
                 <Box>
                   <Text size="sm" fw={500} mb={2}>Reference Number</Text>
-                  <Code size="lg" fw={700}>{submissionResult.referenceNumber}</Code>
+                  <Code style={{ fontSize: '14px', fontWeight: 700 }}>{submissionResult.referenceNumber}</Code>
                 </Box>
                 <Tooltip label={clipboard.copied ? 'Copied!' : 'Copy reference number'}>
                   <ActionIcon

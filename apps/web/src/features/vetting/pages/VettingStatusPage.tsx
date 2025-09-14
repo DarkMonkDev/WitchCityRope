@@ -87,7 +87,7 @@ export const VettingStatusPage: React.FC<VettingStatusPageProps> = ({
     <Container size="md" py="xl" className={className}>
       {/* Page Header */}
       <Paper p="xl" shadow="sm" mb="xl" ta="center">
-        <Stack spacing="lg">
+        <Stack gap="lg">
           <Box>
             <Title order={1} size="h1" c="wcr.7" mb="md">
               Check Application Status
@@ -103,9 +103,9 @@ export const VettingStatusPage: React.FC<VettingStatusPageProps> = ({
       {/* Token Input Section */}
       {!currentToken && (
         <Paper p="xl" shadow="sm" mb="xl">
-          <Stack spacing="lg">
+          <Stack gap="lg">
             <Box>
-              <Text size="lg" weight={600} c="wcr.7" mb="md">
+              <Text size="lg" fw={600} c="wcr.7" mb="md">
                 Enter Your Tracking Information
               </Text>
               <Text size="sm" c="dimmed" mb="lg">
@@ -121,7 +121,7 @@ export const VettingStatusPage: React.FC<VettingStatusPageProps> = ({
                 value={inputToken}
                 onChange={(e) => setInputToken(e.target.value)}
                 onKeyPress={handleKeyPress}
-                leftIcon={<IconSearch size={16} />}
+                leftSection={<IconSearch size={16} />}
                 style={{ flex: 1 }}
                 size="lg"
                 error={tokenNotFound ? 'Application not found with this token' : undefined}
@@ -172,10 +172,10 @@ export const VettingStatusPage: React.FC<VettingStatusPageProps> = ({
         <>
           {/* Status Actions */}
           <Paper p="md" mb="lg" withBorder>
-            <Group position="apart">
-              <Group spacing="xs">
+            <Group justify="apart">
+              <Group gap="xs">
                 <Text size="sm" c="dimmed">
-                  Viewing status for: <Text component="span" weight={500}>{currentToken}</Text>
+                  Viewing status for: <Text component="span" fw={500}>{currentToken}</Text>
                 </Text>
               </Group>
               <Button
@@ -198,10 +198,10 @@ export const VettingStatusPage: React.FC<VettingStatusPageProps> = ({
 
       {/* Help Section */}
       <Paper p="xl" bg="blue.0" withBorder>
-        <Stack spacing="md">
-          <Group spacing="md">
+        <Stack gap="md">
+          <Group gap="md">
             <IconInfoCircle size={24} color="#4285F4" />
-            <Text size="lg" weight={600} c="blue.7">
+            <Text size="lg" fw={600} c="blue.7">
               Don't have your tracking information?
             </Text>
           </Group>
@@ -210,8 +210,8 @@ export const VettingStatusPage: React.FC<VettingStatusPageProps> = ({
             If you can't find your tracking token or application number, here are some options:
           </Text>
           
-          <Stack spacing="sm">
-            <Group spacing="xs" align="flex-start">
+          <Stack gap="sm">
+            <Group gap="xs" align="flex-start">
               <IconMail size={16} color="#4285F4" style={{ marginTop: 2 }} />
               <Text size="sm" c="blue.7">
                 <strong>Check your email:</strong> Look for the confirmation email from WitchCityRope 
@@ -219,7 +219,7 @@ export const VettingStatusPage: React.FC<VettingStatusPageProps> = ({
               </Text>
             </Group>
             
-            <Group spacing="xs" align="flex-start">
+            <Group gap="xs" align="flex-start">
               <IconShieldCheck size={16} color="#4285F4" style={{ marginTop: 2 }} />
               <Text size="sm" c="blue.7">
                 <strong>Contact support:</strong> Our team can help you locate your application 
@@ -243,8 +243,8 @@ export const VettingStatusPage: React.FC<VettingStatusPageProps> = ({
 
       {/* Additional Information */}
       <Paper p="lg" bg="gray.0" withBorder>
-        <Stack spacing="md">
-          <Text size="md" weight={600} c="wcr.7">
+        <Stack gap="md">
+          <Text size="md" fw={600} c="wcr.7">
             About the Vetting Process
           </Text>
           

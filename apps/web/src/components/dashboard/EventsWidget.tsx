@@ -8,8 +8,8 @@ import type { EventDto } from '@witchcityrope/shared-types';
 // Helper function to format event for display
 const formatEventForWidget = (event: EventDto) => {
   // Safely handle potentially null/undefined date strings
-  const startDateString = event.startDateTime;
-  const endDateString = event.endDateTime;
+  const startDateString = event.startDate;
+  const endDateString = event.endDate;
   
   // Only create Date objects if we have valid date strings
   const startDate = startDateString ? new Date(startDateString) : null;
@@ -44,8 +44,9 @@ const formatEventForWidget = (event: EventDto) => {
       : isStartDateValid 
         ? `${formatTime(startDate!)} - ${fallbackTime}`
         : fallbackTime,
-    status: event.status === 'Published' ? 'Open' : 'Closed',
-    statusColor: event.status === 'Published' ? '#228B22' : '#DAA520',
+    // Since EventDto doesn't have status, determine from availability and timing
+    status: (isStartDateValid && startDate! > new Date()) ? 'Open' : 'Closed',
+    statusColor: (isStartDateValid && startDate! > new Date()) ? '#228B22' : '#DAA520',
     isUpcoming: isStartDateValid ? startDate! > new Date() : false,
   };
 };

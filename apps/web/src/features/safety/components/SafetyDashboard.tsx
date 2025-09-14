@@ -32,7 +32,7 @@ import {
   IconRefresh
 } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
-import { useSafetyAdminData, useSearchIncidents } from '../hooks/useSafetyIncidents';
+import { useSafetyDashboard, useSearchIncidents } from '../hooks/useSafetyIncidents';
 import { IncidentList } from './IncidentList';
 import { IncidentDetails } from './IncidentDetails';
 import { 
@@ -55,17 +55,20 @@ export function SafetyDashboard() {
   const [searchText, setSearchText] = useState('');
   
   // Fetch dashboard data
-  const { 
-    dashboard, 
-    recentIncidents, 
-    totalIncidents, 
-    isLoading, 
-    error, 
-    refetch 
-  } = useSafetyAdminData();
+  const dashboardResult = useSafetyDashboard();
+  const {
+    isLoading,
+    error,
+    refetch
+  } = dashboardResult;
+  
+  // Type assert the data to prevent 'unknown' property access
+  const dashboard = (dashboardResult.data as any)?.dashboard;
+  const recentIncidents = (dashboardResult.data as any)?.recentIncidents;
+  const totalIncidents = (dashboardResult.data as any)?.totalIncidents;
   
   // Search results (separate from dashboard recent incidents)
-  const searchQuery = useSearchIncidents(searchFilters, true);
+  const searchQuery = useSearchIncidents(searchFilters);
   
   // Handle incident selection
   const handleIncidentSelect = (incidentId: string) => {
@@ -99,7 +102,7 @@ export function SafetyDashboard() {
   
   if (error) {
     return (
-      <Alert variant="light" color="red" icon={<IconAlertTriangle size={16} />}>
+      <Alert variant="light" color="red" icon={<IconAlertTriangle />}>
         <Text size="sm">
           {error instanceof Error && error.message.includes('403') 
             ? 'Access denied - Safety team role required'
@@ -288,7 +291,7 @@ export function SafetyDashboard() {
           </Title>
           <Group>
             <Text size="sm" c="dimmed">
-              {searchQuery.data ? `${searchQuery.data.total} incidents found` : ''}
+              {searchQuery.data ? `${(searchQuery.data as any)?.total || 0} incidents found` : ''}
             </Text>
           </Group>
         </Group>
@@ -303,8 +306,8 @@ export function SafetyDashboard() {
           </Alert>
         ) : (
           <IncidentList
-            incidents={searchQuery.data?.items || []}
-            totalCount={searchQuery.data?.total || 0}
+            incidents={(searchQuery.data as any)?.items || []}
+            totalCount={(searchQuery.data as any)?.total || 0}
             currentPage={searchFilters.page || 1}
             pageSize={searchFilters.pageSize || 25}
             onPageChange={(page) => handleFilterChange('page', page)}

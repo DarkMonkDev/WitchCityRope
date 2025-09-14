@@ -17,14 +17,13 @@ interface EventsTableViewProps {
 
 // Helper function to format event dates with robust field handling
 const formatEventDate = (event: EventDto): string => {
-  // Try multiple field names to handle API/TypeScript field mismatches
-  const dateString = event.startDateTime || (event as any).startDate || '';
+  // Use the correct field name from generated EventDto type
+  const dateString = event.startDate || '';
   
   if (!dateString) {
-    console.warn('No date field found for event:', { 
+    console.warn('No startDate field found for event:', { 
       id: event.id, 
-      title: event.title,
-      fields: Object.keys(event).filter(k => k.includes('date') || k.includes('Date'))
+      title: event.title
     });
     return 'Date TBD';
   }
@@ -46,9 +45,9 @@ const formatEventDate = (event: EventDto): string => {
 
 // Helper function to format time range with robust field handling
 const formatTimeRange = (event: EventDto): string => {
-  // Try multiple field names to handle API/TypeScript field mismatches
-  const startDateString = event.startDateTime || (event as any).startDate || '';
-  const endDateString = event.endDateTime || (event as any).endDate || '';
+  // Use the correct field names from generated EventDto type
+  const startDateString = event.startDate || '';
+  const endDateString = event.endDate || '';
   
   if (!startDateString) return 'Time TBD';
   

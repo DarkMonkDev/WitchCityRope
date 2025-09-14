@@ -50,10 +50,10 @@ export const CommunityStep: React.FC<CommunityStepProps> = ({ form }) => {
   });
 
   return (
-    <Stack spacing="xl">
+    <Stack gap="xl">
       {/* Section Header */}
       <Box>
-        <Text size="xl" weight={700} c="wcr.7" mb="xs">
+        <Text size="xl" fw={700} c="wcr.7" mb="xs">
           Community Understanding
         </Text>
         <Text c="dimmed">
@@ -61,7 +61,7 @@ export const CommunityStep: React.FC<CommunityStepProps> = ({ form }) => {
         </Text>
       </Box>
 
-      <Stack spacing="lg">
+      <Stack gap="lg">
         {/* Why Join Community - Required */}
         <Controller
           name="community.whyJoin"
@@ -73,7 +73,7 @@ export const CommunityStep: React.FC<CommunityStepProps> = ({ form }) => {
               placeholder="Share your motivations for joining our community, what draws you to rope bondage, and what you hope to gain from membership..."
               minRows={4}
               maxRows={8}
-              leftIcon={<IconHeart size={16} />}
+              leftSection={<IconHeart size={16} />}
               styles={floatingLabelStyles}
               error={errors.community?.whyJoin?.message}
               description={`Minimum 50 characters (${field.value?.length || 0}/400)`}
@@ -93,7 +93,7 @@ export const CommunityStep: React.FC<CommunityStepProps> = ({ form }) => {
               label="Skills & Interests"
               placeholder="Select all that apply"
               data={SKILLS_INTERESTS_OPTIONS}
-              leftIcon={<IconUsers size={16} />}
+              leftSection={<IconUsers size={16} />}
               styles={floatingLabelStyles}
               error={errors.community?.skillsInterests?.message}
               description="Select areas you're interested in or have experience with"
@@ -115,7 +115,7 @@ export const CommunityStep: React.FC<CommunityStepProps> = ({ form }) => {
               placeholder="What are your expectations for community involvement? What goals do you have for your rope bondage journey?"
               minRows={3}
               maxRows={6}
-              leftIcon={<IconTarget size={16} />}
+              leftSection={<IconTarget size={16} />}
               styles={floatingLabelStyles}
               error={errors.community?.expectations?.message}
               description={`Minimum 30 characters (${field.value?.length || 0}/300)`}
@@ -127,7 +127,7 @@ export const CommunityStep: React.FC<CommunityStepProps> = ({ form }) => {
 
         {/* Community Guidelines Agreement - Required */}
         <Paper p="lg" withBorder bg="gray.0">
-          <Text weight={600} size="md" mb="md" c="wcr.7">
+          <Text fw={600} size="md" mb="md" c="wcr.7">
             Community Guidelines
           </Text>
           
@@ -163,7 +163,7 @@ export const CommunityStep: React.FC<CommunityStepProps> = ({ form }) => {
                 {...field}
                 checked={field.value}
                 label={
-                  <Text size="sm" weight={500}>
+                  <Text size="sm" fw={500}>
                     I agree to abide by the WitchCityRope Community Guidelines
                   </Text>
                 }
@@ -224,7 +224,7 @@ export const CommunityStep: React.FC<CommunityStepProps> = ({ form }) => {
       )}
 
       {/* Required Fields Notice */}
-      <Group spacing="xs" align="center">
+      <Group gap="xs" align="center">
         <Text size="sm" c="dimmed">
           All fields in this section are required to continue.
         </Text>

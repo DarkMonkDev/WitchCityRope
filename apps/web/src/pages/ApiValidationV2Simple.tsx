@@ -421,7 +421,7 @@ export const queryKeys = {
       </Group>
       
       <Alert 
-        icon={<IconAlertTriangle size={16} />} 
+        icon={<IconAlertTriangle />} 
         title="Functional Specification Demonstration" 
         color="blue"
         mb="xl"

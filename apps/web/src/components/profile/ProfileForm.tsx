@@ -78,11 +78,11 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     resolver: zodResolver(personalInfoSchema),
     defaultValues: {
       sceneName: user?.sceneName || '',
-      firstName: user?.firstName || '',
-      lastName: user?.lastName || '',
-      pronouns: '', // Add when available in UserDto
-      bio: '', // Add when available in UserDto
-      phoneNumber: user?.phoneNumber || '',
+      firstName: '', // Note: UserDto doesn't have firstName field
+      lastName: '', // Note: UserDto doesn't have lastName field  
+      pronouns: user?.pronouns || '',
+      bio: '', // Note: UserDto doesn't have bio field
+      phoneNumber: '', // Note: UserDto doesn't have phoneNumber field
     }
   });
 

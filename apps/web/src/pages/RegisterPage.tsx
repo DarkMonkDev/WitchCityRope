@@ -82,7 +82,7 @@ export const RegisterPage: React.FC = () => {
           <Stack gap="md">
             {registerMutation.error && (
               <Alert
-                icon={<IconAlertCircle size="1rem" />}
+                icon={<IconAlertCircle />}
                 color="red"
                 data-testid="register-error"
               >

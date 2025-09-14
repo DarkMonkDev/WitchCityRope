@@ -51,7 +51,7 @@ export const PaymentCancelPage: React.FC = () => {
 
         {/* Information */}
         <Alert 
-          icon={<IconInfoCircle size={16} />}
+          icon={<IconInfoCircle />}
           color="blue"
           variant="light"
         >

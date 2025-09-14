@@ -182,7 +182,7 @@ export function useBulkUpdateIncidents() {
   
   return useMutation({
     mutationFn: ({ incidentIds, updates }: { incidentIds: string[]; updates: UpdateIncidentRequest }) =>
-      safetyApi.bulkUpdateIncidents(incidentIds, updates),
+      safetyApi.bulkUpdateIncidents([{ incidentIds, ...updates }]),
     onSuccess: () => {
       // Invalidate all incident-related queries
       queryClient.invalidateQueries({ queryKey: safetyKeys.all });

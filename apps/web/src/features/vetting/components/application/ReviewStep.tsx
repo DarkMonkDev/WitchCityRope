@@ -83,13 +83,13 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ form }) => {
     value: string | React.ReactNode; 
     isPrivate?: boolean;
   }) => (
-    <Group spacing="md" align="flex-start">
+    <Group gap="md" align="flex-start">
       <ThemeIcon color="wcr.7" variant="light" size="sm">
         {icon}
       </ThemeIcon>
       <Box style={{ flex: 1 }}>
-        <Group spacing="xs" mb={2}>
-          <Text size="sm" weight={500} c="wcr.8">
+        <Group gap="xs" mb={2}>
+          <Text size="sm" fw={500} c="wcr.8">
             {label}
           </Text>
           {isPrivate && (
@@ -106,10 +106,10 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ form }) => {
   );
 
   return (
-    <Stack spacing="xl">
+    <Stack gap="xl">
       {/* Section Header */}
       <Box>
-        <Text size="xl" weight={700} c="wcr.7" mb="xs">
+        <Text size="xl" fw={700} c="wcr.7" mb="xs">
           Review & Submit
         </Text>
         <Text c="dimmed">
@@ -119,8 +119,8 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ form }) => {
 
       {/* Application Summary */}
       <Paper p="lg" withBorder bg="green.0">
-        <Group position="apart" mb="md">
-          <Text weight={600} c="green.7">
+        <Group justify="apart" mb="md">
+          <Text fw={600} c="green.7">
             Application Summary
           </Text>
           <Badge color="green" variant="filled">
@@ -137,13 +137,13 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ form }) => {
         {/* Personal Information */}
         <Accordion.Item value="personal">
           <Accordion.Control>
-            <Group spacing="md">
+            <Group gap="md">
               <IconUser size={18} color="#880124" />
-              <Text weight={500}>Personal Information</Text>
+              <Text fw={500}>Personal Information</Text>
             </Group>
           </Accordion.Control>
           <Accordion.Panel>
-            <Stack spacing="sm">
+            <Stack gap="sm">
               <InfoRow 
                 icon={<IconUser size={14} />}
                 label="Full Name"
@@ -183,13 +183,13 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ form }) => {
         {/* Experience & Knowledge */}
         <Accordion.Item value="experience">
           <Accordion.Control>
-            <Group spacing="md">
+            <Group gap="md">
               <IconTrophy size={18} color="#880124" />
-              <Text weight={500}>Experience & Knowledge</Text>
+              <Text fw={500}>Experience & Knowledge</Text>
             </Group>
           </Accordion.Control>
           <Accordion.Panel>
-            <Stack spacing="sm">
+            <Stack gap="sm">
               <InfoRow 
                 icon={<IconTrophy size={14} />}
                 label="Experience Level"
@@ -216,13 +216,13 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ form }) => {
         {/* Community Understanding */}
         <Accordion.Item value="community">
           <Accordion.Control>
-            <Group spacing="md">
+            <Group gap="md">
               <IconUsers size={18} color="#880124" />
-              <Text weight={500}>Community Understanding</Text>
+              <Text fw={500}>Community Understanding</Text>
             </Group>
           </Accordion.Control>
           <Accordion.Panel>
-            <Stack spacing="sm">
+            <Stack gap="sm">
               <InfoRow 
                 icon={<IconTarget size={14} />}
                 label="Why Join Community"
@@ -236,7 +236,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ form }) => {
                 icon={<IconUsers size={14} />}
                 label="Skills & Interests"
                 value={
-                  <Group spacing={4}>
+                  <Group gap={4}>
                     {formData.community?.skillsInterests?.map(skill => (
                       <Badge key={skill} size="sm" color="wcr.7" variant="light">
                         {skill}
@@ -257,18 +257,18 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ form }) => {
         {/* References */}
         <Accordion.Item value="references">
           <Accordion.Control>
-            <Group spacing="md">
+            <Group gap="md">
               <IconUser size={18} color="#880124" />
-              <Text weight={500}>References</Text>
+              <Text fw={500}>References</Text>
             </Group>
           </Accordion.Control>
           <Accordion.Panel>
-            <Stack spacing="md">
+            <Stack gap="md">
               {/* Reference 1 */}
               {formData.references?.reference1?.name && (
                 <Paper p="md" withBorder bg="blue.0">
-                  <Text weight={500} size="sm" mb="xs">Primary Reference</Text>
-                  <Stack spacing="xs">
+                  <Text fw={500} size="sm" mb="xs">Primary Reference</Text>
+                  <Stack gap="xs">
                     <Text size="xs" c="dimmed">
                       <strong>Name:</strong> {formData.references.reference1.name}
                     </Text>
@@ -282,8 +282,8 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ form }) => {
               {/* Reference 2 */}
               {formData.references?.reference2?.name && (
                 <Paper p="md" withBorder bg="blue.0">
-                  <Text weight={500} size="sm" mb="xs">Secondary Reference</Text>
-                  <Stack spacing="xs">
+                  <Text fw={500} size="sm" mb="xs">Secondary Reference</Text>
+                  <Stack gap="xs">
                     <Text size="xs" c="dimmed">
                       <strong>Name:</strong> {formData.references.reference2.name}
                     </Text>
@@ -297,8 +297,8 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ form }) => {
               {/* Reference 3 */}
               {formData.references?.reference3?.name && (
                 <Paper p="md" withBorder bg="gray.0">
-                  <Text weight={500} size="sm" mb="xs">Additional Reference</Text>
-                  <Stack spacing="xs">
+                  <Text fw={500} size="sm" mb="xs">Additional Reference</Text>
+                  <Stack gap="xs">
                     <Text size="xs" c="dimmed">
                       <strong>Name:</strong> {formData.references.reference3.name}
                     </Text>
@@ -317,21 +317,21 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ form }) => {
 
       {/* Privacy Options */}
       <Paper p="lg" withBorder>
-        <Text weight={600} mb="md" c="wcr.7">
+        <Text fw={600} mb="md" c="wcr.7">
           Privacy Options
         </Text>
         
-        <Stack spacing="md">
+        <Stack gap="md">
           {/* Anonymous Application Toggle */}
           <Controller
             name="review.isAnonymous"
             control={control}
             render={({ field }) => (
-              <Group position="apart">
+              <Group justify="apart">
                 <Box>
-                  <Group spacing="xs" mb={4}>
+                  <Group gap="xs" mb={4}>
                     {field.value ? <IconEyeOff size={16} /> : <IconEye size={16} />}
-                    <Text weight={500}>Anonymous Application</Text>
+                    <Text fw={500}>Anonymous Application</Text>
                   </Group>
                   <Text size="sm" c="dimmed">
                     {field.value 
@@ -376,7 +376,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ form }) => {
 
       {/* Terms Agreement */}
       <Paper p="lg" withBorder bg="yellow.0">
-        <Text weight={600} mb="md" c="yellow.8">
+        <Text fw={600} mb="md" c="yellow.8">
           Final Agreement
         </Text>
         

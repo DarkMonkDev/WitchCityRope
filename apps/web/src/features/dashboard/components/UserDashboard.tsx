@@ -73,7 +73,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ className }) => {
     return (
       <Card shadow="sm" padding="lg" className={className}>
         <Alert
-          icon={<IconAlertCircle size={16} />}
+          icon={<IconAlertCircle />}
           color="red"
           title="Unable to Load Dashboard"
         >

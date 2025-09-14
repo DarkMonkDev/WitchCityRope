@@ -106,12 +106,12 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
         opened={isDetailModalOpen}
         onClose={handleCloseModal}
         title={
-          <Group spacing="md">
+          <Group gap="md">
             <ActionIcon variant="subtle" onClick={handleCloseModal}>
               <IconArrowLeft size={18} />
             </ActionIcon>
             <Box>
-              <Text size="lg" weight={600} c="wcr.7">
+              <Text size="lg" fw={600} c="wcr.7">
                 Application Review
               </Text>
               {selectedApplication && (
@@ -162,11 +162,11 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
 
               {/* Application Details Tab */}
               <Tabs.Panel value="details" p="md" style={{ height: 'calc(100% - 42px)', overflowY: 'auto' }}>
-                <Stack spacing="lg">
+                <Stack gap="lg">
                   {/* Status & Assignment */}
                   <Paper p="md" withBorder>
-                    <Group position="apart" mb="md">
-                      <Group spacing="md">
+                    <Group justify="apart" mb="md">
+                      <Group gap="md">
                         <Badge
                           color={APPLICATION_STATUS_CONFIGS[applicationDetail.status]?.color || 'gray'}
                           variant="filled"
@@ -182,7 +182,7 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
                         )}
                       </Group>
                       
-                      <Group spacing="xs">
+                      <Group gap="xs">
                         <IconClock size={16} />
                         <Text size="sm" c="dimmed">
                           Submitted {new Date(applicationDetail.submittedAt).toLocaleDateString()}
@@ -193,31 +193,31 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
 
                   {/* Personal Information */}
                   <Paper p="md" withBorder>
-                    <Text weight={600} size="md" mb="md" c="wcr.7">
+                    <Text fw={600} size="md" mb="md" c="wcr.7">
                       Personal Information
                     </Text>
                     <SimpleGrid cols={2} breakpoints={[{ maxWidth: 'sm', cols: 1 }]}>
                       <Box>
-                        <Text size="sm" weight={500} c="dimmed">Full Name</Text>
+                        <Text size="sm" fw={500} c="dimmed">Full Name</Text>
                         <Text size="sm">{applicationDetail.personalInfo.fullName}</Text>
                       </Box>
                       <Box>
-                        <Text size="sm" weight={500} c="dimmed">Scene Name</Text>
+                        <Text size="sm" fw={500} c="dimmed">Scene Name</Text>
                         <Text size="sm">{applicationDetail.personalInfo.sceneName}</Text>
                       </Box>
                       {applicationDetail.personalInfo.pronouns && (
                         <Box>
-                          <Text size="sm" weight={500} c="dimmed">Pronouns</Text>
+                          <Text size="sm" fw={500} c="dimmed">Pronouns</Text>
                           <Text size="sm">{applicationDetail.personalInfo.pronouns}</Text>
                         </Box>
                       )}
                       <Box>
-                        <Text size="sm" weight={500} c="dimmed">Email</Text>
+                        <Text size="sm" fw={500} c="dimmed">Email</Text>
                         <Text size="sm">{applicationDetail.personalInfo.email}</Text>
                       </Box>
                       {applicationDetail.personalInfo.phone && (
                         <Box>
-                          <Text size="sm" weight={500} c="dimmed">Phone</Text>
+                          <Text size="sm" fw={500} c="dimmed">Phone</Text>
                           <Text size="sm">{applicationDetail.personalInfo.phone}</Text>
                         </Box>
                       )}
@@ -226,37 +226,37 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
 
                   {/* Experience */}
                   <Paper p="md" withBorder>
-                    <Text weight={600} size="md" mb="md" c="wcr.7">
+                    <Text fw={600} size="md" mb="md" c="wcr.7">
                       Experience & Knowledge
                     </Text>
-                    <Stack spacing="md">
+                    <Stack gap="md">
                       <SimpleGrid cols={2} breakpoints={[{ maxWidth: 'sm', cols: 1 }]}>
                         <Box>
-                          <Text size="sm" weight={500} c="dimmed">Experience Level</Text>
+                          <Text size="sm" fw={500} c="dimmed">Experience Level</Text>
                           <Text size="sm">{EXPERIENCE_LEVEL_CONFIGS[applicationDetail.experience.level]?.label}</Text>
                         </Box>
                         <Box>
-                          <Text size="sm" weight={500} c="dimmed">Years of Experience</Text>
+                          <Text size="sm" fw={500} c="dimmed">Years of Experience</Text>
                           <Text size="sm">{applicationDetail.experience.yearsExperience} years</Text>
                         </Box>
                       </SimpleGrid>
                       
                       <Box>
-                        <Text size="sm" weight={500} c="dimmed" mb="xs">Experience Description</Text>
+                        <Text size="sm" fw={500} c="dimmed" mb="xs">Experience Description</Text>
                         <Paper p="sm" bg="gray.0" withBorder>
                           <Text size="sm">{applicationDetail.experience.description}</Text>
                         </Paper>
                       </Box>
                       
                       <Box>
-                        <Text size="sm" weight={500} c="dimmed" mb="xs">Safety Knowledge</Text>
+                        <Text size="sm" fw={500} c="dimmed" mb="xs">Safety Knowledge</Text>
                         <Paper p="sm" bg="gray.0" withBorder>
                           <Text size="sm">{applicationDetail.experience.safetyKnowledge}</Text>
                         </Paper>
                       </Box>
                       
                       <Box>
-                        <Text size="sm" weight={500} c="dimmed" mb="xs">Consent Understanding</Text>
+                        <Text size="sm" fw={500} c="dimmed" mb="xs">Consent Understanding</Text>
                         <Paper p="sm" bg="gray.0" withBorder>
                           <Text size="sm">{applicationDetail.experience.consentUnderstanding}</Text>
                         </Paper>
@@ -266,20 +266,20 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
 
                   {/* Community Understanding */}
                   <Paper p="md" withBorder>
-                    <Text weight={600} size="md" mb="md" c="wcr.7">
+                    <Text fw={600} size="md" mb="md" c="wcr.7">
                       Community Understanding
                     </Text>
-                    <Stack spacing="md">
+                    <Stack gap="md">
                       <Box>
-                        <Text size="sm" weight={500} c="dimmed" mb="xs">Why Join Community</Text>
+                        <Text size="sm" fw={500} c="dimmed" mb="xs">Why Join Community</Text>
                         <Paper p="sm" bg="gray.0" withBorder>
                           <Text size="sm">{applicationDetail.community.whyJoin}</Text>
                         </Paper>
                       </Box>
                       
                       <Box>
-                        <Text size="sm" weight={500} c="dimmed" mb="xs">Skills & Interests</Text>
-                        <Group spacing="xs">
+                        <Text size="sm" fw={500} c="dimmed" mb="xs">Skills & Interests</Text>
+                        <Group gap="xs">
                           {applicationDetail.community.skillsInterests.map(skill => (
                             <Badge key={skill} size="sm" color="wcr.7" variant="light">
                               {skill}
@@ -289,7 +289,7 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
                       </Box>
                       
                       <Box>
-                        <Text size="sm" weight={500} c="dimmed" mb="xs">Expectations & Goals</Text>
+                        <Text size="sm" fw={500} c="dimmed" mb="xs">Expectations & Goals</Text>
                         <Paper p="sm" bg="gray.0" withBorder>
                           <Text size="sm">{applicationDetail.community.expectations}</Text>
                         </Paper>
@@ -301,11 +301,11 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
 
               {/* References Tab */}
               <Tabs.Panel value="references" p="md" style={{ height: 'calc(100% - 42px)', overflowY: 'auto' }}>
-                <Stack spacing="lg">
+                <Stack gap="lg">
                   {applicationDetail.references.map((reference, index) => (
                     <Paper key={reference.id} p="md" withBorder>
-                      <Group position="apart" mb="md">
-                        <Text weight={600} size="md" c="wcr.7">
+                      <Group justify="apart" mb="md">
+                        <Text fw={600} size="md" c="wcr.7">
                           Reference #{index + 1}
                         </Text>
                         <Badge
@@ -318,19 +318,19 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
                       
                       <SimpleGrid cols={2} breakpoints={[{ maxWidth: 'sm', cols: 1 }]} mb="md">
                         <Box>
-                          <Text size="sm" weight={500} c="dimmed">Name</Text>
+                          <Text size="sm" fw={500} c="dimmed">Name</Text>
                           <Text size="sm">{reference.name}</Text>
                         </Box>
                         <Box>
-                          <Text size="sm" weight={500} c="dimmed">Email</Text>
+                          <Text size="sm" fw={500} c="dimmed">Email</Text>
                           <Text size="sm">{reference.email}</Text>
                         </Box>
                         <Box>
-                          <Text size="sm" weight={500} c="dimmed">Relationship</Text>
+                          <Text size="sm" fw={500} c="dimmed">Relationship</Text>
                           <Text size="sm">{reference.relationship}</Text>
                         </Box>
                         <Box>
-                          <Text size="sm" weight={500} c="dimmed">Contact Status</Text>
+                          <Text size="sm" fw={500} c="dimmed">Contact Status</Text>
                           <Text size="sm">
                             {reference.contactedAt 
                               ? `Contacted ${new Date(reference.contactedAt).toLocaleDateString()}`
@@ -342,8 +342,8 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
                       
                       {reference.response && (
                         <Paper p="sm" bg="green.0" withBorder>
-                          <Text size="sm" weight={500} mb="xs">Reference Response</Text>
-                          <Stack spacing="xs">
+                          <Text size="sm" fw={500} mb="xs">Reference Response</Text>
+                          <Stack gap="xs">
                             <Text size="xs"><strong>Recommendation:</strong> {reference.response.recommendation}</Text>
                             <Text size="xs"><strong>Relationship Duration:</strong> {reference.response.relationshipDuration}</Text>
                             <Text size="xs"><strong>Experience Assessment:</strong> {reference.response.experienceAssessment}</Text>
@@ -360,18 +360,18 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
 
               {/* Review & Decision Tab */}
               <Tabs.Panel value="review" p="md" style={{ height: 'calc(100% - 42px)', overflowY: 'auto' }}>
-                <Stack spacing="lg">
+                <Stack gap="lg">
                   {/* Previous Notes */}
                   {applicationDetail.reviewNotes && applicationDetail.reviewNotes.length > 0 && (
                     <Paper p="md" withBorder>
-                      <Text weight={600} size="md" mb="md" c="wcr.7">
+                      <Text fw={600} size="md" mb="md" c="wcr.7">
                         Review Notes
                       </Text>
-                      <Stack spacing="sm">
+                      <Stack gap="sm">
                         {applicationDetail.reviewNotes.map(note => (
                           <Paper key={note.id} p="sm" bg="blue.0" withBorder>
-                            <Group position="apart" mb="xs">
-                              <Text size="sm" weight={500}>{note.reviewerName}</Text>
+                            <Group justify="apart" mb="xs">
+                              <Text size="sm" fw={500}>{note.reviewerName}</Text>
                               <Text size="xs" c="dimmed">
                                 {new Date(note.createdAt).toLocaleDateString()}
                               </Text>
@@ -385,11 +385,11 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
 
                   {/* Decision Actions */}
                   <Paper p="md" withBorder>
-                    <Text weight={600} size="md" mb="md" c="wcr.7">
+                    <Text fw={600} size="md" mb="md" c="wcr.7">
                       Review Decision
                     </Text>
                     
-                    <Stack spacing="md">
+                    <Stack gap="md">
                       <Textarea
                         label="Review Notes"
                         placeholder="Add your review notes here..."
@@ -408,11 +408,11 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
                         ]}
                       />
                       
-                      <Group position="right" spacing="md">
+                      <Group justify="right" gap="md">
                         <Button variant="outline" color="gray">
                           Save Draft
                         </Button>
-                        <Button color="green" leftIcon={<IconCheck size={16} />}>
+                        <Button color="green" leftSection={<IconCheck size={16} />}>
                           Submit Decision
                         </Button>
                       </Group>

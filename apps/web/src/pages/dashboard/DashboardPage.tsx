@@ -95,7 +95,7 @@ export const DashboardPage: React.FC = () => {
           </Box>
           
           <Alert
-            icon={<IconAlertCircle size={20} />}
+            icon={<IconAlertCircle />}
             color="red"
             title="Unable to Load Dashboard"
             variant="light"

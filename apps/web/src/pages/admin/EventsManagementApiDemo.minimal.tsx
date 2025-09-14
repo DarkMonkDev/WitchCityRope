@@ -44,7 +44,7 @@ export const EventsManagementApiDemoMinimal: React.FC = () => {
         <Paper shadow="sm" radius="md" p="lg">
           <Title order={2} c="burgundy" mb="md">Debug Information</Title>
           <Stack gap="md">
-            <Alert icon={<IconInfoCircle size="1rem" />} color="blue">
+            <Alert icon={<IconInfoCircle />} color="blue">
               <Text><strong>Component Status:</strong> This is a minimal static version to test for reloading issues</Text>
             </Alert>
             <Text><strong>Mount Time:</strong> {mountTime}</Text>

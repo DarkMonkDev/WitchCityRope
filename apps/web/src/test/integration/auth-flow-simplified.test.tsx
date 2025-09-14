@@ -93,9 +93,9 @@ describe('Authentication Flow Integration Tests', () => {
         id: '1',
         email: 'admin@witchcityrope.com',
         sceneName: 'TestAdmin',
-        firstName: null,
+        
         lastName: null,
-        roles: ['Admin'],
+        role: 'Admin',
         isActive: true,
         createdAt: '2025-08-19T00:00:00Z',
         updatedAt: '2025-08-19T10:00:00Z',
@@ -103,7 +103,7 @@ describe('Authentication Flow Integration Tests', () => {
       })
 
       // Verify roles were set correctly
-      expect(authState.user.roles).toContain('Admin')
+      expect(authState.user.role).toBe('Admin')
 
       // Verify navigation was triggered
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true })
@@ -176,7 +176,7 @@ describe('Authentication Flow Integration Tests', () => {
         id: '1',
         email: 'admin@witchcityrope.com',
         sceneName: 'TestAdmin',
-        roles: ['Admin'],
+        role: 'Admin',
       })
     })
 
@@ -267,10 +267,10 @@ describe('Authentication Flow Integration Tests', () => {
       useAuthStore.getState().actions.login({
         id: '1',
         email: 'admin@witchcityrope.com',
-        firstName: 'Test',
+        
         lastName: 'Admin',
         sceneName: 'TestAdmin',
-        roles: ['Admin'],
+        role: 'Admin',
       })
 
       const clearSpy = vi.spyOn(queryClient, 'clear')
@@ -349,10 +349,10 @@ describe('Authentication Flow Integration Tests', () => {
             user: {
               id: '1',
               email: 'teacher@witchcityrope.com',
-              firstName: 'Test',
+              
               lastName: 'Teacher',
               sceneName: 'TestTeacher',
-              roles: ['teacher', 'vetted'],
+              role: 'Teacher',
             }
           })
         })
@@ -387,10 +387,10 @@ describe('Authentication Flow Integration Tests', () => {
       useAuthStore.getState().actions.login({
         id: '1',
         email: 'member@witchcityrope.com',
-        firstName: 'Test',
+        
         lastName: 'Member',
         sceneName: 'TestMember',
-        roles: ['GeneralMember'],
+        role: 'GeneralMember',
       })
 
       let authState = useAuthStore.getState()
@@ -465,7 +465,7 @@ describe('Authentication Flow Integration Tests', () => {
         id: '1',
         email: 'admin@witchcityrope.com',
         sceneName: 'TestAdmin',
-        roles: ['Admin'],
+        role: 'Admin',
       })
 
       // Verify lastAuthCheck is set

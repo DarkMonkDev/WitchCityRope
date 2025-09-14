@@ -5,9 +5,10 @@ import { notifications } from '@mantine/notifications';
 import { vettingApi, getVettingErrorMessage } from '../api/vettingApi';
 import type { 
   CreateApplicationRequest, 
-  ApplicationSubmissionResponse,
-  ApplicationFormData
-} from '../types/vetting.types';
+  ApplicationSubmissionResponse
+} from '../types/api-types';
+import type { ApplicationFormState } from '../types/api-types';
+import { transformFormStateToApiRequest } from '../types/api-types';
 
 /**
  * Hook for managing vetting application submission
@@ -55,7 +56,7 @@ export const useVettingApplication = () => {
       // Store draft token for future retrieval
       if (typeof window !== 'undefined') {
         localStorage.setItem('vetting-draft-token', response.draftId);
-        localStorage.setItem('vetting-draft-email', draftData.email || '');
+        localStorage.setItem('vetting-draft-email', (draftData as any).email || '');
         localStorage.setItem('vetting-draft-expires', response.expiresAt);
       }
       
@@ -99,14 +100,14 @@ export const useVettingApplication = () => {
 
   // Auto-save draft functionality
   const autoSaveDraft = useCallback(
-    async (formData: Partial<ApplicationFormData>, email: string) => {
+    async (formData: Partial<CreateApplicationRequest>, email: string) => {
       if (!email || isDraftSaving) return;
       
       setIsDraftSaving(true);
       
       try {
-        // Transform form data to API request format
-        const draftData = transformFormDataToRequest(formData, email);
+        // FormData is already in API format, just add email
+        const draftData = { ...formData, email };
         await saveDraftMutation.mutateAsync(draftData);
       } catch (error) {
         // Silently handle auto-save errors
@@ -120,8 +121,8 @@ export const useVettingApplication = () => {
 
   // Manual save draft
   const saveDraft = useCallback(
-    (formData: Partial<ApplicationFormData>, email: string) => {
-      const draftData = transformFormDataToRequest(formData, email);
+    (formData: Partial<CreateApplicationRequest>, email: string) => {
+      const draftData = { ...formData, email };
       return saveDraftMutation.mutate(draftData);
     },
     [saveDraftMutation]
@@ -129,8 +130,8 @@ export const useVettingApplication = () => {
 
   // Submit application
   const submitApplication = useCallback(
-    (formData: ApplicationFormData) => {
-      const requestData = transformFormDataToRequest(formData);
+    (formData: ApplicationFormState) => {
+      const requestData = transformFormStateToApiRequest(formData);
       return submitApplicationMutation.mutate(requestData);
     },
     [submitApplicationMutation]
@@ -180,72 +181,4 @@ export const useVettingApplication = () => {
   };
 };
 
-/**
- * Transform form data to API request format
- */
-const transformFormDataToRequest = (
-  formData: Partial<ApplicationFormData>,
-  email?: string
-): Partial<CreateApplicationRequest> & { email: string } => {
-  const transformed: Partial<CreateApplicationRequest> & { email: string } = {
-    email: email || formData.personalInfo?.email || '',
-  };
-
-  if (formData.personalInfo) {
-    transformed.fullName = formData.personalInfo.fullName;
-    transformed.sceneName = formData.personalInfo.sceneName;
-    transformed.pronouns = formData.personalInfo.pronouns || undefined;
-    transformed.email = formData.personalInfo.email;
-    transformed.phone = formData.personalInfo.phone || undefined;
-  }
-
-  if (formData.experience) {
-    transformed.experienceLevel = formData.experience.level;
-    transformed.yearsExperience = formData.experience.yearsExperience;
-    transformed.experienceDescription = formData.experience.description;
-    transformed.safetyKnowledge = formData.experience.safetyKnowledge;
-    transformed.consentUnderstanding = formData.experience.consentUnderstanding;
-  }
-
-  if (formData.community) {
-    transformed.whyJoinCommunity = formData.community.whyJoin;
-    transformed.skillsInterests = formData.community.skillsInterests;
-    transformed.expectationsGoals = formData.community.expectations;
-    transformed.agreesToGuidelines = formData.community.agreesToGuidelines;
-  }
-
-  if (formData.references) {
-    const references = [];
-    
-    if (formData.references.reference1?.name) {
-      references.push({
-        ...formData.references.reference1,
-        order: 1
-      });
-    }
-    
-    if (formData.references.reference2?.name) {
-      references.push({
-        ...formData.references.reference2,
-        order: 2
-      });
-    }
-    
-    if (formData.references.reference3?.name) {
-      references.push({
-        ...formData.references.reference3,
-        order: 3
-      });
-    }
-    
-    transformed.references = references;
-  }
-
-  if (formData.review) {
-    transformed.agreesToTerms = formData.review.agreesToTerms;
-    transformed.isAnonymous = formData.review.isAnonymous;
-    transformed.consentToContact = formData.review.consentToContact;
-  }
-
-  return transformed;
-};
+// No longer needed - form data already matches API request format

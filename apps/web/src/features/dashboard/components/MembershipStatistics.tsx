@@ -141,7 +141,7 @@ export const MembershipStatistics: React.FC<MembershipStatisticsProps> = ({ clas
           </Group>
           
           <Alert
-            icon={<IconAlertCircle size={16} />}
+            icon={<IconAlertCircle />}
             color="red"
             title="Unable to Load Statistics"
           >

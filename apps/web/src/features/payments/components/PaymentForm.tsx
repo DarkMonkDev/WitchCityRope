@@ -127,7 +127,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
 
       {/* Security Notice */}
       <Alert 
-        icon={<IconShieldCheck size={16} />}
+        icon={<IconShieldCheck />}
         color="blue"
         variant="light"
       >

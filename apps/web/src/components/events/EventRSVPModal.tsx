@@ -113,7 +113,7 @@ export const EventRSVPModal: React.FC<EventRSVPModalProps> = ({
         </Card>
 
         {/* RSVP Information */}
-        <Alert icon={<IconInfoCircle size={16} />} color="blue" variant="light">
+        <Alert icon={<IconInfoCircle />} color="blue" variant="light">
           <Stack gap="sm">
             <Text size="sm" fw={600}>Free RSVP for Social Events</Text>
             <Text size="sm">

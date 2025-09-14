@@ -84,7 +84,7 @@ export const PaymentSuccessPage: React.FC = () => {
     return (
       <Container size="md" py="xl">
         <Stack gap="lg">
-          <Alert color="orange" icon={<IconMail size={16} />}>
+          <Alert color="orange" icon={<IconMail />}>
             <Title order={4} mb="xs">
               Payment Verification in Progress
             </Title>

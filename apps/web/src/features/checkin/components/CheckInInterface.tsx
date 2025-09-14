@@ -444,7 +444,7 @@ export function CheckInInterface({
           attendees={(attendeesResponse as any)?.attendees || []}
           onCheckIn={handleCheckIn}
           isLoading={loadingAttendees}
-          error={attendeesError as string}
+          error={attendeesError?.message || (attendeesError ? String(attendeesError) : undefined)}
           isCheckingIn={checkInMutation.isPending}
           checkingInAttendeeId={(checkInMutation as any).variables?.attendeeId}
         />

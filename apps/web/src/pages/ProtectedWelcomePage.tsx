@@ -89,7 +89,7 @@ export const ProtectedWelcomePage: React.FC = () => {
       <Paper shadow="md" p="lg" mb="lg">
         {error ? (
           <Alert
-            icon={<IconAlertCircle size="1rem" />}
+            icon={<IconAlertCircle />}
             color="red"
             title="Error loading data"
           >

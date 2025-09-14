@@ -125,5 +125,45 @@ export const safetyApi = {
     }
     
     return data.data;
+  },
+
+  /**
+   * Get safety dashboard data for admin/safety team
+   */
+  async getSafetyDashboard(): Promise<SafetyDashboardResponse> {
+    const { data } = await apiClient.get<ApiResponse<SafetyDashboardResponse>>(
+      '/api/safety/admin/dashboard'
+    );
+    
+    if (!data.data) {
+      throw new Error(data.error || 'Failed to get dashboard data');
+    }
+    
+    return data.data;
+  },
+
+  /**
+   * Delete an incident (admin only)
+   */
+  async deleteIncident(incidentId: string): Promise<void> {
+    await apiClient.delete(`/api/safety/admin/incidents/${incidentId}`);
+  },
+
+  /**
+   * Bulk update incidents (admin only)
+   */
+  async bulkUpdateIncidents(updates: any[]): Promise<void> {
+    await apiClient.patch('/api/safety/admin/incidents/bulk', updates);
+  },
+
+  /**
+   * Export incidents data (admin only)
+   */
+  async exportIncidents(filters: SearchIncidentsRequest): Promise<Blob> {
+    const response = await apiClient.get('/api/safety/admin/incidents/export', {
+      params: filters,
+      responseType: 'blob'
+    });
+    return response.data;
   }
 };

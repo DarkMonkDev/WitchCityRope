@@ -222,7 +222,7 @@ export const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
           <Alert
             color="purple"
             variant="light"
-            icon={<IconCheck size={16} />}
+            icon={<IconCheck />}
           >
             <Text size="sm">
               Thank you for being part of our community! Your participation helps us maintain 

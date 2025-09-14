@@ -162,7 +162,7 @@ const PayPalButtonInternal: React.FC<PayPalButtonProps> = ({
       />
 
       <Alert 
-        icon={<IconInfoCircle size={16} />}
+        icon={<IconInfoCircle />}
         color="blue"
         variant="light"
         mt="md"

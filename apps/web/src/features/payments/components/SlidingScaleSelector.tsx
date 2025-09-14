@@ -211,7 +211,7 @@ export const SlidingScaleSelector: React.FC<SlidingScaleSelectorProps> = ({
 
         {/* Community Message */}
         <Alert
-          icon={<IconHeart size={18} />}
+          icon={<IconHeart />}
           color="wcr"
           variant="light"
           styles={{
@@ -234,7 +234,7 @@ export const SlidingScaleSelector: React.FC<SlidingScaleSelectorProps> = ({
 
         {/* Privacy Notice */}
         <Alert
-          icon={<IconShieldCheck size={16} />}
+          icon={<IconShieldCheck />}
           color="blue"
           variant="light"
           styles={{

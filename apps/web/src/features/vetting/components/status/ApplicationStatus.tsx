@@ -170,10 +170,10 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
     <Box className={className}>
       {/* Header */}
       <Paper p="xl" shadow="sm" mb="lg">
-        <Stack spacing="md">
-          <Group position="apart" align="flex-start">
+        <Stack gap="md">
+          <Group justify="apart" align="flex-start">
             <Box>
-              <Text size="xl" weight={700} c="wcr.7" mb="xs">
+              <Text size="xl" fw={700} c="wcr.7" mb="xs">
                 Application Status
               </Text>
               <Text size="lg" c="dimmed">
@@ -193,7 +193,7 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
               <Button
                 variant="light"
                 size="sm"
-                leftIcon={<IconRefresh size={14} />}
+                leftSection={<IconRefresh size={14} />}
                 onClick={refreshStatus}
               >
                 Refresh
@@ -203,8 +203,8 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
 
           {/* Progress Bar */}
           <Box>
-            <Group position="apart" mb="xs">
-              <Text size="sm" weight={500}>
+            <Group justify="apart" mb="xs">
+              <Text size="sm" fw={500}>
                 Progress: {getCurrentPhase()}
               </Text>
               <Text size="sm" c="dimmed">
@@ -221,7 +221,7 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
 
           {/* Time Estimate */}
           {getTimeEstimate() && !isComplete && (
-            <Group spacing="xs">
+            <Group gap="xs">
               <IconClock size={16} color="gray" />
               <Text size="sm" c="dimmed">
                 {getTimeEstimate()}
@@ -263,7 +263,7 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
 
       {/* Timeline */}
       <Paper p="xl" shadow="sm" mb="lg">
-        <Text size="lg" weight={600} c="wcr.7" mb="xl">
+        <Text size="lg" fw={600} c="wcr.7" mb="xl">
           Application Timeline
         </Text>
         
@@ -298,15 +298,15 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
       {/* Recent Updates */}
       {statusData.recentUpdates && statusData.recentUpdates.length > 0 && (
         <Paper p="xl" shadow="sm" mb="lg">
-          <Text size="lg" weight={600} c="wcr.7" mb="md">
+          <Text size="lg" fw={600} c="wcr.7" mb="md">
             Recent Updates
           </Text>
           
-          <Stack spacing="md">
+          <Stack gap="md">
             {statusData.recentUpdates.map((update, index) => (
               <Box key={index}>
-                <Group spacing="xs" mb="xs">
-                  <Text size="sm" weight={500}>
+                <Group gap="xs" mb="xs">
+                  <Text size="sm" fw={500}>
                     {update.type.replace(/([A-Z])/g, ' $1').trim()}
                   </Text>
                   <Text size="xs" c="dimmed">
@@ -365,7 +365,7 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
 
       {/* Help Section */}
       <Paper p="lg" shadow="sm" bg="gray.0">
-        <Text size="md" weight={600} mb="md">
+        <Text size="md" fw={600} mb="md">
           Need Help?
         </Text>
         <Text size="sm" c="dimmed" mb="md">
@@ -383,7 +383,7 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
       </Paper>
 
       {/* Last Updated */}
-      <Group position="center" mt="md">
+      <Group justify="center" mt="md">
         <Text size="xs" c="dimmed">
           Last updated: {statusData.lastUpdateAt 
             ? new Date(statusData.lastUpdateAt).toLocaleString()

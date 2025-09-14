@@ -821,7 +821,7 @@ export const FormComponentsTest: React.FC = () => {
           </Paper>
 
           {/* Instructions */}
-          <Alert icon={<IconInfoCircle size={16} />} title="Testing Instructions" color="blue" style={{
+          <Alert icon={<IconInfoCircle />} title="Testing Instructions" color="blue" style={{
             background: 'rgba(59, 130, 246, 0.1)',
             border: '1px solid rgba(59, 130, 246, 0.3)'
           }}>

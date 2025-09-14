@@ -174,7 +174,7 @@ export const EventPaymentPage: React.FC = () => {
     return (
       <Container size="md" py="xl">
         <Alert
-          icon={<IconAlertCircle size={16} />}
+          icon={<IconAlertCircle />}
           title="Error"
           color="red"
         >

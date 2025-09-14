@@ -38,9 +38,9 @@ export function mapApiEventToDto(apiEvent: ApiEventResponse): EventDto {
   // Create mapped event with field name corrections
   const mappedEvent: EventDto = {
     ...apiEvent,
-    // Map API field names to generated type field names
-    startDateTime: apiEvent.startDate || apiEvent.startDateTime || '',
-    endDateTime: apiEvent.endDate || apiEvent.endDateTime || '',
+    // The generated types use startDate/endDate, not startDateTime/endDateTime
+    startDate: apiEvent.startDate || '',
+    endDate: apiEvent.endDate || '',
   };
 
   return mappedEvent;

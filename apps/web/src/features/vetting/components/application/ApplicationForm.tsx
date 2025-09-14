@@ -24,53 +24,53 @@ import { ExperienceStep } from './ExperienceStep';
 import { CommunityStep } from './CommunityStep';
 import { ReferencesStep } from './ReferencesStep';
 import { ReviewStep } from './ReviewStep';
-import type { ApplicationFormData } from '../../types/vetting.types';
+import type { ApplicationFormState } from '../../types/api-types';
+import { transformFormStateToApiRequest } from '../../types/api-types';
 import { TOUCH_TARGETS } from '../../types/vetting.types';
 
-// Validation schema for complete form
+// Validation schema aligned with API CreateApplicationRequest structure
 const applicationSchema = z.object({
-  personalInfo: z.object({
-    fullName: z.string().min(2, 'Full name must be at least 2 characters'),
-    sceneName: z.string().min(2, 'Scene name must be at least 2 characters'),
-    pronouns: z.string().optional(),
-    email: z.string().email('Please enter a valid email address'),
-    phone: z.string().optional()
+  // Personal Information - matches API exactly
+  fullName: z.string().min(2, 'Full name must be at least 2 characters'),
+  sceneName: z.string().min(2, 'Scene name must be at least 2 characters'),
+  pronouns: z.string().optional(),
+  email: z.string().email('Please enter a valid email address'),
+  phone: z.string().optional(),
+  
+  // Experience & Knowledge - matches API property names
+  experienceLevel: z.number().min(1).max(4),
+  yearsExperience: z.number().min(0).max(50),
+  experienceDescription: z.string().min(50, 'Please provide at least 50 characters'),
+  safetyKnowledge: z.string().min(30, 'Please describe your safety knowledge'),
+  consentUnderstanding: z.string().min(30, 'Please describe your understanding of consent'),
+  
+  // Community Understanding - matches API property names
+  whyJoinCommunity: z.string().min(50, 'Please tell us why you want to join (minimum 50 characters)'),
+  skillsInterests: z.array(z.string()).min(1, 'Please select at least one skill or interest'),
+  expectationsGoals: z.string().min(30, 'Please describe your expectations'),
+  agreesToGuidelines: z.boolean().refine(val => val === true, 'You must agree to community guidelines'),
+  
+  // References - UI convenience structure (will be transformed to array)
+  reference1: z.object({
+    name: z.string().min(2, 'Reference name is required'),
+    email: z.string().email('Valid email is required'),
+    relationship: z.string().min(5, 'Please describe your relationship')
   }),
-  experience: z.object({
-    level: z.number().min(1).max(4),
-    yearsExperience: z.number().min(0).max(50),
-    description: z.string().min(50, 'Please provide at least 50 characters'),
-    safetyKnowledge: z.string().min(30, 'Please describe your safety knowledge'),
-    consentUnderstanding: z.string().min(30, 'Please describe your understanding of consent')
+  reference2: z.object({
+    name: z.string().min(2, 'Reference name is required'),
+    email: z.string().email('Valid email is required'),
+    relationship: z.string().min(5, 'Please describe your relationship')
   }),
-  community: z.object({
-    whyJoin: z.string().min(50, 'Please tell us why you want to join (minimum 50 characters)'),
-    skillsInterests: z.array(z.string()).min(1, 'Please select at least one skill or interest'),
-    expectations: z.string().min(30, 'Please describe your expectations'),
-    agreesToGuidelines: z.boolean().refine(val => val === true, 'You must agree to community guidelines')
+  reference3: z.object({
+    name: z.string().optional(),
+    email: z.string().email().optional().or(z.literal('')),
+    relationship: z.string().optional()
   }),
-  references: z.object({
-    reference1: z.object({
-      name: z.string().min(2, 'Reference name is required'),
-      email: z.string().email('Valid email is required'),
-      relationship: z.string().min(5, 'Please describe your relationship')
-    }),
-    reference2: z.object({
-      name: z.string().min(2, 'Reference name is required'),
-      email: z.string().email('Valid email is required'),
-      relationship: z.string().min(5, 'Please describe your relationship')
-    }),
-    reference3: z.object({
-      name: z.string().optional(),
-      email: z.string().email().optional().or(z.literal('')),
-      relationship: z.string().optional()
-    }).optional()
-  }),
-  review: z.object({
-    agreesToTerms: z.boolean().refine(val => val === true, 'You must agree to terms and conditions'),
-    isAnonymous: z.boolean(),
-    consentToContact: z.boolean()
-  })
+  
+  // Review & Submit - matches API exactly
+  agreesToTerms: z.boolean().refine(val => val === true, 'You must agree to terms and conditions'),
+  isAnonymous: z.boolean(),
+  consentToContact: z.boolean()
 });
 
 interface ApplicationFormProps {
@@ -96,40 +96,39 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
     clearDraft
   } = useVettingApplication();
 
-  // Initialize form with validation
-  const form = useForm<ApplicationFormData>({
-    resolver: zodResolver(applicationSchema),
+  // Initialize form with flat structure matching API
+  const form = useForm({
+    resolver: zodResolver(applicationSchema) as any,
     defaultValues: {
-      personalInfo: {
-        fullName: '',
-        sceneName: '',
-        pronouns: '',
-        email: '',
-        phone: ''
-      },
-      experience: {
-        level: 1,
-        yearsExperience: 0,
-        description: '',
-        safetyKnowledge: '',
-        consentUnderstanding: ''
-      },
-      community: {
-        whyJoin: '',
-        skillsInterests: [],
-        expectations: '',
-        agreesToGuidelines: false
-      },
-      references: {
-        reference1: { name: '', email: '', relationship: '' },
-        reference2: { name: '', email: '', relationship: '' },
-        reference3: { name: '', email: '', relationship: '' }
-      },
-      review: {
-        agreesToTerms: false,
-        isAnonymous: false,
-        consentToContact: true
-      }
+      // Personal Information
+      fullName: '',
+      sceneName: '',
+      pronouns: '',
+      email: '',
+      phone: '',
+      
+      // Experience & Knowledge
+      experienceLevel: 1,
+      yearsExperience: 0,
+      experienceDescription: '',
+      safetyKnowledge: '',
+      consentUnderstanding: '',
+      
+      // Community Understanding
+      whyJoinCommunity: '',
+      skillsInterests: [],
+      expectationsGoals: '',
+      agreesToGuidelines: false,
+      
+      // References
+      reference1: { name: '', email: '', relationship: '' },
+      reference2: { name: '', email: '', relationship: '' },
+      reference3: { name: '', email: '', relationship: '' },
+      
+      // Review & Submit
+      agreesToTerms: false,
+      isAnonymous: false,
+      consentToContact: true
     },
     mode: 'onChange'
   });
@@ -137,38 +136,39 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
   // Load draft data on component mount
   useEffect(() => {
     if (draftData && !isDraftLoading) {
-      // Transform draft data to form format
+      // Type assertion for draft data since it comes from API as unknown
+      const draft = draftData as any;
+      
       form.reset({
-        personalInfo: {
-          fullName: draftData.fullName || '',
-          sceneName: draftData.sceneName || '',
-          pronouns: draftData.pronouns || '',
-          email: draftData.email || '',
-          phone: draftData.phone || ''
-        },
-        experience: {
-          level: draftData.experienceLevel || 1,
-          yearsExperience: draftData.yearsExperience || 0,
-          description: draftData.experienceDescription || '',
-          safetyKnowledge: draftData.safetyKnowledge || '',
-          consentUnderstanding: draftData.consentUnderstanding || ''
-        },
-        community: {
-          whyJoin: draftData.whyJoinCommunity || '',
-          skillsInterests: draftData.skillsInterests || [],
-          expectations: draftData.expectationsGoals || '',
-          agreesToGuidelines: draftData.agreesToGuidelines || false
-        },
-        references: {
-          reference1: draftData.references?.[0] || { name: '', email: '', relationship: '' },
-          reference2: draftData.references?.[1] || { name: '', email: '', relationship: '' },
-          reference3: draftData.references?.[2] || { name: '', email: '', relationship: '' }
-        },
-        review: {
-          agreesToTerms: draftData.agreesToTerms || false,
-          isAnonymous: draftData.isAnonymous || false,
-          consentToContact: draftData.consentToContact || true
-        }
+        // Personal Information
+        fullName: draft.fullName || '',
+        sceneName: draft.sceneName || '',
+        pronouns: draft.pronouns || '',
+        email: draft.email || '',
+        phone: draft.phone || '',
+        
+        // Experience & Knowledge
+        experienceLevel: draft.experienceLevel || 1,
+        yearsExperience: draft.yearsExperience || 0,
+        experienceDescription: draft.experienceDescription || '',
+        safetyKnowledge: draft.safetyKnowledge || '',
+        consentUnderstanding: draft.consentUnderstanding || '',
+        
+        // Community Understanding
+        whyJoinCommunity: draft.whyJoinCommunity || '',
+        skillsInterests: draft.skillsInterests || [],
+        expectationsGoals: draft.expectationsGoals || '',
+        agreesToGuidelines: draft.agreesToGuidelines || false,
+        
+        // References
+        reference1: draft.references?.[0] || { name: '', email: '', relationship: '' },
+        reference2: draft.references?.[1] || { name: '', email: '', relationship: '' },
+        reference3: draft.references?.[2] || { name: '', email: '', relationship: '' },
+        
+        // Review & Submit
+        agreesToTerms: draft.agreesToTerms || false,
+        isAnonymous: draft.isAnonymous || false,
+        consentToContact: draft.consentToContact || true
       });
     }
   }, [draftData, isDraftLoading, form]);
@@ -176,13 +176,15 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
   // Auto-save functionality
   const handleAutoSave = useCallback(async () => {
     const formData = form.getValues();
-    const email = formData.personalInfo.email;
+    const email = formData.email;
 
     if (!email) return;
 
     setIsAutoSaving(true);
     try {
-      await autoSaveDraft(formData, email);
+      // Transform form state to API format before saving
+      const apiData = transformFormStateToApiRequest(formData);
+      await autoSaveDraft(apiData, email);
       setLastSaved(new Date());
     } catch (error) {
       console.error('Auto-save failed:', error);
@@ -216,44 +218,42 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
 
   // Validate current step
   const validateCurrentStep = async (): Promise<boolean> => {
-    const formData = form.getValues();
-    
     switch (currentStep) {
-      case 0: // Personal Info
-        return form.trigger(['personalInfo.fullName', 'personalInfo.sceneName', 'personalInfo.email']);
-      case 1: // Experience
+      case 0: // Personal Info - flat field names
+        return form.trigger(['fullName', 'sceneName', 'email']);
+      case 1: // Experience - flat field names
         return form.trigger([
-          'experience.level',
-          'experience.yearsExperience',
-          'experience.description',
-          'experience.safetyKnowledge',
-          'experience.consentUnderstanding'
+          'experienceLevel',
+          'yearsExperience', 
+          'experienceDescription',
+          'safetyKnowledge',
+          'consentUnderstanding'
         ]);
-      case 2: // Community
+      case 2: // Community - flat field names
         return form.trigger([
-          'community.whyJoin',
-          'community.skillsInterests',
-          'community.expectations',
-          'community.agreesToGuidelines'
+          'whyJoinCommunity',
+          'skillsInterests',
+          'expectationsGoals',
+          'agreesToGuidelines'
         ]);
-      case 3: // References
+      case 3: // References - flat field names
         return form.trigger([
-          'references.reference1.name',
-          'references.reference1.email',
-          'references.reference1.relationship',
-          'references.reference2.name',
-          'references.reference2.email',
-          'references.reference2.relationship'
+          'reference1.name',
+          'reference1.email',
+          'reference1.relationship',
+          'reference2.name',
+          'reference2.email',
+          'reference2.relationship'
         ]);
-      case 4: // Review
-        return form.trigger(['review.agreesToTerms']);
+      case 4: // Review - flat field names
+        return form.trigger(['agreesToTerms']);
       default:
         return true;
     }
   };
 
   // Handle form submission
-  const handleSubmit = async (data: ApplicationFormData) => {
+  const handleSubmit = async (data: ApplicationFormState) => {
     try {
       submitApplication(data);
     } catch (error) {
@@ -265,20 +265,22 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
   useEffect(() => {
     if (submissionResult) {
       clearDraft(); // Clear draft after successful submission
+      // Type assertion for submission result
+      const result = submissionResult as any;
       onSubmissionComplete?.(
-        submissionResult.applicationNumber,
-        submissionResult.statusCheckUrl
+        result.applicationNumber,
+        result.statusCheckUrl
       );
     }
   }, [submissionResult, clearDraft, onSubmissionComplete]);
 
-  // Step components
+  // Step components - cast form to any to avoid nested vs flat structure conflicts
   const stepComponents = [
-    <PersonalInfoStep key="personal" form={form} />,
-    <ExperienceStep key="experience" form={form} />,
-    <CommunityStep key="community" form={form} />,
-    <ReferencesStep key="references" form={form} />,
-    <ReviewStep key="review" form={form} />
+    <PersonalInfoStep key="personal" form={form as any} />,
+    <ExperienceStep key="experience" form={form as any} />,
+    <CommunityStep key="community" form={form as any} />,
+    <ReferencesStep key="references" form={form as any} />,
+    <ReviewStep key="review" form={form as any} />
   ];
 
   const stepLabels = [
@@ -295,7 +297,7 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
       
       {/* Header */}
       <Paper p="xl" shadow="sm" mb="lg">
-        <Stack spacing="md">
+        <Stack gap="md">
           <Title order={1} size="h2" ta="center" c="wcr.7">
             Join Our Community
           </Title>
@@ -304,16 +306,16 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
           </Text>
           
           {/* Progress indicators */}
-          <Group position="apart" align="center">
+          <Group justify="apart" align="center">
             <Text size="sm" c="dimmed">
               Step {currentStep + 1} of {stepLabels.length}
             </Text>
             {(isAutoSaving || lastSaved) && (
-              <Group spacing="xs">
+              <Group gap="xs">
                 {isAutoSaving ? (
                   <Text size="xs" c="blue">Saving draft...</Text>
                 ) : lastSaved && (
-                  <Group spacing={4}>
+                  <Group gap={4}>
                     <IconCheck size={14} color="green" />
                     <Text size="xs" c="green">
                       Last saved: {lastSaved.toLocaleTimeString()}
@@ -339,35 +341,29 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
         Your data will never be shared outside the review process, and you can choose to apply anonymously.
       </Alert>
 
-      <form onSubmit={form.handleSubmit(handleSubmit)}>
+      <form onSubmit={form.handleSubmit(handleSubmit as any)}>
         {/* Stepper */}
-        <Stepper
-          active={currentStep}
-          onStepClick={setCurrentStep}
-          allowNextStepsSelect={false}
-          breakpoint="sm"
-          iconSize={40}
-          styles={(theme) => ({
+        {React.createElement(Stepper as any, {
+          active: currentStep,
+          onStepClick: setCurrentStep,
+          allowNextStepsSelect: false,
+          breakpoint: "sm",
+          iconSize: 40,
+          styles: () => ({
             stepIcon: {
-              borderWidth: 2,
-              '&[data-completed]': {
-                backgroundColor: theme.colors.wcr[7],
-                borderColor: theme.colors.wcr[7]
-              }
+              borderWidth: 2
             },
             stepLabel: {
               fontFamily: 'Montserrat, sans-serif',
               fontWeight: 600
             }
-          })}
-          mb="xl"
-        >
-          {stepLabels.map((label, index) => (
-            <Stepper.Step key={index} label={label}>
-              {/* Step content will be rendered below */}
-            </Stepper.Step>
-          ))}
-        </Stepper>
+          }),
+          mb: "xl"
+        },
+          stepLabels.map((label, index) => (
+            React.createElement(Stepper.Step, { key: index, label: label })
+          ))
+        )}
 
         {/* Step Content */}
         <Paper p="xl" shadow="sm" mb="xl">
@@ -376,7 +372,7 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
 
         {/* Navigation */}
         <Paper p="lg" shadow="sm">
-          <Group position="apart">
+          <Group justify="apart">
             <Button
               variant="outline"
               color="wcr.7"
@@ -412,7 +408,7 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
                   size="lg"
                   loading={isSubmitting}
                   disabled={!form.formState.isValid}
-                  leftIcon={!isSubmitting && <IconCheck />}
+                  leftSection={!isSubmitting && <IconCheck />}
                   style={{
                     minHeight: TOUCH_TARGETS.BUTTON_HEIGHT,
                     borderRadius: '12px 6px 12px 6px',
@@ -437,7 +433,7 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({
                 color="red" 
                 title="Please correct the following errors:"
               >
-                <Stack spacing={4}>
+                <Stack gap={4}>
                   {Object.entries(form.formState.errors).map(([key, error]) => (
                     <Text key={key} size="sm">
                       {error?.message || `Error in ${key}`}

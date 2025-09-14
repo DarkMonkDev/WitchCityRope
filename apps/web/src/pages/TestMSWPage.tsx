@@ -89,7 +89,7 @@ export const TestMSWPage: React.FC = () => {
     return (
       <Alert
         key={name}
-        icon={<Icon size="1rem" />}
+        icon={<Icon />}
         color={color}
         title={`${name} - Status: ${result.status}`}
       >

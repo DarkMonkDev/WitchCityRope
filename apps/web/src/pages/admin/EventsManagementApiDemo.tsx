@@ -98,7 +98,7 @@ export const EventsManagementApiDemo: React.FC = () => {
             </Tabs.List>
 
             <Tabs.Panel value="current-api" pt="md">
-              <Alert icon={<IconInfoCircle size="1rem" />} color="blue" mb="md">
+              <Alert icon={<IconInfoCircle />} color="blue" mb="md">
                 <strong>Current API Integration:</strong> This demonstrates the working API integration with the existing backend endpoints.
               </Alert>
               {/* Current API Events */}
@@ -117,7 +117,7 @@ export const EventsManagementApiDemo: React.FC = () => {
               )}
 
               {legacyEventsError && (
-                <Alert icon={<IconInfoCircle size="1rem" />} color="red" mb="md">
+                <Alert icon={<IconInfoCircle />} color="red" mb="md">
                   Error loading events: {legacyEventsError.message}
                 </Alert>
               )}
@@ -185,7 +185,7 @@ export const EventsManagementApiDemo: React.FC = () => {
             </Tabs.Panel>
 
             <Tabs.Panel value="future-api" pt="md">
-              <Alert icon={<IconInfoCircle size="1rem" />} color="orange" mb="md">
+              <Alert icon={<IconInfoCircle />} color="orange" mb="md">
                 <strong>Future Events Management API:</strong> This shows the TypeScript types and hooks ready for the new EventSummaryDto, EventDetailsDto, and EventAvailabilityDto endpoints. 
                 <br /><strong>Note:</strong> API calls are disabled to prevent errors since these endpoints are not yet implemented.
               </Alert>
@@ -198,7 +198,7 @@ export const EventsManagementApiDemo: React.FC = () => {
               )}
 
               {eventsError && (
-                <Alert icon={<IconInfoCircle size="1rem" />} color="red" mb="md">
+                <Alert icon={<IconInfoCircle />} color="red" mb="md">
                   Error loading events: {eventsError.message}
                 </Alert>
               )}

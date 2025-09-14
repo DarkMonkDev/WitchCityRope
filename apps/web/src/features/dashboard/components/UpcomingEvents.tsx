@@ -223,7 +223,7 @@ export const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
           </Group>
           
           <Alert
-            icon={<IconAlertCircle size={16} />}
+            icon={<IconAlertCircle />}
             color="red"
             title="Unable to Load Events"
           >
@@ -298,7 +298,7 @@ export const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
           <Alert
             color="blue"
             variant="light"
-            icon={<IconClock size={16} />}
+            icon={<IconClock />}
           >
             <Stack gap="sm">
               <Text size="sm">

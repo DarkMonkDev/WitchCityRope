@@ -21,9 +21,10 @@ export const ProfileWidget: React.FC = () => {
     
     if (user.sceneName) completed++;
     if (user.email) completed++;
-    if (user.firstName) completed++;
-    if (user.lastName) completed++;
-    // Add more fields as they become available in the user type
+    if (user.pronouns) completed++;
+    if (user.role) completed++;
+    // Note: UserDto doesn't have firstName/lastName fields
+    // Using available fields: sceneName, email, pronouns, role, isVetted
     
     return Math.round((completed / requiredFields) * 100);
   };

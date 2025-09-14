@@ -123,10 +123,10 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
         })}
         onClick={() => onApplicationSelect?.(application)}
       >
-        <Group position="apart" align="flex-start" mb="md">
+        <Group justify="apart" align="flex-start" mb="md">
           <Box style={{ flex: 1 }}>
-            <Group spacing="xs" align="center" mb={4}>
-              <Text weight={600} size="md" c="wcr.8">
+            <Group gap="xs" align="center" mb={4}>
+              <Text fw={600} size="md" c="wcr.8">
                 {application.isAnonymous ? 'Anonymous Applicant' : application.sceneName}
               </Text>
               {application.hasRecentNotes && (
@@ -140,7 +140,7 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
               Application #{application.applicationNumber}
             </Text>
             
-            <Group spacing="xs" mb="xs">
+            <Group gap="xs" mb="xs">
               <Badge
                 color={statusConfig?.color || 'gray'}
                 variant="light"
@@ -211,8 +211,8 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
 
         {/* Reference Status */}
         <Box>
-          <Group position="apart" mb="xs">
-            <Text size="xs" weight={500} c="dimmed">
+          <Group justify="apart" mb="xs">
+            <Text size="xs" fw={500} c="dimmed">
               References
             </Text>
             <Text size="xs" c="dimmed">
@@ -234,7 +234,7 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
             color="red"
             variant="light"
             size="sm"
-            icon={<IconAlertTriangle size={14} />}
+            icon={<IconAlertTriangle />}
             styles={{ root: { padding: '8px 12px' } }}
           >
             High Priority
@@ -256,14 +256,14 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
       <LoadingOverlay visible={isLoading} />
 
       {/* Header */}
-      <Group position="apart" mb="xl">
+      <Group justify="apart" mb="xl">
         <Title order={1} c="wcr.7">
           Vetting Dashboard
         </Title>
         
         <Group>
           <Button
-            leftIcon={<IconRefresh size={16} />}
+            leftSection={<IconRefresh size={16} />}
             variant="light"
             onClick={refetchDashboard}
           >
@@ -271,7 +271,7 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
           </Button>
           
           <Button
-            leftIcon={<IconDownload size={16} />}
+            leftSection={<IconDownload size={16} />}
             variant="outline"
             color="wcr.7"
           >
@@ -284,12 +284,12 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
       <SimpleGrid cols={4} breakpoints={[{ maxWidth: 'md', cols: 2 }, { maxWidth: 'sm', cols: 1 }]} mb="xl">
         {statsCards.map((stat) => (
           <Paper key={stat.title} p="lg" withBorder>
-            <Group position="apart">
+            <Group justify="apart">
               <Box>
-                <Text size="xs" color="dimmed" transform="uppercase" weight={600}>
+                <Text size="xs" color="dimmed" transform="uppercase" fw={600}>
                   {stat.title}
                 </Text>
-                <Text size="xl" weight={700} c="wcr.8" mt="xs">
+                <Text size="xl" fw={700} c="wcr.8" mt="xs">
                   {stat.value}
                 </Text>
                 <Text size="xs" c="dimmed" mt={4}>
@@ -306,11 +306,11 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
 
       {/* Filters Section */}
       <Paper p="md" withBorder mb="lg">
-        <Group position="apart" mb={showFilters ? 'md' : 0}>
+        <Group justify="apart" mb={showFilters ? 'md' : 0}>
           <Group>
             <TextInput
               placeholder="Search applications..."
-              leftIcon={<IconSearch size={16} />}
+              leftSection={<IconSearch size={16} />}
               value={filters.search}
               onChange={(e) => updateFilters({ search: e.target.value })}
               style={{ minWidth: 250 }}
@@ -346,7 +346,7 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
           <Group>
             <Button
               variant="light"
-              leftIcon={<IconFilter size={16} />}
+              leftSection={<IconFilter size={16} />}
               onClick={() => setShowFilters(!showFilters)}
             >
               More Filters
@@ -420,11 +420,11 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
       {/* Empty State */}
       {applications.length === 0 && !isLoading && (
         <Paper p="xl" withBorder ta="center">
-          <Stack align="center" spacing="md">
+          <Stack align="center" gap="md">
             <ThemeIcon size={64} color="gray" variant="light">
               <IconUser size={32} />
             </ThemeIcon>
-            <Text size="lg" weight={500} c="dimmed">
+            <Text size="lg" fw={500} c="dimmed">
               No applications found
             </Text>
             <Text size="sm" c="dimmed">
@@ -439,7 +439,7 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
 
       {/* Pagination */}
       {pagination && pagination.totalPages > 1 && (
-        <Group position="center" mt="xl">
+        <Group justify="center" mt="xl">
           <Pagination
             total={pagination.totalPages}
             value={pagination.currentPage}
@@ -450,7 +450,7 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
       )}
 
       {/* Summary Footer */}
-      <Group position="apart" mt="xl" pt="md" style={{ borderTop: '1px solid #e0e0e0' }}>
+      <Group justify="apart" mt="xl" pt="md" style={{ borderTop: '1px solid #e0e0e0' }}>
         <Text size="sm" c="dimmed">
           Showing {applications.length} of {pagination?.totalCount || 0} applications
         </Text>

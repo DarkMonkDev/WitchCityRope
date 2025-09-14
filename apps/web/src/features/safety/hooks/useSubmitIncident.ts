@@ -49,9 +49,9 @@ export function useSubmitIncidentForm() {
       const result = await submitMutation.mutateAsync(request);
       
       setSubmissionResult({
-        referenceNumber: result.referenceNumber,
-        trackingUrl: result.trackingUrl,
-        submittedAt: result.submittedAt
+        referenceNumber: (result as any)?.referenceNumber,
+        trackingUrl: (result as any)?.trackingUrl,
+        submittedAt: (result as any)?.submittedAt
       });
       
       return result;
@@ -66,7 +66,10 @@ export function useSubmitIncidentForm() {
    */
   const resetSubmission = useCallback(() => {
     setSubmissionResult(null);
-    submitMutation.reset();
+    // Check if reset method exists before calling it
+    if ('reset' in submitMutation && typeof submitMutation.reset === 'function') {
+      submitMutation.reset();
+    }
   }, [submitMutation]);
   
   return {

@@ -99,12 +99,10 @@ describe('useLogin', () => {
         id: '1',
         email: 'admin@witchcityrope.com',
         sceneName: 'TestAdmin',
-        firstName: null,
-        lastName: null,
-        roles: ['Admin'],
+            role: 'Admin',
         isActive: true,
         createdAt: '2025-08-19T00:00:00Z',
-        updatedAt: '2025-08-19T10:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z',
         // lastLoginAt: '2025-08-19T10:00:00Z' // TODO: Fix UserDto type resolution
       },
       message: 'Login successful'
@@ -117,12 +115,10 @@ describe('useLogin', () => {
       id: '1',
       email: 'admin@witchcityrope.com',
       sceneName: 'TestAdmin',
-      firstName: null,
-      lastName: null,
-      roles: ['Admin'],
+      role: 'Admin',
       isActive: true,
       createdAt: '2025-08-19T00:00:00Z',
-      updatedAt: '2025-08-19T10:00:00Z',
+      lastLoginAt: '2025-08-19T10:00:00Z',
       // lastLoginAt: '2025-08-19T10:00:00Z' // TODO: Fix UserDto type resolution
     })
 
@@ -266,12 +262,10 @@ describe('useLogout', () => {
       id: '1',
       email: 'admin@witchcityrope.com',
       sceneName: 'TestAdmin',
-      firstName: null,
-      lastName: null,
-      roles: ['Admin'],
+      role: 'Admin',
       isActive: true,
       createdAt: '2025-08-19T00:00:00Z',
-      updatedAt: '2025-08-19T10:00:00Z',
+      lastLoginAt: '2025-08-19T10:00:00Z',
       // lastLoginAt: '2025-08-19T10:00:00Z' // TODO: Fix UserDto type resolution
     })
     mockNavigate.mockClear()

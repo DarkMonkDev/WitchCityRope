@@ -61,10 +61,10 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ form }) => {
   });
 
   return (
-    <Stack spacing="xl">
+    <Stack gap="xl">
       {/* Section Header */}
       <Box>
-        <Text size="xl" weight={700} c="wcr.7" mb="xs">
+        <Text size="xl" fw={700} c="wcr.7" mb="xs">
           Personal Information
         </Text>
         <Text c="dimmed">
@@ -84,7 +84,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ form }) => {
         in the final step if you prefer additional privacy protection.
       </Alert>
 
-      <Stack spacing="lg">
+      <Stack gap="lg">
         {/* Full Name - Required */}
         <Box pos="relative">
           <Controller
@@ -94,7 +94,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ form }) => {
               <TextInput
                 {...field}
                 placeholder=" "
-                leftIcon={<IconUser size={16} />}
+                leftSection={<IconUser size={16} />}
                 styles={floatingLabelStyles}
                 error={errors.personalInfo?.fullName?.message}
               />
@@ -130,7 +130,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ form }) => {
               <TextInput
                 {...field}
                 placeholder=" "
-                leftIcon={<IconUser size={16} />}
+                leftSection={<IconUser size={16} />}
                 styles={floatingLabelStyles}
                 error={errors.personalInfo?.sceneName?.message}
                 description="The name you use in the rope bondage community"
@@ -203,7 +203,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ form }) => {
                 {...field}
                 type="email"
                 placeholder=" "
-                leftIcon={<IconMail size={16} />}
+                leftSection={<IconMail size={16} />}
                 styles={floatingLabelStyles}
                 error={errors.personalInfo?.email?.message}
                 description="Used for all vetting communication and status updates"
@@ -241,7 +241,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ form }) => {
                 {...field}
                 type="tel"
                 placeholder=" "
-                leftIcon={<IconPhone size={16} />}
+                leftSection={<IconPhone size={16} />}
                 styles={floatingLabelStyles}
                 description="Optional - for urgent communications or interview scheduling"
               />
@@ -282,11 +282,11 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ form }) => {
       </Alert>
 
       {/* Required Fields Notice */}
-      <Group spacing="xs" align="center">
+      <Group gap="xs" align="center">
         <Text size="sm" c="dimmed">
           Fields marked with
         </Text>
-        <Text size="sm" c="red" weight={600}>
+        <Text size="sm" c="red" fw={600}>
           *
         </Text>
         <Text size="sm" c="dimmed">

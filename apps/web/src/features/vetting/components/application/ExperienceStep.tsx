@@ -54,10 +54,10 @@ export const ExperienceStep: React.FC<ExperienceStepProps> = ({ form }) => {
   });
 
   return (
-    <Stack spacing="xl">
+    <Stack gap="xl">
       {/* Section Header */}
       <Box>
-        <Text size="xl" weight={700} c="wcr.7" mb="xs">
+        <Text size="xl" fw={700} c="wcr.7" mb="xs">
           Experience & Knowledge
         </Text>
         <Text c="dimmed">
@@ -65,7 +65,7 @@ export const ExperienceStep: React.FC<ExperienceStepProps> = ({ form }) => {
         </Text>
       </Box>
 
-      <Stack spacing="lg">
+      <Stack gap="lg">
         {/* Experience Level - Required */}
         <Controller
           name="experience.level"
@@ -78,7 +78,7 @@ export const ExperienceStep: React.FC<ExperienceStepProps> = ({ form }) => {
               label="Experience Level"
               placeholder="Select your experience level"
               data={experienceLevelOptions}
-              leftIcon={<IconTrophy size={16} />}
+              leftSection={<IconTrophy size={16} />}
               styles={floatingLabelStyles}
               error={errors.experience?.level?.message}
               required
@@ -89,9 +89,9 @@ export const ExperienceStep: React.FC<ExperienceStepProps> = ({ form }) => {
         {/* Experience Level Description */}
         {experienceLevel && (
           <Paper p="md" bg="blue.0" withBorder>
-            <Group spacing="xs">
+            <Group gap="xs">
               <IconInfoCircle size={16} color="#4285F4" />
-              <Text size="sm" c="blue.7" weight={500}>
+              <Text size="sm" c="blue.7" fw={500}>
                 {EXPERIENCE_LEVEL_CONFIGS[experienceLevel as ExperienceLevel]?.description}
               </Text>
             </Group>
@@ -109,7 +109,7 @@ export const ExperienceStep: React.FC<ExperienceStepProps> = ({ form }) => {
               placeholder="Enter number of years"
               min={0}
               max={50}
-              leftIcon={<IconCalendar size={16} />}
+              leftSection={<IconCalendar size={16} />}
               styles={floatingLabelStyles}
               error={errors.experience?.yearsExperience?.message}
               description="How many years have you been involved in rope bondage?"
@@ -129,7 +129,7 @@ export const ExperienceStep: React.FC<ExperienceStepProps> = ({ form }) => {
               placeholder="Describe your experience with rope bondage, including techniques you've practiced, events attended, workshops taken, etc..."
               minRows={4}
               maxRows={8}
-              leftIcon={<IconBook size={16} />}
+              leftSection={<IconBook size={16} />}
               styles={floatingLabelStyles}
               error={errors.experience?.description?.message}
               description={`Minimum 50 characters (${field.value?.length || 0}/500)`}
@@ -150,7 +150,7 @@ export const ExperienceStep: React.FC<ExperienceStepProps> = ({ form }) => {
               placeholder="Describe your understanding of rope bondage safety, including risk awareness, emergency procedures, anatomy considerations, etc..."
               minRows={3}
               maxRows={6}
-              leftIcon={<IconShield size={16} />}
+              leftSection={<IconShield size={16} />}
               styles={floatingLabelStyles}
               error={errors.experience?.safetyKnowledge?.message}
               description={`Minimum 30 characters (${field.value?.length || 0}/300)`}
@@ -171,7 +171,7 @@ export const ExperienceStep: React.FC<ExperienceStepProps> = ({ form }) => {
               placeholder="Describe your understanding of consent in rope bondage, including negotiation, boundaries, ongoing consent, and communication practices..."
               minRows={3}
               maxRows={6}
-              leftIcon={<IconHeart size={16} />}
+              leftSection={<IconHeart size={16} />}
               styles={floatingLabelStyles}
               error={errors.experience?.consentUnderstanding?.message}
               description={`Minimum 30 characters (${field.value?.length || 0}/300)`}
@@ -207,7 +207,7 @@ export const ExperienceStep: React.FC<ExperienceStepProps> = ({ form }) => {
       </Alert>
 
       {/* Required Fields Notice */}
-      <Group spacing="xs" align="center">
+      <Group gap="xs" align="center">
         <Text size="sm" c="dimmed">
           All fields in this section are required to continue.
         </Text>

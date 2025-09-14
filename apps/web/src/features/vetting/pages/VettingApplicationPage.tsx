@@ -51,7 +51,7 @@ export const VettingApplicationPage: React.FC<VettingApplicationPageProps> = ({
     return (
       <Container size="md" py="xl" className={className}>
         <Paper p="xl" shadow="lg" ta="center">
-          <Stack spacing="xl">
+          <Stack gap="xl">
             <ThemeIcon size={80} color="green" variant="light" mx="auto">
               <IconCheck size={40} />
             </ThemeIcon>
@@ -102,7 +102,7 @@ export const VettingApplicationPage: React.FC<VettingApplicationPageProps> = ({
               </Timeline>
             </Alert>
 
-            <Group position="center" spacing="md">
+            <Group justify="center" gap="md">
               <Button
                 component={Link}
                 to="/vetting/status"
@@ -138,7 +138,7 @@ export const VettingApplicationPage: React.FC<VettingApplicationPageProps> = ({
     <Container size="lg" py="xl" className={className}>
       {/* Page Header */}
       <Paper p="xl" shadow="sm" mb="xl" ta="center">
-        <Stack spacing="lg">
+        <Stack gap="lg">
           <Box>
             <Title order={1} size="h1" c="wcr.7" mb="md">
               Vetting Application
@@ -185,14 +185,14 @@ export const VettingApplicationPage: React.FC<VettingApplicationPageProps> = ({
 
           {/* Existing Members */}
           <Paper p="md" bg="grape.0" withBorder>
-            <Text size="sm" weight={500} mb="xs">
+            <Text size="sm" fw={500} mb="xs">
               Already a member?
             </Text>
             <Text size="sm" c="dimmed" mb="md">
               If you're already a WitchCityRope member and need to update your information, 
               please use your member portal instead of submitting a new application.
             </Text>
-            <Group position="center">
+            <Group justify="center">
               <Anchor component={Link} to="/login" size="sm">
                 Member Login
               </Anchor>
@@ -209,8 +209,8 @@ export const VettingApplicationPage: React.FC<VettingApplicationPageProps> = ({
 
       {/* Footer Information */}
       <Paper p="lg" bg="gray.0" mt="xl">
-        <Stack spacing="md">
-          <Text size="sm" weight={500} c="wcr.7">
+        <Stack gap="md">
+          <Text size="sm" fw={500} c="wcr.7">
             Need Help?
           </Text>
           

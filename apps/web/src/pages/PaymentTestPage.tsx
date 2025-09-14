@@ -86,7 +86,7 @@ export const PaymentTestPage: React.FC = () => {
 
         {/* Important Notice */}
         <Alert 
-          icon={<IconInfoCircle size={16} />}
+          icon={<IconInfoCircle />}
           color="blue"
           variant="light"
         >

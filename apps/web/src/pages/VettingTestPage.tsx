@@ -6,14 +6,14 @@ import { Link } from 'react-router-dom';
 export const VettingTestPage: React.FC = () => {
   return (
     <Container size="md" py="xl">
-      <Stack spacing="xl">
+      <Stack gap="xl">
         <Title order={1} c="wcr.7" ta="center">
           Vetting System Test
         </Title>
         
         <Divider />
         
-        <Group position="center">
+        <Group justify="center">
           <Button component={Link} to="/vetting/apply" color="blue" size="lg">
             Test Application Form
           </Button>

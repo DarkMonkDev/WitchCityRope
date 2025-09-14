@@ -159,7 +159,7 @@ export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormP
           <Alert 
             variant="light" 
             color="blue" 
-            icon={<IconShieldCheck size={16} />}
+            icon={<IconShieldCheck />}
             title="Privacy & Security"
           >
             <Text size="sm">
@@ -345,7 +345,7 @@ export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormP
                   )}
                   
                   {/* Privacy Reminder */}
-                  <Alert variant="light" color="green" icon={<IconShieldCheck size={16} />}>
+                  <Alert variant="light" color="green" icon={<IconShieldCheck />}>
                     <Stack gap="xs">
                       <Text size="sm" fw={500}>Your report will be:</Text>
                       <Text size="xs">• Encrypted immediately</Text>

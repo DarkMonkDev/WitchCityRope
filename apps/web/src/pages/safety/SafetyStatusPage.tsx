@@ -123,7 +123,7 @@ export function SafetyStatusPage() {
               </Button>
             </Group>
             
-            <Alert variant="light" color="blue" icon={<IconInfoCircle size={16} />}>
+            <Alert variant="light" color="blue" icon={<IconInfoCircle />}>
               <Text size="sm">
                 Your reference number was provided when you submitted your report. 
                 It follows the format SAF-YYYYMMDD-0000 (e.g., SAF-20250912-0001).
@@ -186,7 +186,7 @@ export function SafetyStatusPage() {
                 color={getStatusColor(statusData.status)}
                 icon={
                   statusData.status.toLowerCase() === 'resolved' 
-                    ? <IconCheck size={16} />
+                    ? <IconCheck />
                     : <IconClock size={16} />
                 }
               >
@@ -214,7 +214,7 @@ export function SafetyStatusPage() {
               </Alert>
               
               {statusData.canProvideMoreInfo && (
-                <Alert variant="light" color="blue" icon={<IconInfoCircle size={16} />}>
+                <Alert variant="light" color="blue" icon={<IconInfoCircle />}>
                   <Stack gap="xs">
                     <Text size="sm" fw={500}>Additional Information Welcome</Text>
                     <Text size="sm">
