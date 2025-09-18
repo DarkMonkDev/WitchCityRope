@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Npgsql;
 using Respawn;
 using Testcontainers.PostgreSql;
-using WitchCityRope.Infrastructure.Data;
+using WitchCityRope.Api.Data;
 using WitchCityRope.Tests.Common.Cleanup;
 using Xunit;
 
@@ -162,9 +162,9 @@ namespace WitchCityRope.Tests.Common.Fixtures
             }
         }
 
-        public WitchCityRopeDbContext CreateDbContext()
+        public ApplicationDbContext CreateDbContext()
         {
-            var options = new DbContextOptionsBuilder<WitchCityRopeDbContext>()
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
                 .UseNpgsql(ConnectionString)
                 .ConfigureWarnings(warnings =>
                 {
@@ -172,8 +172,8 @@ namespace WitchCityRope.Tests.Common.Fixtures
                     warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning);
                 })
                 .Options;
-            
-            return new WitchCityRopeDbContext(options);
+
+            return new ApplicationDbContext(options);
         }
 
         public async Task ResetDatabaseAsync()

@@ -33,15 +33,18 @@ public class SeedDataService : ISeedDataService
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly RoleManager<IdentityRole<Guid>> _roleManager;
     private readonly ILogger<SeedDataService> _logger;
 
     public SeedDataService(
         ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
+        RoleManager<IdentityRole<Guid>> roleManager,
         ILogger<SeedDataService> logger)
     {
         _context = context;
         _userManager = userManager;
+        _roleManager = roleManager;
         _logger = logger;
     }
 
@@ -79,6 +82,7 @@ public class SeedDataService : ISeedDataService
             var initialEventCount = await _context.Events.CountAsync(cancellationToken);
 
             // Seed data operations in logical order
+            await SeedRolesAsync(cancellationToken);
             await SeedUsersAsync(cancellationToken);
             await SeedEventsAsync(cancellationToken);
             await SeedSessionsAndTicketsAsync(cancellationToken);
@@ -118,6 +122,58 @@ public class SeedDataService : ISeedDataService
             
             throw;
         }
+    }
+
+    /// <summary>
+    /// Creates all required ASP.NET Core Identity roles for the application.
+    /// Ensures roles exist before user creation and assignment.
+    ///
+    /// Roles created:
+    /// - Administrator: Full system access
+    /// - Teacher: Can create and manage events
+    /// - Member: Standard member access
+    /// - Attendee: Basic event attendance access
+    /// </summary>
+    public async Task SeedRolesAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Starting role creation");
+
+        var roles = new[] { "Administrator", "Teacher", "Member", "Attendee" };
+        var createdCount = 0;
+
+        foreach (var roleName in roles)
+        {
+            // Check if role already exists (idempotent operation)
+            var roleExists = await _roleManager.RoleExistsAsync(roleName);
+            if (roleExists)
+            {
+                _logger.LogDebug("Role already exists: {RoleName}", roleName);
+                continue;
+            }
+
+            var role = new IdentityRole<Guid>
+            {
+                Id = Guid.NewGuid(),
+                Name = roleName,
+                NormalizedName = roleName.ToUpperInvariant()
+            };
+
+            var result = await _roleManager.CreateAsync(role);
+            if (result.Succeeded)
+            {
+                createdCount++;
+                _logger.LogInformation("Created role: {RoleName}", roleName);
+            }
+            else
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                _logger.LogWarning("Failed to create role {RoleName}: {Errors}", roleName, errors);
+                throw new InvalidOperationException($"Failed to create role {roleName}: {errors}");
+            }
+        }
+
+        _logger.LogInformation("Role creation completed. Created: {CreatedCount}, Total Expected: {ExpectedCount}",
+            createdCount, roles.Length);
     }
 
     /// <summary>
@@ -218,9 +274,20 @@ public class SeedDataService : ISeedDataService
             var createResult = await _userManager.CreateAsync(user, "Test123!");
             if (createResult.Succeeded)
             {
-                createdCount++;
-                _logger.LogInformation("Created test account: {Email} ({Role}, Vetted: {IsVetted})",
-                    account.Email, account.Role, account.IsVetted);
+                // Assign user to role
+                var roleResult = await _userManager.AddToRoleAsync(user, account.Role);
+                if (roleResult.Succeeded)
+                {
+                    createdCount++;
+                    _logger.LogInformation("Created test account: {Email} ({Role}, Vetted: {IsVetted})",
+                        account.Email, account.Role, account.IsVetted);
+                }
+                else
+                {
+                    var roleErrors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                    _logger.LogWarning("Failed to assign role {Role} to user {Email}: {Errors}",
+                        account.Role, account.Email, roleErrors);
+                }
             }
             else
             {

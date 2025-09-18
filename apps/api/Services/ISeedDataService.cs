@@ -36,9 +36,19 @@ public interface ISeedDataService
     Task<InitializationResult> SeedAllDataAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Creates all required ASP.NET Core Identity roles for the application.
+    /// Ensures roles exist before user creation and assignment.
+    ///
+    /// Roles created: Administrator, Teacher, Member, Attendee
+    /// Implements idempotent behavior (safe to run multiple times).
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token for async operation</param>
+    Task SeedRolesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Creates test user accounts for development and testing scenarios.
     /// Includes comprehensive account types: Admin, Teacher, Member, Guest, Organizer.
-    /// 
+    ///
     /// Follows existing ApplicationUser patterns and ASP.NET Core Identity integration.
     /// All accounts use documented secure password: "Test123!"
     /// </summary>

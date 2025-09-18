@@ -22,7 +22,7 @@
   - heading "Welcome Back" [level=1]
   - paragraph: Join Salem's premier rope education community
   - text: 21+ COMMUNITY • AGE VERIFICATION REQUIRED Email Address
-  - textbox "your@email.com"
+  - textbox "your@email.com": admin@witchcityrope.com
   - text: Password
   - textbox "Enter your password"
   - checkbox

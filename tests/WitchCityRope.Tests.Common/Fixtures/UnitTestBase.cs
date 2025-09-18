@@ -3,7 +3,7 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
-using WitchCityRope.Infrastructure.Data;
+using WitchCityRope.Api.Data;
 
 namespace WitchCityRope.Tests.Common.Fixtures
 {
@@ -14,7 +14,7 @@ namespace WitchCityRope.Tests.Common.Fixtures
     /// </summary>
     public abstract class UnitTestBase : IDisposable
     {
-        protected WitchCityRopeDbContext DbContext { get; private set; }
+        protected ApplicationDbContext DbContext { get; private set; }
         protected Mock<ILogger> MockLogger { get; private set; }
         
         private bool _disposed = false;
@@ -30,9 +30,9 @@ namespace WitchCityRope.Tests.Common.Fixtures
         /// Creates an in-memory database context for unit testing
         /// Each test gets a unique database to ensure isolation
         /// </summary>
-        protected virtual WitchCityRopeDbContext CreateInMemoryDbContext()
+        protected virtual ApplicationDbContext CreateInMemoryDbContext()
         {
-            var options = new DbContextOptionsBuilder<WitchCityRopeDbContext>()
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .ConfigureWarnings(warnings =>
                 {
@@ -41,16 +41,16 @@ namespace WitchCityRope.Tests.Common.Fixtures
                 })
                 .Options;
 
-            return new WitchCityRopeDbContext(options);
+            return new ApplicationDbContext(options);
         }
 
         /// <summary>
         /// Creates a mock DbContext for scenarios where you need full control over mocking
         /// Use this when you need to mock specific DbSet behavior
         /// </summary>
-        protected virtual Mock<WitchCityRopeDbContext> CreateMockDbContext()
+        protected virtual Mock<ApplicationDbContext> CreateMockDbContext()
         {
-            var mockContext = new Mock<WitchCityRopeDbContext>();
+            var mockContext = new Mock<ApplicationDbContext>();
             
             // Setup common properties that most tests need
             mockContext.Setup(x => x.ChangeTracker).Returns(DbContext.ChangeTracker);

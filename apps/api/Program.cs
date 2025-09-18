@@ -139,12 +139,18 @@ builder.Services.AddHealthChecks()
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactDevelopment",
-        builder => builder
+        corsBuilder => corsBuilder
+            .AllowAnyOrigin() // Most permissive for development
+            .AllowAnyMethod()
+            .AllowAnyHeader());
+
+    // Alternative policy with credentials (if needed)
+    options.AddPolicy("ReactDevelopmentWithCredentials",
+        corsBuilder => corsBuilder
             .WithOrigins("http://localhost:5173", "http://localhost:3000", "http://localhost:5174", "http://127.0.0.1:5173", "http://localhost:8080")
             .AllowAnyMethod()
             .AllowAnyHeader()
-            .AllowCredentials()
-            .SetIsOriginAllowed(origin => true)); // Allow any origin in development
+            .AllowCredentials());
 });
 
 // Validate environment configuration
@@ -174,7 +180,40 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("ReactDevelopment");
+app.UseCors("ReactDevelopmentWithCredentials");
+
+// Add debugging middleware for CORS issues in development
+if (app.Environment.IsDevelopment())
+{
+    app.Use(async (context, next) =>
+    {
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+
+        // Log incoming request details
+        logger.LogInformation("Request: {Method} {Path} from Origin: {Origin}",
+            context.Request.Method,
+            context.Request.Path,
+            context.Request.Headers.Origin.FirstOrDefault() ?? "none");
+
+        await next();
+
+        // Log response headers for CORS debugging
+        var corsHeaders = context.Response.Headers
+            .Where(h => h.Key.StartsWith("Access-Control"))
+            .ToDictionary(h => h.Key, h => string.Join(", ", h.Value));
+
+        if (corsHeaders.Any())
+        {
+            logger.LogInformation("Response CORS headers: {Headers}",
+                string.Join("; ", corsHeaders.Select(kvp => $"{kvp.Key}: {kvp.Value}")));
+        }
+        else
+        {
+            logger.LogWarning("No CORS headers in response for {Method} {Path}",
+                context.Request.Method, context.Request.Path);
+        }
+    });
+}
 
 // Authentication middleware must come before authorization
 app.UseAuthentication();

@@ -43,6 +43,153 @@ public class EventsController : ControllerBase
 // ✅ COORDINATE: Test with frontend team before deployment
 ```
 
+## 🚨 CRITICAL CORS CONFIGURATION TROUBLESHOOTING (2025-09-18)
+
+### ⚠️ "Access-Control-Allow-Origin header is not present" Error
+
+**Problem**: React app gets CORS errors when calling API endpoints:
+```
+Access to XMLHttpRequest at 'http://localhost:5655/api/dashboard/statistics'
+from origin 'http://localhost:5173' has been blocked by CORS policy:
+No 'Access-Control-Allow-Origin' header is present on the requested resource.
+```
+
+**Root Cause**: CORS policy conflicts between credentials requirement and AllowAnyOrigin()
+
+**Critical Solution Points**:
+1. ✅ **Cannot use AllowAnyOrigin() with AllowCredentials()** - mutually exclusive
+2. ✅ **Dashboard endpoints require authentication** - need credentials support
+3. ✅ **Use explicit origins with credentials** for authenticated endpoints
+4. ✅ **Add debugging middleware** to see actual CORS headers
+
+**✅ WORKING CONFIGURATION**:
+```csharp
+// Configure CORS for React development
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ReactDevelopmentWithCredentials",
+        corsBuilder => corsBuilder
+            .WithOrigins("http://localhost:5173", "http://localhost:3000", "http://localhost:5174", "http://127.0.0.1:5173", "http://localhost:8080")
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials());
+});
+
+// Apply the policy
+app.UseCors("ReactDevelopmentWithCredentials");
+```
+
+**✅ DEBUGGING MIDDLEWARE** (Development only):
+```csharp
+if (app.Environment.IsDevelopment())
+{
+    app.Use(async (context, next) =>
+    {
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("Request: {Method} {Path} from Origin: {Origin}",
+            context.Request.Method, context.Request.Path,
+            context.Request.Headers.Origin.FirstOrDefault() ?? "none");
+
+        await next();
+
+        var corsHeaders = context.Response.Headers
+            .Where(h => h.Key.StartsWith("Access-Control"))
+            .ToDictionary(h => h.Key, h => string.Join(", ", h.Value));
+
+        if (!corsHeaders.Any())
+        {
+            logger.LogWarning("No CORS headers in response for {Method} {Path}",
+                context.Request.Method, context.Request.Path);
+        }
+    });
+}
+```
+
+**📋 MANDATORY CORS TROUBLESHOOTING CHECKLIST**:
+- [ ] Check if endpoints require authentication (credentials)
+- [ ] Verify CORS policy supports credentials if needed
+- [ ] Ensure middleware order: UseCors() before UseAuthentication()
+- [ ] Add debugging middleware to see actual CORS headers
+- [ ] Test both preflight OPTIONS and actual requests
+- [ ] Verify exact origin spelling (localhost vs 127.0.0.1)
+- [ ] **🚨 CHECK FOR ROUTE CONFLICTS**: AmbiguousMatchException prevents CORS headers
+- [ ] **Verify no duplicate endpoints**: Controller vs Minimal API conflicts block CORS
+
+### 🚨 CRITICAL ROUTE CONFLICT FIX (2025-09-18)
+**Problem**: Dashboard API calls blocked by CORS despite correct CORS configuration
+```
+AmbiguousMatchException: The request matched multiple endpoints. Matches:
+HTTP: GET /api/dashboard/events
+WitchCityRope.Api.Controllers.QuickDashboardController.GetUserEvents
+```
+
+**Root Cause**: Duplicate route definitions between:
+- `QuickDashboardController` (temporary controller)
+- `DashboardEndpoints` (vertical slice minimal API)
+
+**Solution**: Remove duplicate controller to eliminate route conflicts
+```bash
+# Remove conflicting controller
+rm /apps/api/Controllers/QuickDashboardController.cs
+docker restart witchcity-api
+```
+
+**Test CORS Fix**:
+```bash
+# Verify CORS preflight works
+curl -X OPTIONS -H "Origin: http://localhost:5173" \
+  -H "Access-Control-Request-Method: GET" \
+  -H "Access-Control-Request-Headers: authorization" \
+  http://localhost:5655/api/dashboard/statistics
+```
+
+**Key Lesson**: Route conflicts throw exceptions BEFORE CORS middleware can add headers
+
+## 🚨 CRITICAL DATABASE TROUBLESHOOTING (RESOLVED 2025-09-18)
+
+### ⚠️ Authentication "Invalid email or password" Error
+
+**Problem**: Login failing with "Invalid email or password" despite database having correct user data.
+
+**Root Cause Analysis**:
+1. ✅ **Database Configuration**: API correctly connects to `witchcityrope_dev` database
+2. ✅ **Database Data**: All 5 users exist with correct emails and password hashes
+3. ✅ **Connection String**: Perfect match between Docker container and API configuration
+4. ✅ **Seeding**: Users created with "Test123!" password via SeedDataService.cs
+5. ✅ **Authentication Service**: JWT authentication working perfectly
+6. ❌ **Endpoint Path**: Issue was wrong endpoint being tested
+
+**MISLEADING SYMPTOMS**:
+- API health check shows "Database: True, Users: 5" ✅
+- Database queries work fine ✅
+- Users exist in database ✅
+- But login endpoint returned 404 ❌
+
+**ACTUAL ISSUE**: Testing wrong endpoint path:
+- ❌ **WRONG**: `POST /auth/login` (404 Not Found)
+- ✅ **CORRECT**: `POST /api/auth/login` (Authentication successful)
+
+**RESOLUTION**:
+```bash
+# ❌ This fails with 404:
+curl -X POST http://localhost:5655/auth/login
+
+# ✅ This works perfectly:
+curl -X POST http://localhost:5655/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@witchcityrope.com", "password": "Test123!"}'
+
+# Returns: {"success":true,"user":{...},"message":"Login successful"}
+```
+
+**PREVENTION**:
+1. **ALWAYS verify endpoint paths** before assuming database issues
+2. **Use `/api/auth/*` prefix** for all authentication endpoints
+3. **Check API route registration** in Program.cs and endpoint files
+4. **Test with curl/Postman first** before debugging database connections
+
+**KEY INSIGHT**: Database was working perfectly. The issue was API endpoint path mismatch. React frontend correctly uses `/api/auth/*` endpoints.
+
 ### 💥 EMERGENCY PROTOCOL:
 If you see 100+ TypeScript errors after your API changes:
 1. **STOP** - Don't try to "fix" TypeScript manually
