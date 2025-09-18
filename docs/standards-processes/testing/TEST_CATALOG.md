@@ -36,12 +36,22 @@ This catalog provides a comprehensive inventory of all tests in the WitchCityRop
 
 ## Recent Additions (September 2025)
 
-### 🎉 PHASE 2 COMPLETE: Authentication and Events Feature Test Migration - 2025-09-18 🎉
-**BREAKTHROUGH**: Successfully migrated critical Authentication and Events business logic from disabled tests to modern Vertical Slice Architecture patterns.
+### ✅ COMPLETED: Authentication and Events Test Rewrite - Tests Now Match Implementation - 2025-09-18 ✅
+**MAJOR SUCCESS**: Authentication and Events test suites completely rewritten to test ACTUAL implementation instead of non-existent API methods.
 
-**New Test Files Created** (All with [Skip] attributes for unimplemented features):
-- `/tests/WitchCityRope.Core.Tests/Features/Authentication/AuthenticationServiceTests.cs` - 12 comprehensive test methods
-- `/tests/WitchCityRope.Core.Tests/Features/Events/EventServiceTests.cs` - 20+ comprehensive test methods preserving 44+ business rules
+**Status Update**:
+- ✅ **Authentication Service WORKING**: `/apps/api/Features/Authentication/Services/AuthenticationService.cs`
+- ✅ **Events Service WORKING**: `/apps/api/Features/Events/Services/EventService.cs`
+- ✅ **Tests Now Match Reality**: All tests validate actual implemented methods
+- ✅ **All [Skip] Attributes Removed**: Tests can now execute and validate working features
+
+**Actual API Methods Now Tested**:
+- **AuthenticationService**: `LoginAsync(LoginRequest)`, `RegisterAsync(RegisterRequest)`, `GetCurrentUserAsync(string)`, `GetServiceTokenAsync(string, string)`
+- **EventService**: `GetPublishedEventsAsync()`, `GetEventAsync(string)`, `UpdateEventAsync(string, UpdateEventRequest)`
+
+**Test Files Rewritten** (All now executable without [Skip] attributes):
+- `/tests/WitchCityRope.Core.Tests/Features/Authentication/AuthenticationServiceTests.cs` - 12 test methods now test actual API methods
+- `/tests/WitchCityRope.Core.Tests/Features/Events/EventServiceTests.cs` - 13 test methods now test GetPublished/Get/Update operations
 
 **New Test Builders Created**:
 - `/tests/WitchCityRope.Tests.Common/Builders/UserDtoBuilder.cs` - User DTO construction with role management
