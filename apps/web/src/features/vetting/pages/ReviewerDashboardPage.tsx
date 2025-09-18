@@ -77,7 +77,7 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
   };
 
   // Check if user has reviewer permissions
-  const hasReviewerAccess = user?.role === 'VettingReviewer' || user?.role === 'VettingAdmin' || user?.role === 'Admin';
+  const hasReviewerAccess = user?.role === 'VettingReviewer' || user?.role === 'VettingAdmin' || user?.role === 'Administrator';
 
   if (!hasReviewerAccess) {
     return (

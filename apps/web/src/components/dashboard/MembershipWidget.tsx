@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 // Mock role data - replace with actual role system integration
 interface MembershipInfo {
-  currentRole: 'Guest' | 'General Member' | 'Vetted Member' | 'Teacher' | 'Admin';
+  currentRole: 'Guest' | 'General Member' | 'Vetted Member' | 'Teacher' | 'Administrator';
   memberSince?: string;
   vettingStatus?: 'not_eligible' | 'eligible' | 'pending' | 'approved' | 'rejected';
   vettingProgress?: number;
@@ -62,7 +62,7 @@ export const MembershipWidget: React.FC = () => {
       case 'General Member': return '#DAA520';
       case 'Vetted Member': return '#228B22';
       case 'Teacher': return '#9D4EDD';
-      case 'Admin': return '#DC143C';
+      case 'Administrator': return '#DC143C';
       default: return '#8B8680';
     }
   };
