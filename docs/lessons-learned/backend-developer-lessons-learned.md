@@ -82,6 +82,66 @@ If you see 100+ TypeScript errors after your API changes:
 
 ---
 
+## 🚨 CRITICAL: CS0436 Type Conflicts - Docker Build Issues
+
+**DATE**: 2025-09-18
+**ISSUE**: API container showing unhealthy status with CS0436 type conflicts
+**ROOT CAUSE**: Dockerfile copying source files AND project referencing compiled assemblies creates duplicate type definitions
+
+### 💥 SYMPTOMS:
+- API container status: "Up X minutes (unhealthy)"
+- Hundreds of CS0436 warnings: "The type 'X' conflicts with the imported type 'X'"
+- Connection reset by peer when accessing API endpoints
+- Health check failures preventing container from being healthy
+
+### ✅ SOLUTION:
+1. **Remove project references** to archived Core/Infrastructure projects:
+   ```xml
+   <!-- REMOVE these lines from WitchCityRope.Api.csproj -->
+   <ProjectReference Include="../../src/WitchCityRope.Core/WitchCityRope.Core.csproj" />
+   <ProjectReference Include="../../src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj" />
+   ```
+
+2. **Update Dockerfile** to only copy API source files:
+   ```dockerfile
+   # OLD - Creates type conflicts:
+   COPY src/WitchCityRope.Core/ ./WitchCityRope.Core/
+   COPY src/WitchCityRope.Infrastructure/ ./WitchCityRope.Infrastructure/
+
+   # NEW - Modern API is self-contained:
+   COPY apps/api/ ./
+   ```
+
+3. **Update docker-compose.dev.yml** to remove volume exclusions for non-existent directories:
+   ```yaml
+   # REMOVE these volume exclusions:
+   - /app/WitchCityRope.Core/bin
+   - /app/WitchCityRope.Core/obj
+   - /app/WitchCityRope.Infrastructure/bin
+   - /app/WitchCityRope.Infrastructure/obj
+   ```
+
+4. **Clean rebuild** required:
+   ```bash
+   docker remove $(docker ps -a -q --filter "name=witchcity-api") --force
+   docker image rm witchcityrope-react_api --force
+   docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --no-cache api
+   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d api
+   ```
+
+### 🧠 KEY INSIGHT:
+The modern API (`/apps/api/`) uses **vertical slice architecture** and is self-contained. The Core/Infrastructure projects are **archived** as of 2025-09-13. Attempting to reference both source files and project assemblies creates CS0436 conflicts that prevent the API from starting properly.
+
+### 🚨 PREVENTION:
+- **Never reference archived projects** in modern API
+- **Always check lessons learned** before Docker operations
+- **Modern API is fully self-contained** - no external project references needed
+- **Health endpoints confirm success**: `/health` and `/api/health` both return healthy status
+
+**RESULT**: API container now shows "healthy" status, health endpoints working, no CS0436 warnings.
+
+---
+
 ## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
 
 **CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
@@ -2216,3 +2276,31 @@ public class TicketTypeDto { /* Complete with pricing tiers */ }
 4. **Architecture Comparison**: Legacy vs modern patterns
 5. **Recommendation**: Extract, Archive, or Enhance with clear rationale
 ```
+
+## Docker Network Configuration Issue - September 18, 2025
+
+**Problem**: Docker Compose failed to start with error "Service 'mailcatcher' uses an undefined network 'witchcity-network'"
+
+**Root Cause**: Inconsistent network naming between Docker Compose files:
+- `docker-compose.yml` defines network as `witchcity-net`
+- `docker-compose.override.yml` referenced `witchcity-network` (incorrect)
+
+**Solution**: Fixed network reference in `docker-compose.override.yml` line 115:
+```yaml
+# Before (broken)
+networks:
+  - witchcity-network
+
+# After (fixed)
+networks:
+  - witchcity-net
+```
+
+**Validation**: Verified fix with `docker-compose config --quiet` and `docker-compose config --services`
+
+**Prevention Pattern**: Always verify network names match between compose files when adding new services
+
+**Key Files**:
+- Base network definition: `docker-compose.yml` (line 11)
+- Development services: `docker-compose.dev.yml`
+- Override services: `docker-compose.override.yml` (mailcatcher service)

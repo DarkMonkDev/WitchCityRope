@@ -6,89 +6,44 @@
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
-| 2025-09-14 | `/apps/api/Features/Payments/Models/PayPal/PayPalWebhookEvent.cs` | CREATED | Strongly-typed PayPal webhook event model with JsonPropertyName attributes for snake_case to PascalCase mapping | Backend Developer PayPal Webhook Fix | ACTIVE | Keep permanent |
-| 2025-09-14 | `/apps/api/Features/Payments/Extensions/PayPalWebhookExtensions.cs` | CREATED | Extension methods for safely extracting values from PayPal webhook dictionaries, handling JsonElement objects from System.Text.Json | Backend Developer PayPal Webhook Fix | ACTIVE | Keep permanent |
-| 2025-09-14 | `/apps/api/Features/Payments/Services/PayPalService.cs` | MODIFIED | Fixed webhook deserialization issue - added JsonElement handling, strongly-typed webhook processing, improved error messages | Backend Developer PayPal Webhook Fix | ACTIVE | Keep permanent |
-| 2025-09-14 | `/apps/api/Features/Payments/Services/IPayPalService.cs` | MODIFIED | Added strongly-typed webhook validation and processing methods to interface | Backend Developer PayPal Webhook Fix | ACTIVE | Keep permanent |
-| 2025-09-14 | `/apps/api/Features/Payments/Services/MockPayPalService.cs` | MODIFIED | Updated mock service to implement new strongly-typed webhook interface methods | Backend Developer PayPal Webhook Fix | ACTIVE | Keep permanent |
-| 2025-09-14 | `/apps/api/Features/Payments/Endpoints/WebhookEndpoints.cs` | MODIFIED | Replaced manual JsonElement handling with extension methods for cleaner webhook property extraction | Backend Developer PayPal Webhook Fix | ACTIVE | Keep permanent |
-| 2025-09-14 | `/test-results/paypal-webhook-integration-test-report.md` | CREATED | Comprehensive PayPal webhook integration test report - infrastructure testing, real sandbox validation, Cloudflare tunnel connectivity, service dependency analysis with detailed technical findings | Test Executor PayPal Webhook Testing | ACTIVE | Review after 30 days |
-| 2025-09-14 | `/test-results/paypal-webhook-test-payload.json` | CREATED | PayPal webhook test payload for PAYMENT.CAPTURE.COMPLETED event - realistic test data for webhook endpoint validation | Test Executor PayPal Webhook Testing | TEMPORARY | Delete after 7 days |
-| 2025-09-14 | `/test-results/paypal-webhook-test-payload-fixed.json` | CREATED | Corrected PayPal webhook test payload with valid timestamp format for webhook endpoint testing | Test Executor PayPal Webhook Testing | TEMPORARY | Delete after 7 days |
-| 2025-09-14 | `/test-results/simple-webhook-payload.json` | CREATED | Minimal PayPal webhook test payload for basic endpoint validation testing | Test Executor PayPal Webhook Testing | TEMPORARY | Delete after 7 days |
-| 2025-09-14 | `/.env.development` | MODIFIED | Updated USE_MOCK_PAYMENT_SERVICE=false to enable real PayPal sandbox testing | Test Executor PayPal Configuration | ACTIVE | Keep permanent |
-| 2025-09-14 | `/apps/api/appsettings.Development.json` | MODIFIED | Updated PayPal configuration with correct sandbox credentials and webhook ID 1PH29187W48812152 | Test Executor PayPal Configuration | ACTIVE | Keep permanent |
-| 2025-09-14 | `/test-results/paypal-integration-test-2025-09-14.md` | CREATED | PayPal integration test results and validation report - mock service testing, configuration verification, compilation status for local development environment | Test Executor PayPal Validation | ACTIVE | Review after 30 days |
-| 2025-09-14 | `/test-results/paypal-test-execution-2025-09-14.json` | CREATED | Structured JSON report of PayPal test execution results - test status, environment validation, service configuration for automated processing | Test Executor PayPal Validation | ACTIVE | Review after 30 days |
-| 2025-09-14 | `/tests/unit/api/Services/MockPayPalServiceTests.cs` | CREATED | Unit tests for MockPayPalService covering all interface methods - order creation, capture, refunds, webhooks with comprehensive assertions | Test Executor PayPal Testing | ACTIVE | Keep permanent |
-| 2025-09-14 | `/scripts/cloudflare-tunnel-autostart.sh` | CREATED | Auto-start script for Cloudflare tunnel - ensures tunnel runs automatically on terminal open, provides permanent dev URL for PayPal webhooks | PayPal Webhook Configuration | ACTIVE | Keep permanent |
-| 2025-09-14 | `/docs/guides-setup/cloudflare-tunnel-setup.md` | CREATED | Comprehensive Cloudflare Tunnel setup documentation - installation, configuration, auto-start setup, troubleshooting for team members | PayPal Webhook Configuration | ACTIVE | Keep permanent |
-| 2025-09-14 | `/docs/guides-setup/environment-testing-configuration.md` | CREATED | Environment-specific testing configuration - CI/CD mocking strategy, staging real sandbox, production live setup, mock service implementation | PayPal Testing Strategy | ACTIVE | Keep permanent |
-| 2025-09-14 | `/docs/guides-setup/paypal-webhook-setup.md` | MODIFIED | Updated with Cloudflare tunnel instead of ngrok, added all three webhook IDs, corrected port to 5655 | PayPal Webhook Configuration | ACTIVE | Keep permanent |
-| 2025-09-14 | `~/.witchcityrope-tunnel-autostart.sh` | CREATED | User home directory auto-start script - launches Cloudflare tunnel automatically on terminal open | PayPal Webhook Configuration | ACTIVE | Keep permanent |
-| 2025-09-14 | `~/.bashrc` | MODIFIED | Added auto-start script execution for Cloudflare tunnel on terminal open | PayPal Webhook Configuration | ACTIVE | Keep permanent |
-| 2025-09-14 | `/apps/api/Features/Payments/Services/MockPayPalService.cs` | CREATED | Mock PayPal service implementation for CI/CD testing - returns predictable test data without external API calls | PayPal Testing Implementation | ACTIVE | Keep permanent |
-| 2025-09-14 | `/apps/api/Features/Shared/Extensions/ServiceCollectionExtensions.cs` | MODIFIED | Added conditional PayPal service registration based on USE_MOCK_PAYMENT_SERVICE flag | PayPal Testing Implementation | ACTIVE | Keep permanent |
-| 2025-09-14 | `/apps/api/Program.cs` | MODIFIED | Added environment validation and mock service configuration support | PayPal Testing Implementation | ACTIVE | Keep permanent |
-| 2025-09-14 | `/.env.test` | CREATED | Test environment configuration for CI/CD with mock services enabled | PayPal Testing Implementation | ACTIVE | Keep permanent |
-| 2025-09-14 | `/.github/workflows/test.yml` | MODIFIED | Updated to use PostgreSQL, mock services, and test environment configuration | PayPal Testing Implementation | ACTIVE | Keep permanent |
-| 2025-09-14 | `/tests/fixtures/paypal-webhooks/payment-completed.json` | CREATED | Test fixture for payment completed webhook testing | PayPal Testing Implementation | ACTIVE | Keep permanent |
-| 2025-09-14 | `/tests/fixtures/paypal-webhooks/payment-refunded.json` | CREATED | Test fixture for payment refunded webhook testing | PayPal Testing Implementation | ACTIVE | Keep permanent |
-| 2025-09-14 | `/tests/e2e/payment.spec.ts` | CREATED | Playwright E2E tests with CI environment detection and PayPal mocking | PayPal Testing Implementation | ACTIVE | Keep permanent |
-| 2025-09-14 | `/home/chad/repos/witchcityrope-react/PROGRESS.md` | MODIFIED | MAJOR MILESTONE DOCUMENTATION: Added PayPal webhook integration completion - Cloudflare tunnel, real webhook processing, CI/CD mock services, comprehensive technical achievements | Librarian Agent PayPal Milestone Documentation | ACTIVE | Keep permanent |
-| 2025-09-14 | `/home/chad/repos/witchcityrope-react/ARCHITECTURE.md` | MODIFIED | Updated port configuration (5174), added milestone achievement section documenting React migration success | Librarian Agent Milestone Documentation | ACTIVE | Keep permanent |
-| 2025-09-14 | `/home/chad/repos/witchcityrope-react/docs/architecture/functional-area-master-index.md` | MODIFIED | MAJOR MILESTONE: Added PayPal payment integration completion, updated Payment functional area status to COMPLETE, comprehensive milestone section | Librarian Agent PayPal Milestone Documentation | ACTIVE | Keep permanent |
-| 2025-09-14 | `/home/chad/repos/witchcityrope-react/README.md` | MODIFIED | Updated project status with PayPal integration milestone - payment processing operational, webhook infrastructure complete, key achievements section | Librarian Agent PayPal Milestone Documentation | ACTIVE | Keep permanent |
-| 2025-09-14 | `/home/chad/repos/witchcityrope-react/docs/lessons-learned/librarian-lessons-learned.md` | MODIFIED | Added milestone documentation pattern with systematic process for capturing major achievements across all key project files | Librarian Agent Process Documentation | ACTIVE | Keep permanent |
-| 2025-09-14 | `/home/chad/repos/witchcityrope-react/session-work/2025-09-14/react-milestone-achievement-2025-09-14.md` | CREATED | Comprehensive milestone summary documenting React App breakthrough - technical details, impact analysis, development readiness confirmation | Librarian Agent Milestone Summary | ACTIVE | Keep permanent |
-| 2025-09-14 | `/apps/api/Features/Payments/Models/PayPal/PayPalWebhookEvent.cs` | CREATED | Strongly-typed PayPal webhook event model with JsonPropertyName attributes for proper snake_case to PascalCase mapping | PayPal Webhook Integration | ACTIVE | Keep permanent |
-| 2025-09-14 | `/apps/api/Features/Payments/Extensions/PayPalWebhookExtensions.cs` | CREATED | Extension methods for safe value extraction from PayPal webhook dictionaries - handles JsonElement and string types | PayPal Webhook Integration | ACTIVE | Keep permanent |
-| 2025-09-14 | `/test-results/paypal-webhook-integration-test-report.md` | CREATED | Comprehensive PayPal webhook integration test report - infrastructure validation, dependency fixes, connectivity testing | PayPal Webhook Testing | ACTIVE | Review after 30 days |
-| 2025-09-14 | `/session-work/2025-09-14/paypal-milestone-summary-2025-09-14.md` | CREATED | PayPal integration milestone documentation - complete webhook functionality, Cloudflare tunnel setup, production readiness | Librarian Agent Milestone | ACTIVE | Keep permanent |
-| 2025-09-14 | `/apps/api/Features/Payments/Services/PayPalService.cs` | MODIFIED | Removed unused IEncryptionService dependency, added JsonElement handling for webhook processing | PayPal Webhook Integration | ACTIVE | Keep permanent |
-| 2025-09-14 | `/apps/api/Features/Payments/Services/IPayPalService.cs` | MODIFIED | Added strongly-typed webhook processing methods alongside dictionary-based methods | PayPal Webhook Integration | ACTIVE | Keep permanent |
-| 2025-09-14 | `/apps/api/Features/Payments/Services/MockPayPalService.cs` | MODIFIED | Implemented new strongly-typed webhook methods for testing compatibility | PayPal Webhook Integration | ACTIVE | Keep permanent |
-| 2025-09-14 | `/apps/api/Features/Payments/Endpoints/WebhookEndpoints.cs` | MODIFIED | Updated to use PayPalWebhookExtensions for safe value extraction from webhook events | PayPal Webhook Integration | ACTIVE | Keep permanent |
-| 2025-09-14 | `/apps/api/appsettings.Development.json` | MODIFIED | Added USE_MOCK_PAYMENT_SERVICE flag for controlling PayPal service implementation | PayPal Webhook Integration | ACTIVE | Keep permanent |
-| 2025-09-14 | `/session-work/2025-09-14/paypal-milestone-completion-2025-09-14.md` | CREATED | PayPal webhook integration milestone completion summary - technical achievements, infrastructure setup, testing validation, production readiness confirmation | Librarian Agent PayPal Milestone Documentation | ACTIVE | Keep permanent |
-| 2025-09-13 | `/docs/functional-areas/api-cleanup/new-work/2025-09-13-payment-extraction/design/payment-system-database-design.md` | CREATED | Comprehensive database schema design for Payment System - sliding scale pricing, PCI compliance, Stripe integration, audit trails, PostgreSQL optimization, Entity Framework Core configuration supporting community values with security and performance | Database Designer Agent Payment System | ACTIVE | Keep permanent |
-| 2025-09-13 | `/docs/functional-areas/api-cleanup/new-work/2025-09-13-payment-extraction/requirements/payment-system-business-requirements.md` | CREATED | Comprehensive business requirements for Payment system extraction from legacy to modern API - community values (sliding scale), security, user stories, MVP scope, PCI compliance | Business Requirements Agent Payment System | ACTIVE | Keep permanent |
-| 2025-09-13 | `/docs/functional-areas/api-cleanup/new-work/2025-09-13-payment-extraction/implementation/architecture-decisions/payment-service-structure.md` | CREATED | Architecture decision record for Payment service structure - monolithic vs microservices approach for MVP implementation | Business Requirements Agent Payment System | ACTIVE | Keep permanent |
-| 2025-09-13 | `/docs/functional-areas/api-cleanup/new-work/2025-09-13-payment-extraction/implementation/architecture-decisions/sliding-scale-implementation.md` | CREATED | Architecture decision record for sliding scale implementation - storage strategy, calculation method, security considerations | Business Requirements Agent Payment System | ACTIVE | Keep permanent |
-| 2025-09-13 | `/docs/functional-areas/api-cleanup/new-work/2025-09-13-payment-extraction/implementation/architecture-decisions/stripe-integration-approach.md` | CREATED | Architecture decision record for Stripe integration approach - SDK vs REST API, error handling, webhook security | Business Requirements Agent Payment System | ACTIVE | Keep permanent |
-| 2025-09-13 | `/docs/functional-areas/api-cleanup/new-work/2025-09-13-payment-extraction/implementation/architecture-decisions/payment-audit-strategy.md` | CREATED | Architecture decision record for payment audit strategy - comprehensive logging, security events, compliance tracking | Business Requirements Agent Payment System | ACTIVE | Keep permanent |
-| 2025-09-12 | `/docs/lessons-learned/backend-lessons-learned.md` | CREATED | Compilation issue solutions and backend development patterns for project architecture migration | Backend Developer Session | ACTIVE | Keep permanent |
-| 2025-09-12 | `/apps/api/Migrations/20250912040532_AddEvents.cs` | CREATED | Entity Framework migration adding Events table with session support | Backend Developer Session | ACTIVE | Keep permanent |
-| 2025-09-12 | `/apps/api/Migrations/20250912040532_AddEvents.Designer.cs` | CREATED | Entity Framework migration designer file for Events table | Backend Developer Session | ACTIVE | Keep permanent |
-| 2025-09-12 | `/docs/functional-areas/api-cleanup/new-work/2025-09-12-events-endpoint/design/events-api-database-schema.md` | CREATED | Database schema design for Events API with sessions, tickets, and performance optimization | Database Designer Session | ACTIVE | Keep permanent |
-| 2025-09-12 | `/docs/functional-areas/api-cleanup/new-work/2025-09-12-events-endpoint/requirements/events-api-requirements.md` | CREATED | Business requirements document for Events API with admin management and public display features | Business Requirements Session | ACTIVE | Keep permanent |
-| 2025-09-12 | `/docs/functional-areas/api-cleanup/new-work/2025-09-12-events-endpoint/implementation/events-endpoint-implementation-plan.md` | CREATED | Implementation plan for Events API endpoint with minimal viable product approach | Backend Developer Session | ACTIVE | Keep permanent |
-| 2025-09-12 | `/session-work/2025-09-12/compilation-success-verification.md` | CREATED | Verification document confirming clean compilation of entire solution | Backend Developer Session | TEMPORARY | Delete after 30 days |
-| 2025-09-11 | `/home/chad/repos/witchcityrope-react/docs/lessons-learned/test-executor-lessons-learned.md` | MODIFIED | Updated with compilation check requirements and React app diagnostic patterns | Test Executor Session | ACTIVE | Keep permanent |
-| 2025-09-11 | `/home/chad/repos/witchcityrope-react/docs/lessons-learned/react-lessons-learned.md` | CREATED | React development lessons including component patterns and state management | React Developer Session | ACTIVE | Keep permanent |
-| 2025-09-11 | `/home/chad/repos/witchcityrope-react/docs/architecture/decisions.md` | CREATED | Architecture decision records for technical choices and patterns | Architecture Documentation | ACTIVE | Keep permanent |
-| 2025-09-11 | `/home/chad/repos/witchcityrope-react/test-results/comprehensive-test-report-2025-09-11.json` | CREATED | Test execution results from comprehensive testing session | Test Executor Session | TEMPORARY | Delete after 30 days |
-| 2025-09-11 | `/home/chad/repos/witchcityrope-react/test-results/execution-summary-2025-09-11.md` | CREATED | Summary of test execution and quality metrics | Test Executor Session | TEMPORARY | Delete after 30 days |
-| 2025-09-10 | `/home/chad/repos/witchcityrope-react/.env.development` | CREATED | Development environment configuration with database and API settings | Environment Setup | ACTIVE | Keep permanent |
-| 2025-09-10 | `/home/chad/repos/witchcityrope-react/docker-compose.dev.yml` | CREATED | Docker Compose override for development environment | Docker Configuration | ACTIVE | Keep permanent |
-| 2025-09-10 | `/home/chad/repos/witchcityrope-react/dev.sh` | CREATED | Development utility script for Docker management | Development Tools | ACTIVE | Keep permanent |
-| 2025-08-15 | `/home/chad/repos/witchcityrope-react/docs/development/development-history-2025-07.md` | CREATED | Archive of July 2025 development sessions (extracted from PROGRESS.md during maintenance) | Progress Maintenance | ARCHIVED | Keep as historical record |
-| 2025-08-15 | `/home/chad/repos/witchcityrope-react/docs/architecture/react-migration/architecture-decisions.md` | CREATED | Architecture decisions for React migration from Blazor Server | React Migration Documentation | ACTIVE | Keep permanent |
+| 2025-09-18 | `/docs/functional-areas/testing/2025-09-18-phase1-verification.md` | CREATED | CRITICAL: Phase 1 test infrastructure verification report - comprehensive success assessment, infrastructure vs business logic analysis, 100% infrastructure success confirmed | Test Executor Phase 1 Verification | ACTIVE | Keep permanent |
+| 2025-09-18 | `/tests/TEST_MIGRATION_STATUS.md` | CREATED | CRITICAL: Real-time Phase 1 test migration status tracking - compilation progress, success metrics, major achievements, 108 errors → 0 errors transformation | Test Developer Phase 1 Implementation | ACTIVE | Keep permanent |
+| 2025-09-18 | `/tests/WitchCityRope.Tests.Common/Builders/EventDtoBuilder.cs` | CREATED | NEW: DTO builder for EventDto replacing old domain entity builders - follows Vertical Slice Architecture patterns, supports Social/Class event types | Test Developer Phase 1 Implementation | ACTIVE | Keep permanent |
+| 2025-09-18 | `/tests/WitchCityRope.Tests.Common/Builders/CreateEventRequestBuilder.cs` | CREATED | NEW: Request DTO builder for event creation workflows - includes placeholder CreateEventRequest DTO, comprehensive validation scenarios | Test Developer Phase 1 Implementation | ACTIVE | Keep permanent |
+| 2025-09-18 | `/tests/WitchCityRope.Tests.Common/Builders/HealthResponseBuilder.cs` | CREATED | NEW: Response builders for Health feature testing - HealthResponse and DetailedHealthResponse with realistic test data generation | Test Developer Phase 1 Implementation | ACTIVE | Keep permanent |
+| 2025-09-18 | `/tests/WitchCityRope.Tests.Common/TestBase/VerticalSliceTestBase.cs` | CREATED | CRITICAL: Base class for Vertical Slice Architecture testing - WebApplicationFactory setup, HTTP helpers, service access for feature endpoint testing | Test Developer Phase 1 Implementation | ACTIVE | Keep permanent |
+| 2025-09-18 | `/tests/WitchCityRope.Tests.Common/TestBase/FeatureTestBase.cs` | CREATED | CRITICAL: Generic feature service testing base class - mocked logger setup, service creation patterns, logging verification helpers | Test Developer Phase 1 Implementation | ACTIVE | Keep permanent |
+| 2025-09-18 | `/tests/WitchCityRope.Tests.Common/TestBase/DatabaseTestBase.cs` | CREATED | CRITICAL: Database testing base class for TestContainers integration - PostgreSQL reset, entity verification, save change helpers | Test Developer Phase 1 Implementation | ACTIVE | Keep permanent |
+| 2025-09-18 | `/tests/WitchCityRope.Core.Tests/Features/Health/HealthServiceTests.cs` | CREATED | MAJOR: First working Vertical Slice Architecture tests - comprehensive HealthService testing, database integration, performance validation, 8 test methods | Test Developer Phase 1 Implementation | ACTIVE | Keep permanent |
+| 2025-09-18 | `/tests/WitchCityRope.Core.Tests/DatabaseTestCollectionDefinition.cs` | CREATED | TEST: Collection definition for PostgreSQL integration tests - fixes xUnit fixture warning, enables TestContainers sharing | Test Developer Phase 1 Implementation | ACTIVE | Keep permanent |
+| 2025-09-18 | `/tests/WitchCityRope.Tests.Common/Fixtures/DatabaseTestFixture.cs` | MODIFIED | CRITICAL: Updated from WitchCityRopeDbContext to ApplicationDbContext, namespace from Infrastructure.Data to Api.Data | Test Developer Phase 1 Implementation | ACTIVE | Keep permanent |
+| 2025-09-18 | `/tests/WitchCityRope.Tests.Common/Fixtures/UnitTestBase.cs` | MODIFIED | CRITICAL: Updated from WitchCityRopeDbContext to ApplicationDbContext for in-memory testing | Test Developer Phase 1 Implementation | ACTIVE | Keep permanent |
+| 2025-09-18 | `/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj` | MODIFIED | Added Microsoft.AspNetCore.Mvc.Testing package for WebApplicationFactory support | Test Developer Phase 1 Implementation | ACTIVE | Keep permanent |
+| 2025-09-13 | `/apps/web/package.json` | MODIFIED | Updated @types/react to latest version, React Router setup, removed Blazor deps | React Migration - Core Setup | ACTIVE | Keep permanent |
+| 2025-09-13 | `/PROGRESS.md` | MODIFIED | Added React migration progress tracking, environment setup documentation | Session Documentation | ACTIVE | Keep permanent |
+| 2025-08-12 | `/docs/architecture/` | ARCHIVED | Old architecture docs moved to `_archive/` as part of progress maintenance | PROGRESS.md Maintenance | ARCHIVED | Completed |
+| 2025-07-18 | `/docs/development-history-2025-07.md` | CREATED | Historical archive of development sessions (Jan-Jul 2025) during PROGRESS.md maintenance | PROGRESS.md Maintenance | ARCHIVED | Completed |
+| 2025-01-13 | `/docs/functional-areas/payments/` | CREATED | PayPal webhook integration documentation with complete setup and testing | PayPal Integration | ACTIVE | Keep permanent |
+| 2025-01-13 | `/docs/functional-areas/deployment/2025-01-13-digitalocean-deployment/` | CREATED | DigitalOcean deployment documentation with Docker configurations | Deployment Setup | ACTIVE | Keep permanent |
+| 2024-12-15 | `/docs/functional-areas/membership/vetting-application-management/` | CREATED | Complete vetting application system docs and workflows | Vetting System | ACTIVE | Keep permanent |
+| 2024-12-15 | `/docs/functional-areas/events/event-management/` | CREATED | Event management system documentation and user guides | Events System | ACTIVE | Keep permanent |
+| 2024-12-01 | `/docs/functional-areas/user-management/admin-user-management/` | CREATED | Admin user management workflows and component documentation | Admin System | ACTIVE | Keep permanent |
+| 2024-11-15 | `/docs/architecture/react-migration/` | CREATED | React migration strategy and DTO alignment documentation | Architecture Migration | ACTIVE | Keep permanent |
 
-## Cleanup Schedule
+## Recently Cleaned Up Files
+- `temp_status.md` - Removed 2025-07-18 (temporary session file)
+- `session-notes-*.md` - Removed 2025-07-18 (outdated session files)
+- Various test output files in `/session-work/` - Cleaned up monthly
 
-### Monthly Review (First Week of Month)
-- Review TEMPORARY files older than 30 days
-- Archive completed session work to development history
-- Update status of ACTIVE files if needed
+## File Ownership Guidelines
+- **Architecture docs**: Permanent, update in place
+- **Session work**: Clean up after 30 days unless marked permanent
+- **Functional areas**: Permanent business documentation
+- **Standards/processes**: Permanent, version controlled
+- **Test results**: Archive after 90 days unless marked for reference
 
-### Quarterly Deep Clean (March, June, September, December)
-- Review all files for continued relevance
-- Move outdated ACTIVE files to ARCHIVED status
-- Update cleanup dates for permanent files
-- Verify all links and references work correctly
-
-### File Status Definitions
-- **ACTIVE**: Currently relevant and in use
-- **ARCHIVED**: Historical value but not actively used
-- **TEMPORARY**: Short-term files to be reviewed for cleanup
+## Status Definitions
+- **ACTIVE**: Currently relevant and should not be deleted
+- **ARCHIVED**: Historical but preserved for reference
+- **TEMPORARY**: Can be deleted after cleanup date
+- **DEPRECATED**: Superseded by newer files, candidate for cleanup

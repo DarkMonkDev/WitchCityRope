@@ -31,8 +31,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\WitchCityRope.Core\WitchCityRope.Core.csproj" />
+    <ProjectReference Include="..\..\apps\api\WitchCityRope.Api.csproj" />
     <ProjectReference Include="..\WitchCityRope.Tests.Common\WitchCityRope.Tests.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Entities.disabled/**" />
+    <Compile Remove="ValueObjects.disabled/**" />
   </ItemGroup>
 
 </Project>

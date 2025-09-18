@@ -14,18 +14,11 @@ RUN apt-get update && apt-get install -y \
     vim \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy all project files for dependency caching
-COPY apps/api/*.csproj ./
-COPY src/WitchCityRope.Core/*.csproj ./WitchCityRope.Core/
-COPY src/WitchCityRope.Infrastructure/*.csproj ./WitchCityRope.Infrastructure/
-
-# Restore dependencies with retries for network issues
-RUN dotnet restore --verbosity normal
-
-# Copy source code
+# Copy API project files
 COPY apps/api/ ./
-COPY src/WitchCityRope.Core/ ./WitchCityRope.Core/
-COPY src/WitchCityRope.Infrastructure/ ./WitchCityRope.Infrastructure/
+
+# Restore dependencies
+RUN dotnet restore --verbosity normal
 
 # Expose ports for API (8080 internal) and debugging (40000)
 EXPOSE 8080
@@ -44,18 +37,11 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 
 WORKDIR /app
 
-# Copy all project files for dependency caching
-COPY apps/api/*.csproj ./
-COPY src/WitchCityRope.Core/*.csproj ./WitchCityRope.Core/
-COPY src/WitchCityRope.Infrastructure/*.csproj ./WitchCityRope.Infrastructure/
+# Copy API project files
+COPY apps/api/ ./
 
 # Restore dependencies
 RUN dotnet restore
-
-# Copy source code
-COPY apps/api/ ./
-COPY src/WitchCityRope.Core/ ./WitchCityRope.Core/
-COPY src/WitchCityRope.Infrastructure/ ./WitchCityRope.Infrastructure/
 
 # Build the application
 RUN dotnet build -c Release --no-restore

@@ -23,9 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/WitchCityRope.Api/WitchCityRope.Api.csproj" />
-    <ProjectReference Include="../../src/WitchCityRope.Core/WitchCityRope.Core.csproj" />
-    <ProjectReference Include="../../src/WitchCityRope.Infrastructure/WitchCityRope.Infrastructure.csproj" />
+    <ProjectReference Include="../../apps/api/WitchCityRope.Api.csproj" />
     <ProjectReference Include="../WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj" />
   </ItemGroup>
 

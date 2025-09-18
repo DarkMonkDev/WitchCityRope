@@ -95,14 +95,10 @@ services:
     volumes:
       # Package cache for faster builds
       - nuget_cache:/root/.nuget/packages
-      
+
       # Exclude build artifacts from host to prevent conflicts
       - /app/bin
       - /app/obj
-      - /app/WitchCityRope.Core/bin
-      - /app/WitchCityRope.Core/obj
-      - /app/WitchCityRope.Infrastructure/bin
-      - /app/WitchCityRope.Infrastructure/obj
     
     # Development command with hot reload  
     command: ["dotnet", "watch", "run", "--urls", "http://0.0.0.0:8080"]

@@ -112,7 +112,7 @@ services:
       - "1080:1080"  # Web interface
       - "1025:1025"  # SMTP server
     networks:
-      - witchcity-network
+      - witchcity-net
     profiles:
       - dev-tools
 

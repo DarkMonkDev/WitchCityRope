@@ -1,23 +1,99 @@
 # WitchCityRope Test Catalog
-<!-- Last Updated: 2025-09-06 -->
-<!-- Version: 1.1 -->
+<!-- Last Updated: 2025-09-18 -->
+<!-- Version: 1.2 -->
 <!-- Owner: Testing Team -->
-<!-- Status: Active -->
+<!-- Status: CRITICAL INFRASTRUCTURE BROKEN -->
+
+## 🚨 CRITICAL ALERT: TEST INFRASTRUCTURE BREAKDOWN (2025-09-18) 🚨
+
+**SYSTEMATIC ISSUE DISCOVERED**: Complete test infrastructure breakdown due to incomplete Blazor → React migration cleanup.
+
+**ROOT CAUSE**: Test configurations point to archived code in `/src/_archive/` while active application is in `/apps/api/` and `/apps/web/`.
+
+**IMPACT**:
+- ❌ Integration tests: Build failures, missing project references
+- ❌ Unit tests: Namespace errors, wrong component references
+- ❌ E2E tests: Wrong title expectations ("Vite + React" vs "Witch City Rope")
+- ❌ TDD capability: Completely broken, cannot follow test-driven development
+
+**IMMEDIATE ACTION REQUIRED**: See `/docs/functional-areas/testing/2025-09-18-test-configuration-analysis.md` for complete systematic fix strategy.
+
+**DO NOT ATTEMPT INDIVIDUAL TEST FIXES** until infrastructure Phase 1 repairs are complete.
 
 ## Overview
 This catalog provides a comprehensive inventory of all tests in the WitchCityRope project, organized by type and location. This is the single source of truth for understanding our test coverage.
 
-## Quick Reference
-- **Unit Tests**: 202 tests with **100% pass rate** (Core.Tests) - Pure business logic, in-memory database
-- **Integration Tests**: 133 tests (Infrastructure.Tests) - Real PostgreSQL with TestContainers
-- **E2E Tests**: 46 Playwright test spec files (Migrated from Puppeteer + Events Management)
-- **Performance Tests**: Basic load testing infrastructure
+## Quick Reference - CURRENT BROKEN STATE
+- **Unit Tests**: ❌ BROKEN - 202 tests in Core.Tests but reference archived code
+- **Integration Tests**: ❌ BROKEN - 133 tests but project references point to non-existent `/src/` code
+- **E2E Tests**: ❌ PARTIALLY BROKEN - 46 Playwright test files but wrong title expectations
+- **Performance Tests**: ❌ UNKNOWN STATUS - May have same reference issues
 
-**Status**: 
+**Status**:
+- ❌ **CRITICAL FAILURE (2025-09-18)** - Test infrastructure systematically broken by incomplete migration
 - Major migration completed January 2025 - All Puppeteer tests migrated to Playwright
 - **MAJOR SUCCESS September 2025** - Unit test isolation achieved 100% pass rate transformation
 
 ## Recent Additions (September 2025)
+
+### 🚨 CRITICAL: Complete Test Migration Analysis - DDD to Vertical Slice Architecture - 2025-09-18 🚨
+**ANALYSIS**: Comprehensive system-level analysis of test migration requirements from Domain-Driven Design to Vertical Slice Architecture
+
+**Critical Discovery**: All .NET test infrastructure is completely non-functional due to architectural migration
+- **Scope**: ~300+ test files referencing archived DDD architecture in `/src/_archive/`
+- **Impact**: 100% loss of backend test coverage (unit, integration, API tests)
+- **Risk Level**: CRITICAL - Zero business logic test coverage during development
+
+**Key Findings**:
+1. **Broken Test Categories**:
+   - Core Domain Tests: All Entity, ValueObject, and domain service tests broken
+   - Infrastructure Tests: Database, email, PayPal integration tests broken
+   - Common Test Utilities: All test builders and fixtures broken
+   - API Integration Tests: Service and endpoint tests broken
+
+2. **Working Test Categories**:
+   - Playwright E2E Tests: UI layer tests remain functional
+   - Frontend React Tests: Independent of backend architecture
+
+3. **Architecture Mapping Requirements**:
+   - Domain Entities → Feature DTOs/Models
+   - Domain Services → Feature Services
+   - Repository Pattern → Direct Data Access
+   - Value Objects → Shared Models or Feature-specific
+
+**Migration Strategy Created**:
+- **Phase 1**: Infrastructure Foundation (Fix test compilation)
+- **Phase 2**: Health Feature Migration (Prove patterns)
+- **Phase 3**: Authentication Feature Migration (Critical security)
+- **Phase 4**: Events Feature Migration (Core business logic)
+- **Phase 5**: Pending Feature Tests (Unimplemented features marked as pending)
+
+**Business Logic Preservation**:
+- 44 Event domain tests need migration to service tests
+- Critical business rules must be preserved (capacity management, date validation, etc.)
+- Payment processing tests require careful migration
+- User authentication security tests are high priority
+
+**Success Criteria**:
+- Phase 1: Test compilation restored
+- Phase 2: Health feature 100% coverage
+- Phase 3: Authentication 100% endpoint coverage
+- Phase 4: Events 80% service coverage
+- Phase 5: All business logic has test placeholders
+
+**Documentation Created**:
+- `/docs/functional-areas/testing/2025-09-18-test-migration-analysis.md` - Complete system analysis
+- `/docs/functional-areas/testing/2025-09-18-test-migration-strategy.md` - Step-by-step migration plan
+
+**Immediate Next Steps**:
+1. Restore test infrastructure compilation
+2. Create new test base classes and templates
+3. Begin Health feature migration to prove patterns
+4. Systematically migrate each feature while preserving business logic
+
+**Tags**: `critical` `test-migration` `vertical-slice-architecture` `business-logic-preservation` `test-infrastructure`
+
+---
 
 ### 🚨 COMPREHENSIVE: PayPal Integration Test Suite - 2025-09-14 🚨
 **ACHIEVEMENT**: Complete PayPal payment system integration test coverage for both mock and real sandbox environments
