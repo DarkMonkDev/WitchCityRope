@@ -1,5 +1,5 @@
 using WitchCityRope.Api.Features.Events.Models;
-using WitchCityRope.Tests.Common.Fixtures;
+using WitchCityRope.Tests.Common.Builders;
 
 namespace WitchCityRope.Tests.Common.Builders;
 
@@ -16,27 +16,21 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
     private string _location;
     private string _eventType;
     private int _capacity;
-    private string? _pricingTiers;
+    private decimal[]? _pricingTiers;
     private bool _isPublished;
-    private List<SessionDto> _sessions;
-    private List<TicketTypeDto> _ticketTypes;
-    private List<string> _teacherIds;
 
     public CreateEventRequestBuilder()
     {
-        // Set default valid values for event creation
-        _title = _faker.Lorem.Sentence(3).TrimEnd('.');
-        _description = _faker.Lorem.Paragraph();
-        _startDate = DateTimeFixture.NextWeek;
-        _endDate = DateTimeFixture.NextWeek.AddHours(3);
-        _location = _faker.Address.FullAddress();
-        _eventType = _faker.PickRandom("Social", "Class", "Workshop", "Performance");
-        _capacity = TestConstants.Events.DefaultCapacity;
-        _pricingTiers = null; // Default to free
-        _isPublished = false; // Default to draft
-        _sessions = new List<SessionDto>();
-        _ticketTypes = new List<TicketTypeDto>();
-        _teacherIds = new List<string> { Guid.NewGuid().ToString() };
+        // Set default values for a valid event
+        _title = "Default Event Title";
+        _description = "Default event description";
+        _startDate = DateTime.UtcNow.AddDays(7); // Event starts in a week
+        _endDate = DateTime.UtcNow.AddDays(7).AddHours(2); // 2-hour event
+        _location = "Salem Community Center";
+        _eventType = "Workshop";
+        _capacity = 20;
+        _pricingTiers = new decimal[] { 20m }; // Default single pricing tier
+        _isPublished = false; // Default to unpublished
     }
 
     public CreateEventRequestBuilder WithTitle(string title)
@@ -63,33 +57,6 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
         return This;
     }
 
-    public CreateEventRequestBuilder WithDates(DateTime startDate, DateTime endDate)
-    {
-        _startDate = startDate;
-        _endDate = endDate;
-        return This;
-    }
-
-    public CreateEventRequestBuilder StartsInDays(int days)
-    {
-        _startDate = DateTime.UtcNow.AddDays(days);
-        _endDate = _startDate.AddHours(3);
-        return This;
-    }
-
-    public CreateEventRequestBuilder WithPastStartDate()
-    {
-        _startDate = DateTime.UtcNow.AddDays(-1);
-        _endDate = _startDate.AddHours(3);
-        return This;
-    }
-
-    public CreateEventRequestBuilder WithDuration(TimeSpan duration)
-    {
-        _endDate = _startDate.Add(duration);
-        return This;
-    }
-
     public CreateEventRequestBuilder WithLocation(string location)
     {
         _location = location;
@@ -102,48 +69,13 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
         return This;
     }
 
-    public CreateEventRequestBuilder AsSocialEvent()
-    {
-        return WithEventType("Social");
-    }
-
-    public CreateEventRequestBuilder AsClassEvent()
-    {
-        return WithEventType("Class");
-    }
-
-    public CreateEventRequestBuilder AsWorkshop()
-    {
-        return WithEventType("Workshop");
-    }
-
-    public CreateEventRequestBuilder AsPerformance()
-    {
-        return WithEventType("Performance");
-    }
-
     public CreateEventRequestBuilder WithCapacity(int capacity)
     {
         _capacity = capacity;
         return This;
     }
 
-    public CreateEventRequestBuilder WithZeroCapacity()
-    {
-        return WithCapacity(0);
-    }
-
-    public CreateEventRequestBuilder WithSmallCapacity()
-    {
-        return WithCapacity(TestConstants.Events.SmallCapacity);
-    }
-
-    public CreateEventRequestBuilder WithLargeCapacity()
-    {
-        return WithCapacity(TestConstants.Events.LargeCapacity);
-    }
-
-    public CreateEventRequestBuilder WithPricingTiers(string pricingTiers)
+    public CreateEventRequestBuilder WithPricingTiers(decimal[] pricingTiers)
     {
         _pricingTiers = pricingTiers;
         return This;
@@ -151,17 +83,23 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
 
     public CreateEventRequestBuilder WithFreePricing()
     {
-        _pricingTiers = null;
+        _pricingTiers = new decimal[] { 0m };
         return This;
     }
 
-    public CreateEventRequestBuilder WithSinglePrice(decimal amount)
+    public CreateEventRequestBuilder WithSingleTier(decimal amount)
     {
-        _pricingTiers = $"[{amount}]";
+        _pricingTiers = new decimal[] { amount };
         return This;
     }
 
-    public CreateEventRequestBuilder Published()
+    public CreateEventRequestBuilder WithNoPricing()
+    {
+        _pricingTiers = new decimal[0];
+        return This;
+    }
+
+    public CreateEventRequestBuilder AsPublished()
     {
         _isPublished = true;
         return This;
@@ -173,46 +111,68 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
         return This;
     }
 
-    public CreateEventRequestBuilder WithSessions(params SessionDto[] sessions)
+    /// <summary>
+    /// Creates a valid workshop event for testing
+    /// </summary>
+    public CreateEventRequestBuilder AsWorkshop()
     {
-        _sessions = sessions.ToList();
-        return This;
+        return WithTitle("Rope Fundamentals Workshop")
+            .WithDescription("Learn the basics of rope bondage safety and techniques")
+            .WithEventType("Workshop")
+            .WithCapacity(12)
+            .WithSingleTier(25m);
     }
 
-    public CreateEventRequestBuilder WithTicketTypes(params TicketTypeDto[] ticketTypes)
+    /// <summary>
+    /// Creates a valid performance event for testing
+    /// </summary>
+    public CreateEventRequestBuilder AsPerformance()
     {
-        _ticketTypes = ticketTypes.ToList();
-        return This;
+        return WithTitle("Evening Rope Performance")
+            .WithDescription("Artistic rope performance by experienced practitioners")
+            .WithEventType("Performance")
+            .WithCapacity(50)
+            .WithSingleTier(15m);
     }
 
-    public CreateEventRequestBuilder WithTeachers(params string[] teacherIds)
+    /// <summary>
+    /// Creates a valid social event for testing
+    /// </summary>
+    public CreateEventRequestBuilder AsSocialEvent()
     {
-        _teacherIds = teacherIds.ToList();
-        return This;
+        return WithTitle("Rope Social & Practice")
+            .WithDescription("Open practice time and social gathering")
+            .WithEventType("Social")
+            .WithCapacity(30)
+            .WithFreePricing();
     }
 
-    public CreateEventRequestBuilder WithSingleTeacher(string teacherId)
+    /// <summary>
+    /// Creates an event with multiple pricing tiers for testing
+    /// </summary>
+    public CreateEventRequestBuilder WithMultipleTiers()
     {
-        _teacherIds = new List<string> { teacherId };
-        return This;
+        return WithPricingTiers(new decimal[] { 15m, 25m, 35m });
     }
 
-    public CreateEventRequestBuilder WithEmptyTitle()
+    /// <summary>
+    /// Creates an event scheduled for tomorrow for testing urgency scenarios
+    /// </summary>
+    public CreateEventRequestBuilder ForTomorrow()
     {
-        _title = string.Empty;
-        return This;
+        var tomorrow = DateTime.UtcNow.AddDays(1);
+        return WithStartDate(tomorrow.Date.AddHours(19)) // 7 PM tomorrow
+            .WithEndDate(tomorrow.Date.AddHours(21)); // 9 PM tomorrow
     }
 
-    public CreateEventRequestBuilder WithNullTitle()
+    /// <summary>
+    /// Creates an event scheduled for next month for testing advance planning
+    /// </summary>
+    public CreateEventRequestBuilder ForNextMonth()
     {
-        _title = null!;
-        return This;
-    }
-
-    public CreateEventRequestBuilder WithEmptyDescription()
-    {
-        _description = string.Empty;
-        return This;
+        var nextMonth = DateTime.UtcNow.AddMonths(1);
+        return WithStartDate(nextMonth.Date.AddHours(19)) // 7 PM next month
+            .WithEndDate(nextMonth.Date.AddHours(21)); // 9 PM next month
     }
 
     // Note: CreateEventRequest doesn't exist yet in the API
@@ -229,31 +189,7 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
             Location = _location,
             EventType = _eventType,
             Capacity = _capacity,
-            PricingTiers = _pricingTiers,
-            IsPublished = _isPublished,
-            Sessions = _sessions,
-            TicketTypes = _ticketTypes,
-            TeacherIds = _teacherIds
+            PricingTiers = _pricingTiers
         };
     }
-}
-
-/// <summary>
-/// Placeholder CreateEventRequest DTO - to be moved to API project when implemented
-/// This structure matches the UpdateEventRequest pattern but for creation
-/// </summary>
-public class CreateEventRequest
-{
-    public string Title { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
-    public string Location { get; set; } = string.Empty;
-    public string EventType { get; set; } = string.Empty;
-    public int Capacity { get; set; }
-    public string? PricingTiers { get; set; }
-    public bool IsPublished { get; set; }
-    public List<SessionDto>? Sessions { get; set; }
-    public List<TicketTypeDto>? TicketTypes { get; set; }
-    public List<string>? TeacherIds { get; set; }
 }

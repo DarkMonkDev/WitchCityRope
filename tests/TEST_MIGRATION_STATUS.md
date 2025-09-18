@@ -94,10 +94,24 @@
 - **Database**: Real PostgreSQL integration via TestContainers working
 - **Test Categories**: Proper separation of unit vs integration vs E2E tests
 
-### Current Status: READY FOR PHASE 2
-**Focus**: Health feature implementation validation
-**Next**: Run Health feature tests and validate against actual Health service
-**Ready For**: Authentication and Events feature migration
+### Current Status: PHASE 2 IN PROGRESS - Authentication and Events Feature Migration
+**Focus**: Migrating Authentication and Events feature tests from disabled folders
+**Progress**:
+- ✅ Authentication feature tests created with business logic preservation
+- ✅ Events feature tests created with critical business rules preserved
+- ✅ Test builders aligned with actual API DTOs (RegisterRequest, LoginRequest, EventDto)
+- ✅ 44+ critical business rules preserved from disabled EventTests.cs
+- ⏳ Compilation issues resolved for test infrastructure
+
+**Critical Business Logic Preserved**:
+- Event capacity management and overbooking prevention
+- Date validation (past dates, start/end date relationships)
+- Pricing tier requirements and validation
+- User registration and password requirements
+- Authentication security validation
+- Role-based access control testing
+
+**Ready For**: Test execution validation and Phase 3 implementation
 
 ### Architecture Context
 **Old (Archived)**: Rich domain entities in WitchCityRope.Core.Entities

@@ -195,6 +195,22 @@ public class EventDtoBuilder : TestDataBuilder<EventDto, EventDtoBuilder>
         return This;
     }
 
+
+    public EventDtoBuilder WithNoRegistrations()
+    {
+        _currentAttendees = 0;
+        _currentRSVPs = 0;
+        _currentTickets = 0;
+        return This;
+    }
+
+    public EventDtoBuilder WithUniqueTitle()
+    {
+        _title = $"Event-{Guid.NewGuid():N}";
+        return This;
+    }
+
+
     public override EventDto Build()
     {
         return new EventDto
