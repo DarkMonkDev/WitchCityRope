@@ -168,6 +168,34 @@ export const EventForm: React.FC<EventFormProps> = ({
       venueId: (value) => (!value ? 'Venue selection is required' : null),
     },
   });
+
+  // Update form values when initialData changes (for loading from API)
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      console.log('🔍 [DEBUG] EventForm updating with initialData:', {
+        hasTeacherIds: !!initialData.teacherIds,
+        teacherIds: initialData.teacherIds,
+        hasSessions: !!initialData.sessions,
+        sessionsCount: initialData.sessions?.length,
+        hasTicketTypes: !!initialData.ticketTypes,
+        ticketTypesCount: initialData.ticketTypes?.length
+      });
+      form.setValues({
+        eventType: 'class',
+        title: '',
+        shortDescription: '',
+        fullDescription: '',
+        policies: '',
+        venueId: '',
+        teacherIds: [],
+        status: 'Draft',
+        sessions: [],
+        ticketTypes: [],
+        volunteerPositions: [],
+        ...initialData,
+      });
+    }
+  }, [initialData]);
   
   // Track form changes
   const previousValues = useRef(form.values);

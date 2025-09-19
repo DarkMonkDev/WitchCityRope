@@ -164,6 +164,9 @@ export const AdminEventDetailsPage: React.FC = () => {
       // DEBUG: Log form data before processing
       console.log('🔍 [DEBUG] Form data before save:', {
         teacherIds: data.teacherIds,
+        sessions: data.sessions,
+        ticketTypes: data.ticketTypes,
+        volunteerPositions: data.volunteerPositions,
         formDataKeys: Object.keys(data),
         fullFormData: data
       });
@@ -177,7 +180,13 @@ export const AdminEventDetailsPage: React.FC = () => {
       console.log('🔍 [DEBUG] Changed fields to send to API:', {
         changedFields,
         hasTeacherIds: 'teacherIds' in changedFields,
-        teacherIdsValue: changedFields.teacherIds
+        teacherIdsValue: changedFields.teacherIds,
+        hasSessions: 'sessions' in changedFields,
+        sessionsValue: changedFields.sessions,
+        hasTicketTypes: 'ticketTypes' in changedFields,
+        ticketTypesValue: changedFields.ticketTypes,
+        hasVolunteerPositions: 'volunteerPositions' in changedFields,
+        volunteerPositionsValue: changedFields.volunteerPositions
       });
 
       // Only proceed if there are changes
@@ -190,23 +199,51 @@ export const AdminEventDetailsPage: React.FC = () => {
         return;
       }
 
-      await updateEventMutation.mutateAsync(changedFields);
-      
-      // Update initial form data to new values
+      // Perform the API update
+      const updatedEvent = await updateEventMutation.mutateAsync(changedFields);
+
+      // DEBUG: Log API response
+      console.log('🔍 [DEBUG] API response after save:', {
+        updatedEvent,
+        hasTeacherIds: !!updatedEvent.teacherIds,
+        teacherIds: updatedEvent.teacherIds,
+        hasSessions: !!updatedEvent.sessions,
+        sessions: updatedEvent.sessions,
+        hasTicketTypes: !!updatedEvent.ticketTypes,
+        ticketTypes: updatedEvent.ticketTypes
+      });
+
+      // Update initial form data to new values for next change detection
       setInitialFormData(data);
       setIsEditMode(false);
       setFormDirty(false);
-      
+
       notifications.show({
         title: 'Event Updated',
         message: 'Event details have been saved successfully.',
         color: 'green'
       });
+
+      // Force a refresh of the event data to verify persistence
+      console.log('🔍 [DEBUG] Triggering event data refresh to verify persistence...');
+
     } catch (error) {
       console.error('Failed to update event:', error);
+
+      // Enhanced error reporting
+      let errorMessage = 'Failed to update event. Please try again.';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        console.error('🔍 [DEBUG] Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+      }
+
       notifications.show({
         title: 'Update Failed',
-        message: error instanceof Error ? error.message : 'Failed to update event. Please try again.',
+        message: errorMessage,
         color: 'red'
       });
     }
@@ -328,7 +365,6 @@ export const AdminEventDetailsPage: React.FC = () => {
 
       {/* EventForm Component */}
       <EventForm
-        key={(event as any)?.id} // Force re-mount when event changes to ensure proper initialization
         initialData={initialFormData || convertEventToFormData(event as EventDtoType)}
         onSubmit={handleFormSubmit}
         onCancel={handleFormCancel}

@@ -29,23 +29,83 @@ interface ApiEvent {
   description: string
   startDate: string
   location: string
+  eventType?: string
+  capacity?: number
   // Optional fields that may be added later
   endDate?: string
   maxAttendees?: number
   currentAttendees?: number
+  currentRSVPs?: number
+  currentTickets?: number
   availableSpots?: number
   price?: number
   organizerName?: string
   requiresVetting?: boolean
   isPublished?: boolean
   // New fields added by backend
-  sessions?: EventSessionDto[]
-  ticketTypes?: EventTicketTypeDto[]
+  sessions?: ApiEventSession[]
+  ticketTypes?: ApiEventTicketType[]
   teacherIds?: string[]
+}
+
+// API session structure (matches actual API response)
+interface ApiEventSession {
+  id: string
+  sessionIdentifier: string
+  name: string
+  date: string
+  startTime: string
+  endTime: string
+  capacity: number
+  registeredCount: number
+}
+
+// API ticket type structure (matches actual API response)
+interface ApiEventTicketType {
+  id: string
+  name: string
+  type: string
+  sessionIdentifiers: string[]
+  minPrice: number
+  maxPrice: number
+  quantityAvailable: number
+  salesEndDate?: string | null
 }
 
 // Transform API event to frontend EventDto
 function transformApiEvent(apiEvent: ApiEvent): EventDto {
+  console.log('🔍 [DEBUG] Transforming API event:', {
+    id: apiEvent.id,
+    hasTeacherIds: !!apiEvent.teacherIds,
+    teacherIds: apiEvent.teacherIds,
+    hasSessions: !!apiEvent.sessions,
+    sessionsCount: apiEvent.sessions?.length,
+    hasTicketTypes: !!apiEvent.ticketTypes,
+    ticketTypesCount: apiEvent.ticketTypes?.length
+  });
+
+  // Transform sessions to match frontend structure
+  const transformedSessions: EventSessionDto[] = (apiEvent.sessions || []).map(session => ({
+    id: session.id,
+    name: session.name,
+    startTime: session.startTime,
+    endTime: session.endTime,
+    capacity: session.capacity,
+    description: '' // Add default description
+  }));
+
+  // Transform ticket types to match frontend structure
+  const transformedTicketTypes: EventTicketTypeDto[] = (apiEvent.ticketTypes || []).map(ticket => ({
+    id: ticket.id,
+    name: ticket.name,
+    type: ticket.type,
+    price: ticket.minPrice,
+    maxPrice: ticket.maxPrice,
+    quantityAvailable: ticket.quantityAvailable,
+    sessionIdentifiers: ticket.sessionIdentifiers,
+    salesEndDate: ticket.salesEndDate || undefined
+  }));
+
   return {
     id: apiEvent.id,
     title: apiEvent.title,
@@ -53,15 +113,16 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
     startDate: apiEvent.startDate,
     endDate: apiEvent.endDate || null,
     location: apiEvent.location,
-    capacity: apiEvent.maxAttendees || 20, // Default capacity
+    eventType: apiEvent.eventType,
+    capacity: apiEvent.capacity || apiEvent.maxAttendees || 20, // Use capacity first, then maxAttendees
     registrationCount: apiEvent.currentAttendees || 0,
     createdAt: new Date().toISOString(), // Placeholder - should come from API
     updatedAt: new Date().toISOString(), // Placeholder - should come from API
-    // Map new fields from API response
-    sessions: apiEvent.sessions || [],
-    ticketTypes: apiEvent.ticketTypes || [],
+    // Map new fields from API response with proper transformation
+    sessions: transformedSessions,
+    ticketTypes: transformedTicketTypes,
     teacherIds: apiEvent.teacherIds || [],
-    isPublished: apiEvent.isPublished !== undefined ? apiEvent.isPublished : true // Default to published for backward compatibility
+    isPublished: apiEvent.isPublished !== undefined ? apiEvent.isPublished : true
   }
 }
 

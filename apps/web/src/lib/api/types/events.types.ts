@@ -6,8 +6,9 @@ export interface EventDto {
   title: string
   description: string
   startDate: string // ISO date string
-  endDate?: string
+  endDate?: string | null
   location: string
+  eventType?: string
   capacity?: number
   registrationCount?: number
   createdAt: string
