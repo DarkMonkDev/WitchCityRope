@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Editor } from '@tinymce/tinymce-react';
-import { Alert, Box } from '@mantine/core';
+import { Alert, Box, Textarea } from '@mantine/core';
 
 interface TinyMCERichTextEditorProps {
   value?: string;
@@ -15,27 +15,28 @@ export const TinyMCERichTextEditor: React.FC<TinyMCERichTextEditorProps> = ({
   placeholder = 'Enter text...',
   minRows = 4
 }) => {
-  const [apiKeyMissing, setApiKeyMissing] = useState(false);
-  // Temporarily hardcoding API key since env variable not loading
-  // TODO: Fix environment variable loading issue
-  const apiKey = '3f628sek98zponk2rt5ncrkc2n5lj9ghobeppfskrjvkpmqp';
-  // const apiKey = import.meta.env.VITE_TINYMCE_API_KEY;
-
-  useEffect(() => {
-    if (!apiKey) {
-      setApiKeyMissing(true);
-      console.warn('TinyMCE API key not configured. Please set VITE_TINYMCE_API_KEY in your .env file.');
-    }
-  }, [apiKey]);
+  const apiKey = import.meta.env.VITE_TINYMCE_API_KEY;
 
   if (!apiKey) {
     return (
       <Box>
-        <Alert color="orange" mb="xs" title="Configuration Notice">
-          TinyMCE API key not configured. Please set VITE_TINYMCE_API_KEY in your .env.development file.
-          <br />
-          Current environment: {import.meta.env.MODE}
+        <Alert color="blue" mb="xs" title="Development Mode">
+          TinyMCE disabled to prevent API usage costs. Using simple text editor.
         </Alert>
+        <Textarea
+          value={value}
+          onChange={(event) => onChange?.(event.target.value)}
+          minRows={minRows}
+          placeholder={placeholder}
+          autosize
+          styles={{
+            input: {
+              fontFamily: 'Source Sans 3, sans-serif',
+              fontSize: '14px',
+              lineHeight: '1.6'
+            }
+          }}
+        />
       </Box>
     );
   }

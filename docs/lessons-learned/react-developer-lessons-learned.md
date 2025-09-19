@@ -774,8 +774,119 @@ return data.events?.map(transformApiEvent) || [] // data.events doesn't exist
 
 ---
 
+## 🚨 CRITICAL: TinyMCE Development Cost Prevention (2025-09-19) 🚨
+**Date**: 2025-09-19
+**Category**: Development Environment
+**Severity**: CRITICAL - COST CONTROL
+
+### What We Learned
+**MANDATORY DEVELOPMENT PATTERN**: TinyMCE API key usage causes significant costs in development/testing environments where editors are repeatedly loaded.
+
+**COST PREVENTION SOLUTION**:
+- **Environment Variable Control**: Remove `VITE_TINYMCE_API_KEY` from `.env.development`
+- **Smart Component Fallback**: Components check for API key presence and fallback to Textarea
+- **Production Ready**: TinyMCE works in staging/production when API key is configured
+- **Developer Experience**: Clear alerts explain why simple editor is being used
+
+### Action Items
+- [x] **DISABLE TinyMCE in development** by removing API key from `.env.development`
+- [x] **CREATE smart RichTextEditor** that falls back to Textarea when no API key
+- [x] **UPDATE all TinyMCE components** to use environment-aware pattern
+- [x] **REMOVE hardcoded API keys** from all source files
+- [x] **DOCUMENT pattern** for future TinyMCE usage
+
+### Required Implementation Pattern:
+```typescript
+// ✅ CORRECT: Environment-aware TinyMCE usage
+const RichTextEditor: React.FC<{
+  value: string;
+  onChange: (content: string) => void;
+  height?: number;
+  placeholder?: string;
+}> = ({ value, onChange, height = 300, placeholder }) => {
+  const tinyMCEApiKey = import.meta.env.VITE_TINYMCE_API_KEY;
+
+  if (!tinyMCEApiKey) {
+    return (
+      <>
+        <Alert color="blue" mb="xs" title="Development Mode">
+          TinyMCE disabled to prevent API usage costs. Using simple text editor.
+        </Alert>
+        <Textarea
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          minRows={height / 20}
+          placeholder={placeholder}
+          autosize
+          styles={{
+            input: {
+              fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, sans-serif',
+              fontSize: '14px',
+              lineHeight: '1.6'
+            }
+          }}
+        />
+      </>
+    );
+  }
+
+  return (
+    <Editor
+      apiKey={tinyMCEApiKey}
+      value={value}
+      onEditorChange={onChange}
+      init={{
+        height,
+        menubar: false,
+        plugins: 'advlist autolink lists link charmap preview anchor',
+        toolbar: 'undo redo | blocks | bold italic underline strikethrough | link | bullist numlist | indent outdent | removeformat',
+        content_style: `
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            font-size: 14px;
+            color: #333;
+            line-height: 1.6;
+          }
+        `,
+        branding: false,
+      }}
+    />
+  );
+};
+
+// ❌ WRONG: Hardcoded API keys in development
+<Editor apiKey="3f628sek98zponk2rt5ncrkc2n5lj9ghobeppfskrjvkpmqp" />
+```
+
+### Environment Configuration
+```bash
+# .env.development - TinyMCE disabled to prevent costs
+# TinyMCE API Key - Commented out to prevent usage costs in development
+# VITE_TINYMCE_API_KEY=your_api_key_here
+
+# .env.production - TinyMCE enabled for full functionality
+VITE_TINYMCE_API_KEY=your_production_api_key_here
+```
+
+### Files Updated
+- `/apps/web/src/components/events/EventForm.tsx` - Smart RichTextEditor component
+- `/apps/web/src/components/forms/TinyMCERichTextEditor.tsx` - Environment-aware fallback
+- `/apps/web/src/components/forms/SimpleTinyMCE.tsx` - Development cost prevention
+- `/apps/web/.env.development` - API key commented out
+
+### Expected Behavior
+- ✅ Development: Simple textarea with clear user messaging
+- ✅ Production: Full TinyMCE functionality when API key configured
+- ✅ No unexpected API usage costs during development
+- ✅ Seamless fallback without breaking user experience
+
+### Tags
+#critical #cost-control #tinymce #development-environment #api-key-management #fallback-ui
+
+---
+
 *This file is maintained by the react-developer agent. Add new lessons immediately when discovered.*
-*Last updated: 2025-01-10 - Added critical Events List API Mismatch Fix*
+*Last updated: 2025-09-19 - Added critical TinyMCE Development Cost Prevention*
 
 ## COMPREHENSIVE LESSONS FROM FRONTEND DEVELOPMENT
 **NOTE**: The following lessons were consolidated from frontend-lessons-learned.md

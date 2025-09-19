@@ -48,6 +48,7 @@ public class EventService : IEventService
                 Location = e.Location,
                 EventType = e.EventType,
                 Capacity = e.Capacity,
+                IsPublished = e.IsPublished,
                 CurrentAttendees = e.GetCurrentAttendeeCount(),
                 CurrentRSVPs = e.GetCurrentRSVPCount(),
                 CurrentTickets = e.GetCurrentTicketCount()

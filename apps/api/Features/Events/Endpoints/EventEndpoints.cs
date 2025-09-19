@@ -201,6 +201,7 @@ public static class EventEndpoints
                 Location = "Salem Community Center",
                 EventType = "Class",
                 Capacity = 20,
+                IsPublished = true,
                 CurrentAttendees = 20,    // SOLD OUT
                 CurrentRSVPs = 0,         // Class events don't have RSVPs
                 CurrentTickets = 20       // All attendees paid tickets
@@ -217,6 +218,7 @@ public static class EventEndpoints
                 Location = "Studio Space Downtown",
                 EventType = "Class",
                 Capacity = 15,
+                IsPublished = true,
                 CurrentAttendees = 13,    // 87% capacity - nearly sold out
                 CurrentRSVPs = 0,         // Class events don't have RSVPs
                 CurrentTickets = 13       // All attendees paid tickets
@@ -233,6 +235,7 @@ public static class EventEndpoints
                 Location = "Salem Arts Collective",
                 EventType = "Social",
                 Capacity = 30,
+                IsPublished = true,
                 CurrentAttendees = 18,    // 60% capacity - moderately filled
                 CurrentRSVPs = 13,        // Most people use free RSVP for social events (72%)
                 CurrentTickets = 5        // Some people buy tickets to support (28%)
@@ -249,6 +252,7 @@ public static class EventEndpoints
                 Location = "Salem Coffee Co.",
                 EventType = "Social",
                 Capacity = 24,
+                IsPublished = true,
                 CurrentAttendees = 8,     // 33% capacity - needs more signups
                 CurrentRSVPs = 6,         // Most attendees use free RSVP (75%)
                 CurrentTickets = 2        // Few paid tickets (25%)

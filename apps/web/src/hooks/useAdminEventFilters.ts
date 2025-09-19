@@ -11,7 +11,7 @@ export interface AdminEventFiltersState {
 }
 
 const initialFilterState: AdminEventFiltersState = {
-  activeTypes: ['Social', 'Class'], // Start with both types selected (capitalize to match API)
+  activeTypes: ['Social', 'Class'], // Start with both types selected (using current database values)
   searchTerm: '',
   showPastEvents: false,
   sortColumn: 'date', // Default sort by date

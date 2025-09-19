@@ -12,6 +12,7 @@ export interface EventDto {
   registrationCount?: number
   createdAt: string
   updatedAt: string
+  isPublished?: boolean
   // New fields from API
   sessions?: EventSessionDto[]
   ticketTypes?: EventTicketTypeDto[]

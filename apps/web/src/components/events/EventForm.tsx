@@ -16,6 +16,7 @@ import {
   Table,
   ActionIcon,
   Switch,
+  Alert,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { Editor } from '@tinymce/tinymce-react';
@@ -68,6 +69,65 @@ export const EventForm: React.FC<EventFormProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<string>('basic-info');
   const [activeEmailTemplate, setActiveEmailTemplate] = useState<string>('confirmation');
+
+  // TinyMCE configuration - only use if API key is available
+  const tinyMCEApiKey = import.meta.env.VITE_TINYMCE_API_KEY;
+  const shouldUseTinyMCE = !!tinyMCEApiKey;
+
+  // Smart Rich Text Editor component - uses TinyMCE if API key available, otherwise Textarea
+  const RichTextEditor: React.FC<{
+    value: string;
+    onChange: (content: string) => void;
+    height?: number;
+    placeholder?: string;
+  }> = ({ value, onChange, height = 300, placeholder }) => {
+    if (!shouldUseTinyMCE) {
+      return (
+        <>
+          <Alert color="blue" mb="xs" title="Development Mode">
+            TinyMCE disabled to prevent API usage costs. Using simple text editor.
+          </Alert>
+          <Textarea
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            minRows={height / 20} // Approximate rows based on height
+            placeholder={placeholder}
+            autosize
+            styles={{
+              input: {
+                fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, sans-serif',
+                fontSize: '14px',
+                lineHeight: '1.6'
+              }
+            }}
+          />
+        </>
+      );
+    }
+
+    return (
+      <Editor
+        apiKey={tinyMCEApiKey}
+        value={value}
+        onEditorChange={onChange}
+        init={{
+          height,
+          menubar: false,
+          plugins: 'advlist autolink lists link charmap preview anchor',
+          toolbar: 'undo redo | blocks | bold italic underline strikethrough | link | bullist numlist | indent outdent | removeformat',
+          content_style: `
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+              font-size: 14px;
+              color: #333;
+              line-height: 1.6;
+            }
+          `,
+          branding: false,
+        }}
+      />
+    );
+  };
 
   // Modal state management
   const [sessionModalOpen, setSessionModalOpen] = useState(false);
@@ -442,25 +502,11 @@ export const EventForm: React.FC<EventFormProps> = ({
                   <Text size="xs" c="dimmed" mb="xs">
                     This detailed description will be visible on the public events page
                   </Text>
-                  <Editor
-                    apiKey="3f628sek98zponk2rt5ncrkc2n5lj9ghobeppfskrjvkpmqp"
+                  <RichTextEditor
                     value={form.values.fullDescription}
-                    onEditorChange={(content) => form.setFieldValue('fullDescription', content)}
-                    init={{
-                      height: 300,
-                      menubar: false,
-                      plugins: 'advlist autolink lists link charmap preview anchor',
-                      toolbar: 'undo redo | blocks | bold italic underline strikethrough | link | bullist numlist | indent outdent | removeformat',
-                      content_style: `
-                        body { 
-                          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-                          font-size: 14px;
-                          color: #333;
-                          line-height: 1.6;
-                        }
-                      `,
-                      branding: false,
-                    }}
+                    onChange={(content) => form.setFieldValue('fullDescription', content)}
+                    height={300}
+                    placeholder="Enter detailed event description..."
                   />
                   {form.errors.fullDescription && (
                     <Text size="xs" c="red" mt={5}>
@@ -477,25 +523,11 @@ export const EventForm: React.FC<EventFormProps> = ({
                   <Text size="xs" c="dimmed" mb="xs">
                     Studio-specific policies, prerequisites, safety requirements, etc. (managed by studio/admin, teachers cannot edit)
                   </Text>
-                  <Editor
-                    apiKey="3f628sek98zponk2rt5ncrkc2n5lj9ghobeppfskrjvkpmqp"
+                  <RichTextEditor
                     value={form.values.policies}
-                    onEditorChange={(content) => form.setFieldValue('policies', content)}
-                    init={{
-                      height: 150,
-                      menubar: false,
-                      plugins: 'advlist autolink lists link charmap preview anchor',
-                      toolbar: 'undo redo | blocks | bold italic underline strikethrough | link | bullist numlist | indent outdent | removeformat',
-                      content_style: `
-                        body { 
-                          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-                          font-size: 14px;
-                          color: #333;
-                          line-height: 1.6;
-                        }
-                      `,
-                      branding: false,
-                    }}
+                    onChange={(content) => form.setFieldValue('policies', content)}
+                    height={150}
+                    placeholder="Enter policies and procedures..."
                   />
                   {form.errors.policies && (
                     <Text size="xs" c="red" mt={5}>
@@ -798,28 +830,14 @@ export const EventForm: React.FC<EventFormProps> = ({
                   <Text size="xs" c="dimmed" mb="xs">
                     Available variables: {'{name}'}, {'{event}'}, {'{date}'}, {'{time}'}, {'{venue}'}, {'{venue_address}'}
                   </Text>
-                  <Editor
-                    apiKey="3f628sek98zponk2rt5ncrkc2n5lj9ghobeppfskrjvkpmqp"
+                  <RichTextEditor
                     value={getTemplateContent()}
-                    onEditorChange={(content) => {
+                    onChange={(content) => {
                       // Update content logic - will be implemented when form state is connected
                       console.log('Content changed:', content);
                     }}
-                    init={{
-                      height: 300,
-                      menubar: false,
-                      plugins: 'advlist autolink lists link charmap preview anchor',
-                      toolbar: 'undo redo | blocks | bold italic underline strikethrough | link | bullist numlist | indent outdent | removeformat',
-                      content_style: `
-                        body { 
-                          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-                          font-size: 14px;
-                          color: #333;
-                          line-height: 1.6;
-                        }
-                      `,
-                      branding: false,
-                    }}
+                    height={300}
+                    placeholder="Enter email content..."
                   />
                 </div>
 

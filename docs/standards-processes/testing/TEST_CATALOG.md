@@ -409,6 +409,36 @@ await expect(page.locator('[data-testid="alert-session-error"]')).toBeVisible();
 - **Regression Prevention**: Tests ensure fixes don't break existing functionality
 - **Quality Assurance**: Tests validate complete user workflows, not just API endpoints
 
+### 🚨 NEW: Comprehensive Admin Event Editing E2E Tests - 2025-09-19 🚨
+**Added**: `/tests/playwright/admin-event-editing-comprehensive.spec.ts`
+**Purpose**: Comprehensive E2E test suite to identify and verify fixes for critical admin event editing issues
+
+**CRITICAL ISSUES TESTED**:
+1. **Field Persistence Issues**: Teacher selection doesn't persist after save and refresh
+2. **Draft/Publish Status Toggle**: Modal confirmation appears but status doesn't change
+3. **Session Tickets Count Issue**: Setup tab shows "10 tickets sold" vs RSVP/Tickets tab shows no tickets sold
+4. **Add Position/Session Bug**: First attempt fails and refreshes screen, second attempt works
+
+**TEST COVERAGE**:
+- ✅ `should persist all field changes across tabs and page refresh` - Tests teacher selection persistence and all form fields
+- ✅ `should toggle draft/publish status immediately on modal confirmation` - Tests status toggle behavior
+- ✅ `should show accurate and consistent ticket counts across tabs` - Tests ticket count synchronization
+- ✅ `should add volunteer positions and sessions on first attempt` - Tests add functionality without page refresh
+- ✅ `should handle auth timeout and maintain session during editing` - Tests authentication stability
+- ✅ `should verify all tabs load without errors and display expected content` - Tests complete tab navigation
+
+**TECHNICAL FEATURES**:
+- **Comprehensive Error Monitoring**: JavaScript error detection, console error monitoring, network failure tracking
+- **API Response Logging**: Full debugging information for failed API calls
+- **Screenshot Capture**: Automatic screenshots for debugging each tab state
+- **Docker Environment Testing**: Tests against port 5173 Docker container exclusively
+
+**RUN COMMAND**:
+```bash
+# Run comprehensive admin event editing tests
+npm run test:e2e:playwright admin-event-editing-comprehensive.spec.ts
+```
+
 **EXECUTION COMMANDS**:
 ```bash
 # Run all admin events edit screen tests

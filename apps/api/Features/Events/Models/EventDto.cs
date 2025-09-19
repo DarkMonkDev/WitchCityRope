@@ -19,7 +19,12 @@ public class EventDto
     public string Location { get; set; } = string.Empty;
     public string EventType { get; set; } = string.Empty;
     public int Capacity { get; set; }
-    
+
+    /// <summary>
+    /// Whether the event is published and visible to the public
+    /// </summary>
+    public bool IsPublished { get; set; }
+
     /// <summary>
     /// Total confirmed attendees
     /// - Social Events: equals CurrentRSVPs (primary attendance metric)

@@ -1,12 +1,38 @@
 import React from 'react';
 import { Editor } from '@tinymce/tinymce-react';
+import { Alert, Textarea } from '@mantine/core';
 
 export default function SimpleTinyMCE() {
+  const apiKey = import.meta.env.VITE_TINYMCE_API_KEY;
+
+  if (!apiKey) {
+    return (
+      <div>
+        <h3>Simple TinyMCE Test</h3>
+        <Alert color="blue" mb="xs" title="Development Mode">
+          TinyMCE disabled to prevent API usage costs. Using simple text editor.
+        </Alert>
+        <Textarea
+          defaultValue="Welcome to the simple text editor!"
+          minRows={15}
+          autosize
+          styles={{
+            input: {
+              fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, sans-serif',
+              fontSize: '14px',
+              lineHeight: '1.6'
+            }
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div>
       <h3>Simple TinyMCE Test</h3>
       <Editor
-        apiKey='3f628sek98zponk2rt5ncrkc2n5lj9ghobeppfskrjvkpmqp'
+        apiKey={apiKey}
         init={{
           height: 300,
           menubar: false,

@@ -54,6 +54,7 @@ public class EventService
                 Location = e.Location,
                 EventType = e.EventType,
                 Capacity = e.Capacity,
+                IsPublished = e.IsPublished,
                 CurrentAttendees = e.GetCurrentAttendeeCount(),
                 CurrentRSVPs = e.GetCurrentRSVPCount(),
                 CurrentTickets = e.GetCurrentTicketCount(),
@@ -112,6 +113,7 @@ public class EventService
                 Location = eventEntity.Location,
                 EventType = eventEntity.EventType,
                 Capacity = eventEntity.Capacity,
+                IsPublished = eventEntity.IsPublished,
                 CurrentAttendees = eventEntity.GetCurrentAttendeeCount(),
                 CurrentRSVPs = eventEntity.GetCurrentRSVPCount(),
                 CurrentTickets = eventEntity.GetCurrentTicketCount(),
@@ -275,6 +277,7 @@ public class EventService
                 Location = eventEntity.Location,
                 EventType = eventEntity.EventType,
                 Capacity = eventEntity.Capacity,
+                IsPublished = eventEntity.IsPublished,
                 CurrentAttendees = eventEntity.GetCurrentAttendeeCount(),
                 CurrentRSVPs = eventEntity.GetCurrentRSVPCount(),
                 CurrentTickets = eventEntity.GetCurrentTicketCount(),
@@ -295,116 +298,202 @@ public class EventService
     }
 
     /// <summary>
-    /// Updates the sessions for an event, replacing all existing sessions
+    /// Updates the sessions for an event with proper EF Core change tracking
+    /// Handles updates, additions, and deletions correctly
     /// </summary>
     private async Task UpdateEventSessionsAsync(
         WitchCityRope.Api.Models.Event eventEntity,
         List<SessionDto> newSessions,
         CancellationToken cancellationToken)
     {
-        // Remove existing sessions
-        eventEntity.Sessions.Clear();
+        // Get current sessions mapped by ID for efficient lookups
+        var currentSessions = eventEntity.Sessions.ToDictionary(s => s.Id);
+        var processedSessionIds = new HashSet<Guid>();
 
-        // Add new sessions
         foreach (var sessionDto in newSessions)
         {
-            var session = new WitchCityRope.Api.Models.Session
+            if (Guid.TryParse(sessionDto.Id, out var sessionId) && currentSessions.TryGetValue(sessionId, out var existingSession))
             {
-                EventId = eventEntity.Id,
-                SessionCode = sessionDto.SessionIdentifier,
-                Name = sessionDto.Name,
-                StartTime = sessionDto.StartTime.ToUniversalTime(),
-                EndTime = sessionDto.EndTime.ToUniversalTime(),
-                Capacity = sessionDto.Capacity,
-                CurrentAttendees = sessionDto.RegisteredCount
-            };
+                // Update existing session
+                existingSession.SessionCode = sessionDto.SessionIdentifier;
+                existingSession.Name = sessionDto.Name;
+                existingSession.StartTime = sessionDto.StartTime.ToUniversalTime();
+                existingSession.EndTime = sessionDto.EndTime.ToUniversalTime();
+                existingSession.Capacity = sessionDto.Capacity;
+                existingSession.CurrentAttendees = sessionDto.RegisteredCount;
 
-            // If the session has an ID, try to preserve it
-            if (Guid.TryParse(sessionDto.Id, out var sessionId))
-            {
-                session.Id = sessionId;
+                processedSessionIds.Add(sessionId);
             }
+            else
+            {
+                // Add new session
+                var newSession = new WitchCityRope.Api.Models.Session
+                {
+                    EventId = eventEntity.Id,
+                    SessionCode = sessionDto.SessionIdentifier,
+                    Name = sessionDto.Name,
+                    StartTime = sessionDto.StartTime.ToUniversalTime(),
+                    EndTime = sessionDto.EndTime.ToUniversalTime(),
+                    Capacity = sessionDto.Capacity,
+                    CurrentAttendees = sessionDto.RegisteredCount
+                };
 
-            eventEntity.Sessions.Add(session);
+                // Only set ID if it's a valid new GUID and not already in use
+                if (Guid.TryParse(sessionDto.Id, out var newSessionId) && newSessionId != Guid.Empty)
+                {
+                    newSession.Id = newSessionId;
+                    processedSessionIds.Add(newSessionId);
+                }
+
+                eventEntity.Sessions.Add(newSession);
+            }
+        }
+
+        // Remove sessions that are no longer present
+        var sessionsToRemove = currentSessions.Values
+            .Where(s => !processedSessionIds.Contains(s.Id))
+            .ToList();
+
+        foreach (var sessionToRemove in sessionsToRemove)
+        {
+            eventEntity.Sessions.Remove(sessionToRemove);
         }
     }
 
     /// <summary>
-    /// Updates the ticket types for an event, replacing all existing ticket types
+    /// Updates the ticket types for an event with proper EF Core change tracking
+    /// Handles updates, additions, and deletions correctly
     /// </summary>
     private async Task UpdateEventTicketTypesAsync(
         WitchCityRope.Api.Models.Event eventEntity,
         List<TicketTypeDto> newTicketTypes,
         CancellationToken cancellationToken)
     {
-        // Remove existing ticket types
-        eventEntity.TicketTypes.Clear();
+        // Get current ticket types mapped by ID for efficient lookups
+        var currentTicketTypes = eventEntity.TicketTypes.ToDictionary(tt => tt.Id);
+        var processedTicketTypeIds = new HashSet<Guid>();
 
-        // Add new ticket types
         foreach (var ticketTypeDto in newTicketTypes)
         {
-            var ticketType = new WitchCityRope.Api.Models.TicketType
+            if (Guid.TryParse(ticketTypeDto.Id, out var ticketTypeId) && currentTicketTypes.TryGetValue(ticketTypeId, out var existingTicketType))
             {
-                EventId = eventEntity.Id,
-                Name = ticketTypeDto.Name,
-                Description = $"{ticketTypeDto.Type} ticket",
-                Price = ticketTypeDto.MinPrice,
-                Available = ticketTypeDto.QuantityAvailable,
-                Sold = 0, // Start with 0 sold for new ticket types
-                IsRsvpMode = ticketTypeDto.Type == "rsvp"
-            };
+                // Update existing ticket type
+                existingTicketType.Name = ticketTypeDto.Name;
+                existingTicketType.Description = $"{ticketTypeDto.Type} ticket";
+                existingTicketType.Price = ticketTypeDto.MinPrice;
+                existingTicketType.Available = ticketTypeDto.QuantityAvailable;
+                existingTicketType.IsRsvpMode = ticketTypeDto.Type == "rsvp";
 
-            // If the ticket type has an ID, try to preserve it
-            if (Guid.TryParse(ticketTypeDto.Id, out var ticketTypeId))
-            {
-                ticketType.Id = ticketTypeId;
-            }
-
-            // If this ticket type is for a specific session, find and link it
-            if (ticketTypeDto.SessionIdentifiers.Count == 1)
-            {
-                var sessionCode = ticketTypeDto.SessionIdentifiers.First();
-                var linkedSession = eventEntity.Sessions.FirstOrDefault(s => s.SessionCode == sessionCode);
-                if (linkedSession != null)
+                // Update session linkage
+                if (ticketTypeDto.SessionIdentifiers.Count == 1)
                 {
-                    ticketType.SessionId = linkedSession.Id;
+                    var sessionCode = ticketTypeDto.SessionIdentifiers.First();
+                    var linkedSession = eventEntity.Sessions.FirstOrDefault(s => s.SessionCode == sessionCode);
+                    existingTicketType.SessionId = linkedSession?.Id;
                 }
-            }
+                else
+                {
+                    existingTicketType.SessionId = null;
+                }
 
-            eventEntity.TicketTypes.Add(ticketType);
+                processedTicketTypeIds.Add(ticketTypeId);
+            }
+            else
+            {
+                // Add new ticket type
+                var newTicketType = new WitchCityRope.Api.Models.TicketType
+                {
+                    EventId = eventEntity.Id,
+                    Name = ticketTypeDto.Name,
+                    Description = $"{ticketTypeDto.Type} ticket",
+                    Price = ticketTypeDto.MinPrice,
+                    Available = ticketTypeDto.QuantityAvailable,
+                    Sold = 0, // Start with 0 sold for new ticket types
+                    IsRsvpMode = ticketTypeDto.Type == "rsvp"
+                };
+
+                // Only set ID if it's a valid new GUID and not already in use
+                if (Guid.TryParse(ticketTypeDto.Id, out var newTicketTypeId) && newTicketTypeId != Guid.Empty)
+                {
+                    newTicketType.Id = newTicketTypeId;
+                    processedTicketTypeIds.Add(newTicketTypeId);
+                }
+
+                // If this ticket type is for a specific session, find and link it
+                if (ticketTypeDto.SessionIdentifiers.Count == 1)
+                {
+                    var sessionCode = ticketTypeDto.SessionIdentifiers.First();
+                    var linkedSession = eventEntity.Sessions.FirstOrDefault(s => s.SessionCode == sessionCode);
+                    if (linkedSession != null)
+                    {
+                        newTicketType.SessionId = linkedSession.Id;
+                    }
+                }
+
+                eventEntity.TicketTypes.Add(newTicketType);
+            }
+        }
+
+        // Remove ticket types that are no longer present
+        var ticketTypesToRemove = currentTicketTypes.Values
+            .Where(tt => !processedTicketTypeIds.Contains(tt.Id))
+            .ToList();
+
+        foreach (var ticketTypeToRemove in ticketTypesToRemove)
+        {
+            eventEntity.TicketTypes.Remove(ticketTypeToRemove);
         }
     }
 
     /// <summary>
-    /// Updates the organizers/teachers for an event, replacing all existing associations
+    /// Updates the organizers/teachers for an event with proper EF Core change tracking
+    /// Handles additions and removals correctly
     /// </summary>
     private async Task UpdateEventOrganizersAsync(
         WitchCityRope.Api.Models.Event eventEntity,
         List<string> newTeacherIds,
         CancellationToken cancellationToken)
     {
-        // Remove existing organizers
-        eventEntity.Organizers.Clear();
+        // Get current organizers mapped by ID for efficient lookups
+        var currentOrganizerIds = eventEntity.Organizers.Select(o => o.Id).ToHashSet();
+        var newOrganizerIds = new HashSet<Guid>();
 
-        // Find and add new organizers
+        // Parse and validate new teacher IDs
         foreach (var teacherIdString in newTeacherIds)
         {
             if (Guid.TryParse(teacherIdString, out var teacherId))
             {
-                var user = await _context.Users.FindAsync(teacherId);
-                if (user != null)
-                {
-                    eventEntity.Organizers.Add(user);
-                }
-                else
-                {
-                    _logger.LogWarning("Teacher/organizer not found: {TeacherId}", teacherId);
-                }
+                newOrganizerIds.Add(teacherId);
             }
             else
             {
                 _logger.LogWarning("Invalid teacher ID format: {TeacherId}", teacherIdString);
             }
+        }
+
+        // Add new organizers that aren't already associated
+        var organizersToAdd = newOrganizerIds.Except(currentOrganizerIds).ToList();
+        foreach (var teacherId in organizersToAdd)
+        {
+            var user = await _context.Users.FindAsync(teacherId);
+            if (user != null)
+            {
+                eventEntity.Organizers.Add(user);
+            }
+            else
+            {
+                _logger.LogWarning("Teacher/organizer not found: {TeacherId}", teacherId);
+            }
+        }
+
+        // Remove organizers that are no longer in the new list
+        var organizersToRemove = eventEntity.Organizers
+            .Where(o => !newOrganizerIds.Contains(o.Id))
+            .ToList();
+
+        foreach (var organizerToRemove in organizersToRemove)
+        {
+            eventEntity.Organizers.Remove(organizerToRemove);
         }
     }
 }

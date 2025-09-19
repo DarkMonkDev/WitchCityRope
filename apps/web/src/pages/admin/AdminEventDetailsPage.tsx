@@ -75,10 +75,11 @@ export const AdminEventDetailsPage: React.FC = () => {
   // Initialize publish status and form data from event
   React.useEffect(() => {
     if (event && !initialFormData) {
-      // Determine status from event data
-      const status = (event as any)?.status === 'Published' || !(event as any)?.status ? 'published' : 'draft';
+      // Use isPublished field from API response
+      const status = (event as any)?.isPublished !== false ? 'published' : 'draft';
       setPublishStatus(status);
-      
+
+
       // Store initial form data for change tracking
       // Only set this once when event data first loads
       const initialData = convertEventToFormData(event as EventDtoType);
@@ -197,20 +198,20 @@ export const AdminEventDetailsPage: React.FC = () => {
 
   const confirmStatusChange = async () => {
     if (!event || !id) return;
-    
+
     const action = pendingStatus === 'published' ? 'publish' : 'unpublish';
     const isPublished = pendingStatus === 'published';
-    
+
     try {
       // Update only the isPublished field
       await updateEventMutation.mutateAsync({
         id,
         isPublished
       });
-      
+
       setPublishStatus(pendingStatus);
       setConfirmModalOpen(false);
-      
+
       notifications.show({
         title: `Event ${isPublished ? 'Published' : 'Unpublished'}`,
         message: `Event has been ${isPublished ? 'published and is now visible to the public' : 'moved to draft and is no longer visible publicly'}.`,

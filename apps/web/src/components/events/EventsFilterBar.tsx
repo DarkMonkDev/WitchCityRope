@@ -39,9 +39,9 @@ export const EventsFilterBar: React.FC<EventsFilterBarProps> = ({
             >
               Social
             </Chip>
-            <Chip 
-              value="Class" 
-              variant="filled" 
+            <Chip
+              value="Class"
+              variant="filled"
               color="wcr"
               data-testid="filter-class"
               styles={{

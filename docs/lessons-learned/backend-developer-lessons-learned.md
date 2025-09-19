@@ -2,6 +2,115 @@
 
 This document tracks critical lessons learned during backend development to prevent recurring issues and speed up future development.
 
+## 🚨 CRITICAL: Session Persistence Bug Fix (2025-09-19)
+
+### ❌ **PROBLEM**: Sessions not persisting to database after event updates
+
+**Symptoms**:
+- Sessions appear to save on first attempt but page refreshes back to Basic Info tab
+- Sessions show as saved on second attempt but disappear after page refresh
+- Sessions are lost when user refreshes browser
+- No database persistence of session data
+
+**Root Cause**: EF Core change tracking issues in `UpdateEventSessionsAsync()`
+
+### ✅ **SOLUTION**: Proper EF Core change tracking for nested collections
+
+**WRONG APPROACH** (caused the bug):
+```csharp
+// ❌ This breaks EF Core change tracking
+eventEntity.Sessions.Clear();  // Removes all tracked entities
+foreach (var sessionDto in newSessions)
+{
+    var session = new Session { /* properties */ };
+    if (Guid.TryParse(sessionDto.Id, out var sessionId))
+    {
+        session.Id = sessionId;  // Confuses EF tracking - new entity with existing ID
+    }
+    eventEntity.Sessions.Add(session);
+}
+```
+
+**CORRECT APPROACH** (fixed the bug):
+```csharp
+// ✅ Proper update/add/delete logic for EF Core
+var currentSessions = eventEntity.Sessions.ToDictionary(s => s.Id);
+var processedSessionIds = new HashSet<Guid>();
+
+foreach (var sessionDto in newSessions)
+{
+    if (Guid.TryParse(sessionDto.Id, out var sessionId) &&
+        currentSessions.TryGetValue(sessionId, out var existingSession))
+    {
+        // UPDATE existing session - EF tracks this correctly
+        existingSession.Name = sessionDto.Name;
+        existingSession.StartTime = sessionDto.StartTime.ToUniversalTime();
+        // ... other properties
+        processedSessionIds.Add(sessionId);
+    }
+    else
+    {
+        // ADD new session - clean new entity
+        var newSession = new Session { /* properties */ };
+        // Only set ID for new GUIDs, not existing ones
+        if (Guid.TryParse(sessionDto.Id, out var newSessionId) && newSessionId != Guid.Empty)
+        {
+            newSession.Id = newSessionId;
+        }
+        eventEntity.Sessions.Add(newSession);
+    }
+}
+
+// DELETE sessions no longer present
+var sessionsToRemove = currentSessions.Values
+    .Where(s => !processedSessionIds.Contains(s.Id))
+    .ToList();
+foreach (var sessionToRemove in sessionsToRemove)
+{
+    eventEntity.Sessions.Remove(sessionToRemove);
+}
+```
+
+### 🎯 **KEY LESSONS**:
+1. **NEVER use `collection.Clear()` then recreate entities with existing IDs**
+2. **Distinguish between UPDATE (existing entities) vs ADD (new entities)**
+3. **Use dictionary lookups for efficient existing entity updates**
+4. **Remove entities explicitly rather than clearing all**
+5. **Same pattern applies to TicketTypes and Organizers collections**
+
+### 📋 **MANDATORY PATTERN** for all nested collection updates:
+```csharp
+// 1. Map current entities by ID
+var currentItems = entity.Items.ToDictionary(i => i.Id);
+var processedIds = new HashSet<Guid>();
+
+// 2. Update existing, add new
+foreach (var dto in newItems)
+{
+    if (existing = currentItems.TryGetValue(dto.Id))
+    {
+        // UPDATE existing - EF tracks changes
+        existing.Property = dto.Property;
+        processedIds.Add(dto.Id);
+    }
+    else
+    {
+        // ADD new entity
+        entity.Items.Add(new Item { /* from dto */ });
+    }
+}
+
+// 3. Remove deleted
+var toRemove = currentItems.Values.Where(i => !processedIds.Contains(i.Id));
+foreach (var item in toRemove) entity.Items.Remove(item);
+```
+
+### 🚨 **APPLIES TO**:
+- Event Sessions ✅ FIXED
+- Event TicketTypes ✅ FIXED
+- Event Organizers ✅ FIXED
+- Any EF Core collection navigation properties
+
 ## 🚨 ULTRA CRITICAL: DTO ALIGNMENT STRATEGY - SOURCE OF TRUTH 🚨
 
 **393 TYPESCRIPT ERRORS WERE CAUSED BY IGNORING THIS!!**

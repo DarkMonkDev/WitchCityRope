@@ -37,6 +37,7 @@ interface ApiEvent {
   price?: number
   organizerName?: string
   requiresVetting?: boolean
+  isPublished?: boolean
   // New fields added by backend
   sessions?: EventSessionDto[]
   ticketTypes?: EventTicketTypeDto[]
@@ -59,7 +60,8 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
     // Map new fields from API response
     sessions: apiEvent.sessions || [],
     ticketTypes: apiEvent.ticketTypes || [],
-    teacherIds: apiEvent.teacherIds || []
+    teacherIds: apiEvent.teacherIds || [],
+    isPublished: apiEvent.isPublished !== undefined ? apiEvent.isPublished : true // Default to published for backward compatibility
   }
 }
 
@@ -139,7 +141,7 @@ export function useCreateEvent() {
 // Update event mutation with optimistic updates
 export function useUpdateEvent() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (eventData: UpdateEventDto): Promise<EventDto> => {
       const { data } = await apiClient.put<ApiResponse<EventDto>>(`/api/events/${eventData.id}`, eventData)
@@ -149,16 +151,16 @@ export function useUpdateEvent() {
     onMutate: async (updatedEvent) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: eventKeys.detail(updatedEvent.id) })
-      
+
       // Snapshot previous value
       const previousEvent = queryClient.getQueryData(eventKeys.detail(updatedEvent.id)) as EventDto | undefined
-      
+
       // Optimistically update cache
       queryClient.setQueryData(eventKeys.detail(updatedEvent.id), (old: EventDto | undefined) => {
         if (!old) return old
         return { ...old, ...updatedEvent }
       })
-      
+
       return { previousEvent }
     },
     onError: (err, updatedEvent, context) => {
