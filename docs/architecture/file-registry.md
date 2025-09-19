@@ -9,6 +9,9 @@
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
 | 2025-01-13 | /docs/functional-areas/events/research/2025-01-13-entity-id-generation-patterns-research.md | CREATED | Comprehensive research on React + .NET API entity ID generation patterns for temporary entities in forms | Technology research for entity ID patterns | ACTIVE | Never |
+| 2025-01-19 | /apps/api/Features/Events/Models/UpdateEventRequest.cs | MODIFIED | Added VolunteerPositions property to enable volunteer position persistence | Events admin persistence fixes | ACTIVE | N/A |
+| 2025-01-19 | /apps/api/Features/Events/Services/EventService.cs | MODIFIED | Implemented UpdateEventVolunteerPositionsAsync and fixed ticket type ID handling | Events admin persistence fixes | ACTIVE | N/A |
+| 2025-01-19 | /apps/web/src/utils/eventDataTransformation.ts | MODIFIED | Fixed volunteer position field mapping to match API DTOs | Events admin persistence fixes | ACTIVE | N/A |
 | 2025-09-19 | /docs/lessons-learned/events-persistence-debugging-2025-09-19.md | CREATED | Comprehensive documentation of debugging session misdiagnoses and root causes | Events persistence debugging documentation | ACTIVE | Never |
 | 2025-09-19 | /docs/lessons-learned/orchestrator-lessons-learned.md | MODIFIED | Added critical pattern about not assuming infrastructure issues when code fails | Events persistence debugging documentation | ACTIVE | N/A |
 | 2025-09-19 | /docs/lessons-learned/backend-developer-lessons-learned.md | MODIFIED | Added ultra critical section on Entity Framework navigation property requirements | Events persistence debugging documentation | ACTIVE | N/A |
