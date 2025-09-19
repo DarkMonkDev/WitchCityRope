@@ -35,7 +35,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
         if (!value.match(/^S\d+$/)) return 'Must be in format S1, S2, etc.';
         // Check for duplicates only if creating new or changing identifier
         if (!session || session.sessionIdentifier !== value) {
-          const exists = existingSessions.some(s => s.sessionIdentifier === value);
+          const exists = existingSessions.some(s => s?.sessionIdentifier === value);
           if (exists) return 'Session identifier already exists';
         }
         return null;
@@ -71,7 +71,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
       const sessionData: Omit<EventSession, 'id'> = {
         sessionIdentifier: values.sessionIdentifier,
         name: values.name,
-        date: values.date instanceof Date ? values.date.toISOString() : values.date,
+        date: values.date instanceof Date ? values.date.toISOString() : (values.date || new Date().toISOString()),
         startTime: values.startTime,
         endTime: values.endTime,
         capacity: values.capacity,
@@ -86,7 +86,13 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
   // Generate session identifier suggestions
   const getNextSessionIdentifier = () => {
     const existingNumbers = existingSessions
-      .map(s => parseInt(s.sessionIdentifier.replace('S', '')))
+      .map(s => {
+        // Safety check: ensure sessionIdentifier exists and is a string
+        if (!s?.sessionIdentifier || typeof s.sessionIdentifier !== 'string') {
+          return NaN;
+        }
+        return parseInt(s.sessionIdentifier.replace('S', ''));
+      })
       .filter(n => !isNaN(n));
     const maxNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) : 0;
     return `S${maxNumber + 1}`;

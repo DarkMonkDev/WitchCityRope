@@ -175,10 +175,10 @@ export const EventForm: React.FC<EventFormProps> = ({
       console.log('🔍 [DEBUG] EventForm updating with initialData:', {
         hasTeacherIds: !!initialData.teacherIds,
         teacherIds: initialData.teacherIds,
-        hasSessions: !!initialData.sessions,
-        sessionsCount: initialData.sessions?.length,
-        hasTicketTypes: !!initialData.ticketTypes,
-        ticketTypesCount: initialData.ticketTypes?.length
+        hasSessions: !!initialData?.sessions,
+        sessionsCount: initialData?.sessions?.length || 0,
+        hasTicketTypes: !!initialData?.ticketTypes,
+        ticketTypesCount: initialData?.ticketTypes?.length || 0
       });
       form.setValues({
         eventType: 'class',
@@ -241,7 +241,7 @@ export const EventForm: React.FC<EventFormProps> = ({
   ];
 
   // Format teachers for MultiSelect (with fallback to empty array)
-  const availableTeachers = teachersData ? formatTeachersForMultiSelect(teachersData) : [];
+  const availableTeachers = (teachersData && Array.isArray(teachersData)) ? formatTeachersForMultiSelect(teachersData) : [];
 
   // Session management handlers
   const handleEditSession = (sessionId: string) => {
@@ -595,14 +595,14 @@ export const EventForm: React.FC<EventFormProps> = ({
                   Teachers/Instructors
                 </Title>
                 {/* DEBUG: Log teacher selection data */}
-                {console.log('🔍 [DEBUG] Teacher selection data:', {
+                {/* {console.log('🔍 [DEBUG] Teacher selection data:', {
                   teachersData,
                   teachersLoading,
                   teachersError,
                   availableTeachers,
                   currentTeacherIds: form.values.teacherIds,
                   teacherInputProps: form.getInputProps('teacherIds')
-                })}
+                })} */}
 
                 {teachersError && (
                   <Alert color="red" mb="md" title="Error Loading Teachers">
@@ -1125,7 +1125,7 @@ export const EventForm: React.FC<EventFormProps> = ({
         }}
         onSubmit={handleSessionSubmit}
         session={editingSession}
-        existingSessions={form.values.sessions}
+        existingSessions={form.values.sessions || []}
       />
 
       {/* Ticket Type Form Modal */}
@@ -1137,7 +1137,7 @@ export const EventForm: React.FC<EventFormProps> = ({
         }}
         onSubmit={handleTicketTypeSubmit}
         ticketType={editingTicketType ? convertTicketTypeForModal(editingTicketType) : null}
-        availableSessions={form.values.sessions}
+        availableSessions={form.values.sessions || []}
       />
 
       {/* Volunteer Position Form Modal */}
@@ -1149,7 +1149,7 @@ export const EventForm: React.FC<EventFormProps> = ({
         }}
         onSubmit={handleVolunteerPositionSubmit}
         position={editingVolunteerPosition}
-        availableSessions={form.values.sessions}
+        availableSessions={form.values.sessions || []}
       />
     </Card>
   );

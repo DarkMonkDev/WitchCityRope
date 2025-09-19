@@ -77,11 +77,13 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
     onClose();
   });
 
-  // Create session options for MultiSelect
-  const sessionOptions = availableSessions.map(session => ({
-    value: session.sessionIdentifier,
-    label: `${session.sessionIdentifier} - ${session.name}`,
-  }));
+  // Create session options for MultiSelect with safety checks
+  const sessionOptions = availableSessions
+    .filter(session => session?.sessionIdentifier && session?.name) // Filter out invalid sessions
+    .map(session => ({
+      value: session.sessionIdentifier,
+      label: `${session.sessionIdentifier} - ${session.name}`,
+    }));
 
   // Add "All Sessions" option
   const allSessionsOption = {
@@ -93,11 +95,11 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
 
   // Handle "All Sessions" selection
   const handleSessionsChange = (value: string[]) => {
-    if (value.includes('ALL')) {
+    if (value?.includes('ALL')) {
       // If "ALL" is selected, select all individual sessions
       form.setFieldValue('sessionsIncluded', ['ALL', ...sessionOptions.map(s => s.value)]);
     } else {
-      form.setFieldValue('sessionsIncluded', value);
+      form.setFieldValue('sessionsIncluded', value || []);
     }
     
     // Auto-set sale end date based on session selection
@@ -112,7 +114,10 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
     
     if (selectedSessions.includes('ALL')) {
       // Use the earliest session start date/time
-      const earliestSession = availableSessions.reduce((earliest, session) => {
+      const validSessions = availableSessions.filter(session => session?.date && session?.startTime);
+      if (validSessions.length === 0) return;
+
+      const earliestSession = validSessions.reduce((earliest, session) => {
         const sessionDateTime = new Date(`${session.date}T${session.startTime}`);
         const earliestDateTime = new Date(`${earliest.date}T${earliest.startTime}`);
         return sessionDateTime < earliestDateTime ? session : earliest;
@@ -120,12 +125,15 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
       targetDate = new Date(`${earliestSession.date}T${earliestSession.startTime}`);
     } else {
       // Find the selected session(s) and use the earliest
-      const selectedSessionsData = availableSessions.filter(s => 
-        selectedSessions.includes(s.sessionIdentifier)
+      const selectedSessionsData = availableSessions.filter(s =>
+        s?.sessionIdentifier && selectedSessions.includes(s.sessionIdentifier)
       );
       
       if (selectedSessionsData.length > 0) {
-        const earliestSelected = selectedSessionsData.reduce((earliest, session) => {
+        const validSelectedSessions = selectedSessionsData.filter(session => session?.date && session?.startTime);
+        if (validSelectedSessions.length === 0) return;
+
+        const earliestSelected = validSelectedSessions.reduce((earliest, session) => {
           const sessionDateTime = new Date(`${session.date}T${session.startTime}`);
           const earliestDateTime = new Date(`${earliest.date}T${earliest.startTime}`);
           return sessionDateTime < earliestDateTime ? session : earliest;
