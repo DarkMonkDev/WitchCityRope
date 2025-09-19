@@ -19,6 +19,8 @@ import {
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useEvent, useUpdateEvent } from '../../lib/api/hooks/useEvents';
+import { useQueryClient } from '@tanstack/react-query';
+import { eventKeys } from '../../lib/api/utils/cache';
 import { EventForm, EventFormData } from '../../components/events/EventForm';
 import { WCRButton } from '../../components/ui';
 import { convertEventFormDataToUpdateDto, hasEventFormDataChanged, getChangedEventFields } from '../../utils/eventDataTransformation';
@@ -31,13 +33,14 @@ type EventDtoType = components['schemas']['EventDto'];
 export const AdminEventDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isEditMode, setIsEditMode] = useState(false);
   const [publishStatus, setPublishStatus] = useState<string>('published');
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string>('');
   const [formDirty, setFormDirty] = useState(false);
   const [initialFormData, setInitialFormData] = useState<EventFormData | null>(null);
-  
+
   // Always call hooks unconditionally - use empty string if no id
   const { data: event, isLoading, error } = useEvent(id || '', !!id);
   const updateEventMutation = useUpdateEvent();
@@ -81,10 +84,10 @@ export const AdminEventDetailsPage: React.FC = () => {
 
       // DEBUG: Log event data from API
       console.log('🔍 [DEBUG] Event data from API:', {
-        eventId: event.id,
-        teacherIds: event.teacherIds,
-        hasTeacherIds: 'teacherIds' in event,
-        eventKeys: Object.keys(event)
+        eventId: (event as any).id,
+        teacherIds: (event as any).teacherIds,
+        hasTeacherIds: 'teacherIds' in (event as any),
+        eventKeys: Object.keys(event as any)
       });
 
       // Store initial form data for change tracking
@@ -94,12 +97,15 @@ export const AdminEventDetailsPage: React.FC = () => {
       // DEBUG: Log converted form data
       console.log('🔍 [DEBUG] Converted initial form data:', {
         teacherIds: initialData.teacherIds,
+        sessions: initialData.sessions,
+        ticketTypes: initialData.ticketTypes,
+        volunteerPositions: initialData.volunteerPositions,
         formDataKeys: Object.keys(initialData)
       });
 
       setInitialFormData(initialData);
     }
-  }, [event, initialFormData, convertEventToFormData]);  
+  }, [event, convertEventToFormData]); // Remove initialFormData from dependencies to prevent re-initialization  
   
   if (!id) {
     return (
@@ -205,12 +211,12 @@ export const AdminEventDetailsPage: React.FC = () => {
       // DEBUG: Log API response
       console.log('🔍 [DEBUG] API response after save:', {
         updatedEvent,
-        hasTeacherIds: !!updatedEvent.teacherIds,
-        teacherIds: updatedEvent.teacherIds,
-        hasSessions: !!updatedEvent.sessions,
-        sessions: updatedEvent.sessions,
-        hasTicketTypes: !!updatedEvent.ticketTypes,
-        ticketTypes: updatedEvent.ticketTypes
+        hasTeacherIds: !!(updatedEvent as any).teacherIds,
+        teacherIds: (updatedEvent as any).teacherIds,
+        hasSessions: !!(updatedEvent as any).sessions,
+        sessions: (updatedEvent as any).sessions,
+        hasTicketTypes: !!(updatedEvent as any).ticketTypes,
+        ticketTypes: (updatedEvent as any).ticketTypes
       });
 
       // Update initial form data to new values for next change detection
@@ -226,6 +232,7 @@ export const AdminEventDetailsPage: React.FC = () => {
 
       // Force a refresh of the event data to verify persistence
       console.log('🔍 [DEBUG] Triggering event data refresh to verify persistence...');
+      queryClient.invalidateQueries({ queryKey: eventKeys.detail(id) });
 
     } catch (error) {
       console.error('Failed to update event:', error);
@@ -364,14 +371,18 @@ export const AdminEventDetailsPage: React.FC = () => {
       </Group>
 
       {/* EventForm Component */}
-      <EventForm
-        initialData={initialFormData || convertEventToFormData(event as EventDtoType)}
-        onSubmit={handleFormSubmit}
-        onCancel={handleFormCancel}
-        isSubmitting={updateEventMutation.isPending}
-        onFormChange={handleFormChange}
-        formDirty={formDirty}
-      />
+      {initialFormData ? (
+        <EventForm
+          initialData={initialFormData}
+          onSubmit={handleFormSubmit}
+          onCancel={handleFormCancel}
+          isSubmitting={updateEventMutation.isPending}
+          onFormChange={handleFormChange}
+          formDirty={formDirty}
+        />
+      ) : (
+        <LoadingOverlay visible />
+      )}
       
       {/* Status Change Confirmation Modal */}
       <Modal

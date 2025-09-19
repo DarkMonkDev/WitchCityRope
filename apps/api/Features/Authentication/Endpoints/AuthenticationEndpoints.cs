@@ -79,10 +79,10 @@ public static class AuthenticationEndpoints
                     context.Response.Cookies.Append("auth-token", response.Token, cookieOptions);
 
                     // Return user info without token (BFF pattern)
-                    return Results.Ok(new { 
+                    return Results.Ok(new {
                         Success = true,
                         User = response.User,
-                        Message = "Login successful" 
+                        Message = "Login successful"
                     });
                 }
 

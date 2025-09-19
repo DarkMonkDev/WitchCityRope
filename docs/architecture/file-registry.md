@@ -8,6 +8,9 @@
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-09-19 | /docs/lessons-learned/events-persistence-debugging-2025-09-19.md | CREATED | Comprehensive documentation of debugging session misdiagnoses and root causes | Events persistence debugging documentation | ACTIVE | Never |
+| 2025-09-19 | /docs/lessons-learned/orchestrator-lessons-learned.md | MODIFIED | Added critical pattern about not assuming infrastructure issues when code fails | Events persistence debugging documentation | ACTIVE | N/A |
+| 2025-09-19 | /docs/lessons-learned/backend-developer-lessons-learned.md | MODIFIED | Added ultra critical section on Entity Framework navigation property requirements | Events persistence debugging documentation | ACTIVE | N/A |
 | 2025-09-19 | /tests/playwright/persistence-validation.spec.ts | CREATED | Comprehensive E2E test for persistence fix validation | Persistence testing after backend fixes | TEMPORARY | 2025-09-26 |
 | 2025-09-19 | /tests/playwright/basic-app-check.spec.ts | CREATED | Basic React app functionality verification test | Persistence testing after backend fixes | TEMPORARY | 2025-09-26 |
 | 2025-09-19 | /tests/playwright/api-persistence-test.spec.ts | CREATED | Direct API testing for persistence validation | Persistence testing after backend fixes | TEMPORARY | 2025-09-26 |

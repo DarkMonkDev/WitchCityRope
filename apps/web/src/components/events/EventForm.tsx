@@ -170,9 +170,12 @@ export const EventForm: React.FC<EventFormProps> = ({
   });
 
   // Update form values when initialData changes (for loading from API)
+  // Use a ref to track if we've already initialized to prevent overriding user changes
+  const hasInitialized = useRef(false);
+
   useEffect(() => {
-    if (initialData && Object.keys(initialData).length > 0) {
-      console.log('🔍 [DEBUG] EventForm updating with initialData:', {
+    if (initialData && Object.keys(initialData).length > 0 && !hasInitialized.current) {
+      console.log('🔍 [DEBUG] EventForm initializing with initialData:', {
         hasTeacherIds: !!initialData.teacherIds,
         teacherIds: initialData.teacherIds,
         hasSessions: !!initialData?.sessions,
@@ -194,6 +197,7 @@ export const EventForm: React.FC<EventFormProps> = ({
         volunteerPositions: [],
         ...initialData,
       });
+      hasInitialized.current = true;
     }
   }, [initialData]);
   

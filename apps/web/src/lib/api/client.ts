@@ -13,9 +13,11 @@ export const apiClient = axios.create({
   withCredentials: true, // Include httpOnly cookies for auth
 })
 
-// Request interceptor for logging (auth now handled by httpOnly cookies)
+// Request interceptor for logging (BFF pattern - auth via httpOnly cookies only)
 apiClient.interceptors.request.use(
   (config) => {
+    // BFF Pattern: Authentication handled via httpOnly cookies automatically
+    // No need to add Authorization header - JWT token is in secure cookie
     console.debug(`API Request: ${config.method?.toUpperCase()} ${config.url}`)
     return config
   },

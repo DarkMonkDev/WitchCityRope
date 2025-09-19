@@ -42,17 +42,15 @@ export function useLogin() {
       return data.data
     },
     onSuccess: (loginResponse) => {
-      // Store token for validation (in production, use httpOnly cookies)
-      localStorage.setItem('auth_token', loginResponse.token)
-      
-      // Cache user data
+      // BFF Pattern: No token returned - authentication via httpOnly cookies only
+      // Cache user data from response
       queryClient.setQueryData(authKeys.me(), loginResponse.user)
-      
-      console.log('Login successful:', loginResponse.user.sceneName)
+
+      console.log('Login successful:', loginResponse.user?.sceneName)
     },
     onError: (error) => {
       console.error('Login failed:', error)
-      localStorage.removeItem('auth_token')
+      // No localStorage token to remove in BFF pattern
     },
   })
 }
@@ -68,13 +66,11 @@ export function useRegister() {
       return data.data
     },
     onSuccess: (registerResponse) => {
-      // Store token for validation
-      localStorage.setItem('auth_token', registerResponse.token)
-      
-      // Cache user data
+      // BFF Pattern: No token returned - authentication via httpOnly cookies only
+      // Cache user data from response
       queryClient.setQueryData(authKeys.me(), registerResponse.user)
-      
-      console.log('Registration successful:', registerResponse.user.sceneName)
+
+      console.log('Registration successful:', registerResponse.user?.sceneName)
     },
     onError: (error) => {
       console.error('Registration failed:', error)
@@ -96,16 +92,14 @@ export function useLogout() {
       }
     },
     onSuccess: () => {
-      // Always clear local state regardless of API response
-      localStorage.removeItem('auth_token')
+      // BFF Pattern: Clear cached auth data (no localStorage tokens)
       cacheUtils.clearAuth(queryClient)
       console.log('Logout successful')
     },
     onError: (error) => {
-      // Still clear local state on error
-      localStorage.removeItem('auth_token')
+      // Still clear cached auth data on error
       cacheUtils.clearAuth(queryClient)
-      console.error('Logout error, but clearing local state:', error)
+      console.error('Logout error, but clearing cached state:', error)
     },
   })
 }
@@ -121,14 +115,13 @@ export function useRefreshToken() {
       return data.data
     },
     onSuccess: (refreshResponse) => {
-      localStorage.setItem('auth_token', refreshResponse.token)
+      // BFF Pattern: No token to store - refresh via httpOnly cookies
       queryClient.setQueryData(authKeys.me(), refreshResponse.user)
       console.log('Token refreshed successfully')
     },
     onError: (error) => {
       console.error('Token refresh failed:', error)
       // Redirect to login on refresh failure
-      localStorage.removeItem('auth_token')
       cacheUtils.clearAuth(queryClient)
       window.location.href = '/login'
     },
