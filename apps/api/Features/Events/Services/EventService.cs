@@ -359,6 +359,7 @@ public class EventService
                 // This includes sessions with client-generated IDs that don't exist in DB
                 var newSession = new WitchCityRope.Api.Models.Session
                 {
+                    // Do NOT set Id - let EF generate it
                     EventId = eventEntity.Id,
                     SessionCode = sessionDto.SessionIdentifier,
                     Name = sessionDto.Name,

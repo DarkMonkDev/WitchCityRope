@@ -11,7 +11,7 @@ public class VolunteerPosition
     /// <summary>
     /// Unique identifier
     /// </summary>
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid Id { get; set; }
 
     /// <summary>
     /// Reference to the parent event
