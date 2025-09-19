@@ -245,7 +245,9 @@ export const AdminEventDetailsPage: React.FC = () => {
         hasSessions: !!(updatedEvent as any).sessions,
         sessions: (updatedEvent as any).sessions,
         hasTicketTypes: !!(updatedEvent as any).ticketTypes,
-        ticketTypes: (updatedEvent as any).ticketTypes
+        ticketTypes: (updatedEvent as any).ticketTypes,
+        hasVolunteerPositions: !!(updatedEvent as any).volunteerPositions,
+        volunteerPositions: (updatedEvent as any).volunteerPositions
       });
 
       // Update initial form data to new values for next change detection

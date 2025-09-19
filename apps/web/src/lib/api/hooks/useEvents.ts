@@ -2,14 +2,15 @@ import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tansta
 import { apiClient } from '../client'
 import { eventKeys, cacheUtils } from '../utils/cache'
 // import { handleApiError } from '../utils/errors' // For future error handling
-import type { 
-  EventDto, 
-  CreateEventDto, 
-  UpdateEventDto, 
+import type {
+  EventDto,
+  CreateEventDto,
+  UpdateEventDto,
   EventFilters,
   RegistrationDto,
   EventSessionDto,
-  EventTicketTypeDto 
+  EventTicketTypeDto,
+  VolunteerPositionDto
 } from '../types/events.types'
 import type { ApiResponse, PaginatedResponse } from '../types/api.types'
 
@@ -36,6 +37,7 @@ interface ApiEvent {
   maxAttendees?: number
   currentAttendees?: number
   currentRSVPs?: number
+  volunteerPositions?: any[]
   currentTickets?: number
   availableSpots?: number
   price?: number
@@ -106,6 +108,21 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
     salesEndDate: ticket.salesEndDate || undefined
   }));
 
+  // Transform volunteer positions - handle both API field names and frontend field names
+  const transformedVolunteerPositions = (apiEvent.volunteerPositions || []).map((vp: any) => ({
+    id: vp.id,
+    title: vp.title,
+    name: vp.title || vp.name, // Map title to name for frontend compatibility
+    description: vp.description || '',
+    slotsNeeded: vp.slotsNeeded,
+    slotsFilled: vp.slotsFilled,
+    volunteersNeeded: vp.slotsNeeded || vp.volunteersNeeded, // Map for frontend
+    volunteersAssigned: vp.slotsFilled || vp.volunteersAssigned, // Map for frontend
+    sessionId: vp.sessionId,
+    requirements: vp.requirements,
+    requiresExperience: vp.requiresExperience
+  }));
+
   return {
     id: apiEvent.id,
     title: apiEvent.title,
@@ -122,6 +139,7 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
     sessions: transformedSessions,
     ticketTypes: transformedTicketTypes,
     teacherIds: apiEvent.teacherIds || [],
+    volunteerPositions: transformedVolunteerPositions,
     isPublished: apiEvent.isPublished !== undefined ? apiEvent.isPublished : true
   }
 }
@@ -205,9 +223,10 @@ export function useUpdateEvent() {
 
   return useMutation({
     mutationFn: async (eventData: UpdateEventDto): Promise<EventDto> => {
-      const { data } = await apiClient.put<ApiResponse<EventDto>>(`/api/events/${eventData.id}`, eventData)
+      const { data } = await apiClient.put<ApiResponse<ApiEvent>>(`/api/events/${eventData.id}`, eventData)
       if (!data.data) throw new Error('Failed to update event')
-      return data.data
+      // Transform the API response to match our EventDto structure
+      return transformApiEvent(data.data)
     },
     onMutate: async (updatedEvent) => {
       // Cancel outgoing refetches

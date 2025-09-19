@@ -18,6 +18,7 @@ export interface EventDto {
   sessions?: EventSessionDto[]
   ticketTypes?: EventTicketTypeDto[]
   teacherIds?: string[]
+  volunteerPositions?: VolunteerPositionDto[]
 }
 
 export interface CreateEventDto {
@@ -73,12 +74,16 @@ export interface EventTicketTypeDto {
 
 export interface VolunteerPositionDto {
   id: string
-  name: string
+  title?: string  // API returns 'title'
+  name?: string   // Frontend uses 'name' for compatibility
   description: string
-  volunteersNeeded: number
-  volunteersAssigned: number
+  slotsNeeded?: number      // API returns 'slotsNeeded'
+  slotsFilled?: number      // API returns 'slotsFilled'
+  volunteersNeeded?: number // Frontend uses 'volunteersNeeded'
+  volunteersAssigned?: number // Frontend uses 'volunteersAssigned'
   sessionId?: string
   requirements?: string
+  requiresExperience?: boolean
 }
 
 export interface EventFilters extends PaginationParams {
