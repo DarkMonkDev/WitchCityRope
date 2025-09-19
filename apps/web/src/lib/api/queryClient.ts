@@ -22,13 +22,38 @@ export const queryClient = new QueryClient({
   },
 })
 
-// Memory management for validation environment
-if (typeof window !== 'undefined' && 'memory' in performance) {
+// Memory monitoring - helps detect memory leaks early
+// Small webapps should stay well under 100MB
+if (typeof window !== 'undefined' && 'performance' in window && 'memory' in (performance as any)) {
+  let lastMemoryCheck = Date.now();
+  let memoryWarningCount = 0;
+
   setInterval(() => {
-    const memoryInfo = (performance as any).memory
-    if (memoryInfo?.usedJSHeapSize > 50 * 1024 * 1024) { // 50MB threshold
-      console.warn('High memory usage detected, clearing query cache')
-      queryClient.clear()
+    const now = Date.now();
+    // Only check every 30 seconds to avoid performance impact
+    if (now - lastMemoryCheck < 30000) return;
+
+    const memoryInfo = (performance as any).memory;
+    const usedMB = Math.round(memoryInfo.usedJSHeapSize / (1024 * 1024));
+    const limitMB = Math.round(memoryInfo.jsHeapSizeLimit / (1024 * 1024));
+
+    // Warn at 75MB, act at 100MB (small webapp shouldn't need more)
+    if (usedMB > 75) {
+      memoryWarningCount++;
+      if (memoryWarningCount >= 2) {
+        console.warn(`High memory usage: ${usedMB}MB / ${limitMB}MB - investigating potential memory leak`);
+
+        // Clear cache if over 100MB (indicates a real problem)
+        if (usedMB > 100) {
+          console.warn('Excessive memory usage detected (>100MB), clearing query cache');
+          queryClient.clear();
+          memoryWarningCount = 0;
+        }
+      }
+    } else {
+      memoryWarningCount = 0;
     }
-  }, 60000) // Check every minute
+
+    lastMemoryCheck = now;
+  }, 30000); // Check every 30 seconds
 }

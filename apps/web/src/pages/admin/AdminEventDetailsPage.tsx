@@ -94,26 +94,11 @@ export const AdminEventDetailsPage: React.FC = () => {
       const status = (event as any)?.isPublished !== false ? 'published' : 'draft';
       setPublishStatus(status);
 
-      // DEBUG: Log event data from API
-      console.log('🔍 [DEBUG] Event data from API:', {
-        eventId: (event as any).id,
-        teacherIds: (event as any).teacherIds,
-        hasTeacherIds: 'teacherIds' in (event as any),
-        eventKeys: Object.keys(event as any)
-      });
 
       // Store initial form data for change tracking
       // Only set this once when event data first loads
       const initialData = convertEventToFormData(event as EventDtoType);
 
-      // DEBUG: Log converted form data
-      console.log('🔍 [DEBUG] Converted initial form data:', {
-        teacherIds: initialData.teacherIds,
-        sessions: initialData.sessions,
-        ticketTypes: initialData.ticketTypes,
-        volunteerPositions: initialData.volunteerPositions,
-        formDataKeys: Object.keys(initialData)
-      });
 
       setInitialFormData(initialData);
     }
@@ -179,49 +164,15 @@ export const AdminEventDetailsPage: React.FC = () => {
     if (!event || !id) return;
 
     try {
-      // DEBUG: Log form data before processing
-      console.log('🔍 [DEBUG] Form data before save:', {
-        teacherIds: data.teacherIds,
-        sessions: data.sessions,
-        ticketTypes: data.ticketTypes,
-        volunteerPositions: data.volunteerPositions,
-        formDataKeys: Object.keys(data),
-        fullFormData: data
-      });
 
-      // DEBUG: Compare initial vs current volunteerPositions
-      console.log('🔍 [DEBUG] Volunteer positions comparison:', {
-        initial: initialFormData?.volunteerPositions,
-        current: data.volunteerPositions,
-        areEqual: JSON.stringify(initialFormData?.volunteerPositions) === JSON.stringify(data.volunteerPositions),
-        initialLength: initialFormData?.volunteerPositions?.length || 0,
-        currentLength: data.volunteerPositions?.length || 0
-      });
 
       // Get only changed fields for partial update
       const changedFields = initialFormData
         ? getChangedEventFields(id, data, initialFormData)
         : convertEventFormDataToUpdateDto(id, data);
 
-      // DEBUG: Log what changes were detected
-      console.log('🔍 [DEBUG] Changed fields to send to API:', {
-        changedFields,
-        hasTeacherIds: 'teacherIds' in changedFields,
-        teacherIdsValue: changedFields.teacherIds,
-        hasSessions: 'sessions' in changedFields,
-        sessionsValue: changedFields.sessions,
-        hasTicketTypes: 'ticketTypes' in changedFields,
-        ticketTypesValue: changedFields.ticketTypes,
-        hasVolunteerPositions: 'volunteerPositions' in changedFields,
-        volunteerPositionsValue: changedFields.volunteerPositions
-      });
 
       // Only proceed if there are changes
-      console.log('🔍 [DEBUG] Checking if should save:', {
-        changedFieldsKeys: Object.keys(changedFields),
-        keyCount: Object.keys(changedFields).length,
-        shouldSave: Object.keys(changedFields).length > 1
-      });
 
       if (Object.keys(changedFields).length <= 1) { // Only id field means no changes
         notifications.show({
@@ -232,23 +183,10 @@ export const AdminEventDetailsPage: React.FC = () => {
         return;
       }
 
-      console.log('🔍 [DEBUG] About to call updateEventMutation with:', changedFields);
 
       // Perform the API update
       const updatedEvent = await updateEventMutation.mutateAsync(changedFields);
 
-      // DEBUG: Log API response
-      console.log('🔍 [DEBUG] API response after save:', {
-        updatedEvent,
-        hasTeacherIds: !!(updatedEvent as any).teacherIds,
-        teacherIds: (updatedEvent as any).teacherIds,
-        hasSessions: !!(updatedEvent as any).sessions,
-        sessions: (updatedEvent as any).sessions,
-        hasTicketTypes: !!(updatedEvent as any).ticketTypes,
-        ticketTypes: (updatedEvent as any).ticketTypes,
-        hasVolunteerPositions: !!(updatedEvent as any).volunteerPositions,
-        volunteerPositions: (updatedEvent as any).volunteerPositions
-      });
 
       // Update initial form data to new values for next change detection
       setInitialFormData(data);
@@ -262,21 +200,14 @@ export const AdminEventDetailsPage: React.FC = () => {
       });
 
       // Force a refresh of the event data to verify persistence
-      console.log('🔍 [DEBUG] Triggering event data refresh to verify persistence...');
       queryClient.invalidateQueries({ queryKey: eventKeys.detail(id) });
 
     } catch (error) {
-      console.error('Failed to update event:', error);
 
       // Enhanced error reporting
       let errorMessage = 'Failed to update event. Please try again.';
       if (error instanceof Error) {
         errorMessage = error.message;
-        console.error('🔍 [DEBUG] Error details:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack
-        });
       }
 
       notifications.show({
@@ -321,7 +252,6 @@ export const AdminEventDetailsPage: React.FC = () => {
         color: isPublished ? 'green' : 'blue'
       });
     } catch (error) {
-      console.error(`Failed to ${action} event:`, error);
       notifications.show({
         title: `${action.charAt(0).toUpperCase() + action.slice(1)} Failed`,
         message: error instanceof Error ? error.message : `Failed to ${action} event. Please try again.`,

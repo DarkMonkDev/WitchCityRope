@@ -175,14 +175,6 @@ export const EventForm: React.FC<EventFormProps> = ({
 
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0 && !hasInitialized.current) {
-      console.log('🔍 [DEBUG] EventForm initializing with initialData:', {
-        hasTeacherIds: !!initialData.teacherIds,
-        teacherIds: initialData.teacherIds,
-        hasSessions: !!initialData?.sessions,
-        sessionsCount: initialData?.sessions?.length || 0,
-        hasTicketTypes: !!initialData?.ticketTypes,
-        ticketTypesCount: initialData?.ticketTypes?.length || 0
-      });
       form.setValues({
         eventType: 'class',
         title: '',

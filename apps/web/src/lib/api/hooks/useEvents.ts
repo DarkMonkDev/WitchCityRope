@@ -76,15 +76,6 @@ interface ApiEventTicketType {
 
 // Transform API event to frontend EventDto
 function transformApiEvent(apiEvent: ApiEvent): EventDto {
-  console.log('🔍 [DEBUG] Transforming API event:', {
-    id: apiEvent.id,
-    hasTeacherIds: !!apiEvent.teacherIds,
-    teacherIds: apiEvent.teacherIds,
-    hasSessions: !!apiEvent.sessions,
-    sessionsCount: apiEvent.sessions?.length,
-    hasTicketTypes: !!apiEvent.ticketTypes,
-    ticketTypesCount: apiEvent.ticketTypes?.length
-  });
 
   // Transform sessions to match frontend structure
   const transformedSessions: EventSessionDto[] = (apiEvent.sessions || []).map(session => ({
@@ -206,10 +197,8 @@ export function useCreateEvent() {
       // Optimistically add to cache
       queryClient.setQueryData(eventKeys.detail(newEvent.id), newEvent)
       
-      console.log('Event created successfully:', newEvent.title)
     },
     onError: (error) => {
-      console.error('Create event failed:', error)
     },
   })
 }
@@ -245,7 +234,6 @@ export function useUpdateEvent() {
       if (context?.previousEvent) {
         queryClient.setQueryData(eventKeys.detail(updatedEvent.id), context.previousEvent)
       }
-      console.error('Update event failed, rolling back:', err)
     },
     onSettled: (_data, _error, updatedEvent) => {
       // Always refetch after error or success
@@ -267,10 +255,8 @@ export function useDeleteEvent() {
     onSuccess: (deletedId) => {
       queryClient.removeQueries({ queryKey: eventKeys.detail(deletedId) })
       cacheUtils.invalidateEvents(queryClient)
-      console.log('Event deleted successfully')
     },
     onError: (error) => {
-      console.error('Delete event failed:', error)
     },
   })
 }
@@ -318,13 +304,11 @@ export function useRegisterForEvent() {
       if (context?.previousEvent) {
         queryClient.setQueryData(eventKeys.detail(eventId), context.previousEvent)
       }
-      console.error('Event registration failed, rolling back:', err)
     },
     onSuccess: (_registration, eventId) => {
       // Refresh registration data
       queryClient.invalidateQueries({ queryKey: eventKeys.registrations(eventId) })
       queryClient.invalidateQueries({ queryKey: eventKeys.detail(eventId) })
-      console.log('Successfully registered for event')
     },
   })
 }
