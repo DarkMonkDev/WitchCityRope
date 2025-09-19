@@ -14,3 +14,10 @@
 /home/chad/repos/witchcityrope-react/tests/WitchCityRope.IntegrationTests/obj/Debug/net9.0/WitchCityRope.IntegrationTests.AssemblyInfo.cs
 /home/chad/repos/witchcityrope-react/tests/WitchCityRope.IntegrationTests/obj/Debug/net9.0/WitchCityRope.IntegrationTests.csproj.CoreCompileInputs.cache
 /home/chad/repos/witchcityrope-react/tests/WitchCityRope.IntegrationTests/obj/Debug/net9.0/WitchCityRope.IntegrationTests.sourcelink.json
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.IntegrationTests.blazor-obsolete/obj/Debug/net9.0/WitchCityRope.IntegrationTests.csproj.AssemblyReference.cache
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.IntegrationTests.blazor-obsolete/obj/Debug/net9.0/MvcTestingAppManifest.json
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.IntegrationTests.blazor-obsolete/obj/Debug/net9.0/WitchCityRope.IntegrationTests.GeneratedMSBuildEditorConfig.editorconfig
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.IntegrationTests.blazor-obsolete/obj/Debug/net9.0/WitchCityRope.IntegrationTests.AssemblyInfoInputs.cache
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.IntegrationTests.blazor-obsolete/obj/Debug/net9.0/WitchCityRope.IntegrationTests.AssemblyInfo.cs
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.IntegrationTests.blazor-obsolete/obj/Debug/net9.0/WitchCityRope.IntegrationTests.csproj.CoreCompileInputs.cache
+/home/chad/repos/witchcityrope-react/tests/WitchCityRope.IntegrationTests.blazor-obsolete/obj/Debug/net9.0/WitchCityRope.IntegrationTests.sourcelink.json

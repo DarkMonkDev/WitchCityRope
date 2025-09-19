@@ -1,41 +1,47 @@
-// Simple test to verify JWT token implementation
-// This can be run to manually test the login flow
+// Simple test to verify BFF authentication implementation
+// This can be run to manually test the cookie-based login flow
 
 const axios = require('axios');
 
-async function testJWTLogin() {
+// Create axios instance with cookie jar support
+const axiosWithCookies = axios.create({
+  withCredentials: true,
+  jar: true
+});
+
+async function testBFFLogin() {
   try {
-    console.log('Testing JWT Login Flow...');
-    
+    console.log('Testing BFF Authentication Flow (Cookie-based)...');
+
     // Test login with valid credentials
-    const loginResponse = await axios.post('http://localhost:5655/api/Auth/login', {
+    const loginResponse = await axiosWithCookies.post('http://localhost:5655/api/auth/login', {
       email: 'admin@witchcityrope.com',
-      password: 'Test123!',
-      rememberMe: false
+      password: 'Test123!'
     });
-    
+
     console.log('Login Response Status:', loginResponse.status);
     console.log('Login Response Structure:', JSON.stringify(loginResponse.data, null, 2));
-    
-    if (loginResponse.data.success && loginResponse.data.data.token) {
-      const token = loginResponse.data.data.token;
-      console.log('JWT Token received:', token.substring(0, 50) + '...');
-      
-      // Test authenticated API call with JWT token
-      const userResponse = await axios.get('http://localhost:5655/api/auth/user', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
+
+    if (loginResponse.data.success) {
+      console.log('✅ Login successful - authentication cookie set');
+
+      // Test authenticated API call with httpOnly cookie (no Authorization header)
+      const userResponse = await axiosWithCookies.get('http://localhost:5655/api/auth/user');
+
       console.log('User API Response Status:', userResponse.status);
       console.log('User Data:', JSON.stringify(userResponse.data, null, 2));
-      
-      console.log('✅ JWT Token Flow Working!');
+
+      console.log('✅ BFF Authentication Flow Working!');
+
+      // Test logout
+      const logoutResponse = await axiosWithCookies.post('http://localhost:5655/api/auth/logout');
+      console.log('Logout Response Status:', logoutResponse.status);
+      console.log('✅ Logout successful - authentication cookie cleared');
+
     } else {
-      console.log('❌ No JWT token in login response');
+      console.log('❌ Login failed');
     }
-    
+
   } catch (error) {
     console.error('❌ Test failed:', error.response?.data || error.message);
   }
@@ -43,7 +49,7 @@ async function testJWTLogin() {
 
 // Only run if called directly
 if (require.main === module) {
-  testJWTLogin();
+  testBFFLogin();
 }
 
-module.exports = testJWTLogin;
+module.exports = testBFFLogin;

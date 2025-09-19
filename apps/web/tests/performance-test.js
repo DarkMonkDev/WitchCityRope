@@ -71,8 +71,7 @@ async function testLogin() {
     }
 
     const data = await response.json()
-    // Store token for protected API test
-    global.authToken = data.data?.token || data.token
+    // BFF Pattern: No token returned - authentication via httpOnly cookies
     return data
   })
 }
@@ -80,14 +79,12 @@ async function testLogin() {
 // Test protected API call performance
 async function testProtectedApi() {
   return measureTime('Protected API', async () => {
-    const headers = {}
-    if (global.authToken) {
-      headers['Authorization'] = `Bearer ${global.authToken}`
-    }
-
+    // BFF Pattern: Authentication via httpOnly cookies, no Authorization header needed
     const response = await fetch(`${API_BASE}/api/protected/welcome`, {
-      credentials: 'include',
-      headers,
+      credentials: 'include', // Include httpOnly cookies
+      headers: {
+        'Content-Type': 'application/json'
+      }
     })
 
     if (!response.ok) {
@@ -101,15 +98,13 @@ async function testProtectedApi() {
 // Test logout performance
 async function testLogout() {
   return measureTime('Logout', async () => {
-    const headers = {}
-    if (global.authToken) {
-      headers['Authorization'] = `Bearer ${global.authToken}`
-    }
-
+    // BFF Pattern: Authentication via httpOnly cookies, no Authorization header needed
     const response = await fetch(`${API_BASE}/api/auth/logout`, {
       method: 'POST',
-      credentials: 'include',
-      headers,
+      credentials: 'include', // Include httpOnly cookies
+      headers: {
+        'Content-Type': 'application/json'
+      }
     })
 
     if (!response.ok) {

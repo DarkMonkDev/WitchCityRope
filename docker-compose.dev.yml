@@ -93,6 +93,9 @@ services:
       DOTNET_WATCH_RESTART_ON_RUDE_EDIT: "true"
     
     volumes:
+      # Source code mounting for hot reload
+      - ./apps/api:/app:cached
+
       # Package cache for faster builds
       - nuget_cache:/root/.nuget/packages
 

@@ -885,8 +885,145 @@ VITE_TINYMCE_API_KEY=your_production_api_key_here
 
 ---
 
+## 🚨 CRITICAL: Events Persistence Bug Fix (2025-09-19) 🚨
+**Date**: 2025-09-19
+**Category**: Form State Management
+**Severity**: CRITICAL
+
+### What We Learned
+**FORM STATE RE-INITIALIZATION BUG**: EventForm component was re-initializing with API data every time props changed, overriding user modifications to sessions/tickets/volunteers.
+
+**INLINE PROP CALCULATION ISSUE**: Using `initialData={initialFormData || convertEventToFormData(event)}` causes new object creation on every render, triggering form resets.
+
+**COMPONENT LIFECYCLE MISMANAGEMENT**: Form initialization happening multiple times destroys user changes made through modals.
+
+### Root Cause Analysis
+The core issue was **not** with API calls (which work correctly), but with React state management:
+
+1. **EventForm.tsx**: `useEffect` dependency on `initialData` caused form reset on every parent re-render
+2. **AdminEventDetailsPage.tsx**: Inline calculation of `initialData` prop created new objects every render
+3. **Form State Overlap**: User adds session → form updates → parent re-renders → form resets → user changes lost
+
+### Action Items
+- [x] **PREVENT form re-initialization** after first load using `useRef` tracking
+- [x] **AVOID inline prop calculations** that create new objects on every render
+- [x] **USE conditional rendering** to only mount EventForm when initialData is ready
+- [x] **IMPLEMENT explicit cache invalidation** to verify persistence
+- [x] **ADD comprehensive logging** for debugging form state lifecycle
+
+### Critical Fix Patterns:
+```typescript
+// ❌ WRONG: Re-initializes form on every prop change
+useEffect(() => {
+  if (initialData) {
+    form.setValues({ ...defaults, ...initialData });
+  }
+}, [initialData]);
+
+// ✅ CORRECT: Only initialize once on component mount
+const hasInitialized = useRef(false);
+useEffect(() => {
+  if (initialData && !hasInitialized.current) {
+    form.setValues({ ...defaults, ...initialData });
+    hasInitialized.current = true;
+  }
+}, [initialData]);
+
+// ❌ WRONG: Inline prop calculation creates new objects
+<EventForm initialData={initialFormData || convertEventToFormData(event)} />
+
+// ✅ CORRECT: Conditional rendering with stable props
+{initialFormData ? (
+  <EventForm initialData={initialFormData} />
+) : (
+  <LoadingOverlay visible />
+)}
+
+// ❌ WRONG: Component dependency causes re-initialization
+useEffect(() => { ... }, [event, initialFormData, convertEventToFormData]);
+
+// ✅ CORRECT: Remove state from dependencies
+useEffect(() => { ... }, [event, convertEventToFormData]);
+```
+
+### Prevention Strategy
+1. **Use `useRef` to track form initialization** - prevent multiple initializations
+2. **Avoid inline prop calculations** - create stable object references
+3. **Remove state from useEffect dependencies** when checking for first-time initialization
+4. **Test the complete add/save/refresh cycle** - not just the save operation
+5. **Monitor component re-render behavior** - log when effects fire
+
+**CRITICAL SUCCESS**: Fixed Events Details admin page where add/delete operations for sessions, ticket types, and volunteer positions now properly persist through save and page refresh.
+
+### Tags
+#critical #forms #state-management #persistence #component-lifecycle #react-lifecycle #form-initialization
+
+---
+
+## 🚨 CRITICAL: Events Admin Add Button Error Fix (2025-09-19) 🚨
+**Date**: 2025-09-19
+**Category**: Modal Form Error Handling
+**Severity**: CRITICAL
+
+### What We Learned
+**THREE CRITICAL ERRORS FIXED**: Add Session, Add Ticket Type, and Add Volunteer Position buttons were broken due to insufficient null safety checks.
+
+**ERROR PATTERNS IDENTIFIED**:
+1. **"Cannot read properties of undefined (reading 'replace')"** - String methods on undefined values
+2. **"Cannot read properties of undefined (reading 'toLowerCase')"** - String operations on null session data
+3. **"[@mantine/core] Each option must have value property"** - Invalid Select/MultiSelect options from bad data
+
+### Action Items
+- [x] **ALWAYS filter invalid data** before creating Select/MultiSelect options
+- [x] **ADD null safety checks** before calling string methods (.replace(), .toLowerCase(), etc.)
+- [x] **VALIDATE array elements** before mapping to UI components
+- [x] **PROVIDE fallback arrays** for component props (availableSessions = [])
+- [x] **TEST all Add buttons** after making changes to modal components
+
+### Critical Fix Patterns:
+```typescript
+// ✅ CORRECT: Filter + null safety for Select options
+const sessionOptions = availableSessions
+  .filter(session => session?.sessionIdentifier && session?.name) // Filter first
+  .map(session => ({
+    value: session.sessionIdentifier,
+    label: `${session.sessionIdentifier} - ${session.name}`,
+  }));
+
+// ✅ CORRECT: String operation safety
+if (!s?.sessionIdentifier || typeof s.sessionIdentifier !== 'string') {
+  return NaN;
+}
+return parseInt(s.sessionIdentifier.replace('S', ''));
+
+// ✅ CORRECT: Fallback props for modals
+<SessionFormModal
+  existingSessions={form.values.sessions || []} // Fallback to empty array
+/>
+
+// ❌ WRONG: Direct mapping without validation
+const options = sessions.map(s => ({
+  value: s.sessionIdentifier, // Could be undefined
+  label: `${s.sessionIdentifier} - ${s.name}` // Could crash
+}));
+```
+
+### Prevention Strategy
+1. **Always validate data before UI operations** - filter arrays, check properties exist
+2. **Use optional chaining consistently** - `session?.property` not `session.property`
+3. **Provide fallback values** - empty arrays, default strings, null checks
+4. **Test modal opening** - ensure all Add buttons work without console errors
+5. **Check Mantine option format** - ensure all Select/MultiSelect options have value property
+
+**CRITICAL SUCCESS**: All three Add buttons (Session, Ticket Type, Volunteer Position) now work without errors.
+
+### Tags
+#critical #modal-forms #null-safety #mantine-select #add-buttons #error-handling
+
+---
+
 *This file is maintained by the react-developer agent. Add new lessons immediately when discovered.*
-*Last updated: 2025-09-19 - Added critical TinyMCE Development Cost Prevention*
+*Last updated: 2025-09-19 - Added critical Events Admin Add Button Error Fix*
 
 ## COMPREHENSIVE LESSONS FROM FRONTEND DEVELOPMENT
 **NOTE**: The following lessons were consolidated from frontend-lessons-learned.md

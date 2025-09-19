@@ -37,10 +37,13 @@ export function convertEventFormDataToUpdateDto(
   if (formData.sessions !== undefined) {
     updateDto.sessions = formData.sessions.map(session => ({
       id: session.id,
+      sessionIdentifier: session.sessionIdentifier, // API requires this field
       name: session.name,
+      date: session.date, // API requires this field
       startTime: session.startTime,
       endTime: session.endTime,
       capacity: session.capacity,
+      registeredCount: session.registeredCount || 0, // Include registeredCount
       description: (session as any).description || ''
     }));
     console.log('🔍 [DEBUG] Including sessions in updateDto:', {
@@ -210,10 +213,13 @@ export function getChangedEventFields(
   if (currentSessionsStr !== initialSessionsStr) {
     changes.sessions = (current.sessions || []).map(session => ({
       id: session.id,
+      sessionIdentifier: session.sessionIdentifier, // API requires this field
       name: session.name,
+      date: session.date, // API requires this field
       startTime: session.startTime,
       endTime: session.endTime,
       capacity: session.capacity,
+      registeredCount: session.registeredCount || 0, // Include registeredCount
       description: (session as any).description || ''
     }));
     console.log('🔍 [DEBUG] Sessions changed, including in update:', {

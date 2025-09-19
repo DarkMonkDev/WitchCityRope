@@ -1,0 +1,334 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="3a845d25-108f-4520-af2d-6afb5a32230c" name="@Unbutu-Ai-Chads-PC 2025-09-18 16:21:38" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2025-09-18T16:21:38.2415808-04:00" queuing="2025-09-18T16:21:38.2415808-04:00" start="2025-09-18T16:21:33.5974183-04:00" finish="2025-09-18T16:21:38.2459010-04:00" />
+  <TestSettings name="default" id="6b722fb3-3f4a-4748-be62-6b2232eb226d">
+    <Deployment runDeploymentRoot="_Unbutu-Ai-Chads-PC_2025-09-18_16_21_38" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="b2bf00d8-5218-4e39-9231-a6665789f64c" testId="f7ce7eb8-059f-c233-fe46-2d2074e72f75" testName="WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_WhenDatabaseConnected_ReturnsCorrectUserCount" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.0014824" startTime="2025-09-18T16:21:37.5796126-04:00" endTime="2025-09-18T16:21:37.6680740-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b2bf00d8-5218-4e39-9231-a6665789f64c">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success to be True, but found False.</Message>
+          <StackTrace>   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_WhenDatabaseConnected_ReturnsCorrectUserCount() in /home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/Features/Health/HealthServiceTests.cs:line 61
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="a18e349d-f580-4215-8f0f-e427b123d991" testId="5a15a669-3ee1-9e65-4905-a7b0e2d1599e" testName="WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_CalledMultipleTimes_RemainsConsistent" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.0022769" startTime="2025-09-18T16:21:37.3691833-04:00" endTime="2025-09-18T16:21:37.4526160-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a18e349d-f580-4215-8f0f-e427b123d991">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected result1.Success to be True, but found False.</Message>
+          <StackTrace>   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_CalledMultipleTimes_RemainsConsistent() in /home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/Features/Health/HealthServiceTests.cs:line 152
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="9328f14a-a09d-4cb0-b43a-e8145d43c472" testId="70d2b8cb-56e6-166a-7c27-95654794e36a" testName="WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_WhenDatabaseEmpty_ReturnsHealthyWithZeroUsers" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.0011589" startTime="2025-09-18T16:21:37.6688599-04:00" endTime="2025-09-18T16:21:37.7603912-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9328f14a-a09d-4cb0-b43a-e8145d43c472">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success to be True, but found False.</Message>
+          <StackTrace>   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_WhenDatabaseEmpty_ReturnsHealthyWithZeroUsers() in /home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/Features/Health/HealthServiceTests.cs:line 77
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="3d1d98f8-d49e-47d5-8799-13c51f9ba390" testId="e6c3cbf6-d699-fcdf-ce94-5b6c8e31d243" testName="WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_PerformanceRequirement_CompletesQuickly" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.0011529" startTime="2025-09-18T16:21:37.8579360-04:00" endTime="2025-09-18T16:21:37.9469875-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3d1d98f8-d49e-47d5-8799-13c51f9ba390">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success to be True, but found False.</Message>
+          <StackTrace>   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_PerformanceRequirement_CompletesQuickly() in /home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/Features/Health/HealthServiceTests.cs:line 139
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="68d3befa-4bc9-433e-95b6-ab09303c262f" testId="a9f31997-328a-7e03-cc24-01e7c8be32e8" testName="WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetDetailedHealthAsync_WhenDatabaseConnected_ReturnsDetailedInfo" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.0023682" startTime="2025-09-18T16:21:37.7610086-04:00" endTime="2025-09-18T16:21:37.8572845-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="68d3befa-4bc9-433e-95b6-ab09303c262f">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success to be True, but found False.</Message>
+          <StackTrace>   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetDetailedHealthAsync_WhenDatabaseConnected_ReturnsDetailedInfo() in /home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/Features/Health/HealthServiceTests.cs:line 94
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="9e5f22f7-e01a-4d0b-b63e-e5d31c4d4b5e" testId="ffbcd6b2-79e9-23e7-0861-4462af549a4e" testName="WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_ResponseMatchesBuilder_ForConsistency" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.0366218" startTime="2025-09-18T16:21:37.4539601-04:00" endTime="2025-09-18T16:21:37.5787176-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9e5f22f7-e01a-4d0b-b63e-e5d31c4d4b5e">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success to be True, but found False.</Message>
+          <StackTrace>   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_ResponseMatchesBuilder_ForConsistency() in /home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/Features/Health/HealthServiceTests.cs:line 120
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="3db5fe22-6881-4dc0-b44a-47670fd67028" testId="4f1df5a9-0c8f-4a2e-7eed-ef76f1a2680e" testName="WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_WhenDatabaseConnected_ReturnsHealthy" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.0767609" startTime="2025-09-18T16:21:37.1925574-04:00" endTime="2025-09-18T16:21:37.3598646-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3db5fe22-6881-4dc0-b44a-47670fd67028">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success to be True, but found False.</Message>
+          <StackTrace>   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_WhenDatabaseConnected_ReturnsHealthy() in /home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/Features/Health/HealthServiceTests.cs:line 38
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetDetailedHealthAsync_WhenDatabaseConnected_ReturnsDetailedInfo" storage="/home/chad/repos/witchcityrope-react/tests/witchcityrope.core.tests/bin/debug/net9.0/witchcityrope.core.tests.dll" id="a9f31997-328a-7e03-cc24-01e7c8be32e8">
+      <Execution id="68d3befa-4bc9-433e-95b6-ab09303c262f" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/bin/Debug/net9.0/WitchCityRope.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="WitchCityRope.Core.Tests.Features.Health.HealthServiceTests" name="GetDetailedHealthAsync_WhenDatabaseConnected_ReturnsDetailedInfo" />
+    </UnitTest>
+    <UnitTest name="WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_WhenDatabaseConnected_ReturnsHealthy" storage="/home/chad/repos/witchcityrope-react/tests/witchcityrope.core.tests/bin/debug/net9.0/witchcityrope.core.tests.dll" id="4f1df5a9-0c8f-4a2e-7eed-ef76f1a2680e">
+      <Execution id="3db5fe22-6881-4dc0-b44a-47670fd67028" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/bin/Debug/net9.0/WitchCityRope.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="WitchCityRope.Core.Tests.Features.Health.HealthServiceTests" name="GetHealthAsync_WhenDatabaseConnected_ReturnsHealthy" />
+    </UnitTest>
+    <UnitTest name="WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_WhenDatabaseEmpty_ReturnsHealthyWithZeroUsers" storage="/home/chad/repos/witchcityrope-react/tests/witchcityrope.core.tests/bin/debug/net9.0/witchcityrope.core.tests.dll" id="70d2b8cb-56e6-166a-7c27-95654794e36a">
+      <Execution id="9328f14a-a09d-4cb0-b43a-e8145d43c472" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/bin/Debug/net9.0/WitchCityRope.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="WitchCityRope.Core.Tests.Features.Health.HealthServiceTests" name="GetHealthAsync_WhenDatabaseEmpty_ReturnsHealthyWithZeroUsers" />
+    </UnitTest>
+    <UnitTest name="WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_ResponseMatchesBuilder_ForConsistency" storage="/home/chad/repos/witchcityrope-react/tests/witchcityrope.core.tests/bin/debug/net9.0/witchcityrope.core.tests.dll" id="ffbcd6b2-79e9-23e7-0861-4462af549a4e">
+      <Execution id="9e5f22f7-e01a-4d0b-b63e-e5d31c4d4b5e" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/bin/Debug/net9.0/WitchCityRope.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="WitchCityRope.Core.Tests.Features.Health.HealthServiceTests" name="GetHealthAsync_ResponseMatchesBuilder_ForConsistency" />
+    </UnitTest>
+    <UnitTest name="WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_CalledMultipleTimes_RemainsConsistent" storage="/home/chad/repos/witchcityrope-react/tests/witchcityrope.core.tests/bin/debug/net9.0/witchcityrope.core.tests.dll" id="5a15a669-3ee1-9e65-4905-a7b0e2d1599e">
+      <Execution id="a18e349d-f580-4215-8f0f-e427b123d991" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/bin/Debug/net9.0/WitchCityRope.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="WitchCityRope.Core.Tests.Features.Health.HealthServiceTests" name="GetHealthAsync_CalledMultipleTimes_RemainsConsistent" />
+    </UnitTest>
+    <UnitTest name="WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_PerformanceRequirement_CompletesQuickly" storage="/home/chad/repos/witchcityrope-react/tests/witchcityrope.core.tests/bin/debug/net9.0/witchcityrope.core.tests.dll" id="e6c3cbf6-d699-fcdf-ce94-5b6c8e31d243">
+      <Execution id="3d1d98f8-d49e-47d5-8799-13c51f9ba390" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/bin/Debug/net9.0/WitchCityRope.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="WitchCityRope.Core.Tests.Features.Health.HealthServiceTests" name="GetHealthAsync_PerformanceRequirement_CompletesQuickly" />
+    </UnitTest>
+    <UnitTest name="WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_WhenDatabaseConnected_ReturnsCorrectUserCount" storage="/home/chad/repos/witchcityrope-react/tests/witchcityrope.core.tests/bin/debug/net9.0/witchcityrope.core.tests.dll" id="f7ce7eb8-059f-c233-fe46-2d2074e72f75">
+      <Execution id="b2bf00d8-5218-4e39-9231-a6665789f64c" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/bin/Debug/net9.0/WitchCityRope.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="WitchCityRope.Core.Tests.Features.Health.HealthServiceTests" name="GetHealthAsync_WhenDatabaseConnected_ReturnsCorrectUserCount" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="f7ce7eb8-059f-c233-fe46-2d2074e72f75" executionId="b2bf00d8-5218-4e39-9231-a6665789f64c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5a15a669-3ee1-9e65-4905-a7b0e2d1599e" executionId="a18e349d-f580-4215-8f0f-e427b123d991" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="70d2b8cb-56e6-166a-7c27-95654794e36a" executionId="9328f14a-a09d-4cb0-b43a-e8145d43c472" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e6c3cbf6-d699-fcdf-ce94-5b6c8e31d243" executionId="3d1d98f8-d49e-47d5-8799-13c51f9ba390" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a9f31997-328a-7e03-cc24-01e7c8be32e8" executionId="68d3befa-4bc9-433e-95b6-ab09303c262f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ffbcd6b2-79e9-23e7-0861-4462af549a4e" executionId="9e5f22f7-e01a-4d0b-b63e-e5d31c4d4b5e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4f1df5a9-0c8f-4a2e-7eed-ef76f1a2680e" executionId="3db5fe22-6881-4dc0-b44a-47670fd67028" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="7" executed="7" passed="0" failed="7" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.1+bf6400fd51 (64-bit .NET 9.0.6)
+[xUnit.net 00:00:00.05]   Discovering: WitchCityRope.Core.Tests
+[xUnit.net 00:00:00.07]   Discovered:  WitchCityRope.Core.Tests
+[xUnit.net 00:00:00.09]   Starting:    WitchCityRope.Core.Tests
+info: WitchCityRope.Tests.Common.Fixtures.DatabaseTestFixture[0]
+      Starting PostgreSQL container initialization...
+[testcontainers.org 00:00:00.07] Connected to Docker:
+  Host: unix:///var/run/docker.sock
+  Server Version: 27.5.1
+  Kernel Version: 6.14.0-29-generic
+  API Version: 1.47
+  Operating System: Ubuntu 24.04.3 LTS
+  Total Memory: 62.72 GB
+[testcontainers.org 00:00:00.14] Docker container 79d46fb19aa4 created
+[testcontainers.org 00:00:00.16] Start Docker container 79d46fb19aa4
+[testcontainers.org 00:00:00.32] Wait for Docker container 79d46fb19aa4 to complete readiness checks
+[testcontainers.org 00:00:00.32] Docker container 79d46fb19aa4 ready
+[testcontainers.org 00:00:00.34] Docker container 0497eb8d61be created
+[testcontainers.org 00:00:00.34] Start Docker container 0497eb8d61be
+[testcontainers.org 00:00:00.49] Wait for Docker container 0497eb8d61be to complete readiness checks
+[testcontainers.org 00:00:00.49] Execute "pg_isready --host localhost --dbname witchcityrope_test --username test_user" at Docker container 0497eb8d61be
+[testcontainers.org 00:00:01.55] Execute "pg_isready --host localhost --dbname witchcityrope_test --username test_user" at Docker container 0497eb8d61be
+[testcontainers.org 00:00:01.60] Docker container 0497eb8d61be ready
+info: ContainerCleanupService[0]
+      Container cleanup shutdown hooks registered successfully
+info: ContainerCleanupService[0]
+      Container registered for cleanup tracking: 0497eb8d61bef73240c1829b011b6fc77853e4aaf00165d93493fc4937548185 from DatabaseTestFixture
+info: WitchCityRope.Tests.Common.Fixtures.DatabaseTestFixture[0]
+      Container started in 1.66 seconds. Target: &lt;5 seconds
+info: WitchCityRope.Tests.Common.Fixtures.DatabaseTestFixture[0]
+      Container ID: 0497eb8d61bef73240c1829b011b6fc77853e4aaf00165d93493fc4937548185, Port: 32771
+info: WitchCityRope.Tests.Common.Fixtures.DatabaseTestFixture[0]
+      EF Core migrations applied successfully
+info: WitchCityRope.Tests.Common.Fixtures.DatabaseTestFixture[0]
+      Respawn database cleanup configured
+info: WitchCityRope.Tests.Common.Fixtures.DatabaseTestFixture[0]
+      Database fixture initialization completed in 3.18 seconds
+     Warning:
+     The component "Fluent Assertions" is governed by the rules defined in the Xceed License Agreement and
+     the Xceed Fluent Assertions Community License. You may use Fluent Assertions free of charge for
+     non-commercial use only. An active subscription is required to use Fluent Assertions for commercial use.
+     Please contact Xceed Sales mailto:sales@xceed.com to acquire a subscription at a very low cost.
+     A paid commercial license supports the development and continued increasing support of
+     Fluent Assertions users under both commercial and community licenses. Help us
+     keep Fluent Assertions at the forefront of unit testing.
+     For more information, visit https://xceed.com/products/unit-testing/fluent-assertions/
+[xUnit.net 00:00:03.49]       Expected success to be True, but found False.
+[xUnit.net 00:00:03.49]       Stack Trace:
+[xUnit.net 00:00:03.49]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:00:03.49]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:00:03.49]            at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+[xUnit.net 00:00:03.49]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:00:03.49]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:00:03.49]            at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+[xUnit.net 00:00:03.49]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:00:03.49]         /home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/Features/Health/HealthServiceTests.cs(38,0): at WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_WhenDatabaseConnected_ReturnsHealthy()
+[xUnit.net 00:00:03.49]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:03.58]       Expected result1.Success to be True, but found False.
+[xUnit.net 00:00:03.58]       Stack Trace:
+[xUnit.net 00:00:03.58]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:00:03.58]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:00:03.58]            at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+[xUnit.net 00:00:03.58]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:00:03.58]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:00:03.58]            at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+[xUnit.net 00:00:03.58]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:00:03.58]         /home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/Features/Health/HealthServiceTests.cs(152,0): at WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_CalledMultipleTimes_RemainsConsistent()
+[xUnit.net 00:00:03.58]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:03.71]       Expected success to be True, but found False.
+[xUnit.net 00:00:03.71]       Stack Trace:
+[xUnit.net 00:00:03.71]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:00:03.71]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:00:03.71]            at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+[xUnit.net 00:00:03.71]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:00:03.71]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:00:03.71]            at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+[xUnit.net 00:00:03.71]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:00:03.71]         /home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/Features/Health/HealthServiceTests.cs(120,0): at WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_ResponseMatchesBuilder_ForConsistency()
+[xUnit.net 00:00:03.71]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:03.80]       Expected success to be True, but found False.
+[xUnit.net 00:00:03.80]       Stack Trace:
+[xUnit.net 00:00:03.80]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:00:03.80]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:00:03.80]            at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+[xUnit.net 00:00:03.80]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:00:03.80]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:00:03.80]            at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+[xUnit.net 00:00:03.80]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:00:03.80]         /home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/Features/Health/HealthServiceTests.cs(61,0): at WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_WhenDatabaseConnected_ReturnsCorrectUserCount()
+[xUnit.net 00:00:03.80]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:03.89]       Expected success to be True, but found False.
+[xUnit.net 00:00:03.89]       Stack Trace:
+[xUnit.net 00:00:03.89]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:00:03.89]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:00:03.89]            at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+[xUnit.net 00:00:03.89]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:00:03.89]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:00:03.89]            at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+[xUnit.net 00:00:03.89]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:00:03.89]         /home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/Features/Health/HealthServiceTests.cs(77,0): at WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_WhenDatabaseEmpty_ReturnsHealthyWithZeroUsers()
+[xUnit.net 00:00:03.89]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:03.99]       Expected success to be True, but found False.
+[xUnit.net 00:00:03.99]       Stack Trace:
+[xUnit.net 00:00:03.99]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:00:03.99]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:00:03.99]            at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+[xUnit.net 00:00:03.99]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:00:03.99]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:00:03.99]            at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+[xUnit.net 00:00:03.99]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:00:03.99]         /home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/Features/Health/HealthServiceTests.cs(94,0): at WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetDetailedHealthAsync_WhenDatabaseConnected_ReturnsDetailedInfo()
+[xUnit.net 00:00:03.99]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:04.08]       Expected success to be True, but found False.
+[xUnit.net 00:00:04.08]       Stack Trace:
+[xUnit.net 00:00:04.08]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:00:04.08]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:00:04.08]            at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+[xUnit.net 00:00:04.08]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:00:04.08]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:00:04.08]            at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+[xUnit.net 00:00:04.08]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:00:04.08]         /home/chad/repos/witchcityrope-react/tests/WitchCityRope.Core.Tests/Features/Health/HealthServiceTests.cs(139,0): at WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_PerformanceRequirement_CompletesQuickly()
+[xUnit.net 00:00:04.08]         --- End of stack trace from previous location ---
+info: WitchCityRope.Tests.Common.Fixtures.DatabaseTestFixture[0]
+      Starting database container cleanup...
+info: ContainerCleanupService[0]
+      Container unregistered from cleanup tracking: 0497eb8d61bef73240c1829b011b6fc77853e4aaf00165d93493fc4937548185 from DatabaseTestFixture
+[testcontainers.org 00:00:03.91] Stop Docker container 0497eb8d61be
+[testcontainers.org 00:00:04.09] Delete Docker container 0497eb8d61be
+fail: WitchCityRope.Tests.Common.Fixtures.DatabaseTestFixture[0]
+      Error during container cleanup after 0.22 seconds
+      System.InvalidOperationException: Could not find resource 'PostgreSqlContainer'. Please create the resource by calling StartAsync(CancellationToken) or CreateAsync(CancellationToken).
+         at DotNet.Testcontainers.Guard.ThrowIf[TType](ArgumentInfo`1&amp; argument, Func`2 condition, Func`2 ifClause) in /_/src/Testcontainers/Guard.Null.cs:line 62
+         at DotNet.Testcontainers.Resource.ThrowIfResourceNotFound() in /_/src/Testcontainers/Resource.cs:line 79
+         at DotNet.Testcontainers.Containers.DockerContainer.get_Id() in /_/src/Testcontainers/Containers/DockerContainer.cs:line 101
+         at WitchCityRope.Tests.Common.Fixtures.DatabaseTestFixture.DisposeAsync() in /home/chad/repos/witchcityrope-react/tests/WitchCityRope.Tests.Common/Fixtures/DatabaseTestFixture.cs:line 141
+[xUnit.net 00:00:04.31]   Finished:    WitchCityRope.Core.Tests
+info: ContainerCleanupService[0]
+      Process exit detected, initiating container cleanup...
+info: ContainerCleanupService[0]
+      No containers to clean up (trigger: ProcessExit)
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="Unbutu-Ai-Chads-PC" outcome="Error" timestamp="2025-09-18T16:21:37.3617315-04:00">
+        <Text>[xUnit.net 00:00:03.49]     WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_WhenDatabaseConnected_ReturnsHealthy [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Unbutu-Ai-Chads-PC" outcome="Error" timestamp="2025-09-18T16:21:37.4530270-04:00">
+        <Text>[xUnit.net 00:00:03.58]     WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_CalledMultipleTimes_RemainsConsistent [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Unbutu-Ai-Chads-PC" outcome="Error" timestamp="2025-09-18T16:21:37.5791151-04:00">
+        <Text>[xUnit.net 00:00:03.71]     WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_ResponseMatchesBuilder_ForConsistency [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Unbutu-Ai-Chads-PC" outcome="Error" timestamp="2025-09-18T16:21:37.6684177-04:00">
+        <Text>[xUnit.net 00:00:03.80]     WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_WhenDatabaseConnected_ReturnsCorrectUserCount [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Unbutu-Ai-Chads-PC" outcome="Error" timestamp="2025-09-18T16:21:37.7606876-04:00">
+        <Text>[xUnit.net 00:00:03.89]     WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_WhenDatabaseEmpty_ReturnsHealthyWithZeroUsers [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Unbutu-Ai-Chads-PC" outcome="Error" timestamp="2025-09-18T16:21:37.8575976-04:00">
+        <Text>[xUnit.net 00:00:03.99]     WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetDetailedHealthAsync_WhenDatabaseConnected_ReturnsDetailedInfo [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Unbutu-Ai-Chads-PC" outcome="Error" timestamp="2025-09-18T16:21:37.9472641-04:00">
+        <Text>[xUnit.net 00:00:04.08]     WitchCityRope.Core.Tests.Features.Health.HealthServiceTests.GetHealthAsync_PerformanceRequirement_CompletesQuickly [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

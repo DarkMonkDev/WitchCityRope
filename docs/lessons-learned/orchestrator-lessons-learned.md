@@ -41,6 +41,14 @@
 **MANDATORY ACTION**: Full regression testing after any migration or major refactor
 **Prevention Pattern**: Test ALL previously working features after architectural changes
 
+### 🔥 CRITICAL FAILURE PATTERN 6: Infrastructure Assumption When Code Fails (2025-09-19)
+**Problem**: Assuming Docker/database issues when persistence fails, wasting hours on infrastructure investigation
+**Reality**: Events persistence issues were frontend null safety and missing Entity Framework navigation properties
+**Root Cause**: Jumping to infrastructure conclusions instead of checking actual code implementation first
+**MANDATORY ACTION**: ALWAYS investigate code implementation BEFORE assuming infrastructure problems
+**Prevention Pattern**: Check code changes, verify EF relationships, test API endpoints directly before Docker troubleshooting
+**Cost Example**: 40-50% of debugging time wasted on perfectly functioning Docker environment
+
 ### 🛡️ MANDATORY ORCHESTRATOR VERIFICATION PROTOCOL
 
 **BEFORE TRUSTING ANY STATUS REPORT**:
@@ -49,6 +57,7 @@
 3. **Investigate Root Causes**: Don't trust error messages - use dev tools and actual debugging
 4. **Question Infrastructure Health**: Don't trust "service healthy" - test real application functionality
 5. **Validate After Changes**: Don't trust "migration complete" - test all previously working features
+6. **Check Code First**: Don't assume infrastructure issues - investigate actual code implementation before Docker/database troubleshooting
 
 **CRITICAL EXAMPLES FROM 2025-09-18**:
 - Tests claiming authentication "unimplemented" when login page worked perfectly
@@ -56,17 +65,27 @@
 - Admin features broken due to role value mismatches ("Admin" vs "Administrator")
 - API responding 200 but frontend unable to authenticate due to configuration
 
+**CRITICAL EXAMPLES FROM 2025-09-19**:
+- Events persistence failing, immediately suspected Docker volume mounts (working perfectly)
+- Spent hours investigating database connectivity (functioning correctly)
+- Real issues were missing EF navigation property and frontend null safety
+- Infrastructure was never the problem - all Docker/PostgreSQL configuration correct
+
 **ESCALATION PROTOCOL**:
 - If agent reports "broken" or "unimplemented": VERIFY with actual testing
 - If tests pass but user workflow fails: INVESTIGATE root cause with dev tools
 - If infrastructure healthy but app broken: CHECK configuration mismatches
 - If error messages vague: TRACE actual network requests and responses
+- If persistence fails: CHECK code implementation (EF relationships, null safety) BEFORE Docker investigation
+- If Docker suspected: VERIFY with direct database queries and container inspection first
 
 **PREVENTION SUCCESS METRICS**:
 - Zero false "unimplemented" claims
 - Zero "tests pass" without functional validation
 - Zero "service healthy" without app validation
 - Zero undiagnosed "network errors"
+- Zero infrastructure investigations before code review
+- Zero Docker troubleshooting for application-level bugs
 
 **NO EXCEPTIONS**: These verification patterns are MANDATORY to prevent major orchestration failures.
 

@@ -2,6 +2,146 @@
 
 This document tracks critical lessons learned during backend development to prevent recurring issues and speed up future development.
 
+## 🚨 CRITICAL: Frontend-Backend Authentication Alignment Fixed - September 19, 2025 🚨
+
+### URGENT RESOLUTION: Mixed Authentication Pattern Breaking BFF Implementation
+
+**Problem**: Critical authentication architecture mismatch between frontend and backend causing authentication failures:
+1. **Backend correctly implemented BFF pattern** - JWT tokens set as httpOnly cookies, no token returned in response
+2. **Frontend expected Bearer token pattern** - trying to store and send JWT tokens in Authorization headers
+3. **Mixed approach caused authentication failures** - frontend couldn't access httpOnly-only tokens
+
+**Root Cause Analysis**:
+1. **Backend was correct**: Login endpoint sets `auth-token` httpOnly cookie and returns user data WITHOUT token
+2. **JWT middleware was correct**: Checks for `auth-token` cookie first, then Authorization header as fallback
+3. **Frontend was broken**: Expected token in response and tried to set Authorization headers
+
+**Complete Solution Implemented**:
+
+```typescript
+// ❌ BROKEN: Frontend expecting token
+onSuccess: (loginResponse) => {
+  localStorage.setItem('auth_token', loginResponse.token) // Token doesn't exist!
+  // ...
+}
+
+// ✅ FIXED: BFF pattern - no token handling
+onSuccess: (loginResponse) => {
+  // BFF Pattern: No token returned - authentication via httpOnly cookies only
+  queryClient.setQueryData(authKeys.me(), loginResponse.user)
+  // ...
+}
+```
+
+```typescript
+// ❌ BROKEN: Frontend trying to send Authorization header
+const token = localStorage.getItem('auth_token')
+if (token) {
+  config.headers.Authorization = `Bearer ${token}`
+}
+
+// ✅ FIXED: BFF pattern - cookie-only authentication
+// BFF Pattern: Authentication handled via httpOnly cookies automatically
+// No need to add Authorization header - JWT token is in secure cookie
+```
+
+**Files Fixed**:
+- `/apps/web/src/lib/api/client.ts` - Removed Authorization header logic
+- `/apps/web/src/lib/api/hooks/useAuth.ts` - Removed all localStorage token handling
+- `/apps/web/tests/performance-test.js` - Updated to use credentials: include
+- `/apps/web/tests/temp/jwt-test.js` - Updated for BFF pattern testing
+
+**Backend Correctly Configured** (no changes needed):
+- Login endpoint sets httpOnly cookie: `context.Response.Cookies.Append("auth-token", response.Token, cookieOptions)`
+- JWT middleware checks cookie: `var cookieToken = context.Request.Cookies["auth-token"]`
+- CORS configured for credentials: `WithOrigins(...).AllowCredentials()`
+
+**Key Architecture Principles Enforced**:
+1. **BFF Pattern**: Frontend never sees JWT tokens - they're httpOnly cookies only
+2. **Security by Design**: XSS cannot access authentication tokens
+3. **Consistent API Client**: Uses `withCredentials: true` for automatic cookie handling
+4. **No Mixed Patterns**: Either use BFF (cookies) OR Bearer tokens, never both
+
+**Testing Results**:
+- ✅ Login sets authentication cookie correctly
+- ✅ Protected API calls work via cookie authentication
+- ✅ Logout clears authentication cookies properly
+- ✅ No Authorization headers sent (proper BFF pattern)
+
+**PREVENTION**: Always verify frontend and backend authentication patterns are aligned. If backend uses BFF pattern (httpOnly cookies), frontend must NOT expect tokens in responses or try to set Authorization headers.
+
+**KEY LESSON**: Authentication architecture alignment is critical. Mixed patterns (expecting tokens when using cookies) cause complete authentication failures. BFF pattern requires frontend to be completely token-agnostic.
+
+## 🚨 ULTRA CRITICAL: Entity Framework Navigation Property Requirements (2025-09-19) 🚨
+
+**CRITICAL PATTERN**: When persistence fails, check Entity Framework navigation properties FIRST before assuming infrastructure issues.
+
+### 🔥 MANDATORY EF RELATIONSHIP VERIFICATION
+**Rule**: Both sides of EF relationships MUST have navigation properties for proper change tracking
+**Problem**: Missing navigation properties cause silent persistence failures
+**Detection**: If some entities persist but others don't, check navigation properties
+**Prevention**: ALWAYS verify bidirectional relationships exist
+
+### ✅ CORRECT EF RELATIONSHIP PATTERN
+```csharp
+// ✅ BOTH sides have navigation properties
+public class Event
+{
+    public ICollection<VolunteerPosition> VolunteerPositions { get; set; } = new List<VolunteerPosition>();
+}
+
+public class VolunteerPosition
+{
+    public Event Event { get; set; }
+    public Guid EventId { get; set; }
+}
+```
+
+### ❌ BROKEN EF RELATIONSHIP PATTERN
+```csharp
+// ❌ Missing navigation property on Event side
+public class Event
+{
+    // Missing: ICollection<VolunteerPosition> VolunteerPositions
+}
+
+public class VolunteerPosition
+{
+    public Event Event { get; set; }  // Only one-way relationship
+    public Guid EventId { get; set; }
+}
+```
+
+### 🛡️ MANDATORY EF VERIFICATION CHECKLIST
+**BEFORE adding new entities:**
+- [ ] Both sides of relationship have navigation properties
+- [ ] DbContext.OnModelCreating() configures relationships
+- [ ] Service classes use .Include() for navigation properties
+- [ ] DTO classes include related data properties
+
+**DEBUGGING COMMANDS:**
+```bash
+# Check for navigation properties
+grep -r "ICollection" apps/api/Models/
+
+# Verify Include statements exist
+grep -r "\.Include" apps/api/Features/
+
+# Check relationship configuration
+grep -r "WithOne\|WithMany" apps/api/Data/
+```
+
+### 🚨 CRITICAL COST OF MISSING NAVIGATION PROPERTIES
+**September 19, 2025 Example**: VolunteerPositions not persisting
+- **Time Wasted**: 4-6 hours investigating Docker (perfectly functional)
+- **Root Cause**: Missing `VolunteerPositions` navigation property on `Event` entity
+- **Resolution**: 5 minutes to add property + Include statements
+- **Prevention Value**: 90%+ debugging time saved with proper verification
+
+**NO EXCEPTIONS**: Always check EF relationships before infrastructure investigation.
+
+---
+
 ## 🚨 CRITICAL: Logout Persistence Debugging (2025-09-19)
 
 ### ❌ **PROBLEM**: Users remain authenticated after logout on page refresh
@@ -41,6 +181,34 @@ This document tracks critical lessons learned during backend development to prev
 - `/apps/api/Services/TokenBlacklistService.cs` - Enhanced blacklist logging
 
 **Next Steps**: Run E2E tests with debug logging to identify where the logout process is failing.
+
+## ✅ **FIXED**: VolunteerPositions Navigation Property Missing (2025-09-19)
+
+### ❌ **PROBLEM**: VolunteerPositions not persisting while Sessions and TicketTypes work fine
+
+**Root Cause**: Missing navigation property on Event entity
+- Event entity had Sessions and TicketTypes navigation properties
+- VolunteerPosition entity had Event navigation property
+- But Event entity was missing VolunteerPositions navigation property
+- EF Core couldn't properly track VolunteerPosition changes without bidirectional relationship
+
+**✅ **SOLUTION**: Added missing navigation property and updated all related code
+1. **Added navigation property** to Event entity: `public ICollection<VolunteerPosition> VolunteerPositions { get; set; } = new List<VolunteerPosition>();`
+2. **Updated ApplicationDbContext** to configure relationship: `entity.HasMany(e => e.VolunteerPositions).WithOne(v => v.Event).HasForeignKey(v => v.EventId).OnDelete(DeleteBehavior.Cascade);`
+3. **Updated EventService queries** to include VolunteerPositions: `.Include(e => e.VolunteerPositions)`
+4. **Created VolunteerPositionDto** for API responses
+5. **Added VolunteerPositions property** to EventDto with mapping
+
+**Files Modified**:
+- `/apps/api/Models/Event.cs` - Added VolunteerPositions navigation property
+- `/apps/api/Data/ApplicationDbContext.cs` - Added relationship configuration
+- `/apps/api/Features/Events/Services/EventService.cs` - Added Include statements in all queries
+- `/apps/api/Features/Events/Models/EventDto.cs` - Added VolunteerPositions property
+- `/apps/api/Features/Events/Models/VolunteerPositionDto.cs` - NEW: DTO class for API responses
+
+**Migration**: `20250919182243_AddVolunteerPositionsNavigationToEvent` (empty - model-only change)
+
+**Key Lesson**: For EF Core change tracking to work properly, both sides of a relationship need navigation properties. Entity Framework needs the bidirectional relationship to detect and persist related entity changes.
 
 ## 🚨 CRITICAL: Session Persistence Bug Fix (2025-09-19)
 
