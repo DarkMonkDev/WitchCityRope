@@ -1,5 +1,54 @@
 # Database Developer Lessons Learned
 
+## 🚨 ULTRA CRITICAL: Entity Framework Entity Model ID Pattern - NEVER Initialize IDs 🚨
+
+**CRITICAL DATABASE DESIGN RULE**: Entity models should have simple `public Guid Id { get; set; }` without initializers. The Events admin persistence bug was caused by `public Guid Id { get; set; } = Guid.NewGuid();` initializers causing Entity Framework to treat new entities as existing ones.
+
+### 🔥 MANDATORY ENTITY MODEL PATTERN
+**CATASTROPHIC ERROR PATTERN**:
+```csharp
+// ❌ NEVER DO THIS - Breaks EF Core ID generation
+public class Event
+{
+    public Guid Id { get; set; } = Guid.NewGuid();  // THIS CAUSES UPDATE instead of INSERT!
+}
+```
+
+**CORRECT DATABASE ENTITY PATTERN**:
+```csharp
+// ✅ ALWAYS USE THIS - Simple property, EF handles generation
+public class Event
+{
+    public Guid Id { get; set; }  // Let Entity Framework manage ID lifecycle
+}
+```
+
+### 🛡️ DATABASE ID GENERATION STRATEGY
+**Entity Framework Best Practices**:
+- **Database should rely on EF Core's ID generation strategy**
+- **Never assume client-generated IDs are permanent** - replace with DB-generated ones for new entities
+- **Client-generated IDs should be treated as temporary** - useful for frontend optimistic updates only
+- **This prevents concurrency exceptions** - ensures proper INSERT vs UPDATE detection
+
+### 🚨 CRITICAL DEBUGGING SYMPTOMS
+**Error**: `DbUpdateConcurrencyException: Database operation expected to affect 1 row(s) but actually affected 0 row(s)`
+**Root Cause**: Entity Framework thinks it's updating existing entities when it should be inserting new ones
+**Database Impact**: No rows affected because UPDATE attempts to find non-existent records
+**Fix**: Remove ID initializers from entity models immediately
+
+### 📋 DATABASE DESIGNER PREVENTION CHECKLIST
+- [ ] **ENSURE** all entity models have simple `public Guid Id { get; set; }` without initializers
+- [ ] **VERIFY** Entity Framework configurations don't override default ID generation
+- [ ] **VALIDATE** that new entities show as "Added" in change tracking, not "Modified"
+- [ ] **TEST** that database operations perform INSERTs for new entities
+- [ ] **DOCUMENT** that client-generated IDs are temporary and replaced by database
+
+**CRITICAL IMPACT**: This mistake wasted hours of debugging time with infrastructure investigation when the problem was fundamental entity model design.
+
+**DATABASE DESIGN PRINCIPLE**: Keep entity ID properties simple. Let Entity Framework and the database handle the ID lifecycle completely.
+
+---
+
 ## 🚨 CRITICAL: Legacy API Archived 2025-09-13
 
 **MANDATORY**: ALL database work must target modern API only:

@@ -18,6 +18,8 @@
 | 2025-09-19 | /tests/playwright/persistence-validation.spec.ts | CREATED | Comprehensive E2E test for persistence fix validation | Persistence testing after backend fixes | TEMPORARY | 2025-09-26 |
 | 2025-09-19 | /tests/playwright/basic-app-check.spec.ts | CREATED | Basic React app functionality verification test | Persistence testing after backend fixes | TEMPORARY | 2025-09-26 |
 | 2025-09-19 | /tests/playwright/api-persistence-test.spec.ts | CREATED | Direct API testing for persistence validation | Persistence testing after backend fixes | TEMPORARY | 2025-09-26 |
+| 2025-09-19 | /docs/lessons-learned/backend-developer-lessons-learned.md | MODIFIED | Added ULTRA CRITICAL Entity Framework ID generation pattern - never initialize IDs in models | Critical EF pattern to prevent UPDATE instead of INSERT errors | ACTIVE | Never |
+| 2025-09-19 | /docs/lessons-learned/database-designer-lessons-learned.md | MODIFIED | Added ULTRA CRITICAL Entity Framework entity model ID pattern guidance | Critical database design pattern to prevent concurrency exceptions | ACTIVE | Never |
 | 2025-09-19 | /tests/playwright/working-persistence-test.spec.ts | CREATED | Focused test for working persistence components | Persistence testing after backend fixes | TEMPORARY | 2025-09-26 |
 | 2025-09-19 | /test-results/persistence-fix-validation-report.md | CREATED | Comprehensive report on persistence testing results | Persistence testing after backend fixes | ACTIVE | - |
 | 2025-09-19 | /tests/playwright/events-admin-add-buttons-verification.spec.ts | CREATED | Comprehensive E2E test for verifying Add buttons fixes | Events admin Add buttons verification | TEMPORARY | 2025-09-26 |

@@ -2,6 +2,38 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 ULTRA CRITICAL: Critical Entity Framework Lesson Propagation Success (2025-09-19) 🚨
+
+**MAJOR SUCCESS**: Successfully added ULTRA CRITICAL Entity Framework ID generation pattern lessons to both backend-developer and database-designer lessons learned files.
+
+**CRITICAL CONTEXT**: The Events admin persistence bug was caused by entity models having `public Guid Id { get; set; } = Guid.NewGuid();` initializers, causing Entity Framework to attempt UPDATE operations instead of INSERT operations, resulting in DbUpdateConcurrencyException.
+
+### ✅ SUCCESSFUL LESSON PROPAGATION STRATEGY:
+1. **Ultra Critical Positioning**: Added at very top of both files with maximum visibility markers
+2. **Dual Agent Coverage**: Backend developers and database designers both get the critical pattern
+3. **Code Examples**: Clear wrong vs right patterns with explanations
+4. **Prevention Checklists**: Actionable items to prevent this mistake
+5. **Root Cause Documentation**: Clear explanation of WHY this breaks EF Core
+6. **Debugging Guidance**: Symptoms to recognize this pattern in future
+
+### 📋 PATTERN ELEMENTS INCLUDED:
+- **Visual Emphasis**: Multiple warning emojis and "ULTRA CRITICAL" headers
+- **Technical Precision**: Exact error messages and code patterns
+- **Prevention Focus**: Checklists to avoid this mistake entirely
+- **Cross-Role Impact**: Both backend and database perspectives covered
+- **Real Impact Documentation**: "Hours of debugging time wasted" messaging
+
+### 🎯 PREVENTION SUCCESS METRICS:
+If agents follow updated lessons learned:
+- ✅ Zero entity models with ID initializers
+- ✅ Zero DbUpdateConcurrencyException from ID generation
+- ✅ Proper INSERT operations for new entities
+- ✅ Entity Framework change tracking shows "Added" state
+
+**CRITICAL LEARNING**: When root causes of costly debugging are discovered, immediately propagate the lessons to ALL relevant agent types with maximum visibility to prevent recurrence.
+
+---
+
 ## 🚨 ULTRA CRITICAL: Debugging Session Documentation Success Pattern (2025-09-19) 🚨
 
 **MAJOR SUCCESS**: Created comprehensive documentation for costly debugging session that was misdiagnosed.

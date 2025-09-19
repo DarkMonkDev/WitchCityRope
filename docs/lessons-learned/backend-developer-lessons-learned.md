@@ -2,6 +2,68 @@
 
 This document tracks critical lessons learned during backend development to prevent recurring issues and speed up future development.
 
+## 🚨 ULTRA CRITICAL: Entity Framework ID Generation Pattern - NEVER Initialize IDs in Models 🚨
+
+**CRITICAL ROOT CAUSE DISCOVERED**: The Events admin persistence bug was caused by entity models having `public Guid Id { get; set; } = Guid.NewGuid();` initializers. This causes Entity Framework to think new entities are existing ones, leading to UPDATE attempts instead of INSERTs, resulting in `DbUpdateConcurrencyException: Database operation expected to affect 1 row(s) but actually affected 0 row(s)`.
+
+### 🔥 MANDATORY ENTITY ID PATTERN
+**NEVER DO THIS**:
+```csharp
+// ❌ CATASTROPHIC ERROR - Causes UPDATE instead of INSERT
+public class Event
+{
+    public Guid Id { get; set; } = Guid.NewGuid();  // THIS BREAKS EVERYTHING!
+}
+```
+
+**ALWAYS DO THIS**:
+```csharp
+// ✅ CORRECT - Let Entity Framework handle ID generation
+public class Event
+{
+    public Guid Id { get; set; }  // Simple property, no initializer
+}
+```
+
+### 🚨 CRITICAL DEBUGGING PATTERN
+**Symptoms**: "Database operation expected to affect 1 row(s) but actually affected 0 row(s)"
+**Root Cause**: Entity Framework thinks it's updating existing entities instead of inserting new ones
+**Detection**: Check entity models for `= Guid.NewGuid()` initializers
+**Fix**: Remove ALL ID initializers from entity model properties
+
+### 🛡️ CLIENT-GENERATED ID PATTERN (When Needed)
+**For frontend-generated UUIDs**: Backend should IGNORE client IDs for new entities
+```csharp
+// ✅ CORRECT - Check if entity exists in current DB collection
+var existingEvent = await context.Events
+    .FirstOrDefaultAsync(e => e.Id == dto.Id);
+
+if (existingEvent == null)
+{
+    // NEW entity - let EF generate ID, ignore client ID
+    var newEvent = new Event { /* map other properties */ };
+    context.Events.Add(newEvent);
+}
+else
+{
+    // EXISTING entity - update it
+    // Map properties to existing entity
+}
+```
+
+### 🎯 PREVENTION CHECKLIST
+- [ ] **NEVER** initialize entity IDs with `= Guid.NewGuid()` in model definitions
+- [ ] **ALWAYS** let Entity Framework handle ID generation for new entities
+- [ ] **CHECK** if entity exists in current DB collection, not just if ID is valid GUID
+- [ ] **VALIDATE** entity state tracking shows AddedState for new entities
+- [ ] **TEST** that SaveChanges performs INSERT operations, not UPDATE
+
+**HOURS SAVED**: This pattern has caused multiple debugging sessions. Following this prevents DbUpdateConcurrencyException errors completely.
+
+**CRITICAL LEARNING**: Entity Framework ID generation patterns are fundamental to proper persistence. Wrong patterns cause silent failures that are extremely difficult to debug.
+
+---
+
 ## 🚨 CRITICAL: Frontend-Backend Authentication Alignment Fixed - September 19, 2025 🚨
 
 ### URGENT RESOLUTION: Mixed Authentication Pattern Breaking BFF Implementation
