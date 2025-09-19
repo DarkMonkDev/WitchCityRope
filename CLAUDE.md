@@ -135,13 +135,21 @@ Failure to create/read handoffs = implementation failures.
 
 ## 🚨 CRITICAL ARCHITECTURE WARNINGS
 
-### 1. Web+API Microservices Architecture
-- **Web Service** (React + Vite): UI/Auth at http://localhost:5173
-- **API Service** (Minimal API): Business logic at http://localhost:5653  
-- **Database** (PostgreSQL): localhost:5433
+### 1. 🐳 DOCKER-ONLY DEVELOPMENT ENVIRONMENT
+**📍 MUST READ**: [DOCKER_ONLY_DEVELOPMENT.md](./DOCKER_ONLY_DEVELOPMENT.md)
+
+- **Local dev servers are DISABLED** to prevent confusion
+- **Only Docker containers allowed** for development
+- **npm run dev WILL FAIL** - use `./dev.sh` instead
+- **Tests ONLY run against Docker** - fail if containers not running
+
+### 2. Web+API Microservices Architecture
+- **Web Service** (React + Vite): UI/Auth at http://localhost:5173 (Docker only)
+- **API Service** (Minimal API): Business logic at http://localhost:5655 (Docker only)
+- **Database** (PostgreSQL): localhost:5433 (Docker only)
 - **Pattern**: React → HTTP → API → Database (NEVER React → Database directly)
 
-### 2. 🚨 DTO ALIGNMENT STRATEGY - CRITICAL FOR ALL DEVELOPERS
+### 3. 🚨 DTO ALIGNMENT STRATEGY - CRITICAL FOR ALL DEVELOPERS
 - **📍 MUST READ**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
 - **API DTOs ARE SOURCE OF TRUTH** - Never create manual TypeScript interfaces for API data
 - **TypeScript Interfaces MUST Match C# DTOs** - Use NSwag type generation
@@ -149,7 +157,7 @@ Failure to create/read handoffs = implementation failures.
 - **Backend Developers**: Any DTO changes require frontend type regeneration
 - **VIOLATION = BROKEN BUILDS** - Manual interfaces will conflict with generated types
 
-### 3. Pure React with TypeScript - Component Best Practices
+### 4. Pure React with TypeScript - Component Best Practices
 **ALWAYS USE:**
 - ✅ `.tsx` files for React components
 - ✅ TypeScript for type safety
@@ -162,18 +170,18 @@ Failure to create/read handoffs = implementation failures.
 - ❌ Direct DOM manipulation (use React refs when needed)
 - ❌ Inline event handlers for complex logic
 
-### 4. Authentication Pattern
+### 5. Authentication Pattern
 - ❌ **NEVER** store auth tokens in localStorage (XSS risk)
 - ✅ **ALWAYS** use httpOnly cookies via API endpoints: `/auth/login`, `/auth/logout`, `/auth/register`
 - ✅ **Pattern**: React → API endpoints → Cookie-based auth
 - ✅ **Use** React Context for auth state management
 
-### 5. E2E Testing - Playwright ONLY
+### 6. E2E Testing - Playwright ONLY
 - ✅ **Location**: `/tests/playwright/`
 - ✅ **Run**: `npm run test:e2e:playwright`
 - ❌ **NO Puppeteer**: All tests use Playwright
 
-### 6. Docker Development Build
+### 7. Docker Development Build
 ```bash
 # ❌ WRONG - Will fail:
 docker-compose up

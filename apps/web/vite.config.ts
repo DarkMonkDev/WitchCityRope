@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '0.0.0.0', // Required for container access
       port: parseInt(process.env.VITE_PORT || '5173'), // Use environment variable
-      strictPort: false, // Allow port flexibility for development
+      strictPort: true, // ENFORCE port 5173 - fail if unavailable (prevents confusion)
       
       // HMR Configuration - disabled due to WebSocket issues causing refresh loops
       hmr: false, // Disable HMR to prevent constant refreshing

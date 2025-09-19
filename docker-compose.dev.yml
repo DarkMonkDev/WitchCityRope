@@ -166,8 +166,8 @@ services:
       - /app/.vite
       - /app/dist
     
-    # Development command with hot reload and HMR
-    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
+    # Development command with hot reload and HMR - use Docker-only script
+    command: ["sh", "-c", "npm run dev:docker-only -- --host 0.0.0.0 --port 5173"]
     
     # Override health check for development
     healthcheck:

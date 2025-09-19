@@ -8,6 +8,15 @@
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-01-18 | /package.json | MODIFIED | Disabled npm run dev script to prevent local dev servers | Docker-only development fix | ACTIVE | Never |
+| 2025-01-18 | /apps/web/package.json | MODIFIED | Disabled npm run dev script, added dev:docker-only script | Docker-only development fix | ACTIVE | Never |
+| 2025-01-18 | /apps/web/vite.config.ts | MODIFIED | Set strictPort: true to enforce port 5173 | Docker-only development fix | ACTIVE | Never |
+| 2025-01-18 | /docker-compose.dev.yml | MODIFIED | Updated command to use dev:docker-only script | Docker-only development fix | ACTIVE | Never |
+| 2025-01-18 | /scripts/kill-local-dev-servers.sh | CREATED | Script to kill local Node/npm processes that conflict with Docker | Docker-only development fix | ACTIVE | Never |
+| 2025-01-18 | /tests/e2e/global-setup.ts | MODIFIED | Enhanced to detect and prevent local dev server conflicts | Docker-only development fix | ACTIVE | Never |
+| 2025-01-18 | /playwright.config.ts | MODIFIED | Added Docker-only enforcement comments | Docker-only development fix | ACTIVE | Never |
+| 2025-01-18 | /DOCKER_ONLY_DEVELOPMENT.md | CREATED | Comprehensive documentation of Docker-only development approach | Docker-only development fix | ACTIVE | Never |
+| 2025-01-18 | /CLAUDE.md | MODIFIED | Updated to reference Docker-only development and renumbered sections | Docker-only development fix | ACTIVE | Never |
 | 2025-09-19 | /apps/api/Services/ITokenBlacklistService.cs | CREATED | Interface for JWT token blacklisting to fix logout security vulnerability | Backend Developer - Logout Fix | ACTIVE | N/A |
 | 2025-09-19 | /apps/api/Services/TokenBlacklistService.cs | CREATED | In-memory token blacklist implementation for logout security | Backend Developer - Logout Fix | ACTIVE | N/A |
 | 2025-09-19 | /apps/api/Services/JwtService.cs | MODIFIED | Added blacklist checking to ValidateToken method and ExtractJti method | Backend Developer - Logout Fix | ACTIVE | N/A |

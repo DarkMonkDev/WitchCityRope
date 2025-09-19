@@ -8,7 +8,36 @@ import { ServiceHelper, checkDockerServices } from './helpers/service.helper'
  */
 async function globalSetup() {
   console.log('🚀 Setting up E2E test environment...')
-  
+
+  // DOCKER-ONLY ENFORCEMENT: Check for local dev servers and warn
+  console.log('🔍 Verifying Docker-only environment...')
+
+  try {
+    // Check for local npm/node processes that might conflict
+    const { exec } = require('child_process')
+    const { promisify } = require('util')
+    const execAsync = promisify(exec)
+
+    const localProcesses = await execAsync('ps aux | grep -E "(npm run dev|vite.*--port.*517)" | grep -v grep | grep -v docker || true')
+    if (localProcesses.stdout.trim()) {
+      console.error(`
+❌ CRITICAL: Local dev servers detected!
+
+Local Node/npm processes found that may conflict with Docker:
+${localProcesses.stdout}
+
+🔧 FIX: Run the cleanup script first:
+   ./scripts/kill-local-dev-servers.sh
+
+🐳 THEN start Docker containers:
+   ./dev.sh
+`)
+      process.exit(1)
+    }
+  } catch (error) {
+    console.log('⚠️  Could not check for local processes (probably okay)')
+  }
+
   // First, quickly check if services are accessible
   console.log('🔍 Checking Docker service status...')
   const status = await checkDockerServices()

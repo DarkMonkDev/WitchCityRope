@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "echo '❌ ERROR: Local dev servers are disabled. Use ./dev.sh to start Docker containers.' && exit 1",
+    "dev:docker-only": "vite",
     "build": "tsc && vite build",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
