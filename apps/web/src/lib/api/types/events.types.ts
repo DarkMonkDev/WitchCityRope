@@ -74,13 +74,10 @@ export interface EventTicketTypeDto {
 
 export interface VolunteerPositionDto {
   id: string
-  title?: string  // API returns 'title'
-  name?: string   // Frontend uses 'name' for compatibility
+  title: string
   description: string
-  slotsNeeded?: number      // API returns 'slotsNeeded'
-  slotsFilled?: number      // API returns 'slotsFilled'
-  volunteersNeeded?: number // Frontend uses 'volunteersNeeded'
-  volunteersAssigned?: number // Frontend uses 'volunteersAssigned'
+  slotsNeeded: number
+  slotsFilled: number
   sessionId?: string
   requirements?: string
   requiresExperience?: boolean

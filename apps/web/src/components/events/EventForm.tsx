@@ -368,12 +368,12 @@ export const EventForm: React.FC<EventFormProps> = ({
     setVolunteerModalOpen(true);
   };
 
-  const handleVolunteerPositionSubmit = (positionData: Omit<VolunteerPosition, 'id' | 'volunteersAssigned'>) => {
+  const handleVolunteerPositionSubmit = (positionData: Omit<VolunteerPosition, 'id' | 'slotsFilled'>) => {
     if (editingVolunteerPosition) {
       // Update existing position
       const updatedPositions = form.values.volunteerPositions.map(position =>
         position.id === editingVolunteerPosition.id
-          ? { ...positionData, id: editingVolunteerPosition.id, volunteersAssigned: editingVolunteerPosition.volunteersAssigned }
+          ? { ...positionData, id: editingVolunteerPosition.id, slotsFilled: editingVolunteerPosition.slotsFilled }
           : position
       );
       form.setFieldValue('volunteerPositions', updatedPositions);
@@ -382,7 +382,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       const newPosition: VolunteerPosition = {
         ...positionData,
         id: crypto.randomUUID(),
-        volunteersAssigned: 0, // Start with no volunteers assigned
+        slotsFilled: 0, // Start with no volunteers filled
       };
       form.setFieldValue('volunteerPositions', [...form.values.volunteerPositions, newPosition]);
     }

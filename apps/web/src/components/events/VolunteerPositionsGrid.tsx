@@ -17,8 +17,8 @@ export const VolunteerPositionsGrid: React.FC<VolunteerPositionsGridProps> = ({
   onDeletePosition,
   onAddPosition,
 }) => {
-  const handleDeleteClick = (positionId: string, positionName: string) => {
-    if (window.confirm(`Are you sure you want to delete the "${positionName}" position?`)) {
+  const handleDeleteClick = (positionId: string, positionTitle: string) => {
+    if (window.confirm(`Are you sure you want to delete the "${positionTitle}" position?`)) {
       onDeletePosition(positionId);
     }
   };
@@ -90,7 +90,7 @@ export const VolunteerPositionsGrid: React.FC<VolunteerPositionsGridProps> = ({
         </Table.Thead>
         <Table.Tbody>
           {positions.map((position) => {
-            const status = getAssignmentStatus(position.volunteersAssigned, position.volunteersNeeded);
+            const status = getAssignmentStatus(position.slotsFilled, position.slotsNeeded);
             
             return (
               <Table.Tr key={position.id} data-testid="position-row">
@@ -106,8 +106,8 @@ export const VolunteerPositionsGrid: React.FC<VolunteerPositionsGridProps> = ({
                   </WCRButton>
                 </Table.Td>
                 <Table.Td>
-                  <Text fw={600} c="burgundy" data-testid="position-name">
-                    {position.positionName}
+                  <Text fw={600} c="burgundy" data-testid="position-title">
+                    {position.title}
                   </Text>
                 </Table.Td>
                 <Table.Td>
@@ -126,8 +126,8 @@ export const VolunteerPositionsGrid: React.FC<VolunteerPositionsGridProps> = ({
                   </Text>
                 </Table.Td>
                 <Table.Td style={{ textAlign: 'center', fontWeight: 600 }}>
-                  <Text fw={600} data-testid="volunteers-needed">
-                    {position.volunteersNeeded}
+                  <Text fw={600} data-testid="slots-needed">
+                    {position.slotsNeeded}
                   </Text>
                 </Table.Td>
                 <Table.Td>
@@ -140,7 +140,7 @@ export const VolunteerPositionsGrid: React.FC<VolunteerPositionsGridProps> = ({
                     variant="filled"
                     color="red"
                     size="sm"
-                    onClick={() => handleDeleteClick(position.id, position.positionName)}
+                    onClick={() => handleDeleteClick(position.id, position.title)}
                     data-testid="button-delete-volunteer-position"
                   >
                     <IconTrash size={14} />

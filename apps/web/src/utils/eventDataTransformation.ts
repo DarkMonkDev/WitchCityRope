@@ -92,10 +92,10 @@ export function convertEventFormDataToUpdateDto(
   if (formData.volunteerPositions !== undefined) {
     updateDto.volunteerPositions = formData.volunteerPositions.map(position => ({
       id: position.id,
-      title: (position as any).positionName || (position as any).name || position.title || '', // Map positionName to title for API
+      title: position.title || '',
       description: position.description || '',
-      slotsNeeded: position.volunteersNeeded || 0, // Map volunteersNeeded to slotsNeeded
-      slotsFilled: position.volunteersAssigned || 0, // Map volunteersAssigned to slotsFilled
+      slotsNeeded: position.slotsNeeded || 0,
+      slotsFilled: position.slotsFilled || 0,
       requiresExperience: (position as any).requiresExperience || false,
       requirements: (position as any).requirements || '',
       sessionId: (position as any).sessionId
@@ -274,10 +274,10 @@ export function getChangedEventFields(
   if (currentVolunteerPositionsStr !== initialVolunteerPositionsStr) {
     changes.volunteerPositions = (current.volunteerPositions || []).map(position => ({
       id: position.id,
-      title: (position as any).positionName || (position as any).name || position.title || '', // Map positionName to title for API
+      title: position.title || '',
       description: position.description || '',
-      slotsNeeded: position.volunteersNeeded || 0, // Map volunteersNeeded to slotsNeeded
-      slotsFilled: position.volunteersAssigned || 0, // Map volunteersAssigned to slotsFilled
+      slotsNeeded: position.slotsNeeded || 0,
+      slotsFilled: position.slotsFilled || 0,
       requiresExperience: (position as any).requiresExperience || false,
       requirements: (position as any).requirements || '',
       sessionId: (position as any).sessionId

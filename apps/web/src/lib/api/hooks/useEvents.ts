@@ -108,16 +108,13 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
     salesEndDate: ticket.salesEndDate || undefined
   }));
 
-  // Transform volunteer positions - handle both API field names and frontend field names
+  // Transform volunteer positions - now using consistent field names
   const transformedVolunteerPositions = (apiEvent.volunteerPositions || []).map((vp: any) => ({
     id: vp.id,
     title: vp.title,
-    name: vp.title || vp.name, // Map title to name for frontend compatibility
     description: vp.description || '',
     slotsNeeded: vp.slotsNeeded,
     slotsFilled: vp.slotsFilled,
-    volunteersNeeded: vp.slotsNeeded || vp.volunteersNeeded, // Map for frontend
-    volunteersAssigned: vp.slotsFilled || vp.volunteersAssigned, // Map for frontend
     sessionId: vp.sessionId,
     requirements: vp.requirements,
     requiresExperience: vp.requiresExperience

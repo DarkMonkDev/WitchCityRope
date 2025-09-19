@@ -5,19 +5,19 @@ import { useForm } from '@mantine/form';
 
 export interface VolunteerPosition {
   id: string;
-  positionName: string;
+  title: string;  // Match API field name
   description: string;
   sessions: string; // "S1, S2" or "All Sessions"
   startTime: string;
   endTime: string;
-  volunteersNeeded: number;
-  volunteersAssigned: number;
+  slotsNeeded: number;  // Match API field name
+  slotsFilled: number;  // Match API field name
 }
 
 interface VolunteerPositionFormModalProps {
   opened: boolean;
   onClose: () => void;
-  onSubmit: (position: Omit<VolunteerPosition, 'id' | 'volunteersAssigned'>) => void;
+  onSubmit: (position: Omit<VolunteerPosition, 'id' | 'slotsFilled'>) => void;
   position?: VolunteerPosition | null;
   availableSessions: Array<{ sessionIdentifier: string; name: string }>;
 }
@@ -31,17 +31,17 @@ export const VolunteerPositionFormModal: React.FC<VolunteerPositionFormModalProp
 }) => {
   const form = useForm({
     initialValues: {
-      positionName: position?.positionName || '',
+      title: position?.title || '',
       description: position?.description || '',
       sessions: position?.sessions || 'All Sessions',
       startTime: position?.startTime || '18:00',
       endTime: position?.endTime || '21:00',
-      volunteersNeeded: position?.volunteersNeeded || 1,
+      slotsNeeded: position?.slotsNeeded || 1,
     },
     validate: {
-      positionName: (value) => (!value ? 'Position name is required' : null),
+      title: (value) => (!value ? 'Position title is required' : null),
       description: (value) => (!value ? 'Description is required' : null),
-      volunteersNeeded: (value) => {
+      slotsNeeded: (value) => {
         if (!value || value < 1) return 'Must need at least 1 volunteer';
         if (value > 20) return 'Cannot exceed 20 volunteers per position';
         return null;
@@ -68,13 +68,13 @@ export const VolunteerPositionFormModal: React.FC<VolunteerPositionFormModalProp
     event.preventDefault(); // Prevent default form submission that causes page refresh
     
     form.onSubmit((values) => {
-      const positionData: Omit<VolunteerPosition, 'id' | 'volunteersAssigned'> = {
-        positionName: values.positionName,
+      const positionData: Omit<VolunteerPosition, 'id' | 'slotsFilled'> = {
+        title: values.title,
         description: values.description,
         sessions: values.sessions,
         startTime: values.startTime,
         endTime: values.endTime,
-        volunteersNeeded: values.volunteersNeeded,
+        slotsNeeded: values.slotsNeeded,
       };
       onSubmit(positionData);
       form.reset();
@@ -98,12 +98,12 @@ export const VolunteerPositionFormModal: React.FC<VolunteerPositionFormModalProp
     if (opened) {
       if (position) {
         form.setValues({
-          positionName: position.positionName,
+          title: position.title,
           description: position.description,
           sessions: position.sessions,
           startTime: position.startTime,
           endTime: position.endTime,
-          volunteersNeeded: position.volunteersNeeded,
+          slotsNeeded: position.slotsNeeded,
         });
       } else {
         form.reset();
@@ -123,11 +123,11 @@ export const VolunteerPositionFormModal: React.FC<VolunteerPositionFormModalProp
       <form onSubmit={handleSubmit}>
         <Stack gap="md">
           <TextInput
-            label="Position Name"
+            label="Position Title"
             placeholder="e.g., Safety Monitor, Door Greeter"
             required
-            data-testid="input-position-name"
-            {...form.getInputProps('positionName')}
+            data-testid="input-position-title"
+            {...form.getInputProps('title')}
           />
 
           <Textarea
@@ -167,13 +167,13 @@ export const VolunteerPositionFormModal: React.FC<VolunteerPositionFormModalProp
           </Group>
 
           <NumberInput
-            label="Volunteers Needed"
-            placeholder="Number of volunteers required"
+            label="Slots Needed"
+            placeholder="Number of volunteer slots required"
             min={1}
             max={20}
             required
-            data-testid="input-volunteers-needed"
-            {...form.getInputProps('volunteersNeeded')}
+            data-testid="input-slots-needed"
+            {...form.getInputProps('slotsNeeded')}
           />
 
           <Group justify="flex-end" mt="md">

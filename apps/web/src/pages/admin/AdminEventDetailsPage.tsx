@@ -55,16 +55,16 @@ export const AdminEventDetailsPage: React.FC = () => {
                      event.eventType === 'Social' ? 'social' as const : 
                      'class' as const; // Default fallback
 
-    // Map volunteer positions from API response - handle field name differences
+    // Map volunteer positions from API response - now using consistent field names
     const volunteerPositions = ((event as any)?.volunteerPositions || []).map((vp: any) => ({
       id: vp.id || '',
-      positionName: vp.title || vp.name || '', // API returns 'title', form uses 'positionName'
+      title: vp.title || '',
       description: vp.description || '',
       sessions: vp.sessionId ? `Session ${vp.sessionId}` : 'All Sessions',
       startTime: '18:00', // Default as API doesn't include these
       endTime: '21:00',   // Default as API doesn't include these
-      volunteersNeeded: vp.slotsNeeded || vp.volunteersNeeded || 0,
-      volunteersAssigned: vp.slotsFilled || vp.volunteersAssigned || 0,
+      slotsNeeded: vp.slotsNeeded || 0,
+      slotsFilled: vp.slotsFilled || 0,
     }));
 
     return {
