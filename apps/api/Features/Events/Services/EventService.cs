@@ -345,7 +345,7 @@ public class EventService
             }
             else
             {
-                // Add new session
+                // Add new session - DO NOT set ID, let EF generate it
                 var newSession = new WitchCityRope.Api.Models.Session
                 {
                     EventId = eventEntity.Id,
@@ -357,14 +357,12 @@ public class EventService
                     CurrentAttendees = sessionDto.RegisteredCount
                 };
 
-                // Only set ID if it's a valid new GUID and not already in use
-                if (Guid.TryParse(sessionDto.Id, out var newSessionId) && newSessionId != Guid.Empty)
-                {
-                    newSession.Id = newSessionId;
-                    processedSessionIds.Add(newSessionId);
-                }
-
+                // Let Entity Framework generate the ID for new sessions
+                // The ID from frontend is just a temporary client-side ID
                 eventEntity.Sessions.Add(newSession);
+
+                // Track that this is a new session (won't be in processedSessionIds)
+                // This ensures it won't be deleted in the removal logic
             }
         }
 
