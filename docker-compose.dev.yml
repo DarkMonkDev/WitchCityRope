@@ -58,6 +58,8 @@ services:
       context: .
       dockerfile: ./apps/api/Dockerfile
       target: development  # Multi-stage development target
+      args:
+        BUILDKIT_INLINE_CACHE: 1
     
     # External access for API testing and debugging
     ports:
@@ -122,6 +124,8 @@ services:
       context: ./apps/web
       dockerfile: Dockerfile
       target: development  # Multi-stage development target
+      args:
+        BUILDKIT_INLINE_CACHE: 1
     
     # External access for development and HMR WebSocket
     ports:
@@ -230,26 +234,30 @@ services:
 # ============================================================================
 # DEVELOPMENT USAGE INSTRUCTIONS
 # ============================================================================
-# 
+#
+# IMPORTANT: Set BuildKit environment variables for improved performance:
+#   export DOCKER_BUILDKIT=1
+#   export COMPOSE_DOCKER_CLI_BUILD=1
+#
 # Start Development Environment:
-#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-# 
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+#
 # Monitor Logs:
-#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs -f
-# 
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml logs -f
+#
 # Restart Specific Service:
-#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml restart api
-# 
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml restart api
+#
 # Rebuild Service:
-#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml build api
-# 
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml build api
+#
 # Stop Environment:
-#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
-# 
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml down
+#
 # Clean Rebuild:
-#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v
-#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --no-cache
-#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml down -v
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml build --no-cache
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 # 
 # Service Access URLs:
 #   React App:    http://localhost:5173

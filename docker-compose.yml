@@ -82,6 +82,8 @@ services:
     build:
       context: .
       dockerfile: ./apps/api/Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: 1
     container_name: witchcity-api
     networks:
       - witchcity-net
@@ -130,6 +132,8 @@ services:
     build:
       context: ./apps/web
       dockerfile: Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: 1
     container_name: witchcity-web
     networks:
       - witchcity-net
@@ -200,8 +204,11 @@ services:
 # - docker-compose.dev.yml: Development with hot reload
 # - docker-compose.test.yml: Testing with isolation
 # - docker-compose.prod.yml: Production with security
-# 
-# Usage:
-#   Development: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
-#   Testing:     docker-compose -f docker-compose.yml -f docker-compose.test.yml up
-#   Production:  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+#
+# Usage with BuildKit (recommended):
+#   export DOCKER_BUILDKIT=1
+#   export COMPOSE_DOCKER_CLI_BUILD=1
+#
+#   Development: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#   Testing:     docker compose -f docker-compose.yml -f docker-compose.test.yml up
+#   Production:  docker compose -f docker-compose.yml -f docker-compose.prod.yml up

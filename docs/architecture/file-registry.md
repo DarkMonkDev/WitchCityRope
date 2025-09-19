@@ -8,6 +8,9 @@
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-09-19 | /docker-compose.yml | MODIFIED | Added BuildKit inline cache args to service build configs | Docker BuildKit migration | ACTIVE | N/A |
+| 2025-09-19 | /docker-compose.dev.yml | MODIFIED | Added BuildKit configuration and updated to modern docker compose commands | Docker BuildKit migration | ACTIVE | N/A |
+| 2025-09-19 | /dev.sh | MODIFIED | Smart detection of docker-compose vs docker compose, optional BuildKit support | Docker BuildKit migration | ACTIVE | N/A |
 | 2025-09-19 | /apps/web/src/lib/api/hooks/useEvents.ts | MODIFIED | Removed excessive debug console.log statements causing memory retention | Memory leak fix - debug logging cleanup | ACTIVE | N/A |
 | 2025-09-19 | /apps/web/src/pages/admin/AdminEventDetailsPage.tsx | MODIFIED | Removed debug logging causing component re-render memory leaks | Memory leak fix - debug logging cleanup | ACTIVE | N/A |
 | 2025-09-19 | /apps/web/src/utils/eventDataTransformation.ts | MODIFIED | Eliminated debug logs holding references to large transformation objects | Memory leak fix - debug logging cleanup | ACTIVE | N/A |
