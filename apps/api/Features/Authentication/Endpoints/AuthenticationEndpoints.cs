@@ -172,15 +172,61 @@ public static class AuthenticationEndpoints
             .Produces(401)
             .Produces(404);
 
-        // Logout endpoint with cookie clearing
+        // Logout endpoint with cookie clearing and token blacklisting
         app.MapPost("/api/auth/logout", async (
             HttpContext context,
             ILogger<AuthenticationService> logger,
+            IJwtService jwtService,
+            ITokenBlacklistService tokenBlacklistService,
             CancellationToken cancellationToken) =>
             {
                 try
                 {
-                    // Clear the httpOnly authentication cookie
+                    // Log logout attempt and blacklist the token
+                    var authCookie = context.Request.Cookies["auth-token"];
+                    if (!string.IsNullOrEmpty(authCookie))
+                    {
+                        // Extract JTI and add to blacklist to invalidate the token server-side
+                        var jti = jwtService.ExtractJti(authCookie);
+                        if (!string.IsNullOrEmpty(jti))
+                        {
+                            // Get token expiration time
+                            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                            try
+                            {
+                                var jsonToken = handler.ReadJwtToken(authCookie);
+                                var expirationTime = jsonToken.ValidTo;
+
+                                // Add token to blacklist
+                                tokenBlacklistService.BlacklistToken(jti, expirationTime);
+                                logger.LogInformation("User logged out - token with JTI {Jti} blacklisted until {ExpirationTime}", jti, expirationTime);
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.LogWarning(ex, "Failed to parse token for blacklisting, but continuing with logout");
+                            }
+                        }
+                        else
+                        {
+                            logger.LogWarning("Could not extract JTI from token for blacklisting");
+                        }
+                    }
+
+                    // Clear the httpOnly authentication cookie with EXACTLY the same options as when set
+                    // CRITICAL: Use same options as login to ensure proper deletion
+                    var cookieOptions = new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = context.Request.IsHttps, // Use HTTPS in production
+                        SameSite = SameSiteMode.Strict,
+                        Path = "/",
+                        Expires = DateTimeOffset.UtcNow.AddDays(-1) // Set to past date for deletion
+                    };
+
+                    // Method 1: Explicitly set cookie to empty with past expiration
+                    context.Response.Cookies.Append("auth-token", "", cookieOptions);
+
+                    // Method 2: Also use Delete method as backup
                     context.Response.Cookies.Delete("auth-token", new CookieOptions
                     {
                         HttpOnly = true,
@@ -189,15 +235,8 @@ public static class AuthenticationEndpoints
                         Path = "/"
                     });
 
-                    // Log logout attempt (user info may not be available if cookie was invalid)
-                    var authCookie = context.Request.Cookies["auth-token"];
-                    if (!string.IsNullOrEmpty(authCookie))
-                    {
-                        logger.LogInformation("User logged out with valid cookie");
-                    }
-                    
-                    return Results.Ok(new { 
-                        Success = true, 
+                    return Results.Ok(new {
+                        Success = true,
                         Message = "Logged out successfully"
                     });
                 }
@@ -205,9 +244,9 @@ public static class AuthenticationEndpoints
                 {
                     logger.LogWarning(ex, "Logout error occurred");
                     // Still return success - logout should always succeed from user perspective
-                    return Results.Ok(new { 
-                        Success = true, 
-                        Message = "Logged out successfully" 
+                    return Results.Ok(new {
+                        Success = true,
+                        Message = "Logged out successfully"
                     });
                 }
             })
@@ -242,7 +281,20 @@ public static class AuthenticationEndpoints
                     // Validate token and extract user ID
                     if (!jwtService.ValidateToken(token))
                     {
-                        // Clear invalid cookie
+                        // Clear invalid cookie with same options as when set
+                        var clearCookieOptions = new CookieOptions
+                        {
+                            HttpOnly = true,
+                            Secure = context.Request.IsHttps,
+                            SameSite = SameSiteMode.Strict,
+                            Path = "/",
+                            Expires = DateTimeOffset.UtcNow.AddDays(-1) // Set to past date for deletion
+                        };
+
+                        // Method 1: Set to empty with past expiration
+                        context.Response.Cookies.Append("auth-token", "", clearCookieOptions);
+
+                        // Method 2: Also use Delete as backup
                         context.Response.Cookies.Delete("auth-token", new CookieOptions
                         {
                             HttpOnly = true,
@@ -250,7 +302,7 @@ public static class AuthenticationEndpoints
                             SameSite = SameSiteMode.Strict,
                             Path = "/"
                         });
-                        
+
                         return Results.Problem(
                             title: "Invalid Token",
                             detail: "Authentication token is invalid or expired",

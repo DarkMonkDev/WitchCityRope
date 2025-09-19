@@ -36,4 +36,11 @@ public interface IJwtService
     /// <param name="token">Token to validate</param>
     /// <returns>True if token structure is valid</returns>
     bool ValidateTokenStructure(string token);
+
+    /// <summary>
+    /// Extract the JTI (JWT ID) from a token for blacklisting purposes
+    /// </summary>
+    /// <param name="token">Token to extract JTI from</param>
+    /// <returns>JTI string if found, null otherwise</returns>
+    string? ExtractJti(string token);
 }

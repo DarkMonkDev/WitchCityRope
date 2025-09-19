@@ -69,14 +69,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = useCallback(async () => {
     try {
       setIsLoading(true)
-      await authService.logout()
+      // Clear user state first to update UI immediately
       setUser(null)
       setError(null)
+
+      // CRITICAL FIX: Clear Zustand store persistence
+      sessionStorage.removeItem('auth-store')
+
+      // Then call logout API to clear the cookie
+      await authService.logout()
+
+      // Force a page reload to ensure all state is cleared
+      // This also ensures the cookie deletion takes effect
+      window.location.href = '/login'
     } catch (err) {
       console.error('Logout error:', err)
-      // Even if logout fails, clear local state
+      // Even if logout fails, ensure we're logged out locally
       setUser(null)
       setError(null)
+
+      // CRITICAL FIX: Clear Zustand store persistence even on error
+      sessionStorage.removeItem('auth-store')
+
+      // Still redirect to login page
+      window.location.href = '/login'
     } finally {
       setIsLoading(false)
     }

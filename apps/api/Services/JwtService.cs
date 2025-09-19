@@ -20,12 +20,14 @@ public class JwtService : IJwtService
     private readonly string _issuer;
     private readonly string _audience;
     private readonly int _expirationMinutes;
+    private readonly ITokenBlacklistService _tokenBlacklistService;
 
-    public JwtService(IConfiguration configuration, ILogger<JwtService> logger)
+    public JwtService(IConfiguration configuration, ILogger<JwtService> logger, ITokenBlacklistService tokenBlacklistService)
     {
         _configuration = configuration;
         _logger = logger;
         _tokenHandler = new JwtSecurityTokenHandler();
+        _tokenBlacklistService = tokenBlacklistService;
 
         // Get configuration values with defaults for development
         _secretKey = _configuration["Jwt:SecretKey"] ?? "DevSecret-JWT-WitchCityRope-AuthTest-2024-32CharMinimum!";
@@ -89,12 +91,20 @@ public class JwtService : IJwtService
 
     /// <summary>
     /// Validate JWT token structure and signature
-    /// Basic validation for testing purposes
+    /// Also checks if the token is blacklisted (logged out)
     /// </summary>
     public bool ValidateToken(string token)
     {
         try
         {
+            // First check if token is blacklisted
+            var jti = ExtractJti(token);
+            if (!string.IsNullOrEmpty(jti) && _tokenBlacklistService.IsTokenBlacklisted(jti))
+            {
+                _logger.LogDebug("Token validation failed: token is blacklisted (user logged out)");
+                return false;
+            }
+
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
 
             var validationParameters = new TokenValidationParameters
@@ -168,6 +178,23 @@ public class JwtService : IJwtService
         {
             _logger.LogDebug("Token structure validation failed: {Error}", ex.Message);
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Extract the JTI (JWT ID) from a token for blacklisting purposes
+    /// </summary>
+    public string? ExtractJti(string token)
+    {
+        try
+        {
+            var jsonToken = _tokenHandler.ReadJwtToken(token);
+            return jsonToken?.Claims?.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Jti)?.Value;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug("Failed to extract JTI from token: {Error}", ex.Message);
+            return null;
         }
     }
 }

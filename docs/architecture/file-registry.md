@@ -8,6 +8,14 @@
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-09-19 | /apps/api/Services/ITokenBlacklistService.cs | CREATED | Interface for JWT token blacklisting to fix logout security vulnerability | Backend Developer - Logout Fix | ACTIVE | N/A |
+| 2025-09-19 | /apps/api/Services/TokenBlacklistService.cs | CREATED | In-memory token blacklist implementation for logout security | Backend Developer - Logout Fix | ACTIVE | N/A |
+| 2025-09-19 | /apps/api/Services/JwtService.cs | MODIFIED | Added blacklist checking to ValidateToken method and ExtractJti method | Backend Developer - Logout Fix | ACTIVE | N/A |
+| 2025-09-19 | /apps/api/Services/IJwtService.cs | MODIFIED | Added ExtractJti method to interface for token blacklisting | Backend Developer - Logout Fix | ACTIVE | N/A |
+| 2025-09-19 | /apps/api/Features/Authentication/Endpoints/AuthenticationEndpoints.cs | MODIFIED | Enhanced logout endpoint to blacklist tokens server-side | Backend Developer - Logout Fix | ACTIVE | N/A |
+| 2025-09-19 | /apps/api/Program.cs | MODIFIED | Registered ITokenBlacklistService as singleton in DI container | Backend Developer - Logout Fix | ACTIVE | N/A |
+| 2025-01-18 | /apps/api/Features/Authentication/Endpoints/AuthenticationEndpoints.cs | MODIFIED | Fixed httpOnly cookie deletion for logout functionality | Backend authentication fix | ACTIVE | - |
+| 2025-01-18 | /docs/lessons-learned/backend-developer-lessons-learned.md | MODIFIED | Documented cookie deletion fix and prevention strategies | Knowledge capture | ACTIVE | - |
 | 2025-01-13 | /docs/architecture/docs-structure-validator.sh | CREATED | Documentation structure validation | Architecture setup | ACTIVE | - |
 | 2025-01-13 | /docs/standards-processes/ | CREATED | Project standards and processes directory | Documentation organization | ACTIVE | - |
 | 2025-01-13 | /docs/guides-setup/ | CREATED | Setup and operational guides directory | Documentation organization | ACTIVE | - |
@@ -30,6 +38,7 @@
 | 2025-09-18 | /tests/playwright/simple-navigation-check.spec.ts | CREATED | Simple test to verify basic app functionality | Basic functionality verification | EVIDENCE | 2026-03-18 |
 | 2025-09-18 | /docs/functional-areas/testing/2025-09-18-navigation-verification.md | CREATED | Navigation verification report after API fix | Test execution documentation | ACTIVE | - |
 | 2025-09-18 | /docs/functional-areas/testing/2025-09-18-test-suite-analysis.md | CREATED | Comprehensive test suite analysis with failure categorization | Test execution analysis and development guidance | ACTIVE | - |
+| 2025-09-18 | /apps/web/src/contexts/AuthContext.tsx | MODIFIED | Fixed logout bug by clearing Zustand store sessionStorage persistence | React Developer - Logout Bug Fix | ACTIVE | - |
 
 ## File Categories
 

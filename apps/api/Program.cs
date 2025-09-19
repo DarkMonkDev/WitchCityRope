@@ -124,6 +124,9 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 
+// Token blacklist service for logout functionality (singleton for shared state)
+builder.Services.AddSingleton<ITokenBlacklistService, TokenBlacklistService>();
+
 // Add memory cache for CheckIn system performance
 builder.Services.AddMemoryCache();
 
@@ -200,7 +203,7 @@ if (app.Environment.IsDevelopment())
         // Log response headers for CORS debugging
         var corsHeaders = context.Response.Headers
             .Where(h => h.Key.StartsWith("Access-Control"))
-            .ToDictionary(h => h.Key, h => string.Join(", ", h.Value));
+            .ToDictionary(h => h.Key, h => string.Join(", ", h.Value.ToArray()));
 
         if (corsHeaders.Any())
         {
