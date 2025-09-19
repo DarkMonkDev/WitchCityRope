@@ -331,7 +331,11 @@ public class EventService
 
         foreach (var sessionDto in newSessions)
         {
-            if (Guid.TryParse(sessionDto.Id, out var sessionId) && currentSessions.TryGetValue(sessionId, out var existingSession))
+            // Only treat as existing if ID is valid AND exists in current sessions
+            if (!string.IsNullOrEmpty(sessionDto.Id) &&
+                Guid.TryParse(sessionDto.Id, out var sessionId) &&
+                sessionId != Guid.Empty &&
+                currentSessions.TryGetValue(sessionId, out var existingSession))
             {
                 // Update existing session
                 existingSession.SessionCode = sessionDto.SessionIdentifier;
@@ -346,6 +350,7 @@ public class EventService
             else
             {
                 // Add new session - DO NOT set ID, let EF generate it
+                // This includes sessions with client-generated IDs that don't exist in DB
                 var newSession = new WitchCityRope.Api.Models.Session
                 {
                     EventId = eventEntity.Id,
