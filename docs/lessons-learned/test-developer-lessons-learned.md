@@ -2,6 +2,113 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 CRITICAL: E2E Tests Must Detect JavaScript Errors - Navigation Bug Prevention - 2025-09-18 🚨
+
+**Lesson Learned**: E2E tests that don't monitor JavaScript and console errors give dangerous false positives, allowing critical navigation bugs to reach production.
+
+**Problem Solved**: Previous E2E tests passed while dashboard crashed with RangeError: Invalid time value and admin events returned 404s.
+
+**Root Cause**: Tests only checked navigation URLs and element visibility, completely missing:
+- JavaScript errors that crash pages
+- Console errors that break components
+- API connectivity issues causing "Connection Problem" messages
+- 404 errors and broken navigation links
+
+**MANDATORY Solution Pattern**:
+```typescript
+// 🚨 CRITICAL: EVERY E2E test MUST include error monitoring
+test.beforeEach(async ({ page }) => {
+  let consoleErrors: string[] = [];
+  let jsErrors: string[] = [];
+
+  // Monitor JavaScript errors (page crashes)
+  page.on('pageerror', error => {
+    jsErrors.push(error.toString());
+  });
+
+  // Monitor console errors (component failures)
+  page.on('console', msg => {
+    if (msg.type() === 'error') {
+      consoleErrors.push(msg.text());
+      // Specifically catch date/time errors
+      if (msg.text().includes('RangeError') || msg.text().includes('Invalid time value')) {
+        console.log(`🚨 CRITICAL: Date/Time error detected: ${msg.text()}`);
+      }
+    }
+  });
+});
+
+// 🚨 CRITICAL: Check errors BEFORE validating content
+if (jsErrors.length > 0) {
+  throw new Error(`Page has JavaScript errors that crash functionality: ${jsErrors.join('; ')}`);
+}
+
+if (consoleErrors.length > 0) {
+  // Check for critical date/time errors
+  const criticalErrors = consoleErrors.filter(error =>
+    error.includes('RangeError') || error.includes('Invalid time value')
+  );
+  if (criticalErrors.length > 0) {
+    throw new Error(`CRITICAL: Page has date/time errors that crash components: ${criticalErrors.join('; ')}`);
+  }
+}
+
+// 🚨 CRITICAL: API health pre-check prevents wasted test time
+test.beforeAll(async ({ request }) => {
+  const response = await request.get('http://localhost:5655/health');
+  expect(response.ok()).toBeTruthy();
+  const health = await response.json();
+  expect(health.status).toBe('Healthy');
+});
+
+// 🚨 CRITICAL: Check for user-visible connection problems
+const connectionErrors = await page.locator('text=/Connection Problem|Failed to load|Error loading/i').count();
+if (connectionErrors > 0) {
+  const errorText = await page.locator('text=/Connection Problem/i').first().textContent();
+  throw new Error(`Page shows connection error: ${errorText}`);
+}
+```
+
+**Critical Navigation Validation Pattern**:
+```typescript
+// ❌ WRONG - Only checks navigation happened
+await page.waitForURL('**/dashboard');
+await expect(page.locator('h1')).toContainText('Welcome');
+
+// ✅ CORRECT - Comprehensive validation
+await page.waitForURL('**/dashboard', { timeout: 15000 });
+await page.waitForLoadState('networkidle');
+await page.waitForTimeout(2000); // Allow React components to render
+
+// Check errors FIRST
+if (jsErrors.length > 0 || consoleErrors.length > 0) {
+  throw new Error(`Navigation failed with errors`);
+}
+
+// Check for 404/Not Found BEFORE content validation
+const errorCount = await page.locator('text=/404|Not Found|Access Denied/i').count();
+if (errorCount > 0) {
+  throw new Error(`Page shows error instead of expected content`);
+}
+
+// ONLY check content if no errors occurred
+await expect(page.locator('h1')).toContainText('Welcome');
+```
+
+**Files Created with Comprehensive Error Detection**:
+- `/tests/playwright/specs/dashboard-navigation.spec.ts` - Dashboard navigation with error monitoring
+- `/tests/playwright/specs/admin-events-navigation.spec.ts` - Admin events with 404 detection
+- **IMPROVED**: `/tests/playwright/simple-dashboard-check.spec.ts` - Added error monitoring to existing test
+
+**Impact**: Transforms dangerous false positive tests into accurate bug detection that catches JavaScript crashes, API failures, and navigation issues immediately.
+
+**Prevention**:
+1. **NEVER write E2E tests without error monitoring** - they will give false confidence
+2. **Always check API health first** - prevents wasting time on infrastructure issues
+3. **Validate errors before content** - failing fast is better than misleading results
+4. **Test real navigation, not just URL changes** - ensure pages actually work
+5. **Monitor for user-visible errors** - connection problems and loading failures must fail tests
+
 ## 🚨 CRITICAL: Docker E2E Configuration Success - 2025-09-13 🚨
 
 **Lesson Learned**: Playwright E2E tests can successfully run against existing Docker services with proper configuration. Port conflicts and service startup races completely eliminated.
