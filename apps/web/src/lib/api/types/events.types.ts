@@ -50,10 +50,13 @@ export interface UpdateEventDto {
 // Supporting interfaces for complex fields
 export interface EventSessionDto {
   id: string
+  sessionIdentifier: string  // Required by API (e.g., "S1", "S2")
   name: string
+  date: string              // Required by API (date portion for display)
   startTime: string
   endTime: string
   capacity: number
+  registeredCount?: number  // Current number of registered attendees
   description?: string
 }
 
