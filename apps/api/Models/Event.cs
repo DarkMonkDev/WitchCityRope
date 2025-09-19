@@ -91,6 +91,11 @@ public class Event
     public ICollection<TicketType> TicketTypes { get; set; } = new List<TicketType>();
 
     /// <summary>
+    /// Navigation property to volunteer positions
+    /// </summary>
+    public ICollection<VolunteerPosition> VolunteerPositions { get; set; } = new List<VolunteerPosition>();
+
+    /// <summary>
     /// Navigation property to organizers/teachers
     /// Many-to-many relationship with ApplicationUser
     /// </summary>

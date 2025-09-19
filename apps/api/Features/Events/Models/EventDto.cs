@@ -57,6 +57,12 @@ public class EventDto
     public List<TicketTypeDto> TicketTypes { get; set; } = new List<TicketTypeDto>();
 
     /// <summary>
+    /// List of volunteer positions for this event
+    /// Includes both event-wide and session-specific volunteer opportunities
+    /// </summary>
+    public List<VolunteerPositionDto> VolunteerPositions { get; set; } = new List<VolunteerPositionDto>();
+
+    /// <summary>
     /// List of teacher/organizer user IDs
     /// References to ApplicationUser entities who are teaching/organizing this event
     /// </summary>

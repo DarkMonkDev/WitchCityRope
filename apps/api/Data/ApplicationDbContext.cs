@@ -303,6 +303,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                   .HasForeignKey(s => s.EventId)
                   .OnDelete(DeleteBehavior.Cascade);
 
+            entity.HasMany(e => e.VolunteerPositions)
+                  .WithOne(v => v.Event)
+                  .HasForeignKey(v => v.EventId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
             // Configure many-to-many relationship with organizers/teachers
             entity.HasMany(e => e.Organizers)
                   .WithMany()
@@ -483,11 +488,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                   .IsRequired()
                   .HasColumnType("timestamptz");
 
-            // Foreign keys
-            entity.HasOne(v => v.Event)
-                  .WithMany()
-                  .HasForeignKey(v => v.EventId)
-                  .OnDelete(DeleteBehavior.Cascade);
+            // Foreign keys - Event relationship configured in Event entity
 
             entity.HasOne(v => v.Session)
                   .WithMany()

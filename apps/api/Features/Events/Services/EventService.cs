@@ -36,6 +36,7 @@ public class EventService
                 .Include(e => e.Sessions) // Include related sessions
                 .Include(e => e.TicketTypes) // Include related ticket types
                     .ThenInclude(tt => tt.Session) // Include session info for ticket types
+                .Include(e => e.VolunteerPositions) // Include related volunteer positions
                 .Include(e => e.Organizers) // Include organizers/teachers
                 .AsNoTracking() // Read-only for better performance
                 .Where(e => e.IsPublished && e.StartDate > DateTime.UtcNow) // Filter published and future events
@@ -60,6 +61,7 @@ public class EventService
                 CurrentTickets = e.GetCurrentTicketCount(),
                 Sessions = e.Sessions.Select(s => new SessionDto(s)).ToList(),
                 TicketTypes = e.TicketTypes.Select(tt => new TicketTypeDto(tt)).ToList(),
+                VolunteerPositions = e.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
                 TeacherIds = e.Organizers.Select(o => o.Id.ToString()).ToList()
             }).ToList();
 
@@ -93,6 +95,7 @@ public class EventService
                 .Include(e => e.Sessions) // Include related sessions
                 .Include(e => e.TicketTypes) // Include related ticket types
                     .ThenInclude(tt => tt.Session) // Include session info for ticket types
+                .Include(e => e.VolunteerPositions) // Include related volunteer positions
                 .Include(e => e.Organizers) // Include organizers/teachers
                 .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.Id == parsedId, cancellationToken);
@@ -119,6 +122,7 @@ public class EventService
                 CurrentTickets = eventEntity.GetCurrentTicketCount(),
                 Sessions = eventEntity.Sessions.Select(s => new SessionDto(s)).ToList(),
                 TicketTypes = eventEntity.TicketTypes.Select(tt => new TicketTypeDto(tt)).ToList(),
+                VolunteerPositions = eventEntity.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
                 TeacherIds = eventEntity.Organizers.Select(o => o.Id.ToString()).ToList()
             };
 
@@ -172,6 +176,7 @@ public class EventService
             var eventEntity = await _context.Events
                 .Include(e => e.Sessions)
                 .Include(e => e.TicketTypes)
+                .Include(e => e.VolunteerPositions)
                 .Include(e => e.Organizers)
                 .FirstOrDefaultAsync(e => e.Id == parsedId, cancellationToken);
 
@@ -296,6 +301,7 @@ public class EventService
                 CurrentTickets = eventEntity.GetCurrentTicketCount(),
                 Sessions = eventEntity.Sessions.Select(s => new SessionDto(s)).ToList(),
                 TicketTypes = eventEntity.TicketTypes.Select(tt => new TicketTypeDto(tt)).ToList(),
+                VolunteerPositions = eventEntity.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
                 TeacherIds = eventEntity.Organizers.Select(o => o.Id.ToString()).ToList()
             };
 
