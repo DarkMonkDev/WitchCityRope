@@ -180,17 +180,25 @@ public static class AuthenticationEndpoints
             ITokenBlacklistService tokenBlacklistService,
             CancellationToken cancellationToken) =>
             {
-                logger.LogInformation("LOGOUT ENDPOINT: Logout request received from {RemoteIP}", context.Connection.RemoteIpAddress);
+                logger.LogInformation("🔐 LOGOUT DEBUG: Logout request received from {RemoteIP}", context.Connection.RemoteIpAddress);
+
+                // DEBUG: Log all incoming cookies
+                logger.LogInformation("🔐 LOGOUT DEBUG: All incoming cookies: {Cookies}",
+                    string.Join(", ", context.Request.Cookies.Select(c => $"{c.Key}={c.Value?.Substring(0, Math.Min(c.Value.Length, 20))}...")));
                 try
                 {
                     // Log logout attempt and blacklist the token
                     var authCookie = context.Request.Cookies["auth-token"];
                     if (!string.IsNullOrEmpty(authCookie))
                     {
+                        logger.LogInformation("🔐 LOGOUT DEBUG: Found auth-token cookie, length: {Length}", authCookie.Length);
+
                         // Extract JTI and add to blacklist to invalidate the token server-side
                         var jti = jwtService.ExtractJti(authCookie);
                         if (!string.IsNullOrEmpty(jti))
                         {
+                            logger.LogInformation("🔐 LOGOUT DEBUG: Extracted JTI: {Jti}", jti);
+
                             // Get token expiration time
                             var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
                             try
@@ -200,21 +208,21 @@ public static class AuthenticationEndpoints
 
                                 // Add token to blacklist
                                 tokenBlacklistService.BlacklistToken(jti, expirationTime);
-                                logger.LogInformation("User logged out - token with JTI {Jti} blacklisted until {ExpirationTime}", jti, expirationTime);
+                                logger.LogInformation("🔐 LOGOUT DEBUG: Token with JTI {Jti} blacklisted until {ExpirationTime}", jti, expirationTime);
                             }
                             catch (Exception ex)
                             {
-                                logger.LogWarning(ex, "Failed to parse token for blacklisting, but continuing with logout");
+                                logger.LogWarning(ex, "🔐 LOGOUT DEBUG: Failed to parse token for blacklisting, but continuing with logout");
                             }
                         }
                         else
                         {
-                            logger.LogWarning("Could not extract JTI from token for blacklisting");
+                            logger.LogWarning("🔐 LOGOUT DEBUG: Could not extract JTI from token for blacklisting");
                         }
                     }
                     else
                     {
-                        logger.LogInformation("Logout called with no auth-token cookie - clearing any stale cookies");
+                        logger.LogInformation("🔐 LOGOUT DEBUG: No auth-token cookie found - clearing any stale cookies");
                     }
 
                     // Clear the httpOnly authentication cookie with EXACTLY the same options as when set
@@ -228,8 +236,12 @@ public static class AuthenticationEndpoints
                         Expires = DateTimeOffset.UtcNow.AddDays(-1) // Set to past date for deletion
                     };
 
+                    logger.LogInformation("🔐 LOGOUT DEBUG: Clearing cookie with options - HttpOnly: {HttpOnly}, Secure: {Secure}, SameSite: {SameSite}, Path: {Path}, Expires: {Expires}",
+                        cookieOptions.HttpOnly, cookieOptions.Secure, cookieOptions.SameSite, cookieOptions.Path, cookieOptions.Expires);
+
                     // Method 1: Explicitly set cookie to empty with past expiration
                     context.Response.Cookies.Append("auth-token", "", cookieOptions);
+                    logger.LogInformation("🔐 LOGOUT DEBUG: Called Append with empty value and past expiration");
 
                     // Method 2: Also use Delete method as backup
                     context.Response.Cookies.Delete("auth-token", new CookieOptions
@@ -239,6 +251,18 @@ public static class AuthenticationEndpoints
                         SameSite = SameSiteMode.Strict,
                         Path = "/"
                     });
+                    logger.LogInformation("🔐 LOGOUT DEBUG: Called Delete method as backup");
+
+                    // DEBUG: Log response headers being set
+                    context.Response.OnStarting(() =>
+                    {
+                        var setCookieHeaders = context.Response.Headers["Set-Cookie"];
+                        logger.LogInformation("🔐 LOGOUT DEBUG: Set-Cookie headers: {Headers}",
+                            string.Join("; ", setCookieHeaders.ToArray()));
+                        return Task.CompletedTask;
+                    });
+
+                    logger.LogInformation("🔐 LOGOUT DEBUG: Logout completed successfully");
 
                     return Results.Ok(new {
                         Success = true,
@@ -247,7 +271,7 @@ public static class AuthenticationEndpoints
                 }
                 catch (Exception ex)
                 {
-                    logger.LogWarning(ex, "Logout error occurred");
+                    logger.LogError(ex, "🔐 LOGOUT DEBUG: Logout error occurred");
                     // Still return success - logout should always succeed from user perspective
                     return Results.Ok(new {
                         Success = true,
@@ -451,6 +475,61 @@ public static class AuthenticationEndpoints
             .Produces<object>(200)
             .Produces(400)
             .Produces(401)
+            .Produces(500);
+
+        // DEBUG: Authentication status endpoint for debugging logout issues
+        app.MapGet("/api/auth/debug-status", async (
+            HttpContext context,
+            IJwtService jwtService,
+            ITokenBlacklistService tokenBlacklistService,
+            ILogger<AuthenticationService> logger,
+            CancellationToken cancellationToken) =>
+            {
+                try
+                {
+                    var authCookie = context.Request.Cookies["auth-token"];
+                    var result = new
+                    {
+                        HasAuthCookie = !string.IsNullOrEmpty(authCookie),
+                        CookieLength = authCookie?.Length ?? 0,
+                        CookiePreview = authCookie?.Substring(0, Math.Min(authCookie.Length, 50)) + "...",
+                        AllCookies = context.Request.Cookies.Select(c => new {
+                            Name = c.Key,
+                            ValueLength = c.Value?.Length ?? 0,
+                            ValuePreview = c.Value?.Substring(0, Math.Min(c.Value.Length, 20)) + "..."
+                        }).ToList(),
+                        IsTokenValid = !string.IsNullOrEmpty(authCookie) && jwtService.ValidateToken(authCookie),
+                        JTI = !string.IsNullOrEmpty(authCookie) ? jwtService.ExtractJti(authCookie) : null,
+                        IsBlacklisted = false,
+                        Timestamp = DateTimeOffset.UtcNow
+                    };
+
+                    // Check blacklist status if we have a JTI
+                    if (!string.IsNullOrEmpty(result.JTI))
+                    {
+                        result = result with { IsBlacklisted = tokenBlacklistService.IsTokenBlacklisted(result.JTI) };
+                    }
+
+                    logger.LogInformation("🔐 AUTH DEBUG: Status check - HasCookie: {HasCookie}, Valid: {Valid}, Blacklisted: {Blacklisted}",
+                        result.HasAuthCookie, result.IsTokenValid, result.IsBlacklisted);
+
+                    return Results.Ok(result);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "🔐 AUTH DEBUG: Error checking authentication status");
+                    return Results.Problem(
+                        title: "Debug Error",
+                        detail: ex.Message,
+                        statusCode: 500);
+                }
+            })
+            .AllowAnonymous()
+            .WithName("DebugAuthStatus")
+            .WithSummary("Debug authentication status (DEV ONLY)")
+            .WithDescription("Check current authentication status for debugging logout issues")
+            .WithTags("Authentication", "Debug")
+            .Produces<object>(200)
             .Produces(500);
     }
 }

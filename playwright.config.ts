@@ -23,8 +23,8 @@ export default defineConfig({
     ['html', { outputFolder: './test-results/html-report' }]
   ],
   use: {
-    // Use existing Docker web service
-    baseURL: 'http://localhost:5173',
+    // DOCKER-ONLY: Must use Docker web service on port 5173
+    baseURL: 'http://localhost:5173', // NEVER change this - Docker containers only
     
     // API endpoint for tests that need direct API access
     extraHTTPHeaders: {

@@ -36,7 +36,7 @@ public class TokenBlacklistService : ITokenBlacklistService
         }
 
         _blacklistedTokens.TryAdd(jti, expirationTime);
-        _logger.LogDebug("Token with JTI {Jti} added to blacklist, expires at {ExpirationTime}", jti, expirationTime);
+        _logger.LogInformation("🔐 BLACKLIST DEBUG: Token with JTI {Jti} added to blacklist, expires at {ExpirationTime}. Total blacklisted: {Count}", jti, expirationTime, _blacklistedTokens.Count);
     }
 
     /// <summary>
@@ -51,10 +51,7 @@ public class TokenBlacklistService : ITokenBlacklistService
 
         var isBlacklisted = _blacklistedTokens.ContainsKey(jti);
 
-        if (isBlacklisted)
-        {
-            _logger.LogDebug("Token with JTI {Jti} is blacklisted", jti);
-        }
+        _logger.LogInformation("🔐 BLACKLIST DEBUG: Checking JTI {Jti} - Blacklisted: {IsBlacklisted}. Total in blacklist: {Count}", jti, isBlacklisted, _blacklistedTokens.Count);
 
         return isBlacklisted;
     }
@@ -77,7 +74,7 @@ public class TokenBlacklistService : ITokenBlacklistService
 
         if (expiredTokens.Count > 0)
         {
-            _logger.LogDebug("Cleaned up {Count} expired tokens from blacklist", expiredTokens.Count);
+            _logger.LogInformation("🔐 BLACKLIST DEBUG: Cleaned up {Count} expired tokens from blacklist. Remaining: {Remaining}", expiredTokens.Count, _blacklistedTokens.Count);
         }
     }
 

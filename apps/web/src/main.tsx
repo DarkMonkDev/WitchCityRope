@@ -11,6 +11,7 @@ import App from './App.tsx'
 import { wcrTheme } from './theme'
 import { queryClient } from './lib/api/queryClient'
 import { enableMocking } from './mocks'
+import { AuthProvider } from './contexts/AuthContext'
 
 console.log('🔍 Starting React app initialization...')
 
@@ -68,9 +69,13 @@ root.render(
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <MantineProvider theme={wcrTheme}>
-          <Notifications />
-          <App />
-          <ReactQueryDevtools initialIsOpen={false} />
+          {/* AuthProvider wraps the entire app to provide authentication context */}
+          {/* This allows any component to access auth state and functions via useAuth() hook */}
+          <AuthProvider>
+            <Notifications />
+            <App />
+            <ReactQueryDevtools initialIsOpen={false} />
+          </AuthProvider>
         </MantineProvider>
       </QueryClientProvider>
     </ErrorBoundary>

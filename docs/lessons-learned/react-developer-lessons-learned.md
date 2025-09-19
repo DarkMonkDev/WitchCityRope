@@ -1505,6 +1505,131 @@ This pattern ensures seamless integration of new API fields without breaking exi
 
 ---
 
+## 🚨 CRITICAL: Teacher Selection Integration Pattern (2025-09-19) 🚨
+**Date**: 2025-09-19
+**Category**: Form Integration - MultiSelect API
+**Severity**: CRITICAL
+
+### What We Learned
+**COMPREHENSIVE MULTISELECT-API INTEGRATION**: Successfully implemented complete teacher selection system with real API data and fallback mechanism.
+
+**KEY SUCCESS PATTERNS**:
+- **API-First Approach**: Create backend endpoint before frontend integration
+- **Fallback System**: Always provide fallback data when API calls fail
+- **Type Safety**: Use proper TypeScript interfaces for API contracts
+- **Progressive Enhancement**: Core functionality works offline, enhanced online
+- **Error Boundary Pattern**: Graceful degradation with user feedback
+
+**CRITICAL IMPLEMENTATION PATTERNS**:
+```typescript
+// ✅ CORRECT: API hook with fallback mechanism
+export function useTeachers(enabled = true) {
+  return useQuery({
+    queryKey: ['users', 'by-role', 'Teacher'],
+    queryFn: async (): Promise<TeacherOption[]> => {
+      try {
+        const response = await apiClient.get<TeacherOption[]>('/api/users/by-role/Teacher');
+        if (response.data && response.data.length > 0) {
+          return response.data;  // Use real API data
+        }
+        return FALLBACK_TEACHERS;  // Use fallback if empty
+      } catch (error) {
+        return FALLBACK_TEACHERS;  // Use fallback if API fails
+      }
+    }
+  });
+}
+
+// ✅ CORRECT: MultiSelect integration with loading states
+<MultiSelect
+  label="Select Teachers"
+  placeholder={teachersLoading ? "Loading teachers..." : "Choose teachers for this event"}
+  data={availableTeachers}
+  searchable
+  disabled={teachersLoading || !!teachersError}
+  {...form.getInputProps('teacherIds')}
+/>
+
+// ✅ CORRECT: Backend endpoint pattern
+app.MapGet("/api/users/by-role/{role}", async (
+    string role,
+    UserManagementService userService) => {
+    var (success, response, error) = await userService.GetUsersByRoleAsync(role);
+    return success ? Results.Ok(response) : Results.Problem(...);
+})
+.RequireAuthorization()
+```
+
+**MULTISELECT DATA FORMAT PATTERN**:
+```typescript
+// ✅ CORRECT: Format API data for Mantine MultiSelect
+export function formatTeachersForMultiSelect(teachers: TeacherOption[]) {
+  return teachers.map(teacher => ({
+    value: teacher.id,        // IDs for form submission
+    label: teacher.name       // Names for display
+  }));
+}
+
+// ✅ CORRECT: Fallback data structure
+const FALLBACK_TEACHERS: TeacherOption[] = [
+  { id: 'teacher-1', name: 'River Moon', email: 'river@example.com' },
+  { id: 'teacher-2', name: 'Sage Blackthorne', email: 'sage@example.com' }
+];
+```
+
+### Backend Service Pattern
+```csharp
+// ✅ CORRECT: User role query with proper DTO mapping
+public async Task<(bool Success, IEnumerable<UserOptionDto>? Response, string Error)> GetUsersByRoleAsync(
+    string role, CancellationToken cancellationToken = default)
+{
+    var users = await _context.Users
+        .AsNoTracking()
+        .Where(u => u.Role == role && u.IsActive)
+        .OrderBy(u => u.SceneName ?? u.Email)
+        .Select(u => new UserOptionDto
+        {
+            Id = u.Id.ToString(),
+            Name = u.SceneName ?? u.Email ?? "Unknown",
+            Email = u.Email ?? ""
+        })
+        .ToListAsync(cancellationToken);
+
+    return (true, users, string.Empty);
+}
+```
+
+### Action Items
+- [x] **CREATE API endpoint** for fetching users by role
+- [x] **IMPLEMENT React Query hook** with fallback mechanism
+- [x] **UPDATE MultiSelect component** to use real API data
+- [x] **ADD loading and error states** for better UX
+- [x] **PROVIDE fallback data** when API fails
+- [x] **DOCUMENT integration pattern** for future dropdown implementations
+- [x] **TEST complete data flow** from API to form submission
+
+### Critical Success Factors
+1. **API Endpoint First**: Always create backend before frontend integration
+2. **Fallback Mechanism**: Ensure UI works even when API fails
+3. **Loading States**: Provide user feedback during data loading
+4. **Error Boundaries**: Graceful handling of API failures
+5. **Type Safety**: Use proper interfaces for API contracts
+6. **Data Transformation**: Convert API data to UI component format
+
+### Implementation Standards Established
+- **Dropdown API Pattern**: `/api/users/by-role/{role}` for all role-based dropdowns
+- **React Query Integration**: Hooks with fallback data and error handling
+- **MultiSelect Format**: `{value: id, label: name}` for all Mantine dropdowns
+- **Service Layer**: Direct Entity Framework queries for simple operations
+- **Error Handling**: try-catch with fallback data, not error propagation
+
+This pattern can be reused for venues, volunteer positions, and any other dropdown that needs API data.
+
+### Tags
+#critical #multiselect #api-integration #react-query #fallback-data #progressive-enhancement #typescript
+
+---
+
 ## 🚨 CRITICAL: Safety System Implementation Patterns (2025-09-12) 🚨
 **Date**: 2025-09-12
 **Category**: Feature Implementation

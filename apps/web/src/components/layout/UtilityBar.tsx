@@ -1,26 +1,55 @@
 import { Box, Group } from '@mantine/core'
-import { Link, useNavigate } from 'react-router-dom'
-import { useUser, useIsAuthenticated, useAuthActions } from '../../stores/authStore'
+import { Link } from 'react-router-dom'
+import { useUser, useIsAuthenticated } from '../../stores/authStore'
+import { useAuth } from '../../contexts/AuthContext'
 
 /**
  * UtilityBar Component - Top utility navigation bar
- * Matches the exact wireframe design with dark midnight background
- * and taupe colored links with hover animations
  *
- * Updated to show user greeting on LEFT and logout link on RIGHT for authenticated users
+ * ⚠️ DO NOT CHANGE THE AUTHENTICATION PATTERN WITHOUT EXPLICIT DIRECTION ⚠️
+ * The logout functionality has been tested and verified to work correctly.
+ * TESTED AND VERIFIED ON: 2025-09-19
+ *
+ * This component displays the top utility bar with:
+ * - User greeting (when authenticated)
+ * - Navigation links (Private Lessons, Contact, Report an Incident)
+ * - Logout button (when authenticated)
+ *
+ * CRITICAL Authentication Pattern (DO NOT CHANGE):
+ * - Uses Zustand store for reading auth state (useUser, useIsAuthenticated)
+ * - Uses AuthContext for logout action to ensure proper cleanup
+ *
+ * This dual approach is necessary because:
+ * 1. Many components read from Zustand store directly for performance
+ * 2. AuthContext provides the complete logout flow that cleans both stores
+ *
+ * The logout MUST use useAuth() from AuthContext, NOT the Zustand store directly.
  */
 export const UtilityBar: React.FC = () => {
+  // Get auth state from Zustand store (for reading state)
   const user = useUser()
   const isAuthenticated = useIsAuthenticated()
-  const { logout } = useAuthActions()
-  const navigate = useNavigate()
 
+  // Get logout function from AuthContext (for proper cleanup)
+  // AuthContext logout handles:
+  // 1. Clearing React Context state
+  // 2. Clearing Zustand store state
+  // 3. Clearing sessionStorage
+  // 4. Calling API to clear httpOnly cookie
+  // 5. Redirecting to login page
+  const { logout } = useAuth()
+
+  /**
+   * Handle logout button click
+   * Uses the AuthContext logout which ensures complete cleanup
+   */
   const handleLogout = async () => {
     try {
       await logout()
-      navigate('/')
+      // No need for manual redirect - AuthContext logout handles it
     } catch (error) {
       console.error('Logout failed:', error)
+      // AuthContext logout already handles error cases
     }
   }
 

@@ -2,6 +2,46 @@
 
 This document tracks critical lessons learned during backend development to prevent recurring issues and speed up future development.
 
+## 🚨 CRITICAL: Logout Persistence Debugging (2025-09-19)
+
+### ❌ **PROBLEM**: Users remain authenticated after logout on page refresh
+
+**Symptoms**:
+- User clicks logout, UI shows logged out state
+- Page refresh restores the logged-in state
+- E2E tests confirm the issue
+- Authentication appears to "stick" despite logout
+
+**Debugging Strategy Implemented**:
+1. **Enhanced Logout Logging**: Added detailed debug logs to track:
+   - Cookie presence and content
+   - Token blacklisting process
+   - Cookie clearing operations
+   - Set-Cookie headers being sent
+
+2. **Debug Status Endpoint**: Created `/api/auth/debug-status` to inspect:
+   - Current authentication cookies
+   - Token validation status
+   - Blacklist status
+   - Real-time authentication state
+
+3. **Enhanced Blacklist Logging**: Added tracking of:
+   - Token additions to blacklist
+   - Blacklist checks and results
+   - Cleanup operations
+
+**Investigation Areas**:
+- Cookie deletion not working properly
+- Token blacklisting not being checked
+- Middleware conflicts
+- Browser not respecting Set-Cookie headers
+
+**Files Modified for Debugging**:
+- `/apps/api/Features/Authentication/Endpoints/AuthenticationEndpoints.cs` - Enhanced logout logging
+- `/apps/api/Services/TokenBlacklistService.cs` - Enhanced blacklist logging
+
+**Next Steps**: Run E2E tests with debug logging to identify where the logout process is failing.
+
 ## 🚨 CRITICAL: Session Persistence Bug Fix (2025-09-19)
 
 ### ❌ **PROBLEM**: Sessions not persisting to database after event updates
