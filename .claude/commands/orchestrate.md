@@ -155,7 +155,7 @@ When `/orchestrate` is invoked:
 
 1. **Determine work type** (feature/bug/hotfix/docs/refactor)
 2. **Invoke librarian** to check master index and get exact paths
-3. **Invoke git-manager** to create branch: `git checkout -b feature/[YYYY-MM-DD]-[description]`
+3. **Invoke git-manager** to check git status and ensure working directory is clean
 4. **Invoke librarian** to create scope folder structure:
    ```
    /docs/functional-areas/[feature-name]/new-work/[YYYY-MM-DD]-[description]/
@@ -221,7 +221,6 @@ Task(
 ```markdown
 ## [Date] - [Feature Name] - ORCHESTRATED
 **Type**: [Feature/Bug/Hotfix/Docs/Refactor]
-**Branch**: feature/[date]-[description]
 **Status**: Phase [X] - [Status]
 **Quality Gates**: R:[X%] D:[X%] I:[X%] T:[X%]
 **Next Review**: [After requirements/After vertical slice/None]
@@ -276,10 +275,10 @@ Context: [Current project phase and feature description]
 ### Git Workflow (Via Delegation)
 All git operations must be delegated to git-manager:
 
-1. **Branch Creation:**
+1. **Status Checks:**
    ```
    Task: git-manager
-   Prompt: Create feature branch: feature/[YYYY-MM-DD]-[description]
+   Prompt: Check git status and ensure working directory is clean
    ```
 
 2. **Commits:**
@@ -288,10 +287,10 @@ All git operations must be delegated to git-manager:
    Prompt: Commit changes with message: "[phase]: [description]"
    ```
 
-3. **Status Checks:**
+3. **Push to Remote:**
    ```
    Task: git-manager
-   Prompt: Check git status and current branch
+   Prompt: Push changes to remote repository (main branch)
    ```
 
 ## Lessons Learned Documentation
@@ -377,7 +376,7 @@ The orchestrator consolidates all lessons learned into:
 
 ### Utility
 - `librarian`: Documentation management and file organization
-- `git-manager`: Version control and branch operations
+- `git-manager`: Version control operations
 - `technology-researcher`: Technology evaluation and research (orchestrator-only access)
 
 ### Quality Assurance

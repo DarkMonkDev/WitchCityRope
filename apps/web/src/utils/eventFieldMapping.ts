@@ -1,12 +1,12 @@
 /**
  * Event Field Mapping Utility
- * 
- * This utility handles the field name mismatches between:
- * - API Response: uses `startDate`, `endDate` 
- * - Generated Types: expect `startDateTime`, `endDateTime`
- * 
- * This is a TEMPORARY solution until the backend API is aligned 
- * with the generated TypeScript types.
+ *
+ * This utility ensures consistency between:
+ * - API Response: uses `startDate`, `endDate`
+ * - TypeScript Types: also use `startDate`, `endDate`
+ *
+ * This provides a central place to handle any field transformations
+ * and ensure type safety across the application.
  */
 
 import type { EventDto } from '@witchcityrope/shared-types';
@@ -23,24 +23,44 @@ interface ApiEventResponse {
   location?: string;
   capacity?: number;
   currentAttendees?: number;
+  currentRSVPs?: number;
+  currentTickets?: number;
   status?: string;
   eventType?: string;
+  isPublished?: boolean;
+  sessions?: any[];
+  ticketTypes?: any[];
+  teacherIds?: string[];
+  volunteerPositions?: any[];
   [key: string]: any;
 }
 
 /**
- * Maps API response fields to match generated TypeScript types
- * 
+ * Maps API response fields to match TypeScript types
+ * Ensures all required fields are present with proper defaults
+ *
  * @param apiEvent - Raw event data from API
  * @returns EventDto with properly mapped field names
  */
 export function mapApiEventToDto(apiEvent: ApiEventResponse): EventDto {
-  // Create mapped event with field name corrections
+  // Create mapped event ensuring all fields are properly typed
   const mappedEvent: EventDto = {
-    ...apiEvent,
-    // The generated types use startDate/endDate, not startDateTime/endDateTime
+    id: apiEvent.id || '',
+    title: apiEvent.title || '',
+    description: apiEvent.description || '',
     startDate: apiEvent.startDate || '',
-    endDate: apiEvent.endDate || '',
+    endDate: apiEvent.endDate || null,
+    location: apiEvent.location || '',
+    eventType: apiEvent.eventType,
+    capacity: apiEvent.capacity,
+    registrationCount: apiEvent.currentAttendees || apiEvent.currentRSVPs || apiEvent.currentTickets || 0,
+    createdAt: '', // Should come from API
+    updatedAt: '', // Should come from API
+    isPublished: apiEvent.isPublished,
+    sessions: apiEvent.sessions,
+    ticketTypes: apiEvent.ticketTypes,
+    teacherIds: apiEvent.teacherIds,
+    volunteerPositions: apiEvent.volunteerPositions
   };
 
   return mappedEvent;
@@ -62,27 +82,23 @@ export function mapApiEventsToDto(apiEvents: ApiEventResponse[]): EventDto[] {
 export function logFieldMappingIssues(events: any[], context: string = 'Events') {
   if (import.meta.env.DEV && events.length > 0) {
     const firstEvent = events[0];
-    const hasApiFields = !!firstEvent.startDate;
-    const hasTypeFields = !!firstEvent.startDateTime;
-    
-    if (hasApiFields && !hasTypeFields) {
+    const hasRequiredFields = !!firstEvent.startDate && !!firstEvent.id;
+
+    if (!hasRequiredFields) {
       console.warn(`⚠️ Field Mapping Issue in ${context}:`, {
-        issue: 'API uses startDate/endDate but types expect startDateTime/endDateTime',
-        solution: 'Use mapApiEventToDto() to handle field mapping',
+        issue: 'Missing required fields in event data',
+        solution: 'Use mapApiEventToDto() to ensure all required fields are present',
         example: firstEvent,
       });
-    } else if (hasTypeFields && !hasApiFields) {
-      console.log(`✅ ${context}: Field names aligned with generated types`);
     }
   }
 }
 
 /**
- * TEMPORARY: Auto-detect and fix field naming in event arrays
- * This function will be removed once the API is properly aligned
- * 
- * @param events - Array of events (may have mixed field names)
- * @returns Array with consistent field names
+ * Auto-detect and ensure proper field mapping in event arrays
+ *
+ * @param events - Array of events from API
+ * @returns Array with consistent field names and all required fields
  */
 export function autoFixEventFieldNames<T extends any[]>(events: T): EventDto[] {
   if (!Array.isArray(events)) {
@@ -90,20 +106,10 @@ export function autoFixEventFieldNames<T extends any[]>(events: T): EventDto[] {
   }
 
   logFieldMappingIssues(events, 'Auto-Fix');
-  
+
   return events.map((event): EventDto => {
-    // If event already has correct field names, return as-is
-    if (event.startDateTime) {
-      return event as EventDto;
-    }
-    
-    // If event has API field names, map them
-    if (event.startDate) {
-      return mapApiEventToDto(event);
-    }
-    
-    // Fallback: return as-is
-    return event as EventDto;
+    // Always use mapApiEventToDto to ensure consistency
+    return mapApiEventToDto(event);
   });
 }
 
@@ -115,8 +121,15 @@ export function hasApiFieldNames(event: any): event is ApiEventResponse {
 }
 
 /**
- * Type guard to check if an event has generated type field names
+ * Type guard to check if an event has all required EventDto fields
  */
-export function hasTypeFieldNames(event: any): event is EventDto {
-  return event && typeof event.startDateTime === 'string';
+export function hasValidEventDtoFields(event: any): event is EventDto {
+  return (
+    event &&
+    typeof event.id === 'string' &&
+    typeof event.title === 'string' &&
+    typeof event.description === 'string' &&
+    typeof event.startDate === 'string' &&
+    typeof event.location === 'string'
+  );
 }

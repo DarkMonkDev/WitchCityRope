@@ -109,13 +109,13 @@ This document is THE authoritative source for the WitchCityRope AI workflow orch
 
 #### Critical Finalization Steps
 1. **Documentation Completion**
-2. **Git Cleanup and Branch Management** (Git-Manager delegation)
+2. **Git Status Verification** (Git-Manager delegation)
 3. **Final Quality Validation**
 
-#### Mandatory Git Cleanup Process
-- **IMMEDIATE**: After PR merge confirmation
-- **DELEGATION**: Git-manager agent performs cleanup
-- **VERIFICATION**: Cleanup completion required before workflow end
+#### Mandatory Git Process
+- **STATUS CHECK**: Ensure working directory is clean
+- **DELEGATION**: Git-manager agent handles all git operations
+- **VERIFICATION**: Clean commit history on main branch
 - **NO EXCEPTIONS**: Clean repository state required
 
 #### Deliverables
@@ -258,7 +258,6 @@ Update the guide if you discover new procedures.
 ```markdown
 ## [Date] - [Feature Name] - ORCHESTRATED
 **Type**: [Feature/Bug/Hotfix/Docs/Refactor]
-**Branch**: feature/[date]-[description]  
 **Status**: Phase [X] - [Status]
 **Quality Gates**: R:[X%] D:[X%] I:[X%] T:[X%]
 **Next Review**: [After requirements/After vertical slice/None]

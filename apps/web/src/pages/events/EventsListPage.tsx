@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { 
+import {
   Container, Stack, Title, Text, Group, Alert, Button,
   Box, Skeleton, Center, Paper, Badge, TextInput, Select, SegmentedControl,
   Table, ActionIcon, Switch
@@ -109,7 +109,7 @@ export const EventsListPage: React.FC = () => {
     refetch 
   } = useEvents(apiFilters);
   
-  
+
   // Use real API data only - ensure events is always an array
   const eventsArray: EventDto[] = Array.isArray(events) ? events : [];
   const instructors = useMemo(() => getUniqueInstructors(eventsArray), [eventsArray]);
