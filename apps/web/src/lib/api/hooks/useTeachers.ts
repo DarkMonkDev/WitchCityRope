@@ -7,18 +7,9 @@ export interface TeacherOption {
   email: string;
 }
 
-// Fallback teacher data for when API fails
-const FALLBACK_TEACHERS: TeacherOption[] = [
-  { id: 'teacher-1', name: 'River Moon', email: 'river@example.com' },
-  { id: 'teacher-2', name: 'Sage Blackthorne', email: 'sage@example.com' },
-  { id: 'teacher-3', name: 'Phoenix Rose', email: 'phoenix@example.com' },
-  { id: 'teacher-4', name: 'Willow Craft', email: 'willow@example.com' },
-  { id: 'teacher-5', name: 'Raven Night', email: 'raven@example.com' },
-];
-
 /**
  * React Query hook to fetch teachers for dropdown options
- * Falls back to mock data if API fails
+ * Returns actual teachers from database - no mock data
  */
 export function useTeachers(enabled = true) {
   return useQuery({
@@ -33,18 +24,12 @@ export function useTeachers(enabled = true) {
           dataLength: response.data?.length
         });
 
-        // If we get data from API, use it
-        if (response.data && response.data.length > 0) {
-          console.log('🔍 [DEBUG] Using real teachers from API');
-          return response.data;
-        }
-
-        // If API returns empty array, fall back to mock data
-        console.log('🔍 [DEBUG] API returned empty teachers, using fallback data');
-        return FALLBACK_TEACHERS;
+        // Return whatever the API provides (could be empty array)
+        return response.data || [];
       } catch (error) {
-        console.warn('🔍 [DEBUG] Teachers API failed, using fallback data:', error);
-        return FALLBACK_TEACHERS;
+        console.warn('🔍 [DEBUG] Teachers API failed:', error);
+        // Return empty array on error - no fake data
+        return [];
       }
     },
     enabled,
