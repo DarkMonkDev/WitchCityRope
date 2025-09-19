@@ -159,7 +159,7 @@ export const wcrTheme = createTheme({
             borderColor: 'var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important',
             boxShadow: 'none !important'
           },
-          '&:focus-visible': {
+          '&:focusVisible': {
             outline: 'none !important',
             outlineWidth: '0 !important',
             outlineStyle: 'none !important',
@@ -185,7 +185,7 @@ export const wcrTheme = createTheme({
             borderColor: 'var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important',
             boxShadow: 'none !important'
           },
-          '&:focus-visible': {
+          '&:focusVisible': {
             outline: 'none !important',
             outlineWidth: '0 !important',
             outlineStyle: 'none !important',
@@ -211,7 +211,7 @@ export const wcrTheme = createTheme({
             borderColor: 'var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important',
             boxShadow: 'none !important'
           },
-          '&:focus-visible': {
+          '&:focusVisible': {
             outline: 'none !important',
             outlineWidth: '0 !important',
             outlineStyle: 'none !important',
@@ -237,7 +237,7 @@ export const wcrTheme = createTheme({
             borderColor: 'var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important',
             boxShadow: 'none !important'
           },
-          '&:focus-visible': {
+          '&:focusVisible': {
             outline: 'none !important',
             outlineWidth: '0 !important',
             outlineStyle: 'none !important',

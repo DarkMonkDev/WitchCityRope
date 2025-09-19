@@ -157,7 +157,7 @@ export const EnhancedTextInput = forwardRef<HTMLInputElement, EnhancedTextInputP
                     outline: 'none !important',
                     boxShadow: 'none !important'
                   },
-                  '&:focus-visible': {
+                  '&:focusVisible': {
                     outline: 'none !important',
                     boxShadow: 'none !important'
                   }
@@ -241,7 +241,7 @@ export const EnhancedTextInput = forwardRef<HTMLInputElement, EnhancedTextInputP
                 outline: 'none !important',
                 boxShadow: 'none !important'
               },
-              '&:focus-visible': {
+              '&:focusVisible': {
                 outline: 'none !important',
                 boxShadow: 'none !important'
               }
@@ -373,7 +373,7 @@ export const EnhancedPasswordInput = forwardRef<HTMLInputElement, EnhancedPasswo
                 boxShadow: 'none !important',
                 borderColor: 'var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important'
               },
-              '&:focus-visible': {
+              '&:focusVisible': {
                 outline: 'none !important',
                 boxShadow: 'none !important',
                 borderColor: 'var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important'
@@ -431,7 +431,7 @@ export const EnhancedPasswordInput = forwardRef<HTMLInputElement, EnhancedPasswo
               boxShadow: 'none !important',
               borderColor: 'var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important'
             },
-            '&:focus-visible': {
+            '&:focusVisible': {
               outline: 'none !important',
               boxShadow: 'none !important',
               borderColor: 'var(--mantine-color-wcr-6, var(--mantine-color-blue-6)) !important'
@@ -640,7 +640,7 @@ export const EnhancedTextarea = forwardRef<HTMLTextAreaElement, EnhancedTextarea
                     outline: 'none !important',
                     boxShadow: 'none !important'
                   },
-                  '&:focus-visible': {
+                  '&:focusVisible': {
                     outline: 'none !important',
                     boxShadow: 'none !important'
                   }
@@ -722,7 +722,7 @@ export const EnhancedTextarea = forwardRef<HTMLTextAreaElement, EnhancedTextarea
                 outline: 'none !important',
                 boxShadow: 'none !important'
               },
-              '&:focus-visible': {
+              '&:focusVisible': {
                 outline: 'none !important',
                 boxShadow: 'none !important'
               }
@@ -844,7 +844,7 @@ export const EnhancedSelect = forwardRef<HTMLInputElement, EnhancedSelectProps>(
                     outline: 'none !important',
                     boxShadow: 'none !important'
                   },
-                  '&:focus-visible': {
+                  '&:focusVisible': {
                     outline: 'none !important',
                     boxShadow: 'none !important'
                   }
@@ -927,7 +927,7 @@ export const EnhancedSelect = forwardRef<HTMLInputElement, EnhancedSelectProps>(
                 outline: 'none !important',
                 boxShadow: 'none !important'
               },
-              '&:focus-visible': {
+              '&:focusVisible': {
                 outline: 'none !important',
                 boxShadow: 'none !important'
               }
