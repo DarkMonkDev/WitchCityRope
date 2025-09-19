@@ -105,7 +105,7 @@ public static class UserEndpoints
                         detail: error,
                         statusCode: 500);
             })
-            .RequireAuthorization(policy => policy.RequireRole("Admin")) // Admin role required
+            .RequireAuthorization(policy => policy.RequireRole("Administrator", "Admin")) // Administrator or Admin role required
             .WithName("GetUsers")
             .WithSummary("Get paginated list of users (admin only)")
             .WithDescription("Returns a paginated list of users with optional filtering and sorting")
@@ -130,7 +130,7 @@ public static class UserEndpoints
                         detail: error,
                         statusCode: response == null ? 404 : 400);
             })
-            .RequireAuthorization(policy => policy.RequireRole("Admin")) // Admin role required
+            .RequireAuthorization(policy => policy.RequireRole("Administrator", "Admin")) // Administrator or Admin role required
             .WithName("GetUser")
             .WithSummary("Get user by ID (admin only)")
             .WithDescription("Returns detailed user information by user ID")
@@ -150,15 +150,15 @@ public static class UserEndpoints
             {
                 var (success, response, error) = await userService.UpdateUserAsync(id, request, cancellationToken);
 
-                return success 
+                return success
                     ? Results.Ok(response)
                     : Results.Problem(
                         title: "Update User Failed",
                         detail: error,
-                        statusCode: error.Contains("not found") ? 404 : 
+                        statusCode: error.Contains("not found") ? 404 :
                                   error.Contains("already taken") ? 409 : 400);
             })
-            .RequireAuthorization(policy => policy.RequireRole("Admin")) // Admin role required
+            .RequireAuthorization(policy => policy.RequireRole("Administrator", "Admin")) // Administrator or Admin role required
             .WithName("UpdateUser")
             .WithSummary("Update user by ID (admin only)")
             .WithDescription("Updates user information including role, status, and profile data")
@@ -169,5 +169,29 @@ public static class UserEndpoints
             .Produces(403)
             .Produces(404)
             .Produces(409);
+
+        // Get users by role (for dropdowns)
+        app.MapGet("/api/users/by-role/{role}", async (
+            string role,
+            UserManagementService userService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, response, error) = await userService.GetUsersByRoleAsync(role, cancellationToken);
+
+                return success
+                    ? Results.Ok(response)
+                    : Results.Problem(
+                        title: "Get Users By Role Failed",
+                        detail: error,
+                        statusCode: 500);
+            })
+            .RequireAuthorization() // Only authenticated users can access
+            .WithName("GetUsersByRole")
+            .WithSummary("Get users by role")
+            .WithDescription("Get list of users filtered by role (e.g., 'Teacher', 'Admin') for dropdown options")
+            .WithTags("Users")
+            .Produces<IEnumerable<UserOptionDto>>(200)
+            .Produces(401)
+            .Produces(500);
     }
 }

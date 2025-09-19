@@ -8,6 +8,19 @@
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-01-19 | /apps/api/Program.cs | MODIFIED | Fixed logout middleware conflict - removed simple middleware that intercepted logout requests | Logout authorization fix | ACTIVE | - |
+| 2025-01-19 | /docs/lessons-learned/backend-developer-lessons-learned.md | MODIFIED | Updated logout conflict from URGENT to RESOLVED with solution details | Logout authorization fix | ACTIVE | - |
+| 2025-09-19 | /scripts/debug/teacher-selection-debug.js | CREATED | Teacher selection debugging script | Teacher selection issue investigation | TEMPORARY | 2025-09-25 |
+| 2025-09-19 | /apps/api/Features/Users/Models/UserOptionDto.cs | CREATED | DTO for user dropdown options | Teacher selection API endpoint | ACTIVE | - |
+| 2025-09-19 | /apps/api/Features/Users/Endpoints/UserEndpoints.cs | MODIFIED | Added GetUsersByRole endpoint | Teacher selection API endpoint | ACTIVE | - |
+| 2025-09-19 | /apps/api/Features/Users/Services/UserManagementService.cs | MODIFIED | Added GetUsersByRoleAsync method | Teacher selection API endpoint | ACTIVE | - |
+| 2025-09-19 | /apps/web/src/lib/api/hooks/useTeachers.ts | CREATED | React hook for fetching teachers | Teacher selection with API integration | ACTIVE | - |
+| 2025-09-19 | /apps/web/src/lib/api/hooks/useTeachers.ts | MODIFIED | Fixed import path from '../apiClient' to '../client' | Fix critical import error crashing app | ACTIVE | - |
+| 2025-09-19 | /apps/web/src/components/events/EventForm.tsx | MODIFIED | Added real teacher API integration with fallback | Teacher selection bug fix | ACTIVE | - |
+| 2025-09-19 | `/dev.sh` | MODIFIED | Fixed Docker Compose command to include PostgreSQL database in development environment | Teacher selection persistence bug fix | ACTIVE | N/A |
+| 2025-09-19 | `/apps/web/src/pages/admin/AdminEventDetailsPage.tsx` | MODIFIED | Added debug logging for teacher selection (temporary) | Teacher selection persistence debugging | TEMPORARY | Should remove debug logs |
+| 2025-09-19 | `/apps/web/src/components/events/EventForm.tsx` | MODIFIED | Added debug logging for form submission (temporary) | Teacher selection persistence debugging | TEMPORARY | Should remove debug logs |
+| 2025-09-19 | `/apps/web/src/utils/eventDataTransformation.ts` | MODIFIED | Added debug logging for data transformation (temporary) | Teacher selection persistence debugging | TEMPORARY | Should remove debug logs |
 | 2025-01-18 | /package.json | MODIFIED | Disabled npm run dev script to prevent local dev servers | Docker-only development fix | ACTIVE | Never |
 | 2025-01-18 | /apps/web/package.json | MODIFIED | Disabled npm run dev script, added dev:docker-only script | Docker-only development fix | ACTIVE | Never |
 | 2025-01-18 | /apps/web/vite.config.ts | MODIFIED | Set strictPort: true to enforce port 5173 | Docker-only development fix | ACTIVE | Never |
@@ -18,6 +31,8 @@
 | 2025-01-18 | /DOCKER_ONLY_DEVELOPMENT.md | CREATED | Comprehensive documentation of Docker-only development approach | Docker-only development fix | ACTIVE | Never |
 | 2025-01-18 | /CLAUDE.md | MODIFIED | Updated to reference Docker-only development and renumbered sections | Docker-only development fix | ACTIVE | Never |
 | 2025-09-19 | /apps/api/Services/ITokenBlacklistService.cs | CREATED | Interface for JWT token blacklisting to fix logout security vulnerability | Backend Developer - Logout Fix | ACTIVE | N/A |
+| 2025-09-19 | /apps/api/Enums/EventType.cs | MODIFIED | Changed Workshop to Class enum value to fix admin events filter bug | React Developer - Events Filter Fix | ACTIVE | N/A |
+| 2025-09-19 | /apps/api/Services/SeedDataService.cs | MODIFIED | Updated all EventType.Workshop references to EventType.Class to fix filter | React Developer - Events Filter Fix | ACTIVE | N/A |
 | 2025-09-19 | /apps/web/src/components/events/EventForm.tsx | MODIFIED | Implemented environment-aware TinyMCE with Textarea fallback to prevent API usage costs in development | React Developer - TinyMCE Cost Control | ACTIVE | N/A |
 | 2025-09-19 | /apps/web/.env.development | MODIFIED | Removed/commented out VITE_TINYMCE_API_KEY to disable TinyMCE in development environment | React Developer - TinyMCE Cost Control | ACTIVE | N/A |
 | 2025-09-19 | /apps/web/src/components/forms/TinyMCERichTextEditor.tsx | MODIFIED | Updated to use environment variable and fallback to Textarea when no API key | React Developer - TinyMCE Cost Control | ACTIVE | N/A |

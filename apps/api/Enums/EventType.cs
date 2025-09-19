@@ -8,7 +8,7 @@ public enum EventType
     /// <summary>
     /// Educational workshop or class event.
     /// </summary>
-    Workshop = 1,
+    Class = 1,
     
     /// <summary>
     /// Social gathering or party event.

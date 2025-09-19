@@ -12,7 +12,27 @@ using WitchCityRope.Api.Features.Shared.Extensions;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Configure JSON serialization for DateTime handling
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+
+        // Handle multiple DateTime formats from frontend
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+
+        // Allow flexible DateTime parsing
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
+
+// Configure JSON options for minimal APIs
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    options.SerializerOptions.PropertyNameCaseInsensitive = true;
+    options.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -113,6 +133,16 @@ builder.Services.AddAuthentication(options =>
         {
             var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
             logger.LogWarning("JWT authentication failed: {Error}", context.Exception.Message);
+
+            // CRITICAL FIX: For logout endpoint, don't fail authentication - let authorization middleware decide
+            if (context.Request.Path.StartsWithSegments("/api/auth/logout") ||
+                (context.Request.Path.StartsWithSegments("/api/auth/user") && context.Request.Method == "GET"))
+            {
+                logger.LogInformation("Allowing authentication failure for anonymous endpoint: {Path}", context.Request.Path);
+                // Don't call context.Fail() - this allows the request to continue to authorization
+                return Task.CompletedTask;
+            }
+
             return Task.CompletedTask;
         }
     };
@@ -184,6 +214,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("ReactDevelopmentWithCredentials");
+
+// CRITICAL FIX: Simple test middleware
+// Removed simple logout middleware - proper logout endpoint handles this in AuthenticationEndpoints.cs
 
 // Add debugging middleware for CORS issues in development
 if (app.Environment.IsDevelopment())

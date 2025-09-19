@@ -331,4 +331,38 @@ public class UserManagementService
             return (false, null, "Failed to update user");
         }
     }
+
+    /// <summary>
+    /// Get users by role for dropdown options - Direct Entity Framework access
+    /// </summary>
+    public async Task<(bool Success, IEnumerable<UserOptionDto>? Response, string Error)> GetUsersByRoleAsync(
+        string role,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogDebug("Getting users by role: {Role}", role);
+
+            // Query users with the specified role using Entity Framework
+            var users = await _context.Users
+                .AsNoTracking()
+                .Where(u => u.Role == role && u.IsActive)
+                .OrderBy(u => u.SceneName ?? u.Email)
+                .Select(u => new UserOptionDto
+                {
+                    Id = u.Id.ToString(),
+                    Name = u.SceneName ?? u.Email ?? "Unknown",
+                    Email = u.Email ?? ""
+                })
+                .ToListAsync(cancellationToken);
+
+            _logger.LogDebug("Found {Count} users with role: {Role}", users.Count, role);
+            return (true, users, string.Empty);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get users by role: {Role}", role);
+            return (false, null, "Failed to get users by role");
+        }
+    }
 }

@@ -330,31 +330,31 @@ public class SeedDataService : ISeedDataService
         var sampleEvents = new[]
         {
             // Upcoming Events (10 events) - Only Class and Social types
-            CreateSeedEvent("Introduction to Rope Safety", 7, 18, 20, EventType.Workshop, 25.00m,
+            CreateSeedEvent("Introduction to Rope Safety", 7, 18, 20, EventType.Class, 25.00m,
                 "Learn the fundamentals of safe rope bondage practices in this comprehensive beginner workshop."),
             
-            CreateSeedEvent("Single Column Tie Techniques", 14, 19, 15, EventType.Workshop, 45.00m,
+            CreateSeedEvent("Single Column Tie Techniques", 14, 19, 15, EventType.Class, 45.00m,
                 "Master the art of single column ties with hands-on practice and personalized instruction."),
             
-            CreateSeedEvent("Suspension Basics", 21, 18, 12, EventType.Workshop, 65.00m,
+            CreateSeedEvent("Suspension Basics", 21, 18, 12, EventType.Class, 65.00m,
                 "Introduction to suspension techniques with emphasis on safety and proper rigging."),
             
-            CreateSeedEvent("Rope Maintenance & Care", 28, 17, 25, EventType.Workshop, 20.00m,
+            CreateSeedEvent("Rope Maintenance & Care", 28, 17, 25, EventType.Class, 20.00m,
                 "Learn how to properly maintain, clean, and store your rope for longevity and safety."),
             
             CreateSeedEvent("Community Rope Jam", 35, 19, 30, EventType.Social, 15.00m,
                 "Casual practice session for all skill levels. Bring your rope and practice with the community."),
             
-            CreateSeedEvent("Advanced Floor Work", 42, 18, 10, EventType.Workshop, 55.00m,
+            CreateSeedEvent("Advanced Floor Work", 42, 18, 10, EventType.Class, 55.00m,
                 "Explore complex floor-based rope bondage techniques for experienced practitioners."),
             
-            CreateSeedEvent("Rope and Sensation Play", 49, 20, 8, EventType.Workshop, 50.00m,
+            CreateSeedEvent("Rope and Sensation Play", 49, 20, 8, EventType.Class, 50.00m,
                 "Combine rope techniques with sensation play for enhanced experiences."),
             
-            CreateSeedEvent("Predicament Bondage Workshop", 56, 18, 12, EventType.Workshop, 60.00m,
+            CreateSeedEvent("Predicament Bondage Workshop", 56, 18, 12, EventType.Class, 60.00m,
                 "Learn to create challenging and engaging predicament scenarios with rope."),
             
-            CreateSeedEvent("Photography and Rope", 63, 16, 6, EventType.Workshop, 35.00m,
+            CreateSeedEvent("Photography and Rope", 63, 16, 6, EventType.Class, 35.00m,
                 "Explore the artistic intersection of rope bondage and photography."),
             
             CreateSeedEvent("Rope Social & Discussion", 70, 19, 40, EventType.Social, 10.00m,
@@ -364,7 +364,7 @@ public class SeedDataService : ISeedDataService
             CreateSeedEvent("Beginner Rope Circle", -7, 18, 20, EventType.Social, 10.00m,
                 "Past event: Introductory session for newcomers to rope bondage."),
             
-            CreateSeedEvent("Rope Fundamentals Series", -14, 17, 15, EventType.Workshop, 40.00m,
+            CreateSeedEvent("Rope Fundamentals Series", -14, 17, 15, EventType.Class, 40.00m,
                 "Past event: Multi-session fundamentals course for serious students.")
         };
 

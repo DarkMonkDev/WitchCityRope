@@ -180,6 +180,7 @@ public static class AuthenticationEndpoints
             ITokenBlacklistService tokenBlacklistService,
             CancellationToken cancellationToken) =>
             {
+                logger.LogInformation("LOGOUT ENDPOINT: Logout request received from {RemoteIP}", context.Connection.RemoteIpAddress);
                 try
                 {
                     // Log logout attempt and blacklist the token
@@ -210,6 +211,10 @@ public static class AuthenticationEndpoints
                         {
                             logger.LogWarning("Could not extract JTI from token for blacklisting");
                         }
+                    }
+                    else
+                    {
+                        logger.LogInformation("Logout called with no auth-token cookie - clearing any stale cookies");
                     }
 
                     // Clear the httpOnly authentication cookie with EXACTLY the same options as when set
@@ -250,13 +255,13 @@ public static class AuthenticationEndpoints
                     });
                 }
             })
-            .RequireAuthorization() // Require JWT Bearer token
+            .AllowAnonymous() // CRITICAL FIX: Allow logout even with expired/invalid tokens
+            .DisableAntiforgery() // Disable CSRF protection for logout (cookie-based auth already provides protection)
             .WithName("Logout")
             .WithSummary("Logout current user")
-            .WithDescription("Logs out the current user and provides instruction to clear stored tokens")
+            .WithDescription("Logs out the current user, clears cookies, and blacklists tokens. Works even with expired tokens.")
             .WithTags("Authentication")
-            .Produces<object>(200)
-            .Produces(401);
+            .Produces<object>(200);
 
         // Get user information from httpOnly cookie
         app.MapGet("/api/auth/user", async (

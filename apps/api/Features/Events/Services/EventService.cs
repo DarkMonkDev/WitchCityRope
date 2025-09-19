@@ -155,6 +155,19 @@ public class EventService
                 return (false, null, "Update request cannot be null");
             }
 
+            // Log what we received in the request
+            _logger.LogInformation("Update request for event {EventId}: Title={Title}, Sessions={SessionCount}, TicketTypes={TicketTypeCount}, TeacherIds={TeacherIdCount}",
+                eventId,
+                request.Title ?? "null",
+                request.Sessions?.Count ?? 0,
+                request.TicketTypes?.Count ?? 0,
+                request.TeacherIds?.Count ?? 0);
+
+            if (request.TeacherIds != null)
+            {
+                _logger.LogInformation("TeacherIds in request: [{TeacherIds}]", string.Join(", ", request.TeacherIds));
+            }
+
             // Find the existing event (with tracking for update) and include related data
             var eventEntity = await _context.Events
                 .Include(e => e.Sessions)
@@ -454,9 +467,15 @@ public class EventService
         List<string> newTeacherIds,
         CancellationToken cancellationToken)
     {
+        _logger.LogInformation("Updating organizers for event {EventId}. Received {Count} teacher IDs: [{TeacherIds}]",
+            eventEntity.Id, newTeacherIds.Count, string.Join(", ", newTeacherIds));
+
         // Get current organizers mapped by ID for efficient lookups
         var currentOrganizerIds = eventEntity.Organizers.Select(o => o.Id).ToHashSet();
         var newOrganizerIds = new HashSet<Guid>();
+
+        _logger.LogInformation("Current organizers for event {EventId}: [{CurrentOrganizers}]",
+            eventEntity.Id, string.Join(", ", currentOrganizerIds));
 
         // Parse and validate new teacher IDs
         foreach (var teacherIdString in newTeacherIds)
@@ -464,6 +483,7 @@ public class EventService
             if (Guid.TryParse(teacherIdString, out var teacherId))
             {
                 newOrganizerIds.Add(teacherId);
+                _logger.LogDebug("Successfully parsed teacher ID: {TeacherId}", teacherId);
             }
             else
             {
@@ -473,12 +493,17 @@ public class EventService
 
         // Add new organizers that aren't already associated
         var organizersToAdd = newOrganizerIds.Except(currentOrganizerIds).ToList();
+        _logger.LogInformation("Adding {Count} new organizers: [{OrganizersToAdd}]",
+            organizersToAdd.Count, string.Join(", ", organizersToAdd));
+
         foreach (var teacherId in organizersToAdd)
         {
             var user = await _context.Users.FindAsync(teacherId);
             if (user != null)
             {
                 eventEntity.Organizers.Add(user);
+                _logger.LogInformation("Added organizer {TeacherId} ({UserEmail}) to event {EventId}",
+                    teacherId, user.Email, eventEntity.Id);
             }
             else
             {
@@ -491,9 +516,17 @@ public class EventService
             .Where(o => !newOrganizerIds.Contains(o.Id))
             .ToList();
 
+        _logger.LogInformation("Removing {Count} organizers: [{OrganizersToRemove}]",
+            organizersToRemove.Count, string.Join(", ", organizersToRemove.Select(o => o.Id)));
+
         foreach (var organizerToRemove in organizersToRemove)
         {
             eventEntity.Organizers.Remove(organizerToRemove);
+            _logger.LogInformation("Removed organizer {TeacherId} ({UserEmail}) from event {EventId}",
+                organizerToRemove.Id, organizerToRemove.Email, eventEntity.Id);
         }
+
+        _logger.LogInformation("Completed organizer update for event {EventId}. Final organizer count: {Count}",
+            eventEntity.Id, eventEntity.Organizers.Count);
     }
 }

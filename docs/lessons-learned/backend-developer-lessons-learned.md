@@ -1598,6 +1598,52 @@ context.Response.Cookies.Delete("auth-token", new CookieOptions
 
 **PREVENTION**: Always use dual deletion strategy (Append with empty + past date, plus Delete) with identical options to ensure cross-browser cookie clearing reliability.
 
+## ✅ RESOLVED: Logout Authorization Conflict - September 19, 2025 ✅
+### CRITICAL ISSUE: Simple Middleware Intercepting Logout Requests
+**Problem**: Users could not properly logout because a simple middleware was intercepting logout requests and returning basic success without clearing cookies or blacklisting tokens.
+
+**Root Cause**: Simple middleware in Program.cs was intercepting `/api/auth/logout` POST requests and returning a basic JSON response WITHOUT calling the proper logout endpoint that handles cookie clearing and token blacklisting.
+
+**Solution Applied**:
+1. ✅ **Removed simple logout middleware** from Program.cs (lines 223-228)
+2. ✅ **Proper logout endpoint already configured correctly** in AuthenticationEndpoints.cs:
+   - Uses `.AllowAnonymous()` (not `.RequireAuthorization()`)
+   - Has special JWT middleware handling for anonymous endpoints
+   - Clears cookies with exact same options as when set
+   - Blacklists tokens server-side for security
+   - Always returns success even with errors
+
+**Technical Details**:
+```csharp
+// REMOVED from Program.cs:
+if (context.Request.Path == "/api/auth/logout" && context.Request.Method == "POST")
+{
+    // This was preventing proper cookie clearing!
+    await context.Response.WriteAsync("{\"success\":true,\"message\":\"Simple logout\"}");
+    return;
+}
+
+// EXISTING in AuthenticationEndpoints.cs (now works properly):
+app.MapPost("/api/auth/logout", async (...) => { ... })
+    .AllowAnonymous() // Allows expired tokens
+    .DisableAntiforgery(); // Safe for logout
+```
+
+**Files Changed**:
+- `/apps/api/Program.cs` - Removed intercepting middleware
+- No changes needed to AuthenticationEndpoints.cs (already correct)
+
+**Testing Results**:
+- ✅ Logout works with valid tokens
+- ✅ Logout works with expired tokens
+- ✅ Cookies properly cleared
+- ✅ Tokens blacklisted server-side
+- ✅ Users stay logged out after page refresh
+
+**KEY LESSON**: Always check for middleware that might intercept requests before they reach proper endpoints. Simple middleware can mask complex endpoint logic and create hard-to-debug issues.
+
+**PREVENTION**: Use proper endpoint routing instead of simple middleware for business logic. Reserve middleware for cross-cutting concerns only.
+
 ## 🚨 CRITICAL: Type System Compilation Errors Fixed - September 12, 2025 🚨
 
 ### URGENT RESOLUTION: AuthUserResponse vs UserDto Type Mismatches

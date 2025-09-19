@@ -62,6 +62,19 @@ export function convertEventFormDataToUpdateDto(
   // Include teacher IDs if present
   if (formData.teacherIds && formData.teacherIds.length > 0) {
     updateDto.teacherIds = formData.teacherIds;
+    console.log('🔍 [DEBUG] Including teacherIds in updateDto:', {
+      originalFormDataTeacherIds: formData.teacherIds,
+      updateDtoTeacherIds: updateDto.teacherIds,
+      teacherIdsType: typeof formData.teacherIds,
+      teacherIdsLength: formData.teacherIds.length
+    });
+  } else {
+    console.log('🔍 [DEBUG] teacherIds NOT included - empty or missing:', {
+      teacherIds: formData.teacherIds,
+      hasTeacherIds: 'teacherIds' in formData,
+      teacherIdsLength: formData.teacherIds?.length,
+      teacherIdsType: typeof formData.teacherIds
+    });
   }
 
   // Include volunteer positions if present
@@ -208,6 +221,15 @@ export function getChangedEventFields(
   // Check array fields - teacher IDs
   if (JSON.stringify(current.teacherIds) !== JSON.stringify(initial.teacherIds)) {
     changes.teacherIds = current.teacherIds;
+    console.log('🔍 [DEBUG] Teacher IDs changed, including in update:', {
+      currentTeacherIds: current.teacherIds,
+      initialTeacherIds: initial.teacherIds
+    });
+  } else {
+    console.log('🔍 [DEBUG] Teacher IDs unchanged:', {
+      currentTeacherIds: current.teacherIds,
+      initialTeacherIds: initial.teacherIds
+    });
   }
 
   // Check array fields - volunteer positions

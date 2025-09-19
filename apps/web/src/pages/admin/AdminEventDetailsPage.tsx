@@ -79,10 +79,24 @@ export const AdminEventDetailsPage: React.FC = () => {
       const status = (event as any)?.isPublished !== false ? 'published' : 'draft';
       setPublishStatus(status);
 
+      // DEBUG: Log event data from API
+      console.log('🔍 [DEBUG] Event data from API:', {
+        eventId: event.id,
+        teacherIds: event.teacherIds,
+        hasTeacherIds: 'teacherIds' in event,
+        eventKeys: Object.keys(event)
+      });
 
       // Store initial form data for change tracking
       // Only set this once when event data first loads
       const initialData = convertEventToFormData(event as EventDtoType);
+
+      // DEBUG: Log converted form data
+      console.log('🔍 [DEBUG] Converted initial form data:', {
+        teacherIds: initialData.teacherIds,
+        formDataKeys: Object.keys(initialData)
+      });
+
       setInitialFormData(initialData);
     }
   }, [event, initialFormData, convertEventToFormData]);  
@@ -145,13 +159,27 @@ export const AdminEventDetailsPage: React.FC = () => {
 
   const handleFormSubmit = async (data: EventFormData) => {
     if (!event || !id) return;
-    
+
     try {
+      // DEBUG: Log form data before processing
+      console.log('🔍 [DEBUG] Form data before save:', {
+        teacherIds: data.teacherIds,
+        formDataKeys: Object.keys(data),
+        fullFormData: data
+      });
+
       // Get only changed fields for partial update
-      const changedFields = initialFormData 
+      const changedFields = initialFormData
         ? getChangedEventFields(id, data, initialFormData)
         : convertEventFormDataToUpdateDto(id, data);
-      
+
+      // DEBUG: Log what changes were detected
+      console.log('🔍 [DEBUG] Changed fields to send to API:', {
+        changedFields,
+        hasTeacherIds: 'teacherIds' in changedFields,
+        teacherIdsValue: changedFields.teacherIds
+      });
+
       // Only proceed if there are changes
       if (Object.keys(changedFields).length <= 1) { // Only id field means no changes
         notifications.show({
@@ -161,7 +189,7 @@ export const AdminEventDetailsPage: React.FC = () => {
         });
         return;
       }
-      
+
       await updateEventMutation.mutateAsync(changedFields);
       
       // Update initial form data to new values

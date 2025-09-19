@@ -28,6 +28,7 @@ import { TicketTypeFormModal, EventTicketType as ModalTicketType } from './Ticke
 import { VolunteerPositionsGrid } from './VolunteerPositionsGrid';
 import { VolunteerPositionFormModal, VolunteerPosition } from './VolunteerPositionFormModal';
 import { WCRButton } from '../ui';
+import { useTeachers, formatTeachersForMultiSelect } from '../../lib/api/hooks/useTeachers';
 
 export interface EventFormData {
   // Basic Info
@@ -73,6 +74,9 @@ export const EventForm: React.FC<EventFormProps> = ({
   // TinyMCE configuration - only use if API key is available
   const tinyMCEApiKey = import.meta.env.VITE_TINYMCE_API_KEY;
   const shouldUseTinyMCE = !!tinyMCEApiKey;
+
+  // Fetch teachers from API
+  const { data: teachersData, isLoading: teachersLoading, error: teachersError } = useTeachers();
 
   // Smart Rich Text Editor component - uses TinyMCE if API key available, otherwise Textarea
   const RichTextEditor: React.FC<{
@@ -208,13 +212,8 @@ export const EventForm: React.FC<EventFormProps> = ({
     { value: 'off-site', label: 'Off-site Location' },
   ];
 
-  const availableTeachers = [
-    { value: 'river-moon', label: 'River Moon' },
-    { value: 'sage-blackthorne', label: 'Sage Blackthorne' },
-    { value: 'phoenix-rose', label: 'Phoenix Rose' },
-    { value: 'willow-craft', label: 'Willow Craft' },
-    { value: 'raven-night', label: 'Raven Night' },
-  ];
+  // Format teachers for MultiSelect (with fallback to empty array)
+  const availableTeachers = teachersData ? formatTeachersForMultiSelect(teachersData) : [];
 
   // Session management handlers
   const handleEditSession = (sessionId: string) => {
@@ -358,6 +357,12 @@ export const EventForm: React.FC<EventFormProps> = ({
   };
 
   const handleSubmit = form.onSubmit((values) => {
+    // DEBUG: Log form values when submitted
+    console.log('🔍 [DEBUG] EventForm submitting values:', {
+      teacherIds: values.teacherIds,
+      formKeys: Object.keys(values),
+      fullValues: values
+    });
     onSubmit(values);
   });
 
@@ -561,13 +566,46 @@ export const EventForm: React.FC<EventFormProps> = ({
                 <Title order={2} c="burgundy" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
                   Teachers/Instructors
                 </Title>
+                {/* DEBUG: Log teacher selection data */}
+                {console.log('🔍 [DEBUG] Teacher selection data:', {
+                  teachersData,
+                  teachersLoading,
+                  teachersError,
+                  availableTeachers,
+                  currentTeacherIds: form.values.teacherIds,
+                  teacherInputProps: form.getInputProps('teacherIds')
+                })}
+
+                {teachersError && (
+                  <Alert color="red" mb="md" title="Error Loading Teachers">
+                    Failed to load teachers list. Using form without teacher selection.
+                  </Alert>
+                )}
+
                 <MultiSelect
                   label="Select Teachers"
-                  placeholder="Choose teachers for this event"
+                  placeholder={teachersLoading ? "Loading teachers..." : "Choose teachers for this event"}
                   data={availableTeachers}
                   searchable
+                  disabled={teachersLoading || !!teachersError}
                   {...form.getInputProps('teacherIds')}
+                  onChange={(value) => {
+                    console.log('🔍 [DEBUG] MultiSelect onChange called with:', value);
+                    console.log('🔍 [DEBUG] Value type:', typeof value, Array.isArray(value) ? 'array' : 'not array');
+                    form.setFieldValue('teacherIds', value);
+                    console.log('🔍 [DEBUG] Form teacherIds after set:', form.values.teacherIds);
+                  }}
                 />
+                {/* DEBUG: Show current teacherIds and API status */}
+                <Text size="xs" c="dimmed" mt="xs">
+                  Debug - Current teacherIds: {JSON.stringify(form.values.teacherIds)}
+                  <br />
+                  Teachers loading: {teachersLoading ? 'Yes' : 'No'}
+                  <br />
+                  Teachers available: {availableTeachers.length}
+                  <br />
+                  Teachers error: {teachersError ? String(teachersError) : 'None'}
+                </Text>
               </div>
 
               {/* Save Buttons */}
