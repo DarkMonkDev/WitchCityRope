@@ -55,6 +55,18 @@ export const AdminEventDetailsPage: React.FC = () => {
                      event.eventType === 'Social' ? 'social' as const : 
                      'class' as const; // Default fallback
 
+    // Map volunteer positions from API response - handle field name differences
+    const volunteerPositions = ((event as any)?.volunteerPositions || []).map((vp: any) => ({
+      id: vp.id || '',
+      positionName: vp.title || vp.name || '', // API returns 'title', form uses 'positionName'
+      description: vp.description || '',
+      sessions: vp.sessionId ? `Session ${vp.sessionId}` : 'All Sessions',
+      startTime: '18:00', // Default as API doesn't include these
+      endTime: '21:00',   // Default as API doesn't include these
+      volunteersNeeded: vp.slotsNeeded || vp.volunteersNeeded || 0,
+      volunteersAssigned: vp.slotsFilled || vp.volunteersAssigned || 0,
+    }));
+
     return {
       eventType,
       title: event.title || '',
@@ -66,7 +78,7 @@ export const AdminEventDetailsPage: React.FC = () => {
       status: ((event as any)?.status as 'Draft' | 'Published' | 'Cancelled' | 'Completed') || 'Draft', // Map API status to form status
       sessions: (event.sessions as any) || [], // Now maps from API response
       ticketTypes: (event.ticketTypes as any) || [], // Now maps from API response
-      volunteerPositions: [], // EventDto doesn't have volunteers - will be managed by form state
+      volunteerPositions, // Now properly mapped from API response
     };
   }, []);
 
@@ -177,6 +189,15 @@ export const AdminEventDetailsPage: React.FC = () => {
         fullFormData: data
       });
 
+      // DEBUG: Compare initial vs current volunteerPositions
+      console.log('🔍 [DEBUG] Volunteer positions comparison:', {
+        initial: initialFormData?.volunteerPositions,
+        current: data.volunteerPositions,
+        areEqual: JSON.stringify(initialFormData?.volunteerPositions) === JSON.stringify(data.volunteerPositions),
+        initialLength: initialFormData?.volunteerPositions?.length || 0,
+        currentLength: data.volunteerPositions?.length || 0
+      });
+
       // Get only changed fields for partial update
       const changedFields = initialFormData
         ? getChangedEventFields(id, data, initialFormData)
@@ -196,6 +217,12 @@ export const AdminEventDetailsPage: React.FC = () => {
       });
 
       // Only proceed if there are changes
+      console.log('🔍 [DEBUG] Checking if should save:', {
+        changedFieldsKeys: Object.keys(changedFields),
+        keyCount: Object.keys(changedFields).length,
+        shouldSave: Object.keys(changedFields).length > 1
+      });
+
       if (Object.keys(changedFields).length <= 1) { // Only id field means no changes
         notifications.show({
           title: 'No Changes',
@@ -204,6 +231,8 @@ export const AdminEventDetailsPage: React.FC = () => {
         });
         return;
       }
+
+      console.log('🔍 [DEBUG] About to call updateEventMutation with:', changedFields);
 
       // Perform the API update
       const updatedEvent = await updateEventMutation.mutateAsync(changedFields);
