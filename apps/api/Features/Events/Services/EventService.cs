@@ -278,6 +278,12 @@ public class EventService
                 await UpdateEventOrganizersAsync(eventEntity, request.TeacherIds, cancellationToken);
             }
 
+            // Handle volunteer positions updates if provided
+            if (request.VolunteerPositions != null)
+            {
+                await UpdateEventVolunteerPositionsAsync(eventEntity, request.VolunteerPositions, cancellationToken);
+            }
+
             // Update the UpdatedAt timestamp
             eventEntity.UpdatedAt = DateTime.UtcNow;
 
@@ -422,7 +428,8 @@ public class EventService
             }
             else
             {
-                // Add new ticket type
+                // Add new ticket type - DO NOT set ID, let EF generate it
+                // This includes ticket types with client-generated IDs that don't exist in DB
                 var newTicketType = new WitchCityRope.Api.Models.TicketType
                 {
                     EventId = eventEntity.Id,
@@ -434,12 +441,8 @@ public class EventService
                     IsRsvpMode = ticketTypeDto.Type == "rsvp"
                 };
 
-                // Only set ID if it's a valid new GUID and not already in use
-                if (Guid.TryParse(ticketTypeDto.Id, out var newTicketTypeId) && newTicketTypeId != Guid.Empty)
-                {
-                    newTicketType.Id = newTicketTypeId;
-                    processedTicketTypeIds.Add(newTicketTypeId);
-                }
+                // Let Entity Framework generate the ID for new ticket types
+                // The ID from frontend is just a temporary client-side ID
 
                 // If this ticket type is for a specific session, find and link it
                 if (ticketTypeDto.SessionIdentifiers.Count == 1)
@@ -537,5 +540,84 @@ public class EventService
 
         _logger.LogInformation("Completed organizer update for event {EventId}. Final organizer count: {Count}",
             eventEntity.Id, eventEntity.Organizers.Count);
+    }
+
+    /// <summary>
+    /// Updates the volunteer positions for an event with proper EF Core change tracking
+    /// Handles updates, additions, and deletions correctly
+    /// </summary>
+    private async Task UpdateEventVolunteerPositionsAsync(
+        WitchCityRope.Api.Models.Event eventEntity,
+        List<VolunteerPositionDto> newPositions,
+        CancellationToken cancellationToken)
+    {
+        // Get current volunteer positions mapped by ID for efficient lookups
+        var currentPositions = eventEntity.VolunteerPositions.ToDictionary(vp => vp.Id);
+        var processedPositionIds = new HashSet<Guid>();
+
+        foreach (var positionDto in newPositions)
+        {
+            // Only treat as existing if ID is valid AND exists in current positions
+            if (!string.IsNullOrEmpty(positionDto.Id) &&
+                Guid.TryParse(positionDto.Id, out var positionId) &&
+                positionId != Guid.Empty &&
+                currentPositions.TryGetValue(positionId, out var existingPosition))
+            {
+                // Update existing volunteer position
+                existingPosition.Title = positionDto.Title;
+                existingPosition.Description = positionDto.Description;
+                existingPosition.SlotsNeeded = positionDto.SlotsNeeded;
+                existingPosition.SlotsFilled = positionDto.SlotsFilled;
+                existingPosition.RequiresExperience = positionDto.RequiresExperience;
+                existingPosition.Requirements = positionDto.Requirements;
+
+                // Update session linkage if provided
+                if (!string.IsNullOrEmpty(positionDto.SessionId) && Guid.TryParse(positionDto.SessionId, out var sessionId))
+                {
+                    existingPosition.SessionId = sessionId;
+                }
+                else
+                {
+                    existingPosition.SessionId = null;
+                }
+
+                processedPositionIds.Add(positionId);
+            }
+            else
+            {
+                // Add new volunteer position - DO NOT set ID, let EF generate it
+                // This includes positions with client-generated IDs that don't exist in DB
+                var newPosition = new WitchCityRope.Api.Models.VolunteerPosition
+                {
+                    EventId = eventEntity.Id,
+                    Title = positionDto.Title,
+                    Description = positionDto.Description,
+                    SlotsNeeded = positionDto.SlotsNeeded,
+                    SlotsFilled = positionDto.SlotsFilled,
+                    RequiresExperience = positionDto.RequiresExperience,
+                    Requirements = positionDto.Requirements
+                };
+
+                // Set session linkage if provided
+                if (!string.IsNullOrEmpty(positionDto.SessionId) && Guid.TryParse(positionDto.SessionId, out var sessionId))
+                {
+                    newPosition.SessionId = sessionId;
+                }
+
+                // Let Entity Framework generate the ID for new positions
+                // The ID from frontend is just a temporary client-side ID
+                eventEntity.VolunteerPositions.Add(newPosition);
+            }
+        }
+
+        // Remove volunteer positions that are no longer present
+        var positionsToRemove = currentPositions.Values
+            .Where(vp => !processedPositionIds.Contains(vp.Id))
+            .ToList();
+
+        foreach (var positionToRemove in positionsToRemove)
+        {
+            eventEntity.VolunteerPositions.Remove(positionToRemove);
+        }
     }
 }

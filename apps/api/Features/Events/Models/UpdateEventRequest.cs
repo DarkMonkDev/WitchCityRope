@@ -65,4 +65,10 @@ public class UpdateEventRequest
     /// If provided, will replace all existing teacher associations with these
     /// </summary>
     public List<string>? TeacherIds { get; set; }
+
+    /// <summary>
+    /// Updated volunteer positions list (optional)
+    /// If provided, will replace all existing volunteer positions with these
+    /// </summary>
+    public List<VolunteerPositionDto>? VolunteerPositions { get; set; }
 }

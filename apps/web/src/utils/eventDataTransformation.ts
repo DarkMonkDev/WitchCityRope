@@ -92,12 +92,13 @@ export function convertEventFormDataToUpdateDto(
   if (formData.volunteerPositions !== undefined) {
     updateDto.volunteerPositions = formData.volunteerPositions.map(position => ({
       id: position.id,
-      name: (position as any).name,
-      description: position.description,
-      volunteersNeeded: position.volunteersNeeded,
-      volunteersAssigned: position.volunteersAssigned,
-      sessionId: (position as any).sessionId,
-      requirements: (position as any).requirements
+      title: (position as any).name || position.title || '', // Map name to title for API
+      description: position.description || '',
+      slotsNeeded: position.volunteersNeeded || 0, // Map volunteersNeeded to slotsNeeded
+      slotsFilled: position.volunteersAssigned || 0, // Map volunteersAssigned to slotsFilled
+      requiresExperience: (position as any).requiresExperience || false,
+      requirements: (position as any).requirements || '',
+      sessionId: (position as any).sessionId
     }));
     console.log('🔍 [DEBUG] Including volunteerPositions in updateDto:', {
       positionsCount: formData.volunteerPositions.length,
@@ -273,12 +274,13 @@ export function getChangedEventFields(
   if (currentVolunteerPositionsStr !== initialVolunteerPositionsStr) {
     changes.volunteerPositions = (current.volunteerPositions || []).map(position => ({
       id: position.id,
-      name: (position as any).name,
-      description: position.description,
-      volunteersNeeded: position.volunteersNeeded,
-      volunteersAssigned: position.volunteersAssigned,
-      sessionId: (position as any).sessionId,
-      requirements: (position as any).requirements
+      title: (position as any).name || position.title || '', // Map name to title for API
+      description: position.description || '',
+      slotsNeeded: position.volunteersNeeded || 0, // Map volunteersNeeded to slotsNeeded
+      slotsFilled: position.volunteersAssigned || 0, // Map volunteersAssigned to slotsFilled
+      requiresExperience: (position as any).requiresExperience || false,
+      requirements: (position as any).requirements || '',
+      sessionId: (position as any).sessionId
     }));
     console.log('🔍 [DEBUG] VolunteerPositions changed, including in update:', {
       currentVolunteerPositions: current.volunteerPositions,
