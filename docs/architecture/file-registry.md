@@ -8,6 +8,11 @@
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-09-19 | /apps/web/src/lib/api/hooks/useEvents.ts | MODIFIED | Removed excessive debug console.log statements causing memory retention | Memory leak fix - debug logging cleanup | ACTIVE | N/A |
+| 2025-09-19 | /apps/web/src/pages/admin/AdminEventDetailsPage.tsx | MODIFIED | Removed debug logging causing component re-render memory leaks | Memory leak fix - debug logging cleanup | ACTIVE | N/A |
+| 2025-09-19 | /apps/web/src/utils/eventDataTransformation.ts | MODIFIED | Eliminated debug logs holding references to large transformation objects | Memory leak fix - debug logging cleanup | ACTIVE | N/A |
+| 2025-09-19 | /apps/web/src/components/events/EventForm.tsx | MODIFIED | Removed memory leak causing console.log statements in form handling | Memory leak fix - debug logging cleanup | ACTIVE | N/A |
+| 2025-09-19 | /apps/web/src/lib/api/queryClient.ts | MODIFIED | Fixed memory monitoring thresholds to appropriate levels for small webapp | Memory leak fix - debug logging cleanup | ACTIVE | N/A |
 | 2025-01-13 | /docs/functional-areas/events/research/2025-01-13-entity-id-generation-patterns-research.md | CREATED | Comprehensive research on React + .NET API entity ID generation patterns for temporary entities in forms | Technology research for entity ID patterns | ACTIVE | Never |
 | 2025-01-19 | /apps/api/Features/Events/Models/UpdateEventRequest.cs | MODIFIED | Added VolunteerPositions property to enable volunteer position persistence | Events admin persistence fixes | ACTIVE | N/A |
 | 2025-01-19 | /apps/api/Features/Events/Services/EventService.cs | MODIFIED | Implemented UpdateEventVolunteerPositionsAsync and fixed ticket type ID handling | Events admin persistence fixes | ACTIVE | N/A |
