@@ -48,6 +48,14 @@
 | 2025-09-18 | /docs/functional-areas/testing/2025-09-18-navigation-verification.md | CREATED | Navigation verification report after API fix | Test execution documentation | ACTIVE | - |
 | 2025-09-18 | /docs/functional-areas/testing/2025-09-18-test-suite-analysis.md | CREATED | Comprehensive test suite analysis with failure categorization | Test execution analysis and development guidance | ACTIVE | - |
 | 2025-09-18 | /apps/web/src/contexts/AuthContext.tsx | MODIFIED | Fixed logout bug by clearing Zustand store sessionStorage persistence | React Developer - Logout Bug Fix | ACTIVE | - |
+| 2025-09-19 | /docs/lessons-learned/test-developer-lessons-learned.md | MODIFIED | Added ULTRA CRITICAL Docker-only testing environment requirements | Librarian - Docker-only testing enforcement | ACTIVE | Never |
+| 2025-09-19 | /docs/lessons-learned/test-executor-lessons-learned.md | MODIFIED | Added ULTRA CRITICAL Docker-only testing environment requirements | Librarian - Docker-only testing enforcement | ACTIVE | Never |
+| 2025-09-19 | /docs/lessons-learned/react-developer-lessons-learned.md | MODIFIED | Enhanced testing section with Docker-only requirements | Librarian - Docker-only testing enforcement | ACTIVE | Never |
+| 2025-09-19 | /docs/lessons-learned/backend-developer-lessons-learned.md | MODIFIED | Updated testing section to enforce Docker-only environment | Librarian - Docker-only testing enforcement | ACTIVE | Never |
+| 2025-09-19 | /docs/standards-processes/testing/docker-only-testing-standard.md | CREATED | SINGLE SOURCE OF TRUTH for Docker-only testing requirements | Librarian - Docker-only testing enforcement | ACTIVE | Never |
+| 2025-09-19 | /.claude/agents/testing/test-developer.md | MODIFIED | Added Docker-only testing environment startup requirements | Librarian - Docker-only testing enforcement | ACTIVE | Never |
+| 2025-09-19 | /.claude/agents/testing/test-executor.md | MODIFIED | Added Docker-only testing environment startup requirements | Librarian - Docker-only testing enforcement | ACTIVE | Never |
+| 2025-09-19 | /docs/standards-processes/testing/TESTING.md | MODIFIED | Added reference to Docker-only testing standard as SINGLE SOURCE OF TRUTH | Librarian - Docker-only testing enforcement | ACTIVE | Never |
 
 ## File Categories
 

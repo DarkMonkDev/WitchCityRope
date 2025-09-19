@@ -75,7 +75,16 @@ npm run type-check
    - API must be running on port 5655
    - PostgreSQL must be on port 5433
 
-**Never skip health checks** - they detect port misconfigurations instantly.
+**CRITICAL**: Never skip Docker verification - prevents hours of debugging wrong environment!
+
+### 🚨 EMERGENCY PROTOCOL - IF TESTS FAIL:
+1. **FIRST**: Verify Docker containers: `docker ps | grep witchcity`
+2. **CHECK**: No local dev servers: `lsof -i :5174 -i :5175 | grep node`
+3. **KILL**: Any rogue processes: `./scripts/kill-local-dev-servers.sh`
+4. **RESTART**: Docker if needed: `./dev.sh`
+5. **VALIDATE**: Only Docker environment active before retesting
+
+**REMEMBER**: Docker-only testing = reliable results. Mixed environments = chaos!
 
 ---
 
@@ -1592,6 +1601,107 @@ const result = await page.evaluate(() => {
 
 ### Tags
 #critical #react-mounting #debugging-methodology #playwright #infrastructure #false-alarm-resolution
+
+---
+
+## 🚨 CRITICAL: Logout Bug Fix - Dual Auth State Sync (2025-09-18) 🚨
+**Date**: 2025-09-18
+**Category**: Authentication Bug Fix
+**Severity**: CRITICAL
+
+### What We Learned
+**LOGOUT BUG ROOT CAUSE**: Two separate auth state management systems weren't syncing on logout:
+1. **AuthContext** manages auth state for some components
+2. **Zustand authStore** manages auth state for Navigation and other components with sessionStorage persistence
+
+**THE PROBLEM PATTERN**:
+- User clicks logout → AuthContext clears its state and calls API
+- AuthContext redirects to login page (appears to work)
+- Zustand store remains in sessionStorage with old auth data
+- User refreshes page → Zustand restores auth state → user appears logged in again
+
+**DUAL AUTH STATE ISSUE**:
+```typescript
+// AuthContext logout clears its own state
+setUser(null)
+await authService.logout() // Clears httpOnly cookie
+window.location.href = '/login'
+
+// But Zustand store sessionStorage persistence remains:
+// sessionStorage.getItem('auth-store') still contains old auth data
+// On refresh: Zustand restores { user: {...}, isAuthenticated: true }
+```
+
+### Critical Fix Implementation
+**SOLUTION**: Clear Zustand store sessionStorage in AuthContext logout:
+
+```typescript
+// ✅ FIXED: AuthContext logout now syncs both auth systems
+const logout = useCallback(async () => {
+  try {
+    setIsLoading(true)
+    // Clear user state first to update UI immediately
+    setUser(null)
+    setError(null)
+
+    // CRITICAL FIX: Clear Zustand store persistence
+    sessionStorage.removeItem('auth-store')
+
+    // Then call logout API to clear the cookie
+    await authService.logout()
+
+    // Force a page reload to ensure all state is cleared
+    window.location.href = '/login'
+  } catch (err) {
+    console.error('Logout error:', err)
+    // Even if logout fails, ensure we're logged out locally
+    setUser(null)
+    setError(null)
+
+    // CRITICAL FIX: Clear Zustand store persistence even on error
+    sessionStorage.removeItem('auth-store')
+
+    // Still redirect to login page
+    window.location.href = '/login'
+  } finally {
+    setIsLoading(false)
+  }
+}, [])
+```
+
+### Action Items
+- [x] **IDENTIFY dual auth state systems** causing logout sync issues
+- [x] **IMPLEMENT sessionStorage clearing** in AuthContext logout function
+- [x] **APPLY fix in both success and error paths** for comprehensive coverage
+- [x] **VERIFY fix resolves page refresh auto-login** bug
+- [x] **DOCUMENT the dual auth pattern** to prevent future similar issues
+
+### Prevention Strategy for Dual Auth Systems
+1. **Document all auth state storage locations** (Context, Zustand, localStorage, sessionStorage)
+2. **Create centralized logout function** that clears ALL auth storage
+3. **Test logout with page refresh** to verify persistence is cleared
+4. **Use consistent auth state source** - avoid multiple auth management systems when possible
+5. **Coordinate state clearing** across all auth mechanisms
+
+### Testing Verification
+**Test Steps for Future Verification**:
+1. Login as a user
+2. Verify login works (user menu visible)
+3. Click logout button
+4. Verify logout appears to work (back to login page)
+5. **CRITICAL**: Refresh the page
+6. **VERIFY**: User remains logged out (this was the bug)
+
+### Expected Behavior After Fix
+- ✅ Logout clears both AuthContext and Zustand auth state
+- ✅ Page refresh does NOT restore user session
+- ✅ User stays logged out until manual login
+- ✅ SessionStorage auth-store is empty after logout
+
+**CRITICAL SUCCESS**: Logout now properly syncs dual auth state management systems.
+
+### Tags
+#critical #logout-bug #dual-auth-state #sessionStorage #zustand #authcontext #state-sync
 
 ---
 

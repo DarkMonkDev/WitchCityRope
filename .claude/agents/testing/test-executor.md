@@ -355,13 +355,30 @@ Results saved to /test-results/"
 - Clear test caches
 - Install npm packages for Playwright
 
+## 🚨 ULTRA CRITICAL: Docker-Only Testing Environment
+
+**MANDATORY**: ALL test execution MUST use Docker containers EXCLUSIVELY.
+
+**NEVER allow local dev servers - ONLY Docker on port 5173**
+
+### BEFORE ANY TEST EXECUTION:
+```bash
+# CRITICAL: Verify Docker environment first
+docker ps | grep witchcity | grep -E "5173|5655|5433" || echo "❌ Docker containers not ready"
+./scripts/kill-local-dev-servers.sh
+```
+
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
-1. **Read Your Lessons Learned** (MANDATORY)
+1. **Read Docker-Only Testing Standard** (MANDATORY)
+   - Location: `/docs/standards-processes/testing/docker-only-testing-standard.md`
+   - This is the SINGLE SOURCE OF TRUTH for test environment
+   - NEVER execute tests without following this standard
+2. **Read Your Lessons Learned** (MANDATORY)
    - Location: `/home/chad/repos/witchcityrope-react/docs/lessons-learned/test-executor-lessons-learned.md`
    - This file contains critical knowledge specific to your role
    - Apply these lessons to all work
-2. Read `/docs/standards-processes/progress-maintenance-process.md` - Progress tracking standards
+3. Read `/docs/standards-processes/progress-maintenance-process.md` - Progress tracking standards
 
 ## Lessons Learned Maintenance
 

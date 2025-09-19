@@ -2,6 +2,54 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 ULTRA CRITICAL: Docker-Only Testing Environment - MANDATORY 🚨
+
+**ALL TESTS MUST RUN AGAINST DOCKER CONTAINERS ON PORT 5173**
+
+### ⚠️ MANDATORY TESTING ENVIRONMENT:
+**NEVER run `npm run dev` (disabled, will error)**
+**ONLY use Docker containers for ALL testing**
+
+### 🛑 CRITICAL RULES FOR TEST DEVELOPERS:
+1. **NEVER start local dev servers** - Use Docker only: `./dev.sh`
+2. **ALWAYS verify Docker is running** before creating ANY tests
+3. **ONLY use port 5173** (Docker) - NEVER 5174, 5175, or any other port
+4. **KILL rogue processes**: `./scripts/kill-local-dev-servers.sh` if needed
+5. **TEST against Docker environment EXCLUSIVELY**
+
+### 💥 WHAT HAPPENS WHEN YOU IGNORE THIS:
+- Tests target wrong ports and fail mysteriously
+- Local dev servers conflict with Docker containers
+- E2E tests timeout because services aren't on expected ports
+- Hours wasted debugging "broken tests" that are testing wrong environment
+
+### ✅ MANDATORY PRE-TEST VERIFICATION:
+```bash
+# 1. Verify Docker is running (REQUIRED)
+docker ps | grep witchcity-web
+# Should show: witchcity-web on port 5173
+
+# 2. Kill any rogue local dev servers
+./scripts/kill-local-dev-servers.sh
+
+# 3. Start Docker if not running
+if ! docker ps | grep -q witchcity-web; then
+  ./dev.sh
+fi
+
+# 4. Verify correct port
+curl -f http://localhost:5173/ || echo "ERROR: Docker not on port 5173"
+```
+
+### 🚨 EMERGENCY PROTOCOL - IF TESTS FAIL:
+1. **FIRST**: Check Docker status: `docker ps | grep witchcity`
+2. **VERIFY**: Port 5173 is Docker, not local dev server
+3. **KILL**: Any local dev servers running
+4. **RESTART**: Docker containers if needed: `./dev.sh`
+5. **VALIDATE**: Tests run against Docker environment only
+
+**REMEMBER**: Docker-only = reliable tests. Local dev servers = mysterious failures!
+
 ## 🚨 CRITICAL: E2E Tests Must Detect JavaScript Errors - Navigation Bug Prevention - 2025-09-18 🚨
 
 **Lesson Learned**: E2E tests that don't monitor JavaScript and console errors give dangerous false positives, allowing critical navigation bugs to reach production.

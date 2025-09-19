@@ -209,23 +209,72 @@ If you see 100+ TypeScript errors after your API changes:
 - ❌ **NEVER use**: `/src/_archive/WitchCityRope.Api/` - ARCHIVED legacy API
 - **Note**: Legacy API archived 2025-09-13 with all features migrated to modern API
 
-## 🚨 CRITICAL: Testing Requirements for Backend Developers
+## 🚨 ULTRA CRITICAL: Docker-Only Testing Environment for Backend Developers
 
-**MANDATORY BEFORE ANY TESTING**: Even for quick test runs, you MUST:
+**ALL TESTING MUST USE DOCKER CONTAINERS EXCLUSIVELY**
 
-1. **Read testing documentation FIRST**:
-   - `/docs/standards-processes/testing-prerequisites.md` - MANDATORY pre-flight checks
+### ⚠️ MANDATORY TESTING ENVIRONMENT:
+**NEVER run local dev servers** - Docker containers ONLY for testing
+
+### 🛑 CRITICAL RULES FOR BACKEND DEVELOPERS:
+1. **ALWAYS verify Docker containers running** before ANY testing work
+2. **NEVER test against local dev servers** - Use Docker: `./dev.sh`
+3. **VERIFY API container healthy** before writing tests
+4. **COORDINATE with test agents** - they expect Docker environment on port 5655
+5. **KILL rogue local processes** that might conflict with Docker
+
+### 💥 WHAT HAPPENS WHEN YOU IGNORE THIS:
+- API tests fail because they can't reach correct endpoints
+- Integration tests timeout waiting for database connections
+- Test agents report false failures when backend isn't on expected ports
+- Hours wasted debugging "broken tests" that are testing wrong environment
+
+### ✅ MANDATORY PRE-TESTING CHECKLIST:
+```bash
+# 1. Verify Docker API container (CRITICAL)
+docker ps | grep witchcity-api | grep "5655"
+# Must show Docker API container on port 5655
+
+# 2. Verify API health (REQUIRED)
+curl -f http://localhost:5655/health && echo "API healthy" || echo "ERROR: API unhealthy"
+
+# 3. Verify database connection through Docker
+curl -f http://localhost:5655/api/health && echo "Database connected" || echo "ERROR: Database connection failed"
+
+# 4. Kill any rogue local API processes
+lsof -i :5655 | grep -v docker || echo "No conflicts"
+
+# 5. Only proceed if Docker environment verified
+echo "Ready for Docker-only testing"
+```
+
+### 🚨 MANDATORY BEFORE ANY TESTING:
+
+1. **READ testing documentation FIRST**:
+   - `/docs/standards-processes/testing/docker-only-testing-standard.md` - Docker testing requirements
    - `/docs/standards-processes/testing/TESTING.md` - Testing procedures
    - `/docs/lessons-learned/test-executor-lessons-learned.md` - Common issues
 
-2. **Run health checks BEFORE any tests**:
+2. **RUN health checks AFTER Docker verification**:
    ```bash
    dotnet test tests/WitchCityRope.Core.Tests --filter "Category=HealthCheck"
    ```
 
-3. **Why this matters**: Port misconfigurations are the #1 cause of false test failures. Running tests without health checks wastes hours debugging non-existent issues.
+3. **VERIFY Docker environment**:
+   - API: Docker container on port 5655 (NEVER local dev server)
+   - PostgreSQL: Docker container on port 5433
+   - React app: Docker container on port 5173
 
-**Never skip health checks** - they take < 1 second and prevent hours of confusion.
+### 🚨 EMERGENCY PROTOCOL - IF TESTS FAIL:
+1. **FIRST**: Verify Docker containers: `docker ps | grep witchcity-api`
+2. **CHECK**: API health: `curl -f http://localhost:5655/health`
+3. **VERIFY**: No local API servers conflicting with Docker
+4. **RESTART**: Docker if needed: `./dev.sh`
+5. **VALIDATE**: Only Docker environment active before retesting
+
+**CRITICAL**: Docker-only testing prevents hours of debugging wrong environment!
+
+**REMEMBER**: Docker-only testing = reliable results. Mixed environments = debugging nightmare!
 
 ---
 
@@ -1324,6 +1373,121 @@ isTokenExpired(): boolean {
 **KEY LESSON**: JWT token persistence requires both client-side localStorage management AND proper expiration handling. Memory-only storage causes authentication loss on any page refresh or component re-initialization.
 
 **PREVENTION**: Always implement persistent token storage with expiration tracking for production JWT authentication systems. Test authentication across page refreshes, navigation, and error conditions.
+
+## 🚨 CRITICAL: Complete Logout Security Fix - September 19, 2025 🚨
+### URGENT RESOLUTION: JWT Token Blacklisting for Server-Side Logout Security
+**Problem**: Users logged out successfully but remained authenticated after page refresh. The issue was two-fold:
+1. **Cookie Clearing**: httpOnly authentication cookies were not being properly deleted (PREVIOUSLY FIXED)
+2. **Server-Side Security Gap**: JWT tokens remained valid server-side even after logout, meaning cleared cookies could be reused
+
+**Root Cause Analysis**:
+1. **Cookie clearing worked correctly** - API properly set cookies to empty with past expiration
+2. **JWT validation flaw** - Tokens were only validated for structure/expiration, not for logout status
+3. **Security vulnerability** - If browsers didn't respect cookie clearing, logged-out tokens still worked
+
+**Complete Solution Implemented**:
+```csharp
+// NEW: Token Blacklisting Service
+public interface ITokenBlacklistService
+{
+    void BlacklistToken(string jti, DateTime expirationTime);
+    bool IsTokenBlacklisted(string jti);
+}
+
+// Enhanced JWT Validation with Blacklist Check
+public bool ValidateToken(string token)
+{
+    // Check if token is blacklisted BEFORE other validation
+    var jti = ExtractJti(token);
+    if (!string.IsNullOrEmpty(jti) && _tokenBlacklistService.IsTokenBlacklisted(jti))
+    {
+        return false; // Token was blacklisted (user logged out)
+    }
+    // ... continue with normal validation
+}
+
+// Enhanced Logout Endpoint
+var jti = jwtService.ExtractJti(authCookie);
+if (!string.IsNullOrEmpty(jti))
+{
+    var handler = new JwtSecurityTokenHandler();
+    var jsonToken = handler.ReadJwtToken(authCookie);
+    tokenBlacklistService.BlacklistToken(jti, jsonToken.ValidTo);
+}
+```
+
+**Files Created/Modified**:
+- `/apps/api/Services/ITokenBlacklistService.cs` - Token blacklisting interface
+- `/apps/api/Services/TokenBlacklistService.cs` - In-memory blacklist implementation
+- `/apps/api/Services/JwtService.cs` - Added blacklist validation and JTI extraction
+- `/apps/api/Features/Authentication/Endpoints/AuthenticationEndpoints.cs` - Enhanced logout with blacklisting
+- `/apps/api/Program.cs` - Registered blacklist service as singleton
+
+**Security Benefits**:
+- ✅ **Server-Side Token Invalidation**: Logged-out tokens cannot be reused even if cookies persist
+- ✅ **Defense in Depth**: Both cookie clearing AND token blacklisting protect against logout bypass
+- ✅ **Memory Efficient**: Blacklist automatically cleans up expired tokens
+- ✅ **Immediate Effect**: Tokens are invalidated instantly on logout
+
+**Testing Results**:
+- ✅ Logout clears authentication cookies with past expiration
+- ✅ Blacklisted tokens rejected by JWT validation
+- ✅ Protected endpoints return 401 for logged-out users
+- ✅ Memory cleanup prevents blacklist growth
+
+**PRODUCTION CONSIDERATIONS**:
+- Current implementation uses in-memory storage (suitable for single instance)
+- For multi-instance deployments, consider Redis or database storage for blacklist
+- Automatic cleanup every 30 minutes prevents memory issues
+
+**KEY LESSON**: Complete logout security requires BOTH client-side cookie clearing AND server-side token invalidation. Cookie-only logout creates security vulnerabilities where tokens can be reused.
+
+## 🚨 CRITICAL: HttpOnly Cookie Deletion Issues Fixed - January 18, 2025 🚨
+
+### URGENT RESOLUTION: Authentication Cookie Not Properly Cleared on Logout
+**Problem**: Users logged out successfully but remained authenticated after page refresh, indicating the httpOnly authentication cookie was not being properly deleted.
+
+**Root Cause**:
+1. **Inconsistent Cookie Options**: Cookie deletion was not using exactly the same options as when the cookie was set
+2. **Incomplete Deletion Method**: Using only `Response.Cookies.Delete()` without setting explicit past expiration date
+3. **Missing Backup Strategy**: No redundant deletion methods to ensure cookie clearing
+
+**Solution Implemented**:
+```csharp
+// CRITICAL: Use EXACTLY the same options as when cookie was set
+var cookieOptions = new CookieOptions
+{
+    HttpOnly = true,
+    Secure = context.Request.IsHttps, // Same as login
+    SameSite = SameSiteMode.Strict,   // Same as login
+    Path = "/",                       // Same as login
+    Expires = DateTimeOffset.UtcNow.AddDays(-1) // Past date for deletion
+};
+
+// Method 1: Set to empty with past expiration (most reliable)
+context.Response.Cookies.Append("auth-token", "", cookieOptions);
+
+// Method 2: Also use Delete as backup
+context.Response.Cookies.Delete("auth-token", new CookieOptions
+{
+    HttpOnly = true,
+    Secure = context.Request.IsHttps,
+    SameSite = SameSiteMode.Strict,
+    Path = "/"
+});
+```
+
+**Files Updated**:
+- `/apps/api/Features/Authentication/Endpoints/AuthenticationEndpoints.cs` - Logout endpoint and invalid token cleanup
+
+**Testing Results**:
+- ✅ Logout clears authentication state
+- ✅ Page refresh after logout keeps user logged out
+- ✅ Invalid tokens properly cleared from cookies
+
+**KEY LESSON**: HttpOnly cookie deletion requires EXACT option matching between creation and deletion, plus setting explicit past expiration date for reliable clearing across all browsers.
+
+**PREVENTION**: Always use dual deletion strategy (Append with empty + past date, plus Delete) with identical options to ensure cross-browser cookie clearing reliability.
 
 ## 🚨 CRITICAL: Type System Compilation Errors Fixed - September 12, 2025 🚨
 

@@ -4,6 +4,16 @@
 
 WitchCityRope uses a comprehensive testing strategy to ensure code quality and reliability:
 
+## 🚨 ULTRA CRITICAL: Docker-Only Testing Environment
+
+**ALL TESTING MUST USE DOCKER CONTAINERS EXCLUSIVELY**
+
+📚 **READ FIRST**: `/docs/standards-processes/testing/docker-only-testing-standard.md`
+
+This is the **SINGLE SOURCE OF TRUTH** for testing environment requirements.
+
+**NEVER run `npm run dev` - ONLY use Docker containers via `./dev.sh`**
+
 ## 🚨 MANDATORY: Pre-Flight Health Checks
 
 **Before running ANY tests, you MUST run health checks:**

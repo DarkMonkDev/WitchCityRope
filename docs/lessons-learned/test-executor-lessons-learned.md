@@ -1,8 +1,56 @@
 # Test Executor Lessons Learned
-<!-- Last Updated: 2025-09-18 -->
-<!-- Version: 21.0 -->
+<!-- Last Updated: 2025-09-19 -->
+<!-- Version: 22.0 -->
 <!-- Owner: Test Team -->
 <!-- Status: Active -->
+
+## 🚨 ULTRA CRITICAL: Docker-Only Testing Environment - MANDATORY 🚨
+
+**ALL TESTS MUST RUN AGAINST DOCKER CONTAINERS EXCLUSIVELY**
+
+### ⚠️ MANDATORY TESTING ENVIRONMENT:
+**NEVER allow local dev servers** - Docker containers ONLY
+
+### 🛑 CRITICAL RULES FOR TEST EXECUTION:
+1. **ALWAYS verify Docker containers running** before executing ANY tests
+2. **NEVER execute tests if local dev servers detected** on ports 5174, 5175, etc.
+3. **ONLY use port 5173** (Docker) for ALL test execution
+4. **IMMEDIATELY kill rogue processes**: `./scripts/kill-local-dev-servers.sh`
+5. **RESTART Docker if containers down**: `./dev.sh`
+
+### 💥 CONSEQUENCES OF IGNORING THIS:
+- Tests execute against wrong environment and give false results
+- Port conflicts cause mysterious test failures
+- Hours wasted debugging "broken tests" that are testing wrong services
+- False positive results when tests hit localhost dev servers instead of Docker
+
+### ✅ MANDATORY PRE-TEST CHECKLIST:
+```bash
+# 1. Verify Docker containers are running (CRITICAL)
+docker ps --format "table {{.Names}}\t{{.Ports}}" | grep witchcity
+# Must show witchcity-web on 0.0.0.0:5173
+
+# 2. Kill any local dev servers (REQUIRED)
+./scripts/kill-local-dev-servers.sh
+
+# 3. Check for rogue processes
+lsof -i :5174 -i :5175 -i :3000 | grep node || echo "No rogue processes"
+
+# 4. Verify correct endpoint
+curl -f http://localhost:5173/ | head -20 | grep -q "Witch City Rope" || echo "ERROR: Wrong service on 5173"
+
+# 5. Only proceed if Docker environment verified
+echo "Docker-only environment verified for testing"
+```
+
+### 🚨 EMERGENCY PROTOCOL - BEFORE ANY TEST EXECUTION:
+1. **CHECK**: Docker container status first
+2. **VERIFY**: Port 5173 serves Docker containers, not local dev
+3. **KILL**: Any npm/node processes on conflicting ports
+4. **RESTART**: Docker containers if any issues: `./dev.sh`
+5. **VALIDATE**: Environment is Docker-only before proceeding
+
+**CRITICAL**: Never execute tests without verifying Docker-only environment!
 
 ## 🚨 NEW CRITICAL SUCCESS: Comprehensive Test Suite Analysis (2025-09-18)
 

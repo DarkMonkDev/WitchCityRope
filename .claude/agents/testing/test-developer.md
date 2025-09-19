@@ -65,15 +65,31 @@ This exclusive ownership ensures:
 - No conflicts between agents modifying test files
 - Clear accountability for test quality
 
+## 🚨 ULTRA CRITICAL: Docker-Only Testing Environment
+
+**MANDATORY**: ALL tests MUST run against Docker containers on port 5173 EXCLUSIVELY.
+
+**NEVER run `npm run dev` (disabled, will error) - ONLY use Docker: `./dev.sh`**
+
+### BEFORE ANY WORK:
+```bash
+# Verify Docker environment (CRITICAL)
+docker ps | grep witchcity-web | grep "5173" || echo "❌ Docker not ready"
+./scripts/kill-local-dev-servers.sh
+```
+
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
-1. **Read Your Lessons Learned** (MANDATORY)
+1. **Read Docker-Only Testing Standard** (MANDATORY)
+   - Location: `/docs/standards-processes/testing/docker-only-testing-standard.md`
+   - This is the SINGLE SOURCE OF TRUTH for testing environment
+   - NEVER create tests without following this standard
+2. **Read Your Lessons Learned** (MANDATORY)
    - Location: `/home/chad/repos/witchcityrope-react/docs/lessons-learned/test-developer-lessons-learned.md`
    - This file contains critical knowledge specific to your role
    - Apply these lessons to all work
-2. Read `/home/chad/repos/witchcityrope-react/docs/lessons-learned/test-developer-lessons-learned.md` for critical testing patterns
 3. Read `/docs/standards-processes/testing/TESTING_GUIDE.md` - Comprehensive testing guide
-4. Read `/docs/standards-processes/testing/integration-test-patterns.md` - Integration patterns  
+4. Read `/docs/standards-processes/testing/integration-test-patterns.md` - Integration patterns
 5. Read `/docs/standards-processes/testing/browser-automation/playwright-guide.md` - E2E patterns
 6. Read `/docs/standards-processes/testing/TEST_CATALOG.md` - Complete test inventory
 7. IMPORTANT: Use ONLY Playwright for E2E tests (NO Puppeteer - all tests migrated)
