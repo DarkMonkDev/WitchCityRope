@@ -48,6 +48,10 @@
 | 2025-09-20 | /apps/web/src/features/dashboard/components/MembershipStatistics.tsx | MODIFIED | Fixed statistics labels and encouragement text | Critical terminology fixes | ACTIVE | - |
 | 2025-09-20 | /apps/web/src/features/dashboard/components/UpcomingEvents.tsx | MODIFIED | Fixed empty state messaging | Critical terminology fixes | ACTIVE | - |
 | 2025-01-19 | /apps/api/Features/Participation/Entities/ParticipationType.cs | CREATED | Enum for RSVP vs Ticket participation types | Backend RSVP Vertical Slice | ACTIVE | - |
+| 2025-09-20 | `/apps/web/src/pages/events/EventDetailPage.tsx` | MODIFIED | Fixed admin role check - removed array check for single role string | React UI Fixes - Admin Edit Link | ACTIVE | - |
+| 2025-09-20 | `/apps/web/src/pages/events/EventsListPage.tsx` | MODIFIED | Fixed double dollar sign in event prices by removing extra $ before template literal | React UI Fixes - Double Dollar Sign | ACTIVE | - |
+| 2025-09-20 | `/apps/web/src/components/homepage/EventCard.tsx` | MODIFIED | Updated to use EventDto instead of Event type for proper RSVP/ticket count display | React UI Fixes - Event Card RSVP/Ticket Counts | ACTIVE | - |
+| 2025-09-20 | `/apps/web/src/components/homepage/EventsList.tsx` | MODIFIED | Updated to use EventDto instead of Event type for API compatibility | React UI Fixes - Event Card RSVP/Ticket Counts | ACTIVE | - |
 | 2025-01-19 | /apps/api/Features/Participation/Entities/ParticipationStatus.cs | CREATED | Enum for participation status (Active/Cancelled/etc) | Backend RSVP Vertical Slice | ACTIVE | - |
 | 2025-01-19 | /apps/api/Features/Participation/Entities/Participation.cs | CREATED | Main participation entity linking users to events with type/status | Backend RSVP Vertical Slice | ACTIVE | - |
 | 2025-01-19 | /apps/api/Features/Participation/Queries/GetUserParticipationsQuery.cs | CREATED | Query to retrieve user's event participations | Backend RSVP Vertical Slice | ACTIVE | - |

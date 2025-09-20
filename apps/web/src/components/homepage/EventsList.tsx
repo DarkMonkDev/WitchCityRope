@@ -3,6 +3,7 @@ import { Box, Text, Title, Button, Alert, Loader } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Event } from '../../types/Event';
+import { EventDto } from '@witchcityrope/shared-types';
 import { EventCard } from './EventCard';
 import { apiClient } from '../../lib/api/client';
 import { queryKeys } from '../../api/queryKeys';
@@ -19,14 +20,14 @@ interface EventsListProps {
   /** Custom error state */
   error?: string | null;
   /** Custom events data */
-  events?: Event[];
+  events?: EventDto[];
 }
 
 // Custom hook for fetching events - follows existing patterns from features/events/api/queries.ts
 const useEventsForHomepage = (enabled: boolean = true) => {
   return useQuery({
     queryKey: queryKeys.events(),
-    queryFn: async (): Promise<Event[]> => {
+    queryFn: async (): Promise<EventDto[]> => {
       const response = await apiClient.get('/api/events');
       // Access events from the wrapped ApiResponse format
       return response.data?.data || [];
@@ -59,7 +60,7 @@ export const EventsList: React.FC<EventsListProps> = ({
   } = useEventsForHomepage(!customEvents); // Disable query if custom events provided
 
   // Determine which data source to use - ensure type safety with explicit casting
-  const events: Event[] = customEvents || (Array.isArray(apiEvents) ? apiEvents : []);
+  const events: EventDto[] = customEvents || (Array.isArray(apiEvents) ? apiEvents : []);
   const isLoading = customLoading ?? (customEvents ? false : queryLoading);
   const errorState = customError ?? (queryError ? 'Failed to load events' : null);
 

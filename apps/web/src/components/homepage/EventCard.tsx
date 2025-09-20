@@ -1,15 +1,9 @@
 import React from 'react';
 import { Box, Text, Group, Anchor } from '@mantine/core';
-import { Event } from '../../types/Event';
+import { EventDto } from '@witchcityrope/shared-types';
 
 interface EventCardProps {
-  event: Event & {
-    eventType?: string;
-    currentRSVPs?: number;
-    currentTickets?: number;
-    currentAttendees?: number;
-    capacity?: number;
-  };
+  event: EventDto;
   /** Custom pricing display */
   price?: string;
   /** Availability status */
@@ -81,7 +75,8 @@ export const EventCard: React.FC<EventCardProps> = ({
   };
 
   const finalStatus = calculateStatus();
-  const formatDate = (isoString: string) => {
+  const formatDate = (isoString?: string) => {
+    if (!isoString) return 'TBD';
     const date = new Date(isoString);
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
@@ -163,7 +158,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           }}
           data-testid="event-title"
         >
-          {event.title}
+          {event.title || 'Untitled Event'}
         </Text>
       </Box>
 
@@ -192,7 +187,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           }}
           data-testid="event-description"
         >
-          {event.description}
+          {event.description || 'No description available'}
         </Text>
 
         <Group

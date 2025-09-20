@@ -475,8 +475,8 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({ event, userRole
               color: 'var(--color-burgundy)'
             }}
           >
-            ${event.capacity && event.registrationCount ? 
-              `$${Math.round(((event.capacity - event.registrationCount) / event.capacity) * 50 + 25)}` : 
+            {event.capacity && event.registrationCount ?
+              `$${Math.round(((event.capacity - event.registrationCount) / event.capacity) * 50 + 25)}` :
               '$35-65'
             } sliding scale
           </Text>
