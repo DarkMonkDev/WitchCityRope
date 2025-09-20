@@ -25,6 +25,14 @@ public interface IParticipationService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Purchase a ticket for a class event (any authenticated user)
+    /// </summary>
+    Task<Result<ParticipationStatusDto>> CreateTicketPurchaseAsync(
+        CreateTicketPurchaseRequest request,
+        Guid userId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Cancel user's participation in an event
     /// </summary>
     Task<Result> CancelParticipationAsync(

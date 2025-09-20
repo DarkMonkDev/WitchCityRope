@@ -174,6 +174,110 @@ public class ParticipationService : IParticipationService
     }
 
     /// <summary>
+    /// Purchase a ticket for a class event (any authenticated user)
+    /// </summary>
+    public async Task<Result<ParticipationStatusDto>> CreateTicketPurchaseAsync(
+        CreateTicketPurchaseRequest request,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Creating ticket purchase for user {UserId} in event {EventId}", userId, request.EventId);
+
+            // Check if user exists
+            var user = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+            if (user == null)
+            {
+                return Result<ParticipationStatusDto>.Failure("User not found");
+            }
+
+            // Check if event exists and is a class event
+            var eventEntity = await _context.Events
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == request.EventId, cancellationToken);
+
+            if (eventEntity == null)
+            {
+                return Result<ParticipationStatusDto>.Failure("Event not found");
+            }
+
+            if (eventEntity.EventType != "Class")
+            {
+                return Result<ParticipationStatusDto>.Failure("Ticket purchases are only allowed for class events");
+            }
+
+            // Check if user already has a participation for this event
+            var existingParticipation = await _context.EventParticipations
+                .FirstOrDefaultAsync(ep => ep.EventId == request.EventId && ep.UserId == userId, cancellationToken);
+
+            if (existingParticipation != null)
+            {
+                return Result<ParticipationStatusDto>.Failure("User already has a participation for this event");
+            }
+
+            // Check event capacity
+            var currentParticipationCount = await _context.EventParticipations
+                .CountAsync(ep => ep.EventId == request.EventId && ep.Status == ParticipationStatus.Active, cancellationToken);
+
+            if (currentParticipationCount >= eventEntity.Capacity)
+            {
+                return Result<ParticipationStatusDto>.Failure("Event is at full capacity");
+            }
+
+            // Create the ticket purchase
+            var participation = new EventParticipation(request.EventId, userId, ParticipationType.Ticket)
+            {
+                Notes = request.Notes,
+                CreatedBy = userId
+            };
+
+            _context.EventParticipations.Add(participation);
+
+            // Create audit history
+            var history = new ParticipationHistory(participation.Id, "Created")
+            {
+                NewValues = System.Text.Json.JsonSerializer.Serialize(new {
+                    EventId = participation.EventId,
+                    UserId = participation.UserId,
+                    ParticipationType = participation.ParticipationType,
+                    Notes = participation.Notes,
+                    PaymentMethodId = request.PaymentMethodId
+                }),
+                ChangedBy = userId,
+                ChangeReason = "Ticket purchased by user"
+            };
+
+            _context.ParticipationHistory.Add(history);
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Successfully created ticket purchase for user {UserId} in event {EventId}", userId, request.EventId);
+
+            var dto = new ParticipationStatusDto
+            {
+                EventId = participation.EventId,
+                UserId = participation.UserId,
+                ParticipationType = participation.ParticipationType,
+                Status = participation.Status,
+                ParticipationDate = participation.CreatedAt,
+                Notes = participation.Notes,
+                CanCancel = participation.CanBeCancelled()
+            };
+
+            return Result<ParticipationStatusDto>.Success(dto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating ticket purchase for user {UserId} in event {EventId}", userId, request.EventId);
+            return Result<ParticipationStatusDto>.Failure("Failed to create ticket purchase", ex.Message);
+        }
+    }
+
+    /// <summary>
     /// Cancel user's participation in an event
     /// </summary>
     public async Task<Result> CancelParticipationAsync(

@@ -68,9 +68,9 @@ export const EventDetailPage: React.FC = () => {
     });
   };
 
-  const handlePurchaseTicket = (amount: number) => {
-    console.log('Purchasing ticket for:', (event as any)?.title, 'Amount:', amount);
-    // TODO: Implement ticket purchase flow with PayPal integration
+  const handlePurchaseTicket = (amount: number, slidingScalePercentage?: number) => {
+    console.log('Purchasing ticket for:', (event as any)?.title, 'Amount:', amount, 'Sliding Scale:', slidingScalePercentage);
+    console.log('✅ PayPal payment flow completed - ticket should be created by PayPal integration');
   };
 
   const handleCancel = (type: 'rsvp' | 'ticket', reason?: string) => {

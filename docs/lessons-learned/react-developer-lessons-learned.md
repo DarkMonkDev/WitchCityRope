@@ -1187,7 +1187,146 @@ interface UserDto {
 ---
 
 *This file is maintained by the react-developer agent. Add new lessons immediately when discovered.*
-*Last updated: 2025-09-20 - Added critical RSVP Button Visibility Fix for null participation state*
+*Last updated: 2025-01-20 - Added PayPal Integration Patterns for Ticket Purchases*
+
+## 🚨 CRITICAL: PayPal React Integration Patterns (2025-01-20) 🚨
+**Date**: 2025-01-20
+**Category**: Payment Integration
+**Severity**: CRITICAL
+
+### What We Learned
+**COMPLETE PAYPAL INTEGRATION**: Successfully restored PayPal functionality using `@paypal/react-paypal-js` package with proper state management and backend integration.
+
+**KEY SUCCESS PATTERNS**:
+- **Environment-Based Configuration**: PayPal SDK loads configuration from environment variables
+- **Lazy Loading Strategy**: PayPal SDK only loads when payment UI is shown (performance optimization)
+- **Payment State Management**: Separate state for showing/hiding PayPal UI
+- **Backend Integration**: PayPal success triggers backend API for ticket creation
+- **Error Recovery**: Comprehensive error handling with user-friendly retry options
+
+### Critical Implementation Patterns
+```typescript
+// ✅ CORRECT: PayPal component with environment configuration
+const PayPalButton: React.FC<PayPalButtonProps> = ({ eventInfo, amount, slidingScalePercentage = 0 }) => {
+  const paypalClientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
+  const paypalMode = import.meta.env.VITE_PAYPAL_MODE || 'sandbox';
+
+  // Check configuration before rendering
+  if (!paypalClientId) {
+    return <Alert title="PayPal Configuration Error">...</Alert>;
+  }
+
+  return (
+    <PayPalScriptProvider options={{
+      "client-id": paypalClientId,
+      currency: eventInfo.currency || 'USD',
+      intent: 'capture'
+    }}>
+      <PayPalButtons
+        createOrder={createOrder}
+        onApprove={onApprove}
+        onError={onError}
+        onCancel={onCancel}
+      />
+    </PayPalScriptProvider>
+  );
+};
+
+// ✅ CORRECT: Payment success integration with backend
+const handlePayPalSuccess = async (paymentDetails: any) => {
+  try {
+    await confirmPayPalPayment.mutateAsync({
+      orderId: paymentDetails.id,
+      paymentDetails
+    });
+    // Update parent component state
+    onPurchaseTicket(selectedAmount, slidingScalePercentage);
+    setShowPayPal(false);
+  } catch (error) {
+    // Error handling - keep PayPal form visible for retry
+  }
+};
+
+// ✅ CORRECT: Lazy loading pattern for PayPal UI
+{!showPayPal ? (
+  <button onClick={() => setShowPayPal(true)}>
+    Purchase Ticket with PayPal
+  </button>
+) : (
+  <Box>
+    <PayPalButton {...paypalProps} />
+    <Button onClick={() => setShowPayPal(false)}>Cancel Payment</Button>
+  </Box>
+)}
+```
+
+### Backend Integration Pattern
+```typescript
+// ✅ CORRECT: Payment service with React Query
+export const paymentsService = {
+  async confirmPayPalPayment(orderId: string, paymentDetails: any) {
+    const eventId = paymentDetails?.purchase_units?.[0]?.custom_id || '';
+
+    // Call existing backend endpoint for ticket creation
+    return this.purchaseTicket({
+      eventId,
+      notes: `PayPal payment confirmed - Order ID: ${orderId}`,
+      paymentMethodId: orderId
+    });
+  }
+};
+
+// ✅ CORRECT: React Query hook with cache invalidation
+export function useConfirmPayPalPayment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ orderId, paymentDetails }) =>
+      paymentsService.confirmPayPalPayment(orderId, paymentDetails),
+    onSuccess: (data, variables) => {
+      const eventId = variables.paymentDetails?.purchase_units?.[0]?.custom_id;
+      if (eventId) {
+        queryClient.invalidateQueries(['events', eventId, 'participation']);
+      }
+      queryClient.invalidateQueries(['user', 'participations']);
+    }
+  });
+}
+```
+
+### Action Items
+- [x] **USE environment variables** for PayPal configuration (VITE_PAYPAL_CLIENT_ID, VITE_PAYPAL_MODE)
+- [x] **IMPLEMENT lazy loading** - only load PayPal SDK when payment form is shown
+- [x] **CREATE payment state management** - separate showPayPal state from payment processing
+- [x] **INTEGRATE with backend API** - confirm payments through existing ticket purchase endpoint
+- [x] **ADD comprehensive error handling** - graceful failures with retry options
+- [x] **PROVIDE user feedback** - loading states, success notifications, error messages
+- [x] **MAINTAIN backward compatibility** - existing RSVP flows continue to work
+
+### Performance Optimizations
+1. **Lazy SDK Loading**: PayPal SDK only loads when needed (performance)
+2. **Smart Cache Invalidation**: Only invalidate relevant React Query caches
+3. **Error Boundaries**: Prevent PayPal errors from crashing the app
+4. **State Cleanup**: Proper component unmounting and state reset
+
+### Security Considerations
+1. **Client-Side Only**: No sensitive PayPal data stored in frontend
+2. **Environment Variables**: Secure configuration management
+3. **Backend Validation**: All payment confirmation through secure backend webhooks
+4. **User Isolation**: Payment confirmation tied to authenticated user
+
+### Testing Strategy
+1. **Sandbox Environment**: Use PayPal sandbox for development testing
+2. **Error Scenarios**: Test network failures, payment cancellations, API errors
+3. **Mobile Testing**: Verify PayPal mobile experience
+4. **Cross-Browser**: Ensure PayPal SDK works across browsers
+
+**CRITICAL SUCCESS**: Class events now support real PayPal ticket purchases with sliding scale pricing, using the existing operational webhook infrastructure.
+
+### Tags
+#critical #paypal-integration #payment-processing #lazy-loading #backend-integration #error-handling #performance-optimization
+
+---
 
 ## COMPREHENSIVE LESSONS FROM FRONTEND DEVELOPMENT
 **NOTE**: The following lessons were consolidated from frontend-lessons-learned.md

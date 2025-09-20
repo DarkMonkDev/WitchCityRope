@@ -95,8 +95,57 @@ public static class ParticipationEndpoints
             .Produces(404)
             .Produces(500);
 
-        // Cancel participation
-        app.MapDelete("/api/events/{eventId:guid}/rsvp",
+        // Purchase ticket for class event
+        app.MapPost("/api/events/{eventId:guid}/tickets",
+            [Authorize] async (
+                Guid eventId,
+                CreateTicketPurchaseRequest request,
+                IParticipationService participationService,
+                ClaimsPrincipal user,
+                CancellationToken cancellationToken) =>
+            {
+                if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+                {
+                    return Results.Unauthorized();
+                }
+
+                // Ensure the eventId in URL matches the request
+                request.EventId = eventId;
+
+                var result = await participationService.CreateTicketPurchaseAsync(request, userId, cancellationToken);
+
+                if (!result.IsSuccess)
+                {
+                    // Check for specific business rule violations
+                    if (result.Error.Contains("not found"))
+                    {
+                        return Results.NotFound(new { error = result.Error });
+                    }
+                    if (result.Error.Contains("capacity") || result.Error.Contains("already") || result.Error.Contains("only allowed"))
+                    {
+                        return Results.BadRequest(new { error = result.Error });
+                    }
+
+                    return Results.Problem(
+                        title: "Failed to purchase ticket",
+                        detail: result.Error,
+                        statusCode: 500);
+                }
+
+                return Results.Created($"/api/events/{eventId}/participation", result.Value);
+            })
+            .WithName("PurchaseTicket")
+            .WithSummary("Purchase ticket for class event")
+            .WithDescription("Purchases a ticket for a class event. Available to any authenticated user.")
+            .WithTags("Participation")
+            .Produces<ParticipationStatusDto>(201)
+            .Produces(400)
+            .Produces(401)
+            .Produces(404)
+            .Produces(500);
+
+        // Cancel participation (both RSVPs and tickets)
+        app.MapDelete("/api/events/{eventId:guid}/participation",
             [Authorize] async (
                 Guid eventId,
                 IParticipationService participationService,
@@ -130,7 +179,7 @@ public static class ParticipationEndpoints
 
                 return Results.NoContent();
             })
-            .WithName("CancelRSVP")
+            .WithName("CancelParticipation")
             .WithSummary("Cancel participation in event")
             .WithDescription("Cancels the user's participation (RSVP or ticket) in the specified event")
             .WithTags("Participation")
@@ -167,6 +216,51 @@ public static class ParticipationEndpoints
             .WithTags("Participation")
             .Produces<List<UserParticipationDto>>(200)
             .Produces(401)
+            .Produces(500);
+
+        // Backward compatibility: Cancel RSVP (alias for cancelling participation)
+        app.MapDelete("/api/events/{eventId:guid}/rsvp",
+            [Authorize] async (
+                Guid eventId,
+                IParticipationService participationService,
+                ClaimsPrincipal user,
+                string? reason = null,
+                CancellationToken cancellationToken = default) =>
+            {
+                if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+                {
+                    return Results.Unauthorized();
+                }
+
+                var result = await participationService.CancelParticipationAsync(eventId, userId, reason, cancellationToken);
+
+                if (!result.IsSuccess)
+                {
+                    if (result.Error.Contains("not found"))
+                    {
+                        return Results.NotFound(new { error = result.Error });
+                    }
+                    if (result.Error.Contains("cannot be cancelled"))
+                    {
+                        return Results.BadRequest(new { error = result.Error });
+                    }
+
+                    return Results.Problem(
+                        title: "Failed to cancel RSVP",
+                        detail: result.Error,
+                        statusCode: 500);
+                }
+
+                return Results.NoContent();
+            })
+            .WithName("CancelRSVP")
+            .WithSummary("Cancel RSVP (backward compatibility)")
+            .WithDescription("Cancels the user's RSVP. Alias for cancelling participation.")
+            .WithTags("Participation")
+            .Produces(204)
+            .Produces(400)
+            .Produces(401)
+            .Produces(404)
             .Produces(500);
     }
 }

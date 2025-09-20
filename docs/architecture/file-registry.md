@@ -8,6 +8,11 @@
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-09-20 | `/docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/implementation-complete-2025-01-20.md` | CREATED | Comprehensive implementation summary for RSVP and ticketing system completion | RSVP/Ticketing Documentation | ACTIVE | Never |
+| 2025-09-20 | `/docs/architecture/functional-area-master-index.md` | MODIFIED | Added RSVP/Ticketing functional area entry | RSVP/Ticketing Documentation | ACTIVE | Never |
+| 2025-09-20 | `/PROGRESS.md` | MODIFIED | Updated current status to reflect RSVP/ticketing completion | RSVP/Ticketing Documentation | ACTIVE | Never |
+| 2025-09-20 | `/docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/_archive/rsvp-button-fix-summary.md` | MOVED | Archived temporary implementation fix documentation | RSVP/Ticketing Documentation | ARCHIVED | Never |
+| 2025-09-20 | `/docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/_archive/terminology-fix-verification.md` | MOVED | Archived temporary terminology fix documentation | RSVP/Ticketing Documentation | ARCHIVED | Never |
 | 2025-01-19 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/design/role-stacking-research.md | CREATED | Comprehensive research on role/status stacking patterns for user authentication with decision matrix and recommended hybrid claims-based approach | Technology Research - Role Stacking System | ACTIVE | Never |
 | 2025-09-20 | /apps/web/src/components/dashboard/UserParticipations.tsx | MODIFIED | Fixed Mantine Empty import error - removed non-existent component | React compilation fix | ACTIVE | - |
 | 2025-09-20 | /apps/web/src/components/events/ParticipationCard.tsx | MODIFIED | Fixed TypeScript unknown type errors with proper type guards | React compilation fix | ACTIVE | - |
@@ -49,76 +54,53 @@
 | 2025-01-19 | /apps/api/Data/ApplicationDbContext.cs | MODIFIED | Added DbSets and configurations for participation entities | Backend RSVP Vertical Slice | ACTIVE | - |
 | 2025-01-19 | /apps/api/Features/Shared/Extensions/ServiceCollectionExtensions.cs | MODIFIED | Added ParticipationService registration | Backend RSVP Vertical Slice | ACTIVE | - |
 | 2025-01-19 | /apps/api/Features/Shared/Extensions/WebApplicationExtensions.cs | MODIFIED | Added ParticipationEndpoints registration | Backend RSVP Vertical Slice | ACTIVE | - |
-| 2025-01-19 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/design/database-design.md | CREATED | Comprehensive database schema design for RSVP and Ticketing System with PostgreSQL optimizations, Entity Framework patterns, and performance considerations | RSVP/Ticketing Database Design | ACTIVE | Never |
-| 2025-01-19 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/design/ef-core-models.md | CREATED | Complete Entity Framework Core models implementation with 4 entities, configurations, and PostgreSQL-specific patterns for RSVP and Ticketing System | RSVP/Ticketing Database Design | ACTIVE | Never |
-| 2025-01-19 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/handoffs/database-design-2025-01-19-handoff.md | CREATED | Database design phase completion handoff with implementation guidance, migration scripts, and critical patterns for backend developer | RSVP/Ticketing Database Design | ACTIVE | Never |
-| 2025-01-19 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/requirements/functional-specification.md | CREATED | Comprehensive functional specification for RSVP and Ticketing System with API contracts, data models, business logic, security, and performance requirements | RSVP/Ticketing Functional Specification Creation | ACTIVE | Never |
-| 2025-01-19 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/handoffs/functional-spec-2025-01-19-handoff.md | CREATED | Functional specification handoff document with implementation guidance, architecture compliance, and developer coordination | RSVP/Ticketing Functional Specification Creation | ACTIVE | Never |
-| 2025-01-19 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/design/sendgrid-implementation-research.md | CREATED | Comprehensive SendGrid implementation research for RSVP and ticketing email confirmations, including development safety, production deployment, and Docker integration | SendGrid Email Implementation Research | ACTIVE | Never |
-| 2025-09-19 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/design/wireframe-analysis.md | CREATED | Comprehensive analysis of existing wireframes against approved business requirements for RSVP and Ticketing System | RSVP/Ticketing UI Design Phase | ACTIVE | N/A |
-| 2025-09-19 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/design/ui-specifications.md | CREATED | Complete UI specifications including component hierarchy, user flows, Mantine v7 implementation, and accessibility requirements | RSVP/Ticketing UI Design Phase | ACTIVE | N/A |
-| 2025-09-19 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/handoffs/ui-design-2025-01-19-handoff.md | CREATED | UI Design phase completion handoff with critical design decisions, component specifications, and implementation requirements for React development | RSVP/Ticketing UI Design Phase | ACTIVE | N/A |
-| 2025-09-19 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/requirements/business-requirements.md | MODIFIED | Final stakeholder approvals applied: RSVP simplification, social event clarification, canceled tracking, role stacking | RSVP/Ticketing Final Requirements Approval | ACTIVE | N/A |
-| 2025-01-19 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/reviews/phase2-design-review.md | CREATED | Comprehensive Phase 2 Design & Architecture completion review documenting all deliverables, quality gate achievement (93%), and readiness for Phase 3 implementation | Phase 2 Design Completion Review | ACTIVE | Never |
-| 2025-09-19 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/handoffs/business-requirements-2025-01-19-handoff.md | MODIFIED | Final handoff with approved requirements: single RSVP, optional tickets, role stacking, banned user enforcement | RSVP/Ticketing Final Requirements Approval | ACTIVE | N/A |
-| 2025-09-19 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/reviews/phase1-requirements-review.md | CREATED | Comprehensive Phase 1 Requirements Review document summarizing completed business requirements and awaiting stakeholder approval | Phase 1 Requirements Review creation | ACTIVE | Never |
-| 2025-09-19 | /docker-compose.yml | MODIFIED | Added BuildKit inline cache args to service build configs | Docker BuildKit migration | ACTIVE | N/A |
-| 2025-09-19 | /docker-compose.dev.yml | MODIFIED | Added BuildKit configuration and updated to modern docker compose commands | Docker BuildKit migration | ACTIVE | N/A |
-| 2025-09-19 | /dev.sh | MODIFIED | Smart detection of docker-compose vs docker compose, optional BuildKit support | Docker BuildKit migration | ACTIVE | N/A |
-| 2025-09-19 | /apps/web/src/lib/api/hooks/useEvents.ts | MODIFIED | Removed excessive debug console.log statements causing memory retention | Memory leak fix - debug logging cleanup | ACTIVE | N/A |
-| 2025-09-19 | /apps/web/src/pages/admin/AdminEventDetailsPage.tsx | MODIFIED | Removed debug logging causing component re-render memory leaks | Memory leak fix - debug logging cleanup | ACTIVE | N/A |
-| 2025-09-19 | /apps/web/src/utils/eventDataTransformation.ts | MODIFIED | Eliminated debug logs holding references to large transformation objects | Memory leak fix - debug logging cleanup | ACTIVE | N/A |
-| 2025-09-19 | /apps/web/src/components/events/EventForm.tsx | MODIFIED | Removed memory leak causing console.log statements in form handling | Memory leak fix - debug logging cleanup | ACTIVE | N/A |
-| 2025-09-19 | /apps/web/src/lib/api/queryClient.ts | MODIFIED | Fixed memory monitoring thresholds to appropriate levels for small webapp | Memory leak fix - debug logging cleanup | ACTIVE | N/A |
-| 2025-09-19 | /home/chad/repos/witchcityrope-react/PROGRESS.md | MODIFIED | Updated with Events Admin Memory Leak Fix completion documentation | End-of-work cleanup and documentation | ACTIVE | N/A |
-| 2025-09-19 | /home/chad/repos/witchcityrope-react/docs/architecture/file-registry.md | MODIFIED | Updated registry with memory leak fix documentation | End-of-work cleanup and documentation | ACTIVE | N/A |
-| 2025-09-20 | /apps/web/src/types/participation.types.ts | CREATED | TypeScript types for RSVP functionality (DTOs, enums, component props) | Frontend RSVP Vertical Slice | ACTIVE | N/A |
-| 2025-09-20 | /apps/web/src/hooks/useParticipation.ts | CREATED | React Query hooks for participation API calls with mock data fallbacks | Frontend RSVP Vertical Slice | ACTIVE | N/A |
-| 2025-09-20 | /apps/web/src/components/events/ParticipationCard.tsx | CREATED | Main RSVP/ticket component for event detail pages with role validation | Frontend RSVP Vertical Slice | ACTIVE | N/A |
-| 2025-09-20 | /apps/web/src/components/dashboard/UserParticipations.tsx | CREATED | Dashboard component showing user's RSVPs and tickets | Frontend RSVP Vertical Slice | ACTIVE | N/A |
-| 2025-09-20 | /apps/web/src/pages/events/EventDetailPage.tsx | MODIFIED | Integrated ParticipationCard, added RSVP hooks, replaced old RegistrationCard | Frontend RSVP Vertical Slice | ACTIVE | N/A |
-| 2025-09-20 | /apps/web/src/pages/dashboard/DashboardPage.tsx | MODIFIED | Added UserParticipations component to dashboard layout | Frontend RSVP Vertical Slice | ACTIVE | N/A |
-| 2025-09-20 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/handoffs/frontend-vertical-slice-2025-01-19-handoff.md | CREATED | Comprehensive handoff document for completed frontend RSVP implementation | Frontend RSVP Vertical Slice | ACTIVE | Never |
-| 2025-09-19 | /docs/functional-areas/events/handoffs/librarian-2025-09-19-memory-leak-fix-completion.md | CREATED | Comprehensive handoff document summarizing memory leak fix completion | End-of-work cleanup and documentation | ACTIVE | Never |
-| 2025-09-19 | /docs/lessons-learned/librarian-lessons-learned.md | MODIFIED | Added end-of-work cleanup excellence pattern for systematic documentation updates | End-of-work cleanup and documentation | ACTIVE | N/A |
-| 2025-01-13 | /docs/functional-areas/events/research/2025-01-13-entity-id-generation-patterns-research.md | CREATED | Comprehensive research on React + .NET API entity ID generation patterns for temporary entities in forms | Technology research for entity ID patterns | ACTIVE | Never |
-| 2025-01-19 | /apps/api/Features/Events/Models/UpdateEventRequest.cs | MODIFIED | Added VolunteerPositions property to enable volunteer position persistence | Events admin persistence fixes | ACTIVE | N/A |
-| 2025-01-19 | /apps/api/Features/Events/Services/EventService.cs | MODIFIED | Implemented UpdateEventVolunteerPositionsAsync and fixed ticket type ID handling | Events admin persistence fixes | ACTIVE | N/A |
-| 2025-01-19 | /apps/web/src/utils/eventDataTransformation.ts | MODIFIED | Fixed volunteer position field mapping to match API DTOs | Events admin persistence fixes | ACTIVE | N/A |
-| 2025-09-19 | /docs/lessons-learned/events-persistence-debugging-2025-09-19.md | CREATED | Comprehensive documentation of debugging session misdiagnoses and root causes | Events persistence debugging documentation | ACTIVE | Never |
-| 2025-09-19 | /docs/lessons-learned/orchestrator-lessons-learned.md | MODIFIED | Added critical pattern about not assuming infrastructure issues when code fails | Events persistence debugging documentation | ACTIVE | N/A |
-| 2025-09-19 | /docs/lessons-learned/backend-developer-lessons-learned.md | MODIFIED | Added ultra critical section on Entity Framework navigation property requirements | Events persistence debugging documentation | ACTIVE | N/A |
-| 2025-09-19 | /tests/playwright/persistence-validation.spec.ts | CREATED | Comprehensive E2E test for persistence fix validation | Persistence testing after backend fixes | TEMPORARY | 2025-09-26 |
-| 2025-09-19 | /tests/playwright/basic-app-check.spec.ts | CREATED | Basic React app functionality verification test | Persistence testing after backend fixes | TEMPORARY | 2025-09-26 |
-| 2025-09-19 | /tests/playwright/api-persistence-test.spec.ts | CREATED | Direct API testing for persistence validation | Persistence testing after backend fixes | TEMPORARY | 2025-09-26 |
-| 2025-09-19 | /docs/lessons-learned/backend-developer-lessons-learned.md | MODIFIED | Added ULTRA CRITICAL Entity Framework ID generation pattern - never initialize IDs in models | Critical EF pattern to prevent UPDATE instead of INSERT errors | ACTIVE | Never |
-| 2025-09-19 | /docs/lessons-learned/database-designer-lessons-learned.md | MODIFIED | Added ULTRA CRITICAL Entity Framework entity model ID pattern guidance | Critical database design pattern to prevent concurrency exceptions | ACTIVE | Never |
-| 2025-09-19 | /tests/playwright/working-persistence-test.spec.ts | CREATED | Focused test for working persistence components | Persistence testing after backend fixes | TEMPORARY | 2025-09-26 |
-| 2025-09-19 | /test-results/persistence-fix-validation-report.md | CREATED | Comprehensive report on persistence testing results | Persistence testing after backend fixes | ACTIVE | - |
-| 2025-09-19 | /tests/playwright/events-admin-add-buttons-verification.spec.ts | CREATED | Comprehensive E2E test for verifying Add buttons fixes | Events admin Add buttons verification | TEMPORARY | 2025-09-26 |
-| 2025-09-19 | /tests/playwright/focused-add-buttons-test.spec.ts | CREATED | Focused test for Add buttons with error monitoring | Events admin Add buttons verification | TEMPORARY | 2025-09-26 |
-| 2025-09-19 | /tests/playwright/complete-add-buttons-verification.spec.ts | CREATED | Complete verification test for all three Add buttons | Events admin Add buttons verification | TEMPORARY | 2025-09-26 |
-| 2025-09-19 | /tests/playwright/volunteers-tab-test.spec.ts | CREATED | Specific test for Volunteers tab and Add New Position button | Events admin Add buttons verification | TEMPORARY | 2025-09-26 |
-| 2025-09-19 | /tests/playwright/test-add-new-position-button.spec.ts | CREATED | Final verification test for Add New Position modal functionality | Events admin Add buttons verification | TEMPORARY | 2025-09-26 |
-| 2025-09-20 | /apps/web/src/components/events/ParticipationCard.tsx | MODIFIED | URGENT FIX: Updated user role checking to handle backend structure (isVetted boolean + role string) instead of roles array | Critical RSVP button visibility fix for admin users | ACTIVE | N/A |
+| 2025-01-13 | /docs/functional-areas/deployment/2025-01-13-digitalocean-deployment/handoffs/deployment-complete-2025-01-13-handoff.md | CREATED | Complete deployment handoff with GitHub Actions, Docker, and Cloudflare tunnel configuration | DigitalOcean Deployment Complete | ACTIVE | - |
+| 2025-01-13 | /docs/functional-areas/deployment/2025-01-13-digitalocean-deployment/handoffs/paypal-webhook-cloudflare-2025-01-13-handoff.md | CREATED | PayPal webhook integration with Cloudflare tunnel configuration handoff | PayPal Webhook Cloudflare Integration | ACTIVE | - |
+| 2025-01-20 | /apps/api/Features/Participation/Models/CreateTicketPurchaseRequest.cs | CREATED | Ticket purchase request model for class events | Backend RSVP Complete Phase | ACTIVE | - |
+| 2025-01-20 | /apps/web/src/features/payments/components/PayPalButton.tsx | MODIFIED | Restored functional PayPal integration with sliding scale pricing | PayPal Integration Phase 1 | ACTIVE | - |
+| 2025-01-20 | /apps/web/src/lib/api/services/payments.ts | CREATED | Payment API service layer with ticket purchase integration | PayPal Integration Phase 1 | ACTIVE | - |
+| 2025-01-20 | /apps/web/src/lib/api/hooks/usePayments.ts | CREATED | React Query payment hooks for API integration | PayPal Integration Phase 1 | ACTIVE | - |
+| 2025-09-20 | /apps/web/src/lib/api/services/payments.ts | MODIFIED | Fixed critical import error - changed '../apiClient' to '../client' | Critical React App Fix | ACTIVE | - |
+| 2025-09-20 | /tests/playwright/rsvp-ticketing-test.spec.ts | CREATED | Basic RSVP and ticketing implementation tests | RSVP Ticketing Testing | TEMPORARY | 2025-10-01 |
+| 2025-09-20 | /tests/playwright/comprehensive-rsvp-ticketing.spec.ts | CREATED | Comprehensive RSVP and ticketing test suite | RSVP Ticketing Testing | TEMPORARY | 2025-10-01 |
+| 2025-09-20 | /test-rsvp-api.sh | CREATED | API testing script for RSVP and ticketing endpoints | RSVP Ticketing Testing | TEMPORARY | 2025-09-21 |
+| 2025-09-20 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/test-report-2025-09-20.md | CREATED | Comprehensive test report for RSVP and ticketing implementation with results and recommendations | RSVP Ticketing Test Report | ACTIVE | Never |
+
+## Registry Statistics
+
+- **Total Files Tracked**: 51
+- **Active Files**: 47
+- **Temporary Files**: 4
+- **Last Updated**: 2025-09-20
 
 ## Cleanup Schedule
 
-### Weekly Review (Sundays)
-- Review TEMPORARY files approaching cleanup dates
-- Archive completed session work
-- Update status of documentation files
-- Remove outdated test files
+- **2025-09-21**: Remove debug logging files and temporary test scripts
+- **2025-10-01**: Archive completed session work files
+- **2025-10-15**: Review and archive old temporary files
 
-### Monthly Archive (1st of month)
-- Move completed documentation to appropriate archives
-- Clean up old test results
-- Review ACTIVE file relevance
-- Update cleanup dates as needed
+## File Categories
 
-## Status Definitions
+### Backend Implementation
+- Participation entities, services, and endpoints
+- Authentication model updates
+- Database configurations
 
-- **ACTIVE**: Permanent files in active use
-- **TEMPORARY**: Files scheduled for cleanup
-- **ARCHIVED**: Moved to archive locations
-- **DELETED**: Removed from project
+### Frontend Implementation
+- Payment service integration
+- React component fixes
+- PayPal integration restoration
+
+### Testing & Documentation
+- Playwright test suites
+- Comprehensive test reports
+- API testing scripts
+
+### Standards & Patterns
+- React development patterns
+- Agent handoff documents
+- Lessons learned documentation
+
+---
+
+**Registry Maintenance**: Updated automatically during development sessions. Manual review quarterly.

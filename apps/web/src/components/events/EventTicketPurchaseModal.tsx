@@ -255,32 +255,50 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
         {selectedTicketType && (
           <Stack gap="md">
             <Divider />
-            
+
             <Box>
               <Group gap="sm" mb="md">
                 <IconCreditCard size={20} />
                 <Text fw={600}>Payment Method</Text>
               </Group>
-              
-              <Radio.Group 
-                value={paymentMethod} 
+
+              <Radio.Group
+                value={paymentMethod}
                 onChange={(value) => setPaymentMethod(value as 'paypal' | 'venmo')}
               >
                 <Stack gap="sm">
                   <Radio value="paypal" label="PayPal" />
-                  <Radio value="venmo" label="Venmo" />
+                  <Radio value="venmo" label="Venmo (Coming Soon)" disabled />
                 </Stack>
               </Radio.Group>
-              
-              <Alert 
+
+              <Alert
                 icon={<IconAlertCircle />}
-                color="blue" 
-                variant="light" 
+                color="blue"
+                variant="light"
                 mt="md"
               >
                 <Text size="sm">
-                  You'll be redirected to {paymentMethod === 'paypal' ? 'PayPal' : 'Venmo'} to complete your payment.
+                  You'll be redirected to PayPal to complete your payment securely.
                   Your ticket confirmation will be sent via email once payment is processed.
+                </Text>
+              </Alert>
+            </Box>
+          </Stack>
+        )}
+
+        {/* PayPal Payment Integration */}
+        {selectedTicketType && paymentMethod === 'paypal' && (
+          <Stack gap="md">
+            <Divider />
+
+            <Box>
+              <Text fw={600} mb="md">Complete Payment</Text>
+              {/* PayPal integration will be added here */}
+              <Alert color="blue" variant="light">
+                <Text size="sm">
+                  PayPal payment integration will be implemented here.
+                  For now, use the Purchase button below to simulate the payment flow.
                 </Text>
               </Alert>
             </Box>
@@ -296,7 +314,7 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
           >
             Cancel
           </Button>
-          
+
           <Button
             onClick={handlePurchase}
             loading={isPurchasing}

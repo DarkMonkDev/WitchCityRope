@@ -9,6 +9,9 @@ import { useCurrentUser } from '../../lib/api/hooks/useAuth';
 import {
   ParticipationStatusDto
 } from '../../types/participation.types';
+import { PayPalButton } from '../../features/payments/components/PayPalButton';
+import type { PaymentEventInfo } from '../../features/payments/types/payment.types';
+import { useConfirmPayPalPayment } from '../../lib/api/hooks/usePayments';
 
 interface ParticipationCardProps {
   eventId: string;
@@ -17,7 +20,7 @@ interface ParticipationCardProps {
   participation: ParticipationStatusDto | null;
   isLoading?: boolean;
   onRSVP: (notes?: string) => void;
-  onPurchaseTicket: (amount: number) => void;
+  onPurchaseTicket: (amount: number, slidingScalePercentage?: number) => void;
   onCancel: (type: 'rsvp' | 'ticket', reason?: string) => void;
   ticketPrice?: number;
 }
@@ -48,6 +51,12 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   console.log('  - isLoadingUser:', isLoadingUser);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelType, setCancelType] = useState<'rsvp' | 'ticket'>('rsvp');
+  const [showPayPal, setShowPayPal] = useState(false);
+  const [selectedAmount, setSelectedAmount] = useState(ticketPrice);
+  const [slidingScalePercentage, setSlidingScalePercentage] = useState(0);
+
+  // PayPal payment confirmation hook
+  const confirmPayPalPayment = useConfirmPayPalPayment();
 
   // Show login prompt for anonymous users
   if (!isAuthenticated) {
@@ -201,7 +210,51 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   };
 
   const handleTicketPurchase = () => {
-    onPurchaseTicket(ticketPrice);
+    setSelectedAmount(ticketPrice);
+    setSlidingScalePercentage(0);
+    setShowPayPal(true);
+  };
+
+  const handlePayPalSuccess = async (paymentDetails: any) => {
+    console.log('🔍 PayPal payment successful:', paymentDetails);
+
+    try {
+      // Confirm payment with backend and create ticket
+      await confirmPayPalPayment.mutateAsync({
+        orderId: paymentDetails.id,
+        paymentDetails
+      });
+
+      // Call the parent component's purchase handler for additional UI updates
+      onPurchaseTicket(selectedAmount, slidingScalePercentage);
+
+      // Hide PayPal form
+      setShowPayPal(false);
+
+    } catch (error) {
+      console.error('❌ Failed to confirm PayPal payment:', error);
+    }
+  };
+
+  const handlePayPalError = (error: string) => {
+    console.error('❌ PayPal payment error:', error);
+    // Keep PayPal form visible for retry
+  };
+
+  const handlePayPalCancel = () => {
+    console.log('🔍 PayPal payment cancelled');
+    setShowPayPal(false);
+  };
+
+  // Create PayPal event info
+  const paypalEventInfo: PaymentEventInfo = {
+    id: eventId,
+    title: eventTitle,
+    startDateTime: new Date().toISOString(), // Would come from event data
+    endDateTime: new Date().toISOString(),   // Would come from event data
+    currency: 'USD',
+    basePrice: selectedAmount,
+    registrationId: eventId // Use event ID as registration ID for now
   };
 
   return (
@@ -382,18 +435,42 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                       Class Fee: ${ticketPrice}
                     </Text>
                     <Text size="sm" c="dimmed">
-                      Sliding scale pricing available
+                      Sliding scale pricing available ($50-75 suggested)
                     </Text>
                   </Box>
 
-                  <button
-                    className="btn btn-primary"
-                    onClick={handleTicketPurchase}
-                    style={{ width: '100%' }}
-                  >
-                    <IconTicket size={18} style={{ marginRight: '8px' }} />
-                    Purchase Ticket
-                  </button>
+                  {!showPayPal ? (
+                    <button
+                      className="btn btn-primary"
+                      onClick={handleTicketPurchase}
+                      style={{ width: '100%' }}
+                    >
+                      <IconTicket size={18} style={{ marginRight: '8px' }} />
+                      Purchase Ticket with PayPal
+                    </button>
+                  ) : (
+                    <Box>
+                      <PayPalButton
+                        eventInfo={paypalEventInfo}
+                        amount={selectedAmount}
+                        slidingScalePercentage={slidingScalePercentage}
+                        onPaymentSuccess={handlePayPalSuccess}
+                        onPaymentError={handlePayPalError}
+                        onPaymentCancel={handlePayPalCancel}
+                        disabled={confirmPayPalPayment.isPending}
+                      />
+
+                      <Button
+                        variant="subtle"
+                        size="sm"
+                        onClick={() => setShowPayPal(false)}
+                        mt="sm"
+                        style={{ width: '100%' }}
+                      >
+                        Cancel Payment
+                      </Button>
+                    </Box>
+                  )}
                 </Box>
               )}
             </Stack>
