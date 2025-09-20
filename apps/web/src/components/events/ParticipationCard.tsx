@@ -130,7 +130,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
       isVetted = true;
       console.log('  ✅ isVetted = true (via isVetted boolean)');
     } else if ('role' in user && typeof user.role === 'string') {
-      const adminTeacherRoles = ['Admin', 'Administrator', 'Teacher'];
+      const adminTeacherRoles = ['Administrator', 'Teacher'];
       isVetted = adminTeacherRoles.includes(user.role);
       console.log(`  - Checking role '${user.role}' against [${adminTeacherRoles.join(', ')}]: ${isVetted}`);
       if (isVetted) console.log('  ✅ isVetted = true (via admin/teacher role)');
@@ -138,7 +138,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
 
     // Legacy structure: Check roles array (fallback)
     if (!isVetted && 'roles' in user && Array.isArray(user.roles)) {
-      const legacyRoles = ['Vetted', 'Teacher', 'Administrator', 'Admin'];
+      const legacyRoles = ['Vetted', 'Teacher', 'Administrator'];
       isVetted = user.roles.some(role => legacyRoles.includes(role));
       console.log(`  - Checking roles array [${user.roles.join(', ')}] against [${legacyRoles.join(', ')}]: ${isVetted}`);
       if (isVetted) console.log('  ✅ isVetted = true (via legacy roles array)');

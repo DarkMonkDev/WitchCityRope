@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using WitchCityRope.Api.Features.Participation.Entities;
 
 namespace WitchCityRope.Api.Models;
 
@@ -102,6 +103,12 @@ public class Event
     public ICollection<ApplicationUser> Organizers { get; set; } = new List<ApplicationUser>();
 
     /// <summary>
+    /// Navigation property to event participations (RSVPs and tickets)
+    /// One-to-many relationship with EventParticipation
+    /// </summary>
+    public ICollection<EventParticipation> EventParticipations { get; set; } = new List<EventParticipation>();
+
+    /// <summary>
     /// Gets the current number of confirmed attendees based on CORRECT business logic:
     /// - Social Events: CurrentAttendees = RSVPs (everyone must RSVP to attend, tickets are optional donations)
     /// - Class Events: CurrentAttendees = Tickets (only paid tickets, no RSVPs)
@@ -127,74 +134,45 @@ public class Event
     }
 
     /// <summary>
-    /// Gets the current number of RSVPs for Social events (mock implementation)
+    /// Gets the current number of RSVPs for Social events (real implementation)
     /// Social Events: Everyone must RSVP to attend (this is the primary attendance count)
     /// Class Events: No RSVPs, returns 0
-    /// TODO: This should query the actual RSVP table
+    /// Requires EventParticipations navigation property to be loaded
     /// </summary>
     public int GetCurrentRSVPCount()
     {
         // Only Social events have RSVPs
         if (EventType != "Social") return 0;
-        
-        // Generate deterministic mock RSVP count for Social events
-        // This represents the PRIMARY attendance metric for Social events
-        var seed = Id.GetHashCode() % 10; // Get a number 0-9 based on ID
-        
-        return seed switch
+
+        // Count active RSVP participations if navigation property is loaded
+        if (EventParticipations?.Any() == true)
         {
-            // 20% of events - SOLD OUT (100% capacity)
-            0 or 1 => Capacity,
-            
-            // 30% of events - Nearly sold out (85-95%)
-            2 or 3 or 4 => (int)(Capacity * (0.85 + (seed * 0.02))), // 85%, 87%, 89%
-            
-            // 30% of events - Moderately filled (50-80%)
-            5 or 6 or 7 => (int)(Capacity * (0.50 + (seed * 0.05))), // 50%, 55%, 60%
-            
-            // 20% of events - Low attendance (20-45%)
-            8 or 9 => (int)(Capacity * (0.20 + (seed * 0.025))), // 20%, 22.5%
-            
-            _ => (int)(Capacity * 0.6) // Fallback to 60%
-        };
+            return EventParticipations.Count(ep =>
+                ep.ParticipationType == ParticipationType.RSVP &&
+                ep.Status == ParticipationStatus.Active);
+        }
+
+        // Fallback: If navigation property not loaded, return 0 (service should handle proper loading)
+        return 0;
     }
 
     /// <summary>
-    /// Gets the current number of paid ticket registrations (mock implementation)
+    /// Gets the current number of paid ticket registrations (real implementation)
     /// Social Events: Optional tickets as donations/support (subset of RSVPs)
     /// Class Events: Required tickets (this is the primary attendance count)
-    /// TODO: This should query the actual Registration table
+    /// Requires EventParticipations navigation property to be loaded
     /// </summary>
     public int GetCurrentTicketCount()
     {
-        if (EventType == "Class")
+        // Count active ticket participations if navigation property is loaded
+        if (EventParticipations?.Any() == true)
         {
-            // Classes require paid tickets - this is the PRIMARY attendance metric
-            var seed = Id.GetHashCode() % 10; // Get a number 0-9 based on ID
-            
-            return seed switch
-            {
-                // 20% of events - SOLD OUT (100% capacity)
-                0 or 1 => Capacity,
-                
-                // 30% of events - Nearly sold out (85-95%)
-                2 or 3 or 4 => (int)(Capacity * (0.85 + (seed * 0.02))), // 85%, 87%, 89%
-                
-                // 30% of events - Moderately filled (50-80%)
-                5 or 6 or 7 => (int)(Capacity * (0.50 + (seed * 0.05))), // 50%, 55%, 60%
-                
-                // 20% of events - Low attendance (20-45%)
-                8 or 9 => (int)(Capacity * (0.20 + (seed * 0.025))), // 20%, 22.5%
-                
-                _ => (int)(Capacity * 0.6) // Fallback to 60%
-            };
+            return EventParticipations.Count(ep =>
+                ep.ParticipationType == ParticipationType.Ticket &&
+                ep.Status == ParticipationStatus.Active);
         }
-        else // Social events
-        {
-            // Social events: Some RSVPed people also buy tickets as optional support
-            // About 30% of RSVPs also buy tickets as donations
-            var rsvpCount = GetCurrentRSVPCount();
-            return (int)(rsvpCount * 0.3);
-        }
+
+        // Fallback: If navigation property not loaded, return 0 (service should handle proper loading)
+        return 0;
     }
 }

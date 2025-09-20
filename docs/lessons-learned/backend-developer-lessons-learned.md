@@ -2,6 +2,58 @@
 
 This document tracks critical lessons learned during backend development to prevent recurring issues and speed up future development.
 
+## 🚨 ULTRA CRITICAL: JWT Token Missing Role Claims - Role Authorization Failure 🚨
+
+**CRITICAL ISSUE DISCOVERED (2025-01-20)**: JWT tokens were missing role claims, causing ALL role-based authorization to fail with 403 Forbidden errors, even for legitimate admin users.
+
+### 🔥 MANDATORY JWT ROLE CLAIMS PATTERN
+**Problem**: Authorization attributes like `[Authorize(Roles = "Administrator")]` return 403 Forbidden even for admin users
+**Root Cause**: JWT token generation in `JwtService.GenerateToken()` was missing the role claim
+**Symptoms**: Admin endpoints return 403, users are authenticated but not authorized
+
+**BEFORE (BROKEN)**:
+```csharp
+// ❌ MISSING ROLE CLAIM - Authorization will always fail
+var claims = new[]
+{
+    new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+    new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
+    new Claim("scene_name", user.SceneName ?? string.Empty),
+    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+    new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
+};
+```
+
+**AFTER (FIXED)**:
+```csharp
+// ✅ INCLUDES ROLE CLAIM - Authorization works correctly
+var claims = new[]
+{
+    new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+    new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
+    new Claim("scene_name", user.SceneName ?? string.Empty),
+    new Claim(ClaimTypes.Role, user.Role ?? "Member"), // CRITICAL: Role claim for authorization
+    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+    new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
+};
+```
+
+### 🚨 AUTHORIZATION ATTRIBUTE ROLE NAME CONSISTENCY
+**CRITICAL**: Role names in `[Authorize(Roles = "")]` MUST match exactly with database role values:
+- ✅ Database value: "Administrator" → `[Authorize(Roles = "Administrator")]`
+- ❌ WRONG: Database value: "Administrator" → `[Authorize(Roles = "Admin")]` (403 Forbidden)
+
+**Testing Pattern**:
+1. Check JWT token contains role claim: Use `/api/auth/debug-status` endpoint
+2. Verify role name matches: Database "Administrator" = Authorization "Administrator"
+3. Test with admin user: Should access admin endpoints without 403
+
+**Files Fixed**:
+- `/apps/api/Services/JwtService.cs` - Added role claim to JWT generation
+- `/apps/api/Features/Participation/Endpoints/ParticipationEndpoints.cs` - Fixed role name from "Admin" to "Administrator"
+
+**PREVENTION**: Always include role claims in JWT tokens and verify role names match database values exactly. Test admin endpoints after authentication changes.
+
 ## 🚨 ULTRA CRITICAL: Entity Framework ID Generation Pattern - NEVER Initialize IDs in Models 🚨
 
 **CRITICAL ROOT CAUSE DISCOVERED**: The Events admin persistence bug was caused by entity models having `public Guid Id { get; set; } = Guid.NewGuid();` initializers. This causes Entity Framework to think new entities are existing ones, leading to UPDATE attempts instead of INSERTs, resulting in `DbUpdateConcurrencyException: Database operation expected to affect 1 row(s) but actually affected 0 row(s)`.

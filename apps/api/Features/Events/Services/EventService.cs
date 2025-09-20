@@ -38,6 +38,7 @@ public class EventService
                     .ThenInclude(tt => tt.Session) // Include session info for ticket types
                 .Include(e => e.VolunteerPositions) // Include related volunteer positions
                 .Include(e => e.Organizers) // Include organizers/teachers
+                .Include(e => e.EventParticipations) // Include participations for RSVP/ticket counts
                 .AsNoTracking() // Read-only for better performance
                 .Where(e => e.IsPublished && e.StartDate > DateTime.UtcNow) // Filter published and future events
                 .OrderBy(e => e.StartDate) // Sort by date
@@ -97,6 +98,7 @@ public class EventService
                     .ThenInclude(tt => tt.Session) // Include session info for ticket types
                 .Include(e => e.VolunteerPositions) // Include related volunteer positions
                 .Include(e => e.Organizers) // Include organizers/teachers
+                .Include(e => e.EventParticipations) // Include participations for RSVP/ticket counts
                 .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.Id == parsedId, cancellationToken);
 
@@ -178,6 +180,7 @@ public class EventService
                 .Include(e => e.TicketTypes)
                 .Include(e => e.VolunteerPositions)
                 .Include(e => e.Organizers)
+                .Include(e => e.EventParticipations) // Include participations for capacity validation
                 .FirstOrDefaultAsync(e => e.Id == parsedId, cancellationToken);
 
             if (eventEntity == null)

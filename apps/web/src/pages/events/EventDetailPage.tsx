@@ -27,7 +27,7 @@ export const EventDetailPage: React.FC = () => {
   const cancelRSVPMutation = useCancelRSVP();
 
   // Check if current user is admin
-  const isAdmin = (currentUser as any)?.role === 'Admin';
+  const isAdmin = (currentUser as any)?.role === 'Administrator';
   
   if (isLoading) {
     return (

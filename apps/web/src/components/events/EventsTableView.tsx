@@ -84,13 +84,19 @@ const formatTimeRange = (event: EventDto): string => {
   return `${formatTime(start)} - ${formatTime(end)}`;
 };
 
+// Helper function to get the correct current count based on event type
+const getCorrectCurrentCount = (event: EventDto): number => {
+  const isSocialEvent = event.eventType?.toLowerCase() === 'social';
+  return isSocialEvent ? (event.currentRSVPs || 0) : (event.currentTickets || 0);
+};
+
 // Helper function to get sort icon
 const getSortIcon = (column: 'date' | 'title', sortState: Pick<AdminEventFiltersState, 'sortColumn' | 'sortDirection'>) => {
   if (sortState.sortColumn !== column) {
     return <IconSelector size={14} />;
   }
-  
-  return sortState.sortDirection === 'asc' 
+
+  return sortState.sortDirection === 'asc'
     ? <IconCaretUp size={14} />
     : <IconCaretDown size={14} />;
 };
@@ -253,9 +259,9 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
             
             {/* Capacity Column - Narrow */}
             <Table.Td style={{ width: '160px', maxWidth: '160px' }}>
-              <CapacityDisplay 
-                current={event.currentAttendees} 
-                max={event.capacity} 
+              <CapacityDisplay
+                current={getCorrectCurrentCount(event)}
+                max={event.capacity}
               />
             </Table.Td>
             

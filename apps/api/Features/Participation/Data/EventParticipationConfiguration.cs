@@ -60,7 +60,7 @@ public class EventParticipationConfiguration : IEntityTypeConfiguration<EventPar
 
         // Foreign key relationships
         builder.HasOne(e => e.Event)
-               .WithMany()
+               .WithMany(e => e.EventParticipations)
                .HasForeignKey(e => e.EventId)
                .OnDelete(DeleteBehavior.Cascade);
 

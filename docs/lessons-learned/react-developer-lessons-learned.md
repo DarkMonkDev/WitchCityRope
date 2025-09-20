@@ -2,6 +2,44 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 CRITICAL: ROLE-BASED ACCESS CONTROL MISMATCHES
+
+### ⚠️ PROBLEM: Hard-coded role checks failing due to incorrect role names
+**DISCOVERED**: 2025-09-20 - Admin EDIT link not showing on event details page
+
+### 🛑 ROOT CAUSE:
+- Code checking for role `'Admin'` but database has `'Administrator'`
+- Inconsistent role naming between code and database
+- Multiple files had mixed `'Admin'` vs `'Administrator'` checks
+
+### ✅ SOLUTION:
+1. **ALWAYS verify actual role values** returned from API before coding checks
+2. **TEST with actual login** - Don't assume role names match expectations
+3. **USE CONSISTENT role names** across all components
+
+### 🔧 QUICK FIX COMMANDS:
+```bash
+# Check actual user data returned by API
+curl -X POST http://localhost:5655/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d @test-login.json
+
+# Verify role names in database vs code
+grep -r "role.*===" apps/web/src/
+```
+
+### 📋 MANDATORY VERIFICATION STEPS:
+1. **LOGIN as admin** and inspect browser console for user object
+2. **VERIFY role field** in actual API response (not assumptions)
+3. **UPDATE all role checks** to match database values exactly
+4. **SEARCH codebase** for hardcoded role strings and fix inconsistencies
+
+### 💥 FILES THAT COMMONLY HAVE THIS ISSUE:
+- Event detail pages with admin-only links
+- Navigation components with role-based menus
+- Permission guards and access control checks
+- Test mocks and fixture data
+
 ## 🚨 ULTRA CRITICAL: DTO ALIGNMENT STRATEGY - NEVER IGNORE 🚨
 
 **393 TYPESCRIPT ERRORS HAPPENED BECAUSE THIS WAS IGNORED!!**
@@ -53,6 +91,52 @@ npm run type-check
 ```
 
 **REMEMBER**: Manual interfaces = 393 errors. Generated types = success!
+
+---
+
+## 🚨 CRITICAL: Event Type Based Data Display Patterns
+
+### ⚠️ PROBLEM: Hardcoded data fields not matching API response structure
+**DISCOVERED**: 2025-09-20 - Admin events list showing 0/40 instead of 2/40 for social events
+
+### 🛑 ROOT CAUSE:
+- Code using `currentAttendees` for all events but API populates different fields by event type
+- **Social Events**: API returns `currentRSVPs` (the actual count) and `currentAttendees` = 0
+- **Class Events**: API returns `currentTickets` (the actual count) and `currentAttendees` = 0
+- Frontend must choose correct field based on `eventType` property
+
+### ✅ SOLUTION: Event Type-Based Field Selection
+```typescript
+// Helper function pattern - use in ALL event display components
+const getCorrectCurrentCount = (event: EventDto): number => {
+  const isSocialEvent = event.eventType?.toLowerCase() === 'social';
+  return isSocialEvent ? (event.currentRSVPs || 0) : (event.currentTickets || 0);
+};
+
+// Usage in components
+<CapacityDisplay
+  current={getCorrectCurrentCount(event)}
+  max={event.capacity}
+/>
+```
+
+### 🔧 AFFECTED COMPONENTS REQUIRING THIS PATTERN:
+- `EventsTableView.tsx` ✅ **FIXED**
+- `EventCard.tsx` ✅ **Already implemented correctly**
+- `DashboardPage.tsx` - CHECK IF NEEDED
+- `EventsPage.tsx` - CHECK IF NEEDED
+- Any component displaying event capacity/attendance
+
+### 📋 MANDATORY VERIFICATION PATTERN:
+1. **Always check API response structure** before coding display logic
+2. **Test with both Social AND Class events** to verify correct data appears
+3. **Follow existing patterns** from `EventCard.tsx` which does this correctly
+4. **NEVER assume `currentAttendees` is the source of truth** - it's often 0
+
+### 💥 WHY THIS HAPPENS:
+- Backend maintains separate counts for RSVPs vs Tickets vs Attendees
+- Frontend assumptions about field names don't match backend reality
+- Each event type has different participation models
 
 ---
 
