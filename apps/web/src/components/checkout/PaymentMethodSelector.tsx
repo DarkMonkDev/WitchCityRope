@@ -14,17 +14,22 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
     {
       id: 'card' as const,
       label: 'Credit Card',
-      icon: '💳'
+      icon: '💳',
+      color: '#424242'
     },
     {
       id: 'paypal' as const,
       label: 'PayPal',
-      icon: '🟦'
+      icon: 'P',
+      color: '#FFC439',
+      backgroundColor: '#003087'
     },
     {
       id: 'venmo' as const,
       label: 'Venmo',
-      icon: '💙'
+      icon: 'V',
+      color: '#FFFFFF',
+      backgroundColor: '#3D95CE'
     }
   ];
 
@@ -61,9 +66,28 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
           className="payment-method-button"
         >
           <Group gap="xs" style={{ justifyContent: 'center' }}>
-            <Text component="span" style={{ fontSize: '18px' }}>
-              {method.icon}
-            </Text>
+            {method.id === 'card' ? (
+              <Text component="span" style={{ fontSize: '18px' }}>
+                {method.icon}
+              </Text>
+            ) : (
+              <Box
+                style={{
+                  width: '24px',
+                  height: '24px',
+                  backgroundColor: method.backgroundColor || 'transparent',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 900,
+                  fontSize: '14px',
+                  color: method.id === 'paypal' ? '#FFC439' : method.color
+                }}
+              >
+                {method.icon}
+              </Box>
+            )}
             <Text
               component="span"
               style={{

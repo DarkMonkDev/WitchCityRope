@@ -56,7 +56,7 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
     );
   }
 
-  const createOrder = async () => {
+  const createOrder = async (data: any, actions: any) => {
     try {
       setIsProcessing(true);
       setError(null);
@@ -68,8 +68,8 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
         currency: eventInfo.currency || 'USD'
       });
 
-      // Return the order details for PayPal
-      return {
+      // Create order using PayPal actions
+      return actions.order.create({
         intent: 'CAPTURE',
         purchase_units: [{
           amount: {
@@ -86,7 +86,7 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
           shipping_preference: 'NO_SHIPPING',
           user_action: 'PAY_NOW'
         }
-      };
+      });
     } catch (error) {
       console.error('❌ PayPal order creation failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to create PayPal order';
@@ -136,7 +136,7 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
   return (
     <PayPalScriptProvider
       options={{
-        "client-id": paypalClientId,
+        clientId: paypalClientId,
         currency: eventInfo.currency || 'USD',
         intent: 'capture',
         "enable-funding": "paylater,venmo",
@@ -204,13 +204,15 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
           </Box>
         )}
 
-        {/* PayPal Buttons */}
+        {/* Branded PayPal Buttons */}
         <PayPalButtons
           style={{
             layout: 'vertical',
             color: 'gold',
             shape: 'rect',
-            label: 'paypal'
+            label: 'paypal',
+            height: 55,
+            tagline: false
           }}
           disabled={disabled || isProcessing}
           createOrder={createOrder}

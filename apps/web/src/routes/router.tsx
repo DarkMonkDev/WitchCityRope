@@ -52,6 +52,7 @@ import { EventPaymentPage } from '../features/payments';
 import { PaymentTestPage } from '../pages/PaymentTestPage';
 import { PaymentSuccessPage } from '../pages/payments/PaymentSuccessPage';
 import { PaymentCancelPage } from '../pages/payments/PaymentCancelPage';
+import { CheckoutPage } from '../pages/checkout/CheckoutPage';
 
 /**
  * React Router v7 configuration following validated patterns
@@ -134,6 +135,11 @@ export const router = createBrowserRouter([
       
       // Payment system routes (protected)
       {
+        path: "checkout/:eventId",
+        element: <CheckoutPage />,
+        loader: authLoader
+      },
+      {
         path: "events/:eventId/payment/:registrationId",
         element: <EventPaymentPage />,
         loader: authLoader
@@ -143,7 +149,7 @@ export const router = createBrowserRouter([
         element: <PaymentSuccessPage />
       },
       {
-        path: "payment/cancel", 
+        path: "payment/cancel",
         element: <PaymentCancelPage />
       },
       

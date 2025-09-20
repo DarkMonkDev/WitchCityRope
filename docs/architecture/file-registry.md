@@ -8,6 +8,15 @@
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-09-20 | `/apps/web/src/pages/checkout/CheckoutPage.tsx` | CREATED | Full page checkout component replacing CheckoutModal with responsive grid layout | Checkout Redesign - Modal to Page | ACTIVE | Never |
+| 2025-09-20 | `/apps/web/src/components/checkout/VenmoButton.tsx` | CREATED | Branded Venmo payment button component with proper styling | Checkout Redesign - Branded Buttons | ACTIVE | Never |
+| 2025-09-20 | `/apps/web/src/routes/router.tsx` | MODIFIED | Added `/checkout/:eventId` route for new checkout page | Checkout Redesign - Routing | ACTIVE | Never |
+| 2025-09-20 | `/apps/web/src/components/events/ParticipationCard.tsx` | MODIFIED | Updated to use React Router navigation instead of modal | Checkout Redesign - Navigation | ACTIVE | Never |
+| 2025-09-20 | `/apps/web/src/components/checkout/CheckoutForm.tsx` | MODIFIED | Updated to use branded PayPal and Venmo buttons | Checkout Redesign - Branded Buttons | ACTIVE | Never |
+| 2025-09-20 | `/apps/web/src/components/checkout/PaymentMethodSelector.tsx` | MODIFIED | Added branded icons for PayPal and Venmo payment methods | Checkout Redesign - Branded Buttons | ACTIVE | Never |
+| 2025-09-20 | `/apps/web/src/features/payments/components/PayPalButton.tsx` | MODIFIED | Enhanced PayPal button styling for better branding | Checkout Redesign - Branded Buttons | ACTIVE | Never |
+| 2025-09-20 | `/apps/web/src/components/checkout/CheckoutModal.tsx` | DELETED | Removed modal-based checkout in favor of full page | Checkout Redesign - Modal to Page | ARCHIVED | Never |
+| 2025-09-20 | `/apps/web/src/components/checkout/index.ts` | MODIFIED | Updated exports to remove CheckoutModal and add VenmoButton | Checkout Redesign - Clean up exports | ACTIVE | Never |
 | 2025-09-20 | `/docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/implementation-complete-2025-01-20.md` | CREATED | Comprehensive implementation summary for RSVP and ticketing system completion | RSVP/Ticketing Documentation | ACTIVE | Never |
 | 2025-09-20 | `/docs/architecture/functional-area-master-index.md` | MODIFIED | Added RSVP/Ticketing functional area entry | RSVP/Ticketing Documentation | ACTIVE | Never |
 | 2025-09-20 | `/PROGRESS.md` | MODIFIED | Updated current status to reflect RSVP/ticketing completion | RSVP/Ticketing Documentation | ACTIVE | Never |

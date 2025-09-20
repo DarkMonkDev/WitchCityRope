@@ -13,6 +13,7 @@ import { IconAlertCircle } from '@tabler/icons-react';
 import { PaymentMethodSelector } from './PaymentMethodSelector';
 import { CreditCardForm } from './CreditCardForm';
 import { PayPalButton } from '../../features/payments/components/PayPalButton';
+import { VenmoButton } from './VenmoButton';
 import type { PaymentEventInfo } from '../../features/payments/types/payment.types';
 
 interface CheckoutFormProps {
@@ -106,10 +107,17 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
     setPaymentError(`PayPal payment failed: ${error}`);
   };
 
-  const handleVenmoClick = () => {
-    // For now, treat Venmo the same as PayPal since they're owned by the same company
-    // In a real implementation, this would use Venmo's specific integration
-    setPaymentError('Venmo payment is coming soon! Please use PayPal or credit card for now.');
+  const handleVenmoSuccess = async (paymentDetails: any) => {
+    const formattedDetails = {
+      ...paymentDetails,
+      method: 'venmo',
+      confirmationNumber: `WCR-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`
+    };
+    onPaymentSuccess(formattedDetails);
+  };
+
+  const handleVenmoError = (error: string) => {
+    setPaymentError(`Venmo payment failed: ${error}`);
   };
 
   // Create PayPal event info
@@ -171,24 +179,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
         )}
 
         {paymentMethod === 'paypal' && (
-          <Paper
-            style={{
-              background: 'var(--color-cream)',
-              padding: 'var(--space-lg)',
-              borderRadius: '12px',
-              textAlign: 'center'
-            }}
-          >
-            <Text
-              size="lg"
-              style={{
-                color: 'var(--color-stone)',
-                marginBottom: 'var(--space-md)'
-              }}
-            >
-              You will be redirected to PayPal to complete your payment securely.
-            </Text>
-
+          <Box>
             <PayPalButton
               eventInfo={paypalEventInfo}
               amount={total}
@@ -198,39 +189,20 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
               onPaymentCancel={() => {/* PayPal cancelled */}}
               disabled={isProcessing}
             />
-          </Paper>
+          </Box>
         )}
 
         {paymentMethod === 'venmo' && (
-          <Paper
-            style={{
-              background: 'var(--color-cream)',
-              padding: 'var(--space-lg)',
-              borderRadius: '12px',
-              textAlign: 'center'
-            }}
-          >
-            <Text
-              size="lg"
-              style={{
-                color: 'var(--color-stone)',
-                marginBottom: 'var(--space-md)'
-              }}
-            >
-              Venmo payment integration coming soon!
-            </Text>
-
-            <Button
-              onClick={handleVenmoClick}
-              style={{
-                backgroundColor: '#3D95CE',
-                color: 'white',
-                width: '100%'
-              }}
-            >
-              Pay with Venmo (Coming Soon)
-            </Button>
-          </Paper>
+          <Box>
+            <VenmoButton
+              amount={total}
+              eventTitle={eventInfo.title}
+              onPaymentSuccess={handleVenmoSuccess}
+              onPaymentError={handleVenmoError}
+              onPaymentCancel={() => {/* Venmo cancelled */}}
+              disabled={isProcessing}
+            />
+          </Box>
         )}
       </Box>
 

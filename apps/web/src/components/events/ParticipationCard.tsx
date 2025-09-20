@@ -1,5 +1,6 @@
 // ParticipationCard component for RSVP and ticket purchase
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Paper, Stack, Alert, Group, Text, Box, Badge, Button,
   LoadingOverlay, Progress
@@ -12,7 +13,6 @@ import {
 import { PayPalButton } from '../../features/payments/components/PayPalButton';
 import type { PaymentEventInfo } from '../../features/payments/types/payment.types';
 import { useConfirmPayPalPayment } from '../../lib/api/hooks/usePayments';
-import { CheckoutModal } from '../checkout/CheckoutModal';
 
 interface ParticipationCardProps {
   eventId: string;
@@ -46,6 +46,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   eventLocation
 }) => {
   const { data: user, isLoading: isLoadingUser } = useCurrentUser();
+  const navigate = useNavigate();
   const isAuthenticated = !!user;
 
   // DEBUG: Log all relevant data for RSVP button troubleshooting
@@ -63,7 +64,6 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   const [showPayPal, setShowPayPal] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState(ticketPrice);
   const [slidingScalePercentage, setSlidingScalePercentage] = useState(0);
-  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
 
   // PayPal payment confirmation hook
   const confirmPayPalPayment = useConfirmPayPalPayment();
@@ -223,7 +223,21 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   const handleTicketPurchase = () => {
     setSelectedAmount(ticketPrice);
     setSlidingScalePercentage(0);
-    setCheckoutModalOpen(true);
+
+    // Navigate to checkout page with event info
+    navigate(`/checkout/${eventId}`, {
+      state: {
+        eventInfo: {
+          id: eventId,
+          title: eventTitle,
+          startDateTime: eventStartDateTime || new Date().toISOString(),
+          endDateTime: eventEndDateTime || new Date().toISOString(),
+          instructor: eventInstructor,
+          location: eventLocation,
+          price: ticketPrice
+        }
+      }
+    });
   };
 
   const handlePayPalSuccess = async (paymentDetails: any) => {
@@ -257,28 +271,6 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
     setShowPayPal(false);
   };
 
-  const handleCheckoutSuccess = async (paymentDetails: any) => {
-    console.log('🔍 Checkout payment successful:', paymentDetails);
-
-    try {
-      // If it's a PayPal payment from within the checkout modal, confirm it
-      if (paymentDetails.method === 'paypal' && paymentDetails.id) {
-        await confirmPayPalPayment.mutateAsync({
-          orderId: paymentDetails.id,
-          paymentDetails
-        });
-      }
-
-      // Call the parent component's purchase handler for additional UI updates
-      onPurchaseTicket(selectedAmount, slidingScalePercentage);
-
-      // Close checkout modal
-      setCheckoutModalOpen(false);
-
-    } catch (error) {
-      console.error('❌ Failed to confirm payment:', error);
-    }
-  };
 
   // Create PayPal event info
   const paypalEventInfo: PaymentEventInfo = {
@@ -498,24 +490,6 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
           )}
         </Stack>
       </ParticipationCardShell>
-
-      {/* Checkout Modal */}
-      {eventStartDateTime && (
-        <CheckoutModal
-          opened={checkoutModalOpen}
-          onClose={() => setCheckoutModalOpen(false)}
-          eventInfo={{
-            id: eventId,
-            title: eventTitle,
-            startDateTime: eventStartDateTime,
-            endDateTime: eventEndDateTime || eventStartDateTime,
-            instructor: eventInstructor,
-            location: eventLocation,
-            price: ticketPrice
-          }}
-          onSuccess={handleCheckoutSuccess}
-        />
-      )}
     </>
   );
 };
