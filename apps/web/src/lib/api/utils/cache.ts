@@ -11,6 +11,7 @@ export const eventKeys = {
   details: () => [...eventKeys.all, 'detail'] as const,
   detail: (id: string) => [...eventKeys.details(), id] as const,
   registrations: (eventId: string) => [...eventKeys.all, 'registrations', eventId] as const,
+  participations: (eventId: string) => [...eventKeys.all, 'participations', eventId] as const,
 }
 
 // Member query keys factory

@@ -340,6 +340,7 @@ export const AdminEventDetailsPage: React.FC = () => {
           isSubmitting={updateEventMutation.isPending}
           onFormChange={handleFormChange}
           formDirty={formDirty}
+          eventId={id}
         />
       ) : (
         <LoadingOverlay visible />

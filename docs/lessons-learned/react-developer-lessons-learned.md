@@ -2737,3 +2737,181 @@ This implementation establishes the mobile-first development standard for all fu
 
 ### Tags
 #critical #mobile-first #offline-capability #touch-optimization #progressive-enhancement #react-query #battery-efficiency #accessibility
+
+---
+
+## 🚨 CRITICAL: Admin RSVP Management Fix - Missing Backend Endpoint (2025-09-20) 🚨
+**Date**: 2025-09-20
+**Category**: Admin Panel Bug Fix
+**Severity**: CRITICAL
+
+### What We Learned
+**ADMIN RSVP VISIBILITY BUG**: Admin users could see RSVP functionality on public event pages but couldn't view RSVPs in the admin panel "RSVPs and Tickets" tab due to missing backend endpoint and disconnected frontend.
+
+**ROOT CAUSE ANALYSIS**:
+1. **Frontend Had Placeholder UI**: EventForm component had RSVPs Management tab with hardcoded "No RSVPs yet" message
+2. **Missing Backend Endpoint**: No `/api/admin/events/{id}/participations` endpoint to fetch all RSVPs for an event
+3. **No Data Connection**: Frontend RSVP table wasn't connected to any API hooks or data source
+4. **Admin Authorization**: Required admin-only endpoint with proper role checking
+
+### Critical Implementation Patterns
+
+**BACKEND ENDPOINT PATTERN**:
+```csharp
+// ✅ CORRECT: Admin-only endpoint for event participations
+app.MapGet("/api/admin/events/{eventId:guid}/participations",
+    [Authorize(Roles = "Admin")] async (
+        Guid eventId,
+        IParticipationService participationService,
+        CancellationToken cancellationToken) =>
+    {
+        var result = await participationService.GetEventParticipationsAsync(eventId, cancellationToken);
+        return result.IsSuccess ? Results.Ok(result.Value) : Results.Problem(...);
+    })
+    .WithName("GetEventParticipations")
+    .WithSummary("Get all participations for an event (admin only)")
+    .WithTags("Admin", "Participation");
+
+// ✅ CORRECT: Service method for fetching event participations
+public async Task<Result<List<EventParticipationDto>>> GetEventParticipationsAsync(
+    Guid eventId, CancellationToken cancellationToken = default)
+{
+    var participations = await _context.EventParticipations
+        .AsNoTracking()
+        .Include(ep => ep.User)
+        .Where(ep => ep.eventId == eventId)
+        .OrderByDescending(ep => ep.CreatedAt)
+        .Select(ep => new EventParticipationDto
+        {
+            Id = ep.Id,
+            UserId = ep.UserId,
+            UserSceneName = ep.User.SceneName ?? ep.User.Email ?? "Unknown",
+            UserEmail = ep.User.Email ?? "",
+            ParticipationType = ep.ParticipationType,
+            Status = ep.Status,
+            ParticipationDate = ep.CreatedAt,
+            Notes = ep.Notes,
+            CanCancel = ep.Status == ParticipationStatus.Active
+        })
+        .ToListAsync(cancellationToken);
+
+    return Result<List<EventParticipationDto>>.Success(participations);
+}
+```
+
+**FRONTEND HOOK INTEGRATION**:
+```typescript
+// ✅ CORRECT: React Query hook for admin participations
+export function useEventParticipations(eventId: string, enabled: boolean = true) {
+  return useQuery({
+    queryKey: eventKeys.participations(eventId),
+    queryFn: async (): Promise<EventParticipationDto[]> => {
+      const { data } = await apiClient.get<ApiResponse<EventParticipationDto[]>>(
+        `/api/admin/events/${eventId}/participations`
+      )
+      return data?.data || []
+    },
+    enabled: !!eventId && enabled,
+    staleTime: 2 * 60 * 1000, // 2 minutes - fairly fresh for admin data
+  })
+}
+
+// ✅ CORRECT: EventForm component integration
+export const EventForm: React.FC<EventFormProps> = ({
+  // ... other props
+  eventId, // NEW: Pass eventId for participation data
+}) => {
+  // Fetch event participations for admin view
+  const { data: participationsData, isLoading: participationsLoading, error: participationsError } =
+    useEventParticipations(eventId || '', !!eventId);
+
+  // In RSVP Management tab:
+  return (
+    <Table.Tbody>
+      {participationsLoading ? (
+        <Table.Tr><Table.Td colSpan={5}>Loading RSVPs...</Table.Td></Table.Tr>
+      ) : participationsError ? (
+        <Table.Tr><Table.Td colSpan={5}>Error loading RSVPs</Table.Td></Table.Tr>
+      ) : participationsData && (participationsData as EventParticipationDto[]).length > 0 ? (
+        (participationsData as EventParticipationDto[])
+          .filter(p => p.participationType === 'RSVP')
+          .map((participation) => (
+            <Table.Tr key={participation.id}>
+              <Table.Td><Text fw={500}>{participation.userSceneName}</Text></Table.Td>
+              <Table.Td><Text size="sm" c="dimmed">{participation.userEmail}</Text></Table.Td>
+              <Table.Td>
+                <Badge color={participation.status === 'Active' ? 'green' : 'red'}>
+                  {participation.status}
+                </Badge>
+              </Table.Td>
+              <Table.Td>
+                <Text size="sm">
+                  {new Date(participation.participationDate).toLocaleDateString()}
+                </Text>
+              </Table.Td>
+              <Table.Td>
+                <Group gap="xs">
+                  <ActionIcon size="sm" variant="light" color="blue" title="View Details">👁️</ActionIcon>
+                  {participation.canCancel && (
+                    <ActionIcon size="sm" variant="light" color="red" title="Cancel RSVP">❌</ActionIcon>
+                  )}
+                </Group>
+              </Table.Td>
+            </Table.Tr>
+          ))
+      ) : (
+        <Table.Tr><Table.Td colSpan={5}>No RSVPs yet</Table.Td></Table.Tr>
+      )}
+    </Table.Tbody>
+  );
+};
+```
+
+**COMPONENT PROP PASSING**:
+```typescript
+// ✅ CORRECT: Pass eventId to EventForm for participation data
+<EventForm
+  initialData={initialFormData}
+  onSubmit={handleFormSubmit}
+  onCancel={handleFormCancel}
+  isSubmitting={updateEventMutation.isPending}
+  onFormChange={handleFormChange}
+  formDirty={formDirty}
+  eventId={id} // NEW: Required for fetching participation data
+/>
+```
+
+### Action Items
+- [x] **CREATE backend endpoint** `/api/admin/events/{id}/participations` with admin authorization
+- [x] **IMPLEMENT service method** `GetEventParticipationsAsync` with user data joins
+- [x] **CREATE EventParticipationDto** for admin view with user details
+- [x] **BUILD React Query hook** `useEventParticipations` for data fetching
+- [x] **CONNECT EventForm component** to display real RSVP and ticket data
+- [x] **ADD proper TypeScript types** and error handling for API responses
+- [x] **IMPLEMENT cache keys** for participation data with proper invalidation
+- [x] **TEST admin RSVP visibility** in browser with actual RSVP data
+
+### Expected Behavior After Fix
+- ✅ Admin navigates to event details → clicks "RSVPs and Tickets" tab
+- ✅ RSVP Management section shows real RSVP data from API
+- ✅ Each RSVP displays: User name, email, status, RSVP date, action buttons
+- ✅ Tickets Sold section shows real ticket purchase data
+- ✅ Loading states and error handling work properly
+- ✅ Admin-only endpoint requires Admin role for access
+
+### Prevention Strategy
+1. **Check placeholder UI connections** during feature development
+2. **Implement admin endpoints alongside public endpoints** for full feature coverage
+3. **Test admin panel tabs thoroughly** with real data before considering features complete
+4. **Document admin-specific API endpoints** in feature specifications
+5. **Create comprehensive admin user testing scenarios** for all features
+
+### Root Cause Summary
+**The Issue**: EventForm had a beautiful RSVP management UI but it was completely disconnected from any data source, showing only placeholder text.
+
+**The Fix**: Added complete data pipeline from database → service → endpoint → React Query → component rendering.
+
+**The Result**: Admin users can now see all RSVPs and ticket purchases for events in a properly formatted, interactive table.
+
+### Tags
+#critical #admin-panel #rsvp-management #missing-endpoint #api-integration #placeholder-ui #data-pipeline #admin-authorization

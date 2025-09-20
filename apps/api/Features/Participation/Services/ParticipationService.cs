@@ -386,4 +386,45 @@ public class ParticipationService : IParticipationService
             return Result<List<UserParticipationDto>>.Failure("Failed to get user participations", ex.Message);
         }
     }
+
+    /// <summary>
+    /// Get all participations for a specific event (admin only)
+    /// </summary>
+    public async Task<Result<List<EventParticipationDto>>> GetEventParticipationsAsync(
+        Guid eventId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Getting participations for event {EventId}", eventId);
+
+            var participations = await _context.EventParticipations
+                .AsNoTracking()
+                .Include(ep => ep.User)
+                .Where(ep => ep.EventId == eventId)
+                .OrderByDescending(ep => ep.CreatedAt)
+                .Select(ep => new EventParticipationDto
+                {
+                    Id = ep.Id,
+                    UserId = ep.UserId,
+                    UserSceneName = ep.User.SceneName ?? ep.User.Email ?? "Unknown",
+                    UserEmail = ep.User.Email ?? "",
+                    ParticipationType = ep.ParticipationType,
+                    Status = ep.Status,
+                    ParticipationDate = ep.CreatedAt,
+                    Notes = ep.Notes,
+                    CanCancel = ep.Status == ParticipationStatus.Active
+                })
+                .ToListAsync(cancellationToken);
+
+            _logger.LogInformation("Found {Count} participations for event {EventId}", participations.Count, eventId);
+
+            return Result<List<EventParticipationDto>>.Success(participations);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting participations for event {EventId}", eventId);
+            return Result<List<EventParticipationDto>>.Failure("Failed to get event participations", ex.Message);
+        }
+    }
 }

@@ -47,4 +47,11 @@ public interface IParticipationService
     Task<Result<List<UserParticipationDto>>> GetUserParticipationsAsync(
         Guid userId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get all participations for a specific event (admin only)
+    /// </summary>
+    Task<Result<List<EventParticipationDto>>> GetEventParticipationsAsync(
+        Guid eventId,
+        CancellationToken cancellationToken = default);
 }

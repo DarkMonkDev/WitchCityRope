@@ -29,6 +29,7 @@ import { VolunteerPositionsGrid } from './VolunteerPositionsGrid';
 import { VolunteerPositionFormModal, VolunteerPosition } from './VolunteerPositionFormModal';
 import { WCRButton } from '../ui';
 import { useTeachers, formatTeachersForMultiSelect } from '../../lib/api/hooks/useTeachers';
+import { useEventParticipations, type EventParticipationDto } from '../../lib/api/hooks/useEventParticipations';
 
 export interface EventFormData {
   // Basic Info
@@ -58,6 +59,7 @@ interface EventFormProps {
   isSubmitting?: boolean;
   onFormChange?: () => void;
   formDirty?: boolean;
+  eventId?: string; // For fetching participation data
 }
 
 export const EventForm: React.FC<EventFormProps> = ({
@@ -67,6 +69,7 @@ export const EventForm: React.FC<EventFormProps> = ({
   isSubmitting = false,
   onFormChange,
   formDirty = false,
+  eventId,
 }) => {
   const [activeTab, setActiveTab] = useState<string>('basic-info');
   const [activeEmailTemplate, setActiveEmailTemplate] = useState<string>('confirmation');
@@ -77,6 +80,9 @@ export const EventForm: React.FC<EventFormProps> = ({
 
   // Fetch teachers from API
   const { data: teachersData, isLoading: teachersLoading, error: teachersError } = useTeachers();
+
+  // Fetch event participations for admin view (only if eventId provided)
+  const { data: participationsData, isLoading: participationsLoading, error: participationsError } = useEventParticipations(eventId || '', !!eventId);
 
   // Smart Rich Text Editor component - uses TinyMCE if API key available, otherwise Textarea
   const RichTextEditor: React.FC<{
@@ -981,14 +987,79 @@ export const EventForm: React.FC<EventFormProps> = ({
                       </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
-                      {/* Empty state for now - will be populated with real RSVP data */}
-                      <Table.Tr>
-                        <Table.Td colSpan={5}>
-                          <Text ta="center" c="dimmed" py="xl">
-                            No RSVPs yet. RSVPs will appear here once people respond to invitations.
-                          </Text>
-                        </Table.Td>
-                      </Table.Tr>
+                      {participationsLoading ? (
+                        <Table.Tr>
+                          <Table.Td colSpan={5}>
+                            <Text ta="center" c="dimmed" py="xl">
+                              Loading RSVPs...
+                            </Text>
+                          </Table.Td>
+                        </Table.Tr>
+                      ) : participationsError ? (
+                        <Table.Tr>
+                          <Table.Td colSpan={5}>
+                            <Text ta="center" c="red" py="xl">
+                              Error loading RSVPs: {participationsError.message}
+                            </Text>
+                          </Table.Td>
+                        </Table.Tr>
+                      ) : participationsData && (participationsData as EventParticipationDto[]).length > 0 ? (
+                        (participationsData as EventParticipationDto[])
+                          .filter(p => p.participationType === 'RSVP')
+                          .map((participation) => (
+                            <Table.Tr key={participation.id}>
+                              <Table.Td>
+                                <Text fw={500}>{participation.userSceneName}</Text>
+                              </Table.Td>
+                              <Table.Td>
+                                <Text size="sm" c="dimmed">{participation.userEmail}</Text>
+                              </Table.Td>
+                              <Table.Td>
+                                <Badge
+                                  color={participation.status === 'Active' ? 'green' : 'red'}
+                                  variant="light"
+                                >
+                                  {participation.status}
+                                </Badge>
+                              </Table.Td>
+                              <Table.Td>
+                                <Text size="sm">
+                                  {new Date(participation.participationDate).toLocaleDateString()}
+                                </Text>
+                              </Table.Td>
+                              <Table.Td>
+                                <Group gap="xs">
+                                  <ActionIcon
+                                    size="sm"
+                                    variant="light"
+                                    color="blue"
+                                    title="View Details"
+                                  >
+                                    👁️
+                                  </ActionIcon>
+                                  {participation.canCancel && (
+                                    <ActionIcon
+                                      size="sm"
+                                      variant="light"
+                                      color="red"
+                                      title="Cancel RSVP"
+                                    >
+                                      ❌
+                                    </ActionIcon>
+                                  )}
+                                </Group>
+                              </Table.Td>
+                            </Table.Tr>
+                          ))
+                      ) : (
+                        <Table.Tr>
+                          <Table.Td colSpan={5}>
+                            <Text ta="center" c="dimmed" py="xl">
+                              No RSVPs yet. RSVPs will appear here once people respond to invitations.
+                            </Text>
+                          </Table.Td>
+                        </Table.Tr>
+                      )}
                     </Table.Tbody>
                   </Table>
                 </div>
@@ -1038,14 +1109,77 @@ export const EventForm: React.FC<EventFormProps> = ({
                     </Table.Tr>
                   </Table.Thead>
                   <Table.Tbody>
-                    {/* Empty state for now - will be populated with real ticket data */}
-                    <Table.Tr>
-                      <Table.Td colSpan={6}>
-                        <Text ta="center" c="dimmed" py="xl">
-                          No tickets sold yet. Ticket purchases will appear here once people buy tickets.
-                        </Text>
-                      </Table.Td>
-                    </Table.Tr>
+                    {participationsLoading ? (
+                      <Table.Tr>
+                        <Table.Td colSpan={6}>
+                          <Text ta="center" c="dimmed" py="xl">
+                            Loading tickets...
+                          </Text>
+                        </Table.Td>
+                      </Table.Tr>
+                    ) : participationsError ? (
+                      <Table.Tr>
+                        <Table.Td colSpan={6}>
+                          <Text ta="center" c="red" py="xl">
+                            Error loading tickets: {participationsError.message}
+                          </Text>
+                        </Table.Td>
+                      </Table.Tr>
+                    ) : participationsData && (participationsData as EventParticipationDto[]).length > 0 ? (
+                      (participationsData as EventParticipationDto[])
+                        .filter(p => p.participationType === 'Ticket')
+                        .map((participation) => (
+                          <Table.Tr key={participation.id}>
+                            <Table.Td>
+                              <Text fw={500}>{participation.userSceneName}</Text>
+                            </Table.Td>
+                            <Table.Td>
+                              <Text size="sm">Standard Ticket</Text>
+                            </Table.Td>
+                            <Table.Td>
+                              <Text size="sm">All Sessions</Text>
+                            </Table.Td>
+                            <Table.Td>
+                              <Text size="sm">
+                                {new Date(participation.participationDate).toLocaleDateString()}
+                              </Text>
+                            </Table.Td>
+                            <Table.Td>
+                              <Text size="sm" fw={500}>$50.00</Text>
+                            </Table.Td>
+                            <Table.Td>
+                              <Group gap="xs">
+                                <ActionIcon
+                                  size="sm"
+                                  variant="light"
+                                  color="blue"
+                                  title="View Details"
+                                >
+                                  👁️
+                                </ActionIcon>
+                                {participation.canCancel && (
+                                  <ActionIcon
+                                    size="sm"
+                                    variant="light"
+                                    color="red"
+                                    title="Refund Ticket"
+                                  >
+                                    💰
+                                  </ActionIcon>
+                                )}
+                              </Group>
+                            </Table.Td>
+                          </Table.Tr>
+                        ))
+                    ) : (
+                      <Table.Tr>
+                        <Table.Td colSpan={6}>
+                          <Text ta="center" c="dimmed" py="xl">
+                            No tickets sold yet. Ticket purchases will appear here once people buy tickets.
+                          </Text>
+                        </Table.Td>
+                      </Table.Tr>
+                    )}
                   </Table.Tbody>
                 </Table>
               </div>

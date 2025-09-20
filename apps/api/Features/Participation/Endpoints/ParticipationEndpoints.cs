@@ -262,5 +262,30 @@ public static class ParticipationEndpoints
             .Produces(401)
             .Produces(404)
             .Produces(500);
+
+        // Admin endpoint: Get all participations for an event
+        app.MapGet("/api/admin/events/{eventId:guid}/participations",
+            [Authorize(Roles = "Admin")] async (
+                Guid eventId,
+                IParticipationService participationService,
+                CancellationToken cancellationToken) =>
+            {
+                var result = await participationService.GetEventParticipationsAsync(eventId, cancellationToken);
+
+                return result.IsSuccess
+                    ? Results.Ok(result.Value)
+                    : Results.Problem(
+                        title: "Failed to get event participations",
+                        detail: result.Error,
+                        statusCode: 500);
+            })
+            .WithName("GetEventParticipations")
+            .WithSummary("Get all participations for an event (admin only)")
+            .WithDescription("Returns all RSVPs and ticket purchases for the specified event. Admin role required.")
+            .WithTags("Admin", "Participation")
+            .Produces<List<EventParticipationDto>>(200)
+            .Produces(401)
+            .Produces(403)
+            .Produces(500);
     }
 }
