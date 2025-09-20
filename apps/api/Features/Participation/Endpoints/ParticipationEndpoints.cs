@@ -265,7 +265,7 @@ public static class ParticipationEndpoints
 
         // Admin endpoint: Get all participations for an event
         app.MapGet("/api/admin/events/{eventId:guid}/participations",
-            [Authorize(Roles = "Admin")] async (
+            [Authorize(Roles = "Administrator")] async (
                 Guid eventId,
                 IParticipationService participationService,
                 CancellationToken cancellationToken) =>
