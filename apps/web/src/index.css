@@ -40,6 +40,13 @@
   --color-success: #228B22;
   --color-warning: #DAA520;
   --color-error: #DC143C;
+  --color-info: #614B79;
+
+  /* Status Light Colors */
+  --color-success-light: #E6F7F1;
+  --color-warning-light: #FFF4CC;
+  --color-error-light: #FFE5EC;
+  --color-info-light: #F0EDFF;
   
   /* Typography */
   --font-display: 'Bodoni Moda', serif;
@@ -55,6 +62,16 @@
   --space-xl: 40px;
   --space-2xl: 48px;
   --space-3xl: 64px;
+}
+
+/* Checkout Modal Payment Method Buttons */
+.payment-method-button:hover {
+  border-color: var(--color-burgundy) !important;
+  background: var(--color-ivory) !important;
+}
+
+.payment-method-button:hover:not(.selected) {
+  color: var(--color-burgundy) !important;
 }
 
 /* Design System v7 Data Table Styles */

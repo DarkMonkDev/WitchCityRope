@@ -12,6 +12,7 @@ import {
 import { PayPalButton } from '../../features/payments/components/PayPalButton';
 import type { PaymentEventInfo } from '../../features/payments/types/payment.types';
 import { useConfirmPayPalPayment } from '../../lib/api/hooks/usePayments';
+import { CheckoutModal } from '../checkout/CheckoutModal';
 
 interface ParticipationCardProps {
   eventId: string;
@@ -23,6 +24,10 @@ interface ParticipationCardProps {
   onPurchaseTicket: (amount: number, slidingScalePercentage?: number) => void;
   onCancel: (type: 'rsvp' | 'ticket', reason?: string) => void;
   ticketPrice?: number;
+  eventStartDateTime?: string;
+  eventEndDateTime?: string;
+  eventInstructor?: string;
+  eventLocation?: string;
 }
 
 export const ParticipationCard: React.FC<ParticipationCardProps> = ({
@@ -34,7 +39,11 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   onRSVP,
   onPurchaseTicket,
   onCancel,
-  ticketPrice = 50
+  ticketPrice = 50,
+  eventStartDateTime,
+  eventEndDateTime,
+  eventInstructor,
+  eventLocation
 }) => {
   const { data: user, isLoading: isLoadingUser } = useCurrentUser();
   const isAuthenticated = !!user;
@@ -54,6 +63,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   const [showPayPal, setShowPayPal] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState(ticketPrice);
   const [slidingScalePercentage, setSlidingScalePercentage] = useState(0);
+  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
 
   // PayPal payment confirmation hook
   const confirmPayPalPayment = useConfirmPayPalPayment();
@@ -152,16 +162,17 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   // Check if participation has the old structure (from API) and normalize it
   if (validParticipation && 'participationType' in validParticipation && !('hasRSVP' in validParticipation)) {
     console.log('🔍 Converting old participation structure to new format');
-    const hasRSVP = validParticipation.participationType === 'RSVP' && validParticipation.status === 'Active';
-    const hasTicket = validParticipation.participationType === 'Ticket' && validParticipation.status === 'Active';
+    const participationAny = validParticipation as any;
+    const hasRSVP = participationAny.participationType === 'RSVP' && participationAny.status === 'Active';
+    const hasTicket = participationAny.participationType === 'Ticket' && participationAny.status === 'Active';
 
     validParticipation = {
-      ...validParticipation,
+      ...(validParticipation as any),
       hasRSVP,
       hasTicket,
       canRSVP: !hasRSVP && !hasTicket,
       canPurchaseTicket: !hasTicket
-    };
+    } as ParticipationStatusDto;
 
     console.log('🔍 Converted participation:', validParticipation);
   }
@@ -212,7 +223,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   const handleTicketPurchase = () => {
     setSelectedAmount(ticketPrice);
     setSlidingScalePercentage(0);
-    setShowPayPal(true);
+    setCheckoutModalOpen(true);
   };
 
   const handlePayPalSuccess = async (paymentDetails: any) => {
@@ -244,6 +255,29 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   const handlePayPalCancel = () => {
     console.log('🔍 PayPal payment cancelled');
     setShowPayPal(false);
+  };
+
+  const handleCheckoutSuccess = async (paymentDetails: any) => {
+    console.log('🔍 Checkout payment successful:', paymentDetails);
+
+    try {
+      // If it's a PayPal payment from within the checkout modal, confirm it
+      if (paymentDetails.method === 'paypal' && paymentDetails.id) {
+        await confirmPayPalPayment.mutateAsync({
+          orderId: paymentDetails.id,
+          paymentDetails
+        });
+      }
+
+      // Call the parent component's purchase handler for additional UI updates
+      onPurchaseTicket(selectedAmount, slidingScalePercentage);
+
+      // Close checkout modal
+      setCheckoutModalOpen(false);
+
+    } catch (error) {
+      console.error('❌ Failed to confirm payment:', error);
+    }
   };
 
   // Create PayPal event info
@@ -439,38 +473,14 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                     </Text>
                   </Box>
 
-                  {!showPayPal ? (
-                    <button
-                      className="btn btn-primary"
-                      onClick={handleTicketPurchase}
-                      style={{ width: '100%' }}
-                    >
-                      <IconTicket size={18} style={{ marginRight: '8px' }} />
-                      Purchase Ticket with PayPal
-                    </button>
-                  ) : (
-                    <Box>
-                      <PayPalButton
-                        eventInfo={paypalEventInfo}
-                        amount={selectedAmount}
-                        slidingScalePercentage={slidingScalePercentage}
-                        onPaymentSuccess={handlePayPalSuccess}
-                        onPaymentError={handlePayPalError}
-                        onPaymentCancel={handlePayPalCancel}
-                        disabled={confirmPayPalPayment.isPending}
-                      />
-
-                      <Button
-                        variant="subtle"
-                        size="sm"
-                        onClick={() => setShowPayPal(false)}
-                        mt="sm"
-                        style={{ width: '100%' }}
-                      >
-                        Cancel Payment
-                      </Button>
-                    </Box>
-                  )}
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleTicketPurchase}
+                    style={{ width: '100%' }}
+                  >
+                    <IconTicket size={18} style={{ marginRight: '8px' }} />
+                    Purchase Ticket
+                  </button>
                 </Box>
               )}
             </Stack>
@@ -488,6 +498,24 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
           )}
         </Stack>
       </ParticipationCardShell>
+
+      {/* Checkout Modal */}
+      {eventStartDateTime && (
+        <CheckoutModal
+          opened={checkoutModalOpen}
+          onClose={() => setCheckoutModalOpen(false)}
+          eventInfo={{
+            id: eventId,
+            title: eventTitle,
+            startDateTime: eventStartDateTime,
+            endDateTime: eventEndDateTime || eventStartDateTime,
+            instructor: eventInstructor,
+            location: eventLocation,
+            price: ticketPrice
+          }}
+          onSuccess={handleCheckoutSuccess}
+        />
+      )}
     </>
   );
 };

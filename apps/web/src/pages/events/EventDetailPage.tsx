@@ -307,6 +307,10 @@ export const EventDetailPage: React.FC = () => {
             onPurchaseTicket={handlePurchaseTicket}
             onCancel={handleCancel}
             ticketPrice={(event as any)?.capacity ? Math.round(50 + (availableSpots / (event as any).capacity) * 25) : 50}
+            eventStartDateTime={(event as any)?.startDate}
+            eventEndDateTime={(event as any)?.endDate}
+            eventInstructor={(event as any)?.instructor}
+            eventLocation={(event as any)?.location}
           />
         </Box>
       </Container>
