@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import {
   Container, Stack, Title, Text, Breadcrumbs,
   Anchor, Alert, Button, Box, Badge, Group, Paper,
@@ -13,6 +13,7 @@ import { formatEventDate, formatEventTime } from '../../utils/eventUtils';
 import { useEvent } from '../../lib/api/hooks/useEvents';
 import { useParticipation, useCreateRSVP, useCancelRSVP } from '../../hooks/useParticipation';
 import { ParticipationCard } from '../../components/events/ParticipationCard';
+import { useCurrentUser } from '../../lib/api/hooks/useAuth';
 import type { EventDto } from '../../lib/api/types/events.types';
 
 export const EventDetailPage: React.FC = () => {
@@ -21,8 +22,12 @@ export const EventDetailPage: React.FC = () => {
 
   const { data: event, isLoading, error } = useEvent(id!, !!id);
   const { data: participation, isLoading: participationLoading } = useParticipation(id!, !!id);
+  const { data: currentUser } = useCurrentUser();
   const createRSVPMutation = useCreateRSVP();
   const cancelRSVPMutation = useCancelRSVP();
+
+  // Check if current user is admin
+  const isAdmin = currentUser?.roles?.includes('Admin') || currentUser?.role === 'Admin';
   
   if (isLoading) {
     return (
@@ -96,50 +101,76 @@ export const EventDetailPage: React.FC = () => {
     <Box data-testid="page-event-detail" style={{ background: 'var(--color-cream)', minHeight: '100vh' }}>
       {/* Breadcrumb */}
       <Container size="xl" pt="md">
-        <Breadcrumbs separator="/" mb="md" styles={{
-          breadcrumb: {
-            color: 'var(--color-stone)',
-            fontSize: '14px'
-          }
-        }}>
-          <Anchor 
-            href="/" 
-            style={{ 
-              color: 'var(--color-burgundy)',
-              textDecoration: 'none',
-              transition: 'color 0.3s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = 'var(--color-burgundy-dark)';
-              e.currentTarget.style.textDecoration = 'underline';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--color-burgundy)';
-              e.currentTarget.style.textDecoration = 'none';
-            }}
-          >
-            Home
-          </Anchor>
-          <Anchor 
-            href="/events"
-            style={{ 
-              color: 'var(--color-burgundy)',
-              textDecoration: 'none',
-              transition: 'color 0.3s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = 'var(--color-burgundy-dark)';
-              e.currentTarget.style.textDecoration = 'underline';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--color-burgundy)';
-              e.currentTarget.style.textDecoration = 'none';
-            }}
-          >
-            Classes
-          </Anchor>
-          <Text style={{ color: 'var(--color-stone)' }}>{(event as any)?.title}</Text>
-        </Breadcrumbs>
+        <Group justify="space-between" align="center">
+          <Breadcrumbs separator="/" mb="md" styles={{
+            breadcrumb: {
+              color: 'var(--color-stone)',
+              fontSize: '14px'
+            }
+          }}>
+            <Anchor
+              href="/"
+              style={{
+                color: 'var(--color-burgundy)',
+                textDecoration: 'none',
+                transition: 'color 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--color-burgundy-dark)';
+                e.currentTarget.style.textDecoration = 'underline';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--color-burgundy)';
+                e.currentTarget.style.textDecoration = 'none';
+              }}
+            >
+              Home
+            </Anchor>
+            <Anchor
+              href="/events"
+              style={{
+                color: 'var(--color-burgundy)',
+                textDecoration: 'none',
+                transition: 'color 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--color-burgundy-dark)';
+                e.currentTarget.style.textDecoration = 'underline';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--color-burgundy)';
+                e.currentTarget.style.textDecoration = 'none';
+              }}
+            >
+              Events
+            </Anchor>
+            <Text style={{ color: 'var(--color-stone)' }}>{(event as any)?.title}</Text>
+          </Breadcrumbs>
+
+          {/* Admin Edit Link */}
+          {isAdmin && (
+            <Link
+              to={`/admin/events/edit/${id}`}
+              style={{
+                color: 'var(--color-error)',
+                textDecoration: 'none',
+                fontWeight: 700,
+                fontSize: '14px',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                transition: 'opacity 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = '0.8';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = '1';
+              }}
+            >
+              EDIT
+            </Link>
+          )}
+        </Group>
       </Container>
 
       <Container size="xl" style={{ 

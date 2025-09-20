@@ -3,7 +3,13 @@ import { Box, Text, Group, Anchor } from '@mantine/core';
 import { Event } from '../../types/Event';
 
 interface EventCardProps {
-  event: Event;
+  event: Event & {
+    eventType?: string;
+    currentRSVPs?: number;
+    currentTickets?: number;
+    currentAttendees?: number;
+    capacity?: number;
+  };
   /** Custom pricing display */
   price?: string;
   /** Availability status */
@@ -24,7 +30,7 @@ interface EventCardProps {
 export const EventCard: React.FC<EventCardProps> = ({
   event,
   price = '$35-55',
-  status = { type: 'available', text: '10 spots left' },
+  status,
   details = {
     duration: '2.5 hours',
     level: 'Beginner',
@@ -32,6 +38,49 @@ export const EventCard: React.FC<EventCardProps> = ({
   },
   onClick
 }) => {
+  // Calculate status dynamically based on event data
+  const calculateStatus = () => {
+    if (!status) {
+      // Calculate based on event type and actual data
+      const capacity = event.capacity || 0;
+      const isSocialEvent = event.eventType?.toLowerCase() === 'social';
+      const currentCount = isSocialEvent ? (event.currentRSVPs || 0) : (event.currentTickets || 0);
+      const available = capacity - currentCount;
+
+      // Determine status type
+      let statusType: 'available' | 'limited' | 'full' = 'available';
+      if (available <= 0) {
+        statusType = 'full';
+      } else if (available <= 3) {
+        statusType = 'limited';
+      }
+
+      // Generate status text
+      let statusText = '';
+      if (isSocialEvent) {
+        if (available <= 0) {
+          statusText = 'RSVPs Full';
+        } else if (available <= 3) {
+          statusText = `Only ${available} RSVP${available !== 1 ? 's' : ''} left!`;
+        } else {
+          statusText = `${currentCount}/${capacity} RSVPs`;
+        }
+      } else {
+        if (available <= 0) {
+          statusText = 'Sold Out';
+        } else if (available <= 3) {
+          statusText = `Only ${available} ticket${available !== 1 ? 's' : ''} left!`;
+        } else {
+          statusText = `${available} of ${capacity} tickets`;
+        }
+      }
+
+      return { type: statusType, text: statusText };
+    }
+    return status;
+  };
+
+  const finalStatus = calculateStatus();
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
     return date.toLocaleDateString('en-US', {
@@ -197,10 +246,10 @@ export const EventCard: React.FC<EventCardProps> = ({
             style={{
               fontSize: '14px',
               fontWeight: 600,
-              color: getStatusColor(status.type),
+              color: getStatusColor(finalStatus.type),
             }}
           >
-            {status.text}
+            {finalStatus.text}
           </Text>
         </Group>
       </Box>
