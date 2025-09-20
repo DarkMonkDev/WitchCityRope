@@ -8,6 +8,7 @@
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-09-20 | `/session-work/2025-09-20/webapp-api-connectivity-fix-report.md` | CREATED | Comprehensive report documenting webapp-API connectivity issue root cause and resolution | Test Executor - Connectivity Issue Resolution | ACTIVE | 2025-10-20 |
 | 2025-09-20 | `/apps/web/src/pages/checkout/CheckoutPage.tsx` | CREATED | Full page checkout component replacing CheckoutModal with responsive grid layout | Checkout Redesign - Modal to Page | ACTIVE | Never |
 | 2025-09-20 | `/apps/web/src/components/checkout/VenmoButton.tsx` | CREATED | Branded Venmo payment button component with proper styling | Checkout Redesign - Branded Buttons | ACTIVE | Never |
 | 2025-09-20 | `/apps/web/src/routes/router.tsx` | MODIFIED | Added `/checkout/:eventId` route for new checkout page | Checkout Redesign - Routing | ACTIVE | Never |
@@ -48,68 +49,54 @@
 | 2025-09-20 | /apps/web/src/features/dashboard/components/UpcomingEvents.tsx | MODIFIED | Fixed empty state messaging | Critical terminology fixes | ACTIVE | - |
 | 2025-01-19 | /apps/api/Features/Participation/Entities/ParticipationType.cs | CREATED | Enum for RSVP vs Ticket participation types | Backend RSVP Vertical Slice | ACTIVE | - |
 | 2025-01-19 | /apps/api/Features/Participation/Entities/ParticipationStatus.cs | CREATED | Enum for participation status (Active/Cancelled/etc) | Backend RSVP Vertical Slice | ACTIVE | - |
-| 2025-01-19 | /apps/api/Features/Participation/Entities/EventParticipation.cs | CREATED | Core entity for tracking RSVPs and tickets | Backend RSVP Vertical Slice | ACTIVE | - |
-| 2025-01-19 | /apps/api/Features/Participation/Entities/ParticipationHistory.cs | CREATED | Audit trail entity for participation changes | Backend RSVP Vertical Slice | ACTIVE | - |
-| 2025-01-19 | /apps/api/Features/Participation/Data/EventParticipationConfiguration.cs | CREATED | EF Core configuration for EventParticipation | Backend RSVP Vertical Slice | ACTIVE | - |
-| 2025-01-19 | /apps/api/Features/Participation/Data/ParticipationHistoryConfiguration.cs | CREATED | EF Core configuration for ParticipationHistory | Backend RSVP Vertical Slice | ACTIVE | - |
-| 2025-01-19 | /apps/api/Features/Participation/Models/ParticipationStatusDto.cs | CREATED | DTO for user participation status (NSwag) | Backend RSVP Vertical Slice | ACTIVE | - |
-| 2025-01-19 | /apps/api/Features/Participation/Models/CreateRSVPRequest.cs | CREATED | Request DTO for creating RSVPs | Backend RSVP Vertical Slice | ACTIVE | - |
-| 2025-01-19 | /apps/api/Features/Participation/Models/UserParticipationDto.cs | CREATED | DTO for user's participation list (NSwag) | Backend RSVP Vertical Slice | ACTIVE | - |
-| 2025-01-19 | /apps/api/Features/Participation/Services/IParticipationService.cs | CREATED | Service interface for participation management | Backend RSVP Vertical Slice | ACTIVE | - |
-| 2025-01-19 | /apps/api/Features/Participation/Services/ParticipationService.cs | CREATED | Service implementation with business logic | Backend RSVP Vertical Slice | ACTIVE | - |
-| 2025-01-19 | /apps/api/Features/Participation/Endpoints/ParticipationEndpoints.cs | CREATED | Minimal API endpoints for RSVP functionality | Backend RSVP Vertical Slice | ACTIVE | - |
-| 2025-01-19 | /tests/unit/api/Features/Participation/ParticipationServiceTests.cs | CREATED | Integration tests for ParticipationService | Backend RSVP Vertical Slice | ACTIVE | - |
-| 2025-01-19 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/handoffs/backend-vertical-slice-2025-01-19-handoff.md | CREATED | Handoff document for completed backend work | Backend RSVP Vertical Slice | ACTIVE | - |
-| 2025-01-19 | /apps/api/Data/ApplicationDbContext.cs | MODIFIED | Added DbSets and configurations for participation entities | Backend RSVP Vertical Slice | ACTIVE | - |
-| 2025-01-19 | /apps/api/Features/Shared/Extensions/ServiceCollectionExtensions.cs | MODIFIED | Added ParticipationService registration | Backend RSVP Vertical Slice | ACTIVE | - |
-| 2025-01-19 | /apps/api/Features/Shared/Extensions/WebApplicationExtensions.cs | MODIFIED | Added ParticipationEndpoints registration | Backend RSVP Vertical Slice | ACTIVE | - |
-| 2025-01-13 | /docs/functional-areas/deployment/2025-01-13-digitalocean-deployment/handoffs/deployment-complete-2025-01-13-handoff.md | CREATED | Complete deployment handoff with GitHub Actions, Docker, and Cloudflare tunnel configuration | DigitalOcean Deployment Complete | ACTIVE | - |
-| 2025-01-13 | /docs/functional-areas/deployment/2025-01-13-digitalocean-deployment/handoffs/paypal-webhook-cloudflare-2025-01-13-handoff.md | CREATED | PayPal webhook integration with Cloudflare tunnel configuration handoff | PayPal Webhook Cloudflare Integration | ACTIVE | - |
-| 2025-01-20 | /apps/api/Features/Participation/Models/CreateTicketPurchaseRequest.cs | CREATED | Ticket purchase request model for class events | Backend RSVP Complete Phase | ACTIVE | - |
-| 2025-01-20 | /apps/web/src/features/payments/components/PayPalButton.tsx | MODIFIED | Restored functional PayPal integration with sliding scale pricing | PayPal Integration Phase 1 | ACTIVE | - |
-| 2025-01-20 | /apps/web/src/lib/api/services/payments.ts | CREATED | Payment API service layer with ticket purchase integration | PayPal Integration Phase 1 | ACTIVE | - |
-| 2025-01-20 | /apps/web/src/lib/api/hooks/usePayments.ts | CREATED | React Query payment hooks for API integration | PayPal Integration Phase 1 | ACTIVE | - |
-| 2025-09-20 | /apps/web/src/lib/api/services/payments.ts | MODIFIED | Fixed critical import error - changed '../apiClient' to '../client' | Critical React App Fix | ACTIVE | - |
-| 2025-09-20 | /tests/playwright/rsvp-ticketing-test.spec.ts | CREATED | Basic RSVP and ticketing implementation tests | RSVP Ticketing Testing | TEMPORARY | 2025-10-01 |
-| 2025-09-20 | /tests/playwright/comprehensive-rsvp-ticketing.spec.ts | CREATED | Comprehensive RSVP and ticketing test suite | RSVP Ticketing Testing | TEMPORARY | 2025-10-01 |
-| 2025-09-20 | /test-rsvp-api.sh | CREATED | API testing script for RSVP and ticketing endpoints | RSVP Ticketing Testing | TEMPORARY | 2025-09-21 |
-| 2025-09-20 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/test-report-2025-09-20.md | CREATED | Comprehensive test report for RSVP and ticketing implementation with results and recommendations | RSVP Ticketing Test Report | ACTIVE | Never |
+| 2025-01-19 | /apps/api/Features/Participation/Entities/Participation.cs | CREATED | Main participation entity linking users to events with type/status | Backend RSVP Vertical Slice | ACTIVE | - |
+| 2025-01-19 | /apps/api/Features/Participation/Queries/GetUserParticipationsQuery.cs | CREATED | Query to retrieve user's event participations | Backend RSVP Vertical Slice | ACTIVE | - |
+| 2025-01-19 | /apps/api/Features/Participation/Commands/CreateParticipationCommand.cs | CREATED | Command to create new event participation (RSVP/ticket) | Backend RSVP Vertical Slice | ACTIVE | - |
+| 2025-01-19 | /apps/api/Features/Participation/Commands/CancelParticipationCommand.cs | CREATED | Command to cancel existing participation | Backend RSVP Vertical Slice | ACTIVE | - |
+| 2025-01-19 | /apps/api/Features/Participation/Services/ParticipationService.cs | CREATED | Core business logic for participation management | Backend RSVP Vertical Slice | ACTIVE | - |
+| 2025-01-19 | /apps/api/Features/Participation/Controllers/ParticipationController.cs | CREATED | REST API endpoints for participation operations | Backend RSVP Vertical Slice | ACTIVE | - |
+| 2025-01-19 | /apps/api/Migrations/AddParticipationTables.cs | CREATED | EF Core migration to add participation tables to database | Backend RSVP Vertical Slice | ACTIVE | - |
+| 2025-01-19 | /apps/web/src/features/participation/types/index.ts | CREATED | TypeScript types for participation system | Frontend RSVP Vertical Slice | ACTIVE | - |
+| 2025-01-19 | /apps/web/src/features/participation/api/participationApi.ts | CREATED | API client for participation endpoints | Frontend RSVP Vertical Slice | ACTIVE | - |
+| 2025-01-19 | /apps/web/src/features/participation/hooks/useParticipation.ts | CREATED | React hooks for participation state management | Frontend RSVP Vertical Slice | ACTIVE | - |
+| 2025-01-19 | /apps/web/src/components/events/ParticipationButton.tsx | CREATED | Smart button component for RSVP/ticket actions | Frontend RSVP Vertical Slice | ACTIVE | - |
+| 2025-01-19 | /apps/web/src/components/dashboard/ParticipationsList.tsx | CREATED | Dashboard component showing user's participations | Frontend RSVP Vertical Slice | ACTIVE | - |
+| 2025-01-19 | /tests/playwright/participation-flow.spec.ts | CREATED | E2E tests for complete participation user journey | Testing RSVP Vertical Slice | ACTIVE | - |
+| 2025-01-19 | /apps/api/Features/Events/Queries/GetEventWithCapacityQuery.cs | MODIFIED | Added capacity checking logic for RSVP/ticket limits | Backend RSVP Integration | ACTIVE | - |
+| 2025-01-19 | /apps/api/Features/Events/Models/EventDto.cs | MODIFIED | Added participation-related fields to event responses | Backend RSVP Integration | ACTIVE | - |
+| 2025-01-19 | /apps/web/src/pages/events/EventDetailPage.tsx | MODIFIED | Integrated ParticipationButton into event details | Frontend RSVP Integration | ACTIVE | - |
+| 2025-01-19 | /apps/web/src/pages/dashboard/DashboardPage.tsx | MODIFIED | Added ParticipationsList to dashboard | Frontend RSVP Integration | ACTIVE | - |
+| 2025-01-19 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/requirements/business-requirements.md | CREATED | Complete business requirements for RSVP and ticketing system | RSVP/Ticketing Requirements | ACTIVE | Never |
+| 2025-01-19 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/requirements/technical-requirements.md | CREATED | Technical specifications and API contracts for RSVP/ticketing | RSVP/Ticketing Requirements | ACTIVE | Never |
+| 2025-01-19 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/design/system-architecture.md | CREATED | System architecture and data flow for participation system | RSVP/Ticketing Design | ACTIVE | Never |
+| 2025-01-19 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/implementation/backend-implementation.md | CREATED | Backend implementation guide and patterns | RSVP/Ticketing Implementation | ACTIVE | Never |
+| 2025-01-19 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/implementation/frontend-implementation.md | CREATED | Frontend implementation guide and patterns | RSVP/Ticketing Implementation | ACTIVE | Never |
+| 2025-01-19 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/testing/test-plan.md | CREATED | Comprehensive test plan for RSVP/ticketing features | RSVP/Ticketing Testing | ACTIVE | Never |
 
-## Registry Statistics
+## Archive Log
 
-- **Total Files Tracked**: 51
-- **Active Files**: 47
-- **Temporary Files**: 4
-- **Last Updated**: 2025-09-20
+Files that have been deleted or moved to archive:
+
+| Date | Original Path | Action | Reason | Archive Location |
+|------|---------------|--------|--------|------------------|
+| 2025-09-20 | `/apps/web/src/components/checkout/CheckoutModal.tsx` | DELETED | Replaced by full page checkout design | N/A |
+| 2025-09-20 | Various temporary fix files | MOVED | Consolidated into final implementation | `/docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/_archive/` |
 
 ## Cleanup Schedule
 
-- **2025-09-21**: Remove debug logging files and temporary test scripts
-- **2025-10-01**: Archive completed session work files
-- **2025-10-15**: Review and archive old temporary files
-
-## File Categories
-
-### Backend Implementation
-- Participation entities, services, and endpoints
-- Authentication model updates
-- Database configurations
-
-### Frontend Implementation
-- Payment service integration
-- React component fixes
-- PayPal integration restoration
-
-### Testing & Documentation
-- Playwright test suites
-- Comprehensive test reports
-- API testing scripts
-
-### Standards & Patterns
-- React development patterns
-- Agent handoff documents
-- Lessons learned documentation
+| Cleanup Date | Files to Review | Action Required |
+|--------------|------------------|-----------------|
+| 2025-09-21 | Debug logging in ParticipationCard.tsx and EventDetailPage.tsx | Remove debug statements |
+| 2025-10-01 | `/terminology-fix-verification.md` | Archive or integrate into main docs |
+| 2025-10-20 | `/session-work/2025-09-20/webapp-api-connectivity-fix-report.md` | Archive to appropriate functional area |
 
 ---
 
-**Registry Maintenance**: Updated automatically during development sessions. Manual review quarterly.
+## Registry Maintenance Notes
+
+- **Weekly Review**: Every Friday, review TEMPORARY status files
+- **Monthly Cleanup**: Archive outdated session work and temporary files
+- **Status Updates**: Update STATUS when files become obsolete or are superseded
+- **Path Changes**: Log when files are moved between directories
+
+Last Updated: 2025-09-20
