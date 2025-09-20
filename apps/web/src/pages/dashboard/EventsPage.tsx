@@ -151,7 +151,7 @@ export const EventsPage: React.FC = () => {
           }}
         >
           <Text style={{ fontSize: '14px' }}>
-            <strong>Note:</strong> Currently showing all events. Future update will filter to show only your registered events and event history.
+            <strong>Note:</strong> Currently showing all events. Future update will filter to show only your participated events and event history.
           </Text>
         </Alert>
 
@@ -429,7 +429,7 @@ export const EventsPage: React.FC = () => {
               No Events Found
             </Title>
             <Text style={{ fontSize: '16px', marginBottom: '20px', maxWidth: '400px', margin: '0 auto 20px' }}>
-              You haven't registered for any events yet. Browse our available classes and community gatherings.
+              You haven't participated in any events yet. Browse our available classes and community gatherings.
             </Text>
             
             <Box component="a" href="/events" className="btn btn-primary">

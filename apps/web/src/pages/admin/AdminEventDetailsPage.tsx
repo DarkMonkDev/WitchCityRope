@@ -358,9 +358,9 @@ export const AdminEventDetailsPage: React.FC = () => {
           </Text>
           
           <Text size="sm" c="dimmed">
-            {pendingStatus === 'published' 
-              ? 'This event will become visible to the public and members can register.'
-              : 'This event will be hidden from the public and no new registrations will be accepted.'
+            {pendingStatus === 'published'
+              ? 'This event will become visible to the public and members can participate.'
+              : 'This event will be hidden from the public and no new participation will be accepted.'
             }
           </Text>
           

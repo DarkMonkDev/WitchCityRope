@@ -520,6 +520,151 @@ namespace WitchCityRope.Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("WitchCityRope.Api.Features.Participation.Entities.EventParticipation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Metadata")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValue("{}");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<int>("ParticipationType")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_EventParticipations_CreatedAt");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("Metadata")
+                        .HasDatabaseName("IX_EventParticipations_Metadata_Gin");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Metadata"), "gin");
+
+                    b.HasIndex("UpdatedBy");
+
+                    b.HasIndex("EventId", "Status")
+                        .HasDatabaseName("IX_EventParticipations_EventId_Status");
+
+                    b.HasIndex("UserId", "EventId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_EventParticipations_User_Event_Active");
+
+                    b.HasIndex("UserId", "Status")
+                        .HasDatabaseName("IX_EventParticipations_UserId_Status");
+
+                    b.ToTable("EventParticipations", "public", t =>
+                        {
+                            t.HasCheckConstraint("CHK_EventParticipations_CancelledAt_Logic", "(\"Status\" IN (2, 3) AND \"CancelledAt\" IS NOT NULL) OR (\"Status\" NOT IN (2, 3) AND \"CancelledAt\" IS NULL)");
+
+                            t.HasCheckConstraint("CHK_EventParticipations_ParticipationType", "\"ParticipationType\" IN (1, 2)");
+
+                            t.HasCheckConstraint("CHK_EventParticipations_Status", "\"Status\" IN (1, 2, 3, 4)");
+                        });
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Participation.Entities.ParticipationHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ActionType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("ChangeReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<Guid?>("ChangedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)");
+
+                    b.Property<string>("NewValues")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("OldValues")
+                        .HasColumnType("jsonb");
+
+                    b.Property<Guid>("ParticipationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActionType")
+                        .HasDatabaseName("IX_ParticipationHistory_ActionType");
+
+                    b.HasIndex("ChangedBy");
+
+                    b.HasIndex("NewValues")
+                        .HasDatabaseName("IX_ParticipationHistory_NewValues_Gin");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("NewValues"), "gin");
+
+                    b.HasIndex("OldValues")
+                        .HasDatabaseName("IX_ParticipationHistory_OldValues_Gin");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("OldValues"), "gin");
+
+                    b.HasIndex("ParticipationId", "CreatedAt")
+                        .HasDatabaseName("IX_ParticipationHistory_ParticipationId_CreatedAt");
+
+                    b.ToTable("ParticipationHistory", "public", t =>
+                        {
+                            t.HasCheckConstraint("CHK_ParticipationHistory_ActionType", "\"ActionType\" IN ('Created', 'Updated', 'Cancelled', 'Refunded', 'StatusChanged', 'PaymentUpdated')");
+                        });
+                });
+
             modelBuilder.Entity("WitchCityRope.Api.Features.Payments.Entities.Payment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2591,6 +2736,57 @@ namespace WitchCityRope.Api.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("WitchCityRope.Api.Features.Participation.Entities.EventParticipation", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("WitchCityRope.Api.Models.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Event");
+
+                    b.Navigation("UpdatedByUser");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Participation.Entities.ParticipationHistory", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "ChangedByUser")
+                        .WithMany()
+                        .HasForeignKey("ChangedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("WitchCityRope.Api.Features.Participation.Entities.EventParticipation", "Participation")
+                        .WithMany("History")
+                        .HasForeignKey("ParticipationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ChangedByUser");
+
+                    b.Navigation("Participation");
+                });
+
             modelBuilder.Entity("WitchCityRope.Api.Features.Payments.Entities.Payment", b =>
                 {
                     b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "RefundedByUser")
@@ -2970,6 +3166,11 @@ namespace WitchCityRope.Api.Migrations
                     b.Navigation("AuditLogs");
 
                     b.Navigation("CheckIns");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Participation.Entities.EventParticipation", b =>
+                {
+                    b.Navigation("History");
                 });
 
             modelBuilder.Entity("WitchCityRope.Api.Features.Payments.Entities.Payment", b =>

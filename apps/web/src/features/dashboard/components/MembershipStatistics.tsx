@@ -227,7 +227,7 @@ export const MembershipStatistics: React.FC<MembershipStatisticsProps> = ({ clas
             icon={<IconCalendarEvent size={20} />}
             title="Upcoming Events"
             value={statistics.upcomingRegistrations}
-            subtitle="Events registered for"
+            subtitle="Events participating in"
             color="teal"
           />
         </SimpleGrid>
@@ -307,7 +307,7 @@ export const MembershipStatistics: React.FC<MembershipStatisticsProps> = ({ clas
         {statistics.eventsAttended === 0 ? (
           <Alert color="blue" variant="light">
             <Text size="sm">
-              🎯 Ready to get started? Check out our upcoming events and register for your first workshop!
+              🎯 Ready to get started? Check out our upcoming events and join your first workshop!
             </Text>
           </Alert>
         ) : averageEventsPerMonth < 0.5 ? (

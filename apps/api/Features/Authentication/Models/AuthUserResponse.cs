@@ -44,6 +44,16 @@ public class AuthUserResponse
     public string[] Roles { get; set; } = Array.Empty<string>();
 
     /// <summary>
+    /// Whether the user is vetted for social events
+    /// </summary>
+    public bool IsVetted { get; set; }
+
+    /// <summary>
+    /// Whether the user account is active
+    /// </summary>
+    public bool IsActive { get; set; }
+
+    /// <summary>
     /// Default constructor
     /// </summary>
     public AuthUserResponse() { }
@@ -60,5 +70,7 @@ public class AuthUserResponse
         LastLoginAt = user.LastLoginAt;
         Role = user.Role;
         Roles = new[] { user.Role }; // Frontend expects roles array, provide single role as array
+        IsVetted = user.IsVetted;
+        IsActive = user.IsActive;
     }
 }

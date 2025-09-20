@@ -80,10 +80,13 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
   // Transform sessions to match frontend structure
   const transformedSessions: EventSessionDto[] = (apiEvent.sessions || []).map(session => ({
     id: session.id,
+    sessionIdentifier: session.sessionIdentifier,
     name: session.name,
+    date: session.date,
     startTime: session.startTime,
     endTime: session.endTime,
     capacity: session.capacity,
+    registeredCount: session.registeredCount,
     description: '' // Add default description
   }));
 

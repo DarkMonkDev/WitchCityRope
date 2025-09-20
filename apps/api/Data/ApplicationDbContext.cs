@@ -9,6 +9,8 @@ using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Features.Vetting.Entities.Configuration;
 using WitchCityRope.Api.Features.Payments.Entities;
 using WitchCityRope.Api.Features.Payments.Data;
+using WitchCityRope.Api.Features.Participation.Entities;
+using WitchCityRope.Api.Features.Participation.Data;
 
 namespace WitchCityRope.Api.Data;
 
@@ -162,6 +164,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     /// PaymentFailures table for detailed failure tracking
     /// </summary>
     public DbSet<PaymentFailure> PaymentFailures { get; set; }
+
+    /// <summary>
+    /// EventParticipations table for RSVP and ticket participation tracking
+    /// </summary>
+    public DbSet<EventParticipation> EventParticipations { get; set; }
+
+    /// <summary>
+    /// ParticipationHistory table for participation audit trails
+    /// </summary>
+    public DbSet<ParticipationHistory> ParticipationHistory { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -755,6 +767,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         modelBuilder.ApplyConfiguration(new PaymentRefundConfiguration());
         modelBuilder.ApplyConfiguration(new PaymentAuditLogConfiguration());
         modelBuilder.ApplyConfiguration(new PaymentFailureConfiguration());
+
+        // Apply Participation System configurations
+        modelBuilder.ApplyConfiguration(new EventParticipationConfiguration());
+        modelBuilder.ApplyConfiguration(new ParticipationHistoryConfiguration());
     }
 
     /// <summary>
@@ -1246,6 +1262,31 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             {
                 entry.Entity.CreatedAt = DateTime.UtcNow;
                 entry.Entity.FailedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Handle EventParticipation entities
+        var eventParticipationEntries = ChangeTracker.Entries<EventParticipation>();
+        foreach (var entry in eventParticipationEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Handle ParticipationHistory entities
+        var participationHistoryEntries = ChangeTracker.Entries<ParticipationHistory>();
+        foreach (var entry in participationHistoryEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
             }
         }
     }

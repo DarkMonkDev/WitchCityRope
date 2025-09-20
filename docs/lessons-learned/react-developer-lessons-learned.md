@@ -1022,8 +1022,172 @@ const options = sessions.map(s => ({
 
 ---
 
+---
+
+## 🚨 CRITICAL: User Role Structure API Mismatch Fix (2025-09-20) 🚨
+**Date**: 2025-09-20
+**Category**: Authentication & Authorization
+**Severity**: CRITICAL
+
+### What We Learned
+**RSVP BUTTON VISIBILITY BUG**: Admin users couldn't see RSVP buttons on social events due to frontend expecting `roles` array but backend returning `isVetted` boolean + `role` string.
+
+**BACKEND USER MODEL STRUCTURE**:
+- `isVetted: boolean` - Direct vetting status flag
+- `role: string` - Single role value (e.g., "Admin", "Teacher", "Member")
+
+**FRONTEND ASSUMPTION ERROR**:
+- Frontend checked for `user.roles` array containing role names
+- Backend doesn't return roles as an array anymore
+- Result: Admin users appeared "unvetted" and couldn't access social events
+
+### Action Items
+- [x] **UPDATE user role checking logic** to handle both structures (legacy + new)
+- [x] **PRIORITIZE isVetted boolean** when available in user object
+- [x] **FALLBACK to role string** for admin/teacher role checks
+- [x] **MAINTAIN legacy support** for roles array (backwards compatibility)
+- [x] **DOCUMENT the dual structure pattern** for future components
+
+### Critical Fix Pattern:
+```typescript
+// ✅ CORRECT: Handle both backend user structures
+let isVetted = false;
+
+if (user && typeof user === 'object') {
+  // New structure: Check isVetted boolean OR admin/teacher role
+  if ('isVetted' in user && user.isVetted === true) {
+    isVetted = true;
+  } else if ('role' in user && typeof user.role === 'string') {
+    isVetted = ['Admin', 'Administrator', 'Teacher'].includes(user.role);
+  }
+
+  // Legacy structure: Check roles array (fallback)
+  if (!isVetted && 'roles' in user && Array.isArray(user.roles)) {
+    isVetted = user.roles.some(role => ['Vetted', 'Teacher', 'Administrator', 'Admin'].includes(role));
+  }
+}
+
+// ❌ WRONG: Only checking legacy roles array
+const userRoles = user.roles || [];
+const isVetted = userRoles.some(role => ['Vetted', 'Teacher', 'Admin'].includes(role));
+```
+
+### Backend User Structure (NEW):
+```typescript
+interface UserDto {
+  id: string;
+  email: string;
+  sceneName?: string;
+  isVetted: boolean;    // Direct vetting status
+  role: string;         // Single role: "Admin", "Teacher", "Member", etc.
+  isActive: boolean;    // Account status
+}
+```
+
+### Prevention Strategy
+1. **Always check actual API response structure** before implementing user role logic
+2. **Use defensive programming** - check for property existence before accessing
+3. **Support both structures** during transition periods for backwards compatibility
+4. **Test with real user accounts** of different roles (Admin, Teacher, Member)
+5. **Coordinate with backend developers** on user model changes
+
+**CRITICAL SUCCESS**: Admin users can now see RSVP buttons on social events. Role checking works with current backend structure.
+
+### Tags
+#critical #authentication #user-roles #api-mismatch #rsvp-visibility #backend-frontend-sync
+
+---
+
+## 🚨 CRITICAL: RSVP Button Visibility Fix - Null Participation State (2025-09-20) 🚨
+**Date**: 2025-09-20
+**Category**: Component State Management
+**Severity**: CRITICAL
+
+### What We Learned
+**RSVP BUTTON DISAPPEARING BUG**: RSVP buttons not showing for vetted users due to improper null/loading state handling in conditional rendering.
+
+**ROOT CAUSE PATTERN**: Using `&&` conditions that require ALL parts to be truthy fails when API data is `null` during loading:
+```typescript
+// ❌ WRONG: Fails when participation is null during loading
+{!participation?.hasRSVP && participation?.canRSVP && (
+  <button>RSVP Now</button>
+)}
+// When participation = null:
+// - !participation?.hasRSVP = true (correct)
+// - participation?.canRSVP = undefined (falsy!)
+// - Result: false && undefined = false (button hidden)
+```
+
+**THE LOADING STATE PROBLEM**:
+- React Query hook returns `null` for participation during initial load
+- useParticipation hook provides mock data with `canRSVP: true` when API returns 404
+- But there's a brief moment where participation is `null` before mock data loads
+- Component renders with null participation → button condition fails → button never shows
+
+### Action Items
+- [x] **HANDLE null participation state** in conditional rendering logic
+- [x] **SHOW buttons during loading** when safe to do so (user is vetted)
+- [x] **USE inclusive OR conditions** to handle loading states: `participation?.canRSVP || participation === null || isLoading`
+- [x] **ADD comprehensive debug logging** to track participation state transitions
+- [x] **DISABLE buttons during loading** with loading text feedback
+- [x] **DOCUMENT pattern** for future API-dependent button visibility
+
+### Critical Fix Pattern:
+```typescript
+// ✅ CORRECT: Handle null/loading states in button visibility
+{(() => {
+  const hasNotRSVPd = !participation?.hasRSVP;
+  const canRSVPCondition = participation?.canRSVP || participation === null || isLoading;
+  const shouldShowButton = hasNotRSVPd && canRSVPCondition;
+
+  console.log('🔍 BUTTON LOGIC DEBUG:', {
+    hasNotRSVPd,
+    canRSVP: participation?.canRSVP,
+    isNull: participation === null,
+    isLoading,
+    shouldShow: shouldShowButton
+  });
+
+  return shouldShowButton;
+})() && (
+  <button
+    disabled={isLoading}
+    onClick={handleAction}
+  >
+    {isLoading ? 'Loading...' : 'RSVP Now'}
+  </button>
+)}
+
+// ❌ WRONG: Only checks loaded state
+{!participation?.hasRSVP && participation?.canRSVP && (
+  <button>RSVP Now</button>
+)}
+```
+
+### Prevention Strategy for API-Dependent UI
+1. **Always consider null/loading states** in conditional rendering
+2. **Use inclusive OR conditions** for loading states when buttons should be available
+3. **Add loading states to buttons** rather than hiding them during data loading
+4. **Test with slow network** to catch loading state bugs
+5. **Debug log state transitions** during development to verify logic
+6. **Handle both API success and fallback/mock scenarios**
+
+### Expected Behavior After Fix
+- ✅ RSVP button shows immediately for vetted users on social events
+- ✅ Button remains visible during participation data loading
+- ✅ Button shows "Loading..." when disabled during API calls
+- ✅ Works with both real API responses and mock fallback data
+- ✅ Comprehensive logging shows exact logic evaluation
+
+**CRITICAL SUCCESS**: Admin users can now see RSVP buttons on social events immediately, regardless of participation data loading state.
+
+### Tags
+#critical #button-visibility #null-state-handling #loading-states #conditional-rendering #api-dependent-ui
+
+---
+
 *This file is maintained by the react-developer agent. Add new lessons immediately when discovered.*
-*Last updated: 2025-09-19 - Added critical Events Admin Add Button Error Fix*
+*Last updated: 2025-09-20 - Added critical RSVP Button Visibility Fix for null participation state*
 
 ## COMPREHENSIVE LESSONS FROM FRONTEND DEVELOPMENT
 **NOTE**: The following lessons were consolidated from frontend-lessons-learned.md

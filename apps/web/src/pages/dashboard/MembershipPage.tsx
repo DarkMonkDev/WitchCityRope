@@ -302,10 +302,10 @@ export const MembershipPage: React.FC = () => {
                       marginBottom: '4px',
                     }}
                   >
-                    Event Registration
+                    Event Participation
                   </Text>
                   <Text style={{ fontSize: '14px', color: '#8B8680' }}>
-                    Priority access to register for workshops and community events
+                    Priority access to participate in workshops and community events
                   </Text>
                 </Box>
                 <Badge color="green" size="sm">Active</Badge>

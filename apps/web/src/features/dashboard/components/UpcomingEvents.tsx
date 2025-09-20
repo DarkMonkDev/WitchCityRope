@@ -302,7 +302,7 @@ export const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
           >
             <Stack gap="sm">
               <Text size="sm">
-                You don't have any upcoming events registered yet.
+                You don't have any upcoming events scheduled yet.
               </Text>
               <Text size="xs" c="dimmed">
                 Check out our event calendar to find workshops, skill shares, and social events!

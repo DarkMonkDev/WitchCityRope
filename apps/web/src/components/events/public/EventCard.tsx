@@ -70,7 +70,7 @@ export const EventCard = memo<EventCardProps>(({
           color="burgundy"
           onClick={stopPropagation}
         >
-          Login to Register
+          Login Required
         </Button>
       );
     }
@@ -122,7 +122,7 @@ export const EventCard = memo<EventCardProps>(({
           onRegister(event.id);
         }}
       >
-        Register Now
+        Purchase Ticket
       </Button>
     );
   };
@@ -200,7 +200,7 @@ export const EventCard = memo<EventCardProps>(({
               <Text size="sm">
                 <Anchor href="/login" c="burgundy">Login</Anchor> or{' '}
                 <Anchor href="/register" c="burgundy">apply for membership</Anchor>{' '}
-                to see full details and register
+                to see full details and participate
               </Text>
             </Alert>
           </Stack>

@@ -1,23 +1,28 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { 
-  Container, Stack, Title, Text, Breadcrumbs, 
-  Anchor, Alert, Button, Box, Badge, Group, Paper, 
+import {
+  Container, Stack, Title, Text, Breadcrumbs,
+  Anchor, Alert, Button, Box, Badge, Group, Paper,
   ActionIcon, List, Avatar, Skeleton, Center
 } from '@mantine/core';
-import { 
-  IconCalendar, IconClock, IconMapPin, IconUsers, 
+import {
+  IconCalendar, IconClock, IconMapPin, IconUsers,
   IconShare, IconMail, IconBrandX, IconLink, IconCheck
 } from '@tabler/icons-react';
 import { formatEventDate, formatEventTime } from '../../utils/eventUtils';
 import { useEvent } from '../../lib/api/hooks/useEvents';
+import { useParticipation, useCreateRSVP, useCancelRSVP } from '../../hooks/useParticipation';
+import { ParticipationCard } from '../../components/events/ParticipationCard';
 import type { EventDto } from '../../lib/api/types/events.types';
 
 export const EventDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [selectedTicket, setSelectedTicket] = useState('single');
-  
+
   const { data: event, isLoading, error } = useEvent(id!, !!id);
+  const { data: participation, isLoading: participationLoading } = useParticipation(id!, !!id);
+  const createRSVPMutation = useCreateRSVP();
+  const cancelRSVPMutation = useCancelRSVP();
   
   if (isLoading) {
     return (
@@ -55,10 +60,37 @@ export const EventDetailPage: React.FC = () => {
   
   const availability = getAvailabilityStatus();
 
-  const handlePurchase = () => {
-    console.log('Purchasing event:', (event as any)?.title);
-    // Implement purchase logic - redirect to payment or registration
+  const handleRSVP = (notes?: string) => {
+    if (!id) return;
+    createRSVPMutation.mutate({
+      eventId: id,
+      notes
+    });
   };
+
+  const handlePurchaseTicket = (amount: number) => {
+    console.log('Purchasing ticket for:', (event as any)?.title, 'Amount:', amount);
+    // TODO: Implement ticket purchase flow with PayPal integration
+  };
+
+  const handleCancel = (type: 'rsvp' | 'ticket', reason?: string) => {
+    if (!id) return;
+
+    if (type === 'rsvp') {
+      cancelRSVPMutation.mutate({ eventId: id, reason });
+    } else {
+      // TODO: Implement ticket cancellation
+      console.log('Cancel ticket for:', id, 'Reason:', reason);
+    }
+  };
+
+  // Determine event type based on event data
+  const eventType = (event as any)?.eventType?.toLowerCase() === 'social' ? 'social' : 'class';
+
+  // DEBUG: Log event type determination
+  console.log('🔍 EventDetailPage DEBUG:');
+  console.log('  - event.eventType:', (event as any)?.eventType);
+  console.log('  - determined eventType:', eventType);
 
   return (
     <Box data-testid="page-event-detail" style={{ background: 'var(--color-cream)', minHeight: '100vh' }}>
@@ -263,13 +295,18 @@ export const EventDetailPage: React.FC = () => {
           </ContentSection>
         </Stack>
 
-        {/* Right Column - Registration Card */}
+        {/* Right Column - Participation Card */}
         <Box style={{ position: 'sticky', top: '100px', height: 'fit-content' }}>
-          <RegistrationCard 
-            event={event as any}
-            availability={availability}
-            availableSpots={availableSpots}
-            onPurchase={handlePurchase}
+          <ParticipationCard
+            eventId={id!}
+            eventTitle={(event as any)?.title || 'Event'}
+            eventType={eventType}
+            participation={participation}
+            isLoading={participationLoading || createRSVPMutation.isPending || cancelRSVPMutation.isPending}
+            onRSVP={handleRSVP}
+            onPurchaseTicket={handlePurchaseTicket}
+            onCancel={handleCancel}
+            ticketPrice={(event as any)?.capacity ? Math.round(50 + (availableSpots / (event as any).capacity) * 25) : 50}
           />
         </Box>
       </Container>
@@ -325,223 +362,6 @@ const ContentSection: React.FC<ContentSectionProps> = ({ title, children }) => (
   </Paper>
 );
 
-// Registration Card Component
-interface RegistrationCardProps {
-  event: EventDto;
-  availability: { status: string; color: string };
-  availableSpots: number;
-  onPurchase: () => void;
-}
-
-const RegistrationCard: React.FC<RegistrationCardProps> = ({ 
-  event, 
-  availability,
-  availableSpots,
-  onPurchase 
-}) => {
-  return (
-    <Paper
-      style={{
-        background: 'var(--color-ivory)',
-        borderRadius: '16px',
-        padding: 'var(--space-lg)',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-        border: '1px solid rgba(183, 109, 117, 0.1)',
-        transition: 'all 0.3s ease'
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.08)';
-        e.currentTarget.style.borderColor = 'rgba(183, 109, 117, 0.2)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
-        e.currentTarget.style.borderColor = 'rgba(183, 109, 117, 0.1)';
-      }}
-    >
-      <Stack gap="lg">
-        {/* Capacity Warning */}
-        {availability.status === 'low' && (
-          <Alert
-            style={{
-              background: 'linear-gradient(135deg, rgba(220, 20, 60, 0.1), rgba(218, 165, 32, 0.1))',
-              border: '2px solid var(--color-warning)',
-              borderRadius: '8px',
-              padding: 'var(--space-sm)',
-              textAlign: 'center'
-            }}
-          >
-            <Group gap="xs" justify="center">
-              <Text style={{ color: 'var(--color-warning)', fontSize: '18px' }}>⚠️</Text>
-              <Text style={{ fontSize: '14px', color: 'var(--color-charcoal)', fontWeight: 600 }}>
-                Only {availableSpots} spots left!
-              </Text>
-            </Group>
-          </Alert>
-        )}
-
-        {availability.status === 'sold-out' && (
-          <Alert
-            color="red"
-            style={{
-              textAlign: 'center'
-            }}
-          >
-            <Text style={{ fontSize: '16px', color: 'var(--color-error)', fontWeight: 600 }}>
-              This event is sold out
-            </Text>
-          </Alert>
-        )}
-
-        {/* Event Price */}
-        <Box
-          style={{
-            background: 'var(--color-cream)',
-            borderRadius: '12px',
-            padding: 'var(--space-md)',
-            textAlign: 'center'
-          }}
-        >
-          <Text 
-            fw={700}
-            style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: '24px',
-              color: 'var(--color-burgundy)',
-              marginBottom: 'var(--space-xs)'
-            }}
-          >
-            Price: ${event.capacity ? Math.round(50 + (availableSpots / event.capacity) * 25) : 50}
-          </Text>
-          <Text style={{ color: 'var(--color-stone)', fontSize: '14px' }}>
-            Sliding scale pricing available
-          </Text>
-        </Box>
-
-        {/* Availability */}
-        <Box
-          style={{
-            background: 'var(--color-cream)',
-            borderRadius: '12px',
-            padding: 'var(--space-md)'
-          }}
-        >
-          <Title 
-            order={4}
-            ta="center"
-            mb="sm"
-            style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: '16px',
-              fontWeight: 600,
-              color: 'var(--color-charcoal)'
-            }}
-          >
-            Availability
-          </Title>
-          <Group justify="space-between" align="center">
-            <Text style={{ fontSize: '14px', color: 'var(--color-charcoal)' }}>
-              Spots Available
-            </Text>
-            <Text 
-              style={{ 
-                fontSize: '16px', 
-                fontWeight: 600,
-                color: availability.color
-              }}
-            >
-              {availableSpots} / {event.capacity || 'Unlimited'}
-            </Text>
-          </Group>
-        </Box>
-
-        {/* Purchase Button */}
-        <Button
-          data-testid="button-register"
-          onClick={onPurchase}
-          disabled={availability.status === 'sold-out'}
-          style={{
-            width: '100%',
-            padding: 'var(--space-md)',
-            background: availability.status !== 'sold-out'
-              ? 'linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%)'
-              : 'var(--color-stone)',
-            color: availability.status !== 'sold-out' ? 'var(--color-midnight)' : 'var(--color-ivory)',
-            border: 'none',
-            borderRadius: '8px',
-            fontFamily: 'var(--font-heading)',
-            fontSize: '18px',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '1px',
-            cursor: availability.status !== 'sold-out' ? 'pointer' : 'not-allowed',
-            transition: 'all 0.3s ease',
-            boxShadow: availability.status !== 'sold-out' ? '0 4px 15px rgba(255, 191, 0, 0.4)' : 'none',
-            position: 'relative',
-            overflow: 'hidden'
-          }}
-          onMouseEnter={(e) => {
-            if (availability.status !== 'sold-out') {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 6px 25px rgba(255, 191, 0, 0.5)';
-              e.currentTarget.style.background = 'linear-gradient(135deg, var(--color-amber-dark) 0%, var(--color-amber) 100%)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (availability.status !== 'sold-out') {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 15px rgba(255, 191, 0, 0.4)';
-              e.currentTarget.style.background = 'linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%)';
-            }
-          }}
-        >
-          {availability.status === 'sold-out' ? 'Sold Out' : 'Register for Event'}
-        </Button>
-
-        {/* Share Section */}
-        <Box pt="lg" style={{ borderTop: '1px solid var(--color-taupe)', textAlign: 'center' }}>
-          <Text mb="sm" style={{ fontSize: '14px', color: 'var(--color-stone)' }}>
-            Share this event
-          </Text>
-          <Group gap="sm" justify="center">
-            {[
-              { icon: IconMail, label: 'Email' },
-              { icon: IconBrandX, label: 'Social' },
-              { icon: IconLink, label: 'Copy Link' }
-            ].map(({ icon: Icon, label }) => (
-              <ActionIcon
-                key={label}
-                size={40}
-                style={{
-                  borderRadius: '50%',
-                  background: 'var(--color-cream)',
-                  border: '2px solid var(--color-taupe)',
-                  color: 'var(--color-burgundy)',
-                  transition: 'all 0.3s ease',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = 'var(--color-ivory)';
-                  e.currentTarget.style.borderColor = 'var(--color-burgundy)';
-                  e.currentTarget.style.transform = 'scale(1.1)';
-                  e.currentTarget.style.background = 'var(--color-burgundy)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = 'var(--color-burgundy)';
-                  e.currentTarget.style.borderColor = 'var(--color-taupe)';
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.background = 'var(--color-cream)';
-                }}
-              >
-                <Icon size={16} />
-              </ActionIcon>
-            ))}
-          </Group>
-        </Box>
-      </Stack>
-    </Paper>
-  );
-};
 
 // Loading skeleton component
 const EventDetailSkeleton: React.FC = () => (

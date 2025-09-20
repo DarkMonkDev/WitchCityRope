@@ -9,7 +9,7 @@
  * and ensure type safety across the application.
  */
 
-import type { EventDto } from '@witchcityrope/shared-types';
+import type { EventDto } from '../lib/api/types/events.types';
 
 /**
  * Raw API response format (what actually comes from the server)

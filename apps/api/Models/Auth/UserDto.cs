@@ -11,6 +11,10 @@ public class UserDto
     public string SceneName { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public DateTime? LastLoginAt { get; set; }
+    public string Role { get; set; } = string.Empty;
+    public string[] Roles { get; set; } = Array.Empty<string>();
+    public bool IsVetted { get; set; }
+    public bool IsActive { get; set; }
 
     /// <summary>
     /// Constructor to create DTO from ApplicationUser
@@ -27,5 +31,9 @@ public class UserDto
         SceneName = user.SceneName;
         CreatedAt = user.CreatedAt;
         LastLoginAt = user.LastLoginAt;
+        Role = user.Role;
+        Roles = new[] { user.Role }; // Frontend expects roles array, provide single role as array
+        IsVetted = user.IsVetted;
+        IsActive = user.IsActive;
     }
 }

@@ -538,7 +538,7 @@ export const RegistrationsPage: React.FC = () => {
                 <Text c="dimmed">
                   {searchQuery || statusFilter !== 'all'
                     ? 'Try adjusting your search filters'
-                    : 'Register for events to see your history here'}
+                    : 'Participate in events to see your history here'}
                 </Text>
               </Box>
             )}
@@ -586,7 +586,7 @@ export const RegistrationsPage: React.FC = () => {
                           <Text component="span" fw={600}>{formatCurrency(registration.price)}</Text>
                         </Text>
                         <Text size="sm">
-                          <Text component="span" c="dimmed">Registered:</Text>{' '}
+                          <Text component="span" c="dimmed">Joined:</Text>{' '}
                           {formatDate(registration.registrationDate)}
                         </Text>
                       </Group>
@@ -652,7 +652,7 @@ export const RegistrationsPage: React.FC = () => {
                         <Text component="span" fw={600}>{formatCurrency(registration.price)}</Text>
                       </Text>
                       <Text size="sm" c="dimmed">
-                        Registered: {formatDate(registration.registrationDate)}
+                        Joined: {formatDate(registration.registrationDate)}
                       </Text>
                     </Group>
                   </Card>

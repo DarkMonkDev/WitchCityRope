@@ -436,7 +436,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
               <Switch
                 label="Event Reminders"
-                description="Receive reminders about upcoming events you're registered for"
+                description="Receive reminders about upcoming events you're participating in"
                 {...preferencesForm.register('eventReminders')}
               />
 

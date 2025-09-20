@@ -275,7 +275,7 @@ export const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
                 }
               })}
             >
-              Register for More Events
+              Join More Events
             </Button>
           )}
         </Group>

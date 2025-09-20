@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation - Witch City Rope</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,700;6..96,900&family=Montserrat:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;600&family=Satisfy&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Primary Colors */
+            --color-burgundy: #880124;
+            --color-burgundy-dark: #660119;
+            --color-burgundy-light: #AA0130;
+            
+            --color-plum: #614B79;
+            --color-plum-dark: #4A3A5C;
+            --color-plum-light: #7B6296;
+            
+            /* Warm Metallics */
+            --color-rose-gold: #B76D75;
+            --color-copper: #B87333;
+            --color-brass: #C9A961;
+            
+            /* CTA Accent Colors */
+            --color-electric: #9D4EDD;
+            --color-electric-dark: #7B2CBF;
+            --color-amber: #FFBF00;
+            --color-amber-dark: #E6AC00;
+            --color-amber-light: #FFD633;
+            
+            /* Neutral Colors */
+            --color-midnight: #1A1A2E;
+            --color-charcoal: #2B2B2B;
+            --color-gray-dark: #2D2D2D;
+            --color-gray: #666666;
+            --color-gray-light: #CCCCCC;
+            --color-stone: #8B8680;
+            --color-taupe: #B8B0A8;
+            --color-ivory: #FFF8F0;
+            --color-cream: #FAF6F2;
+            --color-off-white: #F5F5F5;
+            
+            /* Supporting Tones */
+            --color-dusty-rose: #D4A5A5;
+            
+            /* Status Colors */
+            --color-success: #228B22;
+            --color-warning: #DAA520;
+            --color-error: #DC143C;
+            --color-info: #614B79;
+            
+            --color-success-light: #E6F7F1;
+            --color-warning-light: #FFF4CC;
+            --color-error-light: #FFE5EC;
+            --color-info-light: #F0EDFF;
+            
+            /* Typography */
+            --font-display: 'Bodoni Moda', serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            --font-accent: 'Satisfy', cursive;
+            
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 16px;
+            --space-md: 24px;
+            --space-lg: 32px;
+            --space-xl: 40px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            font-size: 18px;
+            line-height: 1.6;
+            color: var(--color-charcoal);
+            background: linear-gradient(135deg, var(--color-cream) 0%, var(--color-ivory) 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Confetti Animation */
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+        
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: var(--color-amber);
+            position: absolute;
+            animation: confetti-fall 3s linear infinite;
+        }
+        
+        .confetti:nth-child(2n) {
+            background: var(--color-burgundy);
+            width: 8px;
+            height: 8px;
+            animation-duration: 4s;
+            animation-delay: 0.5s;
+        }
+        
+        .confetti:nth-child(3n) {
+            background: var(--color-plum);
+            width: 12px;
+            height: 12px;
+            animation-duration: 3.5s;
+            animation-delay: 1s;
+        }
+        
+        .confetti:nth-child(4n) {
+            background: var(--color-rose-gold);
+            animation-duration: 4.5s;
+            animation-delay: 1.5s;
+        }
+        
+        .confetti:nth-child(5n) {
+            background: var(--color-copper);
+            width: 6px;
+            height: 6px;
+            animation-duration: 3.8s;
+            animation-delay: 0.8s;
+        }
+        
+        /* Utility Bar */
+        .utility-bar {
+            background: var(--color-midnight);
+            padding: 12px 40px;
+            font-size: 13px;
+            color: var(--color-taupe);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            font-family: var(--font-heading);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 101;
+        }
+        
+        .utility-bar a {
+            color: var(--color-taupe);
+            text-decoration: none;
+            margin-left: var(--space-xl);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .utility-bar a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--color-rose-gold);
+            transition: width 0.3s ease;
+        }
+        
+        .utility-bar a:hover {
+            color: var(--color-rose-gold);
+        }
+        
+        .utility-bar a:hover::after {
+            width: 100%;
+        }
+        
+        .utility-bar a.incident-link {
+            color: var(--color-brass);
+            font-weight: 600;
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(255, 248, 240, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            padding: var(--space-sm) 40px;
+            position: fixed;
+            top: 48px; /* Account for utility bar */
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--color-burgundy);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            transition: all 0.3s ease;
+        }
+        
+        .logo:hover {
+            color: var(--color-burgundy-light);
+            transform: scale(1.02);
+        }
+        
+        .nav-order-wrapper {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xl);
+        }
+        
+        .nav {
+            display: flex;
+            gap: var(--space-xl);
+            align-items: center;
+        }
+        
+        .nav-item {
+            color: var(--color-charcoal);
+            text-decoration: none;
+            font-family: var(--font-heading);
+            font-weight: 500;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: var(--color-burgundy);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-item:hover {
+            color: var(--color-burgundy);
+        }
+        
+        .nav-item:hover::before {
+            width: 100%;
+        }
+        
+        .order-info {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            color: var(--color-stone);
+            font-size: 14px;
+            font-weight: 600;
+            padding-left: var(--space-xl);
+            border-left: 1px solid var(--color-taupe);
+        }
+        
+        /* Main Container */
+        .confirmation-container {
+            max-width: 800px;
+            margin: 160px auto 40px; /* Increased to account for utility bar + header */
+            padding: 0 var(--space-xl);
+            text-align: center;
+        }
+        
+        /* Success Animation */
+        @keyframes success-pulse {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .success-icon {
+            width: 140px;
+            height: 140px;
+            background: linear-gradient(135deg, var(--color-success) 0%, #2E7D32 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--space-lg);
+            font-size: 70px;
+            color: var(--color-ivory);
+            box-shadow: 0 8px 32px rgba(34, 139, 34, 0.3);
+            animation: success-pulse 0.6s ease-out;
+        }
+        
+        .success-title {
+            font-family: var(--font-display);
+            font-size: 42px;
+            font-weight: 700;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-md);
+            animation: success-pulse 0.6s ease-out 0.1s backwards;
+        }
+        
+        .success-message {
+            font-size: 20px;
+            color: var(--color-stone);
+            margin-bottom: var(--space-2xl);
+            line-height: 1.8;
+            animation: success-pulse 0.6s ease-out 0.2s backwards;
+        }
+        
+        /* Order Details Card */
+        .order-card {
+            background: var(--color-ivory);
+            border-radius: 16px;
+            padding: var(--space-2xl);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            border: 1px solid var(--color-taupe);
+            margin-bottom: var(--space-xl);
+            animation: success-pulse 0.6s ease-out 0.3s backwards;
+        }
+        
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: var(--space-lg);
+            border-bottom: 2px solid var(--color-taupe);
+            margin-bottom: var(--space-lg);
+        }
+        
+        .order-number {
+            font-family: var(--font-heading);
+            font-size: 16px;
+            color: var(--color-stone);
+            font-weight: 600;
+        }
+        
+        .order-number span {
+            color: var(--color-burgundy);
+            font-weight: 700;
+        }
+        
+        .print-button {
+            background: transparent;
+            border: 2px solid var(--color-burgundy);
+            color: var(--color-burgundy);
+            padding: var(--space-xs) var(--space-md);
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .print-button:hover {
+            background: var(--color-burgundy);
+            color: var(--color-ivory);
+        }
+        
+        /* Event Info */
+        .event-info-section {
+            text-align: left;
+            margin-bottom: var(--space-lg);
+        }
+        
+        .event-title {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-sm);
+        }
+        
+        .event-details {
+            display: grid;
+            gap: var(--space-xs);
+            color: var(--color-stone);
+        }
+        
+        .detail-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .detail-icon {
+            font-size: 20px;
+            width: 24px;
+        }
+        
+        /* Ticket Info */
+        .ticket-info {
+            background: var(--color-cream);
+            padding: var(--space-md);
+            border-radius: 12px;
+            margin-bottom: var(--space-lg);
+        }
+        
+        .ticket-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-md);
+        }
+        
+        .ticket-item {
+            text-align: left;
+        }
+        
+        .ticket-label {
+            font-size: 14px;
+            color: var(--color-stone);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .ticket-value {
+            font-weight: 600;
+            color: var(--color-charcoal);
+            font-size: 16px;
+        }
+        
+        /* Important Notes */
+        .notes-section {
+            background: linear-gradient(135deg, rgba(136, 1, 36, 0.05) 0%, rgba(97, 75, 121, 0.05) 100%);
+            border: 2px solid var(--color-taupe);
+            border-radius: 12px;
+            padding: var(--space-lg);
+            text-align: left;
+        }
+        
+        .notes-title {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-md);
+        }
+        
+        .notes-list {
+            list-style: none;
+            color: var(--color-stone);
+        }
+        
+        .notes-list li {
+            padding-left: var(--space-lg);
+            position: relative;
+            margin-bottom: var(--space-sm);
+        }
+        
+        .notes-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--color-success);
+            font-weight: 700;
+            font-size: 18px;
+        }
+        
+        /* Action Buttons */
+        .action-section {
+            display: flex;
+            gap: var(--space-md);
+            justify-content: center;
+            margin-bottom: var(--space-2xl);
+            animation: success-pulse 0.6s ease-out 0.4s backwards;
+        }
+        
+        .btn {
+            padding: var(--space-md) var(--space-xl);
+            border: none;
+            border-radius: 8px;
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+            color: var(--color-midnight);
+            box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(255, 191, 0, 0.5);
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--color-burgundy);
+            color: var(--color-burgundy);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--color-burgundy);
+            color: var(--color-ivory);
+        }
+        
+        /* Email Notice */
+        .email-notice {
+            background: var(--color-info-light);
+            color: var(--color-info);
+            padding: var(--space-md);
+            border-radius: 12px;
+            margin-bottom: var(--space-xl);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-size: 16px;
+            animation: success-pulse 0.6s ease-out 0.5s backwards;
+        }
+        
+        .email-notice-icon {
+            font-size: 24px;
+        }
+        
+        /* Share Section */
+        .share-section {
+            padding-top: var(--space-xl);
+            border-top: 1px solid var(--color-taupe);
+            animation: success-pulse 0.6s ease-out 0.6s backwards;
+        }
+        
+        .share-title {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-md);
+        }
+        
+        .social-buttons {
+            display: flex;
+            gap: var(--space-sm);
+            justify-content: center;
+        }
+        
+        .social-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 24px;
+            transition: all 0.3s ease;
+            background: var(--color-ivory);
+            border: 2px solid var(--color-taupe);
+            color: var(--color-burgundy);
+        }
+        
+        .social-btn:hover {
+            background: var(--color-burgundy);
+            color: var(--color-ivory);
+            border-color: var(--color-burgundy);
+            transform: translateY(-2px);
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .utility-bar {
+                padding: 10px 20px;
+                font-size: 11px;
+            }
+            
+            .header {
+                padding: var(--space-sm) 20px;
+            }
+            
+            .logo {
+                font-size: 24px;
+            }
+            
+            .nav {
+                display: none;
+            }
+            
+            .nav-order-wrapper {
+                gap: var(--space-md);
+            }
+            
+            .order-info {
+                padding-left: 0;
+                border-left: none;
+            }
+            
+            .confirmation-container {
+                margin-top: 140px;
+                padding: 0 var(--space-md);
+            }
+            
+            .success-title {
+                font-size: 32px;
+            }
+            
+            .success-message {
+                font-size: 18px;
+            }
+            
+            .order-card {
+                padding: var(--space-lg);
+            }
+            
+            .order-header {
+                flex-direction: column;
+                gap: var(--space-md);
+                text-align: center;
+            }
+            
+            .ticket-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-section {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Confetti Effect -->
+    <div class="confetti" style="left: 10%; animation-delay: 0s;"></div>
+    <div class="confetti" style="left: 20%; animation-delay: 0.5s;"></div>
+    <div class="confetti" style="left: 30%; animation-delay: 1s;"></div>
+    <div class="confetti" style="left: 40%; animation-delay: 0.3s;"></div>
+    <div class="confetti" style="left: 50%; animation-delay: 0.7s;"></div>
+    <div class="confetti" style="left: 60%; animation-delay: 1.2s;"></div>
+    <div class="confetti" style="left: 70%; animation-delay: 0.2s;"></div>
+    <div class="confetti" style="left: 80%; animation-delay: 0.8s;"></div>
+    <div class="confetti" style="left: 90%; animation-delay: 1.5s;"></div>
+    
+    <!-- Utility Bar -->
+    <div class="utility-bar">
+        <a href="#" class="incident-link">Report an Incident</a>
+        <a href="#">Private Lessons</a>
+        <a href="#">Contact</a>
+    </div>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="landing-page-visual-v2.html" class="logo">WITCH CITY ROPE</a>
+            <div class="nav-order-wrapper">
+                <nav class="nav">
+                    <a href="event-list-visual.html" class="nav-item">Events & Classes</a>
+                    <a href="vetting-application.html" class="nav-item">How to Join</a>
+                    <a href="#" class="nav-item">Resources</a>
+                </nav>
+                <div class="order-info">
+                    <span>Order Date:</span>
+                    <span id="orderDate">March 1, 2024</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <div class="confirmation-container">
+        <div class="success-icon">✓</div>
+        <h1 class="success-title">You're All Set!</h1>
+        <p class="success-message">
+            Your registration for <strong>Introduction to Rope Bondage</strong> is confirmed.<br>
+            We can't wait to see you there!
+        </p>
+        
+        <!-- Email Notice -->
+        <div class="email-notice">
+            <span class="email-notice-icon">📧</span>
+            <span>A confirmation email has been sent to <strong>your.email@example.com</strong></span>
+        </div>
+        
+        <!-- Order Details Card -->
+        <div class="order-card">
+            <div class="order-header">
+                <div class="order-number">
+                    Confirmation Number: <span>#WCR-2024-0315</span>
+                </div>
+                <button class="print-button" onclick="window.print()">Print Receipt</button>
+            </div>
+            
+            <!-- Event Information -->
+            <div class="event-info-section">
+                <h2 class="event-title">Introduction to Rope Bondage</h2>
+                <div class="event-details">
+                    <div class="detail-row">
+                        <span class="detail-icon">📅</span>
+                        <span>Saturday, March 15, 2024</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-icon">⏰</span>
+                        <span>2:00 PM - 5:00 PM (3 hours)</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-icon">📍</span>
+                        <span>Salem Studio, 123 Essex Street, Salem, MA 01970</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-icon">👤</span>
+                        <span>Instructor: River Moon</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ticket Information -->
+            <div class="ticket-info">
+                <div class="ticket-grid">
+                    <div class="ticket-item">
+                        <div class="ticket-label">Ticket Type</div>
+                        <div class="ticket-value">Single Ticket</div>
+                    </div>
+                    <div class="ticket-item">
+                        <div class="ticket-label">Amount Paid</div>
+                        <div class="ticket-value">$52.50</div>
+                    </div>
+                    <div class="ticket-item">
+                        <div class="ticket-label">Payment Method</div>
+                        <div class="ticket-value">Credit Card (****1234)</div>
+                    </div>
+                    <div class="ticket-item">
+                        <div class="ticket-label">Transaction ID</div>
+                        <div class="ticket-value">TXN-2024-03010945</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Important Notes -->
+            <div class="notes-section">
+                <h3 class="notes-title">What's Next?</h3>
+                <ul class="notes-list">
+                    <li>Check your email for detailed event information and what to bring</li>
+                    <li>Add this event to your calendar so you don't forget</li>
+                    <li>Review our safety guidelines and consent policies before attending</li>
+                    <li>Arrive 15 minutes early for check-in and orientation</li>
+                    <li>Bring your ID for verification at check-in</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="action-section">
+            <a href="member-my-tickets-visual.html" class="btn btn-primary">View My Tickets</a>
+            <a href="event-list-visual.html" class="btn btn-secondary">Browse More Events</a>
+        </div>
+        
+        <!-- Share Section -->
+        <div class="share-section">
+            <h3 class="share-title">Share Your Excitement!</h3>
+            <div class="social-buttons">
+                <a href="#" class="social-btn" title="Share on Facebook">f</a>
+                <a href="#" class="social-btn" title="Share on Twitter">𝕏</a>
+                <a href="#" class="social-btn" title="Share on Instagram">📷</a>
+                <a href="#" class="social-btn" title="Share via Email">@</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Set current date
+        const today = new Date();
+        const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('orderDate').textContent = today.toLocaleDateString('en-US', dateOptions);
+        
+        // Stop confetti after 5 seconds
+        setTimeout(() => {
+            document.querySelectorAll('.confetti').forEach(c => c.style.display = 'none');
+        }, 5000);
+    </script>
+</body>
+</html>

@@ -217,7 +217,7 @@ export const RegistrationHistory: React.FC<RegistrationHistoryProps> = ({
                       fontFamily: "'Montserrat', sans-serif",
                     }}
                   >
-                    Registered: {formatDate(registration.registrationDate)}
+                    Joined: {formatDate(registration.registrationDate)}
                   </Text>
                 </Group>
               </Box>
@@ -283,7 +283,7 @@ export const RegistrationHistory: React.FC<RegistrationHistoryProps> = ({
             c="dimmed"
             mt={4}
           >
-            Start by browsing and registering for events
+            Start by browsing and participating in events
           </Text>
         </Box>
       )}

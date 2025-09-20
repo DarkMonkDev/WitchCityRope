@@ -50,7 +50,7 @@
 
 ### CRITICAL: Design System v7 Color Enforcement
 **Problem**: Previous wireframes used incorrect dark color scheme instead of approved Design System v7
-**Solution**: 
+**Solution**:
 - Use EXACT colors from approved design system:
   - Primary: #880124 (burgundy)
   - Accent: #B76D75 (rose-gold)
@@ -90,12 +90,12 @@
 ### Typography Implementation
 **Rule**: Use exact font hierarchy from Design System v7:
 - Headlines: 'Bodoni Moda', serif
-- Titles/Nav: 'Montserrat', sans-serif  
+- Titles/Nav: 'Montserrat', sans-serif
 - Body: 'Source Sans 3', sans-serif
 - Taglines: 'Satisfy', cursive
 
 ### Button Styling - Signature Corner Morphing
-**Implementation**: 
+**Implementation**:
 - Default: `border-radius: 12px 6px 12px 6px` (asymmetric)
 - Hover: `border-radius: 6px 12px 6px 12px` (reverse)
 - NO vertical movement (no translateY)
@@ -110,7 +110,7 @@
 - Bullet/Numbered lists
 - Tables support
 - Image insertion
-- Link insertion  
+- Link insertion
 - Source code view
 - Quote blocks
 
@@ -161,7 +161,7 @@
 
 ### CRITICAL: Maintain ALL Existing Styling and Animations
 **Problem**: When updating navigation components, risk of breaking existing visual patterns
-**Solution**: 
+**Solution**:
 - NEVER modify existing CSS animations or styling patterns
 - ADD new elements using existing patterns, don't change existing ones
 - Preserve all existing class names and animation behaviors
@@ -194,7 +194,7 @@ const isAdmin = user?.roles?.includes('Administrator') || false;
       Welcome, {user.sceneName}
     </Box>
   ) : <Box />}
-  
+
   {/* Right: Existing links + logout */}
   <Group gap="var(--space-lg)">
     {/* All existing utility bar links */}
@@ -208,7 +208,7 @@ const isAdmin = user?.roles?.includes('Administrator') || false;
 - Logo (unchanged)
 - Admin link (new - uses existing .nav-underline-animation)
 - Events & Classes (unchanged)
-- How to Join (unchanged) 
+- How to Join (unchanged)
 - Resources (unchanged)
 - Dashboard CTA (replaces Login button)
 
@@ -245,7 +245,7 @@ const isAdmin = user?.roles?.includes('Administrator') || false;
 - Error: #DC143C (issues)
 
 ### Form Sections - Hierarchical Styling
-**Pattern**: 
+**Pattern**:
 - Section titles with rose-gold bottom border
 - Grouped form elements in ivory containers
 - Proper spacing hierarchy using CSS variables
@@ -274,7 +274,7 @@ const isAdmin = user?.roles?.includes('Administrator') || false;
 
 4. **Template Selection**: Quick setup patterns
    - Single Session Event
-   - Multi-Day Series  
+   - Multi-Day Series
    - Tiered Pricing
 
 **CSS Classes**:
@@ -353,7 +353,7 @@ const isAdmin = user?.roles?.includes('Administrator') || false;
 
 ### CRITICAL: Minimal Viable Connection Strategy
 **Problem**: Need to activate existing AdminEventsPage without building complex new systems
-**Solution**: 
+**Solution**:
 - Create simple landing dashboard that connects to existing functionality
 - Use existing components and patterns where possible
 - Focus on navigation connections rather than new features
@@ -398,7 +398,7 @@ const actionTileHover = {
 
 ### Navigation Flow Optimization
 **Problem**: Admin link in Navigation leads nowhere
-**Solution**: 
+**Solution**:
 1. Admin link → `/admin` dashboard (overview page)
 2. Dashboard → action tiles lead to specific admin sections
 3. Primary "Manage Events" tile → existing `/admin/events` page
@@ -407,7 +407,7 @@ const actionTileHover = {
 ### Mobile-First Admin Dashboard
 **Implementation**:
 - Stats cards: 3-column grid → 1-column stack on mobile
-- Action tiles: 2x3 grid → 1-column stack on mobile  
+- Action tiles: 2x3 grid → 1-column stack on mobile
 - Touch-friendly targets (48px minimum)
 - Consistent with existing DashboardLayout mobile behavior
 - No changes to existing AdminEventsPage mobile responsiveness
@@ -423,7 +423,7 @@ const actionTileHover = {
 
 ### CRITICAL: Legal Compliance Design Requirements
 **Problem**: Safety incident reporting system requires strict privacy protection and legal compliance
-**Solution**: 
+**Solution**:
 - Anonymous reporting must have NO user identification tracking
 - Severity-based color coding and alert escalation
 - Encryption requirements for all sensitive user content
@@ -529,7 +529,7 @@ const handleSubmissionError = (error) => {
 
 ### CRITICAL: Mobile-First Volunteer Interface Requirements
 **Problem**: Event check-in performed by volunteer staff using phones/tablets at venue entrances with poor WiFi
-**Solution**: 
+**Solution**:
 - Touch-optimized interface with 44px+ targets
 - Offline capability with local data storage
 - Simple volunteer workflow requiring minimal training
@@ -546,7 +546,7 @@ const handleSubmissionError = (error) => {
 ```jsx
 // Swipe-to-refresh for attendee list
 const SwipeRefresh = () => (
-  <div 
+  <div
     className="swipe-refresh"
     onTouchStart={handleTouchStart}
     onTouchMove={handleTouchMove}
@@ -684,9 +684,9 @@ const StatusBadge = ({ status, count }) => {
     'waitlist': { color: '#DC143C', icon: '⚠️', label: 'Waitlist' },
     'no-show': { color: '#8B8680', icon: '❌', label: 'No Show' }
   };
-  
+
   const config = statusConfig[status];
-  
+
   return (
     <Badge
       color={config.color}
@@ -777,6 +777,103 @@ const StatusBadge = ({ status, count }) => {
 3. Confirm feature scope before implementation
 4. Document all feedback and changes
 5. Update lessons learned immediately
+
+## Critical Stakeholder Corrections Integration - September 2025
+
+### CRITICAL: Immediate Response to Stakeholder Feedback
+**Problem**: Stakeholders provide urgent corrections that must be applied immediately
+**Solution**: Systematic correction process with clear documentation of changes
+
+### Stakeholder Correction Process
+**Lesson**: When stakeholders provide critical corrections, follow structured approach
+**Process**:
+1. **STOP ALL OTHER WORK** - Corrections are highest priority
+2. **READ ALL CORRECTIONS** carefully before starting changes
+3. **APPLY SYSTEMATICALLY** - Don't rush, check each correction thoroughly
+4. **DOCUMENT CHANGES** clearly with before/after comparisons
+5. **UPDATE VERSION NUMBERS** to indicate corrections applied
+6. **MARK AS APPROVED** only after all corrections completed
+
+### RSVP and Ticketing Corrections Applied (2025-09-19)
+
+#### 1. **TERMINOLOGY CORRECTION**
+**Before**: Mixed usage of "register" and "RSVP" throughout documents
+**After**: ALL instances of "register" replaced with "RSVP"
+**Applied to**: Component names, function names, UI text, all documentation
+**Files Updated**: wireframe-analysis.md, ui-specifications.md, handoff document
+
+#### 2. **RSVP FLOW CORRECTION**
+**Before**: Section 3 showed "RSVP Only Flow" without ticket purchase option
+**After**: Social events ALWAYS have option to purchase ticket after RSVP
+**Critical Clarification**: There is NO "RSVP only" flow - ticket purchase is ALWAYS available
+**Impact**: User flows, confirmation modals, success pages all updated
+
+#### 3. **BUTTON CSS FIX**
+**Before**: Custom Mantine Button styling with inline styles causing text cutoff
+**After**: Standard CSS classes (`.btn .btn-primary`) used to prevent text cutoff
+**Reference**: `/docs/lessons-learned/react-developer-lessons-learned.md`
+**Technical Solution**: Use existing CSS classes in `/apps/web/src/index.css`
+
+#### 4. **EVENT DETAIL PAGE CLARIFICATION**
+**Before**: Unclear distinction between social events and classes
+**After**:
+- **Social Events**: Right panel shows "RSVP" button FIRST, THEN optional "Purchase Ticket"
+- **Classes**: Right panel shows ticket price selector and "Purchase Ticket" button
+**Clarification**: These are DIFFERENT UI components for each event type
+
+### Correction Implementation Strategy
+**Documentation Pattern**:
+```markdown
+**🚨 CRITICAL STAKEHOLDER CORRECTIONS APPLIED**:
+- **TERMINOLOGY**: All instances of "register" replaced with "RSVP"
+- **FLOW CORRECTION**: Social events show RSVP button FIRST, then optional ticket purchase
+- **BUTTON FIX**: Standard Mantine Button components used to prevent text cutoff
+- **UI CLARIFICATION**: Different components for social events (RSVP + ticket) vs classes (ticket purchase)
+```
+
+**Version Control Pattern**:
+- Increment version numbers when corrections applied
+- Update status from "Draft" to "APPROVED" after corrections
+- Add correction summary at top of documents
+- Maintain change history for future reference
+
+### Communication Strategy for Corrections
+**Immediate Response Required**:
+- Acknowledge receipt of corrections immediately
+- Provide timeline for completion (usually same day)
+- Ask clarifying questions if any corrections are unclear
+- Confirm completion with summary of changes made
+
+**Documentation Requirements**:
+- Document what was changed and why
+- Include before/after examples where helpful
+- Update lessons learned with new patterns discovered
+- Share completed corrections with team for review
+
+### Quality Assurance for Corrections
+**Validation Checklist**:
+- [ ] All requested terminology changes applied consistently
+- [ ] Flow diagrams updated to match corrected requirements
+- [ ] Technical implementations reference correct standards
+- [ ] UI clarifications include specific component differences
+- [ ] Version numbers and status updated
+- [ ] Correction summary included in all updated documents
+
+### Prevention Strategies
+**Lesson**: Prevent need for corrections by better stakeholder communication
+**Future Process**:
+1. **Regular Check-ins**: Schedule stakeholder reviews at 25%, 50%, 75% completion
+2. **Terminology Validation**: Confirm preferred terms early in design process
+3. **Flow Validation**: Walk through user flows with stakeholders before detailed design
+4. **Technical Validation**: Confirm implementation approaches before specifying
+
+**Early Warning Signs**:
+- Stakeholder questions about terminology choices
+- Requests for clarification on user flows
+- Technical implementation concerns raised
+- Multiple interpretation possibilities for requirements
+
+This systematic approach to stakeholder corrections ensures rapid response while maintaining quality and documentation standards.
 
 ## Quality Validation Checklist
 
@@ -870,6 +967,15 @@ const StatusBadge = ({ status, count }) => {
 - [ ] Long-term database retention clarified
 - [ ] Change documentation complete and clear
 
+### Critical Stakeholder Corrections Validation (Added 2025-09-19)
+- [ ] ALL "register" terminology replaced with "RSVP" consistently
+- [ ] Social events ALWAYS show ticket purchase option (no "RSVP only" flow)
+- [ ] Button components use standard CSS classes to prevent text cutoff
+- [ ] Clear distinction between social event UI (RSVP + ticket) vs class UI (ticket purchase)
+- [ ] Version numbers updated to reflect corrections applied
+- [ ] Documents marked as APPROVED after corrections
+- [ ] Correction summary included in all updated documents
+
 ## File Organization
 
 ### Wireframe Storage Pattern
@@ -936,13 +1042,18 @@ const StatusBadge = ({ status, count }) => {
 35. **DON'T** forget battery life optimization for mobile-first applications
 36. **DON'T** skip connection status indicators for offline-capable apps
 37. **DON'T** use complex gestures without button alternatives
+38. **DON'T** ignore urgent stakeholder corrections - they are highest priority
+39. **DON'T** mix "register" and "RSVP" terminology - always use "RSVP"
+40. **DON'T** create "RSVP only" flows - ticket purchase must always be available
+41. **DON'T** use custom Mantine Button styling - use standard CSS classes
+42. **DON'T** assume event types have same UI - social events and classes are different
 
 ## Stakeholder Communication
 
 ### Design Approval Process
 **Lesson**: Stakeholders were frustrated with incorrect designs that didn't match approved system
 **Solution**: Always validate against design system before presenting
-**Process**: 
+**Process**:
 1. Review design system documentation
 2. Implement exact colors and patterns
 3. Test animations and interactions
@@ -1001,4 +1112,15 @@ const StatusBadge = ({ status, count }) => {
 5. Present battery life and performance considerations
 6. Document venue-specific accessibility features
 
-This comprehensive approach ensures all future wireframes will be consistent with the approved Design System v7, meet stakeholder expectations, support critical legal compliance requirements for community safety, and provide mobile-first experiences optimized for volunteer staff operations.
+### Critical Corrections Communication
+**Lesson**: When stakeholders provide urgent corrections, immediate systematic response required
+**Solution**: Structured correction process with clear documentation
+**Process**:
+1. Acknowledge receipt immediately
+2. Stop all other work to address corrections
+3. Apply corrections systematically with documentation
+4. Confirm completion with before/after summary
+5. Update version numbers and approval status
+6. Follow up to ensure corrections meet expectations
+
+This comprehensive approach ensures all future wireframes will be consistent with the approved Design System v7, meet stakeholder expectations, support critical legal compliance requirements for community safety, provide mobile-first experiences optimized for volunteer staff operations, and respond effectively to stakeholder feedback and corrections.
