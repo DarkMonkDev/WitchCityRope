@@ -490,7 +490,7 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({ event, userRole
               color: getSpotColor()
             }}
           >
-            {availableSpots}/{event.capacity || 20}
+            {event.registrationCount || 0}/{event.capacity || 20}
           </Text>
         </Box>
 
@@ -617,7 +617,7 @@ const EventTableView: React.FC<EventTableViewProps> = ({ events, onEventClick })
                   $35-65
                 </Table.Td>
                 <Table.Td style={{ padding: 'var(--space-md)', fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: '1.1rem', textAlign: 'center', color: getSpotColor() }}>
-                  {availableSpots}/{event.capacity || 20}
+                  {event.registrationCount || 0}/{event.capacity || 20}
                 </Table.Td>
                 <Table.Td style={{ padding: 'var(--space-md)', textAlign: 'center' }}>
                   <Button

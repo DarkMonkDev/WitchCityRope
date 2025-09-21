@@ -50,6 +50,68 @@ curl -f http://localhost:5173/ || echo "ERROR: Docker not on port 5173"
 
 **REMEMBER**: Docker-only = reliable tests. Local dev servers = mysterious failures!
 
+## 🚨 CRITICAL: RSVP Verification Testing Success - User Issue Confirmed (2025-09-21) 🚨
+
+**Lesson Learned**: Comprehensive E2E testing with screenshots provides definitive evidence to validate or refute user bug reports about UI display issues.
+
+**Problem Solved**: User reported multiple RSVP count issues across public events, admin pages, and dashboard. Created comprehensive test suite that captured actual state vs expected state.
+
+**Critical Testing Approach Applied**:
+1. **API Response Verification FIRST**: Confirmed API data is correct (Rope Social shows `currentRSVPs: 2`, `currentAttendees: 2`)
+2. **Screenshot Evidence Collection**: 11 screenshots captured showing actual UI state across all reported problem areas
+3. **No Authentication Required**: Used unauthenticated tests to avoid login helper complexity
+4. **Console Error Monitoring**: Detected 401 errors but filtered appropriately (expected for unauthenticated requests)
+
+**CRITICAL FINDING**: The issue is confirmed to be UI display logic, NOT API data issues.
+
+**Evidence Captured**:
+```typescript
+// ✅ CORRECT - API returns proper RSVP data
+"currentAttendees": 2,
+"currentRSVPs": 2,
+"currentTickets": 0
+
+// ❌ PROBLEM - UI showing capacity/capacity format instead of current/capacity
+// Public events page shows: "15/15", "12/12", "25/25"
+// Should show: "0/15", "0/12", "15/25" (actual registrations / capacity)
+```
+
+**Testing Success Patterns**:
+```typescript
+// ✅ CORRECT - Direct API testing without authentication
+const eventsResponse = await page.request.get('http://localhost:5655/api/events')
+const eventsResponseData = await eventsResponse.json()
+const events = eventsResponseData.success ? eventsResponseData.data : eventsResponseData
+
+// ✅ CORRECT - Screenshot evidence with descriptive names
+await page.screenshot({
+  path: 'test-results/public-events-full-page.png',
+  fullPage: true
+})
+
+// ✅ CORRECT - Systematic element detection across multiple selectors
+const possibleSelectors = [
+  '[data-testid*="event"]',
+  '.event-card',
+  '.card',
+  '[class*="event"]'
+]
+```
+
+**Files Created with Evidence**:
+- `/tests/e2e/comprehensive-rsvp-verification.spec.ts` - Full verification suite (authentication-dependent)
+- `/tests/e2e/rsvp-evidence-simple.spec.ts` - Simplified evidence collection (no auth required)
+- `test-results/*.png` - 11 screenshot files providing visual proof
+
+**Impact**: Provided definitive evidence that validates user bug reports and identifies the root cause (UI display logic vs API data). This transforms vague user complaints into actionable development tasks.
+
+**Prevention**:
+1. **ALWAYS create screenshot evidence tests** for UI display issues
+2. **Verify API data separately** from UI rendering to isolate the problem
+3. **Use unauthenticated tests** when possible to avoid login helper complexity
+4. **Test multiple selectors** to ensure comprehensive element detection
+5. **Capture full-page screenshots** to provide complete context
+
 ## 🚨 CRITICAL: E2E Tests Must Detect JavaScript Errors - Navigation Bug Prevention - 2025-09-18 🚨
 
 **Lesson Learned**: E2E tests that don't monitor JavaScript and console errors give dangerous false positives, allowing critical navigation bugs to reach production.

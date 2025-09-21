@@ -94,6 +94,36 @@ npm run type-check
 
 ---
 
+## 🚨 CRITICAL: Capacity Display Bug - Wrong Format Shows Events as Full
+
+### ⚠️ PROBLEM: Event capacity showing as FULL when actually EMPTY
+**DISCOVERED**: 2025-09-21 - Public events page showing "15/15", "12/12" making events appear full when they have 0 registrations
+
+### 🛑 ROOT CAUSE:
+- Display showing `{availableSpots}/{capacity}` instead of `{currentCount}/{capacity}`
+- When registrationCount = 0 and capacity = 15: availableSpots = 15, displays "15/15" (looks FULL!)
+- Should display "0/15" to show current registrations vs total capacity
+
+### ✅ SOLUTION:
+```typescript
+// ❌ WRONG - Shows available/total (confusing!)
+{availableSpots}/{event.capacity || 20}
+
+// ✅ CORRECT - Shows current/total (intuitive!)
+{event.registrationCount || 0}/{event.capacity || 20}
+```
+
+### 🔧 FILES FIXED:
+1. **useEvents hook**: Changed `registrationCount: apiEvent.currentAttendees || 0` to include all count types
+2. **EventsListPage.tsx**: Lines 493 & 620 - Changed display from `availableSpots` to `registrationCount`
+
+### 💡 KEY INSIGHT:
+- **Available spots** = good for internal calculations and color coding
+- **Current registrations** = correct for user-facing capacity display
+- Users expect "2/15" format to mean "2 registered out of 15 total"
+
+---
+
 ## 🚨 CRITICAL: Event Type Based Data Display Patterns
 
 ### ⚠️ PROBLEM: Hardcoded data fields not matching API response structure

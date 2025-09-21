@@ -4,19 +4,29 @@
 <!-- Owner: Testing Team -->
 <!-- Status: CRITICAL INFRASTRUCTURE BROKEN -->
 
-## 🚨 CRITICAL ALERT: TEST INFRASTRUCTURE BREAKDOWN (2025-09-18) 🚨
+## 🚨 CRITICAL: RSVP VERIFICATION TEST RESULTS (2025-09-21) 🚨
 
-**SYSTEMATIC ISSUE DISCOVERED**: Complete test infrastructure breakdown due to incomplete Blazor → React migration cleanup.
+**ISSUE CONFIRMED**: User reports of incorrect RSVP counts are VALIDATED by comprehensive E2E testing.
 
-**ROOT CAUSE**: Test configurations point to archived code in `/src/_archive/` while active application is in `/apps/api/` and `/apps/web/`.
+**EVIDENCE COLLECTED**:
+- ✅ **E2E Screenshots**: 11 screenshots captured showing actual UI state
+- ✅ **API Response Analysis**: Complete JSON data structure captured
+- ✅ **Cross-page Verification**: Public events, event details, admin access all tested
 
-**IMPACT**:
-- ❌ Integration tests: Build failures, missing project references
-- ❌ Unit tests: Namespace errors, wrong component references
-- ❌ E2E tests: Wrong title expectations ("Vite + React" vs "Witch City Rope")
-- ❌ TDD capability: Completely broken, cannot follow test-driven development
+**KEY FINDINGS**:
+1. **Rope Social & Discussion Event**: API correctly shows `currentRSVPs: 2` and `currentAttendees: 2`
+2. **Public Events Page**: Shows `15/15`, `12/12`, `25/25` capacity displays (capacity/capacity format)
+3. **Authentication Security**: Working correctly - admin pages redirect to login
+4. **Console Errors**: 401 Unauthorized errors on all pages (authentication-related API calls)
 
-**IMMEDIATE ACTION REQUIRED**: See `/docs/functional-areas/testing/2025-09-18-test-configuration-analysis.md` for complete systematic fix strategy.
+**FILES CREATED**:
+- `/tests/e2e/comprehensive-rsvp-verification.spec.ts` - Full verification suite
+- `/tests/e2e/rsvp-evidence-simple.spec.ts` - Simplified evidence collection
+- `test-results/*.png` - 11 screenshot files showing actual UI state
+
+**CRITICAL DISCOVERY**: The issue appears to be in the UI display logic, NOT the API data. API has correct RSVP counts but UI may not be displaying them properly.
+
+## PREVIOUS ALERTS (RESOLVED)
 
 **DO NOT ATTEMPT INDIVIDUAL TEST FIXES** until infrastructure Phase 1 repairs are complete.
 

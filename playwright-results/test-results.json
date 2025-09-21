@@ -1,0 +1,708 @@
+{
+  "config": {
+    "configFile": "/home/chad/repos/witchcityrope-react/playwright.config.ts",
+    "rootDir": "/home/chad/repos/witchcityrope-react/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 6
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "./playwright-results/test-results.json"
+        }
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "./playwright-results/html-report"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/home/chad/repos/witchcityrope-react/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 6
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/chad/repos/witchcityrope-react/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.54.2",
+    "workers": 6,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "rsvp-evidence-simple.spec.ts",
+      "file": "rsvp-evidence-simple.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "RSVP Evidence Collection - Simple",
+          "file": "rsvp-evidence-simple.spec.ts",
+          "line": 12,
+          "column": 6,
+          "specs": [
+            {
+              "title": "1. API Response Analysis - Get Actual RSVP Data",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 216,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "📡 Testing API responses to see actual RSVP counts...\n"
+                        },
+                        {
+                          "text": "📊 Raw API response structure:\n"
+                        },
+                        {
+                          "text": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"ca4ec865-2f8e-49a5-988f-e397be26ef10\",\n      \"title\": \"Test Event Update 2\",\n      \"description\": \"Master the art of single column ties with hands-on practice and personalized instruction.\",\n      \"startDate\": \"2025-10-03T19:00:00Z\",\n      \"endDate\": \"2025-10-03T22:00:00Z\",\n      \"location\": \"meditation-room\",\n      \"eventType\": \"Class\",\n      \"capacity\": 15,\n      \"isPublished\": true,\n      \"currentAttendees\": 0,\n      \"currentRSVPs\": 0,\n      \"currentTickets\": 0,\n      \"sessions\": [\n        {\n          \"id\": \"019963be-d06b-793f-a8cc-287305b3a7b2\",\n          \"sessionIdentifier\": \"S1\",\n          \"name\": \"asdfasdf\",\n          \"date\": \"2025-09-19T00:00:00Z\",\n          \"startTime\": \"2025-09-19T22:00:00Z\",\n          \"endTime\": \"2025-09-20T01:00:00Z\",\n          \"capacity\": 50,\n          \"registeredCount\": 0\n        },\n        {\n          \"id\": \"e0f7aa90-8813-4caa-98f3-1a4bd221c437\",\n          \"sessionIdentifier\": \"\",\n          \"name\": \"Main Session\",\n          \"date\": \"2025-10-03T00:00:00Z\",\n          \"startTime\": \"2025-10-03T19:00:00Z\",\n          \"endTime\": \"2025-10-03T22:00:00Z\",\n          \"capacity\": 15,\n          \"registeredCount\": 0\n        }\n      ],\n      \"ticketTypes\": [\n        {\n          \"id\": \"019963c1-3523-7806-8bae-3c796e4c33e5\",\n          \"name\": \"Testing\",\n          \"type\": \"paid\",\n          \"sessionIdentifiers\": [],\n          \"minPrice\": 0,\n          \"maxPrice\": 0,\n          \"quantityAvailable\": 20,\n          \"salesEndDate\": null\n        },\n        {\n          \"id\": \"f1fbed90-f1ec-4984-9d79-0f7cd6df2b99\",\n          \"name\": \"Regular\",\n          \"type\": \"paid\",\n          \"sessionIdentifiers\": [\n            \"\"\n          ],\n          \"minPrice\": 0,\n          \"maxPrice\": 0,\n          \"quantityAvailable\": 15,\n          \"salesEndDate\": null\n        }\n      ],\n      \"volunteerPositions\": [\n        {\n          \"id\": \"019963e4-843d-78aa-b50d-0b3bb89effaa\",\n          \"title\": \"another position\",\n          \"description\": \"test\",\n          \"slotsNeeded\": 2,\n          \"slotsFilled\": 0,\n          \"requiresExperience\": false,\n          \"requirements\": \"\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 2,\n          \"isFullyStaffed\": false\n        },\n        {\n          \"id\": \"019963eb-5499-73b3-8b55-6c45ed255c1b\",\n          \"title\": \"asfas\",\n          \"description\": \"asfasdf\",\n          \"slotsNeeded\": 3,\n          \"slotsFilled\": 0,\n          \"requiresExperience\": false,\n          \"requirements\": \"\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 3,\n          \"isFullyStaffed\": false\n        }\n      ],\n      \"teacherIds\": [\n        \"031e1028-9bb3-4b75-b7a8-13f2cb16259e\"\n      ]\n    },\n    {\n      \"id\": \"4e54da89-f5f3-4fcf-9d8f-9d97966176a3\",\n      \"title\": \"Suspension Basics\",\n      \"description\": \"Introduction to suspension techniques with emphasis on safety and proper rigging.\",\n      \"startDate\": \"2025-10-10T18:00:00Z\",\n      \"endDate\": \"2025-10-10T21:00:00Z\",\n      \"location\": \"Main Workshop Room\",\n      \"eventType\": \"Class\",\n      \"capacity\": 12,\n      \"isPublished\": true,\n      \"currentAttendees\": 0,\n      \"currentRSVPs\": 0,\n      \"currentTickets\": 0,\n      \"sessions\": [\n        {\n          \"id\": \"0a1638cc-e0ff-4cb9-b028-4fef7bcec668\",\n          \"sessionIdentifier\": \"S1\",\n          \"name\": \"Main Session\",\n          \"date\": \"2025-10-10T00:00:00Z\",\n          \"startTime\": \"2025-10-10T18:00:00Z\",\n          \"endTime\": \"2025-10-10T21:00:00Z\",\n          \"capacity\": 12,\n          \"registeredCount\": 12\n        }\n      ],\n      \"ticketTypes\": [\n        {\n          \"id\": \"6dcd6346-5c63-4413-853e-6dc6f830e383\",\n          \"name\": \"Regular\",\n          \"type\": \"paid\",\n          \"sessionIdentifiers\": [\n            \"S1\"\n          ],\n          \"minPrice\": 16,\n          \"maxPrice\": 16,\n          \"quantityAvailable\": 12,\n          \"salesEndDate\": null\n        }\n      ],\n      \"volunteerPositions\": [\n        {\n          \"id\": \"2fe255cf-5164-4acf-8643-a16a594de4a5\",\n          \"title\": \"Teaching Assistant\",\n          \"description\": \"Help instructor with demonstrations and assist students\",\n          \"slotsNeeded\": 1,\n          \"slotsFilled\": 0,\n          \"requiresExperience\": true,\n          \"requirements\": \"Intermediate+ rope skills, teaching experience preferred\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 1,\n          \"isFullyStaffed\": false\n        },\n        {\n          \"id\": \"42b8e639-5142-450c-bd81-397a3dd2a5a6\",\n          \"title\": \"Door Monitor\",\n          \"description\": \"Check attendees in, verify tickets/RSVPs, and welcome newcomers\",\n          \"slotsNeeded\": 2,\n          \"slotsFilled\": 0,\n          \"requiresExperience\": false,\n          \"requirements\": \"Friendly demeanor, punctuality\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 2,\n          \"isFullyStaffed\": false\n        },\n        {\n          \"id\": \"9851ead8-0d1a-4f5f-97fd-8c6ed4adf548\",\n          \"title\": \"Setup/Cleanup Crew\",\n          \"description\": \"Help set up equipment before the event and clean up afterwards\",\n          \"slotsNeeded\": 3,\n          \"slotsFilled\": 2,\n          \"requiresExperience\": false,\n          \"requirements\": \"Physical ability to lift equipment\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 1,\n          \"isFullyStaffed\": false\n        }\n      ],\n      \"teacherIds\": []\n    },\n    {\n      \"id\": \"e2e6706e-5e74-4f8d-bd36-df23d8726a3b\",\n      \"title\": \"Rope Maintenance & Care\",\n      \"description\": \"Learn how to properly maintain, clean, and store your rope for longevity and safety.\",\n      \"startDate\": \"2025-10-17T17:00:00Z\",\n      \"endDate\": \"2025-10-17T20:00:00Z\",\n      \"location\": \"Main Workshop Room\",\n      \"eventType\": \"Class\",\n      \"capacity\": 25,\n      \"isPublished\": true,\n      \"currentAttendees\": 0,\n      \"currentRSVPs\": 0,\n      \"currentTickets\": 0,\n      \"sessions\": [\n        {\n          \"id\": \"d02cc974-3422-48e2-9ba7-d5275dc77525\",\n          \"sessionIdentifier\": \"S1\",\n          \"name\": \"Main Session\",\n          \"date\": \"2025-10-17T00:00:00Z\",\n          \"startTime\": \"2025-10-17T17:00:00Z\",\n          \"endTime\": \"2025-10-17T20:00:00Z\",\n          \"capacity\": 25,\n          \"registeredCount\": 15\n        }\n      ],\n      \"ticketTypes\": [\n        {\n          \"id\": \"6a0f33a1-6983-439c-b465-b14dbb896cf3\",\n          \"name\": \"Regular\",\n          \"type\": \"paid\",\n          \"sessionIdentifiers\": [\n            \"S1\"\n          ],\n          \"minPrice\": 5,\n          \"maxPrice\": 5,\n          \"quantityAvailable\": 25,\n          \"salesEndDate\": null\n        }\n      ],\n      \"volunteerPositions\": [\n        {\n          \"id\": \"2e658fc6-1cb1-463d-a930-e134d8b44cf4\",\n          \"title\": \"Setup/Cleanup Crew\",\n          \"description\": \"Help set up equipment before the event and clean up afterwards\",\n          \"slotsNeeded\": 3,\n          \"slotsFilled\": 1,\n          \"requiresExperience\": false,\n          \"requirements\": \"Physical ability to lift equipment\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 2,\n          \"isFullyStaffed\": false\n        },\n        {\n          \"id\": \"bb7950e9-0914-4a01-8b62-e5ab97b57ef3\",\n          \"title\": \"Teaching Assistant\",\n          \"description\": \"Help instructor with demonstrations and assist students\",\n          \"slotsNeeded\": 1,\n          \"slotsFilled\": 0,\n          \"requiresExperience\": true,\n          \"requirements\": \"Intermediate+ rope skills, teaching experience preferred\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 1,\n          \"isFullyStaffed\": false\n        },\n        {\n          \"id\": \"bdc6598e-8f98-4cd0-a1a0-2696e9198992\",\n          \"title\": \"Door Monitor\",\n          \"description\": \"Check attendees in, verify tickets/RSVPs, and welcome newcomers\",\n          \"slotsNeeded\": 2,\n          \"slotsFilled\": 2,\n          \"requiresExperience\": false,\n          \"requirements\": \"Friendly demeanor, punctuality\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 0,\n          \"isFullyStaffed\": true\n        }\n      ],\n      \"teacherIds\": []\n    },\n    {\n      \"id\": \"89d7f0b2-af32-48c8-bcf1-752130f4c593\",\n      \"title\": \"Advanced Floor Work\",\n      \"description\": \"Explore complex floor-based rope bondage techniques for experienced practitioners.\",\n      \"startDate\": \"2025-10-31T18:00:00Z\",\n      \"endDate\": \"2025-10-31T21:00:00Z\",\n      \"location\": \"Main Workshop Room\",\n      \"eventType\": \"Class\",\n      \"capacity\": 10,\n      \"isPublished\": true,\n      \"currentAttendees\": 0,\n      \"currentRSVPs\": 0,\n      \"currentTickets\": 0,\n      \"sessions\": [\n        {\n          \"id\": \"b08e6af1-dc30-44f8-b0c6-b8dfcc792f01\",\n          \"sessionIdentifier\": \"S1\",\n          \"name\": \"Main Session\",\n          \"date\": \"2025-10-31T00:00:00Z\",\n          \"startTime\": \"2025-10-31T18:00:00Z\",\n          \"endTime\": \"2025-10-31T21:00:00Z\",\n          \"capacity\": 10,\n          \"registeredCount\": 8\n        }\n      ],\n      \"ticketTypes\": [\n        {\n          \"id\": \"75a32d79-3bc2-4439-af4a-c57cc9cf5631\",\n          \"name\": \"Regular\",\n          \"type\": \"paid\",\n          \"sessionIdentifiers\": [\n            \"S1\"\n          ],\n          \"minPrice\": 14,\n          \"maxPrice\": 14,\n          \"quantityAvailable\": 10,\n          \"salesEndDate\": null\n        }\n      ],\n      \"volunteerPositions\": [\n        {\n          \"id\": \"38ccb756-2652-4975-898b-fd1328014cbf\",\n          \"title\": \"Door Monitor\",\n          \"description\": \"Check attendees in, verify tickets/RSVPs, and welcome newcomers\",\n          \"slotsNeeded\": 2,\n          \"slotsFilled\": 0,\n          \"requiresExperience\": false,\n          \"requirements\": \"Friendly demeanor, punctuality\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 2,\n          \"isFullyStaffed\": false\n        },\n        {\n          \"id\": \"ab791599-c5bc-4962-baa5-bd49ece96d43\",\n          \"title\": \"Teaching Assistant\",\n          \"description\": \"Help instructor with demonstrations and assist students\",\n          \"slotsNeeded\": 1,\n          \"slotsFilled\": 1,\n          \"requiresExperience\": true,\n          \"requirements\": \"Intermediate+ rope skills, teaching experience preferred\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 0,\n          \"isFullyStaffed\": true\n        },\n        {\n          \"id\": \"fd367acb-446c-483e-8fa6-32dcd622d67e\",\n          \"title\": \"Setup/Cleanup Crew\",\n          \"description\": \"Help set up equipment before the event and clean up afterwards\",\n          \"slotsNeeded\": 3,\n          \"slotsFilled\": 3,\n          \"requiresExperience\": false,\n          \"requirements\": \"Physical ability to lift equipment\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 0,\n          \"isFullyStaffed\": true\n        }\n      ],\n      \"teacherIds\": []\n    },\n    {\n      \"id\": \"443593d5-2fa9-4d88-8aeb-2c2cee68da9d\",\n      \"title\": \"Rope and Sensation Play\",\n      \"description\": \"Combine rope techniques with sensation play for enhanced experiences.\",\n      \"startDate\": \"2025-11-07T20:00:00Z\",\n      \"endDate\": \"2025-11-07T23:00:00Z\",\n      \"location\": \"Main Workshop Room\",\n      \"eventType\": \"Class\",\n      \"capacity\": 8,\n      \"isPublished\": true,\n      \"currentAttendees\": 0,\n      \"currentRSVPs\": 0,\n      \"currentTickets\": 0,\n      \"sessions\": [\n        {\n          \"id\": \"2869739b-c855-4ba6-a27c-06ac1175cc6d\",\n          \"sessionIdentifier\": \"S1\",\n          \"name\": \"Main Session\",\n          \"date\": \"2025-11-07T00:00:00Z\",\n          \"startTime\": \"2025-11-07T20:00:00Z\",\n          \"endTime\": \"2025-11-07T23:00:00Z\",\n          \"capacity\": 8,\n          \"registeredCount\": 8\n        }\n      ],\n      \"ticketTypes\": [\n        {\n          \"id\": \"1b0e230d-68f7-45a0-b3aa-6587b6fec0f8\",\n          \"name\": \"Regular\",\n          \"type\": \"paid\",\n          \"sessionIdentifiers\": [\n            \"S1\"\n          ],\n          \"minPrice\": 13,\n          \"maxPrice\": 13,\n          \"quantityAvailable\": 8,\n          \"salesEndDate\": null\n        }\n      ],\n      \"volunteerPositions\": [\n        {\n          \"id\": \"0d9f2318-7195-4ef9-a4b7-ee5513edc7a5\",\n          \"title\": \"Teaching Assistant\",\n          \"description\": \"Help instructor with demonstrations and assist students\",\n          \"slotsNeeded\": 1,\n          \"slotsFilled\": 1,\n          \"requiresExperience\": true,\n          \"requirements\": \"Intermediate+ rope skills, teaching experience preferred\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 0,\n          \"isFullyStaffed\": true\n        },\n        {\n          \"id\": \"b937f662-e0d4-4783-881d-9f81b5eff480\",\n          \"title\": \"Setup/Cleanup Crew\",\n          \"description\": \"Help set up equipment before the event and clean up afterwards\",\n          \"slotsNeeded\": 3,\n          \"slotsFilled\": 3,\n          \"requiresExperience\": false,\n          \"requirements\": \"Physical ability to lift equipment\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 0,\n          \"isFullyStaffed\": true\n        },\n        {\n          \"id\": \"c8f28002-bf77-4760-a30b-229124af8470\",\n          \"title\": \"Door Monitor\",\n          \"description\": \"Check attendees in, verify tickets/RSVPs, and welcome newcomers\",\n          \"slotsNeeded\": 2,\n          \"slotsFilled\": 0,\n          \"requiresExperience\": false,\n          \"requirements\": \"Friendly demeanor, punctuality\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 2,\n          \"isFullyStaffed\": false\n        }\n      ],\n      \"teacherIds\": []\n    },\n    {\n      \"id\": \"6ac2ada2-c590-40fa-9672-a812ad341f3e\",\n      \"title\": \"Predicament Bondage Workshop\",\n      \"description\": \"Learn to create challenging and engaging predicament scenarios with rope.\",\n      \"startDate\": \"2025-11-14T18:00:00Z\",\n      \"endDate\": \"2025-11-14T21:00:00Z\",\n      \"location\": \"Main Workshop Room\",\n      \"eventType\": \"Class\",\n      \"capacity\": 12,\n      \"isPublished\": true,\n      \"currentAttendees\": 0,\n      \"currentRSVPs\": 0,\n      \"currentTickets\": 0,\n      \"sessions\": [\n        {\n          \"id\": \"3ac2a0ef-75a1-4922-b05f-d28ab0c7a913\",\n          \"sessionIdentifier\": \"S1\",\n          \"name\": \"Main Session\",\n          \"date\": \"2025-11-14T00:00:00Z\",\n          \"startTime\": \"2025-11-14T18:00:00Z\",\n          \"endTime\": \"2025-11-14T21:00:00Z\",\n          \"capacity\": 12,\n          \"registeredCount\": 5\n        }\n      ],\n      \"ticketTypes\": [\n        {\n          \"id\": \"adb5075f-6b51-4ec1-bcaf-9a88d9389f98\",\n          \"name\": \"Regular\",\n          \"type\": \"paid\",\n          \"sessionIdentifiers\": [\n            \"S1\"\n          ],\n          \"minPrice\": 15,\n          \"maxPrice\": 15,\n          \"quantityAvailable\": 12,\n          \"salesEndDate\": null\n        }\n      ],\n      \"volunteerPositions\": [\n        {\n          \"id\": \"14166da8-8b6d-4fcc-a62d-7f2a66b90599\",\n          \"title\": \"Setup/Cleanup Crew\",\n          \"description\": \"Help set up equipment before the event and clean up afterwards\",\n          \"slotsNeeded\": 3,\n          \"slotsFilled\": 1,\n          \"requiresExperience\": false,\n          \"requirements\": \"Physical ability to lift equipment\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 2,\n          \"isFullyStaffed\": false\n        },\n        {\n          \"id\": \"2fa2a485-3432-40f9-a202-d119b977bdb2\",\n          \"title\": \"Teaching Assistant\",\n          \"description\": \"Help instructor with demonstrations and assist students\",\n          \"slotsNeeded\": 1,\n          \"slotsFilled\": 1,\n          \"requiresExperience\": true,\n          \"requirements\": \"Intermediate+ rope skills, teaching experience preferred\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 0,\n          \"isFullyStaffed\": true\n        },\n        {\n          \"id\": \"c2b85f75-9802-4b2f-87f6-87288ec5350c\",\n          \"title\": \"Door Monitor\",\n          \"description\": \"Check attendees in, verify tickets/RSVPs, and welcome newcomers\",\n          \"slotsNeeded\": 2,\n          \"slotsFilled\": 1,\n          \"requiresExperience\": false,\n          \"requirements\": \"Friendly demeanor, punctuality\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 1,\n          \"isFullyStaffed\": false\n        }\n      ],\n      \"teacherIds\": []\n    },\n    {\n      \"id\": \"3d97e8ea-d34c-4724-a8de-d297e261ea70\",\n      \"title\": \"Photography and Rope\",\n      \"description\": \"Explore the artistic intersection of rope bondage and photography.\",\n      \"startDate\": \"2025-11-21T16:00:00Z\",\n      \"endDate\": \"2025-11-21T19:00:00Z\",\n      \"location\": \"Main Workshop Room\",\n      \"eventType\": \"Class\",\n      \"capacity\": 6,\n      \"isPublished\": true,\n      \"currentAttendees\": 0,\n      \"currentRSVPs\": 0,\n      \"currentTickets\": 0,\n      \"sessions\": [\n        {\n          \"id\": \"ee998411-e446-412a-aa26-2c5e788feca6\",\n          \"sessionIdentifier\": \"S1\",\n          \"name\": \"Main Session\",\n          \"date\": \"2025-11-21T00:00:00Z\",\n          \"startTime\": \"2025-11-21T16:00:00Z\",\n          \"endTime\": \"2025-11-21T19:00:00Z\",\n          \"capacity\": 6,\n          \"registeredCount\": 3\n        }\n      ],\n      \"ticketTypes\": [\n        {\n          \"id\": \"adb37903-4a58-4d30-b99d-59f6855525f1\",\n          \"name\": \"Regular\",\n          \"type\": \"paid\",\n          \"sessionIdentifiers\": [\n            \"S1\"\n          ],\n          \"minPrice\": 9,\n          \"maxPrice\": 9,\n          \"quantityAvailable\": 6,\n          \"salesEndDate\": null\n        }\n      ],\n      \"volunteerPositions\": [\n        {\n          \"id\": \"716d3a73-cf5c-4170-bef4-65e5230d7efe\",\n          \"title\": \"Teaching Assistant\",\n          \"description\": \"Help instructor with demonstrations and assist students\",\n          \"slotsNeeded\": 1,\n          \"slotsFilled\": 0,\n          \"requiresExperience\": true,\n          \"requirements\": \"Intermediate+ rope skills, teaching experience preferred\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 1,\n          \"isFullyStaffed\": false\n        },\n        {\n          \"id\": \"ba97f802-9abc-43f9-8e75-232a08417b50\",\n          \"title\": \"Setup/Cleanup Crew\",\n          \"description\": \"Help set up equipment before the event and clean up afterwards\",\n          \"slotsNeeded\": 3,\n          \"slotsFilled\": 2,\n          \"requiresExperience\": false,\n          \"requirements\": \"Physical ability to lift equipment\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 1,\n          \"isFullyStaffed\": false\n        },\n        {\n          \"id\": \"bdcac8c6-19db-4dc5-bbcd-dcbe25fa8857\",\n          \"title\": \"Door Monitor\",\n          \"description\": \"Check attendees in, verify tickets/RSVPs, and welcome newcomers\",\n          \"slotsNeeded\": 2,\n          \"slotsFilled\": 0,\n          \"requiresExperience\": false,\n          \"requirements\": \"Friendly demeanor, punctuality\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 2,\n          \"isFullyStaffed\": false\n        }\n      ],\n      \"teacherIds\": []\n    },\n    {\n      \"id\": \"5290be55-59e0-4ec9-b62b-5cc215e6e848\",\n      \"title\": \"Rope Social & Discussion\",\n      \"description\": \"Monthly social gathering for community connection and discussion of rope topics.\",\n      \"startDate\": \"2025-11-28T19:00:00Z\",\n      \"endDate\": \"2025-11-28T21:00:00Z\",\n      \"location\": \"Community Space\",\n      \"eventType\": \"Social\",\n      \"capacity\": 40,\n      \"isPublished\": true,\n      \"currentAttendees\": 2,\n      \"currentRSVPs\": 2,\n      \"currentTickets\": 0,\n      \"sessions\": [\n        {\n          \"id\": \"f3c5fb57-b9b4-4e8d-ad86-0182583eca0f\",\n          \"sessionIdentifier\": \"S1\",\n          \"name\": \"Main Session\",\n          \"date\": \"2025-11-28T00:00:00Z\",\n          \"startTime\": \"2025-11-28T19:00:00Z\",\n          \"endTime\": \"2025-11-28T21:00:00Z\",\n          \"capacity\": 40,\n          \"registeredCount\": 40\n        }\n      ],\n      \"ticketTypes\": [\n        {\n          \"id\": \"07e28247-f124-451e-aa9a-62e09f2eb800\",\n          \"name\": \"Free RSVP\",\n          \"type\": \"rsvp\",\n          \"sessionIdentifiers\": [\n            \"S1\"\n          ],\n          \"minPrice\": 0,\n          \"maxPrice\": 0,\n          \"quantityAvailable\": 40,\n          \"salesEndDate\": null\n        },\n        {\n          \"id\": \"21302626-bdfa-45ff-9706-75839f9288c5\",\n          \"name\": \"Support Donation\",\n          \"type\": \"paid\",\n          \"sessionIdentifiers\": [\n            \"S1\"\n          ],\n          \"minPrice\": 3,\n          \"maxPrice\": 3,\n          \"quantityAvailable\": 40,\n          \"salesEndDate\": null\n        }\n      ],\n      \"volunteerPositions\": [\n        {\n          \"id\": \"0545b00b-3f7a-45da-b3f8-177106163bed\",\n          \"title\": \"Setup/Cleanup Crew\",\n          \"description\": \"Help set up equipment before the event and clean up afterwards\",\n          \"slotsNeeded\": 3,\n          \"slotsFilled\": 3,\n          \"requiresExperience\": false,\n          \"requirements\": \"Physical ability to lift equipment\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 0,\n          \"isFullyStaffed\": true\n        },\n        {\n          \"id\": \"a4a26e6c-5f16-47b5-927b-24f0d70fc4a7\",\n          \"title\": \"Door Monitor\",\n          \"description\": \"Check attendees in, verify tickets/RSVPs, and welcome newcomers\",\n          \"slotsNeeded\": 2,\n          \"slotsFilled\": 1,\n          \"requiresExperience\": false,\n          \"requirements\": \"Friendly demeanor, punctuality\",\n          \"sessionId\": null,\n          \"slotsRemaining\": 1,\n          \"isFullyStaffed\": false\n        }\n      ],\n      \"teacherIds\": []\n    }\n  ],\n  \"error\": null,\n  \"details\": null,\n  \"message\": \"Events retrieved successfully\",\n  \"timestamp\": \"2025-09-21T22:56:05.8040007Z\"\n}\n"
+                        },
+                        {
+                          "text": "📊 Found 8 events\n"
+                        },
+                        {
+                          "text": "\n📅 Event 1: Test Event Update 2\n"
+                        },
+                        {
+                          "text": "   - Capacity: 15\n"
+                        },
+                        {
+                          "text": "   - Current Attendees: N/A\n"
+                        },
+                        {
+                          "text": "   - Current RSVPs: N/A\n"
+                        },
+                        {
+                          "text": "   - Current Tickets: N/A\n"
+                        },
+                        {
+                          "text": "   - Is Published: true\n"
+                        },
+                        {
+                          "text": "\n📅 Event 2: Suspension Basics\n"
+                        },
+                        {
+                          "text": "   - Capacity: 12\n"
+                        },
+                        {
+                          "text": "   - Current Attendees: N/A\n"
+                        },
+                        {
+                          "text": "   - Current RSVPs: N/A\n"
+                        },
+                        {
+                          "text": "   - Current Tickets: N/A\n"
+                        },
+                        {
+                          "text": "   - Is Published: true\n"
+                        },
+                        {
+                          "text": "\n📅 Event 3: Rope Maintenance & Care\n"
+                        },
+                        {
+                          "text": "   - Capacity: 25\n"
+                        },
+                        {
+                          "text": "   - Current Attendees: N/A\n"
+                        },
+                        {
+                          "text": "   - Current RSVPs: N/A\n"
+                        },
+                        {
+                          "text": "   - Current Tickets: N/A\n"
+                        },
+                        {
+                          "text": "   - Is Published: true\n"
+                        },
+                        {
+                          "text": "\n📅 Event 4: Advanced Floor Work\n"
+                        },
+                        {
+                          "text": "   - Capacity: 10\n"
+                        },
+                        {
+                          "text": "   - Current Attendees: N/A\n"
+                        },
+                        {
+                          "text": "   - Current RSVPs: N/A\n"
+                        },
+                        {
+                          "text": "   - Current Tickets: N/A\n"
+                        },
+                        {
+                          "text": "   - Is Published: true\n"
+                        },
+                        {
+                          "text": "\n📅 Event 5: Rope and Sensation Play\n"
+                        },
+                        {
+                          "text": "   - Capacity: 8\n"
+                        },
+                        {
+                          "text": "   - Current Attendees: N/A\n"
+                        },
+                        {
+                          "text": "   - Current RSVPs: N/A\n"
+                        },
+                        {
+                          "text": "   - Current Tickets: N/A\n"
+                        },
+                        {
+                          "text": "   - Is Published: true\n"
+                        },
+                        {
+                          "text": "\n📅 Event 6: Predicament Bondage Workshop\n"
+                        },
+                        {
+                          "text": "   - Capacity: 12\n"
+                        },
+                        {
+                          "text": "   - Current Attendees: N/A\n"
+                        },
+                        {
+                          "text": "   - Current RSVPs: N/A\n"
+                        },
+                        {
+                          "text": "   - Current Tickets: N/A\n"
+                        },
+                        {
+                          "text": "   - Is Published: true\n"
+                        },
+                        {
+                          "text": "\n📅 Event 7: Photography and Rope\n"
+                        },
+                        {
+                          "text": "   - Capacity: 6\n"
+                        },
+                        {
+                          "text": "   - Current Attendees: N/A\n"
+                        },
+                        {
+                          "text": "   - Current RSVPs: N/A\n"
+                        },
+                        {
+                          "text": "   - Current Tickets: N/A\n"
+                        },
+                        {
+                          "text": "   - Is Published: true\n"
+                        },
+                        {
+                          "text": "\n📅 Event 8: Rope Social & Discussion\n"
+                        },
+                        {
+                          "text": "   - Capacity: 40\n"
+                        },
+                        {
+                          "text": "   - Current Attendees: 2\n"
+                        },
+                        {
+                          "text": "   - Current RSVPs: 2\n"
+                        },
+                        {
+                          "text": "   - Current Tickets: N/A\n"
+                        },
+                        {
+                          "text": "   - Is Published: true\n"
+                        },
+                        {
+                          "text": "\n🎯 ROPE SOCIAL EVENTS FOUND:\n"
+                        },
+                        {
+                          "text": "\n   Rope Social 1: Rope Social & Discussion\n"
+                        },
+                        {
+                          "text": "   - ID: 5290be55-59e0-4ec9-b62b-5cc215e6e848\n"
+                        },
+                        {
+                          "text": "   - Capacity: 40\n"
+                        },
+                        {
+                          "text": "   - Current Attendees: 2\n"
+                        },
+                        {
+                          "text": "   - Current RSVPs: 2\n"
+                        },
+                        {
+                          "text": "   - Current Tickets: 0\n"
+                        },
+                        {
+                          "text": "   - Sessions: 1\n"
+                        },
+                        {
+                          "text": "   - Ticket Types: 2\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-21T22:56:05.614Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "be31c6d5d8e5a02bfcc1-cb637f88fe5c6dd02972",
+              "file": "rsvp-evidence-simple.spec.ts",
+              "line": 37,
+              "column": 7
+            },
+            {
+              "title": "2. Public Events Page - Capture What Users See",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 5392,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "📸 Capturing public events page as users see it...\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: Failed to load resource: the server responded with a status of 401 (Unauthorized)\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: Failed to load resource: the server responded with a status of 401 (Unauthorized)\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: Failed to load resource: the server responded with a status of 401 (Unauthorized)\n"
+                        },
+                        {
+                          "text": "⚠️ Page has errors - JS errors: 0, Console errors: 3\n"
+                        },
+                        {
+                          "text": "📊 Found 35 event-related elements\n"
+                        },
+                        {
+                          "text": "✅ Found 35 elements with selector: [data-testid*=\"event\"]\n"
+                        },
+                        {
+                          "text": "📸 Element 0 text preview: Events & Classes...\n"
+                        },
+                        {
+                          "text": "📸 Element 1 text preview: Explore Classes & MeetupsLearn rope bondage in a safe, inclusive environment with experienced instru...\n"
+                        },
+                        {
+                          "text": "📸 Element 2 text preview: Test Event Update 2Friday, October 3, 2025 • 3:00 PMMaster the art of single column ties with hands-...\n"
+                        },
+                        {
+                          "text": "📊 Found 25 elements with numbers:\n"
+                        },
+                        {
+                          "text": "   1: \"Test Event Update 2\"\n"
+                        },
+                        {
+                          "text": "   2: \"Friday, October 3, 2025 • 3:00 PM\"\n"
+                        },
+                        {
+                          "text": "   3: \"$35-65 sliding scale\"\n"
+                        },
+                        {
+                          "text": "   4: \"15/15\"\n"
+                        },
+                        {
+                          "text": "   5: \"Friday, October 10, 2025 • 2:00 PM\"\n"
+                        },
+                        {
+                          "text": "   6: \"$35-65 sliding scale\"\n"
+                        },
+                        {
+                          "text": "   7: \"12/12\"\n"
+                        },
+                        {
+                          "text": "   8: \"Friday, October 17, 2025 • 1:00 PM\"\n"
+                        },
+                        {
+                          "text": "   9: \"$35-65 sliding scale\"\n"
+                        },
+                        {
+                          "text": "   10: \"25/25\"\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-21T22:56:05.634Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "be31c6d5d8e5a02bfcc1-5b4826a8a159729ba0f1",
+              "file": "rsvp-evidence-simple.spec.ts",
+              "line": 87,
+              "column": 7
+            },
+            {
+              "title": "3. Event Details Page - Pick First Available Event",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 4818,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "📸 Testing event details page...\n"
+                        },
+                        {
+                          "text": "📅 Testing first event: Test Event Update 2 (ID: ca4ec865-2f8e-49a5-988f-e397be26ef10)\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: Failed to load resource: the server responded with a status of 401 (Unauthorized)\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: Failed to load resource: the server responded with a status of 401 (Unauthorized)\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: Failed to load resource: the server responded with a status of 401 (Unauthorized)\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: Failed to load resource: the server responded with a status of 401 (Unauthorized)\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: API Error: GET /api/events/ca4ec865-2f8e-49a5-988f-e397be26ef10/participation {status: 401, statusText: Unauthorized, data: }\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: 🔍 useParticipation: Error fetching participation: AxiosError\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: Failed to load resource: the server responded with a status of 401 (Unauthorized)\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: API Error: GET /api/protected/welcome {status: 401, statusText: Unauthorized, data: }\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: Failed to load resource: the server responded with a status of 401 (Unauthorized)\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: Failed to load resource: the server responded with a status of 401 (Unauthorized)\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: Failed to load resource: the server responded with a status of 401 (Unauthorized)\n"
+                        },
+                        {
+                          "text": "📊 Found 0 RSVP/capacity related elements\n"
+                        },
+                        {
+                          "text": "📊 Found 4 buttons\n"
+                        },
+                        {
+                          "text": "🔘 Button 1: \"\"\n"
+                        },
+                        {
+                          "text": "🔘 Button 2: \"\"\n"
+                        },
+                        {
+                          "text": "🔘 Button 3: \"Sign In\"\n"
+                        },
+                        {
+                          "text": "🔘 Button 4: \"\"\n"
+                        },
+                        {
+                          "text": "📊 Found 1 forms\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-21T22:56:05.621Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "be31c6d5d8e5a02bfcc1-3c53fc6610387f25e9e4",
+              "file": "rsvp-evidence-simple.spec.ts",
+              "line": 145,
+              "column": 7
+            },
+            {
+              "title": "4. Dashboard Page Access Check",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 3527,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "📸 Testing dashboard page access...\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: Failed to load resource: the server responded with a status of 401 (Unauthorized)\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: Failed to load resource: the server responded with a status of 401 (Unauthorized)\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: Failed to load resource: the server responded with a status of 401 (Unauthorized)\n"
+                        },
+                        {
+                          "text": "📍 Dashboard access resulted in URL: http://localhost:5173/login?returnTo=%2Fdashboard\n"
+                        },
+                        {
+                          "text": "✅ Correctly redirected to login page (authentication working)\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-21T22:56:05.613Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "be31c6d5d8e5a02bfcc1-0f259c1287da49112deb",
+              "file": "rsvp-evidence-simple.spec.ts",
+              "line": 188,
+              "column": 7
+            },
+            {
+              "title": "5. Admin Pages Access Check",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 6421,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "📸 Testing admin pages access...\n"
+                        },
+                        {
+                          "text": "📍 Testing: http://localhost:5173/admin\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: Failed to load resource: the server responded with a status of 401 (Unauthorized)\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: Failed to load resource: the server responded with a status of 401 (Unauthorized)\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: Failed to load resource: the server responded with a status of 401 (Unauthorized)\n"
+                        },
+                        {
+                          "text": "   - Requested: http://localhost:5173/admin\n"
+                        },
+                        {
+                          "text": "   - Final URL: http://localhost:5173/login?returnTo=%2Fadmin\n"
+                        },
+                        {
+                          "text": "   ✅ Correctly redirected to login (security working)\n"
+                        },
+                        {
+                          "text": "📍 Testing: http://localhost:5173/admin/events\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: Failed to load resource: the server responded with a status of 401 (Unauthorized)\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: Failed to load resource: the server responded with a status of 401 (Unauthorized)\n"
+                        },
+                        {
+                          "text": "🚨 Console Error: Failed to load resource: the server responded with a status of 401 (Unauthorized)\n"
+                        },
+                        {
+                          "text": "   - Requested: http://localhost:5173/admin/events\n"
+                        },
+                        {
+                          "text": "   - Final URL: http://localhost:5173/login?returnTo=%2Fadmin%2Fevents\n"
+                        },
+                        {
+                          "text": "   ✅ Correctly redirected to login (security working)\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-21T22:56:05.625Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "be31c6d5d8e5a02bfcc1-56fcad4e48fef38dea0d",
+              "file": "rsvp-evidence-simple.spec.ts",
+              "line": 214,
+              "column": 7
+            },
+            {
+              "title": "6. Console Error Summary",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 9779,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "🐛 Testing for console errors across key pages...\n"
+                        },
+                        {
+                          "text": "🔍 Testing home page for errors...\n"
+                        },
+                        {
+                          "text": "   - JS Errors: 0\n"
+                        },
+                        {
+                          "text": "   - Console Errors: 3\n"
+                        },
+                        {
+                          "text": "🔍 Testing events page for errors...\n"
+                        },
+                        {
+                          "text": "   - JS Errors: 0\n"
+                        },
+                        {
+                          "text": "   - Console Errors: 2\n"
+                        },
+                        {
+                          "text": "🔍 Testing login page for errors...\n"
+                        },
+                        {
+                          "text": "   - JS Errors: 0\n"
+                        },
+                        {
+                          "text": "   - Console Errors: 2\n"
+                        },
+                        {
+                          "text": "\n🐛 Error Summary:\n"
+                        },
+                        {
+                          "text": "{\n  \"pageErrors\": {\n    \"home\": {\n      \"jsErrors\": [],\n      \"consoleErrors\": [\n        \"Failed to load resource: the server responded with a status of 401 (Unauthorized)\",\n        \"Failed to load resource: the server responded with a status of 401 (Unauthorized)\",\n        \"Failed to load resource: the server responded with a status of 401 (Unauthorized)\"\n      ],\n      \"url\": \"http://localhost:5173/\"\n    },\n    \"events\": {\n      \"jsErrors\": [],\n      \"consoleErrors\": [\n        \"Failed to load resource: the server responded with a status of 401 (Unauthorized)\",\n        \"Failed to load resource: the server responded with a status of 401 (Unauthorized)\"\n      ],\n      \"url\": \"http://localhost:5173/events\"\n    },\n    \"login\": {\n      \"jsErrors\": [],\n      \"consoleErrors\": [\n        \"Failed to load resource: the server responded with a status of 401 (Unauthorized)\",\n        \"Failed to load resource: the server responded with a status of 401 (Unauthorized)\"\n      ],\n      \"url\": \"http://localhost:5173/login\"\n    }\n  },\n  \"summary\": {\n    \"totalJSErrors\": 0,\n    \"totalConsoleErrors\": 7,\n    \"pagesWithErrors\": 3\n  }\n}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-21T22:56:05.629Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "be31c6d5d8e5a02bfcc1-f58b14fdc5566b975304",
+              "file": "rsvp-evidence-simple.spec.ts",
+              "line": 248,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-09-21T22:56:05.022Z",
+    "duration": 10485.785,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

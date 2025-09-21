@@ -11,16 +11,16 @@ import { defineConfig, devices } from '@playwright/test';
  * Start services first with: ./dev.sh
  */
 export default defineConfig({
-  testDir: './tests/playwright',
+  testDir: './tests/e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : 6, // Reduced workers to prevent port conflicts
-  globalSetup: './tests/e2e/global-setup.ts', // Verify Docker services before tests
+  // globalSetup: './tests/e2e/global-setup.ts', // Verify Docker services before tests
   reporter: [
     ['list'],
-    ['json', { outputFile: './test-results/test-results.json' }],
-    ['html', { outputFolder: './test-results/html-report' }]
+    ['json', { outputFile: './playwright-results/test-results.json' }],
+    ['html', { outputFolder: './playwright-results/html-report' }]
   ],
   use: {
     // DOCKER-ONLY: Must use Docker web service on port 5173

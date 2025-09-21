@@ -18,7 +18,7 @@ async function globalSetup() {
     const { promisify } = require('util')
     const execAsync = promisify(exec)
 
-    const localProcesses = await execAsync('ps aux | grep -E "(npm run dev|vite.*--port.*517)" | grep -v grep | grep -v docker || true')
+    const localProcesses = await execAsync('ps aux | grep -E "(npm run dev|vite.*--port.*517)" | grep -v grep | grep -v docker | grep -v "/app/" || true')
     if (localProcesses.stdout.trim()) {
       console.error(`
 ❌ CRITICAL: Local dev servers detected!

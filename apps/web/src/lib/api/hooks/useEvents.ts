@@ -123,7 +123,7 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
     location: apiEvent.location,
     eventType: apiEvent.eventType,
     capacity: apiEvent.capacity || apiEvent.maxAttendees || 20, // Use capacity first, then maxAttendees
-    registrationCount: apiEvent.currentAttendees || 0,
+    registrationCount: apiEvent.currentAttendees || apiEvent.currentRSVPs || apiEvent.currentTickets || 0,
     createdAt: new Date().toISOString(), // Placeholder - should come from API
     updatedAt: new Date().toISOString(), // Placeholder - should come from API
     // Map new fields from API response with proper transformation
