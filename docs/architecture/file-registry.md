@@ -8,6 +8,8 @@
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-09-22 | /home/chad/repos/witchcityrope-react/docs/lessons-learned/test-executor-lessons-learned.md | MODIFIED | CRITICAL: Added password escaping lesson - Test123! must NEVER be escaped as Test123\! in JSON | Librarian - Critical Password Escaping Documentation | ACTIVE | Never |
+| 2025-09-22 | /home/chad/repos/witchcityrope-react/docs/lessons-learned/test-developer-lessons-learned.md | MODIFIED | CRITICAL: Added password escaping lesson - Test123! must NEVER be escaped as Test123\! in JSON | Librarian - Critical Password Escaping Documentation | ACTIVE | Never |
 | 2025-09-22 | /home/chad/repos/witchcityrope-react/docs/functional-areas/vetting-system/handoffs/test-executor-2025-09-22-vetting-e2e-verification.md | CREATED | Comprehensive test execution handoff documenting 85% functional vetting system with evidence screenshots | Test Executor - Complete Vetting System E2E Verification | ACTIVE | N/A |
 | 2025-09-22 | /home/chad/repos/witchcityrope-react/apps/api/appsettings.Development.json | MODIFIED | Added vetting system configuration settings for email and review periods | Git Manager - Session cleanup commit | ACTIVE | N/A |
 | 2025-09-22 | /home/chad/repos/witchcityrope-react/tests/playwright/rsvp-working-investigation.spec.ts | MODIFIED | Cleaned up test file removing verbose debug logging and unused code | Git Manager - Session cleanup commit | ACTIVE | N/A |

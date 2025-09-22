@@ -152,7 +152,7 @@ public class VettingController : ControllerBase
     /// Get applications for reviewer dashboard (requires VettingReviewer role)
     /// </summary>
     [HttpPost("reviewer/applications")]
-    [Authorize(Roles = "VettingReviewer,VettingAdmin")]
+    [Authorize(Roles = "Administrator,VettingReviewer,VettingAdmin")]
     [ProducesResponseType(typeof(PagedResult<ApplicationSummaryDto>), 200)]
     [ProducesResponseType(typeof(ProblemDetails), 400)]
     [ProducesResponseType(typeof(ProblemDetails), 401)]
@@ -163,16 +163,27 @@ public class VettingController : ControllerBase
     {
         try
         {
-            // Get reviewer ID from claims (assumes JWT contains reviewer information)
+            // Get reviewer ID from claims or use user ID for administrators
             var reviewerIdClaim = User.FindFirst("ReviewerId")?.Value;
-            if (string.IsNullOrEmpty(reviewerIdClaim) || !Guid.TryParse(reviewerIdClaim, out var reviewerId))
+            Guid reviewerId;
+
+            if (!string.IsNullOrEmpty(reviewerIdClaim) && Guid.TryParse(reviewerIdClaim, out reviewerId))
             {
-                return BadRequest(new ProblemDetails
+                // Use specific reviewer ID if available
+            }
+            else
+            {
+                // Fallback: Use user ID for administrators (who may not have a specific reviewer record)
+                var userIdClaim = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out reviewerId))
                 {
-                    Title = "Invalid reviewer",
-                    Detail = "Reviewer information not found in authentication token",
-                    Status = 400
-                });
+                    return BadRequest(new ProblemDetails
+                    {
+                        Title = "Invalid user",
+                        Detail = "User information not found in authentication token",
+                        Status = 400
+                    });
+                }
             }
 
             // Validate pagination
@@ -212,7 +223,7 @@ public class VettingController : ControllerBase
     /// Get full application details for review (requires VettingReviewer role)
     /// </summary>
     [HttpGet("reviewer/applications/{applicationId}")]
-    [Authorize(Roles = "VettingReviewer,VettingAdmin")]
+    [Authorize(Roles = "Administrator,VettingReviewer,VettingAdmin")]
     [ProducesResponseType(typeof(ApplicationDetailResponse), 200)]
     [ProducesResponseType(typeof(ProblemDetails), 400)]
     [ProducesResponseType(typeof(ProblemDetails), 401)]
@@ -225,16 +236,27 @@ public class VettingController : ControllerBase
     {
         try
         {
-            // Get reviewer ID from claims
+            // Get reviewer ID from claims or use user ID for administrators
             var reviewerIdClaim = User.FindFirst("ReviewerId")?.Value;
-            if (string.IsNullOrEmpty(reviewerIdClaim) || !Guid.TryParse(reviewerIdClaim, out var reviewerId))
+            Guid reviewerId;
+
+            if (!string.IsNullOrEmpty(reviewerIdClaim) && Guid.TryParse(reviewerIdClaim, out reviewerId))
             {
-                return BadRequest(new ProblemDetails
+                // Use specific reviewer ID if available
+            }
+            else
+            {
+                // Fallback: Use user ID for administrators (who may not have a specific reviewer record)
+                var userIdClaim = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out reviewerId))
                 {
-                    Title = "Invalid reviewer",
-                    Detail = "Reviewer information not found in authentication token",
-                    Status = 400
-                });
+                    return BadRequest(new ProblemDetails
+                    {
+                        Title = "Invalid user",
+                        Detail = "User information not found in authentication token",
+                        Status = 400
+                    });
+                }
             }
 
             var result = await _vettingService.GetApplicationDetailAsync(applicationId, reviewerId, cancellationToken);
@@ -274,7 +296,7 @@ public class VettingController : ControllerBase
     /// Submit review decision (requires VettingReviewer role)
     /// </summary>
     [HttpPost("reviewer/applications/{applicationId}/decisions")]
-    [Authorize(Roles = "VettingReviewer,VettingAdmin")]
+    [Authorize(Roles = "Administrator,VettingReviewer,VettingAdmin")]
     [ProducesResponseType(typeof(ReviewDecisionResponse), 200)]
     [ProducesResponseType(typeof(ProblemDetails), 400)]
     [ProducesResponseType(typeof(ProblemDetails), 401)]
@@ -288,16 +310,27 @@ public class VettingController : ControllerBase
     {
         try
         {
-            // Get reviewer ID from claims
+            // Get reviewer ID from claims or use user ID for administrators
             var reviewerIdClaim = User.FindFirst("ReviewerId")?.Value;
-            if (string.IsNullOrEmpty(reviewerIdClaim) || !Guid.TryParse(reviewerIdClaim, out var reviewerId))
+            Guid reviewerId;
+
+            if (!string.IsNullOrEmpty(reviewerIdClaim) && Guid.TryParse(reviewerIdClaim, out reviewerId))
             {
-                return BadRequest(new ProblemDetails
+                // Use specific reviewer ID if available
+            }
+            else
+            {
+                // Fallback: Use user ID for administrators (who may not have a specific reviewer record)
+                var userIdClaim = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out reviewerId))
                 {
-                    Title = "Invalid reviewer",
-                    Detail = "Reviewer information not found in authentication token",
-                    Status = 400
-                });
+                    return BadRequest(new ProblemDetails
+                    {
+                        Title = "Invalid user",
+                        Detail = "User information not found in authentication token",
+                        Status = 400
+                    });
+                }
             }
 
             // Basic validation

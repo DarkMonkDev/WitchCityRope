@@ -24,6 +24,103 @@ If you cannot read ANY part of these lessons learned:
 3. DO NOT proceed until all files are readable
 4. This is NON-NEGOTIABLE - these files contain critical knowledge
 
+## 🚨 ULTRA CRITICAL: Password Escaping in JSON - NO ESCAPING REQUIRED (2025-09-22) 🚨
+
+**RECURRING CRITICAL ISSUE**: The password "Test123!" must NEVER be escaped as "Test123\!" in JSON files, curl commands, or test data.
+
+**Problem**: Test creation frequently introduces password escaping that breaks authentication, causing hours of debugging "Invalid credentials" errors.
+
+**Root Cause**: Misunderstanding JSON string escaping rules - exclamation marks do NOT require escaping in JSON.
+
+### ❌ WRONG - These patterns break authentication:
+```bash
+# WRONG - Escaped exclamation causes login failure
+echo '{"email": "admin@witchcityrope.com", "password": "Test123\!"}' > login.json
+
+# WRONG - Shell escaping in curl data
+curl -d '{"password": "Test123\!"}' http://localhost:5655/api/auth/login
+
+# WRONG - In test files
+const loginData = {
+  email: 'admin@witchcityrope.com',
+  password: 'Test123\!' // This will fail authentication
+}
+```
+
+### ✅ CORRECT - Proper password handling:
+```bash
+# CORRECT - No escaping needed
+echo '{"email": "admin@witchcityrope.com", "password": "Test123!"}' > login.json
+
+# CORRECT - Use file to avoid shell escaping issues
+curl -X POST http://localhost:5655/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d @login.json
+
+# CORRECT - In test files
+const loginData = {
+  email: 'admin@witchcityrope.com',
+  password: 'Test123!' // Correct - no backslash
+}
+
+# CORRECT - TypeScript/JavaScript test
+await page.fill('[data-testid="password-input"]', 'Test123!');
+```
+
+### Test Data Creation Pattern:
+```typescript
+// CORRECT - Test account data
+export const testAccounts = {
+  admin: {
+    email: 'admin@witchcityrope.com',
+    password: 'Test123!' // NO BACKSLASH
+  },
+  teacher: {
+    email: 'teacher@witchcityrope.com',
+    password: 'Test123!' // NO BACKSLASH
+  }
+}
+
+// CORRECT - MSW mock response
+http.post('*/api/auth/login', async ({ request }) => {
+  const body = await request.json()
+  if (body.password === 'Test123!') { // NO BACKSLASH in comparison
+    return HttpResponse.json({ success: true })
+  }
+  return HttpResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+})
+```
+
+### Authentication Helper Pattern:
+```typescript
+// CORRECT - Authentication helper
+export async function loginAs(page: Page, role: string) {
+  await page.goto('/login')
+  await page.fill('[data-testid="email-input"]', `${role}@witchcityrope.com`)
+  await page.fill('[data-testid="password-input"]', 'Test123!') // NO BACKSLASH
+  await page.click('[data-testid="login-button"]')
+  await page.waitForURL('**/dashboard')
+}
+```
+
+### JSON Validation Test:
+```bash
+# Always validate JSON before using in tests
+echo '{"password": "Test123!"}' | jq . # Should parse successfully
+echo '{"password": "Test123\!"}' | jq . # Still valid but WRONG password
+```
+
+### Prevention Checklist:
+- [ ] All test account passwords use "Test123!" without backslash
+- [ ] JSON files created with printf/echo have no escaped exclamation
+- [ ] TypeScript/JavaScript strings have no backslash before exclamation
+- [ ] Authentication helpers use correct password format
+- [ ] Mock responses expect correct password format
+
+**Impact**: This escaping mistake has caused authentication test failures MANY TIMES across multiple development sessions. Exclamation marks are valid JSON characters and do NOT need escaping.
+
+---
+
 ## 🚨 ULTRA CRITICAL: Docker-Only Testing Environment - MANDATORY 🚨
 
 **ALL TESTS MUST RUN AGAINST DOCKER CONTAINERS ON PORT 5173**

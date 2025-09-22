@@ -4,6 +4,85 @@
 <!-- Owner: Test Team -->
 <!-- Status: Active -->
 
+## 🚨 ULTRA CRITICAL: Password Escaping in JSON - NO ESCAPING REQUIRED (2025-09-22) 🚨
+
+**RECURRING ISSUE**: The password "Test123!" must NEVER be escaped as "Test123\!" in JSON files or curl commands.
+
+**Problem**: Authentication tests fail because exclamation mark gets incorrectly escaped, causing login to fail with "Invalid credentials" even with correct email.
+
+**Root Cause**: Confusion about JSON string escaping rules - exclamation marks do NOT need escaping in JSON strings.
+
+### ❌ WRONG - Escaped exclamation mark breaks authentication:
+```bash
+# WRONG - This causes authentication failure
+echo '{"email": "admin@witchcityrope.com", "password": "Test123\!"}' > /tmp/login.json
+curl -X POST http://localhost:5655/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d @/tmp/login.json
+# Returns: 401 Unauthorized - Invalid credentials
+```
+
+### ✅ CORRECT - No escaping needed for exclamation mark:
+```bash
+# CORRECT - Authentication succeeds
+echo '{"email": "admin@witchcityrope.com", "password": "Test123!"}' > /tmp/login.json
+
+# Or use printf to avoid any shell interpretation
+printf '{"email": "admin@witchcityrope.com", "password": "Test123!"}' > /tmp/login.json
+
+curl -X POST http://localhost:5655/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d @/tmp/login.json
+# Returns: 200 OK with authentication token
+```
+
+### Critical JSON Escaping Rules:
+**Characters that NEED escaping in JSON strings**:
+- `"` → `\"`
+- `\\` → `\\\\`
+- `/` → `\/` (optional)
+- `\b` → `\\b`
+- `\f` → `\\f`
+- `\n` → `\\n`
+- `\r` → `\\r`
+- `\t` → `\\t`
+
+**Characters that DO NOT need escaping**:
+- `!` (exclamation mark)
+- `@` (at symbol)
+- `#` (hash)
+- `$` (dollar)
+- `%` (percent)
+- `&` (ampersand)
+- Other punctuation
+
+### Authentication Test Pattern:
+```bash
+# ALWAYS use this pattern for login testing
+printf '{"email": "%s", "password": "%s"}' "admin@witchcityrope.com" "Test123!" > /tmp/login.json
+curl -X POST http://localhost:5655/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d @/tmp/login.json \
+  -c /tmp/cookies.txt
+
+# Verify success
+if curl -s -b /tmp/cookies.txt http://localhost:5655/api/auth/user | grep -q admin; then
+  echo "✅ Authentication successful"
+else
+  echo "❌ Authentication failed - check password format"
+fi
+```
+
+### Prevention Checklist:
+- [ ] Password "Test123!" written exactly without backslash before exclamation
+- [ ] JSON validation passes: `echo '{"password": "Test123!"}' | jq .`
+- [ ] Authentication succeeds with formatted JSON
+- [ ] No shell escaping applied to JSON content
+
+**Impact**: This has caused authentication failures MULTIPLE TIMES across different sessions. The exclamation mark does NOT need escaping in JSON strings.
+
+---
+
 ## 🚨 NEW CRITICAL SUCCESS: Authentication Test Cleanup Verification Complete (2025-09-21)
 
 **MAJOR ACHIEVEMENT**: Successfully verified authentication test cleanup after test-developer addressed outdated UI patterns. Comprehensive testing confirms 100% authentication system functionality.
