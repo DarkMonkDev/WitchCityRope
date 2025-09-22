@@ -2,6 +2,62 @@
 
 This document tracks critical lessons learned during backend development to prevent recurring issues and speed up future development.
 
+## 🚨 ULTRA CRITICAL: API Response Format Mismatch - Frontend Shows "No Data" 🚨
+
+**CRITICAL ISSUE DISCOVERED (2025-09-22)**: Admin participations endpoint returning raw array instead of ApiResponse wrapper, causing frontend to show "No RSVPs yet" even when data exists.
+
+### 🔥 MANDATORY API RESPONSE WRAPPER PATTERN
+**Problem**: Frontend shows "No data" in admin interface despite API returning valid data
+**Root Cause**: API endpoint returns `List<T>` directly, but frontend expects `ApiResponse<List<T>>` wrapper format
+**Symptoms**: Frontend hook gets undefined data, displays "no data" messages
+
+**BEFORE (BROKEN)**:
+```csharp
+// ❌ RETURNS RAW ARRAY - Frontend gets undefined data
+return result.IsSuccess
+    ? Results.Ok(result.Value)  // Direct array
+    : Results.Problem(...);
+```
+
+**AFTER (FIXED)**:
+```csharp
+// ✅ RETURNS WRAPPED FORMAT - Frontend gets data properly
+if (result.IsSuccess)
+{
+    return Results.Ok(new ApiResponse<List<EventParticipationDto>>
+    {
+        Success = true,
+        Data = result.Value,  // Array in 'data' property
+        Timestamp = DateTime.UtcNow
+    });
+}
+
+return Results.Json(new ApiResponse<List<EventParticipationDto>>
+{
+    Success = false,
+    Data = null,
+    Error = "Failed to get event participations",
+    Details = result.Error,
+    Timestamp = DateTime.UtcNow
+}, statusCode: 500);
+```
+
+### 🚨 CRITICAL FRONTEND-BACKEND CONTRACT
+**MANDATORY**: ALL API endpoints must return consistent `ApiResponse<T>` wrapper format:
+- ✅ **Frontend expects**: `{ success: true, data: [...], timestamp: "..." }`
+- ❌ **WRONG**: Direct array `[...]` (causes undefined data extraction)
+
+**Testing Pattern**:
+1. Test API directly: Verify returns `{ success: true, data: [...] }` format
+2. Test frontend hook: Verify `data?.data` extracts array properly
+3. Check UI components: Verify data renders instead of "no data" messages
+
+**Files Fixed**:
+- `/apps/api/Features/Participation/Endpoints/ParticipationEndpoints.cs` - Added ApiResponse wrapper to admin endpoint
+- Added `using WitchCityRope.Api.Models;` import for ApiResponse
+
+**PREVENTION**: Always use ApiResponse wrapper pattern for consistency with frontend expectations. Test both API and frontend data extraction.
+
 ## 🚨 ULTRA CRITICAL: JWT Token Missing Role Claims - Role Authorization Failure 🚨
 
 **CRITICAL ISSUE DISCOVERED (2025-01-20)**: JWT tokens were missing role claims, causing ALL role-based authorization to fail with 403 Forbidden errors, even for legitimate admin users.

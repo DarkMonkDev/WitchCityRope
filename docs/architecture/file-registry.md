@@ -18,6 +18,7 @@
 | 2025-09-21 | `/docs/standards-processes/testing/CURRENT_TEST_STATUS.md` | MODIFIED | Updated with authentication test cleanup completion status | Authentication test cleanup documentation | ACTIVE | N/A |
 | 2025-01-21 | `/session-work/2025-01-21/rsvp-display-issues-investigation.md` | CREATED | Investigation and fixes for RSVP/ticket display issues | React Developer RSVP/ticket bug fix | TEMPORARY | 2025-01-28 |
 | 2025-01-21 | `/docs/functional-areas/events/handoffs/2025-01-21-rsvp-display-fix-handoff.md` | CREATED | Handoff document for RSVP/ticket display fixes | React Developer handoff | ACTIVE | 2025-04-21 |
+| 2025-09-22 | `/apps/api/Features/Participation/Endpoints/ParticipationEndpoints.cs` | MODIFIED | Fixed admin participations endpoint to return ApiResponse wrapper format | Backend Developer - Fix missing RSVP/Tickets data in admin interface | ACTIVE | N/A |
 | 2025-01-21 | `/apps/web/src/utils/eventFieldMapping.ts` | MODIFIED | Fixed critical field mapping bug - preserve API count fields | React Developer RSVP/ticket bug fix | ACTIVE | N/A |
 | 2025-01-21 | `/docs/lessons-learned/react-developer-lessons-learned.md` | MODIFIED | Added lesson about event field mapping bugs | React Developer lessons learned | ACTIVE | N/A |
 | 2025-09-21 | `/apps/web/src/components/events/ParticipationCard.tsx` | MODIFIED | Fixed Cancel RSVP button - added missing confirmation modal | React Developer Cancel RSVP bug fix | ACTIVE | N/A |

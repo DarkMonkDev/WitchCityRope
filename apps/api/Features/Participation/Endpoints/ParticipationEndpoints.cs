@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Participation.Services;
+using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.Participation.Endpoints;
 
@@ -272,18 +273,30 @@ public static class ParticipationEndpoints
             {
                 var result = await participationService.GetEventParticipationsAsync(eventId, cancellationToken);
 
-                return result.IsSuccess
-                    ? Results.Ok(result.Value)
-                    : Results.Problem(
-                        title: "Failed to get event participations",
-                        detail: result.Error,
-                        statusCode: 500);
+                if (result.IsSuccess)
+                {
+                    return Results.Ok(new ApiResponse<List<EventParticipationDto>>
+                    {
+                        Success = true,
+                        Data = result.Value,
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+
+                return Results.Json(new ApiResponse<List<EventParticipationDto>>
+                {
+                    Success = false,
+                    Data = null,
+                    Error = "Failed to get event participations",
+                    Details = result.Error,
+                    Timestamp = DateTime.UtcNow
+                }, statusCode: 500);
             })
             .WithName("GetEventParticipations")
             .WithSummary("Get all participations for an event (admin only)")
             .WithDescription("Returns all RSVPs and ticket purchases for the specified event. Admin role required.")
             .WithTags("Admin", "Participation")
-            .Produces<List<EventParticipationDto>>(200)
+            .Produces<ApiResponse<List<EventParticipationDto>>>(200)
             .Produces(401)
             .Produces(403)
             .Produces(500);
