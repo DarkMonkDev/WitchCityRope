@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WitchCityRope Vetting System - UI Mockups</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,700;6..96,900&family=Montserrat:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;600&family=Satisfy&display=swap" rel="stylesheet">
+
+    <!-- NOTE: Tab titles and descriptions below are for mockup review purposes only -->
+    <!-- The actual UI design consists only of the white content areas, NOT the navigation tabs -->
+    <!-- Tab headers help reviewers navigate between different screens but are not part of final implementation -->
+
+    <style>
+        /* CSS Variables - Design System v7 */
+        :root {
+            /* Primary Colors */
+            --color-burgundy: #880124;
+            --color-burgundy-dark: #660119;
+            --color-burgundy-light: #AA0130;
+            --color-plum: #614B79;
+
+            /* Warm Metallics */
+            --color-rose-gold: #B76D75;
+            --color-copper: #B87333;
+            --color-brass: #C9A961;
+
+            /* CTA Accent Colors */
+            --color-amber: #FFBF00;
+            --color-amber-dark: #DAA520;
+            --color-electric: #9D4EDD;
+
+            /* Neutral Colors */
+            --color-midnight: #1A1A2E;
+            --color-charcoal: #2B2B2B;
+            --color-gray: #666666;
+            --color-gray-light: #CCCCCC;
+            --color-stone: #8B8680;
+            --color-taupe: #B8B0A8;
+            --color-ivory: #FFF8F0;
+            --color-cream: #FAF6F2;
+            --color-off-white: #F5F5F5;
+
+            /* Status Colors */
+            --color-success: #228B22;
+            --color-warning: #DAA520;
+            --color-error: #DC143C;
+            --color-info: #614B79;
+
+            /* Typography */
+            --font-display: 'Bodoni Moda', serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            --font-accent: 'Satisfy', cursive;
+
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 16px;
+            --space-md: 24px;
+            --space-lg: 32px;
+            --space-xl: 40px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--color-charcoal);
+            background-color: var(--color-cream);
+        }
+
+        /* MOCKUP NAVIGATION - NOT PART OF ACTUAL DESIGN */
+        .nav-tabs {
+            display: flex;
+            gap: 2px;
+            margin-bottom: var(--space-lg);
+            border-bottom: 2px solid var(--color-gray-light);
+            background: linear-gradient(to right, rgba(136, 1, 36, 0.05), rgba(250, 246, 242, 1));
+            padding: var(--space-sm);
+            border-radius: 8px 8px 0 0;
+        }
+
+        .nav-tab {
+            padding: 12px 24px;
+            background: var(--color-off-white);
+            border: none;
+            border-radius: 8px 8px 0 0;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--color-gray);
+        }
+
+        .nav-tab.active {
+            background: var(--color-ivory);
+            color: var(--color-burgundy);
+            border-bottom: 2px solid var(--color-burgundy);
+        }
+
+        .nav-tab:hover:not(.active) {
+            background: var(--color-ivory);
+            color: var(--color-charcoal);
+        }
+
+        .mockup-note {
+            background: rgba(255, 191, 0, 0.1);
+            border: 2px solid var(--color-amber);
+            border-radius: 8px;
+            padding: var(--space-md);
+            margin-bottom: var(--space-lg);
+            text-align: center;
+        }
+
+        .mockup-note h3 {
+            color: var(--color-burgundy);
+            font-family: var(--font-heading);
+            margin-bottom: var(--space-sm);
+        }
+
+        /* ACTUAL DESIGN ELEMENTS START HERE */
+
+        /* Page Layout */
+        .page {
+            display: none;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--space-lg);
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .page-header {
+            margin-bottom: var(--space-lg);
+        }
+
+        .page-title {
+            font-family: var(--font-heading);
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-sm);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title-status {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .page-subtitle {
+            color: var(--color-gray);
+            font-size: 18px;
+        }
+
+        /* Button Styles - Signature Corner Morphing */
+        .btn {
+            padding: 12px 24px;
+            border-radius: 12px 6px 12px 6px;
+            text-decoration: none;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            display: inline-block;
+            cursor: pointer;
+            border: none;
+            position: relative;
+        }
+
+        .btn:hover {
+            border-radius: 6px 12px 6px 12px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+            color: var(--color-midnight);
+            box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--color-burgundy);
+            border: 2px solid var(--color-burgundy);
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-burgundy);
+            color: var(--color-ivory);
+        }
+
+        .btn-tertiary {
+            background: transparent;
+            color: var(--color-stone);
+            border: 2px solid var(--color-stone);
+        }
+
+        .btn-tertiary:hover {
+            background: var(--color-stone);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--color-error);
+            color: white;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        /* Data Grid - Match existing events admin styling exactly */
+        .data-grid {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .grid-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-md);
+            background: var(--color-ivory);
+            border-bottom: 2px solid var(--color-gray-light);
+        }
+
+        .grid-title {
+            font-family: var(--font-heading);
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--color-charcoal);
+        }
+
+        .grid-controls {
+            display: flex;
+            gap: var(--space-sm);
+            align-items: center;
+        }
+
+        /* Search and Filter */
+        .search-filter-bar {
+            display: flex;
+            gap: var(--space-md);
+            padding: var(--space-md);
+            background: var(--color-off-white);
+            border-bottom: 1px solid var(--color-gray-light);
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: var(--font-body);
+            background: var(--color-cream);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--color-burgundy);
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(183, 109, 117, 0.3);
+            outline: none;
+        }
+
+        .filter-select {
+            padding: 12px 16px;
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: var(--font-body);
+            background: var(--color-cream);
+            min-width: 200px;
+        }
+
+        /* Bulk Operations Bar - Always Visible */
+        .bulk-operations-header {
+            background: var(--color-ivory);
+            padding: var(--space-md);
+            border-bottom: 2px solid var(--color-gray-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bulk-operations-header h3 {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-charcoal);
+            margin: 0;
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: var(--space-sm);
+        }
+
+        /* Table */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            background: var(--color-burgundy);
+            padding: var(--space-md);
+            text-align: left;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: white;
+            border-bottom: 2px solid var(--color-burgundy-dark);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .table th.sortable:hover {
+            background: var(--color-burgundy-light);
+        }
+
+        .table th.sortable::after {
+            content: '↕';
+            position: absolute;
+            right: 8px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .table th.sorted-desc::after {
+            content: '↓';
+            color: white;
+        }
+
+        .table td {
+            padding: var(--space-md);
+            border-bottom: 1px solid var(--color-gray-light);
+            vertical-align: middle;
+        }
+
+        .table tbody tr {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .table tbody tr:nth-child(even) {
+            background: var(--color-off-white);
+        }
+
+        .table tbody tr:hover {
+            background: var(--color-ivory);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: var(--font-heading);
+        }
+
+        .status-under-review {
+            background: rgba(97, 75, 121, 0.1);
+            color: var(--color-plum);
+            border: 1px solid var(--color-plum);
+        }
+
+        .status-interview-approved {
+            background: rgba(34, 139, 34, 0.1);
+            color: var(--color-success);
+            border: 1px solid var(--color-success);
+        }
+
+        .status-interview-scheduled {
+            background: rgba(0, 123, 255, 0.1);
+            color: #007bff;
+            border: 1px solid #007bff;
+        }
+
+        .status-approved {
+            background: rgba(34, 139, 34, 0.2);
+            color: var(--color-success);
+            border: 2px solid var(--color-success);
+        }
+
+        .status-denied {
+            background: rgba(220, 20, 60, 0.1);
+            color: var(--color-error);
+            border: 1px solid var(--color-error);
+        }
+
+        .status-on-hold {
+            background: rgba(139, 134, 128, 0.1);
+            color: var(--color-stone);
+            border: 1px solid var(--color-stone);
+        }
+
+        /* Checkbox */
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--color-burgundy);
+            cursor: pointer;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-md);
+            background: var(--color-off-white);
+            border-top: 1px solid var(--color-gray-light);
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: var(--space-sm);
+            align-items: center;
+        }
+
+        .pagination-btn {
+            padding: 8px 12px;
+            border: 1px solid var(--color-gray-light);
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pagination-btn:hover {
+            background: var(--color-burgundy);
+            color: white;
+        }
+
+        .pagination-btn.active {
+            background: var(--color-burgundy);
+            color: white;
+        }
+
+        .pagination-info {
+            color: var(--color-gray);
+            font-size: 14px;
+        }
+
+        .per-page-select {
+            padding: 6px 12px;
+            border: 1px solid var(--color-gray-light);
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            padding: var(--space-lg);
+            border-bottom: 2px solid var(--color-gray-light);
+            background: var(--color-ivory);
+        }
+
+        .modal-title {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--color-charcoal);
+        }
+
+        .modal-body {
+            padding: var(--space-lg);
+        }
+
+        .modal-footer {
+            padding: var(--space-lg);
+            border-top: 1px solid var(--color-gray-light);
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--space-sm);
+        }
+
+        /* Form Styles with Floating Labels */
+        .form-group {
+            margin-bottom: var(--space-md);
+            position: relative;
+        }
+
+        .floating-input-container {
+            position: relative;
+        }
+
+        .floating-input {
+            width: 100%;
+            padding: var(--space-md) var(--space-sm) var(--space-xs) var(--space-sm);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: var(--font-body);
+            background: var(--color-cream);
+            transition: all 0.3s ease;
+        }
+
+        .floating-input:focus {
+            border-color: var(--color-burgundy);
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(183, 109, 117, 0.3);
+            outline: none;
+        }
+
+        .floating-label {
+            position: absolute;
+            left: var(--space-sm);
+            top: 50%;
+            transform: translateY(-50%);
+            transition: all 0.3s ease;
+            color: var(--color-stone);
+            font-family: var(--font-heading);
+            font-weight: 500;
+            pointer-events: none;
+            background: var(--color-cream);
+            padding: 0 4px;
+        }
+
+        .floating-input:focus + .floating-label,
+        .floating-input:not(:placeholder-shown) + .floating-label,
+        .floating-input.has-value + .floating-label {
+            top: -2px;
+            transform: translateY(-50%) scale(0.8);
+            color: var(--color-burgundy);
+            background: var(--color-cream);
+        }
+
+        .floating-textarea {
+            width: 100%;
+            padding: var(--space-md) var(--space-sm);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: var(--font-body);
+            background: var(--color-cream);
+            min-height: 120px;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        .floating-textarea:focus {
+            border-color: var(--color-burgundy);
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(183, 109, 117, 0.3);
+            outline: none;
+        }
+
+        /* Layout Helpers */
+        .flex {
+            display: flex;
+        }
+
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .flex-end {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .gap-sm {
+            gap: var(--space-sm);
+        }
+
+        .gap-md {
+            gap: var(--space-md);
+        }
+
+        .text-sm {
+            font-size: 14px;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mb-sm {
+            margin-bottom: var(--space-sm);
+        }
+
+        .mb-md {
+            margin-bottom: var(--space-md);
+        }
+
+        .mb-lg {
+            margin-bottom: var(--space-lg);
+        }
+
+        /* Dashboard Widget */
+        .dashboard-widget {
+            background: var(--color-ivory);
+            border-radius: 12px;
+            padding: var(--space-lg);
+            border-left: 4px solid var(--color-burgundy);
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-widget:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .widget-title {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-sm);
+        }
+
+        .widget-content {
+            color: var(--color-gray);
+        }
+
+        /* Email Template Editor */
+        .template-editor {
+            border: 2px solid var(--color-gray-light);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .template-header {
+            background: var(--color-ivory);
+            padding: var(--space-md);
+            border-bottom: 1px solid var(--color-gray-light);
+        }
+
+        .template-body {
+            padding: var(--space-md);
+            background: white;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: var(--space-xs);
+            margin-bottom: var(--space-sm);
+            padding: var(--space-sm);
+            background: var(--color-off-white);
+            border-radius: 8px;
+        }
+
+        .toolbar-btn {
+            padding: 8px 12px;
+            border: 1px solid var(--color-gray-light);
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .toolbar-btn:hover {
+            background: var(--color-burgundy);
+            color: white;
+        }
+
+        /* Bulk Operations */
+        .bulk-operations {
+            background: var(--color-off-white);
+            padding: var(--space-md);
+            border-radius: 8px;
+            margin-bottom: var(--space-md);
+            border: 2px dashed var(--color-gray-light);
+        }
+
+        .bulk-selected {
+            color: var(--color-burgundy);
+            font-weight: 600;
+        }
+
+        /* Status Banner */
+        .status-banner {
+            background: var(--color-ivory);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 12px;
+            padding: var(--space-lg);
+            margin-bottom: var(--space-lg);
+            text-align: center;
+        }
+
+        .status-banner.interview-approved {
+            background: rgba(34, 139, 34, 0.1);
+            border-color: var(--color-success);
+        }
+
+        .status-banner.on-hold {
+            background: rgba(139, 134, 128, 0.1);
+            border-color: var(--color-stone);
+        }
+
+        .status-banner.approved {
+            background: rgba(34, 139, 34, 0.15);
+            border-color: var(--color-success);
+        }
+
+        .status-banner.denied {
+            background: rgba(220, 20, 60, 0.1);
+            border-color: var(--color-error);
+        }
+
+        /* Application Content */
+        .application-content {
+            background: var(--color-off-white);
+            border-radius: 12px;
+            padding: var(--space-lg);
+            margin-bottom: var(--space-lg);
+        }
+
+        .application-field {
+            margin-bottom: var(--space-md);
+        }
+
+        .application-field label {
+            font-weight: 600;
+            color: var(--color-charcoal);
+            display: block;
+            margin-bottom: var(--space-xs);
+        }
+
+        .application-field .value {
+            color: var(--color-gray);
+        }
+
+        /* Notes Timeline */
+        .notes-timeline {
+            border-left: 3px solid var(--color-gray-light);
+            padding-left: var(--space-md);
+        }
+
+        .note-item {
+            margin-bottom: var(--space-md);
+            position: relative;
+            background: var(--color-off-white);
+            padding: var(--space-sm);
+            border-radius: 8px;
+        }
+
+        .note-item::before {
+            content: '';
+            position: absolute;
+            left: -21px;
+            top: 8px;
+            width: 12px;
+            height: 12px;
+            background: var(--color-burgundy);
+            border-radius: 50%;
+            border: 3px solid white;
+        }
+
+        .note-timestamp {
+            font-size: 12px;
+            color: var(--color-gray);
+            font-weight: 600;
+        }
+
+        .note-content {
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .note-status-change {
+            color: var(--color-burgundy);
+            font-weight: 600;
+        }
+
+        /* Template Navigation */
+        .template-nav-item {
+            padding: var(--space-md);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: var(--space-sm);
+            border: 2px solid transparent;
+        }
+
+        .template-nav-item:hover {
+            background: var(--color-ivory);
+            border-color: var(--color-rose-gold);
+        }
+
+        .template-nav-item.active {
+            background: var(--color-ivory);
+            border-color: var(--color-burgundy);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .page {
+                padding: var(--space-sm);
+            }
+
+            .search-filter-bar {
+                flex-direction: column;
+                gap: var(--space-sm);
+            }
+
+            .bulk-operations-header {
+                flex-direction: column;
+                gap: var(--space-sm);
+                align-items: flex-start;
+            }
+
+            .table {
+                font-size: 14px;
+            }
+
+            .table th,
+            .table td {
+                padding: var(--space-sm);
+            }
+
+            .modal {
+                width: 95%;
+                margin: var(--space-sm);
+            }
+
+            .nav-tabs {
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .nav-tab {
+                padding: 10px 16px;
+                font-size: 12px;
+            }
+
+            .page-title {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-sm);
+            }
+
+            .pagination {
+                flex-direction: column;
+                gap: var(--space-sm);
+                align-items: center;
+            }
+        }
+
+        /* Hide elements for demo */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Mockup Note -->
+    <div class="mockup-note">
+        <h3>⚠️ MOCKUP NAVIGATION NOTICE</h3>
+        <p><strong>The tabs below are for review purposes only.</strong> They help navigate between different screens during design review but are NOT part of the actual UI implementation. Only the white content areas represent the actual design.</p>
+    </div>
+
+    <!-- Navigation Tabs (FOR MOCKUP REVIEW ONLY) -->
+    <div class="nav-tabs">
+        <button class="nav-tab active" onclick="showPage('admin-grid')">Admin Review Grid</button>
+        <button class="nav-tab" onclick="showPage('application-detail')">Application Detail</button>
+        <button class="nav-tab" onclick="showPage('email-templates')">Email Templates</button>
+        <button class="nav-tab" onclick="showPage('user-dashboard')">User Dashboard</button>
+        <button class="nav-tab" onclick="showPage('application-form')">Application Form</button>
+        <button class="nav-tab" onclick="showPage('bulk-operations')">Bulk Operations</button>
+    </div>
+
+    <!-- Page 1: Admin Vetting Review Grid -->
+    <div id="admin-grid" class="page active">
+        <div class="data-grid">
+            <!-- Bulk Operations Header - Always Visible -->
+            <div class="bulk-operations-header">
+                <h3>Vetting Applications</h3>
+                <div class="bulk-actions">
+                    <button class="btn btn-secondary btn-small" onclick="showModal('reminder-modal')">Send Reminder</button>
+                    <button class="btn btn-secondary btn-small" onclick="showModal('on-hold-modal')">Change to On Hold</button>
+                </div>
+            </div>
+
+            <div class="search-filter-bar">
+                <input type="text" class="search-input" placeholder="Search by name, email, or scene name...">
+                <select class="filter-select">
+                    <option selected>Under Review, Interview Approved & Scheduled</option>
+                    <option>All Statuses</option>
+                    <option>Under Review</option>
+                    <option>Interview Approved</option>
+                    <option>Interview Scheduled</option>
+                    <option>On Hold</option>
+                    <option>Denied</option>
+                    <option>Approved</option>
+                </select>
+                <select class="filter-select">
+                    <option>All Time</option>
+                    <option>Last 7 days</option>
+                    <option>Last 30 days</option>
+                    <option>Last 90 days</option>
+                </select>
+            </div>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th width="40"><input type="checkbox" class="checkbox" onchange="toggleBulk()"></th>
+                        <th class="sortable">Name</th>
+                        <th class="sortable">FetLife Name</th>
+                        <th>Email</th>
+                        <th class="sortable sorted-desc">Application Date ↓</th>
+                        <th>Current Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr onclick="showModal('detail-modal-1')">
+                        <td><input type="checkbox" class="checkbox" onclick="event.stopPropagation()"></td>
+                        <td><strong>Jamie Taylor</strong></td>
+                        <td><strong>BondageNewbie</strong></td>
+                        <td>jamie.taylor@email.com</td>
+                        <td>2025-09-21</td>
+                        <td><span class="status-badge status-under-review">Under Review</span></td>
+                    </tr>
+                    <tr onclick="showModal('detail-modal-2')">
+                        <td><input type="checkbox" class="checkbox" onclick="event.stopPropagation()"></td>
+                        <td><strong>Sarah Chen</strong></td>
+                        <td><strong>RopeEnthusiast23</strong></td>
+                        <td>sarah.chen@email.com</td>
+                        <td>2025-09-20</td>
+                        <td><span class="status-badge status-interview-approved">Interview Approved</span></td>
+                    </tr>
+                    <tr onclick="showModal('detail-modal-3')">
+                        <td><input type="checkbox" class="checkbox" onclick="event.stopPropagation()"></td>
+                        <td><strong>Alex Rivera</strong></td>
+                        <td><strong>KnotLearner</strong></td>
+                        <td>alex.rivera@email.com</td>
+                        <td>2025-09-18</td>
+                        <td><span class="status-badge status-under-review">Under Review</span></td>
+                    </tr>
+                    <tr onclick="showModal('detail-modal-4')">
+                        <td><input type="checkbox" class="checkbox" onclick="event.stopPropagation()"></td>
+                        <td><strong>Morgan Kim</strong></td>
+                        <td><strong>ShibariCurious</strong></td>
+                        <td>morgan.kim@email.com</td>
+                        <td>2025-09-15</td>
+                        <td><span class="status-badge status-interview-approved">Interview Approved</span></td>
+                    </tr>
+                    <tr onclick="showModal('detail-modal-5')">
+                        <td><input type="checkbox" class="checkbox" onclick="event.stopPropagation()"></td>
+                        <td><strong>Jordan Martinez</strong></td>
+                        <td><strong>RopeArtist</strong></td>
+                        <td>jordan.martinez@email.com</td>
+                        <td>2025-09-10</td>
+                        <td><span class="status-badge status-approved">Approved</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <div class="pagination-info">
+                    Showing 1-5 of 127 applications
+                </div>
+                <div style="display: flex; gap: var(--space-md); align-items: center;">
+                    <div style="display: flex; align-items: center; gap: var(--space-xs);">
+                        <span class="text-sm">Per page:</span>
+                        <select class="per-page-select">
+                            <option>10</option>
+                            <option selected>25</option>
+                            <option>50</option>
+                            <option>100</option>
+                        </select>
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="pagination-btn">« Previous</button>
+                        <button class="pagination-btn active">1</button>
+                        <button class="pagination-btn">2</button>
+                        <button class="pagination-btn">3</button>
+                        <button class="pagination-btn">Next »</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 2: Application Detail View -->
+    <div id="application-detail" class="page">
+        <div class="page-header">
+            <h1 class="page-title">
+                Application - Sarah Chen (RopeEnthusiast23)
+                <span class="title-status">
+                    <span class="status-badge status-interview-approved">Interview Approved</span>
+                </span>
+            </h1>
+        </div>
+
+        <!-- Action Buttons - Only show appropriate ones for status -->
+        <div style="display: flex; gap: var(--space-md); margin-bottom: var(--space-lg); flex-wrap: wrap;">
+            <!-- For Interview Approved status, don't show "Approve for Interview" -->
+            <button class="btn btn-primary">Approve Application</button>
+            <button class="btn btn-secondary">Put On Hold</button>
+            <button class="btn btn-danger">Deny Application</button>
+        </div>
+
+        <!-- Application Information -->
+        <div class="data-grid mb-lg">
+            <div style="padding: var(--space-lg);">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg); margin-bottom: var(--space-lg);">
+                    <div>
+                        <strong>Scene Name:</strong> RopeEnthusiast23<br>
+                        <strong>Real Name:</strong> Sarah Chen<br>
+                        <strong>Email:</strong> sarah.chen@email.com<br>
+                        <strong>Pronouns:</strong> she/her
+                    </div>
+                    <div>
+                        <strong>Application Date:</strong> September 20, 2025<br>
+                        <strong>FetLife Handle:</strong> @RopeEnthusiast23<br>
+                        <strong>How Found Us:</strong> FetLife group recommendation
+                    </div>
+                </div>
+
+                <div class="mb-md">
+                    <strong>Other Names/Handles:</strong><br>
+                    <span style="color: var(--color-gray);">SarahShibari (Instagram), RopeQueen23 (old FetLife)</span>
+                </div>
+
+                <div class="mb-md">
+                    <strong>Tell Us About Yourself:</strong><br>
+                    <div style="background: var(--color-off-white); padding: var(--space-md); border-radius: 8px; margin-top: var(--space-xs);">
+                        I've been interested in rope bondage for about 2 years and have been learning through online resources and a few local workshops. I'm particularly drawn to the meditative and artistic aspects of shibari. I've attended a few munches in the Boston area and am looking to deepen my practice in a safe, supportive community. I'm especially interested in learning suspension techniques and would love to both tie and be tied. Safety is my top priority, and I'm committed to ongoing education about consent and risk-aware practices.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Combined Notes and Status History -->
+        <div class="data-grid">
+            <div class="grid-header">
+                <h2 class="grid-title">Notes and Status History</h2>
+            </div>
+            <div style="padding: var(--space-lg);">
+                <!-- Add New Note -->
+                <div class="form-group">
+                    <div class="floating-input-container">
+                        <textarea class="floating-textarea" placeholder=" " rows="3"></textarea>
+                        <label class="floating-label">Add Note</label>
+                    </div>
+                    <div class="flex-end" style="margin-top: var(--space-sm);">
+                        <button class="btn btn-secondary btn-small">Save Note</button>
+                    </div>
+                </div>
+
+                <!-- Timeline -->
+                <div class="notes-timeline">
+                    <div class="note-item note-status-change">
+                        <div class="note-timestamp">Sept 20, 2025 3:42 PM - Admin User</div>
+                        <div class="note-content">Status changed from "Under Review" to "Interview Approved"</div>
+                    </div>
+
+                    <div class="note-item">
+                        <div class="note-timestamp">Sept 20, 2025 1:15 PM - System</div>
+                        <div class="note-content">Application submitted and confirmation email sent</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 3: Email Templates -->
+    <div id="email-templates" class="page">
+        <div class="page-header">
+            <h1 class="page-title">Vetting Email Templates</h1>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 300px 1fr; gap: var(--space-lg);">
+            <!-- Template List -->
+            <div class="data-grid">
+                <div class="grid-header">
+                    <h3 style="font-size: 16px; margin: 0;">Template Types</h3>
+                </div>
+                <div style="padding: var(--space-md);">
+                    <div class="template-nav">
+                        <div class="template-nav-item active" onclick="selectTemplate('received')">
+                            <strong>Application Received</strong>
+                        </div>
+                        <div class="template-nav-item" onclick="selectTemplate('interview-approved')">
+                            <strong>Interview Approved</strong>
+                        </div>
+                        <div class="template-nav-item" onclick="selectTemplate('approved')">
+                            <strong>Application Approved</strong>
+                        </div>
+                        <div class="template-nav-item" onclick="selectTemplate('on-hold')">
+                            <strong>Application On Hold</strong>
+                        </div>
+                        <div class="template-nav-item" onclick="selectTemplate('denied')">
+                            <strong>Application Denied</strong>
+                        </div>
+                        <div class="template-nav-item" onclick="selectTemplate('reminder')">
+                            <strong>Interview Reminder</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Template Editor -->
+            <div class="template-editor">
+                <div class="template-header">
+                    <h3 style="margin: 0;">Application Received Template</h3>
+                </div>
+                <div class="template-body">
+                    <div class="form-group">
+                        <div class="floating-input-container">
+                            <input type="text" class="floating-input has-value" value="Your Witch City Rope Application - Thank You!">
+                            <label class="floating-label">Email Subject</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: var(--space-xs); font-weight: 600; color: var(--color-charcoal);">Email Body</label>
+                        <div class="toolbar">
+                            <button class="toolbar-btn"><strong>B</strong></button>
+                            <button class="toolbar-btn"><em>I</em></button>
+                            <button class="toolbar-btn">🔗</button>
+                            <button class="toolbar-btn">📋</button>
+                            <select class="toolbar-btn" style="width: auto;">
+                                <option>Insert Variable</option>
+                                <option>{{applicant_name}}</option>
+                                <option>{{application_date}}</option>
+                                <option>{{application_id}}</option>
+                                <option>{{contact_email}}</option>
+                            </select>
+                        </div>
+                        <textarea class="floating-textarea" rows="12" style="font-family: monospace;">Hello {{applicant_name}},
+
+Thank you for applying to join Witch City Rope! We've received your application submitted on {{application_date}}.
+
+**What happens next:**
+- Our team will review your application within 1-2 weeks
+- You'll receive another email once we've made a decision
+- If approved for an interview, we'll provide scheduling instructions
+
+**Application Details:**
+- Application ID: {{application_id}}
+- Submitted: {{application_date}}
+
+If you have any questions, please don't hesitate to contact us at support@witchcityrope.com.
+
+Thank you for your interest in our community!
+
+The Witch City Rope Team</textarea>
+                    </div>
+
+                    <div class="flex-between">
+                        <button class="btn btn-secondary">Preview</button>
+                        <div class="flex gap-sm">
+                            <button class="btn btn-secondary">Reset to Default</button>
+                            <button class="btn btn-primary">Save Template</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 4: User Dashboard Integration -->
+    <div id="user-dashboard" class="page">
+        <div class="page-header">
+            <h1 class="page-title">User Dashboard Integration</h1>
+        </div>
+
+        <!-- Dashboard Example -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg); margin-bottom: var(--space-lg);">
+            <!-- Under Review State -->
+            <div class="dashboard-widget">
+                <div class="widget-title">Application Status</div>
+                <div class="widget-content">
+                    <div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm);">
+                        <span class="status-badge status-under-review">Under Review</span>
+                        <span class="text-sm" style="color: var(--color-gray);">Sept 20, 2025</span>
+                    </div>
+                    <p style="margin-bottom: var(--space-sm);">Your vetting application is under review. We'll contact you within 1-2 weeks with our decision.</p>
+                    <button class="btn btn-tertiary btn-small">View Application</button>
+                </div>
+            </div>
+
+            <!-- Interview Approved State -->
+            <div class="dashboard-widget">
+                <div class="widget-title">Application Status</div>
+                <div class="widget-content">
+                    <div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm);">
+                        <span class="status-badge status-interview-approved">Interview Approved</span>
+                        <span class="text-sm" style="color: var(--color-gray);">Sept 20, 2025</span>
+                    </div>
+                    <p style="margin-bottom: var(--space-sm);">Congratulations! Your application has been approved for an interview. Please schedule your interview using the button below.</p>
+                    <div style="display: flex; gap: var(--space-sm);">
+                        <button class="btn btn-primary btn-small">Schedule Interview</button>
+                        <button class="btn btn-tertiary btn-small">View Application</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Post-Application States -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg);">
+            <!-- On Hold State -->
+            <div class="dashboard-widget">
+                <div class="widget-title">Application Status</div>
+                <div class="widget-content">
+                    <div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm);">
+                        <span class="status-badge status-on-hold">On Hold</span>
+                        <span class="text-sm" style="color: var(--color-gray);">Sept 20, 2025</span>
+                    </div>
+                    <p style="margin-bottom: var(--space-sm);">Your application is currently on hold. If you have questions, please contact support@witchcityrope.com.</p>
+                    <button class="btn btn-tertiary btn-small">View Application</button>
+                </div>
+            </div>
+
+            <!-- Approved State -->
+            <div class="dashboard-widget">
+                <div class="widget-title">Application Status</div>
+                <div class="widget-content">
+                    <div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm);">
+                        <span class="status-badge status-approved">Approved</span>
+                        <span class="text-sm" style="color: var(--color-gray);">Sept 15, 2025</span>
+                    </div>
+                    <p style="margin-bottom: var(--space-sm);">Welcome to Witch City Rope! Your membership is now active.</p>
+                    <button class="btn btn-tertiary btn-small">View Application</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Application Status Page (when already submitted) -->
+        <div style="margin-top: var(--space-xl);">
+            <h3 style="font-family: var(--font-heading); margin-bottom: var(--space-md);">Application Status Page</h3>
+
+            <!-- Interview Approved Status -->
+            <div class="status-banner interview-approved">
+                <div style="display: flex; align-items: center; gap: var(--space-sm); justify-content: center; margin-bottom: var(--space-sm);">
+                    <span class="status-badge status-interview-approved">Interview Approved</span>
+                    <span class="text-sm" style="color: var(--color-gray);">Updated Sept 20, 2025</span>
+                </div>
+                <p style="margin-bottom: var(--space-md);"><strong>Next Step:</strong> Schedule your interview by contacting interviews@witchcityrope.com</p>
+                <button class="btn btn-primary">Schedule Interview</button>
+            </div>
+
+            <!-- Application Content (Read-Only) -->
+            <div class="application-content">
+                <h3 style="font-family: var(--font-heading); margin-bottom: var(--space-md); color: var(--color-charcoal);">Your Application</h3>
+
+                <div class="application-field">
+                    <label>Scene Name</label>
+                    <div class="value">RopeEnthusiast23</div>
+                </div>
+
+                <div class="application-field">
+                    <label>Real Name</label>
+                    <div class="value">Sarah Chen</div>
+                </div>
+
+                <div class="application-field">
+                    <label>Email</label>
+                    <div class="value">sarah.chen@email.com</div>
+                </div>
+
+                <div class="application-field">
+                    <label>FetLife Handle</label>
+                    <div class="value">@RopeEnthusiast23</div>
+                </div>
+
+                <div class="application-field">
+                    <label>How did you learn about Witch City Rope?</label>
+                    <div class="value">FetLife group recommendation</div>
+                </div>
+
+                <div class="application-field">
+                    <label>Tell Us About Yourself</label>
+                    <div class="value">I've been interested in rope bondage for about 2 years and have been learning through online resources and a few local workshops. I'm particularly drawn to the meditative and artistic aspects of shibari...</div>
+                </div>
+
+                <div class="application-field">
+                    <label>Submitted</label>
+                    <div class="value">September 20, 2025</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 5: Application Form -->
+    <div id="application-form" class="page">
+        <div class="data-grid">
+            <div style="padding: var(--space-xl);">
+                <div style="margin-bottom: var(--space-lg);">
+                    <h2 style="font-family: var(--font-heading); font-size: 32px; margin-bottom: var(--space-sm); color: var(--color-charcoal);">Apply to Join Witch City Rope</h2>
+                    <p style="color: var(--color-gray); font-size: 18px;">Please fill out this application thoughtfully. We review all applications within 1-2 weeks.</p>
+                </div>
+
+                <form>
+                    <!-- Basic Information -->
+                    <div class="form-group">
+                        <div class="floating-input-container">
+                            <input type="text" class="floating-input" placeholder=" ">
+                            <label class="floating-label">Real Name *</label>
+                        </div>
+                        <div class="text-sm" style="color: var(--color-gray); margin-top: var(--space-xs);">
+                            Your legal or real name for our records
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="floating-input-container">
+                            <input type="text" class="floating-input" placeholder=" ">
+                            <label class="floating-label">Preferred Scene Name *</label>
+                        </div>
+                        <div class="text-sm" style="color: var(--color-gray); margin-top: var(--space-xs);">
+                            This is how you'll be known at events. You can use any name you're comfortable with.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="floating-input-container">
+                            <input type="text" class="floating-input" placeholder=" ">
+                            <label class="floating-label">FetLife Handle</label>
+                        </div>
+                        <div class="text-sm" style="color: var(--color-gray); margin-top: var(--space-xs);">
+                            Optional - helps us verify community connections
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="floating-input-container">
+                            <input type="text" class="floating-input" placeholder=" ">
+                            <label class="floating-label">Pronouns</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="floating-input-container">
+                            <input type="email" class="floating-input has-value" value="user@example.com" readonly style="background: var(--color-off-white);">
+                            <label class="floating-label">Email Address *</label>
+                        </div>
+                        <div class="text-sm" style="color: var(--color-gray); margin-top: var(--space-xs);">
+                            We'll use this to contact you about your application
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="floating-input-container">
+                            <textarea class="floating-textarea" placeholder=" " rows="3"></textarea>
+                            <label class="floating-label">Other Names or Handles</label>
+                        </div>
+                        <div class="text-sm" style="color: var(--color-gray); margin-top: var(--space-xs);">
+                            List any other names, nicknames, or social media handles you've used in kinky contexts
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="floating-input-container">
+                            <textarea class="floating-textarea" placeholder=" " rows="6"></textarea>
+                            <label class="floating-label">Tell Us About Yourself *</label>
+                        </div>
+                        <div class="text-sm" style="color: var(--color-gray); margin-top: var(--space-xs);">
+                            Share your experience in rope bondage, BDSM, or kink communities, and why you'd like to join
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="floating-input-container">
+                            <input type="text" class="floating-input" placeholder=" ">
+                            <label class="floating-label">How did you learn about Witch City Rope? *</label>
+                        </div>
+                    </div>
+
+                    <!-- Agreement Section -->
+                    <div style="background: var(--color-off-white); border: 2px solid var(--color-gray-light); border-radius: 12px; padding: var(--space-md); margin: var(--space-lg) 0;">
+                        <h3 style="margin-bottom: var(--space-sm); color: var(--color-charcoal); font-family: var(--font-heading);">Community Standards Agreement</h3>
+                        <p style="margin-bottom: var(--space-sm);">By submitting this application, you acknowledge that:</p>
+                        <ul style="margin-left: var(--space-md); margin-bottom: var(--space-md); color: var(--color-gray);">
+                            <li>You are at least 21 years old</li>
+                            <li>You are comfortable with nudity, sex, and BDSM being discussed</li>
+                            <li>You understand the importance of consent and boundaries</li>
+                            <li>You will conduct yourself respectfully</li>
+                            <li>You agree to follow our Code of Conduct</li>
+                        </ul>
+                        <div style="display: flex; align-items: flex-start; gap: var(--space-sm);">
+                            <input type="checkbox" class="checkbox" id="agreement-new">
+                            <label for="agreement-new" style="cursor: pointer; color: var(--color-charcoal);"><strong>I agree to all of the above items</strong></label>
+                        </div>
+                    </div>
+
+                    <div class="flex-end">
+                        <button type="submit" class="btn btn-primary" style="padding: 16px 32px; font-size: 16px;">Submit Application</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 6: Bulk Operations Modal -->
+    <div id="bulk-operations" class="page">
+        <div class="page-header">
+            <h1 class="page-title">Bulk Operations Modals</h1>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg);">
+            <!-- Reminder Modal -->
+            <div>
+                <h3 style="margin-bottom: var(--space-md);">Send Reminder Email</h3>
+                <div class="modal" style="position: static; max-width: none; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Send Reminder Emails</h3>
+                    </div>
+                    <div class="modal-body">
+                        <p style="margin-bottom: var(--space-md); color: var(--color-gray);">
+                            Send reminder emails to applicants who have been approved for interviews but haven't scheduled yet.
+                        </p>
+
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: var(--space-xs); font-weight: 600; color: var(--color-charcoal);">Send to applications approved more than:</label>
+                            <select class="filter-select" style="width: 100%;">
+                                <option>7 days ago</option>
+                                <option selected>14 days ago</option>
+                                <option>30 days ago</option>
+                                <option>60 days ago</option>
+                            </select>
+                        </div>
+
+                        <div style="background: var(--color-ivory); padding: var(--space-md); border-radius: 8px; margin: var(--space-md) 0;">
+                            <strong>Selected applications will receive reminders:</strong><br>
+                            <div style="margin-top: var(--space-xs);">
+                                • RopeEnthusiast23 (Sarah Chen) - approved 15 days ago<br>
+                                • ShibariCurious (Morgan Kim) - approved 18 days ago<br>
+                                • RopeLearning101 (Alex Johnson) - approved 16 days ago
+                            </div>
+                            <div style="margin-top: var(--space-sm); color: var(--color-burgundy); font-weight: 600;">
+                                Total: 3 applications will receive reminders
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(218, 165, 32, 0.1); padding: var(--space-sm); border-radius: 8px; border-left: 4px solid var(--color-warning);">
+                            <strong>Note:</strong> This will send the "Interview Reminder" email template to the selected applicants.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary">Cancel</button>
+                        <button class="btn btn-primary">Send Reminders</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Change Modal -->
+            <div>
+                <h3 style="margin-bottom: var(--space-md);">Change to On Hold</h3>
+                <div class="modal" style="position: static; max-width: none; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Change to On Hold</h3>
+                    </div>
+                    <div class="modal-body">
+                        <p style="margin-bottom: var(--space-md); color: var(--color-gray);">
+                            Move the selected applications to "On Hold" status?
+                        </p>
+
+                        <div style="background: var(--color-ivory); padding: var(--space-md); border-radius: 8px; margin: var(--space-md) 0;">
+                            <strong>Applications to be changed:</strong><br>
+                            <div style="margin-top: var(--space-xs);">
+                                • ShibariCurious (Morgan Kim)<br>
+                                • RopeLearning101 (Alex Johnson)
+                            </div>
+                            <div style="margin-top: var(--space-sm); color: var(--color-burgundy); font-weight: 600;">
+                                Total: 2 applications will be changed to "On Hold"
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(220, 20, 60, 0.1); padding: var(--space-sm); border-radius: 8px; border-left: 4px solid var(--color-error);">
+                            <strong>Warning:</strong> This will send "Application On Hold" emails to affected applicants and update their status permanently.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary">Cancel</button>
+                        <button class="btn btn-primary" style="background: var(--color-amber); color: var(--color-midnight);">Change to On Hold</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+
+            // Remove active class from all tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        function toggleBulk() {
+            const bulkBar = document.getElementById('bulk-bar');
+            bulkBar.classList.toggle('hidden');
+        }
+
+        function showModal(modalId) {
+            // In a real app, this would show the modal
+            alert('Would show modal: ' + modalId);
+        }
+
+        // Floating label functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('.floating-input, .floating-textarea');
+
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    if (this.value) {
+                        this.classList.add('has-value');
+                    } else {
+                        this.classList.remove('has-value');
+                    }
+                });
+
+                input.addEventListener('focus', function() {
+                    this.classList.add('has-value');
+                });
+
+                input.addEventListener('blur', function() {
+                    if (!this.value) {
+                        this.classList.remove('has-value');
+                    }
+                });
+            });
+        });
+
+        // Template navigation
+        function selectTemplate(templateType) {
+            // Remove active class from all items
+            document.querySelectorAll('.template-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Add active class to clicked item
+            event.target.classList.add('active');
+
+            // Update template editor content (would be dynamic in real app)
+            console.log('Selected template:', templateType);
+        }
+    </script>
+</body>
+</html>

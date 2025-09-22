@@ -8,6 +8,8 @@
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-09-22 | /home/chad/repos/witchcityrope-react/docs/functional-areas/vetting-system/new-work/2025-09-22-complete-implementation/design/database-design.md | CREATED | Comprehensive database schema design for vetting system implementation with 4 new entities, enhanced existing entities, performance indexes, and migration strategy | Database Designer - Vetting System Schema Design | ACTIVE | N/A |
+| 2025-09-22 | /home/chad/repos/witchcityrope-react/docs/functional-areas/vetting-system/new-work/2025-09-22-complete-implementation/handoffs/database-designer-2025-09-22-handoff.md | CREATED | Complete handoff document for backend developer with entity specifications, EF Core configurations, migration strategy, and implementation guidance | Database Designer - Handoff to Backend Developer | ACTIVE | N/A |
 | 2025-09-22 | /home/chad/repos/witchcityrope-react/docs/functional-areas/vetting-system/new-work/2025-09-22-complete-implementation/requirements/business-requirements.md | CREATED | Comprehensive business requirements for vetting system implementation completion | Business Requirements Agent - Vetting System Implementation | ACTIVE | N/A |
 | 2025-09-22 | /home/chad/repos/witchcityrope-react/docs/functional-areas/vetting-system/new-work/2025-09-22-complete-implementation/handoffs/business-requirements-2025-09-22-handoff.md | CREATED | Agent handoff document with critical business rules and implementation guidance | Business Requirements Agent - Vetting System Handoff | ACTIVE | N/A |
 | 2025-09-22 | /home/chad/repos/witchcityrope-react/PROGRESS.md | MODIFIED | Updated current development status to reflect September 22 event management UI/UX improvements completion | Documentation cleanup post-event work | ACTIVE | N/A |
@@ -48,37 +50,26 @@
 | 2025-09-22 | `/apps/web/src/types/participation.types.ts` | MODIFIED | Fixed TypeScript interface to match API DTO structure (eventStartDate vs eventDate) | User dashboard RSVP/ticket display fix | ACTIVE | N/A |
 | 2025-09-22 | `/apps/web/src/components/dashboard/UserParticipations.tsx` | MODIFIED | Updated component to use correct API DTO property names and removed confirmation code display | User dashboard RSVP/ticket display fix | ACTIVE | N/A |
 | 2025-09-22 | `/apps/web/src/hooks/useParticipation.ts` | MODIFIED | Updated mock data structure to match real API response and improved fallback warning | User dashboard RSVP/ticket display fix | ACTIVE | N/A |
-| 2025-09-22 | `/docs/lessons-learned/react-developer-lessons-learned.md` | MODIFIED | Added lesson about DTO interface mismatches breaking API integration | Prevent TypeScript interface mismatches | ACTIVE | Ongoing |
-| 2025-09-22 | `/apps/web/src/pages/dashboard/DashboardPage.tsx` | MODIFIED | Removed duplicate UpcomingEvents section - keep only UserParticipations section | User dashboard cleanup - remove duplicate event sections | ACTIVE | N/A |
+| 2025-09-22 | `/home/chad/repos/witchcityrope-react/docs/functional-areas/vetting-system/new-work/2025-09-22-complete-implementation/requirements/functional-specification.md` | CREATED | Complete functional specification for vetting system implementation | Business Requirements Agent - Functional Specification | ACTIVE | N/A |
 
-## File Management Standards
+## File Categories
 
-### Required Actions
-1. **ALWAYS** log every file operation immediately
-2. **INCLUDE** the full absolute path
-3. **DESCRIBE** the purpose in business terms
-4. **SET** appropriate cleanup dates for temporary files
-5. **UPDATE** status when files are moved or archived
+### Active Project Files
+Files that are part of the permanent project structure and should be maintained.
 
-### File Status Types
-- **ACTIVE**: Permanent files used in production
-- **TEMPORARY**: Session work files, analysis, investigations
-- **DELETED**: Files that have been removed
-- **ARCHIVED**: Moved to archive location
+### Temporary Files
+Files created for specific tasks or sessions that should be cleaned up after use.
 
-### Cleanup Schedule
-- **Session work**: End of session or 30 days maximum
-- **Investigation files**: 30 days unless referenced by permanent docs
-- **Temporary analysis**: 7 days unless needed for handoffs
-- **Agent handoffs**: Keep active until project completion
+### Archived Files
+Files that have been moved to appropriate archive locations.
 
-### File Organization
-- Use descriptive file names with dates
-- Create session work folders: `/session-work/YYYY-MM-DD/`
-- Store permanent documentation in functional areas
-- Archive completed work to appropriate archive folders
+## Cleanup Guidelines
 
----
-**Last Updated**: 2025-09-22
-**Maintained By**: All Agents (mandatory logging)
-**Registry Status**: 41 entries tracked
+- **Temporary files** should be reviewed at the end of each session
+- **Session work** files older than 30 days should be archived or deleted
+- **Investigation reports** should be archived after resolution
+- **Active files** should only be deleted if they become truly obsolete
+
+## Notes
+
+This registry helps track file proliferation and ensures proper project hygiene. When in doubt about file retention, preserve with a clear cleanup date rather than delete immediately.
