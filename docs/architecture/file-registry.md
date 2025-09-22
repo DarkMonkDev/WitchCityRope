@@ -27,3 +27,6 @@
 | 2025-01-21 | `/docs/lessons-learned/react-developer-lessons-learned.md` | MODIFIED | Added lesson about event field mapping bugs | React Developer lessons learned | ACTIVE | N/A |
 | 2025-09-21 | `/apps/web/src/components/events/ParticipationCard.tsx` | MODIFIED | Fixed Cancel RSVP button - added missing confirmation modal | React Developer Cancel RSVP bug fix | ACTIVE | N/A |
 | 2025-09-21 | `/session-work/2025-09-21/cancel-rsvp-button-fix-summary.md` | CREATED | Comprehensive summary of Cancel RSVP button fix and investigation | React Developer bug fix documentation | TEMPORARY | 2025-10-21 |
+| 2025-09-21 | `/apps/api/Features/Dashboard/Services/UserDashboardService.cs` | MODIFIED | Fix GetUserEventsAsync to return actual user participations instead of empty list | Dashboard upcoming events bug fix | ACTIVE | Production fix |
+| 2025-09-21 | `/session-work/2025-09-21/dashboard-upcoming-events-fix.md` | CREATED | Documentation of dashboard events fix implementation and testing | Bug fix documentation | TEMPORARY | 2025-10-21 |
+| 2025-09-21 | `/docs/lessons-learned/react-developer-lessons-learned.md` | MODIFIED | Added lesson about hardcoded empty lists breaking dashboard features | Prevent similar issues in future | ACTIVE | Ongoing |

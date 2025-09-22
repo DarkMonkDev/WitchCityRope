@@ -2,6 +2,53 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 CRITICAL: HARDCODED EMPTY LISTS BREAK DASHBOARD FEATURES 🚨
+
+### ⚠️ PROBLEM: Dashboard "Your Upcoming Events" shows no events despite user having RSVPs
+**DISCOVERED**: 2025-09-21 - Dashboard shows empty events list even when user has active participations
+
+### 🛑 ROOT CAUSE:
+- API service method `GetUserEventsAsync` hardcoded to return empty list
+- Comment says "Return empty list for now to get the endpoint working, then enhance later"
+- Frontend component works correctly but API never returns actual data
+- Placeholder implementations left in production code
+
+### ✅ CRITICAL SOLUTION:
+1. **NEVER ship placeholder implementations** - finish or remove them
+2. **SEARCH for TODO comments** that indicate incomplete functionality
+3. **ALWAYS test API endpoints** with actual data, not just successful responses
+
+```csharp
+// ❌ BROKEN: Hardcoded empty list
+var upcomingEvents = new List<DashboardEventDto>(); // Placeholder!
+
+// ✅ CORRECT: Actual query implementation
+var upcomingEvents = await _context.EventParticipations
+    .AsNoTracking()
+    .Include(ep => ep.Event)
+    .Where(ep => ep.UserId == userId &&
+               ep.Status == ParticipationStatus.Active &&
+               ep.Event.StartDate > now)
+    .OrderBy(ep => ep.Event.StartDate)
+    .Take(count)
+    .Select(ep => new DashboardEventDto { /* proper mapping */ })
+    .ToListAsync(cancellationToken);
+```
+
+### 🔧 MANDATORY VERIFICATION CHECKLIST:
+1. **GREP for "TODO" and "placeholder"** in service methods
+2. **TEST API endpoints** with users who have actual data
+3. **VERIFY data flows** from database → API → frontend
+4. **CHECK for hardcoded empty collections** in service methods
+
+### 💥 CONSEQUENCES OF IGNORING:
+- ❌ Dashboard appears broken to users with active registrations
+- ❌ Users cannot see their upcoming events
+- ❌ Support tickets about "missing events"
+- ❌ Lost user trust in application reliability
+
+---
+
 ## 🚨 CRITICAL: MISSING UI CONFIRMATION MODALS BREAK ACTIONS 🚨
 
 ### ⚠️ PROBLEM: Cancel RSVP button does nothing when clicked

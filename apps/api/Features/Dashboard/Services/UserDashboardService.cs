@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Dashboard.Models;
+using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Shared.Models;
 
 namespace WitchCityRope.Api.Features.Dashboard.Services;
@@ -87,9 +88,31 @@ public class UserDashboardService : IUserDashboardService
         {
             _logger.LogDebug("Getting upcoming events for user: {UserId}, count: {Count}", userId, count);
 
-            // Simplified query to avoid complex joins and computed properties
-            // Return empty list for now to get the endpoint working, then enhance later
-            var upcomingEvents = new List<DashboardEventDto>();
+            var now = DateTime.UtcNow;
+
+            // Query user's active participations for upcoming events
+            var upcomingEvents = await _context.EventParticipations
+                .AsNoTracking()
+                .Include(ep => ep.Event)
+                .Where(ep => ep.UserId == userId &&
+                           ep.Status == ParticipationStatus.Active &&
+                           ep.Event.StartDate > now)
+                .OrderBy(ep => ep.Event.StartDate)
+                .Take(count)
+                .Select(ep => new DashboardEventDto
+                {
+                    Id = ep.EventId,
+                    Title = ep.Event.Title,
+                    StartDate = ep.Event.StartDate,
+                    EndDate = ep.Event.EndDate,
+                    Location = ep.Event.Location ?? string.Empty,
+                    EventType = ep.Event.EventType,
+                    InstructorName = string.Empty, // TODO: Implement organizer lookup if needed
+                    RegistrationStatus = ep.ParticipationType == ParticipationType.RSVP ? "RSVP Confirmed" : "Ticket Purchased",
+                    TicketId = ep.Id,
+                    ConfirmationCode = ep.Id.ToString().Substring(0, 8) // Use first 8 chars of participation ID as confirmation
+                })
+                .ToListAsync(cancellationToken);
 
             var response = new UserEventsResponse
             {
