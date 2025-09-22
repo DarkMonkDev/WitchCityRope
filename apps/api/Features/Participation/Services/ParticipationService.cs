@@ -35,9 +35,12 @@ public class ParticipationService : IParticipationService
         {
             _logger.LogInformation("Getting participation status for user {UserId} in event {EventId}", userId, eventId);
 
+            // Only return ACTIVE participations - cancelled RSVPs should not prevent new ones
             var participation = await _context.EventParticipations
                 .AsNoTracking()
-                .FirstOrDefaultAsync(ep => ep.EventId == eventId && ep.UserId == userId, cancellationToken);
+                .Where(ep => ep.EventId == eventId && ep.UserId == userId && ep.Status == ParticipationStatus.Active)
+                .OrderByDescending(ep => ep.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (participation == null)
             {
@@ -107,13 +110,14 @@ public class ParticipationService : IParticipationService
                 return Result<ParticipationStatusDto>.Failure("RSVPs are only allowed for social events");
             }
 
-            // Check if user already has a participation for this event
+            // Check if user already has an ACTIVE participation for this event
+            // Cancelled RSVPs should not prevent new RSVPs - this allows re-RSVPing
             var existingParticipation = await _context.EventParticipations
-                .FirstOrDefaultAsync(ep => ep.EventId == request.EventId && ep.UserId == userId, cancellationToken);
+                .FirstOrDefaultAsync(ep => ep.EventId == request.EventId && ep.UserId == userId && ep.Status == ParticipationStatus.Active, cancellationToken);
 
             if (existingParticipation != null)
             {
-                return Result<ParticipationStatusDto>.Failure("User already has a participation for this event");
+                return Result<ParticipationStatusDto>.Failure("User already has an active participation for this event");
             }
 
             // Check event capacity
@@ -210,13 +214,14 @@ public class ParticipationService : IParticipationService
                 return Result<ParticipationStatusDto>.Failure("Ticket purchases are only allowed for class events");
             }
 
-            // Check if user already has a participation for this event
+            // Check if user already has an ACTIVE participation for this event
+            // Cancelled ticket purchases should not prevent new ones - this allows re-purchasing
             var existingParticipation = await _context.EventParticipations
-                .FirstOrDefaultAsync(ep => ep.EventId == request.EventId && ep.UserId == userId, cancellationToken);
+                .FirstOrDefaultAsync(ep => ep.EventId == request.EventId && ep.UserId == userId && ep.Status == ParticipationStatus.Active, cancellationToken);
 
             if (existingParticipation != null)
             {
-                return Result<ParticipationStatusDto>.Failure("User already has a participation for this event");
+                return Result<ParticipationStatusDto>.Failure("User already has an active participation for this event");
             }
 
             // Check event capacity
@@ -290,12 +295,16 @@ public class ParticipationService : IParticipationService
         {
             _logger.LogInformation("Cancelling participation for user {UserId} in event {EventId}", userId, eventId);
 
+            // Find the most recent ACTIVE participation for cancellation
+            // Note: We only allow cancelling active participations, so this should only find active ones
             var participation = await _context.EventParticipations
-                .FirstOrDefaultAsync(ep => ep.EventId == eventId && ep.UserId == userId, cancellationToken);
+                .Where(ep => ep.EventId == eventId && ep.UserId == userId && ep.Status == ParticipationStatus.Active)
+                .OrderByDescending(ep => ep.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (participation == null)
             {
-                return Result.Failure("No participation found for this event");
+                return Result.Failure("No active participation found for this event");
             }
 
             if (!participation.CanBeCancelled())

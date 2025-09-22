@@ -2,6 +2,50 @@
 
 This document tracks critical lessons learned during backend development to prevent recurring issues and speed up future development.
 
+## 🔄 CRITICAL: Re-RSVP/Re-Ticket Purchase Implementation (2025-09-21)
+
+**Problem**: Users who cancelled their RSVP could not RSVP again to the same event. The system blocked re-participation due to finding ANY existing participation record.
+
+**Root Cause**: Participation duplicate checks looked for ANY participation (including cancelled ones), instead of only checking for ACTIVE participations.
+
+**Solution**: Modified all participation checks to only consider ACTIVE participations, allowing users to create new participations when only cancelled ones exist.
+
+### Key Changes Made:
+
+1. **GetParticipationStatusAsync**: Only returns ACTIVE participations for frontend display
+```csharp
+// ✅ AFTER: Only show active participations to frontend
+var participation = await _context.EventParticipations
+    .AsNoTracking()
+    .Where(ep => ep.EventId == eventId && ep.UserId == userId && ep.Status == ParticipationStatus.Active)
+    .OrderByDescending(ep => ep.CreatedAt)
+    .FirstOrDefaultAsync(cancellationToken);
+```
+
+2. **CreateRSVPAsync**: Only blocks if ACTIVE participation exists
+```csharp
+// ✅ AFTER: Allow re-RSVP if only cancelled participations exist
+var existingParticipation = await _context.EventParticipations
+    .FirstOrDefaultAsync(ep => ep.EventId == request.EventId && ep.UserId == userId && ep.Status == ParticipationStatus.Active, cancellationToken);
+```
+
+3. **CreateTicketPurchaseAsync**: Same pattern for ticket purchases
+4. **CancelParticipationAsync**: Only targets most recent ACTIVE participation
+
+### Business Rules Maintained:
+- ✅ Complete audit trail: All cancelled participations remain in database
+- ✅ New participation records: Re-RSVPs create NEW records instead of reactivating old ones
+- ✅ Capacity validation: Only counts ACTIVE participations toward event capacity
+- ✅ History preservation: ParticipationHistory tracks all changes
+
+### Impact:
+- Users can now cancel and re-RSVP multiple times for the same event
+- System maintains complete participation history for audit purposes
+- Frontend shows only current active participation status
+- No data loss or corruption of historical records
+
+**Files Modified**: `/apps/api/Features/Participation/Services/ParticipationService.cs`
+
 ## 🚨 ULTRA CRITICAL: API Response Format Mismatch - Frontend Shows "No Data" 🚨
 
 **CRITICAL ISSUE DISCOVERED (2025-09-22)**: Admin participations endpoint returning raw array instead of ApiResponse wrapper, causing frontend to show "No RSVPs yet" even when data exists.
