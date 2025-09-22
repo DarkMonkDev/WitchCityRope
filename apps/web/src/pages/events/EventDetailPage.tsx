@@ -11,7 +11,7 @@ import {
 } from '@tabler/icons-react';
 import { formatEventDate, formatEventTime } from '../../utils/eventUtils';
 import { useEvent } from '../../lib/api/hooks/useEvents';
-import { useParticipation, useCreateRSVP, useCancelRSVP } from '../../hooks/useParticipation';
+import { useParticipation, useCreateRSVP, useCancelRSVP, useCancelTicket } from '../../hooks/useParticipation';
 import { ParticipationCard } from '../../components/events/ParticipationCard';
 import { useCurrentUser } from '../../lib/api/hooks/useAuth';
 import type { EventDto } from '../../lib/api/types/events.types';
@@ -25,6 +25,7 @@ export const EventDetailPage: React.FC = () => {
   const { data: currentUser } = useCurrentUser();
   const createRSVPMutation = useCreateRSVP();
   const cancelRSVPMutation = useCancelRSVP();
+  const cancelTicketMutation = useCancelTicket();
 
   // Check if current user is admin
   const isAdmin = (currentUser as any)?.role === 'Administrator';
@@ -84,8 +85,7 @@ export const EventDetailPage: React.FC = () => {
     if (type === 'rsvp') {
       cancelRSVPMutation.mutate({ eventId: id, reason });
     } else {
-      // TODO: Implement ticket cancellation
-      console.log('Cancel ticket for:', id, 'Reason:', reason);
+      cancelTicketMutation.mutate({ eventId: id, reason });
     }
   };
 
@@ -150,7 +150,7 @@ export const EventDetailPage: React.FC = () => {
           {/* Admin Edit Link */}
           {isAdmin && (
             <Link
-              to={`/admin/events/edit/${id}`}
+              to={`/admin/events/${id}`}
               style={{
                 color: 'var(--color-error)',
                 textDecoration: 'none',
@@ -333,7 +333,7 @@ export const EventDetailPage: React.FC = () => {
             eventTitle={(event as any)?.title || 'Event'}
             eventType={eventType}
             participation={participation}
-            isLoading={participationLoading || createRSVPMutation.isPending || cancelRSVPMutation.isPending}
+            isLoading={participationLoading || createRSVPMutation.isPending || cancelRSVPMutation.isPending || cancelTicketMutation.isPending}
             onRSVP={handleRSVP}
             onPurchaseTicket={handlePurchaseTicket}
             onCancel={handleCancel}

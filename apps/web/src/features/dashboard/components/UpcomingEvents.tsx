@@ -152,14 +152,6 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
             </Group>
           )}
           
-          {event.confirmationCode && (
-            <Group gap="xs">
-              <IconTicket size={16} color="#9b4a75" />
-              <Text size="sm" c="dimmed" fw={500}>
-                Confirmation: {event.confirmationCode}
-              </Text>
-            </Group>
-          )}
         </Stack>
       </Stack>
     </Paper>

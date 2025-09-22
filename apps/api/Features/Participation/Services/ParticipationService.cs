@@ -56,7 +56,8 @@ public class ParticipationService : IParticipationService
                 Status = participation.Status,
                 ParticipationDate = participation.CreatedAt,
                 Notes = participation.Notes,
-                CanCancel = participation.CanBeCancelled()
+                CanCancel = participation.CanBeCancelled(),
+                Metadata = participation.Metadata
             };
 
             return Result<ParticipationStatusDto?>.Success(dto);
@@ -165,7 +166,8 @@ public class ParticipationService : IParticipationService
                 Status = participation.Status,
                 ParticipationDate = participation.CreatedAt,
                 Notes = participation.Notes,
-                CanCancel = participation.CanBeCancelled()
+                CanCancel = participation.CanBeCancelled(),
+                Metadata = participation.Metadata
             };
 
             return Result<ParticipationStatusDto>.Success(dto);
@@ -270,7 +272,8 @@ public class ParticipationService : IParticipationService
                 Status = participation.Status,
                 ParticipationDate = participation.CreatedAt,
                 Notes = participation.Notes,
-                CanCancel = participation.CanBeCancelled()
+                CanCancel = participation.CanBeCancelled(),
+                Metadata = participation.Metadata
             };
 
             return Result<ParticipationStatusDto>.Success(dto);
@@ -422,7 +425,8 @@ public class ParticipationService : IParticipationService
                     Status = ep.Status,
                     ParticipationDate = ep.CreatedAt,
                     Notes = ep.Notes,
-                    CanCancel = ep.Status == ParticipationStatus.Active
+                    CanCancel = ep.Status == ParticipationStatus.Active,
+                    Metadata = ep.Metadata
                 })
                 .ToListAsync(cancellationToken);
 

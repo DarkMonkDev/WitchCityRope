@@ -222,6 +222,18 @@ export const DashboardUtils = {
           color: 'green',
           icon: 'check'
         };
+      case 'rsvp confirmed':
+        return {
+          label: 'RSVP Confirmed',
+          color: 'green',
+          icon: 'check'
+        };
+      case 'ticket purchased':
+        return {
+          label: 'Ticket Purchased',
+          color: 'green',
+          icon: 'check'
+        };
       case 'payment pending':
         return {
           label: 'Payment Pending',

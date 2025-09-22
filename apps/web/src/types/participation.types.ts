@@ -38,14 +38,14 @@ export interface UserParticipationDto {
   id: string;
   eventId: string;
   eventTitle: string;
-  eventDate: string;
+  eventStartDate: string;
+  eventEndDate: string;
   eventLocation: string;
   participationType: ParticipationType;
   status: ParticipationStatus;
-  amount?: number;
-  createdAt: string;
-  canceledAt?: string;
-  cancelReason?: string;
+  participationDate: string;
+  notes?: string;
+  canCancel: boolean;
 }
 
 export enum ParticipationType {

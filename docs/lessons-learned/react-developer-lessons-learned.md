@@ -2,6 +2,196 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 CRITICAL: TICKET AMOUNT DATA MAPPING ISSUE - METADATA FIELD MISSING 🚨
+
+### ⚠️ PROBLEM: Ticket purchase amounts displaying as $0 on public event pages
+**DISCOVERED**: 2025-09-22 - Frontend attempting to access non-existent `amount` field instead of parsing JSON metadata
+
+### 🛑 ROOT CAUSE:
+- Backend stores ticket purchase amounts in `EventParticipation.Metadata` field as JSON: `{"purchaseAmount": 50}`
+- Original `ParticipationStatusDto` and `EventParticipationDto` DTOs missing `metadata` field
+- Frontend code defaulting to `participationAny.amount || 0` when field doesn't exist
+- Admin view hardcoded `$50.00` instead of reading actual amount from data
+
+### ✅ CRITICAL SOLUTION:
+1. **UPDATE backend DTOs** to include `metadata` field
+2. **REGENERATE TypeScript types** after DTO changes using NSwag
+3. **CREATE helper function** to parse amount from metadata JSON
+4. **UPDATE frontend mapping logic** to use metadata instead of non-existent amount field
+
+```typescript
+// ✅ CORRECT: Helper to extract amount from metadata JSON
+const extractAmountFromMetadata = (metadata?: string): number => {
+  if (!metadata) return 0;
+  try {
+    const parsed = JSON.parse(metadata);
+    return parsed.purchaseAmount || parsed.amount || parsed.ticketAmount || 0;
+  } catch (error) {
+    console.warn('Failed to parse participation metadata:', metadata, error);
+    return 0;
+  }
+};
+
+// ✅ CORRECT: Use metadata for amount in data conversion
+ticket: hasTicket ? {
+  id: participationAny.id || '',
+  status: participationAny.status || 'Active',
+  amount: extractAmountFromMetadata(participationAny.metadata) || 0, // Extract from metadata
+  paymentStatus: 'Completed',
+  createdAt: participationAny.participationDate || new Date().toISOString(),
+  canceledAt: undefined,
+  cancelReason: undefined
+} : null
+
+// ❌ BROKEN: Trying to access non-existent amount field
+amount: participationAny.amount || 0, // This field doesn't exist!
+```
+
+### 🏗️ BACKEND DTO FIXES REQUIRED:
+```csharp
+// ✅ Add metadata field to both DTOs
+public class ParticipationStatusDto
+{
+    // ... existing fields ...
+    public string? Metadata { get; set; } // ADD THIS
+}
+
+public class EventParticipationDto
+{
+    // ... existing fields ...
+    public string? Metadata { get; set; } // ADD THIS
+}
+
+// ✅ Include metadata in service mapping
+var dto = new ParticipationStatusDto
+{
+    // ... existing mappings ...
+    Metadata = participation.Metadata // ADD THIS
+};
+```
+
+### 🔄 POST-FIX STEPS:
+1. Restart API container after DTO changes
+2. Regenerate types: `cd packages/shared-types && npm run generate`
+3. Update frontend helper functions in both public and admin views
+4. Replace hardcoded amounts with dynamic metadata parsing
+
+### 🎯 PREVENTION RULES:
+- **NEVER assume field names** match between frontend expectations and backend DTOs
+- **ALWAYS include metadata fields** in DTOs when they contain important display data
+- **CREATE helper functions** for parsing JSON metadata consistently
+- **AVOID hardcoded values** in admin displays - use actual data
+- **REGENERATE types immediately** after any DTO structure changes
+
+## 🚨 CRITICAL: BOOLEAN && PATTERN RENDERS "0" IN REACT JSX 🚨
+
+### ⚠️ PROBLEM: "0" appearing before buttons or components in React conditional rendering
+**DISCOVERED**: 2025-09-22 - IIFE returning boolean used with && operator renders falsy values like "0"
+
+### 🛑 ROOT CAUSE:
+- React renders falsy values (0, empty string) when using `condition && <Component />`
+- IIFE (Immediately Invoked Function Expression) returning boolean creates problematic pattern
+- When condition evaluates to 0 or false, React displays the value instead of hiding component
+- Pattern: `(() => { return someCondition; })() && <Component />` breaks when someCondition is falsy
+
+### ✅ CRITICAL SOLUTION:
+1. **NEVER use boolean && pattern with functions that might return falsy values**
+2. **USE ternary operator** with explicit null for false cases
+3. **CONVERT IIFE patterns** to proper conditional rendering
+4. **ALWAYS use Boolean()** to convert numbers to true/false if needed
+
+```typescript
+// ❌ BROKEN: IIFE boolean && pattern renders "0"
+{(() => {
+  const condition = someNumber || someBoolean;
+  return condition;
+})() && (
+  <Button>Click me</Button>
+)}
+
+// ✅ CORRECT: Ternary operator with explicit null
+{(() => {
+  const condition = someNumber || someBoolean;
+  return condition ? (
+    <Button>Click me</Button>
+  ) : null;
+})()}
+
+// ✅ EVEN BETTER: Direct ternary without IIFE
+{(someNumber || someBoolean) ? (
+  <Button>Click me</Button>
+) : null}
+
+// ✅ SAFEST: Boolean conversion
+{Boolean(someNumber) && (
+  <Button>Click me</Button>
+)}
+```
+
+### 🔧 MANDATORY DETECTION CHECKLIST:
+1. **SEARCH for `})() &&`** in all React components
+2. **REPLACE with ternary operator** `condition ? component : null`
+3. **TEST edge cases** where conditions might be 0, "", false, null
+4. **USE Boolean()** conversion for numeric conditions
+
+### 💥 CONSEQUENCES OF IGNORING:
+- ❌ Unwanted "0" or empty strings render in UI
+- ❌ Poor user experience with visual glitches
+- ❌ Difficult to debug conditional rendering issues
+- ❌ Inconsistent component display behavior
+
+---
+
+## 🚨 CRITICAL: MIXING CUSTOM CSS CLASSES WITH MANTINE BREAKS STYLING 🚨
+
+### ⚠️ PROBLEM: Button text cut off, inconsistent styling when using custom CSS classes with Mantine
+**DISCOVERED**: 2025-09-22 - Buttons using `className="btn btn-primary"` have text cutoff and styling conflicts
+
+### 🛑 ROOT CAUSE:
+- Custom CSS classes from legacy codebase override Mantine component styling
+- `btn` class has conflicting padding, font-size, and layout properties
+- Mantine Button components have their own styling that gets overridden
+- Text cutoff occurs due to conflicting line-height and padding values
+
+### ✅ CRITICAL SOLUTION:
+1. **NEVER mix custom CSS classes with Mantine components** - use Mantine props only
+2. **USE Mantine Button component props** instead of CSS classes
+3. **REPLACE custom classes systematically** across all components
+4. **TEST button text visibility** after converting from custom styles
+
+```typescript
+// ❌ BROKEN: Custom CSS classes with Mantine Button
+<Button className="btn btn-primary" style={{ width: '100%' }}>
+  Text gets cut off
+</Button>
+
+// ✅ CORRECT: Pure Mantine Button with proper props
+<Button
+  variant="filled"
+  color="blue"
+  fullWidth
+  size="lg"
+  loading={isLoading}
+>
+  Text displays properly
+</Button>
+```
+
+### 🔧 MANDATORY CONVERSION CHECKLIST:
+1. **SEARCH for `className="btn`** in all React components
+2. **REPLACE with appropriate Mantine Button variant/color**
+3. **USE fullWidth instead of style={{ width: '100%' }}**
+4. **USE leftSection/rightSection for icons** instead of inline elements
+5. **TEST all button states** (normal, hover, loading, disabled)
+
+### 💥 CONSEQUENCES OF IGNORING:
+- ❌ Button text gets cut off at top and bottom
+- ❌ Inconsistent styling across the application
+- ❌ Poor user experience with unreadable buttons
+- ❌ Mantine design system benefits lost
+
+---
+
 ## 🚨 CRITICAL: HARDCODED EMPTY LISTS BREAK DASHBOARD FEATURES 🚨
 
 ### ⚠️ PROBLEM: Dashboard "Your Upcoming Events" shows no events despite user having RSVPs
@@ -46,6 +236,114 @@ var upcomingEvents = await _context.EventParticipations
 - ❌ Users cannot see their upcoming events
 - ❌ Support tickets about "missing events"
 - ❌ Lost user trust in application reliability
+
+---
+
+## 🚨 CRITICAL: DTO INTERFACE MISMATCHES BREAK API INTEGRATION 🚨
+
+### ⚠️ PROBLEM: Frontend shows empty data despite API returning correct data
+**DISCOVERED**: 2025-09-22 - User participations not displaying despite API returning 4 records
+
+### 🛑 ROOT CAUSE:
+- TypeScript interface property names don't match API DTO property names
+- Frontend expects `eventDate` but API returns `eventStartDate`
+- Frontend expects `createdAt` but API returns `participationDate`
+- Manual TypeScript interfaces created without checking actual API response structure
+- Component shows mock data fallback instead of real API data
+
+### ✅ CRITICAL SOLUTION:
+1. **ALWAYS verify TypeScript interfaces match actual API DTOs** exactly
+2. **TEST API endpoints** and compare response to TypeScript interface
+3. **USE generated types** from NSwag when possible instead of manual interfaces
+4. **NEVER assume property names** - always check API documentation or response
+
+```typescript
+// ❌ BROKEN: Manual interface doesn't match API
+export interface UserParticipationDto {
+  id: string;
+  eventDate: string;  // API actually returns 'eventStartDate'
+  createdAt: string;  // API actually returns 'participationDate'
+}
+
+// ✅ CORRECT: Interface matches actual API response
+export interface UserParticipationDto {
+  id: string;
+  eventStartDate: string;  // Matches API DTO
+  eventEndDate: string;    // Matches API DTO
+  participationDate: string; // Matches API DTO
+  canCancel: boolean;      // Matches API DTO
+}
+```
+
+### 🔧 MANDATORY VERIFICATION CHECKLIST:
+1. **TEST API endpoints** with real authentication and compare response structure
+2. **VERIFY property names** match between TypeScript interface and API DTO
+3. **CHECK component usage** of interface properties against actual API response
+4. **REMOVE mock fallbacks** once API is confirmed working
+
+### 💥 CONSEQUENCES OF IGNORING:
+- ❌ Components appear to work with mock data but fail with real API
+- ❌ Users see outdated/incorrect data
+- ❌ Silent failures where component shows empty state instead of real data
+- ❌ Difficult debugging due to interface mismatch masking API issues
+
+---
+
+## 🚨 CRITICAL: BACKEND/FRONTEND TYPE STRUCTURE MISMATCH BREAKS DATA DISPLAY 🚨
+
+### ⚠️ PROBLEM: Purchase dates show "N/A" despite having valid participation data
+**DISCOVERED**: 2025-09-22 - Event details page showing "N/A" for ticket purchase dates even when tickets exist
+
+### 🛑 ROOT CAUSE:
+- Frontend TypeScript interface expects nested structure: `ticket: { createdAt: string }`
+- Backend API returns flat structure: `{ participationDate: DateTime, participationType: 'Ticket' }`
+- Frontend tries to access `validParticipation.ticket?.createdAt` but this path doesn't exist
+- Conversion logic exists but doesn't properly map `participationDate` to nested `createdAt` field
+- Manual TypeScript interfaces don't match actual backend DTO structure
+
+### ✅ CRITICAL SOLUTION:
+1. **ALWAYS verify backend DTO structure** matches frontend TypeScript interface
+2. **MAP backend fields correctly** in data transformation logic
+3. **USE actual backend field names** - `participationDate` not `createdAt`
+4. **IMPLEMENT proper data normalization** when converting between structures
+5. **TEST with real API data** not just mock/placeholder data
+
+```typescript
+// ❌ BROKEN: Trying to access non-existent nested field
+<Text>
+  Purchased on {validParticipation.ticket?.createdAt ?
+    new Date(validParticipation.ticket.createdAt).toLocaleDateString() : 'N/A'}
+</Text>
+
+// ✅ CORRECT: Proper conversion with actual backend field
+// In conversion logic:
+ticket: hasTicket ? {
+  id: participationAny.id || '',
+  status: participationAny.status || 'Active',
+  amount: participationAny.amount || 0,
+  paymentStatus: 'Completed',
+  createdAt: participationAny.participationDate || new Date().toISOString() // ← Use actual backend field
+} : null
+
+// Then frontend can safely access:
+<Text>
+  Purchased on {validParticipation.ticket?.createdAt ?
+    new Date(validParticipation.ticket.createdAt).toLocaleDateString() : 'Date unavailable'}
+</Text>
+```
+
+### 🔧 MANDATORY VERIFICATION CHECKLIST:
+1. **CHECK backend DTO classes** for actual field names and structure
+2. **VERIFY data transformation logic** maps all required fields correctly
+3. **TEST with real API responses** not mock data
+4. **TRACE data flow** from API → transformation → component rendering
+5. **SEARCH for hardcoded fallbacks** like 'N/A' that might indicate missing data
+
+### 💥 CONSEQUENCES OF IGNORING:
+- ❌ Users see "N/A" or empty data despite having valid records
+- ❌ Purchase dates, RSVP dates, and other timestamps not displayed
+- ❌ Poor user experience with missing information
+- ❌ Users think their data wasn't saved properly
 
 ---
 
@@ -2009,6 +2307,27 @@ When button text appears cut off:
 3. **Verify line-height** is relative, not fixed pixels
 4. **Test with longer text** to ensure robustness
 5. **Use browser dev tools** to inspect text rendering bounds
+
+### 2025-09-22 Success Pattern: Modal Dialog Button Fix
+**Problem**: Cancel buttons and modal dialog buttons had text cutoff on top/bottom
+**Root Cause**: Using size="sm" without proper height/padding styles
+**Solution**:
+```typescript
+<Button
+  size="md"  // Changed from "sm"
+  styles={{
+    root: {
+      minHeight: '40px',
+      height: 'auto',
+      padding: '10px 20px',
+      lineHeight: 1.4
+    }
+  }}
+>
+  Button Text
+</Button>
+```
+**Result**: Perfect text rendering with no cutoff in ParticipationCard modal
 
 
 ### Tags

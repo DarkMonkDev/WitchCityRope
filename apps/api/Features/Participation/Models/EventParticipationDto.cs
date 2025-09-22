@@ -52,4 +52,10 @@ public class EventParticipationDto
     /// Whether this participation can be cancelled
     /// </summary>
     public bool CanCancel { get; set; }
+
+    /// <summary>
+    /// Flexible metadata for additional information (e.g., purchase amount)
+    /// Stored as JSONB in PostgreSQL
+    /// </summary>
+    public string? Metadata { get; set; }
 }

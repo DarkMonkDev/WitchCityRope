@@ -14,6 +14,20 @@ import { PayPalButton } from '../../features/payments/components/PayPalButton';
 import type { PaymentEventInfo } from '../../features/payments/types/payment.types';
 import { useConfirmPayPalPayment } from '../../lib/api/hooks/usePayments';
 
+// Helper function to extract purchase amount from metadata JSON
+const extractAmountFromMetadata = (metadata?: string): number => {
+  if (!metadata) return 0;
+
+  try {
+    const parsed = JSON.parse(metadata);
+    // Check for different possible field names in the metadata
+    return parsed.purchaseAmount || parsed.amount || parsed.ticketAmount || 0;
+  } catch (error) {
+    console.warn('Failed to parse participation metadata:', metadata, error);
+    return 0;
+  }
+};
+
 interface ParticipationCardProps {
   eventId: string;
   eventTitle: string;
@@ -86,7 +100,8 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
             component="a"
             href="/login"
             size="sm"
-            className="btn btn-primary"
+            variant="filled"
+            color="blue"
           >
             Log In
           </Button>
@@ -164,15 +179,35 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   if (validParticipation && 'participationType' in validParticipation && !('hasRSVP' in validParticipation)) {
     console.log('🔍 Converting old participation structure to new format');
     const participationAny = validParticipation as any;
+    console.log('🔍 Participation metadata:', participationAny.metadata);
+    console.log('🔍 Extracted amount:', extractAmountFromMetadata(participationAny.metadata));
     const hasRSVP = participationAny.participationType === 'RSVP' && participationAny.status === 'Active';
     const hasTicket = participationAny.participationType === 'Ticket' && participationAny.status === 'Active';
 
+    // Create proper nested structure with actual backend data
     validParticipation = {
       ...(validParticipation as any),
       hasRSVP,
       hasTicket,
       canRSVP: !hasRSVP && !hasTicket,
-      canPurchaseTicket: !hasTicket
+      canPurchaseTicket: !hasTicket,
+      // Create nested structures with proper date mapping
+      rsvp: hasRSVP ? {
+        id: participationAny.id || '',
+        status: participationAny.status || 'Active',
+        createdAt: participationAny.participationDate || new Date().toISOString(),
+        canceledAt: undefined,
+        cancelReason: undefined
+      } : null,
+      ticket: hasTicket ? {
+        id: participationAny.id || '',
+        status: participationAny.status || 'Active',
+        amount: extractAmountFromMetadata(participationAny.metadata) || 0, // Extract from metadata field
+        paymentStatus: 'Completed', // Default status
+        createdAt: participationAny.participationDate || new Date().toISOString(),
+        canceledAt: undefined,
+        cancelReason: undefined
+      } : null
     } as ParticipationStatusDto;
 
     console.log('🔍 Converted participation:', validParticipation);
@@ -194,7 +229,8 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
             component="a"
             href="/vetting"
             size="sm"
-            className="btn btn-secondary"
+            variant="outline"
+            color="orange"
           >
             Start Vetting Process
           </Button>
@@ -326,57 +362,89 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
             </Alert>
           )}
 
-          {/* Current Participation Status */}
+          {/* Your Participation Status */}
           {(validParticipation?.hasRSVP || validParticipation?.hasTicket) && (
             <Box
               style={{
-                background: 'var(--color-cream)',
-                borderRadius: '12px',
-                padding: 'var(--space-md)',
-                border: '2px solid var(--color-success)'
+                background: 'linear-gradient(135deg, var(--color-success-light) 0%, var(--color-cream) 100%)',
+                borderRadius: '16px',
+                padding: 'var(--space-lg)',
+                border: '2px solid var(--color-success)',
+                boxShadow: '0 4px 12px rgba(76, 175, 80, 0.15)'
               }}
             >
-              <Group gap="sm" mb="sm">
-                <IconCalendarCheck size={20} color="var(--color-success)" />
-                <Text fw={600} c="var(--color-success)">You're Participating!</Text>
+              <Group gap="sm" mb="md">
+                <IconCalendarCheck size={24} color="var(--color-success)" />
+                <Text fw={700} size="lg" c="var(--color-success)">Your Participation Status</Text>
               </Group>
 
               {validParticipation.hasRSVP && (
-                <Group justify="space-between" mb="sm">
-                  <Badge
-                    color="green"
-                    variant="filled"
-                    style={{ borderRadius: '12px 6px 12px 6px' }}
-                  >
-                    ✓ RSVP Confirmed
-                  </Badge>
-                  <button
-                    className="btn btn-secondary"
+                <Box mb="md">
+                  <Group justify="space-between" align="center" mb="xs">
+                    <Text fw={600} size="md" c="var(--color-charcoal)">RSVP Status</Text>
+                  </Group>
+                  <Text size="sm" c="dimmed" mb="sm">
+                    Registered on {validParticipation.rsvp?.createdAt ?
+                      new Date(validParticipation.rsvp.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      }) : 'Date unavailable'}
+                  </Text>
+                  <Button
+                    variant="light"
+                    color="red"
+                    size="md"
                     onClick={() => handleCancelClick('rsvp')}
-                    style={{ fontSize: '14px', padding: '6px 12px' }}
+                    styles={{
+                      root: {
+                        minHeight: '36px',
+                        height: 'auto',
+                        padding: '8px 16px',
+                        lineHeight: 1.4
+                      }
+                    }}
                   >
                     Cancel RSVP
-                  </button>
-                </Group>
+                  </Button>
+                </Box>
               )}
 
               {validParticipation.hasTicket && (
-                <Group justify="space-between" mb="sm">
-                  <Badge
+                <Box>
+                  <Group justify="space-between" align="center" mb="xs">
+                    <Text fw={600} size="md" c="var(--color-charcoal)">1 Ticket Purchased</Text>
+                  </Group>
+                  <Text size="sm" c="dimmed" mb="xs">
+                    Purchased on {validParticipation.ticket?.createdAt ?
+                      new Date(validParticipation.ticket.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      }) : 'Date unavailable'}
+                  </Text>
+                  {validParticipation.ticket?.amount !== undefined && validParticipation.ticket.amount !== null ? (
+                    <Text size="sm" c="dimmed" mb="sm">
+                      Amount paid: ${validParticipation.ticket.amount}
+                    </Text>
+                  ) : null}
+                  <Button
+                    variant="light"
                     color="red"
-                    variant="filled"
-                    style={{ borderRadius: '12px 6px 12px 6px' }}
-                  >
-                    🎫 Ticket Purchased
-                  </Badge>
-                  <button
-                    className="btn btn-secondary"
+                    size="md"
                     onClick={() => handleCancelClick('ticket')}
-                    style={{ fontSize: '14px', padding: '6px 12px' }}
+                    styles={{
+                      root: {
+                        minHeight: '36px',
+                        height: 'auto',
+                        padding: '8px 16px',
+                        lineHeight: 1.4
+                      }
+                    }}
                   >
                     Cancel Ticket
-                  </button>
-                </Group>
+                  </Button>
+                </Box>
               )}
             </Box>
           )}
@@ -417,17 +485,21 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                       console.log('  - isLoading:', isLoading);
                       console.log('  - canRSVPCondition:', canRSVPCondition);
 
-                      return canRSVPCondition;
-                    })() && (
-                      <button
-                        className="btn btn-primary"
-                        onClick={handleRSVPClick}
-                        style={{ width: '100%', marginBottom: 'var(--space-md)' }}
-                        disabled={isLoading || isLoadingUser}
-                      >
-                        {isLoading || isLoadingUser ? 'Loading...' : 'RSVP Now (Free)'}
-                      </button>
-                    )
+                      return canRSVPCondition ? (
+                        <Button
+                          onClick={handleRSVPClick}
+                          fullWidth
+                          size="lg"
+                          variant="filled"
+                          color="green"
+                          disabled={isLoading || isLoadingUser}
+                          loading={isLoading || isLoadingUser}
+                          mb="md"
+                        >
+                          RSVP Now (Free)
+                        </Button>
+                      ) : null;
+                    })()
                   )}
 
                   {/* Show ticket purchase option when:
@@ -439,14 +511,17 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                       <Text size="sm" c="dimmed" ta="center" mb="sm">
                         Support the event with an optional ticket purchase
                       </Text>
-                      <button
-                        className="btn btn-secondary"
+                      <Button
                         onClick={handleTicketPurchase}
-                        style={{ width: '100%' }}
+                        fullWidth
+                        size="lg"
+                        variant="outline"
+                        color="blue"
                         disabled={isLoading || isLoadingUser}
+                        loading={isLoading || isLoadingUser}
                       >
-                        {isLoading || isLoadingUser ? 'Loading...' : `Purchase Ticket ($${ticketPrice})`}
-                      </button>
+                        Purchase Ticket (${ticketPrice})
+                      </Button>
                     </Box>
                   )}
                 </>
@@ -472,14 +547,16 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                     </Text>
                   </Box>
 
-                  <button
-                    className="btn btn-primary"
+                  <Button
                     onClick={handleTicketPurchase}
-                    style={{ width: '100%' }}
+                    fullWidth
+                    size="lg"
+                    variant="filled"
+                    color="blue"
+                    leftSection={<IconTicket size={18} />}
                   >
-                    <IconTicket size={18} style={{ marginRight: '8px' }} />
                     Purchase Ticket
-                  </button>
+                  </Button>
                 </Box>
               )}
             </Stack>
@@ -487,13 +564,15 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
 
           {/* Waitlist Option */}
           {isAtCapacity && (
-            <button
-              className="btn btn-secondary"
+            <Button
               onClick={() => {/* TODO: Implement waitlist */}}
-              style={{ width: '100%' }}
+              fullWidth
+              size="lg"
+              variant="outline"
+              color="gray"
             >
               Join Waitlist
-            </button>
+            </Button>
           )}
         </Stack>
       </ParticipationCardShell>
@@ -524,13 +603,33 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
           <Group justify="flex-end" gap="sm">
             <Button
               variant="outline"
+              color="gray"
+              size="md"
               onClick={handleCancelModal}
+              styles={{
+                root: {
+                  minHeight: '40px',
+                  height: 'auto',
+                  padding: '10px 20px',
+                  lineHeight: 1.4
+                }
+              }}
             >
               Keep {cancelType === 'rsvp' ? 'RSVP' : 'Ticket'}
             </Button>
             <Button
+              variant="filled"
               color="red"
+              size="md"
               onClick={handleConfirmCancel}
+              styles={{
+                root: {
+                  minHeight: '40px',
+                  height: 'auto',
+                  padding: '10px 20px',
+                  lineHeight: 1.4
+                }
+              }}
             >
               Cancel {cancelType === 'rsvp' ? 'RSVP' : 'Ticket'}
             </Button>

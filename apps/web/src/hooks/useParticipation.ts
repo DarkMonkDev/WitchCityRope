@@ -124,7 +124,7 @@ export function useCreateRSVP() {
   });
 }
 
-// Cancel participation mutation
+// Cancel RSVP mutation
 export function useCancelRSVP() {
   const queryClient = useQueryClient();
 
@@ -178,6 +178,60 @@ export function useCancelRSVP() {
   });
 }
 
+// Cancel ticket mutation
+export function useCancelTicket() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ eventId, reason }: { eventId: string; reason?: string }): Promise<void> => {
+      try {
+        await apiClient.delete(`/api/events/${eventId}/ticket`, {
+          params: { reason }
+        });
+      } catch (error: any) {
+        // Mock response for development
+        if (error.response?.status === 404) {
+          console.warn('Cancel ticket endpoint not found, using mock response');
+          return;
+        }
+        throw error;
+      }
+    },
+    onSuccess: (_, variables) => {
+      // Update the participation status cache to reflect ticket cancellation
+      queryClient.setQueryData(
+        participationKeys.eventStatus(variables.eventId),
+        (old: ParticipationStatusDto | undefined): ParticipationStatusDto => ({
+          hasRSVP: old?.hasRSVP || false,
+          hasTicket: false,
+          rsvp: old?.rsvp || null,
+          ticket: old?.ticket ? {
+            ...old.ticket,
+            status: 'Cancelled' as any,
+            canceledAt: new Date().toISOString(),
+            cancelReason: variables.reason
+          } : null,
+          canRSVP: old?.canRSVP || true,
+          canPurchaseTicket: true,
+          capacity: old?.capacity ? {
+            ...old.capacity,
+            current: old.capacity.current - 1,
+            available: old.capacity.available + 1
+          } : undefined
+        })
+      );
+
+      // Invalidate user participations to refresh the list
+      queryClient.invalidateQueries({
+        queryKey: participationKeys.userParticipations()
+      });
+    },
+    onError: (error: any) => {
+      console.error('Failed to cancel ticket:', error);
+    }
+  });
+}
+
 // Get user's all participations
 export function useUserParticipations(enabled = true) {
   return useQuery<UserParticipationDto[]>({
@@ -187,30 +241,35 @@ export function useUserParticipations(enabled = true) {
         const { data } = await apiClient.get('/api/user/participations');
         return data;
       } catch (error: any) {
-        // Mock data for development
+        // Mock data for development - endpoint should exist now
         if (error.response?.status === 404) {
-          console.warn('User participations endpoint not found, using mock data');
+          console.warn('User participations endpoint not found, using mock data (THIS SHOULD NOT HAPPEN IN PRODUCTION)');
           return [
             {
               id: 'participation-1',
               eventId: 'event-1',
               eventTitle: 'Introduction to Rope Bondage',
-              eventDate: '2025-02-15T19:00:00Z',
+              eventStartDate: '2025-02-15T19:00:00Z',
+              eventEndDate: '2025-02-15T21:00:00Z',
               eventLocation: 'WitchCityRope Studio',
               participationType: 'RSVP' as any,
               status: 'Active' as any,
-              createdAt: '2025-01-19T10:00:00Z'
+              participationDate: '2025-01-19T10:00:00Z',
+              notes: null,
+              canCancel: true
             },
             {
               id: 'participation-2',
               eventId: 'event-2',
               eventTitle: 'Advanced Suspension Techniques',
-              eventDate: '2025-03-01T18:00:00Z',
+              eventStartDate: '2025-03-01T18:00:00Z',
+              eventEndDate: '2025-03-01T20:00:00Z',
               eventLocation: 'WitchCityRope Studio',
               participationType: 'Ticket' as any,
               status: 'Active' as any,
-              amount: 75,
-              createdAt: '2025-01-18T15:30:00Z'
+              participationDate: '2025-01-18T15:30:00Z',
+              notes: null,
+              canCancel: true
             }
           ];
         }

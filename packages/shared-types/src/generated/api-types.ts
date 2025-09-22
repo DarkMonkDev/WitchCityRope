@@ -48,6 +48,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/events/{eventId}/participations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all participations for an event (admin only)
+         * @description Returns all RSVPs and ticket purchases for the specified event. Admin role required.
+         */
+        get: operations["GetEventParticipations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/current-user": {
         parameters: {
             query?: never;
@@ -484,6 +504,94 @@ export interface paths {
          * @description Simple health check for compatibility with existing monitoring
          */
         get: operations["GetLegacyHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/participation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user's participation status for an event
+         * @description Returns the user's current participation status (RSVP or ticket) for the specified event
+         */
+        get: operations["GetParticipationStatus"];
+        put?: never;
+        post?: never;
+        /**
+         * Cancel participation in event
+         * @description Cancels the user's participation (RSVP or ticket) in the specified event
+         */
+        delete: operations["CancelParticipation"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/rsvp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create RSVP for social event
+         * @description Creates an RSVP for a social event. Only available to vetted members.
+         */
+        post: operations["CreateRSVP"];
+        /**
+         * Cancel RSVP (backward compatibility)
+         * @description Cancels the user's RSVP. Alias for cancelling participation.
+         */
+        delete: operations["CancelRSVP"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Purchase ticket for class event
+         * @description Purchases a ticket for a class event. Available to any authenticated user.
+         */
+        post: operations["PurchaseTicket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/user/participations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user's event participations
+         * @description Returns all current participations (RSVPs and tickets) for the authenticated user
+         */
+        get: operations["GetUserParticipations"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1748,6 +1856,8 @@ export interface components {
             lastLoginAt?: string | null;
             role?: string | null;
             roles?: string[] | null;
+            isVetted?: boolean;
+            isActive?: boolean;
         };
         AuthUserResponseApiResponse: {
             success?: boolean;
@@ -1806,6 +1916,17 @@ export interface components {
             contactEmail?: string | null;
             contactPhone?: string | null;
         };
+        CreateRSVPRequest: {
+            /** Format: uuid */
+            eventId: string;
+            notes?: string | null;
+        };
+        CreateTicketPurchaseRequest: {
+            /** Format: uuid */
+            eventId: string;
+            notes?: string | null;
+            paymentMethodId?: string | null;
+        };
         DetailedHealthResponse: {
             status?: string | null;
             /** Format: date-time */
@@ -1855,6 +1976,30 @@ export interface components {
         EventDtoListApiResponse: {
             success?: boolean;
             data?: components["schemas"]["EventDto"][] | null;
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        EventParticipationDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            userId?: string;
+            userSceneName?: string | null;
+            userEmail?: string | null;
+            participationType?: components["schemas"]["ParticipationType"];
+            status?: components["schemas"]["ParticipationStatus"];
+            /** Format: date-time */
+            participationDate?: string;
+            notes?: string | null;
+            canCancel?: boolean;
+            metadata?: string | null;
+        };
+        EventParticipationDtoListApiResponse: {
+            success?: boolean;
+            data?: components["schemas"]["EventParticipationDto"][] | null;
             error?: string | null;
             details?: string | null;
             message?: string | null;
@@ -1957,6 +2102,23 @@ export interface components {
             /** Format: date-time */
             timestamp?: string;
         };
+        /** @enum {string} */
+        ParticipationStatus: "Active" | "Cancelled" | "Refunded" | "Waitlisted";
+        ParticipationStatusDto: {
+            /** Format: uuid */
+            eventId?: string;
+            /** Format: uuid */
+            userId?: string;
+            participationType?: components["schemas"]["ParticipationType"];
+            status?: components["schemas"]["ParticipationStatus"];
+            /** Format: date-time */
+            participationDate?: string;
+            notes?: string | null;
+            canCancel?: boolean;
+            metadata?: string | null;
+        };
+        /** @enum {string} */
+        ParticipationType: "RSVP" | "Ticket";
         /** @enum {string} */
         PaymentMethodType: "SavedCard" | "NewCard" | "BankTransfer" | "PayPal" | "Venmo";
         PaymentResponse: {
@@ -2319,6 +2481,24 @@ export interface components {
             name?: string | null;
             email?: string | null;
         };
+        UserParticipationDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            eventId?: string;
+            eventTitle?: string | null;
+            /** Format: date-time */
+            eventStartDate?: string;
+            /** Format: date-time */
+            eventEndDate?: string;
+            eventLocation?: string | null;
+            participationType?: components["schemas"]["ParticipationType"];
+            status?: components["schemas"]["ParticipationStatus"];
+            /** Format: date-time */
+            participationDate?: string;
+            notes?: string | null;
+            canCancel?: boolean;
+        };
         ValidationProblemDetails: {
             type?: string | null;
             title?: string | null;
@@ -2510,6 +2690,49 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetEventParticipations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventParticipationDtoListApiResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3181,6 +3404,284 @@ export interface operations {
             };
             /** @description Service Unavailable */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetParticipationStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParticipationStatusDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CancelParticipation: {
+        parameters: {
+            query?: {
+                reason?: string;
+            };
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CreateRSVP: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateRSVPRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParticipationStatusDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CancelRSVP: {
+        parameters: {
+            query?: {
+                reason?: string;
+            };
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PurchaseTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTicketPurchaseRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParticipationStatusDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetUserParticipations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserParticipationDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };

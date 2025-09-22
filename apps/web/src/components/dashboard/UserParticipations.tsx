@@ -1,15 +1,15 @@
 // UserParticipations component for dashboard
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Paper, Stack, Title, Text, Badge, Group, Box, Button,
-  Table, ActionIcon, Skeleton, Alert
+  Skeleton, Alert
 } from '@mantine/core';
 import {
   IconCalendarEvent, IconMapPin, IconClock, IconTicket,
-  IconCalendarCheck, IconTrash, IconExternalLink
+  IconCalendarCheck, IconExternalLink
 } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
-import { useUserParticipations, useCancelRSVP } from '../../hooks/useParticipation';
+import { useUserParticipations } from '../../hooks/useParticipation';
 import { UserParticipationDto, ParticipationType, ParticipationStatus } from '../../types/participation.types';
 
 interface UserParticipationsProps {
@@ -22,21 +22,7 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
   showPastEvents = false
 }) => {
   const { data: participations, isLoading, error } = useUserParticipations();
-  const cancelRSVPMutation = useCancelRSVP();
-  const [cancellingIds, setCancellingIds] = useState<Set<string>>(new Set());
 
-  const handleCancel = async (eventId: string, participationId: string) => {
-    setCancellingIds(prev => new Set(prev).add(participationId));
-    try {
-      await cancelRSVPMutation.mutateAsync({ eventId });
-    } finally {
-      setCancellingIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(participationId);
-        return newSet;
-      });
-    }
-  };
 
   const getStatusColor = (status: ParticipationStatus) => {
     switch (status) {
@@ -80,7 +66,7 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
   const now = new Date();
   const filteredParticipations = participations
     ?.filter(p => {
-      const eventDate = new Date(p.eventDate);
+      const eventDate = new Date(p.eventStartDate);
       return showPastEvents ? eventDate < now : eventDate >= now;
     })
     .slice(0, limit) || [];
@@ -156,7 +142,7 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
               size="sm"
               rightSection={<IconExternalLink size={14} />}
             >
-              View All
+              View History
             </Button>
           )}
         </Group>
@@ -190,20 +176,28 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
             {filteredParticipations.map((participation) => (
               <Box
                 key={participation.id}
+                component={Link}
+                to={`/events/${participation.eventId}`}
                 style={{
                   background: 'var(--color-cream)',
                   borderRadius: '12px',
                   padding: 'var(--space-md)',
                   border: '1px solid var(--color-taupe)',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  display: 'block',
+                  cursor: 'pointer'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.borderColor = 'var(--color-burgundy)';
                   e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.borderColor = 'var(--color-taupe)';
                   e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
                 <Group justify="space-between" align="flex-start" wrap="nowrap">
@@ -218,7 +212,6 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
                         style={{ borderRadius: '12px 6px 12px 6px' }}
                       >
                         {participation.participationType}
-                        {participation.amount && ` - $${participation.amount}`}
                       </Badge>
 
                       <Badge
@@ -235,9 +228,6 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
                       size="md"
                       c="var(--color-charcoal)"
                       mb="xs"
-                      style={{ cursor: 'pointer' }}
-                      component={Link}
-                      to={`/events/${participation.eventId}`}
                       truncate
                     >
                       {participation.eventTitle}
@@ -247,7 +237,7 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
                       <Group gap="sm" wrap="nowrap">
                         <IconClock size={14} color="var(--color-stone)" />
                         <Text size="sm" c="dimmed" truncate>
-                          {formatEventDate(participation.eventDate)} at {formatEventTime(participation.eventDate)}
+                          {formatEventDate(participation.eventStartDate)} at {formatEventTime(participation.eventStartDate)}
                         </Text>
                       </Group>
 
@@ -259,20 +249,6 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
                       </Group>
                     </Stack>
                   </Box>
-
-                  {/* Actions */}
-                  {participation.status === ParticipationStatus.Active && !showPastEvents && (
-                    <ActionIcon
-                      color="red"
-                      variant="subtle"
-                      onClick={() => handleCancel(participation.eventId, participation.id)}
-                      loading={cancellingIds.has(participation.id)}
-                      disabled={cancelRSVPMutation.isPending}
-                      title={`Cancel ${participation.participationType}`}
-                    >
-                      <IconTrash size={16} />
-                    </ActionIcon>
-                  )}
                 </Group>
               </Box>
             ))}

@@ -23,7 +23,6 @@ import {
 } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { UserDashboard } from '../../features/dashboard/components/UserDashboard';
-import { UpcomingEvents } from '../../features/dashboard/components/UpcomingEvents';
 import { MembershipStatistics } from '../../features/dashboard/components/MembershipStatistics';
 import { UserParticipations } from '../../components/dashboard/UserParticipations';
 import { useDashboardData, useDashboardError } from '../../features/dashboard/hooks/useDashboard';
@@ -154,10 +153,6 @@ export const DashboardPage: React.FC = () => {
           <Box style={{ gridColumn: 'span 2' }}>
             <Stack gap="lg">
               <UserDashboard />
-              <UpcomingEvents
-                count={3}
-                onViewAllEvents={handleViewAllEvents}
-              />
               <UserParticipations
                 limit={3}
                 showPastEvents={false}

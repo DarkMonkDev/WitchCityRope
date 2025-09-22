@@ -403,24 +403,50 @@ public class SeedDataService : ISeedDataService
 
         var events = await _context.Events.ToListAsync(cancellationToken);
         var sessionsToAdd = new List<Session>();
-        var ticketTypesToAdd = new List<TicketType>();
 
+        // First, create sessions without ticket types
         foreach (var eventItem in events)
         {
             if (eventItem.Title.Contains("Suspension Intensive") || eventItem.Title.Contains("Conference"))
             {
                 // Multi-day events (2-3 days)
                 var numberOfDays = eventItem.Title.Contains("Conference") ? 3 : 2;
-                AddMultiDayEvent(eventItem, numberOfDays, sessionsToAdd, ticketTypesToAdd);
+                AddMultiDayEventSessions(eventItem, numberOfDays, sessionsToAdd);
             }
             else
             {
                 // Single-day events (most events)
-                AddSingleDayEvent(eventItem, sessionsToAdd, ticketTypesToAdd);
+                AddSingleDayEventSession(eventItem, sessionsToAdd);
             }
         }
 
+        // Save sessions first to get their IDs
         await _context.Sessions.AddRangeAsync(sessionsToAdd, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Now create ticket types with valid session IDs
+        var ticketTypesToAdd = new List<TicketType>();
+
+        // Group sessions by event to handle multi-day events
+        var sessionsByEvent = sessionsToAdd.GroupBy(s => s.EventId).ToList();
+
+        foreach (var eventGroup in sessionsByEvent)
+        {
+            var eventItem = events.First(e => e.Id == eventGroup.Key);
+            var eventSessions = eventGroup.ToList();
+
+            if (eventSessions.Count > 1)
+            {
+                // Multi-day event - create both individual day tickets and full event tickets
+                CreateMultiDayTicketTypes(eventItem, eventSessions, ticketTypesToAdd);
+            }
+            else
+            {
+                // Single-day event
+                CreateTicketTypesForSession(eventItem, eventSessions.First(), ticketTypesToAdd);
+            }
+        }
+
         await _context.TicketTypes.AddRangeAsync(ticketTypesToAdd, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -920,8 +946,8 @@ public class SeedDataService : ISeedDataService
     /// </summary>
     private string GetRandomPurchaseNotes()
     {
-        var notes = new[] 
-        { 
+        var notes = new[]
+        {
             "", "", "", // Most purchases have no notes
             "First time attending!",
             "Vegetarian meal preference",
@@ -930,6 +956,148 @@ public class SeedDataService : ISeedDataService
             "Group purchase for partners"
         };
         return notes[Random.Shared.Next(notes.Length)];
+    }
+
+    /// <summary>
+    /// Helper method to add session for single-day events
+    /// Creates one session (ticket types added separately)
+    /// </summary>
+    private void AddSingleDayEventSession(Event eventItem, List<Session> sessionsToAdd)
+    {
+        var session = new Session
+        {
+            EventId = eventItem.Id,
+            SessionCode = "S1",
+            Name = "Main Session",
+            StartTime = eventItem.StartDate,
+            EndTime = eventItem.EndDate,
+            Capacity = eventItem.Capacity,
+            CurrentAttendees = eventItem.GetCurrentAttendeeCount()
+        };
+
+        sessionsToAdd.Add(session);
+    }
+
+    /// <summary>
+    /// Helper method to add sessions for multi-day events
+    /// Creates multiple day sessions (ticket types added separately)
+    /// </summary>
+    private void AddMultiDayEventSessions(Event eventItem, int numberOfDays, List<Session> sessionsToAdd)
+    {
+        for (int day = 1; day <= numberOfDays; day++)
+        {
+            var daySession = new Session
+            {
+                EventId = eventItem.Id,
+                SessionCode = $"D{day}",
+                Name = $"Day {day}",
+                StartTime = eventItem.StartDate.AddDays(day - 1),
+                EndTime = eventItem.StartDate.AddDays(day - 1).AddHours(8), // 8 hour sessions
+                Capacity = (int)Math.Ceiling(eventItem.Capacity / (double)numberOfDays),
+                CurrentAttendees = eventItem.GetCurrentAttendeeCount() / numberOfDays
+            };
+
+            sessionsToAdd.Add(daySession);
+        }
+    }
+
+    /// <summary>
+    /// Helper method to create ticket types for a session
+    /// Must be called after session has been saved and has a valid ID
+    /// </summary>
+    private void CreateTicketTypesForSession(Event eventItem, Session session, List<TicketType> ticketTypesToAdd)
+    {
+        if (eventItem.EventType == "Social")
+        {
+            // Social events: Free RSVP + optional donation ticket
+            var rsvpTicket = new TicketType
+            {
+                EventId = eventItem.Id,
+                SessionId = session.Id,
+                Name = "Free RSVP",
+                Description = "Free attendance - RSVP required",
+                Price = 0,
+                Available = session.Capacity,
+                Sold = eventItem.GetCurrentRSVPCount(),
+                IsRsvpMode = true
+            };
+
+            var donationTicket = new TicketType
+            {
+                EventId = eventItem.Id,
+                SessionId = session.Id,
+                Name = "Support Donation",
+                Description = "Optional donation to support the community",
+                Price = ParsePrice(eventItem.PricingTiers),
+                Available = session.Capacity,
+                Sold = eventItem.GetCurrentTicketCount(),
+                IsRsvpMode = false
+            };
+
+            ticketTypesToAdd.Add(rsvpTicket);
+            ticketTypesToAdd.Add(donationTicket);
+        }
+        else // Class
+        {
+            // Class events: Regular ticket only
+            var regularTicket = new TicketType
+            {
+                EventId = eventItem.Id,
+                SessionId = session.Id,
+                Name = "Regular",
+                Description = "Full access to the workshop",
+                Price = ParsePrice(eventItem.PricingTiers),
+                Available = session.Capacity,
+                Sold = eventItem.GetCurrentAttendeeCount(),
+                IsRsvpMode = false
+            };
+
+            ticketTypesToAdd.Add(regularTicket);
+        }
+    }
+
+    /// <summary>
+    /// Helper method to create ticket types for multi-day events
+    /// Creates individual day tickets and full event ticket with discount
+    /// </summary>
+    private void CreateMultiDayTicketTypes(Event eventItem, List<Session> sessions, List<TicketType> ticketTypesToAdd)
+    {
+        var basePrice = ParsePrice(eventItem.PricingTiers);
+        var dailyPrice = Math.Round(basePrice * 0.6m, 2); // Individual day is 60% of full price
+
+        // Create individual day tickets
+        for (int i = 0; i < sessions.Count; i++)
+        {
+            var session = sessions[i];
+            var dayTicket = new TicketType
+            {
+                EventId = eventItem.Id,
+                SessionId = session.Id,
+                Name = $"Day {i + 1} Only",
+                Description = $"Access to Day {i + 1} activities only",
+                Price = dailyPrice,
+                Available = session.Capacity,
+                Sold = (int)(session.Capacity * 0.3), // 30% sold on average
+                IsRsvpMode = false
+            };
+
+            ticketTypesToAdd.Add(dayTicket);
+        }
+
+        // Create full event ticket with discount
+        var fullEventTicket = new TicketType
+        {
+            EventId = eventItem.Id,
+            SessionId = null, // Multi-session ticket
+            Name = $"All {sessions.Count} Days",
+            Description = $"Full access to all {sessions.Count} days - SAVE ${(dailyPrice * sessions.Count - basePrice):F0}!",
+            Price = basePrice,
+            Available = eventItem.Capacity,
+            Sold = eventItem.GetCurrentAttendeeCount(),
+            IsRsvpMode = false
+        };
+
+        ticketTypesToAdd.Add(fullEventTicket);
     }
 }
 

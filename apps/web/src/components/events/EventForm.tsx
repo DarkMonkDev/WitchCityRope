@@ -31,6 +31,20 @@ import { WCRButton } from '../ui';
 import { useTeachers, formatTeachersForMultiSelect } from '../../lib/api/hooks/useTeachers';
 import { useEventParticipations, type EventParticipationDto } from '../../lib/api/hooks/useEventParticipations';
 
+// Helper function to extract purchase amount from metadata JSON
+const extractAmountFromMetadata = (metadata?: string): number => {
+  if (!metadata) return 0;
+
+  try {
+    const parsed = JSON.parse(metadata);
+    // Check for different possible field names in the metadata
+    return parsed.purchaseAmount || parsed.amount || parsed.ticketAmount || 0;
+  } catch (error) {
+    console.warn('Failed to parse participation metadata:', metadata, error);
+    return 0;
+  }
+};
+
 export interface EventFormData {
   // Basic Info
   eventType: 'class' | 'social';
@@ -1145,7 +1159,9 @@ export const EventForm: React.FC<EventFormProps> = ({
                               </Text>
                             </Table.Td>
                             <Table.Td>
-                              <Text size="sm" fw={500}>$50.00</Text>
+                              <Text size="sm" fw={500}>
+                                ${extractAmountFromMetadata(participation.metadata).toFixed(2)}
+                              </Text>
                             </Table.Td>
                             <Table.Td>
                               <Group gap="xs">

@@ -2,6 +2,53 @@
 
 This document tracks critical lessons learned during backend development to prevent recurring issues and speed up future development.
 
+## 🔥 CRITICAL: EF Core Foreign Key Constraint in Seed Data (2025-09-22)
+
+**Problem**: Database seeding failed with foreign key constraint violation: `insert or update on table "TicketTypes" violates foreign key constraint "FK_TicketTypes_Sessions_SessionId"`. TicketTypes referenced SessionId of `00000000-0000-0000-0000-000000000000` (empty GUID).
+
+**Root Cause**: SeedDataService was creating TicketTypes with `SessionId = session.Id` BEFORE saving sessions to database. EF Core only assigns IDs after SaveChanges(), so session.Id was still empty GUID.
+
+**Solution**: Restructured seeding to save sessions first, then create ticket types with valid session IDs.
+
+### Fixed Implementation Pattern:
+```csharp
+// ✅ CORRECT: Two-phase seeding
+// Phase 1: Create and save sessions
+var sessionsToAdd = new List<Session>();
+foreach (var eventItem in events)
+{
+    AddSingleDayEventSession(eventItem, sessionsToAdd); // No ticket types
+}
+await _context.Sessions.AddRangeAsync(sessionsToAdd, cancellationToken);
+await _context.SaveChangesAsync(cancellationToken); // Sessions now have IDs
+
+// Phase 2: Create ticket types with valid session IDs
+var ticketTypesToAdd = new List<TicketType>();
+foreach (var session in sessionsToAdd)
+{
+    CreateTicketTypesForSession(eventItem, session, ticketTypesToAdd); // session.Id is valid
+}
+await _context.TicketTypes.AddRangeAsync(ticketTypesToAdd, cancellationToken);
+await _context.SaveChangesAsync(cancellationToken);
+```
+
+### Key Changes Made:
+1. **Split helper methods**: Separated session creation from ticket type creation
+2. **AddSingleDayEventSession**: Creates sessions only (no ticket types)
+3. **AddMultiDayEventSessions**: Creates multiple day sessions only
+4. **CreateTicketTypesForSession**: Creates ticket types AFTER sessions are saved
+5. **CreateMultiDayTicketTypes**: Handles complex multi-day event ticket scenarios
+
+### PREVENTION Rules:
+- **NEVER create child entities before parent entities are saved** when using EF-generated IDs
+- **ALWAYS save parent entities first** in seed data when foreign keys are involved
+- **Use two-phase seeding** for complex entity relationships
+- **Test seeding on clean database** to catch constraint violations early
+
+**Files Modified**: `/apps/api/Services/SeedDataService.cs`
+
+**Result**: Database seeding now works correctly. API starts successfully with complete seed data (8 events, sessions, ticket types, users, etc.)
+
 ## 🔄 CRITICAL: Re-RSVP/Re-Ticket Purchase Implementation (2025-09-21)
 
 **Problem**: Users who cancelled their RSVP could not RSVP again to the same event. The system blocked re-participation due to finding ANY existing participation record.
