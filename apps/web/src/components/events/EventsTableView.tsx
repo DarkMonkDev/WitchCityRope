@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, ActionIcon, Button, Text, Group, Skeleton } from '@mantine/core';
+import { Table, ActionIcon, Button, Text, Group, Skeleton, Badge } from '@mantine/core';
 import { IconCaretUp, IconCaretDown, IconSelector } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';
@@ -90,6 +90,22 @@ const getCorrectCurrentCount = (event: EventDto): number => {
   return isSocialEvent ? (event.currentRSVPs || 0) : (event.currentTickets || 0);
 };
 
+// Helper function to get event type badge color
+const getEventTypeBadgeColor = (eventType?: string | null): string => {
+  if (!eventType) return 'gray';
+
+  switch (eventType.toLowerCase()) {
+    case 'workshop':
+      return 'blue';
+    case 'social':
+      return 'green';
+    case 'performance':
+      return 'purple';
+    default:
+      return 'gray';
+  }
+};
+
 // Helper function to get sort icon
 const getSortIcon = (column: 'date' | 'title', sortState: Pick<AdminEventFiltersState, 'sortColumn' | 'sortDirection'>) => {
   if (sortState.sortColumn !== column) {
@@ -107,6 +123,7 @@ const EventsTableSkeleton: React.FC = () => (
     <Table.Thead bg="wcr.7">
       <Table.Tr>
         <Table.Th c="white" style={{ width: '160px' }}>Date</Table.Th>
+        <Table.Th c="white" style={{ width: '120px', textAlign: 'center' }}>Type</Table.Th>
         <Table.Th c="white" style={{ minWidth: '200px' }}>Event Title</Table.Th>
         <Table.Th c="white" style={{ width: '200px', maxWidth: '200px', textAlign: 'center' }}>Time</Table.Th>
         <Table.Th c="white" style={{ width: '160px', maxWidth: '160px', textAlign: 'center' }}>Tickets/Capacity</Table.Th>
@@ -117,6 +134,7 @@ const EventsTableSkeleton: React.FC = () => (
       {Array.from({ length: 5 }).map((_, index) => (
         <Table.Tr key={index}>
           <Table.Td style={{ width: '160px' }}><Skeleton height={20} width="80%" /></Table.Td>
+          <Table.Td style={{ width: '120px', textAlign: 'center' }}><Skeleton height={20} width="70%" /></Table.Td>
           <Table.Td style={{ minWidth: '200px' }}><Skeleton height={20} width="90%" /></Table.Td>
           <Table.Td style={{ width: '200px', maxWidth: '200px', textAlign: 'center' }}><Skeleton height={20} width="70%" /></Table.Td>
           <Table.Td style={{ width: '160px', maxWidth: '160px' }}>
@@ -170,6 +188,7 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
         <Table.Thead bg="wcr.7">
           <Table.Tr>
             <Table.Th c="white" style={{ width: '160px' }}>Date</Table.Th>
+            <Table.Th c="white" style={{ width: '120px', textAlign: 'center' }}>Type</Table.Th>
             <Table.Th c="white" style={{ minWidth: '200px' }}>Event Title</Table.Th>
             <Table.Th c="white" style={{ width: '200px', maxWidth: '200px', textAlign: 'center' }}>Time</Table.Th>
             <Table.Th c="white" style={{ width: '160px', maxWidth: '160px', textAlign: 'center' }}>Tickets/Capacity</Table.Th>
@@ -178,7 +197,7 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
         </Table.Thead>
         <Table.Tbody>
           <Table.Tr>
-            <Table.Td colSpan={5} ta="center" py="xl">
+            <Table.Td colSpan={6} ta="center" py="xl">
               <Text c="dimmed" size="lg">No events found matching your filters</Text>
             </Table.Td>
           </Table.Tr>
@@ -193,7 +212,7 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
       <Table.Thead bg="wcr.7">
         <Table.Tr>
           {/* Sortable Date Column */}
-          <Table.Th 
+          <Table.Th
             style={{ cursor: 'pointer', width: '160px' }}
             onClick={() => onSort('date')}
             c="white"
@@ -205,9 +224,12 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
               </ActionIcon>
             </Group>
           </Table.Th>
-          
+
+          {/* Type Column */}
+          <Table.Th c="white" style={{ width: '120px', textAlign: 'center' }}>Type</Table.Th>
+
           {/* Sortable Title Column - Takes most space */}
-          <Table.Th 
+          <Table.Th
             style={{ cursor: 'pointer', minWidth: '200px' }}
             onClick={() => onSort('title')}
             c="white"
@@ -219,7 +241,7 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
               </ActionIcon>
             </Group>
           </Table.Th>
-          
+
           <Table.Th c="white" style={{ width: '200px', maxWidth: '200px', textAlign: 'center' }}>Time</Table.Th>
           <Table.Th c="white" style={{ width: '160px', maxWidth: '160px', textAlign: 'center' }}>Tickets/Capacity</Table.Th>
           <Table.Th c="white" style={{ width: '150px', textAlign: '-webkit-center' as any }}>Actions</Table.Th>
@@ -229,7 +251,7 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
       {/* Table Body */}
       <Table.Tbody>
         {events.map(event => (
-          <Table.Tr 
+          <Table.Tr
             key={event.id}
             data-testid="event-row"
             style={{ cursor: 'pointer' }}
@@ -242,21 +264,32 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
                 {formatEventDate(event)}
               </Text>
             </Table.Td>
-            
+
+            {/* Type Column */}
+            <Table.Td style={{ width: '120px', textAlign: 'center' }}>
+              <Badge
+                color={getEventTypeBadgeColor(event.eventType)}
+                variant="filled"
+                size="sm"
+              >
+                {event.eventType || 'Other'}
+              </Badge>
+            </Table.Td>
+
             {/* Title Column - Takes most space */}
             <Table.Td style={{ minWidth: '200px' }}>
               <Text fw={600} c="wcr.7" size="md" lineClamp={2}>
-                {event.title}
+                {event.title}{!event.isPublished ? ' - DRAFT' : ''}
               </Text>
             </Table.Td>
-            
+
             {/* Time Column */}
             <Table.Td style={{ width: '200px', maxWidth: '200px', textAlign: 'center' }}>
               <Text size="md" c="dimmed">
                 {formatTimeRange(event)}
               </Text>
             </Table.Td>
-            
+
             {/* Capacity Column - Narrow */}
             <Table.Td style={{ width: '160px', maxWidth: '160px' }}>
               <CapacityDisplay
@@ -264,7 +297,7 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
                 max={event.capacity}
               />
             </Table.Td>
-            
+
             {/* Actions Column - Narrow and centered */}
             <Table.Td style={{ width: '150px', textAlign: '-webkit-center' as any }} onClick={(e) => e.stopPropagation()}>
               <Button

@@ -374,11 +374,14 @@ docker ps | grep witchcity | grep -E "5173|5655|5433" || echo "❌ Docker contai
    - Location: `/docs/standards-processes/testing/docker-only-testing-standard.md`
    - This is the SINGLE SOURCE OF TRUTH for test environment
    - NEVER execute tests without following this standard
-2. **Read Your Lessons Learned** (MANDATORY)
-   - Location: `/home/chad/repos/witchcityrope-react/docs/lessons-learned/test-executor-lessons-learned.md`
-   - This file contains critical knowledge specific to your role
+2. **Read documentation standards** (MANDATORY)
+   - Read: `/home/chad/repos/witchcityrope-react/docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management`
+3. **Read your lessons learned files** (MANDATORY)
+   - Check Part 1 header for file count and read ALL parts
+   - This contains critical knowledge specific to your role
    - Apply these lessons to all work
-3. Read `/docs/standards-processes/progress-maintenance-process.md` - Progress tracking standards
+4. **IF ANY FILE FAILS**: STOP and fix per documentation standards before continuing
+5. Read `/docs/standards-processes/progress-maintenance-process.md` - Progress tracking standards
 
 ## Lessons Learned Maintenance
 

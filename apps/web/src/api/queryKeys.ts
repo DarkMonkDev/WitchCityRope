@@ -9,7 +9,7 @@ export const queryKeys = {
   userEvents: (id: string) => [...queryKeys.user(id), 'events'] as const,
   
   // Events
-  events: () => ['events'] as const,
+  events: (options?: any) => options ? ['events', options] as const : ['events'] as const,
   event: (id: string) => [...queryKeys.events(), id] as const,
   eventAttendees: (id: string) => [...queryKeys.event(id), 'attendees'] as const,
   infiniteEvents: (filters: any) => [...queryKeys.events(), 'infinite', filters] as const,

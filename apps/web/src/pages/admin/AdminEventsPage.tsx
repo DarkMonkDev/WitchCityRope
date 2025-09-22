@@ -16,7 +16,7 @@ import { EventsTableView } from '../../components/events/EventsTableView';
  */
 export const AdminEventsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { data: events, isLoading, error } = useEvents();
+  const { data: events, isLoading, error } = useEvents({ includeUnpublished: true });
   const copyEventMutation = useCopyEvent();
   
   // Filter and sort state management

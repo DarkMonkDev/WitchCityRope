@@ -17,19 +17,52 @@ public static class EventEndpoints
     /// </summary>
     public static void MapEventEndpoints(this IEndpointRouteBuilder app)
     {
-        // Get all published events
+        // Get all events with optional admin access
         app.MapGet("/api/events", async (
             EventService eventService,
+            HttpContext context,
+            bool? includeUnpublished,
             CancellationToken cancellationToken) =>
             {
-                var (success, response, error) = await eventService.GetPublishedEventsAsync(cancellationToken);
+                // Check if user is requesting unpublished events
+                var shouldIncludeUnpublished = includeUnpublished.GetValueOrDefault(false);
+
+                // If requesting unpublished events, verify admin role
+                if (shouldIncludeUnpublished)
+                {
+                    var user = context.User;
+                    if (user.Identity?.IsAuthenticated != true)
+                    {
+                        return Results.Json(new ApiResponse<List<EventDto>>
+                        {
+                            Success = false,
+                            Data = null,
+                            Error = "Authentication required",
+                            Message = "Authentication required to access unpublished events"
+                        }, statusCode: 401);
+                    }
+
+                    var userRole = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+                    if (userRole != "Administrator")
+                    {
+                        return Results.Json(new ApiResponse<List<EventDto>>
+                        {
+                            Success = false,
+                            Data = null,
+                            Error = "Insufficient permissions",
+                            Message = "Administrator role required to access unpublished events"
+                        }, statusCode: 403);
+                    }
+                }
+
+                var (success, response, error) = await eventService.GetEventsAsync(shouldIncludeUnpublished, cancellationToken);
 
                 if (success)
                 {
                     // Return fallback data if database is empty to maintain existing behavior
                     if (response.Count == 0)
                     {
-                        var fallbackEvents = GetFallbackEvents();
+                        var fallbackEvents = GetFallbackEvents(shouldIncludeUnpublished);
                         return Results.Ok(new ApiResponse<List<EventDto>>
                         {
                             Success = true,
@@ -49,7 +82,7 @@ public static class EventEndpoints
                 // If database fails, return fallback events as the original controller did
                 try
                 {
-                    var fallbackEvents = GetFallbackEvents();
+                    var fallbackEvents = GetFallbackEvents(shouldIncludeUnpublished);
                     return Results.Ok(new ApiResponse<List<EventDto>>
                     {
                         Success = true,
@@ -69,10 +102,12 @@ public static class EventEndpoints
                 }
             })
             .WithName("GetEvents")
-            .WithSummary("Get all published events")
-            .WithDescription("Returns all published future events from the database with fallback data")
+            .WithSummary("Get all events")
+            .WithDescription("Returns events from the database. Use ?includeUnpublished=true for admin access to draft events. Requires Administrator role for unpublished events.")
             .WithTags("Events")
             .Produces<ApiResponse<List<EventDto>>>(200)
+            .Produces(401)
+            .Produces(403)
             .Produces(500);
 
         // Get single event by ID
@@ -186,9 +221,9 @@ public static class EventEndpoints
     /// Hardcoded fallback events for reliability
     /// Maintains compatibility with existing EventsController behavior
     /// </summary>
-    private static EventDto[] GetFallbackEvents()
+    private static EventDto[] GetFallbackEvents(bool includeUnpublished = false)
     {
-        return new[]
+        var publishedEvents = new[]
         {
             // SOLD OUT Class event (100% capacity) - Green progress bar
             new EventDto
@@ -258,5 +293,50 @@ public static class EventEndpoints
                 CurrentTickets = 2        // Few paid tickets (25%)
             }
         };
+
+        if (!includeUnpublished)
+        {
+            return publishedEvents;
+        }
+
+        // Add draft events for admin view
+        var draftEvents = new[]
+        {
+            // DRAFT Class event - Shows " - DRAFT" in admin interface
+            new EventDto
+            {
+                Id = "550e8400-e29b-41d4-a716-446655440004",
+                Title = "Advanced Rope Dynamics (DRAFT)",
+                Description = "Workshop on complex rope movements and dynamics. Still in planning phase - not ready for public registration.",
+                StartDate = new DateTime(2025, 10, 15, 18, 0, 0, DateTimeKind.Utc),
+                EndDate = new DateTime(2025, 10, 15, 21, 0, 0, DateTimeKind.Utc),
+                Location = "TBD - Venue being finalized",
+                EventType = "Class",
+                Capacity = 12,
+                IsPublished = false,    // DRAFT - not visible to public
+                CurrentAttendees = 0,   // No registrations yet for draft
+                CurrentRSVPs = 0,
+                CurrentTickets = 0
+            },
+
+            // DRAFT Social event - Shows " - DRAFT" in admin interface
+            new EventDto
+            {
+                Id = "550e8400-e29b-41d4-a716-446655440005",
+                Title = "Halloween Rope Social (DRAFT)",
+                Description = "Special Halloween-themed social gathering. Event details still being planned by the organizing committee.",
+                StartDate = new DateTime(2025, 10, 31, 19, 0, 0, DateTimeKind.Utc),
+                EndDate = new DateTime(2025, 10, 31, 23, 0, 0, DateTimeKind.Utc),
+                Location = "Salem Community Center - Pending confirmation",
+                EventType = "Social",
+                Capacity = 40,
+                IsPublished = false,    // DRAFT - not visible to public
+                CurrentAttendees = 0,   // No RSVPs yet for draft
+                CurrentRSVPs = 0,
+                CurrentTickets = 0
+            }
+        };
+
+        return publishedEvents.Concat(draftEvents).ToArray();
     }
 }

@@ -84,16 +84,19 @@ docker ps | grep witchcity-web | grep "5173" || echo "❌ Docker not ready"
    - Location: `/docs/standards-processes/testing/docker-only-testing-standard.md`
    - This is the SINGLE SOURCE OF TRUTH for testing environment
    - NEVER create tests without following this standard
-2. **Read Your Lessons Learned** (MANDATORY)
-   - Location: `/home/chad/repos/witchcityrope-react/docs/lessons-learned/test-developer-lessons-learned.md`
-   - This file contains critical knowledge specific to your role
+2. **Read documentation standards** (MANDATORY)
+   - Read: `/home/chad/repos/witchcityrope-react/docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management`
+3. **Read your lessons learned files** (MANDATORY)
+   - Check Part 1 header for file count and read ALL parts
+   - This contains critical knowledge specific to your role
    - Apply these lessons to all work
-3. Read `/docs/standards-processes/testing/TESTING_GUIDE.md` - Comprehensive testing guide
-4. Read `/docs/standards-processes/testing/integration-test-patterns.md` - Integration patterns
-5. Read `/docs/standards-processes/testing/browser-automation/playwright-guide.md` - E2E patterns
-6. Read `/docs/standards-processes/testing/TEST_CATALOG.md` - Complete test inventory
-7. IMPORTANT: Use ONLY Playwright for E2E tests (NO Puppeteer - all tests migrated)
-8. Apply ALL relevant patterns from these documents
+4. **IF ANY FILE FAILS**: STOP and fix per documentation standards before continuing
+5. Read `/docs/standards-processes/testing/TESTING_GUIDE.md` - Comprehensive testing guide
+6. Read `/docs/standards-processes/testing/integration-test-patterns.md` - Integration patterns
+7. Read `/docs/standards-processes/testing/browser-automation/playwright-guide.md` - E2E patterns
+8. Read `/docs/standards-processes/testing/TEST_CATALOG.md` - Complete test inventory
+9. IMPORTANT: Use ONLY Playwright for E2E tests (NO Puppeteer - all tests migrated)
+10. Apply ALL relevant patterns from these documents
 
 **NOTE**: E2E_TESTING_PATTERNS.md redirects to playwright-guide.md (consolidated to eliminate duplicates)
 

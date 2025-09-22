@@ -147,4 +147,69 @@ This standard is enforced through:
 - Template usage requirements
 - Regular team review sessions
 
+## Multi-File Lessons Learned Management (MANDATORY)
+
+### File Size Limits
+- **Maximum file size**: ~2,000 lines (conservative limit for 25,000 token Read limit)
+- **Check before writing**: Use `wc -l filename` to check line count
+- **STOP if can't read**: DO NOT continue work if lessons learned files fail to load
+
+### Multi-File Structure
+When lessons learned files exceed size limits, they MUST be split:
+- Part 1: `[agent]-lessons-learned.md` (original file)
+- Part 2: `[agent]-lessons-learned-2.md`
+- Part 3: `[agent]-lessons-learned-3.md`
+- Continue sequential numbering as needed
+
+### Reading Protocol (MANDATORY)
+1. Read Part 1 header to get file count
+2. Read ALL files in sequence
+3. **IF ANY FILE FAILS TO READ**: STOP IMMEDIATELY and:
+   - Create the missing/broken file if it doesn't exist
+   - Split the file if it's too large
+   - Update Part 1 header
+   - THEN re-read all files before continuing
+
+### Writing Protocol (MANDATORY)
+1. ALWAYS write to the LAST file in the series
+2. Before writing, check: `wc -l [last-file].md`
+3. If > 2,000 lines:
+   - Create next numbered file
+   - Update Part 1 header with new count
+   - Write to the NEW file
+
+### Part 1 Header Format (REQUIRED)
+```
+## 📚 MULTI-FILE LESSONS LEARNED
+**Files**: 3 total
+**Read ALL**: Part 1, Part 2, Part 3
+**Write to**: Part 3 ONLY
+**Max size**: 2,000 lines per file (NOT 2,500)
+**IF READ FAILS**: STOP and fix per documentation-standards.md
+```
+
+### HARD BLOCK ENFORCEMENT (CRITICAL)
+
+**STARTUP VALIDATION GATE:**
+1. Set flag: `LESSONS_LEARNED_READABLE=false`
+2. Attempt to read ALL lessons learned files
+3. If ANY file fails with token limit error:
+   - STOP IMMEDIATELY
+   - DO NOT PROCEED WITH ANY WORK
+   - FIX THE PROBLEM using the procedure below
+4. Only when ALL files read successfully: `LESSONS_LEARNED_READABLE=true`
+5. ONLY proceed with work if flag is true
+
+**FIX PROCEDURE When File Too Large:**
+1. Check current line count: `wc -l [filename]`
+2. If Part 1 > 2,000 lines:
+   - Move content from line 2,001 onward to Part 2
+   - Update Part 1 header with new file count
+3. If Part 2 > 2,000 lines:
+   - Create Part 3
+   - Move excess content
+   - Update Part 1 header
+4. Re-read ALL files to verify they work
+5. Only then proceed with original task
+
 For questions about these standards, consult the project maintainers or create an issue in the project repository.

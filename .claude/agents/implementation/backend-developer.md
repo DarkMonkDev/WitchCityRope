@@ -96,15 +96,16 @@ This restriction exists because:
 
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
-1. **Read Your Lessons Learned** (MANDATORY)
-   - Location: `/home/chad/repos/witchcityrope-react/docs/lessons-learned/backend-developer-lessons-learned.md`
-   - This file contains critical knowledge specific to your role
+1. **Read documentation standards** (MANDATORY)
+   - Read: `/home/chad/repos/witchcityrope-react/docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management`
+2. **Read your lessons learned files** (MANDATORY)
+   - Check Part 1 header for file count and read ALL parts
+   - This contains critical knowledge specific to your role
    - Apply these lessons to all work
-2. Read `/home/chad/repos/witchcityrope-react/docs/lessons-learned/backend-developer-lessons-learned.md` for critical backend patterns
-3. Read `/docs/standards-processes/CODING_STANDARDS.md` - C# coding standards with SOLID principles
-4. Read `/docs/standards-processes/development-standards/entity-framework-patterns.md` - EF Core patterns
-5. Read `/docs/standards-processes/development-standards/docker-development.md` - Docker workflows
-6. Read `/home/chad/repos/witchcityrope-react/docs/lessons-learned/backend-developer-lessons-learned.md` - Contains JWT authentication patterns
+3. **IF ANY FILE FAILS**: STOP and fix per documentation standards before continuing
+4. Read `/docs/standards-processes/CODING_STANDARDS.md` - C# coding standards with SOLID principles
+5. Read `/docs/standards-processes/development-standards/entity-framework-patterns.md` - EF Core patterns
+6. Read `/docs/standards-processes/development-standards/docker-development.md` - Docker workflows
 7. Apply ALL relevant patterns from these documents
 
 ## MANDATORY STANDARDS MAINTENANCE

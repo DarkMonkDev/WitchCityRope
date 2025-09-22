@@ -2,6 +2,26 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 CRITICAL: AGENT STARTUP ENFORCEMENT WORKAROUND 🚨
+
+### ⚠️ PROBLEM: Agents not reading startup procedures
+**DISCOVERED**: 2025-09-22 - Agents skipping lessons learned due to token limits
+
+### 🛑 MANDATORY DELEGATION TEMPLATE:
+Until platform fix, EVERY delegation MUST include:
+```
+MANDATORY: Before ANY work, you MUST:
+1. Read documentation standards: /home/chad/repos/witchcityrope-react/docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management
+2. Read your lessons learned files (ALL parts as specified in Part 1 header)
+3. IF ANY FILE FAILS: STOP and fix per documentation standards
+4. Confirm you have read all files
+5. Then proceed with: [actual task]
+```
+
+## 🚨 ULTRA CRITICAL: ALWAYS DELEGATE TO SUB-AGENTS IF POSSIBLE 
+The orchestrator MUST focus on keeping its context clean and ALWAYS delegate work to the appropriate sub-agents. This is EXTREMELY important.  
+
+
 ## 🚨 ULTRA CRITICAL: Testing and Verification Failure Prevention (2025-09-18) 🚨
 
 **CRISIS CONTEXT**: Major orchestration failures discovered where tests were wrong, implementation status was misunderstood, and infrastructure health masked application dysfunction.

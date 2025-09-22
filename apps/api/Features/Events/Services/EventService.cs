@@ -27,20 +27,44 @@ public class EventService
     public async Task<(bool Success, List<EventDto> Response, string Error)> GetPublishedEventsAsync(
         CancellationToken cancellationToken = default)
     {
+        return await GetEventsAsync(includeUnpublished: false, cancellationToken);
+    }
+
+    /// <summary>
+    /// Get all events with optional filter for admin access - Simple Entity Framework service - NO MediatR complexity
+    /// </summary>
+    public async Task<(bool Success, List<EventDto> Response, string Error)> GetEventsAsync(
+        bool includeUnpublished = false,
+        CancellationToken cancellationToken = default)
+    {
         try
         {
-            _logger.LogInformation("Querying published events from PostgreSQL database");
+            var eventTypeFilter = includeUnpublished ? "all events" : "published events";
+            _logger.LogInformation("Querying {EventTypeFilter} from PostgreSQL database", eventTypeFilter);
 
             // Direct Entity Framework query with AsNoTracking for read performance
-            var events = await _context.Events
+            var query = _context.Events
                 .Include(e => e.Sessions) // Include related sessions
                 .Include(e => e.TicketTypes) // Include related ticket types
                     .ThenInclude(tt => tt.Session) // Include session info for ticket types
                 .Include(e => e.VolunteerPositions) // Include related volunteer positions
                 .Include(e => e.Organizers) // Include organizers/teachers
                 .Include(e => e.EventParticipations) // Include participations for RSVP/ticket counts
-                .AsNoTracking() // Read-only for better performance
-                .Where(e => e.IsPublished && e.StartDate > DateTime.UtcNow) // Filter published and future events
+                .AsNoTracking(); // Read-only for better performance
+
+            // Apply filters based on admin vs public access
+            if (includeUnpublished)
+            {
+                // Admin access: Show all events (both published and draft), including future and past
+                query = query.Where(e => e.StartDate > DateTime.UtcNow.AddDays(-30)); // Show events from last 30 days
+            }
+            else
+            {
+                // Public access: Only published future events
+                query = query.Where(e => e.IsPublished && e.StartDate > DateTime.UtcNow);
+            }
+
+            var events = await query
                 .OrderBy(e => e.StartDate) // Sort by date
                 .Take(50) // Reasonable limit for performance
                 .ToListAsync(cancellationToken);
@@ -66,12 +90,12 @@ public class EventService
                 TeacherIds = e.Organizers.Select(o => o.Id.ToString()).ToList()
             }).ToList();
 
-            _logger.LogInformation("Retrieved {EventCount} published events from database", eventDtos.Count);
+            _logger.LogInformation("Retrieved {EventCount} {EventTypeFilter} from database", eventDtos.Count, eventTypeFilter);
             return (true, eventDtos, string.Empty);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to retrieve published events from database");
+            _logger.LogError(ex, "Failed to retrieve events from database");
             return (false, new List<EventDto>(), "Failed to retrieve events");
         }
     }

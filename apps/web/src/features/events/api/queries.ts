@@ -20,11 +20,16 @@ export function useEvent(eventId: string) {
   })
 }
 
-export function useEvents() {
+export function useEvents(options: { includeUnpublished?: boolean } = {}) {
   return useQuery<EventDto[]>({
-    queryKey: queryKeys.events(),
+    queryKey: queryKeys.events(options),
     queryFn: async (): Promise<EventDto[]> => {
-      const response = await api.get('/api/events')
+      const params: Record<string, any> = {}
+      if (options.includeUnpublished) {
+        params.includeUnpublished = true
+      }
+
+      const response = await api.get('/api/events', { params })
       // Access events from ApiResponse wrapper and fix field names
       const rawEvents = response.data?.data || []
       return autoFixEventFieldNames(rawEvents)
