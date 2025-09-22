@@ -44,7 +44,7 @@ test.describe('Final Comprehensive Persistence Verification', () => {
     console.log('✅ Step 4: Login submitted');
 
     // Take screenshot after login
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/after-login.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/after-login.png' });
 
     // Navigate to admin events page
     await page.goto('http://localhost:5173/admin/events');
@@ -53,7 +53,7 @@ test.describe('Final Comprehensive Persistence Verification', () => {
     console.log('✅ Step 5: Navigated to admin events page');
 
     // Take screenshot of admin page
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/admin-events-final.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/admin-events-final.png' });
 
     // Check page content
     const pageContent = await page.textContent('body');

@@ -9,7 +9,7 @@ test.describe('Navigation Verification After API Fix', () => {
     await page.waitForTimeout(2000);
 
     // Take screenshot of initial page
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/01-homepage-loaded.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/01-homepage-loaded.png' });
 
     // Verify React app is fully loaded
     const pageTitle = await page.title();
@@ -22,7 +22,7 @@ test.describe('Navigation Verification After API Fix', () => {
     await page.waitForTimeout(2000);
 
     // Take screenshot of login page/modal
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/02-login-form.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/02-login-form.png' });
 
     // Check if login form appeared
     const emailField = await page.locator('input[type="email"], input[placeholder*="email" i]').isVisible({ timeout: 5000 });
@@ -41,7 +41,7 @@ test.describe('Navigation Verification After API Fix', () => {
       await page.waitForTimeout(4000);
 
       // Take screenshot after login
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/03-after-login.png' });
+      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/03-after-login.png' });
 
       const urlAfterLogin = page.url();
       console.log(`🔍 URL after login: ${urlAfterLogin}`);
@@ -57,7 +57,7 @@ test.describe('Navigation Verification After API Fix', () => {
         await page.waitForTimeout(4000);
 
         // Take screenshot of dashboard
-        await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/04-user-dashboard.png' });
+        await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/04-user-dashboard.png' });
 
         const dashboardUrl = page.url();
         console.log(`🔍 Dashboard URL: ${dashboardUrl}`);
@@ -112,7 +112,7 @@ test.describe('Navigation Verification After API Fix', () => {
       await page.waitForTimeout(4000);
 
       // Take screenshot after admin login
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/05-admin-after-login.png' });
+      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/05-admin-after-login.png' });
 
       // Check for Admin menu
       const adminMenuExists = await page.locator('text=Admin, a[href*="admin"], nav a:has-text("Admin")').isVisible({ timeout: 3000 });
@@ -134,7 +134,7 @@ test.describe('Navigation Verification After API Fix', () => {
           await page.waitForTimeout(4000);
 
           // Take screenshot of admin events page
-          await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/06-admin-events.png' });
+          await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/06-admin-events.png' });
 
           const eventsUrl = page.url();
           console.log(`🔍 Admin Events URL: ${eventsUrl}`);

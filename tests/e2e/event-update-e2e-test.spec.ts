@@ -10,9 +10,9 @@ test.describe('Event Update Flow E2E Testing', () => {
     await page.goto('http://localhost:5173/login');
     await page.waitForLoadState('networkidle');
     
-    // Wait for form elements using correct selectors
-    const emailInput = page.locator('input[placeholder="your@email.com"]');
-    const passwordInput = page.locator('input[type="password"]');
+    // Wait for form elements using correct React selectors
+    const emailInput = page.locator('[data-testid="email-input"]');
+    const passwordInput = page.locator('[data-testid="password-input"]');
     
     await expect(emailInput).toBeVisible({ timeout: 10000 });
     await expect(passwordInput).toBeVisible({ timeout: 10000 });
@@ -24,13 +24,8 @@ test.describe('Event Update Flow E2E Testing', () => {
     // Scroll down to ensure button is visible and find login button
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     
-    let loginButton = page.locator('button[type="submit"]:has-text("Login")');
-    if (await loginButton.count() === 0) {
-      loginButton = page.locator('button:has-text("Login")');
-    }
-    if (await loginButton.count() === 0) {
-      loginButton = page.locator('button[type="submit"]');
-    }
+    // Use correct React LoginPage selector
+    const loginButton = page.locator('[data-testid="login-button"]');
     
     await expect(loginButton).toBeVisible({ timeout: 10000 });
     await loginButton.click();

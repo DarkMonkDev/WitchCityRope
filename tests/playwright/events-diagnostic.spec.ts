@@ -58,7 +58,7 @@ test.describe('Events Page Diagnostic', () => {
     
     // Take a full page screenshot to see what's actually displayed
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope-react/test-results/events-page-actual-diagnosis.png', 
+      path: '/home/chad/repos/witchcityrope-react./test-results/events-page-actual-diagnosis.png', 
       fullPage: true 
     });
     
@@ -131,7 +131,7 @@ test.describe('Events Page Diagnostic', () => {
     await page.waitForTimeout(3000);
     
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope-react/test-results/events-page-after-wait.png', 
+      path: '/home/chad/repos/witchcityrope-react./test-results/events-page-after-wait.png', 
       fullPage: true 
     });
     
@@ -157,7 +157,7 @@ test.describe('Events Page Diagnostic', () => {
     const mainContentLocator = page.locator('main, [role="main"], #root > div');
     if (await mainContentLocator.count() > 0) {
       await mainContentLocator.first().screenshot({ 
-        path: '/home/chad/repos/witchcityrope-react/test-results/events-main-content.png'
+        path: '/home/chad/repos/witchcityrope-react./test-results/events-main-content.png'
       });
     }
     

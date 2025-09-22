@@ -42,7 +42,7 @@ test.describe('Basic App Check', () => {
     console.log('📋 Body content length:', bodyText?.length || 0);
 
     // Take a screenshot for debugging
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/app-state.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/app-state.png' });
 
     // Look for any visible text that would indicate the app loaded
     const hasVisibleContent = await page.locator('body *:visible').count();

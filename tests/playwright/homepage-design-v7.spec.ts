@@ -131,13 +131,13 @@ test.describe('Homepage Design System v7 Tests', () => {
     
     // Take full page screenshot
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope-react/test-results/homepage-design-v7-screenshot.png',
+      path: '/home/chad/repos/witchcityrope-react./test-results/homepage-design-v7-screenshot.png',
       fullPage: true 
     });
     
     // Verify screenshot was taken (file exists)
     const fs = require('fs');
-    const screenshotExists = fs.existsSync('/home/chad/repos/witchcityrope-react/test-results/homepage-design-v7-screenshot.png');
+    const screenshotExists = fs.existsSync('/home/chad/repos/witchcityrope-react./test-results/homepage-design-v7-screenshot.png');
     expect(screenshotExists).toBe(true);
   });
 

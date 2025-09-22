@@ -1,8 +1,60 @@
 # WitchCityRope Test Catalog
-<!-- Last Updated: 2025-09-18 -->
-<!-- Version: 1.2 -->
+<!-- Last Updated: 2025-09-21 -->
+<!-- Version: 1.3 -->
 <!-- Owner: Testing Team -->
-<!-- Status: CRITICAL INFRASTRUCTURE BROKEN -->
+<!-- Status: AUTHENTICATION TESTS UPDATED -->
+
+## 🚨 CRITICAL: AUTHENTICATION TEST CLEANUP COMPLETE (2025-09-21) 🚨
+
+**BLAZOR-TO-REACT MIGRATION CLEANUP**: Successfully updated authentication tests to align with current React implementation.
+
+### Issues Fixed:
+- **Modal/Dialog References Removed**: Tests no longer look for non-existent modal authentication patterns
+- **Selector Updates**: Changed from wrong selectors to correct `data-testid` attributes
+- **Text Expectations Fixed**: "Login" → "Welcome Back", button text → "Sign In"
+- **Port Configuration**: Updated from wrong port 5174 to correct Docker port 5173
+
+### Key Pattern Changes:
+```typescript
+// ❌ OLD (Blazor patterns)
+await page.locator('[role="dialog"], .modal, .login-modal').count()
+await page.locator('button[type="submit"]:has-text("Login")').click()
+await expect(page.locator('h1')).toContainText('Login')
+
+// ✅ NEW (React patterns)
+await page.locator('[data-testid="email-input"]').fill(email)
+await page.locator('[data-testid="password-input"]').fill(password)
+await page.locator('[data-testid="login-button"]').click()
+await expect(page.locator('h1')).toContainText('Welcome Back')
+```
+
+### Files Updated:
+- `/tests/playwright/debug-login-form.spec.ts` - Converted from modal investigation to React selector validation
+- `/tests/playwright/login-investigation.spec.ts` - Updated to test React navigation patterns
+- `/tests/e2e/final-real-api-login-test.spec.ts` - Fixed critical selector issues
+- `/tests/e2e/event-update-e2e-test.spec.ts` - Updated authentication selectors
+- `/apps/web/tests/playwright/events-crud-test.spec.ts` - Fixed port configuration
+
+### Validation Results:
+✅ **Working Test**: `/tests/e2e/demo-working-login.spec.ts` confirms patterns work correctly
+✅ **Authentication successful** with data-testid selectors
+✅ **Tests pass** - 3/3 tests successful with new patterns
+✅ **Old patterns fail as expected** - confirming the fixes are necessary
+
+### File Removal: Outdated Authentication Tests - 2025-09-21
+**Removed**: `/apps/web/tests/playwright/auth.spec.ts` (10 test cases)
+**Reason**: Redundant coverage with outdated UI expectations
+
+**Issues with removed file**:
+- Expected "Register" title instead of "Join WitchCityRope"
+- Expected `/welcome` routes that don't exist (system uses `/dashboard`)
+- Used generic selectors instead of `data-testid` attributes
+- Tested non-existent authentication flows
+
+**Coverage Preserved by Working Tests**:
+- `/tests/e2e/demo-working-login.spec.ts` - 3 working login approaches
+- `/tests/e2e/working-login-solution.spec.ts` - 6 comprehensive auth tests
+- All authentication flows tested with correct current implementation
 
 ## 🚨 CRITICAL: RSVP VERIFICATION TEST RESULTS (2025-09-21) 🚨
 

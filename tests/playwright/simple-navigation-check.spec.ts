@@ -9,7 +9,7 @@ test.describe('Simple Navigation Check After API Fix', () => {
     await page.waitForTimeout(3000);
 
     // Take screenshot of loaded page
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/app-loaded.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/app-loaded.png' });
 
     // Verify React app loaded properly
     const pageTitle = await page.title();
@@ -32,7 +32,7 @@ test.describe('Simple Navigation Check After API Fix', () => {
       await page.waitForTimeout(2000);
 
       // Take screenshot after clicking login
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/after-login-click.png' });
+      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/after-login-click.png' });
 
       console.log('✅ Successfully clicked LOGIN button');
     }

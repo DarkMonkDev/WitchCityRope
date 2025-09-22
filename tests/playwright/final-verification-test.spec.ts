@@ -36,8 +36,8 @@ test.describe('Final Verification - Login and Dashboard Integration', () => {
     await page.waitForTimeout(2000);
 
     // Take initial screenshot
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/01-initial-load.png', fullPage: true });
-    results.screenshots.initialLoad = '/home/chad/repos/witchcityrope-react/test-results/01-initial-load.png';
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/01-initial-load.png', fullPage: true });
+    results.screenshots.initialLoad = '/home/chad/repos/witchcityrope-react./test-results/01-initial-load.png';
 
     // Step 2: Check if login link is available
     const loginButton = page.locator('text=Login');
@@ -47,11 +47,11 @@ test.describe('Final Verification - Login and Dashboard Integration', () => {
       await page.waitForTimeout(1000);
 
       // Take login page screenshot
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/02-login-page.png', fullPage: true });
-      results.screenshots.loginPage = '/home/chad/repos/witchcityrope-react/test-results/02-login-page.png';
+      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/02-login-page.png', fullPage: true });
+      results.screenshots.loginPage = '/home/chad/repos/witchcityrope-react./test-results/02-login-page.png';
     } else {
       console.log('❌ Login button not found');
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/02-no-login-button.png', fullPage: true });
+      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/02-no-login-button.png', fullPage: true });
       return results;
     }
 
@@ -68,15 +68,15 @@ test.describe('Final Verification - Login and Dashboard Integration', () => {
       await passwordInput.fill('Test123!');
 
       // Take filled form screenshot
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/03-filled-form.png', fullPage: true });
-      results.screenshots.filledForm = '/home/chad/repos/witchcityrope-react/test-results/03-filled-form.png';
+      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/03-filled-form.png', fullPage: true });
+      results.screenshots.filledForm = '/home/chad/repos/witchcityrope-react./test-results/03-filled-form.png';
 
       await signInButton.click();
       console.log('✅ Login form submitted');
       results.loginWorks = true;
     } else {
       console.log('❌ Login form not found');
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/03-no-login-form.png', fullPage: true });
+      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/03-no-login-form.png', fullPage: true });
       return results;
     }
 
@@ -97,8 +97,8 @@ test.describe('Final Verification - Login and Dashboard Integration', () => {
     results.dashboardShowsData = bodyText?.includes('events') || bodyText?.includes('statistics') || bodyText?.includes('members') || false;
 
     // Take final dashboard screenshot
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/04-dashboard-final.png', fullPage: true });
-    results.screenshots.dashboardFinal = '/home/chad/repos/witchcityrope-react/test-results/04-dashboard-final.png';
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/04-dashboard-final.png', fullPage: true });
+    results.screenshots.dashboardFinal = '/home/chad/repos/witchcityrope-react./test-results/04-dashboard-final.png';
 
     // Output detailed results
     console.log('\n📊 FINAL VERIFICATION RESULTS:');
@@ -164,7 +164,7 @@ test.describe('Final Verification - Login and Dashboard Integration', () => {
         console.log(`${user.role} login - Connection Problem: ${hasConnectionProblem ? 'YES' : 'NO'}`);
 
         await page.screenshot({
-          path: `/home/chad/repos/witchcityrope-react/test-results/user-${user.role.toLowerCase()}-result.png`,
+          path: `/home/chad/repos/witchcityrope-react./test-results/user-${user.role.toLowerCase()}-result.png`,
           fullPage: true
         });
       }

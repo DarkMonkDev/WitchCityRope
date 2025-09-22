@@ -160,7 +160,7 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
 
     // Step 8: Take screenshot for verification
     await page.screenshot({
-      path: '/home/chad/repos/witchcityrope-react/test-results/admin-events-navigation-success.png',
+      path: '/home/chad/repos/witchcityrope-react./test-results/admin-events-navigation-success.png',
       fullPage: true
     });
 

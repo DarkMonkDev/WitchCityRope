@@ -52,7 +52,7 @@ test.describe('Dashboard Page State Validation', () => {
     }
 
     console.log('📸 Taking home page screenshot...');
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/home-page-2025-09-18.png', fullPage: true });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/home-page-2025-09-18.png', fullPage: true });
 
     console.log('🔗 Navigating to login page...');
     await page.goto('http://localhost:5173/login');
@@ -65,7 +65,7 @@ test.describe('Dashboard Page State Validation', () => {
     await expect(page.locator('[data-testid="login-button"]')).toBeVisible();
 
     console.log('📸 Taking login page screenshot...');
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/login-page-2025-09-18.png', fullPage: true });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/login-page-2025-09-18.png', fullPage: true });
 
     // Test actual login functionality
     console.log('🔐 Testing login functionality...');
@@ -114,7 +114,7 @@ test.describe('Dashboard Page State Validation', () => {
     }
 
     console.log('📸 Taking dashboard screenshot...');
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/dashboard-page-2025-09-18.png', fullPage: true });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/dashboard-page-2025-09-18.png', fullPage: true });
 
     console.log('✅ Dashboard page state validation completed successfully');
     console.log('🎯 This test now ACTUALLY verifies navigation works, not just that pages exist');

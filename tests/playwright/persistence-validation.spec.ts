@@ -23,7 +23,7 @@ test.describe('Persistence Fix Validation', () => {
     console.log('🧪 Starting comprehensive persistence validation...');
 
     // Take screenshot of initial state
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/persistence-initial-state.png', fullPage: true });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/persistence-initial-state.png', fullPage: true });
 
     // STEP 1: Test Adding New Data
     console.log('📝 Testing data addition...');
@@ -81,7 +81,7 @@ test.describe('Persistence Fix Validation', () => {
     await page.waitForTimeout(2000); // Allow full save to complete
 
     // Take screenshot after adding data
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/persistence-after-add.png', fullPage: true });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/persistence-after-add.png', fullPage: true });
 
     // STEP 2: Test Persistence by Refreshing Page
     console.log('🔄 Testing persistence by refreshing page...');
@@ -159,7 +159,7 @@ test.describe('Persistence Fix Validation', () => {
     console.log(`✅ Session deletion persisted successfully`);
 
     // Take final screenshot
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/persistence-final-state.png', fullPage: true });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/persistence-final-state.png', fullPage: true });
 
     console.log('🎉 All persistence tests completed successfully!');
   });

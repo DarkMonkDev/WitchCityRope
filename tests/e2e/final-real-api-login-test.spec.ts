@@ -77,10 +77,10 @@ test.describe('Final Real API Authentication Test', () => {
     // Step 2: Wait for form to be fully rendered
     console.log('Step 2: Waiting for Mantine form elements...');
     
-    // Use correct selectors based on DOM inspection
-    const emailInput = page.locator('input[placeholder="your@email.com"]');
-    const passwordInput = page.locator('input[type="password"]');
-    const loginButton = page.locator('button[type="submit"]:has-text("Login")');
+    // Use correct React LoginPage selectors (data-testid attributes)
+    const emailInput = page.locator('[data-testid="email-input"]');
+    const passwordInput = page.locator('[data-testid="password-input"]');
+    const loginButton = page.locator('[data-testid="login-button"]');
 
     await expect(emailInput).toBeVisible({ timeout: 10000 });
     await expect(passwordInput).toBeVisible({ timeout: 10000 });

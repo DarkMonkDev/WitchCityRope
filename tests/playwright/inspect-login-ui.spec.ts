@@ -8,7 +8,7 @@ test('inspect login UI structure', async ({ page }) => {
   await expect(page).toHaveTitle(/Witch City Rope/);
 
   // Take a screenshot of the initial page
-  await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/initial-page.png' });
+  await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/initial-page.png' });
 
   // Check if LOGIN button exists
   const loginButton = page.locator('text=LOGIN');
@@ -21,7 +21,7 @@ test('inspect login UI structure', async ({ page }) => {
   await page.waitForTimeout(2000);
 
   // Take a screenshot after clicking login
-  await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/after-login-click.png' });
+  await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/after-login-click.png' });
 
   // Check for various possible login modal selectors
   const possibleSelectors = [

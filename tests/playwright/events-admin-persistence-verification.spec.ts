@@ -158,7 +158,7 @@ test.describe('Events Admin Persistence Verification', () => {
     await selectFirstEventForEdit(page);
 
     // Take screenshot of initial state
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/initial-event-edit-form.png', fullPage: true });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/initial-event-edit-form.png', fullPage: true });
 
     // Attempt to find and modify teacher field
     const teacherSelectors = [
@@ -196,7 +196,7 @@ test.describe('Events Admin Persistence Verification', () => {
       console.log(`📝 New teacher value: "${newValue}"`);
     } else {
       console.log('⚠️ Teacher field not found - taking screenshot for inspection');
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/teacher-field-not-found.png', fullPage: true });
+      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/teacher-field-not-found.png', fullPage: true });
     }
 
     await saveEventForm(page);
@@ -207,7 +207,7 @@ test.describe('Events Admin Persistence Verification', () => {
     await page.waitForLoadState('networkidle');
 
     // Take screenshot after refresh
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/after-refresh-teacher-test.png', fullPage: true });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/after-refresh-teacher-test.png', fullPage: true });
 
     console.log('✅ Teacher persistence test completed');
   });
@@ -283,7 +283,7 @@ test.describe('Events Admin Persistence Verification', () => {
     }
 
     // Take final screenshot
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/final-persistence-test.png', fullPage: true });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/final-persistence-test.png', fullPage: true });
 
     console.log('✅ Form data flow test completed');
   });

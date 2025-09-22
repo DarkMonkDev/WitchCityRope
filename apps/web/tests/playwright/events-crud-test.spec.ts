@@ -1,9 +1,14 @@
 import { test, expect } from '@playwright/test';
+import { quickLogin } from '../../../tests/e2e/helpers/auth.helper';
 
 test.describe('Event CRUD Operations', () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to admin events page directly (without auth for now)
-    await page.goto('http://localhost:5174/admin/events');
+    // Login as admin using correct React authentication patterns
+    await page.goto('http://localhost:5173/login');
+    await quickLogin(page, 'admin');
+
+    // Navigate to admin events page
+    await page.goto('http://localhost:5173/admin/events');
   });
 
   test('Phase 2: Admin Events Page - Create Event button opens modal', async ({ page }) => {

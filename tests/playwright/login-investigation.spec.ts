@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
-test('LOGIN Button Investigation', async ({ page }) => {
-  console.log('=== INVESTIGATING LOGIN BUTTON BEHAVIOR ===');
+test('React Authentication Navigation Test', async ({ page }) => {
+  console.log('=== TESTING REACT AUTHENTICATION NAVIGATION ===');
 
   const consoleMessages: string[] = [];
   const pageErrors: string[] = [];
@@ -17,131 +17,107 @@ test('LOGIN Button Investigation', async ({ page }) => {
     pageErrors.push(`Page Error: ${error.message}`);
   });
 
-  // Navigate to app
+  // Navigate to homepage first
   await page.goto('http://localhost:5173');
   await page.waitForLoadState('networkidle');
-  await page.waitForTimeout(2000);
 
-  console.log('✅ Page loaded successfully');
+  console.log('✅ Homepage loaded successfully');
 
-  // Look for LOGIN button with multiple selectors
-  const loginSelectors = [
-    'text=LOGIN',
-    'button:has-text("LOGIN")',
-    '[data-testid="login-button"]',
+  // Look for LOGIN navigation link (not button - this should navigate to /login)
+  const loginNavigationSelectors = [
     'a:has-text("LOGIN")',
-    '.login-button',
-    'button[type="button"]:has-text("LOGIN")'
+    'a[href="/login"]',
+    'text=LOGIN',
+    'nav a:has-text("LOGIN")'
   ];
 
-  let loginButton = null;
+  let loginNavLink = null;
   let usedSelector = '';
 
-  for (const selector of loginSelectors) {
+  for (const selector of loginNavigationSelectors) {
     const element = page.locator(selector);
     const count = await element.count();
     if (count > 0) {
-      loginButton = element.first();
+      loginNavLink = element.first();
       usedSelector = selector;
-      console.log(`Found LOGIN button with selector: ${selector}`);
+      console.log(`Found LOGIN navigation with selector: ${selector}`);
       break;
     }
   }
 
-  if (!loginButton) {
-    console.log('❌ No LOGIN button found with any selector');
-    return;
+  if (loginNavLink) {
+    // Get navigation link details
+    const linkText = await loginNavLink.textContent();
+    const linkHref = await loginNavLink.getAttribute('href');
+
+    console.log(`Login navigation details:`);
+    console.log(`  Text: "${linkText}"`);
+    console.log(`  Href: "${linkHref}"`);
+
+    // Click the navigation link
+    console.log('🖱️ Clicking LOGIN navigation...');
+    await loginNavLink.click();
+    await page.waitForLoadState('networkidle');
+
+    // Should navigate to login page
+    const currentUrl = page.url();
+    console.log(`URL after click: ${currentUrl}`);
+
+    expect(currentUrl).toContain('/login');
+    console.log('✅ Successfully navigated to login page');
+  } else {
+    console.log('ℹ️ No LOGIN navigation found - going directly to login page');
+    await page.goto('http://localhost:5173/login');
+    await page.waitForLoadState('networkidle');
   }
 
-  // Get button details before clicking
-  const buttonText = await loginButton.textContent();
-  const buttonTag = await loginButton.evaluate(el => el.tagName);
-  const buttonType = await loginButton.getAttribute('type');
-  const buttonClass = await loginButton.getAttribute('class');
-  const buttonHref = await loginButton.getAttribute('href');
+  // Verify we're on the React login page
+  await expect(page.locator('h1')).toContainText('Welcome Back');
+  console.log('✅ React LoginPage confirmed with "Welcome Back" title');
 
-  console.log(`Button details:`);
-  console.log(`  Text: "${buttonText}"`);
-  console.log(`  Tag: ${buttonTag}`);
-  console.log(`  Type: ${buttonType}`);
-  console.log(`  Class: ${buttonClass}`);
-  console.log(`  Href: ${buttonHref}`);
+  // Verify React login form elements are present (NO modals/dialogs)
+  const reactLoginSelectors = {
+    emailInput: '[data-testid="email-input"]',
+    passwordInput: '[data-testid="password-input"]',
+    loginButton: '[data-testid="login-button"]',
+    loginForm: '[data-testid="login-form"]'
+  };
 
-  // Take screenshot before click
-  await page.screenshot({ path: 'before-login-click.png' });
+  console.log('🔍 Verifying React login form elements:');
+  for (const [name, selector] of Object.entries(reactLoginSelectors)) {
+    const exists = await page.locator(selector).count();
+    console.log(`  ${name}: ${exists} found`);
+    expect(exists).toBe(1);
+  }
 
-  console.log('🖱️ Clicking LOGIN button...');
-  await loginButton.click();
+  // Verify NO modal/dialog elements exist
+  const modalElements = await page.locator('[role="dialog"], .modal, [data-testid*="modal"]').count();
+  console.log(`Modal/dialog elements: ${modalElements} (should be 0)`);
+  expect(modalElements).toBe(0);
+
+  // Test authentication with correct selectors
+  console.log('🧪 Testing authentication with admin credentials...');
+
+  await page.fill('[data-testid="email-input"]', 'admin@witchcityrope.com');
+  await page.fill('[data-testid="password-input"]', 'Test123!');
+  await page.click('[data-testid="login-button"]');
+
+  // Wait for authentication to complete
   await page.waitForTimeout(3000);
 
-  // Take screenshot after click
-  await page.screenshot({ path: 'after-login-click.png' });
+  const finalUrl = page.url();
+  console.log(`Final URL after authentication: ${finalUrl}`);
 
-  // Check what changed after clicking
-  console.log('Checking page state after LOGIN click...');
-
-  // Look for any form elements that might have appeared
-  const formElements = await page.locator('form, input, [role="dialog"], .modal, [data-testid*="modal"], [data-testid*="login"]').count();
-  console.log(`Form elements after click: ${formElements}`);
-
-  if (formElements > 0) {
-    const forms = await page.locator('form').count();
-    const inputs = await page.locator('input').count();
-    const dialogs = await page.locator('[role="dialog"]').count();
-    const modals = await page.locator('.modal, [data-testid*="modal"]').count();
-
-    console.log(`  Forms: ${forms}`);
-    console.log(`  Inputs: ${inputs}`);
-    console.log(`  Dialogs: ${dialogs}`);
-    console.log(`  Modals: ${modals}`);
-
-    // List all input elements
-    const allInputs = await page.locator('input').all();
-    for (let i = 0; i < allInputs.length; i++) {
-      const input = allInputs[i];
-      const inputName = await input.getAttribute('name');
-      const inputType = await input.getAttribute('type');
-      const inputPlaceholder = await input.getAttribute('placeholder');
-      const inputVisible = await input.isVisible();
-      console.log(`  Input ${i + 1}: name="${inputName}", type="${inputType}", placeholder="${inputPlaceholder}", visible=${inputVisible}`);
-    }
-  }
-
-  // Check URL changes
-  const currentUrl = page.url();
-  console.log(`Current URL: ${currentUrl}`);
-
-  // Check for navigation changes
-  const bodyTextAfter = await page.locator('body').textContent();
-  const newContentLength = bodyTextAfter?.length || 0;
-  console.log(`Page content length after click: ${newContentLength} characters`);
-
-  // Check specifically for login form indicators
-  const emailFields = await page.locator('input[type="email"], input[name="email"], input[placeholder*="email" i]').count();
-  const passwordFields = await page.locator('input[type="password"], input[name="password"], input[placeholder*="password" i]').count();
-  const submitButtons = await page.locator('button[type="submit"], input[type="submit"]').count();
-
-  console.log(`Login form elements found:`);
-  console.log(`  Email fields: ${emailFields}`);
-  console.log(`  Password fields: ${passwordFields}`);
-  console.log(`  Submit buttons: ${submitButtons}`);
-
-  // Check for any errors that occurred during click
+  // Check for any errors during the test
   console.log(`Console errors during test: ${consoleMessages.length}`);
-  consoleMessages.forEach((msg, i) => console.log(`  ${i + 1}. ${msg}`));
+  if (consoleMessages.length > 0) {
+    consoleMessages.forEach((msg, i) => console.log(`  ${i + 1}. ${msg}`));
+  }
 
   console.log(`Page errors during test: ${pageErrors.length}`);
-  pageErrors.forEach((error, i) => console.log(`  ${i + 1}. ${error}`));
-
-  // Final determination
-  if (emailFields > 0 && passwordFields > 0) {
-    console.log('✅ LOGIN click opened a login form');
-  } else if (currentUrl !== 'http://localhost:5173/') {
-    console.log('✅ LOGIN click caused navigation');
-  } else {
-    console.log('❌ LOGIN click had no visible effect');
+  if (pageErrors.length > 0) {
+    pageErrors.forEach((error, i) => console.log(`  ${i + 1}. ${error}`));
   }
 
-  // Always pass - we're investigating
-  expect(true).toBe(true);
+  console.log('✅ React authentication navigation test complete');
 });

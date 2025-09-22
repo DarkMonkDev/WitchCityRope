@@ -30,7 +30,7 @@ test.describe('Login and Navigation Test', () => {
     await page.waitForTimeout(3000);
 
     // Take a screenshot of the admin page
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/admin-events-page.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/admin-events-page.png' });
 
     // Check page content
     const pageContent = await page.textContent('body');

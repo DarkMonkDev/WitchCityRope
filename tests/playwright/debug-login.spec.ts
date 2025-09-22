@@ -24,7 +24,7 @@ test('debug login process step by step', async ({ page }) => {
   console.log('✅ Filled password');
 
   // Take screenshot before clicking Sign In
-  await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/before-signin.png' });
+  await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/before-signin.png' });
 
   // Click the Sign In button (not submit button)
   await page.click('text=Sign In');
@@ -34,7 +34,7 @@ test('debug login process step by step', async ({ page }) => {
   await page.waitForTimeout(3000);
 
   // Take screenshot after clicking Sign In
-  await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/after-signin.png' });
+  await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/after-signin.png' });
 
   // Check current URL
   const currentUrl = page.url();
@@ -90,7 +90,7 @@ test('debug login process step by step', async ({ page }) => {
   console.log(`Final on login page: ${finalOnLogin}`);
 
   // Take final screenshot
-  await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/final-state.png' });
+  await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/final-state.png' });
 
   // Check what user-related elements are visible
   const userElements = [

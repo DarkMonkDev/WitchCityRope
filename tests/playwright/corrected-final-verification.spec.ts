@@ -43,7 +43,7 @@ test.describe('Corrected Final Verification - Login and Dashboard Integration', 
     await page.waitForTimeout(1000);
 
     // Take login page screenshot
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/corrected-01-login-page.png', fullPage: true });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/corrected-01-login-page.png', fullPage: true });
 
     // Step 3: Fill login form with correct selectors
     console.log('📍 Step 3: Filling login form');
@@ -61,7 +61,7 @@ test.describe('Corrected Final Verification - Login and Dashboard Integration', 
     await passwordField.fill('Test123!');
 
     // Take filled form screenshot
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/corrected-02-filled-form.png', fullPage: true });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/corrected-02-filled-form.png', fullPage: true });
 
     console.log('📍 Step 4: Submitting login form');
     await signInButton.click();
@@ -84,7 +84,7 @@ test.describe('Corrected Final Verification - Login and Dashboard Integration', 
     results.dashboardShowsData = bodyText?.includes('events') || bodyText?.includes('statistics') || bodyText?.includes('members') || false;
 
     // Take final state screenshot
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/corrected-03-final-state.png', fullPage: true });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/corrected-03-final-state.png', fullPage: true });
 
     // Output detailed results
     console.log('\n📊 CORRECTED FINAL VERIFICATION RESULTS:');
@@ -132,6 +132,6 @@ test.describe('Corrected Final Verification - Login and Dashboard Integration', 
     console.log(`Has Admin in body: ${body?.includes('Admin') ? 'YES' : 'NO'}`);
     console.log(`Has Connection Problem: ${body?.includes('Connection Problem') ? 'YES' : 'NO'}`);
 
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/quick-admin-test.png', fullPage: true });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/quick-admin-test.png', fullPage: true });
   });
 });

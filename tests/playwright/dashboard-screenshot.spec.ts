@@ -15,7 +15,7 @@ test('capture working dashboard screenshot', async ({ page }) => {
   await page.waitForURL('**/dashboard');
   
   console.log('📸 Taking dashboard screenshot...');
-  await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/working-dashboard-2025-09-18.png', fullPage: true });
+  await page.screenshot({ path: '/home/chad/repos/witchcityrope-react./test-results/working-dashboard-2025-09-18.png', fullPage: true });
   
   console.log('✅ Dashboard screenshot captured successfully');
 });
