@@ -7,9 +7,9 @@
  */
 export interface SimplifiedApplicationFormData {
   realName: string;
-  sceneName: string;
+  pronouns?: string; // Optional field
   fetLifeHandle?: string; // Optional
-  email: string; // Pre-filled from auth
+  otherNames?: string; // Optional field
   whyJoin: string; // Required field
   experienceWithRope: string;
   agreesToCommunityStandards: boolean;
@@ -21,8 +21,10 @@ export interface SimplifiedApplicationFormData {
  */
 export interface SimplifiedCreateApplicationRequest {
   realName: string;
+  pronouns?: string;
   sceneName: string;
   fetLifeHandle?: string;
+  otherNames?: string;
   email: string;
   whyJoin: string;
   experienceWithRope: string;

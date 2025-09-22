@@ -1718,6 +1718,49 @@ http.get('http://localhost:5651/api/auth/user', handler)
 http.get('http://localhost:5655/api/Protected/profile', handler)
 ```
 
+## 🎯 CRITICAL: Mantine UI Form Testing - Use Semantic Selectors 2025-09-22
+
+**Problem**: E2E tests failing because they target `input[name="fieldName"]` selectors, but Mantine forms don't expose `name` attributes consistently in the DOM.
+
+**Root Cause**: Mantine's `form.getInputProps()` binds form state internally, but the actual DOM elements may not have visible `name` attributes.
+
+**Solution**: Use Playwright's semantic selectors instead:
+```typescript
+// ❌ WRONG: Targeting form field names
+const realNameField = page.locator('input[name="realName"]');
+const whyJoinField = page.locator('textarea[name="whyJoin"]');
+
+// ✅ CORRECT: Using semantic selectors
+const realNameField = page.getByPlaceholder('Enter your real name');
+const whyJoinField = page.getByPlaceholder('Tell us why you would like to join...');
+const submitButton = page.getByRole('button', { name: 'Submit Application' });
+const checkbox = page.getByRole('checkbox', { name: 'I agree to all of the above items' });
+```
+
+**Validation Testing Pattern**:
+```typescript
+// Test submit button state validation
+const submitButton = page.getByRole('button', { name: 'Submit Application' });
+
+// Verify initially disabled
+expect(await submitButton.isDisabled()).toBe(true);
+
+// Fill required fields...
+await realNameField.fill('Test User');
+await whyJoinField.fill('Detailed reason...');
+await experienceField.fill('Experience description...');
+await checkbox.check();
+
+// Verify enabled after required fields filled
+expect(await submitButton.isEnabled()).toBe(true);
+```
+
+**Prevention**:
+- ALWAYS use `getByPlaceholder()`, `getByRole()`, `getByLabel()` for form testing
+- NEVER rely on `name` attributes in Playwright tests for Mantine forms
+- Test form validation by checking submit button disabled state
+- This applies to ALL Mantine form components: TextInput, Textarea, Checkbox, Select
+
 
 ## 🚨 CRITICAL: TestContainers Database Testing Required
 

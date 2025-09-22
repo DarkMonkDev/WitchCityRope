@@ -34,4 +34,14 @@ public class SimplifiedApplicationResponse
     /// Next steps in the process
     /// </summary>
     public string NextSteps { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Pronouns that were submitted (if provided)
+    /// </summary>
+    public string? Pronouns { get; set; }
+
+    /// <summary>
+    /// Other names that were submitted (if provided)
+    /// </summary>
+    public string? OtherNames { get; set; }
 }

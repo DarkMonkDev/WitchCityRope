@@ -60,4 +60,16 @@ public class SimplifiedApplicationRequest
     /// </summary>
     [StringLength(500)]
     public string? HowFoundUs { get; set; }
+
+    /// <summary>
+    /// Optional pronouns field (e.g., "they/them", "she/her", "he/him")
+    /// </summary>
+    [StringLength(50)]
+    public string? Pronouns { get; set; }
+
+    /// <summary>
+    /// Any other names, nicknames, or social media handles you have used in a kinky context
+    /// </summary>
+    [StringLength(500)]
+    public string? OtherNames { get; set; }
 }

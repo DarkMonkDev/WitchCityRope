@@ -4,6 +4,7 @@
 import { useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
+import { useAuthStore } from '../../../stores/authStore';
 import { simplifiedVettingApi, getSimplifiedVettingErrorMessage } from '../api/simplifiedVettingApi';
 import type {
   SimplifiedCreateApplicationRequest,
@@ -16,6 +17,8 @@ import type {
  */
 export const useSimplifiedVettingApplication = () => {
   const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   // Check for existing application
   const {
@@ -26,14 +29,25 @@ export const useSimplifiedVettingApplication = () => {
   } = useQuery({
     queryKey: ['vetting', 'my-application'],
     queryFn: simplifiedVettingApi.checkExistingApplication,
+    enabled: !!user && isAuthenticated, // Only run when authenticated
     retry: false,
     refetchOnWindowFocus: false,
+    // Handle auth errors gracefully
+    throwOnError: (error: any) => {
+      // Don't throw 401 errors - let the UI handle auth state
+      return error?.response?.status !== 401;
+    }
   });
 
   // Submit application mutation
   const submitMutation = useMutation({
-    mutationFn: (request: SimplifiedCreateApplicationRequest): Promise<SimplifiedApplicationSubmissionResponse> =>
-      simplifiedVettingApi.submitApplication(request),
+    mutationFn: (request: SimplifiedCreateApplicationRequest): Promise<SimplifiedApplicationSubmissionResponse> => {
+      // Pre-flight authentication check
+      if (!isAuthenticated || !user) {
+        throw new Error('You must be logged in to submit an application. Please login or create an account first.');
+      }
+      return simplifiedVettingApi.submitApplication(request);
+    },
     onSuccess: (response) => {
       // Invalidate application check query to reflect new status
       queryClient.invalidateQueries({ queryKey: ['vetting', 'my-application'] });
@@ -70,8 +84,12 @@ export const useSimplifiedVettingApplication = () => {
   } = useQuery({
     queryKey: ['vetting', 'application-status'],
     queryFn: simplifiedVettingApi.getMyApplicationStatus,
-    enabled: !!existingApplication,
+    enabled: !!existingApplication && !!user && isAuthenticated,
     retry: false,
+    // Handle auth errors gracefully
+    throwOnError: (error: any) => {
+      return error?.response?.status !== 401;
+    }
   });
 
   // Submit application helper
@@ -107,10 +125,14 @@ export const useSimplifiedVettingApplication = () => {
     isLoadingStatus,
     statusError,
 
+    // Authentication state
+    isAuthenticated,
+    user,
+
     // Utility functions
     refreshStatus,
     hasExistingApplication: !!existingApplication,
-    canSubmitNew: !existingApplication,
+    canSubmitNew: !existingApplication && isAuthenticated && !!user,
 
     // Combined loading state
     isLoading: isCheckingApplication || isLoadingStatus || submitMutation.isPending,

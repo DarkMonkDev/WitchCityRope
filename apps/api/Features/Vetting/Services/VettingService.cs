@@ -700,6 +700,12 @@ public class VettingService : IVettingService
                     // Encrypt PII fields
                     EncryptedFullName = await _encryptionService.EncryptAsync(request.RealName),
                     EncryptedSceneName = await _encryptionService.EncryptAsync(request.PreferredSceneName),
+                    EncryptedPronouns = !string.IsNullOrEmpty(request.Pronouns)
+                        ? await _encryptionService.EncryptAsync(request.Pronouns)
+                        : null,
+                    EncryptedOtherNames = !string.IsNullOrEmpty(request.OtherNames)
+                        ? await _encryptionService.EncryptAsync(request.OtherNames)
+                        : null,
                     EncryptedEmail = await _encryptionService.EncryptAsync(request.Email),
                     EncryptedExperienceDescription = await _encryptionService.EncryptAsync(request.ExperienceWithRope),
                     EncryptedWhyJoinCommunity = await _encryptionService.EncryptAsync(request.WhyJoin),
@@ -765,7 +771,9 @@ public class VettingService : IVettingService
                     SubmittedAt = application.CreatedAt,
                     ConfirmationMessage = "Your application has been submitted successfully. You will receive a confirmation email shortly.",
                     EmailSent = emailResult.IsSuccess,
-                    NextSteps = "Our vetting team will review your application and contact you within a few business days with next steps."
+                    NextSteps = "Our vetting team will review your application and contact you within a few business days with next steps.",
+                    Pronouns = request.Pronouns,
+                    OtherNames = request.OtherNames
                 };
 
                 return Result<SimplifiedApplicationResponse>.Success(response);

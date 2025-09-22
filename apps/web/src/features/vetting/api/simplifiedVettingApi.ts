@@ -16,7 +16,7 @@ import type {
 export const simplifiedVettingApi = {
   /**
    * Check if user already has an application
-   * Returns null if no application exists
+   * Returns null if no application exists or user is not authenticated
    */
   async checkExistingApplication(): Promise<SimplifiedApplicationStatus | null> {
     try {
@@ -30,6 +30,11 @@ export const simplifiedVettingApi = {
       if (error.response?.status === 404) {
         return null;
       }
+      // 401 means user is not authenticated - return null gracefully
+      // This allows the UI to handle the auth state properly
+      if (error.response?.status === 401) {
+        return null;
+      }
       throw error;
     }
   },
@@ -38,16 +43,25 @@ export const simplifiedVettingApi = {
    * Submit a simplified vetting application
    */
   async submitApplication(request: SimplifiedCreateApplicationRequest): Promise<SimplifiedApplicationSubmissionResponse> {
-    const { data } = await apiClient.post<ApiResponse<SimplifiedApplicationSubmissionResponse>>(
-      '/api/vetting/applications/simplified',
-      request
-    );
+    try {
+      const { data } = await apiClient.post<ApiResponse<SimplifiedApplicationSubmissionResponse>>(
+        '/api/vetting/applications/simplified',
+        request
+      );
 
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to submit application');
+      if (!data.data) {
+        throw new Error(data.error || 'Failed to submit application');
+      }
+
+      return data.data;
+    } catch (error: any) {
+      // Add context to authentication errors
+      if (error.response?.status === 401) {
+        throw new Error('Authentication expired. Please login again and retry.');
+      }
+      // Re-throw other errors to be handled by the error message function
+      throw error;
     }
-
-    return data.data;
   },
 
   /**
@@ -70,29 +84,44 @@ export const simplifiedVettingApi = {
  * Transform API errors to user-friendly messages
  */
 export const getSimplifiedVettingErrorMessage = (error: any): string => {
-  if (error.response?.status === 401) {
-    return 'You must be logged in to submit an application.';
+  // Handle different types of error objects
+  const status = error.response?.status || error.status;
+  const message = error.message || error.response?.data?.message || error.response?.data?.error;
+
+  if (status === 401) {
+    return 'You must be logged in to submit an application. Please login or create an account first.';
   }
 
-  if (error.response?.status === 403) {
-    return 'You do not have permission to submit an application.';
+  if (status === 403) {
+    return 'You do not have permission to submit an application. Please contact support if you believe this is an error.';
   }
 
-  if (error.response?.status === 409) {
+  if (status === 409) {
     return 'You already have a submitted application. Only one application is allowed per person.';
   }
 
-  if (error.response?.status === 422) {
-    return 'Please check your application for errors and try again.';
+  if (status === 422) {
+    return 'Please check your application for errors and try again. All required fields must be filled out correctly.';
   }
 
-  if (error.response?.status === 429) {
+  if (status === 429) {
     return 'Too many requests. Please wait a moment and try again.';
   }
 
-  if (error.response?.status >= 500) {
-    return 'A server error occurred. Please try again later or contact support.';
+  if (status >= 500) {
+    return 'A server error occurred. Please try again later or contact support if the problem persists.';
   }
 
-  return error.message || 'An unexpected error occurred. Please try again.';
+  // Network errors
+  if (error.code === 'NETWORK_ERROR' || message?.includes('Network Error')) {
+    return 'Network connection error. Please check your internet connection and try again.';
+  }
+
+  // Timeout errors
+  if (error.code === 'ECONNABORTED' || message?.includes('timeout')) {
+    return 'Request timed out. Please try again.';
+  }
+
+  // Return the original message if available, otherwise a generic error
+  return message || 'An unexpected error occurred. Please try again.';
 };

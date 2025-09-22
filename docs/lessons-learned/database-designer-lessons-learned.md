@@ -49,6 +49,48 @@ public class Event
 
 ---
 
+## 🚨 SUCCESSFUL: Adding Fields to Existing Encrypted Entities Pattern (2025-09-22) 🚨
+
+**MAJOR SUCCESS**: Successfully added `EncryptedOtherNames` field to VettingApplication entity following all database design patterns.
+
+**USER REQUEST**: Add Pronouns and OtherNames fields to vetting application form - Pronouns already existed, OtherNames needed to be added.
+
+### ✅ SUCCESSFUL FIELD ADDITION PATTERN:
+1. **Entity Model Update**: Added `public string? EncryptedOtherNames { get; set; }` in logical grouping with other encrypted fields
+2. **EF Configuration Update**: Added proper Entity Framework configuration with appropriate max length (1000 chars)
+3. **Encryption Consistency**: Followed existing encryption pattern for PII fields in vetting system
+4. **Nullable Design**: Made field optional (nullable) for form flexibility
+5. **Length Optimization**: Used 1000 chars to accommodate multiple names/handles/nicknames
+6. **Documentation Creation**: Created comprehensive migration instructions and change summaries
+7. **File Registry Updates**: Logged all changes for complete traceability
+
+### 📋 PATTERN ELEMENTS:
+- **Entity Placement**: Added new field adjacent to similar fields for logical grouping
+- **Naming Convention**: Used `EncryptedOtherNames` to match existing `EncryptedPronouns` pattern
+- **Field Configuration**: Applied same patterns as existing encrypted fields
+- **Length Planning**: 1000 chars for multiple names vs 200 chars for pronouns
+- **Migration Strategy**: Used Docker-based EF Core migration workflow
+- **Documentation Standard**: Created both summary and detailed instruction documents
+
+### 🎯 SUCCESS METRICS:
+- ✅ Entity model updated with proper field placement and naming
+- ✅ EF Core configuration added with appropriate constraints
+- ✅ Followed existing encryption and nullable patterns
+- ✅ Proper length allocation for intended use case
+- ✅ Comprehensive migration instructions created
+- ✅ File registry maintained for all changes
+
+### 📚 KEY DESIGN DECISIONS:
+- **Field Length**: 1000 chars vs 200 for pronouns - accommodates multiple names/handles
+- **Encryption**: Consistent with other PII fields in vetting system
+- **Nullable**: Optional field for application form flexibility
+- **Placement**: Grouped with other applicant information fields
+- **Configuration**: Followed WitchCityRope Entity Framework patterns
+
+**CRITICAL LEARNING**: When adding fields to existing entities, maintain consistency with established patterns, use appropriate sizing for intended use case, and provide comprehensive migration documentation.
+
+---
+
 ## 🚨 CRITICAL: Legacy API Archived 2025-09-13
 
 **MANDATORY**: ALL database work must target modern API only:
@@ -144,7 +186,7 @@ CREATE TABLE "Payments" (
     "Id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "EncryptedStripePaymentIntentId" TEXT NULL,  -- Encrypted tokens only
     "AmountValue" DECIMAL(10,2) NOT NULL CHECK ("AmountValue" >= 0),
-    "SlidingScalePercentage" DECIMAL(5,2) NOT NULL DEFAULT 0.00 
+    "SlidingScalePercentage" DECIMAL(5,2) NOT NULL DEFAULT 0.00
         CHECK ("SlidingScalePercentage" >= 0 AND "SlidingScalePercentage" <= 75.00),
     "Status" INTEGER NOT NULL DEFAULT 0,
     "Metadata" JSONB NOT NULL DEFAULT '{}',
@@ -152,7 +194,7 @@ CREATE TABLE "Payments" (
 );
 
 -- ✅ CORRECT - Performance optimization with partial indexes
-CREATE INDEX "IX_Payments_PendingStatus" ON "Payments"("CreatedAt" DESC) 
+CREATE INDEX "IX_Payments_PendingStatus" ON "Payments"("CreatedAt" DESC)
     WHERE "Status" = 0; -- Pending payments only
 
 -- ✅ CORRECT - Comprehensive audit trail with JSONB
@@ -181,20 +223,20 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(p => p.AmountValue)
                .HasColumnType("decimal(10,2)")
                .HasColumnName("AmountValue");
-               
+
         builder.Property(p => p.Currency)
                .HasMaxLength(3)
                .HasDefaultValue("USD");
-        
+
         // Sliding scale percentage with business rule constraints
         builder.Property(p => p.SlidingScalePercentage)
                .HasColumnType("decimal(5,2)");
-        
+
         // JSONB for flexible Stripe metadata
         builder.Property(p => p.Metadata)
                .HasColumnType("jsonb")
                .HasDefaultValue("{}");
-        
+
         // Critical: UTC DateTime handling for PostgreSQL
         builder.Property(p => p.CreatedAt)
                .HasColumnType("timestamptz");
@@ -206,7 +248,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     modelBuilder.Entity<Payment>()
         .ToTable("Payments", t => t.HasCheckConstraint(
-            "CHK_Payments_SlidingScale_Range", 
+            "CHK_Payments_SlidingScale_Range",
             "\"SlidingScalePercentage\" >= 0 AND \"SlidingScalePercentage\" <= 75.00"
         ));
 }
@@ -228,14 +270,14 @@ CREATE INDEX "IX_Payments_Status" ON "Payments"("Status");
 CREATE INDEX "IX_Payments_ProcessedAt" ON "Payments"("ProcessedAt" DESC);
 
 -- Partial indexes for specific use cases (much faster than full table scans)
-CREATE INDEX "IX_Payments_PendingStatus" ON "Payments"("CreatedAt" DESC) 
+CREATE INDEX "IX_Payments_PendingStatus" ON "Payments"("CreatedAt" DESC)
     WHERE "Status" = 0;
-CREATE INDEX "IX_Payments_FailedStatus" ON "Payments"("ProcessedAt" DESC) 
+CREATE INDEX "IX_Payments_FailedStatus" ON "Payments"("ProcessedAt" DESC)
     WHERE "Status" = 2;
 
 -- Unique business rule constraints
-CREATE UNIQUE INDEX "UX_Payments_EventRegistration_Completed" 
-    ON "Payments"("EventRegistrationId") 
+CREATE UNIQUE INDEX "UX_Payments_EventRegistration_Completed"
+    ON "Payments"("EventRegistrationId")
     WHERE "Status" = 1; -- Only one completed payment per registration
 
 -- JSONB GIN indexes for flexible metadata queries
@@ -302,7 +344,7 @@ public class VettingRequest
         CreatedAt = DateTime.UtcNow;  // CRITICAL: PostgreSQL timestamptz compatibility
         UpdatedAt = DateTime.UtcNow;
     }
-    
+
     public Guid Id { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
@@ -314,7 +356,7 @@ public class VettingDecision
     public Guid Id { get; set; }
     public Guid VettingRequestId { get; set; }  // Foreign key
     public Guid ReviewerId { get; set; }        // Foreign key to User
-    
+
     // Navigation properties configured in EntityTypeConfiguration
     public VettingRequest VettingRequest { get; set; } = null!;
 }
@@ -375,20 +417,20 @@ The Event Session Matrix migration is a complex database transformation that con
 ```sql
 -- ✅ CORRECT - Explicit constraint naming for PostgreSQL
 CONSTRAINT "CHK_EventSessions_Capacity" CHECK ("Capacity" > 0),
-CONSTRAINT "UQ_EventSessions_EventId_SessionIdentifier" 
+CONSTRAINT "UQ_EventSessions_EventId_SessionIdentifier"
     UNIQUE ("EventId", "SessionIdentifier"),
 
 -- ✅ CORRECT - Proper foreign key with appropriate CASCADE behavior
-CONSTRAINT "FK_EventSessions_Events" FOREIGN KEY ("EventId") 
+CONSTRAINT "FK_EventSessions_Events" FOREIGN KEY ("EventId")
     REFERENCES "Events"("Id") ON DELETE CASCADE,
 
 -- ✅ CORRECT - Data preservation during architecture change
 INSERT INTO "Orders" (
     "Id", "UserId", "EventId", "OrderNumber", "Status", "TotalAmount"
 )
-SELECT 
+SELECT
     r."Id", -- Preserve registration ID as order ID
-    r."UserId", r."EventId", 
+    r."UserId", r."EventId",
     CONCAT('REG-', r."Id"::text), -- Traceable order numbers
     CASE WHEN r."Status" = 'Confirmed' THEN 'Confirmed' ELSE 'Pending' END,
     COALESCE(r."SelectedPriceAmount", 0.00)
@@ -466,7 +508,7 @@ public class DatabaseInitializationService : BackgroundService
     {
         // Phase 1: Apply pending migrations with retry policies
         await ApplyMigrationsWithRetryAsync(context, cancellationToken);
-        
+
         // Phase 2: Populate comprehensive seed data (environment-aware)
         if (ShouldPopulateSeedData(hostEnvironment))
         {
@@ -590,12 +632,12 @@ metadata JSONB NOT NULL DEFAULT '{}'
 CREATE INDEX idx_events_metadata ON "Events" USING GIN (metadata);
 
 -- Partial index for sparse data
-CREATE INDEX "IX_InitializationLog_Failed_StartedAt" 
-ON "InitializationLog" ("StartedAt" DESC) 
+CREATE INDEX "IX_InitializationLog_Failed_StartedAt"
+ON "InitializationLog" ("StartedAt" DESC)
 WHERE "Status" = 'Failed';
 
 -- Composite index for common queries
-CREATE INDEX "IX_InitializationLog_Environment_StartedAt" 
+CREATE INDEX "IX_InitializationLog_Environment_StartedAt"
 ON "InitializationLog" ("Environment", "StartedAt" DESC);
 ```
 
@@ -664,16 +706,16 @@ protected override void Up(MigrationBuilder migrationBuilder)
 {
     // Add nullable column first
     migrationBuilder.AddColumn<string>("NewColumn", "Events", nullable: true);
-    
+
     // Populate data
     migrationBuilder.Sql("UPDATE \"Events\" SET \"NewColumn\" = 'default'");
-    
+
     // Then make non-nullable
     migrationBuilder.AlterColumn<string>("NewColumn", "Events", nullable: false);
 }
 
 // ✅ CORRECT - Named constraints for PostgreSQL
-table.CheckConstraint("CHK_InitializationLog_Status", 
+table.CheckConstraint("CHK_InitializationLog_Status",
     "\"Status\" IN ('Running', 'Success', 'Failed')");
 ```
 
@@ -719,12 +761,12 @@ public class DatabaseInitializationService : BackgroundService
     {
         using var scope = _serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        
+
         try
         {
             // Apply migrations with retry policy
             await ApplyMigrationsWithRetryAsync(context, stoppingToken);
-            
+
             // Use EF Core 9's UseAsyncSeeding for idempotency
             if (ShouldPopulateSeedData())
             {
@@ -854,22 +896,22 @@ Integration testing with real PostgreSQL databases using Testcontainers provides
 public class DatabaseInitializationIntegrationTests : IClassFixture<PostgreSqlFixture>
 {
     private readonly PostgreSqlFixture _fixture;
-    
+
     public DatabaseInitializationIntegrationTests(PostgreSqlFixture fixture)
     {
         _fixture = fixture;
     }
-    
+
     [Fact]
     public async Task InitializeAsync_WithEmptyDatabase_CreatesAllSeedData()
     {
         // Arrange
         using var scope = _fixture.ServiceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        
+
         // Act
         var result = await _initService.InitializeAsync();
-        
+
         // Assert
         Assert.True(result.Success);
         Assert.True(result.SeedRecordsCreated > 0);
@@ -880,7 +922,7 @@ public class DatabaseInitializationIntegrationTests : IClassFixture<PostgreSqlFi
 public class PostgreSqlFixture : IAsyncLifetime
 {
     private readonly PostgreSqlTestcontainer _container;
-    
+
     public PostgreSqlFixture()
     {
         _container = new PostgreSqlBuilder()
@@ -890,7 +932,7 @@ public class PostgreSqlFixture : IAsyncLifetime
             .WithPortBinding(5433, true)
             .Build();
     }
-    
+
     public async Task InitializeAsync()
     {
         await _container.StartAsync();
@@ -938,19 +980,19 @@ PostgreSQL's JSONB provides powerful flexible schema capabilities but requires p
 CREATE INDEX idx_events_metadata ON "Events" USING GIN (metadata);
 
 -- ✅ CORRECT - Containment query (fast with GIN index)
-SELECT * FROM "Events" 
+SELECT * FROM "Events"
 WHERE metadata @> '{"type": "workshop"}';
 
 -- ✅ CORRECT - Path-specific index for common queries
-CREATE INDEX idx_events_event_type 
+CREATE INDEX idx_events_event_type
 ON "Events" ((metadata ->> 'event_type'));
 
 -- ❌ SLOWER - Path extraction in WHERE clause
-SELECT * FROM "Events" 
+SELECT * FROM "Events"
 WHERE metadata ->> 'type' = 'workshop';
 
 -- ✅ BETTER - Use path-specific index
-SELECT * FROM "Events" 
+SELECT * FROM "Events"
 WHERE metadata ->> 'event_type' = 'workshop';
 ```
 

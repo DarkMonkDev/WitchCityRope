@@ -13,19 +13,20 @@ export const simplifiedApplicationSchema = z.object({
     .max(100, 'Real name must be less than 100 characters')
     .trim(),
 
-  sceneName: z.string()
-    .min(2, 'Scene name must be at least 2 characters')
-    .max(50, 'Scene name must be less than 50 characters')
-    .trim(),
+  pronouns: z.string()
+    .max(50, 'Pronouns must be less than 50 characters')
+    .optional()
+    .or(z.literal('')), // Allow empty string
 
   fetLifeHandle: z.string()
     .max(50, 'FetLife handle must be less than 50 characters')
     .optional()
     .or(z.literal('')), // Allow empty string
 
-  email: z.string()
-    .email('Please enter a valid email address')
-    .trim(),
+  otherNames: z.string()
+    .max(500, 'Other names must be less than 500 characters')
+    .optional()
+    .or(z.literal('')), // Allow empty string
 
   whyJoin: z.string()
     .min(20, 'Please provide at least 20 characters explaining why you would like to join')
@@ -48,9 +49,9 @@ export type SimplifiedApplicationFormData = z.infer<typeof simplifiedApplication
  */
 export const defaultFormValues: SimplifiedApplicationFormData = {
   realName: '',
-  sceneName: '',
+  pronouns: '',
   fetLifeHandle: '',
-  email: '', // Will be pre-filled from auth context
+  otherNames: '',
   whyJoin: '',
   experienceWithRope: '',
   agreesToCommunityStandards: false,
@@ -65,19 +66,17 @@ export const fieldValidationMessages = {
     minLength: 'Real name must be at least 2 characters',
     maxLength: 'Real name must be less than 100 characters',
   },
-  sceneName: {
-    required: 'Your preferred scene name is required',
-    minLength: 'Scene name must be at least 2 characters',
-    maxLength: 'Scene name must be less than 50 characters',
+  pronouns: {
+    maxLength: 'Pronouns must be less than 50 characters',
+    optional: 'How you\'d like to be referred to (e.g., she/her, they/them)',
   },
   fetLifeHandle: {
     maxLength: 'FetLife handle must be less than 50 characters',
     optional: 'Optional - helps us verify community connections',
   },
-  email: {
-    required: 'Email address is required',
-    invalid: 'Please enter a valid email address',
-    readonly: "We'll use this email to contact you about your application",
+  otherNames: {
+    maxLength: 'Other names must be less than 500 characters',
+    optional: 'Any other names, nicknames, or social media handles you have used in a kinky context',
   },
   whyJoin: {
     required: 'Please explain why you would like to join Witch City Rope',

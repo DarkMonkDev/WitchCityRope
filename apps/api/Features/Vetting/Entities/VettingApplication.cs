@@ -38,6 +38,7 @@ public class VettingApplication
     public string EncryptedFullName { get; set; } = string.Empty;
     public string EncryptedSceneName { get; set; } = string.Empty;
     public string? EncryptedPronouns { get; set; }
+    public string? EncryptedOtherNames { get; set; }
     public string EncryptedEmail { get; set; } = string.Empty;
     public string? EncryptedPhone { get; set; }
 
@@ -84,7 +85,7 @@ public class VettingApplication
     public VettingReviewer? AssignedReviewer { get; set; }
     public ApplicationUser? CreatedByUser { get; set; }
     public ApplicationUser? UpdatedByUser { get; set; }
-    
+
     public ICollection<VettingReference> References { get; set; }
     public ICollection<VettingApplicationNote> Notes { get; set; }
     public ICollection<VettingDecision> Decisions { get; set; }

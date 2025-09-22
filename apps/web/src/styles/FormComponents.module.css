@@ -17,7 +17,7 @@
   background: transparent;
   padding: 0 var(--mantine-spacing-xs);
   z-index: 1;
-  font-size: var(--mantine-font-size-sm);
+  font-size: var(--mantine-font-size-md);
   transform-origin: left center;
   /* Default position - will be overridden by wrapper-specific rules */
   top: 50%;
@@ -52,7 +52,7 @@
   left: 6px;
   top: -10px;
   transform: translateY(-50%) scale(0.85);
-  font-size: var(--mantine-font-size-xs);
+  font-size: 14px; /* Fixed size - readable when floated, not too small */
   color: var(--color-burgundy);
 }
 
@@ -61,7 +61,7 @@
   left: 6px;
   top: 50%;
   transform: translateY(-50%) scale(1);
-  font-size: var(--mantine-font-size-sm);
+  font-size: var(--mantine-font-size-md);
 }
 
 /* Error state styling for input container labels */
@@ -669,7 +669,7 @@
   }
   
   .floatingLabel.isEmpty {
-    font-size: var(--mantine-font-size-sm);
+    font-size: var(--mantine-font-size-md);
   }
 }
 

@@ -54,5 +54,13 @@ public class SimplifiedApplicationValidator : AbstractValidator<SimplifiedApplic
         RuleFor(x => x.HowFoundUs)
             .MaximumLength(500)
             .WithMessage("How found us description cannot exceed 500 characters");
+
+        RuleFor(x => x.Pronouns)
+            .MaximumLength(50)
+            .WithMessage("Pronouns cannot exceed 50 characters");
+
+        RuleFor(x => x.OtherNames)
+            .MaximumLength(500)
+            .WithMessage("Other names description cannot exceed 500 characters");
     }
 }

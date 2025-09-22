@@ -1,7 +1,7 @@
 // Simplified Vetting Application Form Component
 // Based on approved UI mockups with floating labels and streamlined process
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Button,
@@ -12,17 +12,20 @@ import {
   LoadingOverlay,
   Stack,
   Group,
-  Textarea,
-  TextInput,
   Paper,
   List,
   ThemeIcon,
+  Anchor
 } from '@mantine/core';
+import {
+  EnhancedTextInput,
+  EnhancedTextarea
+} from '../../../components/forms/MantineFormInputs';
 import { useForm, zodResolver } from '@mantine/form';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
-import { IconCheck, IconAlertCircle, IconShieldCheck } from '@tabler/icons-react';
-import { useAuthStore } from '../../../stores/authStore';
+import { IconCheck, IconAlertCircle, IconShieldCheck, IconLogin } from '@tabler/icons-react';
+import { useAuthStore, useUserSceneName } from '../../../stores/authStore';
 import { simplifiedVettingApi, getSimplifiedVettingErrorMessage } from '../api/simplifiedVettingApi';
 import { simplifiedApplicationSchema, defaultFormValues, fieldValidationMessages } from '../schemas/simplifiedApplicationSchema';
 import type {
@@ -30,6 +33,7 @@ import type {
   SimplifiedCreateApplicationRequest,
   SimplifiedApplicationStatus
 } from '../types/simplified-vetting.types';
+import { TOUCH_TARGETS } from '../types/vetting.types';
 
 interface VettingApplicationFormProps {
   onSubmitSuccess?: (applicationId: string, statusUrl: string) => void;
@@ -44,6 +48,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
 }) => {
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const userSceneName = useUserSceneName();
   const [showSuccess, setShowSuccess] = useState(false);
 
   // Check if user already has an application
@@ -52,45 +57,42 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
     queryFn: simplifiedVettingApi.checkExistingApplication,
     enabled: !!user && isAuthenticated,
     retry: false,
+    // Catch 401 errors gracefully - they're expected for non-authenticated users
+    throwOnError: (error: any) => {
+      // Only throw non-auth errors
+      return error?.response?.status !== 401;
+    }
   });
 
   // Form setup with Mantine form + Zod validation
   const form = useForm<SimplifiedApplicationFormData>({
-    validate: (values) => {
-      const result = simplifiedApplicationSchema.safeParse(values);
-      if (result.success) {
-        return {};
-      }
-
-      const errors: Record<string, string> = {};
-      result.error.issues.forEach((issue) => {
-        if (issue.path.length > 0) {
-          errors[issue.path.join('.')] = issue.message;
-        }
-      });
-      return errors;
-    },
+    validate: zodResolver(simplifiedApplicationSchema),
     initialValues: {
       ...defaultFormValues,
-      email: user?.email || '', // Pre-fill email from auth
+      // Remove email and sceneName from form - they're shown at top but not editable
     },
+    // Enable validation on value change for better UX
+    validateInputOnChange: true,
+    validateInputOnBlur: true,
   });
 
-  // Update email when user changes
-  useEffect(() => {
-    if (user?.email && user.email !== form.values.email) {
-      form.setFieldValue('email', user.email);
-    }
-  }, [user?.email, form]);
+  // No need to update form values since email and sceneName are displayed separately
 
   // Submit application mutation
   const submitMutation = useMutation({
     mutationFn: async (formData: SimplifiedApplicationFormData): Promise<any> => {
+      // Check authentication before submitting
+      if (!isAuthenticated || !user) {
+        throw new Error('You must be logged in to submit an application. Please login or create an account first.');
+      }
+
       const request: SimplifiedCreateApplicationRequest = {
         realName: formData.realName,
-        sceneName: formData.sceneName,
+        pronouns: formData.pronouns || undefined,
+        sceneName: user?.sceneName || userSceneName, // Get from auth context
         fetLifeHandle: formData.fetLifeHandle || undefined,
-        email: formData.email,
+        otherNames: formData.otherNames || undefined,
+        email: user?.email || '', // Get from auth context
         whyJoin: formData.whyJoin,
         experienceWithRope: formData.experienceWithRope,
         agreesToCommunityStandards: formData.agreesToCommunityStandards,
@@ -208,13 +210,85 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
     );
   }
 
-  // Check for authentication error
-  if (checkError && (!user || !isAuthenticated)) {
+  // Show authentication requirement prominently if user is not logged in
+  if (!isAuthenticated || !user) {
     return (
       <Box className={className}>
-        <Alert color="red" icon={<IconAlertCircle />}>
-          You must be logged in to submit a vetting application.
-        </Alert>
+        <Paper p="xl" shadow="sm">
+          <Stack gap="lg">
+            <Title order={2} size="h2" mb="sm" c="wcr.7">
+              Apply to Join Witch City Rope
+            </Title>
+
+            <Alert
+              color="blue"
+              icon={<IconLogin />}
+              title="Login Required"
+            >
+              <Stack gap="md">
+                <Text>
+                  You must have an account and be logged in to submit a vetting application.
+                  This helps us process applications efficiently and securely.
+                </Text>
+
+                <Group gap="md">
+                  <Button
+                    component="a"
+                    href="/login"
+                    color="wcr"
+                    leftSection={<IconLogin />}
+                    style={{
+                      minHeight: TOUCH_TARGETS.BUTTON_HEIGHT,
+                      paddingTop: 12,
+                      paddingBottom: 12,
+                      paddingLeft: 24,
+                      paddingRight: 24,
+                      fontSize: 16,
+                      fontWeight: 600,
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    Login to Your Account
+                  </Button>
+
+                  <Text size="sm" c="dimmed">
+                    Don't have an account?{' '}
+                    <Anchor href="/register" fw={600}>
+                      Create one here
+                    </Anchor>
+                  </Text>
+                </Group>
+              </Stack>
+            </Alert>
+
+            {/* Privacy Notice */}
+            <Alert
+              icon={<IconShieldCheck />}
+              color="gray"
+              title="Privacy & Data Protection"
+            >
+              All personal information is encrypted and only accessible to approved vetting team members.
+              Your data will never be shared outside the review process.
+            </Alert>
+
+            {/* Preview of what the form covers */}
+            <Box>
+              <Title order={4} mb="sm">What we'll ask you:</Title>
+              <List size="sm" spacing="xs">
+                <List.Item>Your real name</List.Item>
+                <List.Item>Your pronouns (optional)</List.Item>
+                <List.Item>Your FetLife handle (optional)</List.Item>
+                <List.Item>Any other names or handles (optional)</List.Item>
+                <List.Item>Why you'd like to join our community</List.Item>
+                <List.Item>Your experience with rope bondage or BDSM</List.Item>
+                <List.Item>Agreement to our community standards</List.Item>
+              </List>
+              <Text size="xs" c="dimmed" mt="sm">
+                Your email and scene name will be pulled from your account profile.
+              </Text>
+            </Box>
+          </Stack>
+        </Paper>
       </Box>
     );
   }
@@ -245,194 +319,129 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
             Your data will never be shared outside the review process.
           </Alert>
 
+          {/* Display user info at top */}
+          <Paper p="md" bg="gray.0" style={{ borderRadius: 8, border: '1px solid var(--mantine-color-gray-3)' }}>
+            <Stack gap="xs">
+              <Text size="sm" fw={600} c="wcr.7">Your Account Information</Text>
+              <Group>
+                <Box>
+                  <Text size="xs" c="dimmed">Email:</Text>
+                  <Text size="sm" fw={500}>{user?.email}</Text>
+                </Box>
+                <Box>
+                  <Text size="xs" c="dimmed">Scene Name:</Text>
+                  <Text size="sm" fw={500}>{userSceneName || user?.sceneName || 'Not set'}</Text>
+                </Box>
+              </Group>
+              <Text size="xs" c="dimmed">This information will be used for your application. To update it, please edit your profile.</Text>
+            </Stack>
+          </Paper>
+
           <form onSubmit={handleSubmit}>
             <Stack gap="lg">
               {/* Real Name */}
-              <TextInput
+              <EnhancedTextInput
                 label="Real Name"
-                placeholder=" "
+                placeholder="Enter your real name"
                 required
-                withAsterisk
                 description={fieldValidationMessages.realName.required}
                 {...form.getInputProps('realName')}
-                styles={(theme) => ({
-                  label: {
-                    fontFamily: 'Montserrat, sans-serif',
-                    fontWeight: 500,
-                    color: theme.colors.wcr[7],
-                  },
+                styles={{
                   input: {
                     height: 56,
                     fontSize: 16,
-                    borderWidth: 2,
-                    borderColor: theme.colors.wcr[4],
-                    backgroundColor: theme.colors.gray[0],
-                    '&:focus': {
-                      borderColor: theme.colors.wcr[7],
-                      backgroundColor: 'white',
-                      transform: 'translateY(-2px)',
-                      boxShadow: `0 4px 12px ${theme.colors.wcr[4]}30`,
-                    },
                   },
-                })}
+                }}
               />
 
-              {/* Scene Name */}
-              <TextInput
-                label="Preferred Scene Name"
-                placeholder=" "
-                required
-                withAsterisk
-                description="This is how you'll be known at events. You can use any name you're comfortable with."
-                {...form.getInputProps('sceneName')}
-                styles={(theme) => ({
-                  label: {
-                    fontFamily: 'Montserrat, sans-serif',
-                    fontWeight: 500,
-                    color: theme.colors.wcr[7],
-                  },
+              {/* Pronouns */}
+              <EnhancedTextInput
+                label="Pronouns"
+                placeholder="Enter your pronouns (optional)"
+                description={fieldValidationMessages.pronouns.optional}
+                {...form.getInputProps('pronouns')}
+                styles={{
                   input: {
                     height: 56,
                     fontSize: 16,
-                    borderWidth: 2,
-                    borderColor: theme.colors.wcr[4],
-                    backgroundColor: theme.colors.gray[0],
-                    '&:focus': {
-                      borderColor: theme.colors.wcr[7],
-                      backgroundColor: 'white',
-                      transform: 'translateY(-2px)',
-                      boxShadow: `0 4px 12px ${theme.colors.wcr[4]}30`,
-                    },
                   },
-                })}
+                }}
               />
+
 
               {/* FetLife Handle */}
-              <TextInput
+              <EnhancedTextInput
                 label="FetLife Handle"
-                placeholder=" "
+                placeholder="Enter your FetLife handle (optional)"
                 description={fieldValidationMessages.fetLifeHandle.optional}
                 {...form.getInputProps('fetLifeHandle')}
-                styles={(theme) => ({
-                  label: {
-                    fontFamily: 'Montserrat, sans-serif',
-                    fontWeight: 500,
-                    color: theme.colors.wcr[7],
-                  },
+                styles={{
                   input: {
                     height: 56,
                     fontSize: 16,
-                    borderWidth: 2,
-                    borderColor: theme.colors.wcr[4],
-                    backgroundColor: theme.colors.gray[0],
-                    '&:focus': {
-                      borderColor: theme.colors.wcr[7],
-                      backgroundColor: 'white',
-                      transform: 'translateY(-2px)',
-                      boxShadow: `0 4px 12px ${theme.colors.wcr[4]}30`,
-                    },
                   },
-                })}
+                }}
               />
 
-              {/* Email - Pre-filled and readonly */}
-              <TextInput
-                label="Email Address"
-                placeholder=" "
-                required
-                withAsterisk
-                readOnly
-                description={fieldValidationMessages.email.readonly}
-                {...form.getInputProps('email')}
-                styles={(theme) => ({
-                  label: {
-                    fontFamily: 'Montserrat, sans-serif',
-                    fontWeight: 500,
-                    color: theme.colors.wcr[7],
-                  },
+              {/* Other Names */}
+              <EnhancedTextarea
+                label="Other Names or Handles"
+                placeholder="List any other names, nicknames, or social media handles (optional)"
+                description={fieldValidationMessages.otherNames.optional}
+                minRows={2}
+                maxRows={4}
+                autosize
+                {...form.getInputProps('otherNames')}
+                styles={{
                   input: {
-                    height: 56,
                     fontSize: 16,
-                    borderWidth: 2,
-                    borderColor: theme.colors.gray[4],
-                    backgroundColor: theme.colors.gray[1],
-                    color: theme.colors.gray[7],
                   },
-                })}
+                }}
               />
+
 
               {/* Why Join - New required field */}
-              <Textarea
+              <EnhancedTextarea
                 label="Why would you like to join Witch City Rope"
                 placeholder={fieldValidationMessages.whyJoin.placeholder}
                 required
-                withAsterisk
                 minRows={4}
                 maxRows={8}
                 autosize
                 description="Tell us why you would like to join our community"
                 {...form.getInputProps('whyJoin')}
-                styles={(theme) => ({
-                  label: {
-                    fontFamily: 'Montserrat, sans-serif',
-                    fontWeight: 500,
-                    color: theme.colors.wcr[7],
-                  },
+                styles={{
                   input: {
                     fontSize: 16,
-                    borderWidth: 2,
-                    borderColor: theme.colors.wcr[4],
-                    backgroundColor: theme.colors.gray[0],
-                    '&:focus': {
-                      borderColor: theme.colors.wcr[7],
-                      backgroundColor: 'white',
-                      transform: 'translateY(-2px)',
-                      boxShadow: `0 4px 12px ${theme.colors.wcr[4]}30`,
-                    },
                   },
-                })}
+                }}
               />
 
               {/* Experience with Rope */}
-              <Textarea
+              <EnhancedTextarea
                 label="Experience with Rope"
                 placeholder={fieldValidationMessages.experienceWithRope.placeholder}
                 required
-                withAsterisk
                 minRows={4}
                 maxRows={8}
                 autosize
                 description="Share your experience in rope bondage, BDSM, or kink communities"
                 {...form.getInputProps('experienceWithRope')}
-                styles={(theme) => ({
-                  label: {
-                    fontFamily: 'Montserrat, sans-serif',
-                    fontWeight: 500,
-                    color: theme.colors.wcr[7],
-                  },
+                styles={{
                   input: {
                     fontSize: 16,
-                    borderWidth: 2,
-                    borderColor: theme.colors.wcr[4],
-                    backgroundColor: theme.colors.gray[0],
-                    '&:focus': {
-                      borderColor: theme.colors.wcr[7],
-                      backgroundColor: 'white',
-                      transform: 'translateY(-2px)',
-                      boxShadow: `0 4px 12px ${theme.colors.wcr[4]}30`,
-                    },
                   },
-                })}
+                }}
               />
 
               {/* Community Standards Agreement */}
               <Paper
                 p="md"
-                style={(theme) => ({
-                  backgroundColor: theme.colors.gray[0],
-                  border: `2px solid ${theme.colors.gray[3]}`,
+                style={{
+                  backgroundColor: 'var(--mantine-color-gray-0)',
+                  border: '2px solid var(--mantine-color-gray-3)',
                   borderRadius: 12,
-                })}
+                }}
               >
                 <Stack gap="md">
                   <Title order={4} c="wcr.7">Community Standards Agreement</Title>
@@ -453,15 +462,15 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                     label={<Text fw={600}>I agree to all of the above items</Text>}
                     required
                     {...form.getInputProps('agreesToCommunityStandards', { type: 'checkbox' })}
-                    styles={(theme) => ({
+                    styles={{
                       label: {
-                        fontFamily: 'Montserrat, sans-serif',
-                        color: theme.colors.wcr[7],
+                        fontFamily: 'var(--font-heading)',
+                        color: 'var(--color-wcr-7)',
                       },
                       input: {
-                        accentColor: theme.colors.wcr[7],
+                        accentColor: 'var(--color-wcr-7)',
                       },
-                    })}
+                    }}
                   />
                 </Stack>
               </Paper>
@@ -472,33 +481,21 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                   type="submit"
                   size="lg"
                   loading={submitMutation.isPending}
-                  disabled={!form.isValid() || !form.isDirty()}
+                  disabled={Object.keys(form.errors).length > 0 || !isAuthenticated || !form.values.realName || !form.values.whyJoin || !form.values.experienceWithRope || !form.values.agreesToCommunityStandards}
                   leftSection={<IconCheck />}
+                  color="wcr"
                   style={{
-                    height: 56,
-                    fontSize: 16,
-                    fontFamily: 'Montserrat, sans-serif',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '1px',
+                    minHeight: TOUCH_TARGETS.BUTTON_HEIGHT,
+                    paddingTop: 12,
+                    paddingBottom: 12,
                     paddingLeft: 32,
                     paddingRight: 32,
+                    fontSize: 16,
+                    fontFamily: 'var(--font-heading)',
+                    fontWeight: 600,
+                    lineHeight: 1.4,
                   }}
-                  styles={(theme) => ({
-                    root: {
-                      background: `linear-gradient(135deg, ${theme.colors.yellow[4]} 0%, ${theme.colors.yellow[6]} 100%)`,
-                      color: theme.colors.dark[9],
-                      border: 'none',
-                      borderRadius: '12px 6px 12px 6px',
-                      boxShadow: `0 4px 15px ${theme.colors.yellow[4]}40`,
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        borderRadius: '6px 12px 6px 12px',
-                        transform: 'translateY(-2px)',
-                        boxShadow: `0 6px 20px ${theme.colors.yellow[4]}60`,
-                      },
-                    },
-                  })}
+                  title={!isAuthenticated ? 'You must be logged in to submit an application' : undefined}
                 >
                   {submitMutation.isPending ? 'Submitting Application...' : 'Submit Application'}
                 </Button>

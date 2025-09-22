@@ -36,6 +36,9 @@ public class VettingApplicationConfiguration : IEntityTypeConfiguration<VettingA
         builder.Property(e => e.EncryptedPronouns)
                .HasMaxLength(200);
 
+        builder.Property(e => e.EncryptedOtherNames)
+               .HasMaxLength(1000);
+
         builder.Property(e => e.EncryptedEmail)
                .IsRequired()
                .HasMaxLength(500);

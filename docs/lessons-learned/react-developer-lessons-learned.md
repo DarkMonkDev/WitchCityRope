@@ -2,6 +2,117 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 CRITICAL: VETTING FORM AUTHENTICATION HANDLING PATTERN 🚨
+
+### ⚠️ PROBLEM: Public forms accessed by non-authenticated users fail with poor UX
+**DISCOVERED**: 2025-09-22 - Vetting application form at `/join` route not handling non-authenticated users gracefully
+
+### 🛑 ROOT CAUSE:
+- Forms requiring authentication but accessible via public routes (/join, /contact, etc.)
+- React Query hooks throwing 401 errors instead of handling gracefully
+- No clear authentication requirement messaging for users
+- API calls failing silently with poor error feedback
+
+### ✅ CRITICAL SOLUTION PATTERN:
+1. **CHECK authentication state BEFORE rendering form** - show login requirement prominently
+2. **CONFIGURE React Query hooks** to handle 401 errors gracefully with `throwOnError`
+3. **PROVIDE clear login/register paths** for non-authenticated users
+4. **ENHANCE error messages** with specific guidance and context
+
+```typescript
+// ✅ CORRECT: Check auth state and show requirement upfront
+if (!isAuthenticated || !user) {
+  return (
+    <Alert color="blue" icon={<IconLogin />} title="Login Required">
+      <Stack gap="md">
+        <Text>You must have an account and be logged in to submit a vetting application.</Text>
+        <Group gap="md">
+          <Button component="a" href="/login" color="wcr" leftSection={<IconLogin />}>
+            Login to Your Account
+          </Button>
+          <Text size="sm" c="dimmed">
+            Don't have an account? <Anchor href="/register" fw={600}>Create one here</Anchor>
+          </Text>
+        </Group>
+      </Stack>
+    </Alert>
+  );
+}
+
+// ✅ CORRECT: React Query with graceful 401 handling
+const { data, error } = useQuery({
+  queryKey: ['resource'],
+  queryFn: apiCall,
+  enabled: !!user && isAuthenticated, // Only run when authenticated
+  throwOnError: (error: any) => {
+    // Don't throw 401 errors - let UI handle auth state
+    return error?.response?.status !== 401;
+  }
+});
+
+// ✅ CORRECT: API service with graceful 401 handling
+async checkExistingApplication(): Promise<Data | null> {
+  try {
+    const { data } = await apiClient.get('/api/resource');
+    return data.data || null;
+  } catch (error: any) {
+    if (error.response?.status === 401) {
+      return null; // Graceful handling - let UI manage auth state
+    }
+    throw error; // Re-throw other errors
+  }
+}
+
+// ❌ BROKEN: No auth check, poor error handling
+const { data } = useQuery({
+  queryKey: ['resource'],
+  queryFn: apiCall // Will throw 401 and confuse users
+});
+```
+
+### 🏗️ ENHANCED ERROR MESSAGE PATTERN:
+```typescript
+export const getErrorMessage = (error: any): string => {
+  const status = error.response?.status || error.status;
+  const message = error.message || error.response?.data?.message;
+
+  if (status === 401) {
+    return 'You must be logged in to access this feature. Please login or create an account first.';
+  }
+
+  // Network errors
+  if (error.code === 'NETWORK_ERROR' || message?.includes('Network Error')) {
+    return 'Network connection error. Please check your internet connection and try again.';
+  }
+
+  // Timeout errors
+  if (error.code === 'ECONNABORTED' || message?.includes('timeout')) {
+    return 'Request timed out. Please try again.';
+  }
+
+  return message || 'An unexpected error occurred. Please try again.';
+};
+```
+
+### 🔧 MANDATORY IMPLEMENTATION CHECKLIST:
+1. **CHECK authentication state** before showing forms requiring auth
+2. **SHOW login requirement** prominently with helpful UI and links
+3. **CONFIGURE React Query** `throwOnError` to handle 401s gracefully
+4. **ENHANCE API error messages** with user-friendly guidance
+5. **TEST with non-authenticated users** accessing public routes
+6. **PROVIDE form preview** for non-authenticated users when helpful
+
+### 📋 CRITICAL TESTING REQUIREMENTS:
+- **Non-authenticated user** visits form route → sees login requirement
+- **Authenticated user** uses form normally with proper error feedback
+- **Network/server errors** show helpful messages to users
+- **Page refresh** maintains proper authentication state
+
+### Tags
+#critical #authentication #forms #public-routes #error-handling #user-experience
+
+---
+
 ## 🚨 CRITICAL: TICKET AMOUNT DATA MAPPING ISSUE - METADATA FIELD MISSING 🚨
 
 ### ⚠️ PROBLEM: Ticket purchase amounts displaying as $0 on public event pages
@@ -82,6 +193,57 @@ var dto = new ParticipationStatusDto
 - **CREATE helper functions** for parsing JSON metadata consistently
 - **AVOID hardcoded values** in admin displays - use actual data
 - **REGENERATE types immediately** after any DTO structure changes
+
+## 🚨 CRITICAL: MANTINE FORM VALIDATION & SUBMIT BUTTON PATTERNS 🚨
+
+### ⚠️ PROBLEM: Form submit buttons stay disabled even with valid data
+**DISCOVERED**: 2025-09-22 - Mantine form `isValid()` and `isDirty()` checks preventing submission
+
+### 🛑 ROOT CAUSE:
+- `form.isDirty()` check fails when form values don't change from initial state properly
+- Complex `form.isValid()` logic with Zod validation not working as expected
+- Over-reliance on Mantine's built-in validation state vs explicit field checks
+
+### ✅ CRITICAL SOLUTION PATTERN:
+1. **REPLACE complex validation** with explicit field and error checks
+2. **REMOVE isDirty() requirement** for simple forms where all fields start empty
+3. **USE explicit required field checks** for better predictability
+4. **CONFIGURE validation timing** with `validateInputOnChange` and `validateInputOnBlur`
+
+```typescript
+// ❌ BROKEN: Over-complex validation logic
+disabled={!form.isValid() || !form.isDirty() || !isAuthenticated}
+
+// ✅ CORRECT: Explicit field and error checks
+disabled={
+  Object.keys(form.errors).length > 0 ||
+  !isAuthenticated ||
+  !form.values.requiredField1 ||
+  !form.values.requiredField2 ||
+  !form.values.agreesToTerms
+}
+
+// ✅ CORRECT: Enhanced form configuration
+const form = useForm<FormData>({
+  validate: zodResolver(schema),
+  initialValues: defaultValues,
+  // Enable real-time validation for better UX
+  validateInputOnChange: true,
+  validateInputOnBlur: true,
+});
+```
+
+### 🔧 VALIDATION DEBUGGING PATTERN:
+```typescript
+// Add temporary logging to debug form state
+console.log('Form validation debug:', {
+  isValid: form.isValid(),
+  isDirty: form.isDirty(),
+  errors: form.errors,
+  values: form.values,
+  hasErrors: Object.keys(form.errors).length > 0
+});
+```
 
 ## 🚨 CRITICAL: BOOLEAN && PATTERN RENDERS "0" IN REACT JSX 🚨
 
@@ -812,29 +974,30 @@ const paymentMethods = [
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 
 ### 🚨 ULTRA CRITICAL ARCHITECTURE DOCUMENTS (MUST READ FIRST): 🚨
-1. **🛑 DTO ALIGNMENT STRATEGY**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` - **PREVENTS 393 TYPESCRIPT ERRORS**
-2. **React Architecture Index**: `/docs/architecture/REACT-ARCHITECTURE-INDEX.md` - **PRIMARY ARCHITECTURE RESOURCE**
-3. **API Changes Guide**: `/docs/guides-setup/ai-agents/react-developer-api-changes-guide.md`
-4. **Migration Architecture**: `/docs/architecture/react-migration/domain-layer-architecture.md`
-5. **Design System**: `/docs/design/current/design-system-v7.md`
+1. **🛑 DTO ALIGNMENT STRATEGY**: `/home/chad/repos/witchcityrope-react/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` - **PREVENTS 393 TYPESCRIPT ERRORS**
+2. **React Architecture Guide**: `/home/chad/repos/witchcityrope-react/docs/architecture/react-migration/react-architecture.md` - **CORE ARCHITECTURE DECISIONS**
+3. **API Changes Guide**: `/home/chad/repos/witchcityrope-react/docs/guides-setup/ai-agents/react-developer-api-changes-guide.md`
+4. **Project Architecture**: `/home/chad/repos/witchcityrope-react/ARCHITECTURE.md` - **TECH STACK AND STANDARDS**
+5. **Design System**: `/home/chad/repos/witchcityrope-react/docs/design/current/design-system-v7.md`
 
 ### Validation Gates (MUST COMPLETE):
-- [ ] **Read React Architecture Index FIRST** - Single source for all React resources
+- [ ] **Read React Architecture Guide FIRST** - Core React architecture decisions and patterns
 - [ ] Read API changes guide for backend integration awareness
-- [ ] Understand backend migration doesn't break frontend
-- [ ] Know about improved API response formats
-- [ ] Check for existing animated form components
+- [ ] Review DTO Alignment Strategy to prevent TypeScript errors
+- [ ] Check Project Architecture for current tech stack
+- [ ] Review Design System for UI component standards
+- [ ] Check for existing components before creating new ones
 
 ### React Developer Specific Rules:
-- **React Architecture Index is SINGLE SOURCE for all React architecture documentation**
-- **YOU OWN React Architecture Index maintenance** - fix broken links immediately, no permission needed
-- **UPDATE "Last Validated" date when checking React Architecture Index links**
-- **ADD missing resources** you discover during development to React Architecture Index
-- **Backend migration is transparent to frontend (API contracts maintained)**
+- **React Architecture Guide contains core architecture decisions** - follow established patterns
+- **DTO Alignment Strategy PREVENTS 393 TypeScript errors** - read before ANY API work
+- **Project Architecture defines tech stack** - Mantine v7, TypeScript, Vite, etc.
+- **Backend migration is transparent to frontend** (API contracts maintained)
 - **Use improved response formats and error handling**
-- **Always check for existing animated components before creating new ones**
+- **Always check for existing components before creating new ones**
 - **Use standardized CSS classes, NOT inline styles**
 - **Follow Design System v7 for all styling decisions**
+- **Read existing handoff documents** before starting new work
 
 ## Documentation Organization Standard
 
@@ -2266,6 +2429,34 @@ const formatEventForWidget = (event: EventDto) => {
 3. **USE relative line-height** (1.2, 1.5) instead of fixed pixel values
 4. **TEST with different text** to ensure nothing gets cut off
 5. **CONSIDER `compact={false}`** prop if available
+
+### ✅ PROVEN WORKING PATTERN (Applied 2025-09-22):
+```typescript
+// ✅ CORRECT: Button styling that prevents text cutoff
+<Button
+  style={{
+    minHeight: TOUCH_TARGETS.BUTTON_HEIGHT, // Use minHeight, not height (56px)
+    paddingTop: 12,                         // Explicit vertical padding
+    paddingBottom: 12,                      // Prevents text cutoff
+    paddingLeft: 24,                        // Horizontal spacing
+    paddingRight: 24,
+    fontSize: 16,
+    fontWeight: 600,
+    lineHeight: 1.4,                        // Proper line spacing for text rendering
+  }}
+>
+  Login to Your Account
+</Button>
+
+// ❌ BROKEN: Fixed height without proper padding
+<Button style={{ height: 56 }}>Text gets cut off</Button>
+```
+
+**KEY PRINCIPLES**:
+- **minHeight + padding** instead of fixed height
+- **Explicit vertical padding** (12px top/bottom works well)
+- **lineHeight: 1.4** ensures proper text rendering space
+- **Use TOUCH_TARGETS constants** for consistent sizing across app
 
 ### Prevention Pattern:
 ```tsx
