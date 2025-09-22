@@ -2,6 +2,103 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 CRITICAL: MISSING UI CONFIRMATION MODALS BREAK ACTIONS 🚨
+
+### ⚠️ PROBLEM: Cancel RSVP button does nothing when clicked
+**DISCOVERED**: 2025-09-21 - Cancel RSVP button visible but non-functional
+
+### 🛑 ROOT CAUSE:
+- Component has complete modal state management (cancelModalOpen, cancelType, handleCancelClick)
+- Component has proper event handlers calling parent component functions
+- **MISSING**: The actual modal JSX component in the render tree
+- Button click sets modal state but no modal renders = user sees no response
+
+### ✅ CRITICAL SOLUTION:
+1. **ALWAYS verify UI component completeness**: State + Handlers + JSX
+2. **CHECK for orphaned state variables**: If useState exists, ensure corresponding JSX exists
+3. **PATTERN**: Modal state without modal JSX = broken UX
+
+```typescript
+// ❌ BROKEN: Modal state exists but no JSX
+const [modalOpen, setModalOpen] = useState(false);
+const handleOpen = () => setModalOpen(true);
+// Button calls handleOpen but nothing happens
+
+// ✅ CORRECT: Complete modal implementation
+const [modalOpen, setModalOpen] = useState(false);
+const handleOpen = () => setModalOpen(true);
+const handleClose = () => setModalOpen(false);
+
+return (
+  <>
+    <Button onClick={handleOpen}>Open Modal</Button>
+    <Modal opened={modalOpen} onClose={handleClose}>
+      {/* Modal content */}
+    </Modal>
+  </>
+);
+```
+
+### 🔧 MANDATORY VERIFICATION CHECKLIST:
+1. **SEARCH for useState calls** - verify all have corresponding JSX
+2. **SEARCH for event handlers** - verify they trigger visible UI changes
+3. **TEST all interactive elements** - ensure user sees response to actions
+4. **CHECK modal/overlay patterns** - most common source of invisible state
+
+### 💥 CONSEQUENCES OF IGNORING:
+- ❌ Users think functionality is broken (no feedback to clicks)
+- ❌ Support tickets about "buttons not working"
+- ❌ Lost user trust in application reliability
+- ❌ Difficult to debug without console inspection
+
+---
+
+## 🚨 CRITICAL: EVENT FIELD MAPPING BUG - RSVP/TICKET DISPLAY BROKEN 🚨
+
+### ⚠️ PROBLEM: Admin events list showing 0/X capacity for all events despite real RSVPs existing
+**DISCOVERED**: 2025-01-21 - EventsTableView capacity column and admin RSVP tabs showing zeros
+
+### 🛑 ROOT CAUSE:
+- Field mapping utility using non-existent `registrationCount` field instead of API's individual count fields
+- `eventFieldMapping.ts` importing local EventDto instead of shared types from `@witchcityrope/shared-types`
+- API returns `currentAttendees`, `currentRSVPs`, `currentTickets` but mapping was consolidating into missing field
+
+### ✅ CRITICAL SOLUTION:
+```typescript
+// ❌ WRONG: Don't consolidate into non-existent field
+registrationCount: apiEvent.currentAttendees || apiEvent.currentRSVPs || apiEvent.currentTickets || 0,
+
+// ✅ CORRECT: Preserve individual fields from API
+currentAttendees: apiEvent.currentAttendees,
+currentRSVPs: apiEvent.currentRSVPs,
+currentTickets: apiEvent.currentTickets,
+```
+
+### 🔧 MANDATORY FIXES:
+1. **ALWAYS use shared types** from `@witchcityrope/shared-types`
+2. **PRESERVE API field structure** - don't consolidate unless component specifically needs it
+3. **USE correct event display pattern** from lessons learned:
+```typescript
+const getCorrectCurrentCount = (event: EventDto): number => {
+  const isSocialEvent = event.eventType?.toLowerCase() === 'social';
+  return isSocialEvent ? (event.currentRSVPs || 0) : (event.currentTickets || 0);
+};
+```
+
+### 📋 VERIFICATION STEPS:
+1. **Check EventDto schema** matches API response structure exactly
+2. **Test capacity column** shows real RSVP/ticket counts, not zeros
+3. **Verify admin RSVP tabs** display actual participation data
+4. **Use browser dev tools** to inspect API responses vs component props
+
+### 💥 CONSEQUENCES OF IGNORING:
+- ❌ Admin dashboard shows misleading zero attendance for all events
+- ❌ Capacity planning becomes impossible
+- ❌ RSVP management appears broken to administrators
+- ❌ User dashboards show incorrect participation counts
+
+---
+
 ## 🚨 CRITICAL: ROLE-BASED ACCESS CONTROL MISMATCHES
 
 ### ⚠️ PROBLEM: Hard-coded role checks failing due to incorrect role names

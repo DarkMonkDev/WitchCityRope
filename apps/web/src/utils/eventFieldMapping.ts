@@ -9,7 +9,7 @@
  * and ensure type safety across the application.
  */
 
-import type { EventDto } from '../lib/api/types/events.types';
+import type { EventDto } from '@witchcityrope/shared-types';
 
 /**
  * Raw API response format (what actually comes from the server)
@@ -53,9 +53,10 @@ export function mapApiEventToDto(apiEvent: ApiEventResponse): EventDto {
     location: apiEvent.location || '',
     eventType: apiEvent.eventType,
     capacity: apiEvent.capacity,
-    registrationCount: apiEvent.currentAttendees || apiEvent.currentRSVPs || apiEvent.currentTickets || 0,
-    createdAt: '', // Should come from API
-    updatedAt: '', // Should come from API
+    // Preserve individual count fields from API - critical for RSVP/ticket display
+    currentAttendees: apiEvent.currentAttendees,
+    currentRSVPs: apiEvent.currentRSVPs,
+    currentTickets: apiEvent.currentTickets,
     isPublished: apiEvent.isPublished,
     sessions: apiEvent.sessions,
     ticketTypes: apiEvent.ticketTypes,

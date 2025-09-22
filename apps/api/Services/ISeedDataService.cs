@@ -68,11 +68,21 @@ public interface ISeedDataService
     /// <summary>
     /// Populates vetting status configuration data for testing vetting workflows.
     /// Creates baseline vetting status records needed for user management.
-    /// 
+    ///
     /// Supports development testing of vetting application and approval processes.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token for async operation</param>
     Task SeedVettingStatusesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Creates EventParticipation records for RSVPs and ticket purchases.
+    /// This provides proper data for testing RSVP/ticket functionality.
+    ///
+    /// Creates realistic participation data for both social events (RSVPs) and
+    /// class events (ticket purchases) using multiple test users.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token for async operation</param>
+    Task SeedEventParticipationsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Checks if seed data population is required by examining existing data.

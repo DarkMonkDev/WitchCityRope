@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Paper, Stack, Alert, Group, Text, Box, Badge, Button,
-  LoadingOverlay, Progress
+  LoadingOverlay, Progress, Modal, Textarea
 } from '@mantine/core';
 import { IconUsers, IconTicket, IconCalendarCheck, IconAlertCircle, IconCheck } from '@tabler/icons-react';
 import { useCurrentUser } from '../../lib/api/hooks/useAuth';
@@ -61,6 +61,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   console.log('  - isLoadingUser:', isLoadingUser);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelType, setCancelType] = useState<'rsvp' | 'ticket'>('rsvp');
+  const [cancelReason, setCancelReason] = useState('');
   const [showPayPal, setShowPayPal] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState(ticketPrice);
   const [slidingScalePercentage, setSlidingScalePercentage] = useState(0);
@@ -215,9 +216,15 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
     setCancelModalOpen(true);
   };
 
-  const handleConfirmCancel = (reason?: string) => {
-    onCancel(cancelType, reason);
+  const handleConfirmCancel = () => {
+    onCancel(cancelType, cancelReason.trim() || undefined);
     setCancelModalOpen(false);
+    setCancelReason('');
+  };
+
+  const handleCancelModal = () => {
+    setCancelModalOpen(false);
+    setCancelReason('');
   };
 
   const handleTicketPurchase = () => {
@@ -490,6 +497,46 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
           )}
         </Stack>
       </ParticipationCardShell>
+
+      {/* Cancel Confirmation Modal */}
+      <Modal
+        opened={cancelModalOpen}
+        onClose={handleCancelModal}
+        title={`Cancel ${cancelType === 'rsvp' ? 'RSVP' : 'Ticket'}`}
+        size="md"
+        centered
+      >
+        <Stack gap="md">
+          <Text size="sm">
+            Are you sure you want to cancel your {cancelType === 'rsvp' ? 'RSVP' : 'ticket purchase'} for this event?
+            {cancelType === 'rsvp' && ' This will free up a spot for other attendees.'}
+          </Text>
+
+          <Textarea
+            label="Reason for cancellation (optional)"
+            placeholder="Let us know why you're canceling..."
+            value={cancelReason}
+            onChange={(event) => setCancelReason(event.currentTarget.value)}
+            minRows={3}
+            maxRows={5}
+          />
+
+          <Group justify="flex-end" gap="sm">
+            <Button
+              variant="outline"
+              onClick={handleCancelModal}
+            >
+              Keep {cancelType === 'rsvp' ? 'RSVP' : 'Ticket'}
+            </Button>
+            <Button
+              color="red"
+              onClick={handleConfirmCancel}
+            >
+              Cancel {cancelType === 'rsvp' ? 'RSVP' : 'Ticket'}
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </>
   );
 };

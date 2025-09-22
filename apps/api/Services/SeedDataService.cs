@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Enums;
+using WitchCityRope.Api.Features.Participation.Entities;
 
 namespace WitchCityRope.Api.Services;
 
@@ -20,10 +21,11 @@ namespace WitchCityRope.Api.Services;
 /// 
 /// Seed data includes:
 /// - 5 test accounts covering all role scenarios (Admin, Teacher, Member, Guest, Organizer)
-/// - 12 sample events (10 upcoming, 2 past) with realistic data
-/// - Sessions for each event (single-day and multi-day scenarios)
+/// - 8 sample events (6 upcoming, 2 past) with 3 classes and 3 social events
+/// - Sessions for each event with varied scenarios
 /// - Ticket types with varied pricing models (sliding scale, early bird, full event packages)
 /// - Sample ticket purchases and RSVPs with realistic payment data
+/// - EventParticipation records for proper RSVP/ticket testing
 /// - Volunteer positions demonstrating event management functionality
 /// - Vetting status configuration for development workflows
 /// 
@@ -87,6 +89,7 @@ public class SeedDataService : ISeedDataService
             await SeedEventsAsync(cancellationToken);
             await SeedSessionsAndTicketsAsync(cancellationToken);
             await SeedTicketPurchasesAsync(cancellationToken);
+            await SeedEventParticipationsAsync(cancellationToken);
             await SeedVolunteerPositionsAsync(cancellationToken);
             await SeedVettingStatusesAsync(cancellationToken);
 
@@ -305,13 +308,14 @@ public class SeedDataService : ISeedDataService
     /// <summary>
     /// Creates sample events for testing event management functionality.
     /// Includes variety of event types, dates, capacities, and pricing scenarios.
-    /// 
+    ///
     /// Events created:
-    /// - 10 upcoming events (workshops, classes, meetups) with realistic scheduling
+    /// - 3 upcoming classes (Introduction to Rope Safety, Suspension Basics, Advanced Floor Work)
+    /// - 3 upcoming social events (Community Rope Jam, Rope Social & Discussion, New Members Meetup)
     /// - 2 past events for testing historical data scenarios
     /// - Proper UTC DateTime handling following ApplicationDbContext patterns
     /// - Realistic capacity, pricing, and location information
-    /// 
+    ///
     /// All events follow existing Event entity structure and database schema.
     /// </summary>
     public async Task SeedEventsAsync(CancellationToken cancellationToken = default)
@@ -329,41 +333,29 @@ public class SeedDataService : ISeedDataService
         // Create diverse set of events per functional specification
         var sampleEvents = new[]
         {
-            // Upcoming Events (10 events) - Only Class and Social types
+            // Upcoming Events (3 classes and 3 social events)
             CreateSeedEvent("Introduction to Rope Safety", 7, 18, 20, EventType.Class, 25.00m,
                 "Learn the fundamentals of safe rope bondage practices in this comprehensive beginner workshop."),
-            
-            CreateSeedEvent("Single Column Tie Techniques", 14, 19, 15, EventType.Class, 45.00m,
-                "Master the art of single column ties with hands-on practice and personalized instruction."),
-            
-            CreateSeedEvent("Suspension Basics", 21, 18, 12, EventType.Class, 65.00m,
+
+            CreateSeedEvent("Suspension Basics", 14, 18, 12, EventType.Class, 65.00m,
                 "Introduction to suspension techniques with emphasis on safety and proper rigging."),
-            
-            CreateSeedEvent("Rope Maintenance & Care", 28, 17, 25, EventType.Class, 20.00m,
-                "Learn how to properly maintain, clean, and store your rope for longevity and safety."),
-            
-            CreateSeedEvent("Community Rope Jam", 35, 19, 30, EventType.Social, 15.00m,
-                "Casual practice session for all skill levels. Bring your rope and practice with the community."),
-            
-            CreateSeedEvent("Advanced Floor Work", 42, 18, 10, EventType.Class, 55.00m,
+
+            CreateSeedEvent("Advanced Floor Work", 21, 18, 10, EventType.Class, 55.00m,
                 "Explore complex floor-based rope bondage techniques for experienced practitioners."),
-            
-            CreateSeedEvent("Rope and Sensation Play", 49, 20, 8, EventType.Class, 50.00m,
-                "Combine rope techniques with sensation play for enhanced experiences."),
-            
-            CreateSeedEvent("Predicament Bondage Workshop", 56, 18, 12, EventType.Class, 60.00m,
-                "Learn to create challenging and engaging predicament scenarios with rope."),
-            
-            CreateSeedEvent("Photography and Rope", 63, 16, 6, EventType.Class, 35.00m,
-                "Explore the artistic intersection of rope bondage and photography."),
-            
-            CreateSeedEvent("Rope Social & Discussion", 70, 19, 40, EventType.Social, 10.00m,
+
+            CreateSeedEvent("Community Rope Jam", 28, 19, 40, EventType.Social, 15.00m,
+                "Casual practice session for all skill levels. Bring your rope and practice with the community."),
+
+            CreateSeedEvent("Rope Social & Discussion", 35, 19, 30, EventType.Social, 10.00m,
                 "Monthly social gathering for community connection and discussion of rope topics."),
-            
+
+            CreateSeedEvent("New Members Meetup", 42, 18, 25, EventType.Social, 5.00m,
+                "Welcome gathering for new community members to meet established practitioners and learn about upcoming events."),
+
             // Past Events (2 events) for testing historical data
             CreateSeedEvent("Beginner Rope Circle", -7, 18, 20, EventType.Social, 10.00m,
                 "Past event: Introductory session for newcomers to rope bondage."),
-            
+
             CreateSeedEvent("Rope Fundamentals Series", -14, 17, 15, EventType.Class, 40.00m,
                 "Past event: Multi-session fundamentals course for serious students.")
         };
@@ -490,6 +482,78 @@ public class SeedDataService : ISeedDataService
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Ticket purchases creation completed. Created: {PurchaseCount} purchases", purchasesToAdd.Count);
+    }
+
+    /// <summary>
+    /// Creates EventParticipation records for RSVPs and ticket purchases
+    /// This provides proper data for testing RSVP/ticket functionality
+    /// </summary>
+    public async Task SeedEventParticipationsAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Starting event participations creation");
+
+        // Check if participations already exist (idempotent operation)
+        var existingParticipationCount = await _context.EventParticipations.CountAsync(cancellationToken);
+        if (existingParticipationCount > 0)
+        {
+            _logger.LogInformation("Event participations already exist ({Count}), skipping participation seeding", existingParticipationCount);
+            return;
+        }
+
+        var events = await _context.Events.ToListAsync(cancellationToken);
+        var users = await _userManager.Users.ToListAsync(cancellationToken);
+        var participationsToAdd = new List<EventParticipation>();
+
+        foreach (var eventItem in events)
+        {
+            if (eventItem.EventType == "Social")
+            {
+                // Social events: Create RSVPs for multiple users
+                var rsvpCount = eventItem.Title.Contains("Community Rope Jam") ? 5 :
+                               eventItem.Title.Contains("New Members Meetup") ? 8 :
+                               eventItem.Title.Contains("Rope Social & Discussion") ? 6 : 3;
+
+                for (int i = 0; i < Math.Min(rsvpCount, users.Count); i++)
+                {
+                    var user = users[i];
+                    var participation = new EventParticipation(eventItem.Id, user.Id, ParticipationType.RSVP)
+                    {
+                        Id = Guid.NewGuid(),
+                        Status = ParticipationStatus.Active,
+                        CreatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 10)),
+                        UpdatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 10)),
+                        Notes = i == 0 ? "Looking forward to this event!" : null
+                    };
+                    participationsToAdd.Add(participation);
+                }
+            }
+            else // Class events
+            {
+                // Class events: Create ticket purchases for multiple users
+                var ticketCount = eventItem.Title.Contains("Introduction to Rope Safety") ? 5 :
+                                 eventItem.Title.Contains("Suspension Basics") ? 4 :
+                                 eventItem.Title.Contains("Advanced Floor Work") ? 3 : 2;
+
+                for (int i = 0; i < Math.Min(ticketCount, users.Count); i++)
+                {
+                    var user = users[i];
+                    var participation = new EventParticipation(eventItem.Id, user.Id, ParticipationType.Ticket)
+                    {
+                        Id = Guid.NewGuid(),
+                        Status = ParticipationStatus.Active,
+                        CreatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20)),
+                        UpdatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20)),
+                        Metadata = $"{{\"purchaseAmount\": {(decimal)Random.Shared.Next(15, 65)}, \"paymentMethod\": \"PayPal\"}}"
+                    };
+                    participationsToAdd.Add(participation);
+                }
+            }
+        }
+
+        await _context.EventParticipations.AddRangeAsync(participationsToAdd, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Event participations creation completed. Created: {ParticipationCount} participations", participationsToAdd.Count);
     }
 
     /// <summary>
