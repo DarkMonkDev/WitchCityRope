@@ -1998,3 +1998,132 @@ interface UserDto {
     isNull: participation === null,
     isLoading,
     shouldShow: shouldShowButton
+
+---
+
+## 🚨 CRITICAL: ADMIN INTERFACE IMPLEMENTATION PATTERNS 🚨
+
+### ⚠️ PROBLEM: Implementing complex admin interfaces without following established patterns
+**DISCOVERED**: 2025-09-22 - Admin vetting interface implementation following existing admin UI patterns
+
+### 🛑 KEY PATTERNS FOR ADMIN INTERFACES:
+
+### ✅ CRITICAL IMPLEMENTATION PATTERNS:
+
+#### 1. **Feature-Based Organization Pattern**:
+```typescript
+// ✅ CORRECT: Feature-based structure
+/features/admin/[domain]/
+├── components/
+│   ├── [Domain]List.tsx        # Main list view
+│   ├── [Domain]Detail.tsx      # Detail view
+│   └── [Domain]StatusBadge.tsx # Status components
+├── hooks/
+│   ├── use[Domain]s.ts         # List query hook
+│   ├── use[Domain]Detail.ts    # Detail query hook
+│   └── use[Domain]Mutation.ts  # Mutation hooks
+├── services/
+│   └── [domain]AdminApi.ts     # API service layer
+├── types/
+│   └── [domain].types.ts       # TypeScript definitions
+└── index.ts                    # Export barrel
+```
+
+#### 2. **Admin List Component Pattern**:
+```typescript
+// ✅ CORRECT: Standard admin list with filtering
+export const VettingApplicationsList: React.FC<Props> = ({ onViewItem }) => {
+  const [filters, setFilters] = useState<FilterRequest>({
+    page: 1,
+    pageSize: 25,
+    statusFilters: [],
+    priorityFilters: [],        // Required fields
+    experienceLevelFilters: [], // for proper typing
+    skillsFilters: [],
+    searchQuery: '',
+    sortBy: 'SubmittedAt',
+    sortDirection: 'Desc'
+  });
+
+  const { data, isLoading, error, refetch } = useTypedQuery<PagedResult<ItemDto>>(filters);
+
+  return (
+    <Stack gap="md">
+      {/* Filters */}
+      <Paper p="md" style={{ background: '#FFF8F0' }}>
+        <Group gap="md" wrap="wrap">
+          <TextInput leftSection={<IconSearch />} />
+          <Select data={statusOptions} />
+        </Group>
+      </Paper>
+
+      {/* Table */}
+      <Table striped highlightOnHover>
+        {/* Sortable headers */}
+        {/* Status badges */}
+        {/* Action buttons */}
+      </Table>
+
+      {/* Pagination */}
+      <Pagination />
+    </Stack>
+  );
+};
+```
+
+#### 3. **React Query Typed Hooks Pattern**:
+```typescript
+// ✅ CORRECT: Properly typed React Query hooks
+export function useTypedQuery<T>(filters: FilterRequest) {
+  return useQuery<T>({
+    queryKey: keys.list(filters),
+    queryFn: () => apiService.getList(filters),
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    placeholderData: (previousData) => previousData,
+  });
+}
+
+export function useTypedMutation(onSuccess?: () => void) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: MutationParams) => apiService.mutate(id, data),
+    onSuccess: (result, variables) => {
+      queryClient.invalidateQueries({ queryKey: keys.list() });
+      queryClient.invalidateQueries({ queryKey: keys.detail(variables.id) });
+      notifications.show({ title: 'Success', color: 'green' });
+      onSuccess?.();
+    },
+    onError: (error: any) => {
+      notifications.show({
+        title: 'Error',
+        message: error?.detail || error?.message || 'Operation failed',
+        color: 'red'
+      });
+    }
+  });
+}
+```
+
+### 🔧 MANDATORY IMPLEMENTATION CHECKLIST:
+1. **FOLLOW feature-based organization** with proper folder structure
+2. **USE typed React Query hooks** with proper error handling
+3. **IMPLEMENT standard filtering/pagination** with proper state management
+4. **CREATE reusable status badge** components
+5. **INTEGRATE with admin dashboard** following existing card patterns
+6. **PROVIDE loading and error states** for all data operations
+7. **MAINTAIN consistent styling** with existing admin UI
+8. **TEST with real API data** not just mock data
+
+### 💥 CONSEQUENCES OF NOT FOLLOWING PATTERNS:
+- ❌ Inconsistent admin UI experience
+- ❌ Code duplication across admin features
+- ❌ Poor error handling and loading states
+- ❌ Difficult maintenance and testing
+- ❌ Type safety issues with API integration
+
+### Tags
+#critical #admin-interfaces #react-query #mantine #feature-organization #typescript
+
+---

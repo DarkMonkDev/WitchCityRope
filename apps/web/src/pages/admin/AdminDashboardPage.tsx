@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container, Title, Text, Grid, Paper, Box, Group, Badge, Button } from '@mantine/core';
-import { IconCalendarEvent, IconUsers, IconSettings, IconChartBar, IconPlus, IconArrowRight } from '@tabler/icons-react';
+import { IconCalendarEvent, IconUsers, IconSettings, IconChartBar, IconPlus, IconArrowRight, IconClipboardCheck } from '@tabler/icons-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../stores/authStore';
 
@@ -38,6 +38,16 @@ export const AdminDashboardPage: React.FC = () => {
       countLabel: 'Active Members',
       link: '/admin/members',
       color: '#DAA520',
+    },
+    {
+      title: 'Vetting Applications',
+      description: 'Review and manage member vetting applications',
+      icon: <IconClipboardCheck size={32} />,
+      count: 8,
+      countLabel: 'Pending Review',
+      link: '/admin/vetting',
+      color: '#9b4a75',
+      badge: 'New'
     },
     {
       title: 'Analytics',

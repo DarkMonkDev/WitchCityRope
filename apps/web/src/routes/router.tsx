@@ -33,6 +33,7 @@ import { AdminEventsPage } from '../pages/admin/AdminEventsPage';
 import { AdminEventDetailsPage } from '../pages/admin/AdminEventDetailsPage';
 import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage';
 import { AdminSafetyPage } from '../pages/admin/AdminSafetyPage';
+import { AdminVettingPage } from '../pages/admin/AdminVettingPage';
 import { TestPage } from '../pages/TestPage';
 import { VettingTestPage } from '../pages/VettingTestPage';
 
@@ -234,6 +235,11 @@ export const router = createBrowserRouter([
       {
         path: "admin/safety",
         element: <AdminSafetyPage />,
+        loader: authLoader
+      },
+      {
+        path: "admin/vetting",
+        element: <AdminVettingPage />,
         loader: authLoader
       },
       
