@@ -139,6 +139,12 @@ public class VettingApplicationConfiguration : IEntityTypeConfiguration<VettingA
                .HasDatabaseName("IX_VettingApplications_SkillsInterests")
                .HasMethod("gin");
 
+        // Single application constraint - one application per user
+        builder.HasIndex(e => e.ApplicantId)
+               .IsUnique()
+               .HasDatabaseName("UQ_VettingApplications_ApplicantId_Active")
+               .HasFilter("\"DeletedAt\" IS NULL AND \"ApplicantId\" IS NOT NULL");
+
         // Relationships
         builder.HasOne(e => e.Applicant)
                .WithMany()

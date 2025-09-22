@@ -44,8 +44,8 @@ import { SafetyStatusPage } from '../pages/safety/SafetyStatusPage';
 // import { CheckInPage } from '../pages/checkin/CheckInPage';
 // import { CheckInDashboardPage } from '../pages/checkin/CheckInDashboardPage';
 
-// Vetting system pages - temporarily disabled due to TypeScript errors
-// import { VettingApplicationPage, VettingStatusPage, ReviewerDashboardPage } from '../features/vetting';
+// Vetting system pages
+import { VettingApplicationPage } from '../features/vetting/pages/VettingApplicationPage';
 
 // Payment system pages
 import { EventPaymentPage } from '../features/payments';
@@ -118,20 +118,15 @@ export const router = createBrowserRouter([
         element: <SafetyStatusPage />
       },
       
-      // Vetting system routes - temporarily disabled due to TypeScript errors
-      // {
-      //   path: "vetting/apply",
-      //   element: <VettingApplicationPage />
-      // },
-      // {
-      //   path: "vetting/status", 
-      //   element: <VettingStatusPage />
-      // },
-      // {
-      //   path: "vetting/reviewer",
-      //   element: <ReviewerDashboardPage />,
-      //   loader: authLoader
-      // },
+      // Vetting system routes (public access for viewing form)
+      {
+        path: "join",
+        element: <VettingApplicationPage />
+      },
+      {
+        path: "vetting/apply",
+        element: <VettingApplicationPage />
+      },
       
       // Payment system routes (protected)
       {

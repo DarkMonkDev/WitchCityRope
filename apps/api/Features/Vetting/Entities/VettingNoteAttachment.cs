@@ -8,7 +8,6 @@ public class VettingNoteAttachment
 {
     public VettingNoteAttachment()
     {
-        Id = Guid.NewGuid();
         IsConfidential = true;
         CreatedAt = DateTime.UtcNow;
     }

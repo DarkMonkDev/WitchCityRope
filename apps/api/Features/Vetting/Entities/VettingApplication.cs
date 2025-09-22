@@ -12,14 +12,13 @@ public class VettingApplication
 {
     public VettingApplication()
     {
-        Id = Guid.NewGuid();
         Status = ApplicationStatus.Draft;
         IsAnonymous = false;
         Priority = ApplicationPriority.Standard;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
         StatusToken = GenerateSecureToken();
-        
+
         References = new List<VettingReference>();
         Notes = new List<VettingApplicationNote>();
         Decisions = new List<VettingDecision>();
@@ -111,12 +110,14 @@ public enum ApplicationStatus
     Submitted = 2,
     UnderReview = 3,
     PendingReferences = 4,
-    PendingInterview = 5,
-    PendingAdditionalInfo = 6,
-    Approved = 7,
-    Denied = 8,
-    Withdrawn = 9,
-    Expired = 10
+    InterviewApproved = 5,
+    PendingInterview = 6,
+    PendingAdditionalInfo = 7,
+    Approved = 8,
+    Denied = 9,
+    Withdrawn = 10,
+    Expired = 11,
+    OnHold = 12
 }
 
 /// <summary>

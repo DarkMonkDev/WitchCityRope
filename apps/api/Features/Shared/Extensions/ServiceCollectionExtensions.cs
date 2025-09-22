@@ -56,7 +56,8 @@ public static class ServiceCollectionExtensions
 
         // Vetting feature services
         services.AddScoped<IVettingService, VettingService>();
-        
+        services.AddScoped<IVettingEmailService, VettingEmailService>();
+
         // FluentValidation for Vetting feature
         services.AddValidatorsFromAssemblyContaining<CreateApplicationValidator>();
 
@@ -106,5 +107,21 @@ public static class ServiceCollectionExtensions
         // No complex reflection or assembly scanning
         // Each feature's endpoints will be registered manually in Program.cs for clarity
         return services;
+    }
+}
+
+/// <summary>
+/// Application builder extensions for endpoint mapping
+/// </summary>
+public static class ApplicationBuilderExtensions
+{
+    /// <summary>
+    /// Map all feature endpoints - currently a placeholder since controllers are mapped via MapControllers()
+    /// </summary>
+    public static IApplicationBuilder MapFeatureEndpoints(this IApplicationBuilder app)
+    {
+        // Controllers (including VettingController) are already mapped via app.MapControllers()
+        // This method is a placeholder for future minimal API endpoints if needed
+        return app;
     }
 }

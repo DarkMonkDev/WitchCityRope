@@ -141,6 +141,26 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<VettingNoteAttachment> VettingNoteAttachments { get; set; }
 
     /// <summary>
+    /// VettingEmailTemplates table for admin-manageable email templates
+    /// </summary>
+    public DbSet<VettingEmailTemplate> VettingEmailTemplates { get; set; }
+
+    /// <summary>
+    /// VettingBulkOperations table for bulk administrative operations
+    /// </summary>
+    public DbSet<VettingBulkOperation> VettingBulkOperations { get; set; }
+
+    /// <summary>
+    /// VettingBulkOperationItems table for individual application processing in bulk operations
+    /// </summary>
+    public DbSet<VettingBulkOperationItem> VettingBulkOperationItems { get; set; }
+
+    /// <summary>
+    /// VettingBulkOperationLogs table for detailed bulk operation logging
+    /// </summary>
+    public DbSet<VettingBulkOperationLog> VettingBulkOperationLogs { get; set; }
+
+    /// <summary>
     /// Payments table for payment processing with sliding scale pricing
     /// </summary>
     public DbSet<Payment> Payments { get; set; }
@@ -760,6 +780,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         modelBuilder.ApplyConfiguration(new VettingDecisionAuditLogConfiguration());
         modelBuilder.ApplyConfiguration(new VettingNotificationConfiguration());
         modelBuilder.ApplyConfiguration(new VettingNoteAttachmentConfiguration());
+        modelBuilder.ApplyConfiguration(new VettingEmailTemplateConfiguration());
+        modelBuilder.ApplyConfiguration(new VettingBulkOperationConfiguration());
+        modelBuilder.ApplyConfiguration(new VettingBulkOperationItemConfiguration());
+        modelBuilder.ApplyConfiguration(new VettingBulkOperationLogConfiguration());
 
         // Apply Payment System configurations
         modelBuilder.ApplyConfiguration(new PaymentConfiguration());

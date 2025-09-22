@@ -8,7 +8,6 @@ public class VettingNotification
 {
     public VettingNotification()
     {
-        Id = Guid.NewGuid();
         Status = NotificationStatus.Pending;
         RetryCount = 0;
         CreatedAt = DateTime.UtcNow;

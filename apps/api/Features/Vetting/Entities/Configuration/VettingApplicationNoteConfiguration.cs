@@ -28,6 +28,16 @@ public class VettingApplicationNoteConfiguration : IEntityTypeConfiguration<Vett
                .HasColumnType("jsonb")
                .HasDefaultValue("[]");
 
+        // New properties for enhanced notes system
+        builder.Property(e => e.IsAutomatic)
+               .IsRequired()
+               .HasDefaultValue(false);
+
+        builder.Property(e => e.NoteCategory)
+               .IsRequired()
+               .HasMaxLength(50)
+               .HasDefaultValue("Manual");
+
         // DateTime properties
         builder.Property(e => e.CreatedAt)
                .IsRequired()
@@ -55,6 +65,16 @@ public class VettingApplicationNoteConfiguration : IEntityTypeConfiguration<Vett
                .HasDatabaseName("IX_VettingApplicationNotes_Tags")
                .HasMethod("gin");
 
+        // New indexes for enhanced functionality
+        builder.HasIndex(e => e.NoteCategory)
+               .HasDatabaseName("IX_VettingApplicationNotes_NoteCategory");
+
+        builder.HasIndex(e => e.IsAutomatic)
+               .HasDatabaseName("IX_VettingApplicationNotes_IsAutomatic");
+
+        builder.HasIndex(e => new { e.ApplicationId, e.IsAutomatic, e.CreatedAt })
+               .HasDatabaseName("IX_VettingApplicationNotes_Application_Automatic_Created");
+
         // Relationships
         builder.HasOne(e => e.Application)
                .WithMany(a => a.Notes)
@@ -70,5 +90,11 @@ public class VettingApplicationNoteConfiguration : IEntityTypeConfiguration<Vett
                .WithOne(a => a.Note)
                .HasForeignKey(a => a.NoteId)
                .OnDelete(DeleteBehavior.Cascade);
+
+        // Check constraint for note categories
+        builder.ToTable("VettingApplicationNotes", t => t.HasCheckConstraint(
+            "CHK_VettingApplicationNotes_NoteCategory",
+            "\"NoteCategory\" IN ('Manual', 'StatusChange', 'BulkOperation', 'System', 'EmailSent', 'EmailFailed')"
+        ));
     }
 }

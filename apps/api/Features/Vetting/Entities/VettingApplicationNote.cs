@@ -11,12 +11,13 @@ public class VettingApplicationNote
 {
     public VettingApplicationNote()
     {
-        Id = Guid.NewGuid();
         IsPrivate = true;
         Type = NoteType.General;
+        IsAutomatic = false;
+        NoteCategory = "Manual";
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
-        
+
         Attachments = new List<VettingNoteAttachment>();
     }
 
@@ -31,6 +32,8 @@ public class VettingApplicationNote
     public string Content { get; set; } = string.Empty;
     public NoteType Type { get; set; } = NoteType.General;
     public bool IsPrivate { get; set; } // True = internal only, False = visible to applicant
+    public bool IsAutomatic { get; set; } = false; // True = system generated, False = manual
+    public string NoteCategory { get; set; } = "Manual"; // Manual, StatusChange, BulkOperation, System, EmailSent, EmailFailed
 
     // Categorization
     public string TagsJson { get; set; } = "[]";

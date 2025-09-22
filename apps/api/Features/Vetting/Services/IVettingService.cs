@@ -100,4 +100,23 @@ public interface IVettingService
         UpdatePriorityRequest request,
         Guid updatedByUserId,
         CancellationToken cancellationToken = default);
+
+    // Simplified Application Methods for React Form
+
+    /// <summary>
+    /// Submit simplified vetting application from React form
+    /// Maps simplified fields to full application entity and sends confirmation email
+    /// </summary>
+    Task<Result<SimplifiedApplicationResponse>> SubmitSimplifiedApplicationAsync(
+        SimplifiedApplicationRequest request,
+        Guid userId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get current user's application status for dashboard display
+    /// Returns null if no application exists, otherwise returns basic status info
+    /// </summary>
+    Task<Result<MyApplicationStatusResponse>> GetMyApplicationStatusAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default);
 }

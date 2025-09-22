@@ -17,17 +17,20 @@ public class VettingService : IVettingService
 {
     private readonly ApplicationDbContext _context;
     private readonly IEncryptionService _encryptionService;
+    private readonly IVettingEmailService _emailService;
     private readonly ILogger<VettingService> _logger;
     private readonly IConfiguration _configuration;
 
     public VettingService(
         ApplicationDbContext context,
         IEncryptionService encryptionService,
+        IVettingEmailService emailService,
         ILogger<VettingService> logger,
         IConfiguration configuration)
     {
         _context = context;
         _encryptionService = encryptionService;
+        _emailService = emailService;
         _logger = logger;
         _configuration = configuration;
     }
@@ -639,4 +642,224 @@ public class VettingService : IVettingService
             _ => query.OrderByDescending(a => a.CreatedAt) // Default sort
         };
     }
+
+    #region Simplified Application Methods
+
+    /// <summary>
+    /// Submit simplified vetting application from React form
+    /// Maps simplified fields to full application entity and sends confirmation email
+    /// </summary>
+    public async Task<Result<SimplifiedApplicationResponse>> SubmitSimplifiedApplicationAsync(
+        SimplifiedApplicationRequest request,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Processing simplified application submission for user {UserId}, email {Email}",
+                userId, request.Email);
+
+            // Check for existing active application for this user
+            var existingApplication = await _context.VettingApplications
+                .Where(a => a.ApplicantId == userId && a.DeletedAt == null)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (existingApplication != null)
+            {
+                return Result<SimplifiedApplicationResponse>.Failure(
+                    "Application already exists",
+                    "You already have a submitted application. Only one application is allowed per person.");
+            }
+
+            // Check if scene name is already taken (simplified check - no encryption needed for this validation)
+            var existingUser = await _context.Users
+                .Where(u => u.SceneName == request.PreferredSceneName && u.Id != userId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (existingUser != null)
+            {
+                return Result<SimplifiedApplicationResponse>.Failure(
+                    "Scene name already taken",
+                    "This scene name is already in use. Please choose a different scene name.");
+            }
+
+            using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+            try
+            {
+                // Generate application number: VET-YYYYMMDD-NNNN
+                var applicationNumber = await GenerateApplicationNumberAsync(cancellationToken);
+
+                // Create simplified application with minimal required fields
+                var application = new VettingApplication
+                {
+                    ApplicationNumber = applicationNumber,
+                    Status = ApplicationStatus.UnderReview, // Start at UnderReview per requirements
+                    ApplicantId = userId,
+
+                    // Encrypt PII fields
+                    EncryptedFullName = await _encryptionService.EncryptAsync(request.RealName),
+                    EncryptedSceneName = await _encryptionService.EncryptAsync(request.PreferredSceneName),
+                    EncryptedEmail = await _encryptionService.EncryptAsync(request.Email),
+                    EncryptedExperienceDescription = await _encryptionService.EncryptAsync(request.ExperienceWithRope),
+                    EncryptedWhyJoinCommunity = await _encryptionService.EncryptAsync(request.WhyJoin),
+
+                    // Set reasonable defaults for simplified flow
+                    ExperienceLevel = ExperienceLevel.Beginner, // Default - will be assessed by admin
+                    YearsExperience = 0, // Not collected in simplified form
+                    EncryptedSafetyKnowledge = await _encryptionService.EncryptAsync("Not provided"),
+                    EncryptedConsentUnderstanding = await _encryptionService.EncryptAsync("Agreed via simplified form"),
+                    SkillsInterests = "[]", // Empty JSON array
+                    EncryptedExpectationsGoals = await _encryptionService.EncryptAsync("Provided via simplified application"),
+
+                    // Agreement and privacy
+                    AgreesToGuidelines = request.AgreeToCommunityStandards,
+                    IsAnonymous = false, // Simplified form doesn't support anonymous
+                    AgreesToTerms = request.AgreeToCommunityStandards,
+                    ConsentToContact = true, // Implied by submission
+
+                    // Workflow settings
+                    Priority = ApplicationPriority.Standard,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    CreatedBy = userId,
+                    UpdatedBy = userId
+                };
+
+                _context.VettingApplications.Add(application);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                // Create audit log entry
+                var auditLog = new VettingApplicationAuditLog
+                {
+                    ApplicationId = application.Id,
+                    ActionType = "ApplicationSubmitted",
+                    ActionDescription = "Simplified vetting application submitted via React form",
+                    NewValues = JsonSerializer.Serialize(new
+                    {
+                        ApplicationNumber = application.ApplicationNumber,
+                        Status = application.Status.ToString(),
+                        IsSimplified = true,
+                        ApplicantId = userId
+                    }),
+                    CreatedAt = DateTime.UtcNow,
+                    UserId = userId
+                };
+
+                _context.VettingApplicationAuditLog.Add(auditLog);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                await transaction.CommitAsync(cancellationToken);
+
+                _logger.LogInformation("Simplified application {ApplicationNumber} submitted successfully for user {UserId}",
+                    application.ApplicationNumber, userId);
+
+                // Send confirmation email
+                var emailResult = await _emailService.SendApplicationConfirmationAsync(
+                    application, request.Email, request.RealName, cancellationToken);
+
+                var response = new SimplifiedApplicationResponse
+                {
+                    ApplicationId = application.Id,
+                    ApplicationNumber = application.ApplicationNumber,
+                    SubmittedAt = application.CreatedAt,
+                    ConfirmationMessage = "Your application has been submitted successfully. You will receive a confirmation email shortly.",
+                    EmailSent = emailResult.IsSuccess,
+                    NextSteps = "Our vetting team will review your application and contact you within a few business days with next steps."
+                };
+
+                return Result<SimplifiedApplicationResponse>.Success(response);
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                throw;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to process simplified application submission for user {UserId}", userId);
+            return Result<SimplifiedApplicationResponse>.Failure(
+                "Submission failed",
+                "An error occurred while processing your application. Please try again or contact support.");
+        }
+    }
+
+    /// <summary>
+    /// Get current user's application status for dashboard display
+    /// Returns null if no application exists, otherwise returns basic status info
+    /// </summary>
+    public async Task<Result<MyApplicationStatusResponse>> GetMyApplicationStatusAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Getting application status for user {UserId}", userId);
+
+            var application = await _context.VettingApplications
+                .Where(a => a.ApplicantId == userId && a.DeletedAt == null)
+                .OrderByDescending(a => a.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (application == null)
+            {
+                return Result<MyApplicationStatusResponse>.Success(new MyApplicationStatusResponse
+                {
+                    HasApplication = false,
+                    Application = null
+                });
+            }
+
+            var statusInfo = new ApplicationStatusInfo
+            {
+                ApplicationId = application.Id,
+                ApplicationNumber = application.ApplicationNumber,
+                Status = application.Status.ToString(),
+                StatusDescription = GetStatusDescription(application.Status),
+                SubmittedAt = application.CreatedAt,
+                LastUpdated = application.UpdatedAt,
+                NextSteps = GetNextStepsForStatus(application.Status),
+                EstimatedDaysRemaining = CalculateEstimatedDaysRemaining(application)
+            };
+
+            var response = new MyApplicationStatusResponse
+            {
+                HasApplication = true,
+                Application = statusInfo
+            };
+
+            return Result<MyApplicationStatusResponse>.Success(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get application status for user {UserId}", userId);
+            return Result<MyApplicationStatusResponse>.Failure(
+                "Status lookup failed",
+                "An error occurred while checking your application status.");
+        }
+    }
+
+    #endregion
+
+    #region Helper Methods for Simplified Flow
+
+    /// <summary>
+    /// Get next steps message for current status
+    /// </summary>
+    private static string GetNextStepsForStatus(ApplicationStatus status)
+    {
+        return status switch
+        {
+            ApplicationStatus.UnderReview => "Your application is being reviewed by our vetting team.",
+            ApplicationStatus.InterviewApproved => "You've been approved for an interview. We'll contact you to schedule it.",
+            ApplicationStatus.PendingInterview => "Your interview is scheduled. Check your email for details.",
+            ApplicationStatus.Approved => "Welcome to WitchCityRope! You now have access to member events.",
+            ApplicationStatus.OnHold => "We need additional information. Please check your email for details.",
+            ApplicationStatus.Denied => "Your application was not approved. You may reapply in the future.",
+            _ => "We'll contact you with updates as your application progresses."
+        };
+    }
+
+    #endregion
 }

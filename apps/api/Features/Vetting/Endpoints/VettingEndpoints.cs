@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using FluentValidation;
+using System.Security.Claims;
 using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Features.Vetting.Models;
 using WitchCityRope.Api.Features.Vetting.Services;
@@ -19,15 +20,18 @@ public class VettingController : ControllerBase
 {
     private readonly IVettingService _vettingService;
     private readonly IValidator<CreateApplicationRequest> _applicationValidator;
+    private readonly IValidator<SimplifiedApplicationRequest> _simplifiedValidator;
     private readonly ILogger<VettingController> _logger;
 
     public VettingController(
         IVettingService vettingService,
         IValidator<CreateApplicationRequest> applicationValidator,
+        IValidator<SimplifiedApplicationRequest> simplifiedValidator,
         ILogger<VettingController> logger)
     {
         _vettingService = vettingService;
         _applicationValidator = applicationValidator;
+        _simplifiedValidator = simplifiedValidator;
         _logger = logger;
     }
 
@@ -337,6 +341,145 @@ public class VettingController : ControllerBase
             {
                 Title = "Internal server error",
                 Detail = "An unexpected error occurred while submitting the decision",
+                Status = 500
+            });
+        }
+    }
+
+    /// <summary>
+    /// Submit simplified vetting application (authenticated users only)
+    /// Matching the React form implementation
+    /// </summary>
+    [HttpPost("applications/simplified")]
+    [Authorize]
+    [ProducesResponseType(typeof(SimplifiedApplicationResponse), 200)]
+    [ProducesResponseType(typeof(ProblemDetails), 400)]
+    [ProducesResponseType(typeof(ProblemDetails), 401)]
+    [ProducesResponseType(typeof(ProblemDetails), 409)]
+    [ProducesResponseType(typeof(ProblemDetails), 500)]
+    public async Task<IActionResult> SubmitSimplifiedApplicationAsync(
+        [FromBody] SimplifiedApplicationRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Get user ID from JWT token
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid user",
+                    Detail = "You must be logged in to submit an application",
+                    Status = 401
+                });
+            }
+
+            // Validate request
+            var validationResult = await _simplifiedValidator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+            {
+                var errors = validationResult.Errors.Select(e => new {
+                    Field = e.PropertyName,
+                    Error = e.ErrorMessage
+                }).ToList();
+
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Validation failed",
+                    Detail = "One or more validation errors occurred",
+                    Status = 400,
+                    Extensions = { { "errors", errors } }
+                });
+            }
+
+            _logger.LogInformation("Processing simplified application submission for user {UserId}", userGuid);
+
+            // Process application
+            var result = await _vettingService.SubmitSimplifiedApplicationAsync(request, userGuid, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation("Simplified application submitted successfully: {ApplicationNumber}",
+                    result.Value?.ApplicationNumber);
+                return Ok(result.Value);
+            }
+
+            // Handle specific error cases
+            var statusCode = result.Error switch
+            {
+                "Application already exists" => 409,
+                "Scene name already taken" => 409,
+                _ => 400
+            };
+
+            _logger.LogWarning("Simplified application submission failed: {Error}", result.Error);
+            return StatusCode(statusCode, new ProblemDetails
+            {
+                Title = result.Error,
+                Detail = result.Details,
+                Status = statusCode
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error during simplified application submission");
+            return StatusCode(500, new ProblemDetails
+            {
+                Title = "Internal server error",
+                Detail = "An unexpected error occurred while processing your application",
+                Status = 500
+            });
+        }
+    }
+
+    /// <summary>
+    /// Get current user's application status for dashboard display
+    /// </summary>
+    [HttpGet("my-application")]
+    [Authorize]
+    [ProducesResponseType(typeof(MyApplicationStatusResponse), 200)]
+    [ProducesResponseType(typeof(ProblemDetails), 401)]
+    [ProducesResponseType(typeof(ProblemDetails), 500)]
+    public async Task<IActionResult> GetMyApplicationStatusAsync(
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Get user ID from JWT token
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid user",
+                    Detail = "You must be logged in to check application status",
+                    Status = 401
+                });
+            }
+
+            var result = await _vettingService.GetMyApplicationStatusAsync(userGuid, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                return Ok(result.Value);
+            }
+
+            _logger.LogWarning("Application status lookup failed for user {UserId}: {Error}", userGuid, result.Error);
+            return StatusCode(500, new ProblemDetails
+            {
+                Title = result.Error,
+                Detail = result.Details,
+                Status = 500
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error during application status lookup");
+            return StatusCode(500, new ProblemDetails
+            {
+                Title = "Internal server error",
+                Detail = "An unexpected error occurred while checking your application status",
                 Status = 500
             });
         }

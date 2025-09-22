@@ -10,7 +10,6 @@ public class VettingReference
 {
     public VettingReference()
     {
-        Id = Guid.NewGuid();
         Status = ReferenceStatus.NotContacted;
         ResponseToken = GenerateSecureToken();
         CreatedAt = DateTime.UtcNow;

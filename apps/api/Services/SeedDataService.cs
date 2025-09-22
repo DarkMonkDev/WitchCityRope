@@ -4,6 +4,7 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Participation.Entities;
+using WitchCityRope.Api.Features.Vetting.Entities;
 
 namespace WitchCityRope.Api.Services;
 
@@ -92,6 +93,7 @@ public class SeedDataService : ISeedDataService
             await SeedEventParticipationsAsync(cancellationToken);
             await SeedVolunteerPositionsAsync(cancellationToken);
             await SeedVettingStatusesAsync(cancellationToken);
+            await SeedVettingEmailTemplatesAsync(cancellationToken);
 
             // Calculate records created
             var finalUserCount = await _userManager.Users.CountAsync(cancellationToken);
@@ -383,6 +385,196 @@ public class SeedDataService : ISeedDataService
         _logger.LogInformation("Vetting status seeding completed (placeholder implementation)");
         
         await Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Creates default email templates for the vetting system.
+    /// Populates the VettingEmailTemplates table with standard notification templates.
+    /// </summary>
+    public async Task SeedVettingEmailTemplatesAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Starting vetting email templates seeding");
+
+        // Check if email templates already exist
+        var existingTemplateCount = await _context.VettingEmailTemplates.CountAsync(cancellationToken);
+        if (existingTemplateCount > 0)
+        {
+            _logger.LogInformation("Email templates already exist, skipping creation. Found: {Count} templates", existingTemplateCount);
+            return;
+        }
+
+        // Get admin user for UpdatedBy field
+        var adminUser = await _userManager.FindByEmailAsync("admin@witchcityrope.com");
+        if (adminUser == null)
+        {
+            _logger.LogWarning("Admin user not found, cannot seed email templates");
+            return;
+        }
+
+        var templates = new List<VettingEmailTemplate>
+        {
+            new VettingEmailTemplate
+            {
+                Id = Guid.NewGuid(),
+                TemplateType = EmailTemplateType.ApplicationReceived,
+                Subject = "Application Received - {{applicant_name}}",
+                Body = @"Dear {{applicant_name}},
+
+Thank you for submitting your vetting application to WitchCityRope. We have received your application and it is now under review.
+
+Application Number: {{application_number}}
+Submission Date: {{submission_date}}
+
+Our vetting team will review your application and contact you within the next 7-10 business days with updates on your status.
+
+If you have any questions, please don't hesitate to contact us.
+
+Best regards,
+The WitchCityRope Vetting Team",
+                IsActive = true,
+                UpdatedBy = adminUser.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                LastModified = DateTime.UtcNow
+            },
+            new VettingEmailTemplate
+            {
+                Id = Guid.NewGuid(),
+                TemplateType = EmailTemplateType.InterviewApproved,
+                Subject = "Interview Approved - {{applicant_name}}",
+                Body = @"Dear {{applicant_name}},
+
+Congratulations! Your vetting application has been approved for the interview stage.
+
+Application Number: {{application_number}}
+Next Steps: Please schedule your interview using the link below
+Interview Scheduling: {{interview_link}}
+
+During your interview, we will discuss your experience, interests, and answer any questions you may have about our community.
+
+Please schedule your interview within the next 14 days.
+
+Best regards,
+The WitchCityRope Vetting Team",
+                IsActive = true,
+                UpdatedBy = adminUser.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                LastModified = DateTime.UtcNow
+            },
+            new VettingEmailTemplate
+            {
+                Id = Guid.NewGuid(),
+                TemplateType = EmailTemplateType.ApplicationApproved,
+                Subject = "Welcome to WitchCityRope - {{applicant_name}}",
+                Body = @"Dear {{applicant_name}},
+
+Congratulations! Your application has been approved and you are now a vetted member of WitchCityRope.
+
+Application Number: {{application_number}}
+Approval Date: {{approval_date}}
+
+Welcome to our community! You now have access to:
+- All member events and workshops
+- Our private community forums
+- Advanced classes and demonstrations
+- Volunteer opportunities
+
+Your member profile has been activated and you can now register for upcoming events.
+
+Welcome aboard!
+
+Best regards,
+The WitchCityRope Team",
+                IsActive = true,
+                UpdatedBy = adminUser.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                LastModified = DateTime.UtcNow
+            },
+            new VettingEmailTemplate
+            {
+                Id = Guid.NewGuid(),
+                TemplateType = EmailTemplateType.ApplicationOnHold,
+                Subject = "Application On Hold - Additional Information Needed - {{applicant_name}}",
+                Body = @"Dear {{applicant_name}},
+
+Your vetting application is currently on hold as we need some additional information to proceed.
+
+Application Number: {{application_number}}
+Reason: {{hold_reason}}
+
+Required Actions:
+{{required_actions}}
+
+Please provide the requested information within 30 days to avoid application expiration.
+
+If you have any questions about what's needed, please contact us.
+
+Best regards,
+The WitchCityRope Vetting Team",
+                IsActive = true,
+                UpdatedBy = adminUser.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                LastModified = DateTime.UtcNow
+            },
+            new VettingEmailTemplate
+            {
+                Id = Guid.NewGuid(),
+                TemplateType = EmailTemplateType.ApplicationDenied,
+                Subject = "Application Status Update - {{applicant_name}}",
+                Body = @"Dear {{applicant_name}},
+
+Thank you for your interest in WitchCityRope. After careful review, we are unable to approve your application at this time.
+
+Application Number: {{application_number}}
+Review Date: {{review_date}}
+
+This decision is final for this application cycle. You are welcome to reapply in the future if your circumstances change.
+
+We appreciate your interest in our community.
+
+Best regards,
+The WitchCityRope Vetting Team",
+                IsActive = true,
+                UpdatedBy = adminUser.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                LastModified = DateTime.UtcNow
+            },
+            new VettingEmailTemplate
+            {
+                Id = Guid.NewGuid(),
+                TemplateType = EmailTemplateType.InterviewReminder,
+                Subject = "Interview Reminder - {{applicant_name}}",
+                Body = @"Dear {{applicant_name}},
+
+This is a friendly reminder about your upcoming vetting interview.
+
+Application Number: {{application_number}}
+Interview Date: {{interview_date}}
+Interview Time: {{interview_time}}
+Location: {{interview_location}}
+
+If you need to reschedule, please contact us at least 24 hours in advance.
+
+We look forward to meeting with you!
+
+Best regards,
+The WitchCityRope Vetting Team",
+                IsActive = true,
+                UpdatedBy = adminUser.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                LastModified = DateTime.UtcNow
+            }
+        };
+
+        await _context.VettingEmailTemplates.AddRangeAsync(templates, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Created {Count} default email templates for vetting system", templates.Count);
     }
 
     /// <summary>

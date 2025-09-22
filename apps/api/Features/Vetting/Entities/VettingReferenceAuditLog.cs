@@ -8,7 +8,6 @@ public class VettingReferenceAuditLog
 {
     public VettingReferenceAuditLog()
     {
-        Id = Guid.NewGuid();
         CreatedAt = DateTime.UtcNow;
     }
 

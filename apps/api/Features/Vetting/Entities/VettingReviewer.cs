@@ -12,7 +12,6 @@ public class VettingReviewer
 {
     public VettingReviewer()
     {
-        Id = Guid.NewGuid();
         IsActive = true;
         MaxWorkload = 10; // Default maximum concurrent reviews
         CurrentWorkload = 0;

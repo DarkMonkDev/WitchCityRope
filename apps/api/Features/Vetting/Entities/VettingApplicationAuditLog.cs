@@ -10,7 +10,6 @@ public class VettingApplicationAuditLog
 {
     public VettingApplicationAuditLog()
     {
-        Id = Guid.NewGuid();
         CreatedAt = DateTime.UtcNow;
     }
 

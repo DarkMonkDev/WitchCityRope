@@ -8,7 +8,6 @@ public class VettingDecision
 {
     public VettingDecision()
     {
-        Id = Guid.NewGuid();
         CreatedAt = DateTime.UtcNow;
         
         AuditLogs = new List<VettingDecisionAuditLog>();
