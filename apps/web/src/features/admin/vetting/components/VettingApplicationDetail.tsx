@@ -116,32 +116,71 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
     }
   };
 
+  // Enhanced debugging for the application detail
+  console.log('VettingApplicationDetail render:', {
+    applicationId,
+    isLoading,
+    error: error?.message || error,
+    hasApplication: !!application,
+    applicationStatus: application?.status,
+    timestamp: new Date().toISOString()
+  });
+
   if (isLoading) {
     return (
       <Paper p="xl" radius="md">
-        <Text ta="center">Loading application details...</Text>
+        <Stack gap="md" align="center">
+          <Text ta="center">Loading application details...</Text>
+          <Text size="sm" c="dimmed">Application ID: {applicationId}</Text>
+        </Stack>
       </Paper>
     );
   }
 
   if (error || !application) {
+    const errorMessage = error?.message || error?.toString() || 'Application not found';
+    const isNetworkError = errorMessage.includes('Network') || errorMessage.includes('fetch');
+    const isAuthError = errorMessage.includes('401') || errorMessage.includes('Unauthorized');
+
     return (
       <Paper p="xl" radius="md">
-        <Alert icon={<IconAlertCircle size={16} />} color="red" mb="md">
-          Error loading application: {error?.message || 'Application not found'}
-        </Alert>
-        <Button
-          leftSection={<IconArrowLeft size={16} />}
-          onClick={onBack}
-          style={{
-            minHeight: 40,
-            height: 'auto',
-            padding: '10px 20px',
-            lineHeight: 1.4
-          }}
-        >
-          Back to Applications
-        </Button>
+        <Stack gap="md">
+          <Alert
+            icon={<IconAlertCircle size={16} />}
+            color={isAuthError ? "orange" : "red"}
+            title={isAuthError ? "Authentication Required" : "Error Loading Application"}
+          >
+            <Text>{errorMessage}</Text>
+            <Text size="sm" c="dimmed" mt="xs">
+              Application ID: {applicationId}
+            </Text>
+            {isNetworkError && (
+              <Text size="sm" c="dimmed" mt="xs">
+                Please check your internet connection and try again.
+              </Text>
+            )}
+            {isAuthError && (
+              <Text size="sm" c="dimmed" mt="xs">
+                You may need to log in again to access this application.
+              </Text>
+            )}
+          </Alert>
+          <Button
+            leftSection={<IconArrowLeft size={16} />}
+            onClick={onBack}
+            styles={{
+              root: {
+                height: '44px',
+                paddingTop: '12px',
+                paddingBottom: '12px',
+                fontSize: '14px',
+                lineHeight: '1.2'
+              }
+            }}
+          >
+            Back to Applications
+          </Button>
+        </Stack>
       </Paper>
     );
   }

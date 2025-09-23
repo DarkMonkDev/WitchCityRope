@@ -33,7 +33,6 @@ export const AdminVettingPage: React.FC = () => {
   };
 
   const handleSendReminderClick = () => {
-    if (selectedApplications.size === 0) return;
     setSendReminderModalOpen(true);
   };
 
@@ -95,7 +94,6 @@ export const AdminVettingPage: React.FC = () => {
             color="blue"
             size="md"
             onClick={handleSendReminderClick}
-            disabled={!hasSelectedApplications}
             styles={{
               root: {
                 borderColor: '#4A90E2',
@@ -111,7 +109,7 @@ export const AdminVettingPage: React.FC = () => {
               }
             }}
           >
-            SEND REMINDER ({selectedApplications.size})
+            SEND REMINDER
           </Button>
 
           <Button
@@ -143,37 +141,33 @@ export const AdminVettingPage: React.FC = () => {
       <VettingApplicationsList onSelectionChange={handleSelectionChange} />
 
       {/* Bulk Action Modals */}
+      {/* Put on Hold requires selections */}
       {hasSelectedApplications && selectedApplicationsData.length > 0 && (
-        <>
-          <OnHoldModal
-            opened={onHoldModalOpen}
-            onClose={() => setOnHoldModalOpen(false)}
-            applicationIds={Array.from(selectedApplications)}
-            applicantNames={selectedApplicationsData.map(app =>
-              (app as any).realName || (app as any).fullName || app.sceneName || 'Unknown'
-            )}
-            onSuccess={() => {
-              setSelectedApplications(new Set());
-              setSelectedApplicationsData([]);
-              // TODO: Refresh the applications list
-            }}
-          />
-
-          <SendReminderModal
-            opened={sendReminderModalOpen}
-            onClose={() => setSendReminderModalOpen(false)}
-            applicationIds={Array.from(selectedApplications)}
-            applicantNames={selectedApplicationsData.map(app =>
-              (app as any).realName || (app as any).fullName || app.sceneName || 'Unknown'
-            )}
-            onSuccess={() => {
-              setSelectedApplications(new Set());
-              setSelectedApplicationsData([]);
-              // TODO: Refresh the applications list
-            }}
-          />
-        </>
+        <OnHoldModal
+          opened={onHoldModalOpen}
+          onClose={() => setOnHoldModalOpen(false)}
+          applicationIds={Array.from(selectedApplications)}
+          applicantNames={selectedApplicationsData.map(app =>
+            (app as any).realName || (app as any).fullName || app.sceneName || 'Unknown'
+          )}
+          onSuccess={() => {
+            setSelectedApplications(new Set());
+            setSelectedApplicationsData([]);
+            // TODO: Refresh the applications list
+          }}
+        />
       )}
+
+      {/* Send Reminder works independently of selections */}
+      <SendReminderModal
+        opened={sendReminderModalOpen}
+        onClose={() => setSendReminderModalOpen(false)}
+        onSuccess={() => {
+          setSelectedApplications(new Set());
+          setSelectedApplicationsData([]);
+          // TODO: Refresh the applications list
+        }}
+      />
     </Container>
   );
 };

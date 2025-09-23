@@ -28,10 +28,52 @@ export class VettingAdminApiService {
   async getApplicationDetail(
     applicationId: string
   ): Promise<ApplicationDetailResponse> {
-    const response = await apiClient.get<{ success: boolean; data: ApplicationDetailResponse }>(
-      `/api/vetting/reviewer/applications/${applicationId}`
-    );
-    return response.data.data; // Unwrap ApiResponse wrapper
+    console.log('VettingAdminApi.getApplicationDetail called with ID:', applicationId);
+
+    try {
+      const response = await apiClient.get<{ success: boolean; data: ApplicationDetailResponse }>(
+        `/api/vetting/reviewer/applications/${applicationId}`
+      );
+
+      console.log('API response received:', {
+        status: response.status,
+        success: response.data.success,
+        hasData: !!response.data.data
+      });
+
+      if (!response.data.success) {
+        throw new Error(`API returned success: false for application ${applicationId}`);
+      }
+
+      if (!response.data.data) {
+        throw new Error(`No application data received for ID ${applicationId}`);
+      }
+
+      return response.data.data; // Unwrap ApiResponse wrapper
+    } catch (error: any) {
+      console.error('VettingAdminApi.getApplicationDetail error:', {
+        applicationId,
+        error: error.message || error,
+        status: error.response?.status,
+        statusText: error.response?.statusText
+      });
+
+      // Enhance error message based on HTTP status
+      if (error.response?.status === 401) {
+        throw new Error('Authentication required. Please log in to view this application.');
+      } else if (error.response?.status === 403) {
+        throw new Error('Access denied. You do not have permission to view this application.');
+      } else if (error.response?.status === 404) {
+        throw new Error(`Application with ID "${applicationId}" was not found.`);
+      } else if (error.response?.status >= 500) {
+        throw new Error('Server error occurred while loading the application. Please try again later.');
+      } else if (error.message?.includes('Network')) {
+        throw new Error('Network error. Please check your internet connection and try again.');
+      }
+
+      // Re-throw original error if no specific handling applies
+      throw error;
+    }
   }
 
   /**
