@@ -4,195 +4,85 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace WitchCityRope.Api.Features.Vetting.Entities.Configuration;
 
 /// <summary>
-/// Entity Framework configuration for VettingApplication
-/// Follows WitchCityRope patterns with PostgreSQL optimizations
+/// Entity Framework configuration for simplified VettingApplication
+/// Aligned with design specifications and wireframe requirements
 /// </summary>
 public class VettingApplicationConfiguration : IEntityTypeConfiguration<VettingApplication>
 {
     public void Configure(EntityTypeBuilder<VettingApplication> builder)
     {
-        // Table mapping
-        builder.ToTable("VettingApplications", "public");
-        builder.HasKey(e => e.Id);
+        builder.ToTable("VettingApplications");
 
-        // Properties
-        builder.Property(e => e.ApplicationNumber)
-               .IsRequired()
-               .HasMaxLength(20);
+        builder.HasKey(x => x.Id);
 
-        builder.Property(e => e.StatusToken)
-               .IsRequired()
-               .HasMaxLength(100);
+        // Required string fields with reasonable limits
+        builder.Property(x => x.SceneName)
+            .IsRequired()
+            .HasMaxLength(100);
 
-        // Encrypted fields - larger size to accommodate encrypted data
-        builder.Property(e => e.EncryptedFullName)
-               .IsRequired()
-               .HasMaxLength(500);
+        builder.Property(x => x.RealName)
+            .IsRequired()
+            .HasMaxLength(200);
 
-        builder.Property(e => e.EncryptedSceneName)
-               .IsRequired()
-               .HasMaxLength(500);
+        builder.Property(x => x.Email)
+            .IsRequired()
+            .HasMaxLength(255);
 
-        builder.Property(e => e.EncryptedPronouns)
-               .HasMaxLength(200);
+        builder.Property(x => x.AboutYourself)
+            .IsRequired()
+            .HasMaxLength(2000);
 
-        builder.Property(e => e.EncryptedOtherNames)
-               .HasMaxLength(1000);
+        builder.Property(x => x.HowFoundUs)
+            .IsRequired()
+            .HasMaxLength(1000);
 
-        builder.Property(e => e.EncryptedEmail)
-               .IsRequired()
-               .HasMaxLength(500);
+        // Optional fields
+        builder.Property(x => x.FetLifeHandle)
+            .HasMaxLength(100);
 
-        builder.Property(e => e.EncryptedPhone)
-               .HasMaxLength(200);
+        builder.Property(x => x.Pronouns)
+            .HasMaxLength(50);
 
-        builder.Property(e => e.EncryptedExperienceDescription)
-               .IsRequired()
-               .HasColumnType("text");
+        builder.Property(x => x.OtherNames)
+            .HasMaxLength(200);
 
-        builder.Property(e => e.EncryptedSafetyKnowledge)
-               .IsRequired()
-               .HasColumnType("text");
+        builder.Property(x => x.AdminNotes)
+            .HasMaxLength(4000);
 
-        builder.Property(e => e.EncryptedConsentUnderstanding)
-               .IsRequired()
-               .HasColumnType("text");
+        // Status enum
+        builder.Property(x => x.Status)
+            .IsRequired()
+            .HasConversion<int>();
 
-        builder.Property(e => e.EncryptedWhyJoinCommunity)
-               .IsRequired()
-               .HasColumnType("text");
+        // DateTime with PostgreSQL timestamptz
+        builder.Property(x => x.SubmittedAt)
+            .IsRequired()
+            .HasColumnType("timestamptz");
 
-        builder.Property(e => e.EncryptedExpectationsGoals)
-               .IsRequired()
-               .HasColumnType("text");
+        // Foreign key relationship to User
+        builder.HasOne(x => x.User)
+            .WithMany()
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        // JSON field for skills/interests - using PostgreSQL JSONB
-        builder.Property(e => e.SkillsInterests)
-               .IsRequired()
-               .HasColumnType("jsonb")
-               .HasDefaultValue("[]");
-
-        // Enum configurations
-        builder.Property(e => e.Status)
-               .IsRequired()
-               .HasConversion<int>();
-
-        builder.Property(e => e.ExperienceLevel)
-               .IsRequired()
-               .HasConversion<int>();
-
-        builder.Property(e => e.Priority)
-               .IsRequired()
-               .HasConversion<int>();
-
-        // DateTime properties - CRITICAL: Use timestamptz for PostgreSQL
-        builder.Property(e => e.CreatedAt)
-               .IsRequired()
-               .HasColumnType("timestamptz");
-
-        builder.Property(e => e.UpdatedAt)
-               .IsRequired()
-               .HasColumnType("timestamptz");
-
-        builder.Property(e => e.ReviewStartedAt)
-               .HasColumnType("timestamptz");
-
-        builder.Property(e => e.DecisionMadeAt)
-               .HasColumnType("timestamptz");
-
-        builder.Property(e => e.InterviewScheduledFor)
-               .HasColumnType("timestamptz");
-
-        builder.Property(e => e.DeletedAt)
-               .HasColumnType("timestamptz");
-
-        builder.Property(e => e.ExpiresAt)
-               .HasColumnType("timestamptz");
+        // One-to-many relationship with audit logs
+        builder.HasMany(x => x.AuditLogs)
+            .WithOne(a => a.Application)
+            .HasForeignKey(a => a.ApplicationId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Indexes for performance
-        builder.HasIndex(e => e.ApplicationNumber)
-               .IsUnique()
-               .HasDatabaseName("IX_VettingApplications_ApplicationNumber");
+        builder.HasIndex(x => x.UserId)
+            .IsUnique() // One application per user
+            .HasDatabaseName("IX_VettingApplications_UserId");
 
-        builder.HasIndex(e => e.StatusToken)
-               .IsUnique()
-               .HasDatabaseName("IX_VettingApplications_StatusToken");
+        builder.HasIndex(x => x.Status)
+            .HasDatabaseName("IX_VettingApplications_Status");
 
-        builder.HasIndex(e => e.Status)
-               .HasDatabaseName("IX_VettingApplications_Status");
+        builder.HasIndex(x => x.SubmittedAt)
+            .HasDatabaseName("IX_VettingApplications_SubmittedAt");
 
-        builder.HasIndex(e => e.AssignedReviewerId)
-               .HasDatabaseName("IX_VettingApplications_AssignedReviewerId")
-               .HasFilter("\"AssignedReviewerId\" IS NOT NULL");
-
-        builder.HasIndex(e => new { e.Status, e.Priority, e.CreatedAt })
-               .HasDatabaseName("IX_VettingApplications_Status_Priority_CreatedAt");
-
-        builder.HasIndex(e => e.DeletedAt)
-               .HasDatabaseName("IX_VettingApplications_DeletedAt")
-               .HasFilter("\"DeletedAt\" IS NOT NULL");
-
-        // Partial index for active applications
-        builder.HasIndex(e => new { e.Status, e.CreatedAt })
-               .HasDatabaseName("IX_VettingApplications_Active_Status_CreatedAt")
-               .HasFilter("\"DeletedAt\" IS NULL");
-
-        // GIN index for JSONB skills/interests search
-        builder.HasIndex(e => e.SkillsInterests)
-               .HasDatabaseName("IX_VettingApplications_SkillsInterests")
-               .HasMethod("gin");
-
-        // Single application constraint - one application per user
-        builder.HasIndex(e => e.ApplicantId)
-               .IsUnique()
-               .HasDatabaseName("UQ_VettingApplications_ApplicantId_Active")
-               .HasFilter("\"DeletedAt\" IS NULL AND \"ApplicantId\" IS NOT NULL");
-
-        // Relationships
-        builder.HasOne(e => e.Applicant)
-               .WithMany()
-               .HasForeignKey(e => e.ApplicantId)
-               .OnDelete(DeleteBehavior.SetNull);
-
-        builder.HasOne(e => e.AssignedReviewer)
-               .WithMany(r => r.AssignedApplications)
-               .HasForeignKey(e => e.AssignedReviewerId)
-               .OnDelete(DeleteBehavior.SetNull);
-
-        builder.HasOne(e => e.CreatedByUser)
-               .WithMany()
-               .HasForeignKey(e => e.CreatedBy)
-               .OnDelete(DeleteBehavior.SetNull);
-
-        builder.HasOne(e => e.UpdatedByUser)
-               .WithMany()
-               .HasForeignKey(e => e.UpdatedBy)
-               .OnDelete(DeleteBehavior.SetNull);
-
-        // One-to-many relationships
-        builder.HasMany(e => e.References)
-               .WithOne(r => r.Application)
-               .HasForeignKey(r => r.ApplicationId)
-               .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasMany(e => e.Notes)
-               .WithOne(n => n.Application)
-               .HasForeignKey(n => n.ApplicationId)
-               .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasMany(e => e.Decisions)
-               .WithOne(d => d.Application)
-               .HasForeignKey(d => d.ApplicationId)
-               .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasMany(e => e.AuditLogs)
-               .WithOne(a => a.Application)
-               .HasForeignKey(a => a.ApplicationId)
-               .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasMany(e => e.Notifications)
-               .WithOne(n => n.Application)
-               .HasForeignKey(n => n.ApplicationId)
-               .OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(x => x.Email)
+            .HasDatabaseName("IX_VettingApplications_Email");
     }
 }

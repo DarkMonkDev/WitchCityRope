@@ -1,5 +1,37 @@
 # UI Designer Lessons Learned
 
+## 🚨 MANDATORY STARTUP PROCEDURE 🚨
+
+### 🚨 ULTRA CRITICAL UI/UX DOCUMENTS (MUST READ): 🚨
+1. **Design System v7** - **CURRENT DESIGN STANDARDS**
+`/docs/design/current/design-system-v7.md`
+
+2. **UI Implementation Standards** - **COMPONENT PATTERNS**
+`/docs/standards-processes/ui-implementation-standards.md`
+
+3. **React Patterns** - **REACT COMPONENT STANDARDS**
+`/docs/standards-processes/development-standards/react-patterns.md`
+
+4. **Project Architecture** - **MANTINE UI FRAMEWORK**
+`/ARCHITECTURE.md`
+
+### 📚 DOCUMENT DISCOVERY RESOURCES:
+- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+
+### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
+- **Forms Standardization** - `/docs/standards-processes/forms-standardization.md` - Form patterns
+- **Workflow Process** - `/docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
+- **Agent Boundaries** - `/docs/standards-processes/agent-boundaries.md` - What each agent does
+
+### Validation Gates (MUST COMPLETE):
+- [ ] **Read Design System v7 FIRST** - Current design language and components
+- [ ] Review UI Implementation Standards for component patterns
+- [ ] Check React Patterns for React-specific guidelines
+- [ ] Verify Mantine v7 component library usage
+- [ ] Understand mobile-first responsive design approach
+
 ## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
 
 **CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.

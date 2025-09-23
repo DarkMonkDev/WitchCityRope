@@ -2,9 +2,62 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 MANDATORY STARTUP PROCEDURE 🚨
+
+### 🚨 ULTRA CRITICAL ARCHITECTURE DOCUMENTS (MUST READ FIRST): 🚨
+1. **🛑 DTO ALIGNMENT STRATEGY** - **PREVENTS 393 TYPESCRIPT ERRORS**
+`/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` 
+
+2. **React Architecture Guide** - **CORE ARCHITECTURE DECISIONS**
+`/docs/architecture/react-migration/react-architecture.md`
+
+3. **API Changes Guide**
+`/docs/guides-setup/ai-agents/react-developer-api-changes-guide.md`
+
+4. **Project Architecture** - **TECH STACK AND STANDARDS**
+`/ARCHITECTURE.md` 
+
+5. **Design System** 
+`/docs/design/current/design-system-v7.md`
+
+### 📚 DOCUMENT DISCOVERY RESOURCES:
+- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+- **React Patterns** - `/docs/standards-processes/development-standards/react-patterns.md` - React standards
+- **UI Standards** - `/docs/standards-processes/ui-implementation-standards.md` - UI implementation rules
+
+### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
+- **Workflow Process** - `/docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
+- **Agent Boundaries** - `/docs/standards-processes/agent-boundaries.md` - What each agent does
+- **Documentation Standards** - `/docs/standards-processes/documentation-standards.md` - How to document
+
+### Validation Gates (MUST COMPLETE WHEN STARTING A NEW SESSION):
+- [ ] **Read React Architecture Guide FIRST** - Core React architecture decisions and patterns
+- [ ] Read API changes guide for backend integration awareness
+- [ ] Review DTO Alignment Strategy to prevent TypeScript errors
+- [ ] Check Project Architecture for current tech stack
+- [ ] Review Design System for UI component standards
+- [ ] Check for existing components before creating new ones
+
+### React Developer Specific Rules:
+- **React Architecture Guide contains core architecture decisions** - follow established patterns
+- **DTO Alignment Strategy PREVENTS 393 TypeScript errors** - read before ANY API work
+- **Project Architecture defines tech stack** - Mantine v7, TypeScript, Vite, etc.
+- **Backend migration is transparent to frontend** (API contracts maintained)
+- **Use improved response formats and error handling**
+- **Always check for existing components before creating new ones**
+- **Use standardized CSS classes, NOT inline styles**
+- **Follow Design System v7 for all styling decisions**
+- **Read existing handoff documents** before starting new work
+
+---
+
 ## 📚 MULTI-FILE LESSONS LEARNED
 **Files**: 2 total
-**Read ALL**: Part 1, Part 2
+**Part 1**: `/docs/lessons-learned/react-developer-lessons-learned.md` (THIS FILE)
+**Part 2**: `/docs/lessons-learned/react-developer-lessons-learned-2.md` (MUST ALSO READ)
+**Read ALL**: Both Part 1 AND Part 2 are MANDATORY
 **Write to**: Part 2 ONLY
 **Max size**: 2,000 lines per file (NOT 2,500)
 **IF READ FAILS**: STOP and fix per documentation-standards.md
@@ -15,6 +68,18 @@ If you cannot read ANY file:
 2. Fix using procedure in documentation-standards.md
 3. Set LESSONS_LEARNED_READABLE=false until fixed
 4. NO WORK until LESSONS_LEARNED_READABLE=true
+
+## 🚨 CRITICAL: WHEN CREATING NEW COMPONENTS - FOLLOW WIREFRAMES EXACTLY - NO UNAUTHORIZED FEATURES 🚨
+**PROBLEM**: Adding features/columns/buttons not shown in approved wireframes
+**PRINCIPLE**: Wireframes are contracts - implement ONLY what's shown
+**PREVENTION**:
+1. ALWAYS read approved wireframes before implementation
+2. NEVER add "helpful" features without explicit approval
+3. NEVER add columns/fields for "completeness"
+4. NEVER assume missing features are oversights
+5. When in doubt, ASK before adding anything
+
+**WHY THIS MATTERS**: Extra features create technical debt, confuse users, and require removal
 
 ## 🚨 CRITICAL: VETTING FORM AUTHENTICATION HANDLING PATTERN 🚨
 

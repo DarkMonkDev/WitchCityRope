@@ -4,6 +4,43 @@
 <!-- Owner: Test Team -->
 <!-- Status: Active -->
 
+## 🚨 MANDATORY STARTUP PROCEDURE 🚨
+
+### 🚨 ULTRA CRITICAL TESTING DOCUMENTS (MUST READ): 🚨
+1. **Docker-Only Testing Standard** - **ALL TESTS RUN IN DOCKER**
+`/docs/standards-processes/testing/docker-only-testing-standard.md`
+
+2. **Test Catalog** - **ALL EXISTING TESTS**
+`/docs/standards-processes/testing/TEST_CATALOG.md`
+
+3. **Current Test Status** - **WHAT'S BROKEN/WORKING**
+`/docs/standards-processes/testing/CURRENT_TEST_STATUS.md`
+
+4. **Testing Prerequisites** - **BEFORE YOU START**
+`/docs/standards-processes/testing-prerequisites.md`
+
+5. **Project Architecture** - **DOCKER CONFIG**
+`/ARCHITECTURE.md`
+
+### 📚 DOCUMENT DISCOVERY RESOURCES:
+- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+- **Docker Architecture** - `/docs/architecture/docker-architecture.md` - Container setup
+
+### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
+- **E2E Testing Procedures** - `/docs/standards-processes/testing/E2E_TESTING_PROCEDURES.md`
+- **Testing Guide** - `/docs/standards-processes/testing/TESTING_GUIDE.md`
+- **Port Configuration** - `/docs/standards-processes/development-standards/port-configuration-management.md`
+- **Agent Boundaries** - `/docs/standards-processes/agent-boundaries.md` - What each agent does
+
+### Validation Gates (MUST COMPLETE):
+- [ ] **Verify Docker containers running** with `docker ps`
+- [ ] Check correct ports: API=5655, Web=5173
+- [ ] Review Current Test Status for known failures
+- [ ] Confirm test environment is isolated from production
+- [ ] Check Test Catalog for test locations
+
 ## 🚨 ULTRA CRITICAL: Password Escaping in JSON - NO ESCAPING REQUIRED (2025-09-22) 🚨
 
 **RECURRING ISSUE**: The password "Test123!" must NEVER be escaped as "Test123\!" in JSON files or curl commands.

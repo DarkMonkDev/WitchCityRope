@@ -1,0 +1,650 @@
+using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Features.Shared.Models;
+using WitchCityRope.Api.Features.Safety.Services;
+using WitchCityRope.Api.Features.Vetting.Entities;
+using WitchCityRope.Api.Features.Vetting.Models;
+
+namespace WitchCityRope.Api.Features.Vetting.Services;
+
+/// <summary>
+/// Simplified vetting service implementation matching functional specification
+/// Handles basic application lifecycle with simple status management and admin notes
+/// </summary>
+public class VettingService : IVettingService
+{
+    private readonly ApplicationDbContext _context;
+    private readonly IEncryptionService _encryptionService;
+    private readonly IVettingEmailService _emailService;
+    private readonly ILogger<VettingService> _logger;
+
+    public VettingService(
+        ApplicationDbContext context,
+        IEncryptionService encryptionService,
+        IVettingEmailService emailService,
+        ILogger<VettingService> logger)
+    {
+        _context = context;
+        _encryptionService = encryptionService;
+        _emailService = emailService;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// Submit new vetting application with encryption and validation
+    /// </summary>
+    public async Task<Result<VettingApplicationResponse>> SubmitApplicationAsync(
+        Guid userId,
+        VettingApplicationRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Processing application submission for user {UserId}", userId);
+
+            // Check for existing application
+            var existingApplication = await _context.VettingApplications
+                .Where(a => a.ApplicantId == userId && a.DeletedAt == null)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (existingApplication != null)
+            {
+                return Result<VettingApplicationResponse>.Failure(
+                    "Application already exists",
+                    "You already have a submitted application. Only one application is allowed per person.");
+            }
+
+            // Check if scene name is already taken
+            var existingUser = await _context.Users
+                .Where(u => u.SceneName == request.SceneName && u.Id != userId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (existingUser != null)
+            {
+                return Result<VettingApplicationResponse>.Failure(
+                    "Scene name already taken",
+                    "This scene name is already in use. Please choose a different scene name.");
+            }
+
+            using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+            try
+            {
+                // Generate application number
+                var applicationNumber = await GenerateApplicationNumberAsync(cancellationToken);
+
+                // Create application with encrypted PII
+                var application = new VettingApplication
+                {
+                    ApplicationNumber = applicationNumber,
+                    Status = VettingStatus.Submitted,
+                    ApplicantId = userId,
+
+                    // Encrypt PII fields
+                    EncryptedRealName = await _encryptionService.EncryptAsync(request.RealName),
+                    EncryptedSceneName = await _encryptionService.EncryptAsync(request.SceneName),
+                    EncryptedEmail = await _encryptionService.EncryptAsync(request.Email),
+                    EncryptedFetLifeHandle = !string.IsNullOrEmpty(request.FetLifeHandle)
+                        ? await _encryptionService.EncryptAsync(request.FetLifeHandle)
+                        : null,
+                    EncryptedPronouns = !string.IsNullOrEmpty(request.Pronouns)
+                        ? await _encryptionService.EncryptAsync(request.Pronouns)
+                        : null,
+                    EncryptedOtherNames = !string.IsNullOrEmpty(request.OtherNames)
+                        ? await _encryptionService.EncryptAsync(request.OtherNames)
+                        : null,
+                    EncryptedAboutYourself = await _encryptionService.EncryptAsync(request.AboutYourself),
+                    EncryptedHowFoundUs = await _encryptionService.EncryptAsync(request.HowFoundUs),
+
+                    // Agreement and timestamps
+                    AgreesToCommunityStandards = request.AgreeToCommunityStandards,
+                    SubmittedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    CreatedBy = userId,
+                    UpdatedBy = userId
+                };
+
+                _context.VettingApplications.Add(application);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                // Create audit log entry
+                await CreateAuditLogAsync(application.Id, "ApplicationSubmitted",
+                    userId, null, "Submitted", "New vetting application submitted", cancellationToken);
+
+                await transaction.CommitAsync(cancellationToken);
+
+                _logger.LogInformation("Application {ApplicationNumber} submitted successfully for user {UserId}",
+                    application.ApplicationNumber, userId);
+
+                // Send confirmation email
+                var emailResult = await _emailService.SendApplicationConfirmationAsync(
+                    application, request.Email, request.RealName, cancellationToken);
+
+                var response = new VettingApplicationResponse
+                {
+                    ApplicationId = application.Id,
+                    ApplicationNumber = application.ApplicationNumber,
+                    SubmittedAt = application.SubmittedAt,
+                    ConfirmationMessage = "Your application has been submitted successfully. You will receive a confirmation email shortly.",
+                    NextSteps = "Our vetting team will review your application and contact you within a few business days.",
+                    EmailSent = emailResult.IsSuccess
+                };
+
+                return Result<VettingApplicationResponse>.Success(response);
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                throw;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to process application submission for user {UserId}", userId);
+            return Result<VettingApplicationResponse>.Failure(
+                "Submission failed",
+                "An error occurred while processing your application. Please try again or contact support.");
+        }
+    }
+
+    /// <summary>
+    /// Get current user's application status
+    /// </summary>
+    public async Task<Result<VettingStatusResponse>> GetUserApplicationStatusAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var application = await _context.VettingApplications
+                .Where(a => a.ApplicantId == userId && a.DeletedAt == null)
+                .OrderByDescending(a => a.SubmittedAt)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (application == null)
+            {
+                return Result<VettingStatusResponse>.Success(new VettingStatusResponse
+                {
+                    HasApplication = false,
+                    Application = null
+                });
+            }
+
+            var statusInfo = new ApplicationStatusInfo
+            {
+                ApplicationId = application.Id,
+                ApplicationNumber = application.ApplicationNumber,
+                Status = application.Status.ToString(),
+                StatusDescription = GetStatusDescription(application.Status),
+                SubmittedAt = application.SubmittedAt,
+                LastUpdated = application.UpdatedAt,
+                NextSteps = GetNextStepsForStatus(application.Status),
+                EstimatedDaysRemaining = CalculateEstimatedDaysRemaining(application)
+            };
+
+            var response = new VettingStatusResponse
+            {
+                HasApplication = true,
+                Application = statusInfo
+            };
+
+            return Result<VettingStatusResponse>.Success(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get application status for user {UserId}", userId);
+            return Result<VettingStatusResponse>.Failure(
+                "Status lookup failed",
+                "An error occurred while checking your application status.");
+        }
+    }
+
+    /// <summary>
+    /// Get paginated list of applications for admin review
+    /// </summary>
+    public async Task<Result<PagedResult<VettingApplicationSummary>>> GetApplicationsAsync(
+        VettingApplicationsQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var dbQuery = _context.VettingApplications
+                .Where(a => a.DeletedAt == null);
+
+            // Apply filters
+            if (!string.IsNullOrEmpty(query.Status))
+            {
+                if (Enum.TryParse<VettingStatus>(query.Status, out var status))
+                {
+                    dbQuery = dbQuery.Where(a => a.Status == status);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(query.SearchQuery))
+            {
+                dbQuery = dbQuery.Where(a => a.ApplicationNumber.Contains(query.SearchQuery));
+            }
+
+            if (query.SubmittedAfter.HasValue)
+            {
+                dbQuery = dbQuery.Where(a => a.SubmittedAt >= query.SubmittedAfter);
+            }
+
+            if (query.SubmittedBefore.HasValue)
+            {
+                dbQuery = dbQuery.Where(a => a.SubmittedAt <= query.SubmittedBefore);
+            }
+
+            // Apply sorting
+            dbQuery = query.SortBy switch
+            {
+                "ApplicationNumber" => query.SortDirection == "Desc"
+                    ? dbQuery.OrderByDescending(a => a.ApplicationNumber)
+                    : dbQuery.OrderBy(a => a.ApplicationNumber),
+                "Status" => query.SortDirection == "Desc"
+                    ? dbQuery.OrderByDescending(a => a.Status)
+                    : dbQuery.OrderBy(a => a.Status),
+                "LastUpdated" => query.SortDirection == "Desc"
+                    ? dbQuery.OrderByDescending(a => a.UpdatedAt)
+                    : dbQuery.OrderBy(a => a.UpdatedAt),
+                _ => dbQuery.OrderByDescending(a => a.SubmittedAt)
+            };
+
+            // Get total count
+            var totalCount = await dbQuery.CountAsync(cancellationToken);
+
+            // Apply pagination
+            var skip = (query.Page - 1) * query.PageSize;
+            var applications = await dbQuery
+                .Skip(skip)
+                .Take(query.PageSize)
+                .ToListAsync(cancellationToken);
+
+            // Map to DTOs with decryption
+            var summaries = new List<VettingApplicationSummary>();
+            foreach (var app in applications)
+            {
+                var summary = new VettingApplicationSummary
+                {
+                    Id = app.Id,
+                    ApplicationNumber = app.ApplicationNumber,
+                    SceneName = await _encryptionService.DecryptAsync(app.EncryptedSceneName),
+                    Email = await _encryptionService.DecryptAsync(app.EncryptedEmail),
+                    Status = app.Status.ToString(),
+                    SubmittedAt = app.SubmittedAt,
+                    LastUpdated = app.UpdatedAt,
+                    AdminNotes = app.AdminNotes
+                };
+                summaries.Add(summary);
+            }
+
+            var pagedResult = new PagedResult<VettingApplicationSummary>(summaries, totalCount, query.Page, query.PageSize);
+            return Result<PagedResult<VettingApplicationSummary>>.Success(pagedResult);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get applications for admin review");
+            return Result<PagedResult<VettingApplicationSummary>>.Failure(
+                "Query failed",
+                "An error occurred while retrieving applications.");
+        }
+    }
+
+    /// <summary>
+    /// Get detailed application information for admin review
+    /// </summary>
+    public async Task<Result<VettingApplicationDetail>> GetApplicationDetailAsync(
+        Guid applicationId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var application = await _context.VettingApplications
+                .FirstOrDefaultAsync(a => a.Id == applicationId && a.DeletedAt == null, cancellationToken);
+
+            if (application == null)
+            {
+                return Result<VettingApplicationDetail>.Failure(
+                    "Application not found",
+                    "Application not found.");
+            }
+
+            // Get audit log entries
+            var auditLogs = await _context.VettingAuditLogs
+                .Where(a => a.ApplicationId == applicationId)
+                .Include(a => a.PerformedByUser)
+                .OrderByDescending(a => a.PerformedAt)
+                .ToListAsync(cancellationToken);
+
+            var auditEntries = auditLogs.Select(a => new VettingAuditEntry
+            {
+                Timestamp = a.PerformedAt,
+                Action = a.Action,
+                PerformedBy = a.PerformedByUser?.SceneName ?? "System",
+                OldValue = a.OldValue,
+                NewValue = a.NewValue,
+                Notes = a.Notes
+            }).ToList();
+
+            var detail = new VettingApplicationDetail
+            {
+                Id = application.Id,
+                ApplicationNumber = application.ApplicationNumber,
+                Status = application.Status.ToString(),
+                SubmittedAt = application.SubmittedAt,
+                LastUpdated = application.UpdatedAt,
+
+                // Decrypt PII fields
+                RealName = await _encryptionService.DecryptAsync(application.EncryptedRealName),
+                SceneName = await _encryptionService.DecryptAsync(application.EncryptedSceneName),
+                Email = await _encryptionService.DecryptAsync(application.EncryptedEmail),
+                FetLifeHandle = application.EncryptedFetLifeHandle != null
+                    ? await _encryptionService.DecryptAsync(application.EncryptedFetLifeHandle)
+                    : null,
+                Pronouns = application.EncryptedPronouns != null
+                    ? await _encryptionService.DecryptAsync(application.EncryptedPronouns)
+                    : null,
+                OtherNames = application.EncryptedOtherNames != null
+                    ? await _encryptionService.DecryptAsync(application.EncryptedOtherNames)
+                    : null,
+                AboutYourself = await _encryptionService.DecryptAsync(application.EncryptedAboutYourself),
+                HowFoundUs = await _encryptionService.DecryptAsync(application.EncryptedHowFoundUs),
+                AgreeToCommunityStandards = application.AgreesToCommunityStandards,
+
+                AdminNotes = application.AdminNotes,
+                AuditLog = auditEntries
+            };
+
+            return Result<VettingApplicationDetail>.Success(detail);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get application detail {ApplicationId}", applicationId);
+            return Result<VettingApplicationDetail>.Failure(
+                "Query failed",
+                "An error occurred while retrieving application details.");
+        }
+    }
+
+    /// <summary>
+    /// Update application status with audit logging and email notifications
+    /// </summary>
+    public async Task<Result<bool>> UpdateApplicationStatusAsync(
+        Guid applicationId,
+        VettingStatus newStatus,
+        Guid adminId,
+        string? notes = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var application = await _context.VettingApplications
+                .FirstOrDefaultAsync(a => a.Id == applicationId && a.DeletedAt == null, cancellationToken);
+
+            if (application == null)
+            {
+                return Result<bool>.Failure("Application not found", "Application not found.");
+            }
+
+            var oldStatus = application.Status;
+            application.Status = newStatus;
+            application.UpdatedAt = DateTime.UtcNow;
+            application.UpdatedBy = adminId;
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            // Create audit log entry
+            await CreateAuditLogAsync(applicationId, "StatusChanged", adminId,
+                oldStatus.ToString(), newStatus.ToString(), notes, cancellationToken);
+
+            // Send email notification
+            var applicantEmail = await _encryptionService.DecryptAsync(application.EncryptedEmail);
+            var applicantName = await _encryptionService.DecryptAsync(application.EncryptedRealName);
+
+            var emailResult = await _emailService.SendStatusUpdateAsync(
+                application, applicantEmail, applicantName, newStatus, cancellationToken);
+
+            _logger.LogInformation("Application {ApplicationNumber} status updated from {OldStatus} to {NewStatus} by admin {AdminId}",
+                application.ApplicationNumber, oldStatus, newStatus, adminId);
+
+            return Result<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update application status {ApplicationId}", applicationId);
+            return Result<bool>.Failure("Update failed", "An error occurred while updating the application status.");
+        }
+    }
+
+    /// <summary>
+    /// Add admin notes to application (updates AdminNotes field)
+    /// </summary>
+    public async Task<Result<bool>> AddApplicationNoteAsync(
+        Guid applicationId,
+        string notes,
+        Guid adminId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var application = await _context.VettingApplications
+                .FirstOrDefaultAsync(a => a.Id == applicationId && a.DeletedAt == null, cancellationToken);
+
+            if (application == null)
+            {
+                return Result<bool>.Failure("Application not found", "Application not found.");
+            }
+
+            var oldNotes = application.AdminNotes;
+            application.AdminNotes = string.IsNullOrEmpty(oldNotes) ? notes : $"{oldNotes}\n\n{notes}";
+            application.UpdatedAt = DateTime.UtcNow;
+            application.UpdatedBy = adminId;
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            // Create audit log entry
+            await CreateAuditLogAsync(applicationId, "NotesAdded", adminId,
+                null, null, notes, cancellationToken);
+
+            _logger.LogInformation("Notes added to application {ApplicationNumber} by admin {AdminId}",
+                application.ApplicationNumber, adminId);
+
+            return Result<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to add notes to application {ApplicationId}", applicationId);
+            return Result<bool>.Failure("Update failed", "An error occurred while adding notes to the application.");
+        }
+    }
+
+    /// <summary>
+    /// Send bulk reminder emails to applications with specific status
+    /// </summary>
+    public async Task<Result<BulkOperationResult>> SendBulkRemindersAsync(
+        BulkReminderRequest request,
+        Guid adminId,
+        CancellationToken cancellationToken = default)
+    {
+        var result = new BulkOperationResult
+        {
+            TotalRequested = request.ApplicationIds.Count
+        };
+
+        try
+        {
+            foreach (var applicationId in request.ApplicationIds)
+            {
+                try
+                {
+                    var application = await _context.VettingApplications
+                        .FirstOrDefaultAsync(a => a.Id == applicationId && a.DeletedAt == null, cancellationToken);
+
+                    if (application == null)
+                    {
+                        result.FailureCount++;
+                        result.Errors.Add($"Application {applicationId} not found");
+                        continue;
+                    }
+
+                    var applicantEmail = await _encryptionService.DecryptAsync(application.EncryptedEmail);
+                    var applicantName = await _encryptionService.DecryptAsync(application.EncryptedRealName);
+
+                    var emailResult = await _emailService.SendReminderAsync(
+                        application, applicantEmail, applicantName, request.CustomMessage, cancellationToken);
+
+                    if (emailResult.IsSuccess)
+                    {
+                        result.SuccessCount++;
+                        await CreateAuditLogAsync(applicationId, "ReminderSent", adminId,
+                            null, null, "Bulk reminder email sent", cancellationToken);
+                    }
+                    else
+                    {
+                        result.FailureCount++;
+                        result.Errors.Add($"Failed to send reminder to {application.ApplicationNumber}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    result.FailureCount++;
+                    result.Errors.Add($"Error processing application {applicationId}: {ex.Message}");
+                }
+            }
+
+            result.Summary = $"Sent {result.SuccessCount} reminders successfully, {result.FailureCount} failed";
+            return Result<BulkOperationResult>.Success(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send bulk reminders");
+            return Result<BulkOperationResult>.Failure("Bulk operation failed", "An error occurred during the bulk reminder operation.");
+        }
+    }
+
+    /// <summary>
+    /// Change status for multiple applications
+    /// </summary>
+    public async Task<Result<BulkOperationResult>> BulkChangeStatusAsync(
+        BulkStatusChangeRequest request,
+        Guid adminId,
+        CancellationToken cancellationToken = default)
+    {
+        var result = new BulkOperationResult
+        {
+            TotalRequested = request.ApplicationIds.Count
+        };
+
+        try
+        {
+            foreach (var applicationId in request.ApplicationIds)
+            {
+                try
+                {
+                    var statusResult = await UpdateApplicationStatusAsync(
+                        applicationId, request.NewStatus, adminId, request.Notes, cancellationToken);
+
+                    if (statusResult.IsSuccess)
+                    {
+                        result.SuccessCount++;
+                    }
+                    else
+                    {
+                        result.FailureCount++;
+                        result.Errors.Add($"Failed to update status for application {applicationId}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    result.FailureCount++;
+                    result.Errors.Add($"Error processing application {applicationId}: {ex.Message}");
+                }
+            }
+
+            result.Summary = $"Updated {result.SuccessCount} applications successfully, {result.FailureCount} failed";
+            return Result<BulkOperationResult>.Success(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to bulk change status");
+            return Result<BulkOperationResult>.Failure("Bulk operation failed", "An error occurred during the bulk status change operation.");
+        }
+    }
+
+    // Helper methods
+    private async Task<string> GenerateApplicationNumberAsync(CancellationToken cancellationToken)
+    {
+        var datePrefix = $"VET-{DateTime.UtcNow:yyyyMMdd}";
+
+        var existingCount = await _context.VettingApplications
+            .CountAsync(a => a.ApplicationNumber.StartsWith(datePrefix), cancellationToken);
+
+        var sequence = (existingCount + 1).ToString("D4");
+        return $"{datePrefix}-{sequence}";
+    }
+
+    private async Task CreateAuditLogAsync(
+        Guid applicationId,
+        string action,
+        Guid performedBy,
+        string? oldValue,
+        string? newValue,
+        string? notes,
+        CancellationToken cancellationToken)
+    {
+        var auditLog = new VettingAuditLog
+        {
+            ApplicationId = applicationId,
+            Action = action,
+            PerformedBy = performedBy,
+            PerformedAt = DateTime.UtcNow,
+            OldValue = oldValue,
+            NewValue = newValue,
+            Notes = notes
+        };
+
+        _context.VettingAuditLogs.Add(auditLog);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    private static string GetStatusDescription(VettingStatus status)
+    {
+        return status switch
+        {
+            VettingStatus.Submitted => "Your application has been received and is being processed.",
+            VettingStatus.UnderReview => "Your application is currently under review by our vetting team.",
+            VettingStatus.InterviewApproved => "You've been approved for an interview. We'll contact you to schedule it.",
+            VettingStatus.InterviewScheduled => "Your interview is scheduled. Check your email for details.",
+            VettingStatus.OnHold => "We need additional information. Please check your email for details.",
+            VettingStatus.Approved => "Congratulations! Your application has been approved.",
+            VettingStatus.Denied => "Your application was not approved. You may reapply in the future.",
+            _ => "Your application is being processed."
+        };
+    }
+
+    private static string GetNextStepsForStatus(VettingStatus status)
+    {
+        return status switch
+        {
+            VettingStatus.Submitted => "We're reviewing your application and will contact you soon.",
+            VettingStatus.UnderReview => "Your application is being reviewed by our vetting team.",
+            VettingStatus.InterviewApproved => "You've been approved for an interview. We'll contact you to schedule it.",
+            VettingStatus.InterviewScheduled => "Your interview is scheduled. Check your email for details.",
+            VettingStatus.OnHold => "We need additional information. Please check your email for details.",
+            VettingStatus.Approved => "Welcome to WitchCityRope! You now have access to member events.",
+            VettingStatus.Denied => "Your application was not approved. You may reapply in the future.",
+            _ => "We'll contact you with updates as your application progresses."
+        };
+    }
+
+    private static int? CalculateEstimatedDaysRemaining(VettingApplication application)
+    {
+        const int estimatedTotalDays = 14; // 2 weeks typical review time
+        var daysElapsed = (DateTime.UtcNow - application.SubmittedAt).Days;
+        var remaining = estimatedTotalDays - daysElapsed;
+
+        return remaining > 0 ? remaining : null;
+    }
+}

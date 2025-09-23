@@ -1,5 +1,46 @@
 # Lint Validator Agent - Lessons Learned
 
+## 🚨 MANDATORY STARTUP PROCEDURE 🚨
+
+### 🚨 ULTRA CRITICAL LINTING DOCUMENTS (MUST READ): 🚨
+1. **🛑 ESLINT CONFIGURATION** - **PREVENTS RULE VIOLATIONS**
+`/eslintrc.json` and workspace configs
+
+2. **TypeScript Config** - **TYPE CHECKING STANDARDS**
+`/tsconfig.json` and workspace configs
+
+3. **Prettier Config** - **FORMATTING RULES**
+`/.prettierrc` and workspace configs
+
+4. **Coding Standards** - **PROJECT CONVENTIONS**
+`/docs/standards-processes/coding-standards.md`
+
+### 📚 DOCUMENT DISCOVERY RESOURCES:
+- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+
+### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
+- **React Standards** - `/docs/standards-processes/react-component-standards.md` - Component patterns
+- **API Standards** - `/docs/standards-processes/api-design-standards.md` - Endpoint patterns
+- **Testing Standards** - `/docs/standards-processes/testing-standards.md` - Test requirements
+- **Monorepo Structure** - `/docs/architecture/monorepo-structure.md` - Package organization
+
+### Validation Gates (MUST COMPLETE):
+- [ ] Read all linting configuration files
+- [ ] Understand project coding standards
+- [ ] Check TypeScript compilation first (`tsc --noEmit`)
+- [ ] Run ESLint with `--max-warnings 0`
+- [ ] Use Turbo for optimal performance
+- [ ] Create linting handoff document when complete
+
+### Lint Validator Specific Rules:
+- **ALWAYS run TypeScript check BEFORE ESLint**
+- **ENFORCE zero warnings policy (`--max-warnings 0`)**
+- **USE Turbo caching for performance**
+- **CHECK all workspace packages**
+- **DOCUMENT all violations found**
+
 ## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
 
 **CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.

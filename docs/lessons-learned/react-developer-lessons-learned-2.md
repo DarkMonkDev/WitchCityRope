@@ -2,25 +2,12 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
-## 🚨 MANDATORY STARTUP PROCEDURE - CONTINUATION FROM PART 1 🚨
-
-### 🚨 ULTRA CRITICAL ARCHITECTURE DOCUMENTS (MUST READ FIRST): 🚨
-1. **🛑 DTO ALIGNMENT STRATEGY**: `/home/chad/repos/witchcityrope-react/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` - **PREVENTS 393 TYPESCRIPT ERRORS**
-2. **React Architecture Guide**: `/home/chad/repos/witchcityrope-react/docs/architecture/react-migration/react-architecture.md` - **CORE ARCHITECTURE DECISIONS**
-3. **API Changes Guide**: `/home/chad/repos/witchcityrope-react/docs/guides-setup/ai-agents/react-developer-api-changes-guide.md`
-4. **Project Architecture**: `/home/chad/repos/witchcityrope-react/ARCHITECTURE.md` - **TECH STACK AND STANDARDS**
-5. **Design System**: `/home/chad/repos/witchcityrope-react/docs/design/current/design-system-v7.md`
-
-### Validation Gates (MUST COMPLETE):
-- [ ] **Read React Architecture Guide FIRST** - Core React architecture decisions and patterns
-- [ ] Read API changes guide for backend integration awareness
-- [ ] Review DTO Alignment Strategy to prevent TypeScript errors
-- [ ] Check Project Architecture for current tech stack
-- [ ] Review Design System for UI component standards
+## 🚨 MANDATORY STARTUP PROCEDURE IS IN PART 1 🚨
+**CRITICAL**: Read Part 1 FIRST for ULTRA CRITICAL startup procedure and architecture documents.
 
 ## 📚 MULTI-FILE LESSONS LEARNED
 **This is Part 2 of 2**
-**Read Part 1 first**: react-developer-lessons-learned.md
+**Read Part 1 first**: react-developer-lessons-learned.md - **CONTAINS MANDATORY STARTUP PROCEDURE**
 **Write to**: Part 2 ONLY
 **Max size**: 2,000 lines per file (NOT 2,500)
 **IF READ FAILS**: STOP and fix per documentation-standards.md
@@ -754,6 +741,27 @@ events: (options?: any) => options ? ['events', options] as const : ['events'] a
 
 ### Tags
 #critical #admin-context #api-parameters #role-based-access #cache-management #backward-compatibility
+
+---
+
+## 🚨 CRITICAL: React App Failed to Mount - Missing Dependency Blocks Entire App
+
+**Problem**: React app completely fails to mount if ANY component has a missing dependency, even if that component isn't used on the current page.
+
+**Root Cause**: Vite's module resolution attempts to load ALL components during the build graph, so a single missing dependency in PayPalButton.tsx blocked the entire app from mounting.
+
+**Symptoms**:
+- Empty #root element, blank page
+- main.tsx console.log statements never appear
+- 500 error for the component with missing dependency
+- No error boundary can catch this - app never starts
+
+**Solution**:
+1. Always check for missing dependencies FIRST when app won't mount
+2. Temporarily replace problematic components with placeholders
+3. Use dynamic imports for components with heavy dependencies
+
+**Prevention**: Run `npm ls` to verify all dependencies before deployment
 
 ---
 

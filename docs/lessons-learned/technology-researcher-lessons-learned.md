@@ -1,5 +1,46 @@
 # Technology Researcher Lessons Learned
 
+## 🚨 MANDATORY STARTUP PROCEDURE 🚨
+
+### 🚨 ULTRA CRITICAL RESEARCH DOCUMENTS (MUST READ): 🚨
+1. **🛑 ARCHITECTURE DISCOVERY** - **CHECK EXISTING SOLUTIONS FIRST**
+`/docs/standards-processes/architecture-discovery-process.md`
+
+2. **Migration Architecture** - **CURRENT TECH STACK**
+`/docs/architecture/react-migration/domain-layer-architecture.md`
+
+3. **DTO Alignment Strategy** - **TYPE GENERATION PATTERNS**
+`/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
+
+4. **Migration Plan** - **TECHNOLOGY ROADMAP**
+`/docs/architecture/react-migration/migration-plan.md`
+
+### 📚 DOCUMENT DISCOVERY RESOURCES:
+- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+
+### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
+- **API Architecture** - `/docs/architecture/API-ARCHITECTURE-OVERVIEW.md` - Backend patterns
+- **React Standards** - `/docs/standards-processes/react-component-standards.md` - Frontend patterns
+- **Security Standards** - `/docs/standards-processes/security-standards.md` - Security constraints
+- **Performance Standards** - `/docs/standards-processes/performance-standards.md` - Performance requirements
+
+### Validation Gates (MUST COMPLETE):
+- [ ] Read architecture discovery process
+- [ ] Check if solution already exists in docs
+- [ ] Research from approved sources only
+- [ ] Create comparison matrices for decisions
+- [ ] Document confidence levels
+- [ ] Create research handoff document
+
+### Technology Researcher Specific Rules:
+- **ALWAYS check existing architecture FIRST**
+- **NEVER suggest solutions that already exist**
+- **USE approved research sources (see below)**
+- **CREATE quantitative comparison matrices**
+- **DOCUMENT all sources and references**
+
 ## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
 
 **CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.
@@ -43,27 +84,6 @@
 - Architecture becomes inconsistent
 
 **NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
-
-
-## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
-
-### Critical Architecture Documents (MUST READ BEFORE ANY WORK):
-1. **Migration Architecture**: `/docs/architecture/react-migration/domain-layer-architecture.md`
-2. **DTO Strategy**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
-3. **Architecture Discovery Process**: `/docs/standards-processes/architecture-discovery-process.md`
-4. **Migration Plan**: `/docs/architecture/react-migration/migration-plan.md`
-
-### Validation Gates (MUST COMPLETE):
-- [ ] Read all architecture documents above
-- [ ] Check if solution already exists
-- [ ] Reference existing patterns in your work
-- [ ] NEVER create manual DTO interfaces (use NSwag)
-
-### Technology Researcher Specific Rules:
-- **BEFORE researching alternatives, check if solution exists in architecture docs**
-- **If work involves DTOs, APIs, or types → Check NSwag implementation FIRST**
-- **Document: 'Verified no existing solution in architecture docs: [list checked]'**
-- **Research established patterns before suggesting new ones**
 
 ## 🚨 CRITICAL: FILE PLACEMENT RULES - ZERO TOLERANCE 🚨
 

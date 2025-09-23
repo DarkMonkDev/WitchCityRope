@@ -203,7 +203,7 @@ public class PaymentEndpoints : ControllerBase
     /// Process refund for a completed payment (Admin/Teacher only)
     /// </summary>
     [HttpPost("{paymentId:guid}/refund")]
-    [Authorize(Roles = "Admin,Teacher")]
+    [Authorize(Roles = "Administrator,Teacher")]
     [ProducesResponseType<RefundResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

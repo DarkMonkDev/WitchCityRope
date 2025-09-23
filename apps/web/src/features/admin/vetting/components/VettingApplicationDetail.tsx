@@ -113,19 +113,14 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
 
   return (
     <Stack gap="md">
-      {/* Header */}
+      {/* Header - Simplified since page wrapper handles back navigation */}
       <Group justify="space-between" align="center">
-        <Group>
-          <ActionIcon variant="light" onClick={onBack}>
-            <IconArrowLeft size={16} />
-          </ActionIcon>
-          <div>
-            <Title order={2} style={{ color: '#880124' }}>
-              Application #{application.applicationNumber}
-            </Title>
-            <Text c="dimmed">{application.sceneName}</Text>
-          </div>
-        </Group>
+        <div>
+          <Title order={2} style={{ color: '#880124' }}>
+            Application #{application.applicationNumber}
+          </Title>
+          <Text c="dimmed">{application.sceneName}</Text>
+        </div>
         <Group>
           <VettingStatusBadge status={application.status} size="md" />
           <Button

@@ -7,8 +7,8 @@ using WitchCityRope.Api.Features.Dashboard.Services;
 using WitchCityRope.Api.Features.Safety.Services;
 using WitchCityRope.Api.Features.Safety.Validation;
 using WitchCityRope.Api.Features.CheckIn.Extensions;
-using WitchCityRope.Api.Features.Vetting.Services;
-using WitchCityRope.Api.Features.Vetting.Validators;
+// using WitchCityRope.Api.Features.Vetting.Services;
+// using WitchCityRope.Api.Features.Vetting.Validators;
 using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Payments.Validators;
 using WitchCityRope.Api.Features.Participation.Services;
@@ -54,12 +54,12 @@ public static class ServiceCollectionExtensions
         // CheckIn feature services
         services.AddCheckInServices();
 
-        // Vetting feature services
-        services.AddScoped<IVettingService, VettingService>();
-        services.AddScoped<IVettingEmailService, VettingEmailService>();
+        // Vetting feature services - TEMPORARILY DISABLED FOR MIGRATION
+        // services.AddScoped<IVettingService, VettingService>();
+        // services.AddScoped<IVettingEmailService, VettingEmailService>();
 
-        // FluentValidation for Vetting feature
-        services.AddValidatorsFromAssemblyContaining<CreateApplicationValidator>();
+        // FluentValidation for Vetting feature - TEMPORARILY DISABLED FOR MIGRATION
+        // services.AddValidatorsFromAssemblyContaining<CreateApplicationValidator>();
 
         // Payment feature services
         services.AddScoped<IPaymentService, PaymentService>();

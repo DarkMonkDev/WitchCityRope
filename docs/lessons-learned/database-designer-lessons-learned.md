@@ -1,5 +1,37 @@
 # Database Developer Lessons Learned
 
+## 🚨 MANDATORY STARTUP PROCEDURE 🚨
+
+### 🚨 ULTRA CRITICAL DATABASE DOCUMENTS (MUST READ): 🚨
+1. **Entity Framework Patterns** - **DATABASE STANDARDS**
+`/docs/standards-processes/development-standards/entity-framework-patterns.md`
+
+2. **API Architecture Overview** - **DATABASE CONTEXT**
+`/docs/architecture/API-ARCHITECTURE-OVERVIEW.md`
+
+3. **Docker Architecture** - **CONTAINER CONFIG**
+`/docs/architecture/docker-architecture.md`
+
+4. **Project Architecture** - **TECH STACK**
+`/ARCHITECTURE.md`
+
+### 📚 DOCUMENT DISCOVERY RESOURCES:
+- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+
+### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
+- **Port Configuration** - `/docs/standards-processes/development-standards/port-configuration-management.md` - DB ports
+- **Workflow Process** - `/docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
+- **Agent Boundaries** - `/docs/standards-processes/agent-boundaries.md` - What each agent does
+
+### Validation Gates (MUST COMPLETE):
+- [ ] **Read Entity Framework Patterns FIRST** - Core database standards
+- [ ] Review API Architecture for database context usage
+- [ ] Check Docker Architecture for PostgreSQL configuration
+- [ ] Verify database port: PostgreSQL=5433 (Docker)
+- [ ] Understand UTC DateTime requirement for PostgreSQL
+
 ## 🚨 ULTRA CRITICAL: Entity Framework Entity Model ID Pattern - NEVER Initialize IDs 🚨
 
 **CRITICAL DATABASE DESIGN RULE**: Entity models should have simple `public Guid Id { get; set; }` without initializers. The Events admin persistence bug was caused by `public Guid Id { get; set; } = Guid.NewGuid();` initializers causing Entity Framework to treat new entities as existing ones.

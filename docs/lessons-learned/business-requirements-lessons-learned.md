@@ -9,11 +9,23 @@
 3. **Architecture Discovery Process**: `/docs/standards-processes/architecture-discovery-process.md`
 4. **Migration Plan**: `/docs/architecture/react-migration/migration-plan.md`
 
+### 📚 DOCUMENT DISCOVERY RESOURCES:
+- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+
+### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
+- **Workflow Process** - `/docs/standards-processes/workflow-orchestration-process.md` - 5-phase workflow
+- **Phase Validation** - `/docs/standards-processes/PHASE-BASED-VALIDATION-SYSTEM.md` - Quality gates
+- **Agent Handoff Template** - `/docs/standards-processes/agent-handoff-template.md` - Documentation format
+- **Agent Boundaries** - `/docs/standards-processes/agent-boundaries.md` - What each agent does
+
 ### Validation Gates (MUST COMPLETE):
 - [ ] Read all architecture documents above
 - [ ] Check if solution already exists
 - [ ] Reference existing patterns in your work
 - [ ] NEVER create manual DTO interfaces (use NSwag)
+- [ ] Create requirements handoff document when complete
 
 ### Business Requirements Agent Specific Rules:
 - **BEFORE creating ANY technical requirements, complete Architecture Discovery Phase**

@@ -1,0 +1,687 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using FluentValidation;
+using System.Security.Claims;
+using WitchCityRope.Api.Features.Shared.Models;
+using WitchCityRope.Api.Features.Vetting.Models;
+using WitchCityRope.Api.Features.Vetting.Services;
+
+namespace WitchCityRope.Api.Features.Vetting.Endpoints;
+
+/// <summary>
+/// Vetting System API endpoints (Simplified Version)
+/// Matches functional specification with 11 core endpoints only
+/// Handles application submission, admin review, email templates, and bulk operations
+/// </summary>
+[ApiController]
+public class VettingController : ControllerBase
+{
+    private readonly IVettingService _vettingService;
+    private readonly ILogger<VettingController> _logger;
+
+    public VettingController(
+        IVettingService vettingService,
+        ILogger<VettingController> logger)
+    {
+        _vettingService = vettingService;
+        _logger = logger;
+    }
+
+    // ==============================================
+    // PUBLIC ENDPOINTS (Authenticated Users)
+    // ==============================================
+
+    /// <summary>
+    /// Submit new vetting application
+    /// </summary>
+    [HttpPost("api/vetting/applications")]
+    [Authorize]
+    [ProducesResponseType(typeof(VettingApplicationResponse), 200)]
+    [ProducesResponseType(typeof(ProblemDetails), 400)]
+    [ProducesResponseType(typeof(ProblemDetails), 409)]
+    [ProducesResponseType(typeof(ProblemDetails), 500)]
+    public async Task<IActionResult> SubmitApplicationAsync(
+        [FromBody] VettingApplicationRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Get user ID from JWT token
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid user",
+                    Detail = "You must be logged in to submit an application",
+                    Status = 401
+                });
+            }
+
+            _logger.LogInformation("Processing application submission for user {UserId}", userGuid);
+
+            // Process application
+            var result = await _vettingService.SubmitApplicationAsync(request, userGuid, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation("Application submitted successfully: {ApplicationId}",
+                    result.Value?.ApplicationId);
+                return Ok(result.Value);
+            }
+
+            // Handle specific error cases
+            var statusCode = result.Error switch
+            {
+                "Application already exists" => 409,
+                "Scene name already taken" => 409,
+                _ => 400
+            };
+
+            _logger.LogWarning("Application submission failed: {Error}", result.Error);
+            return StatusCode(statusCode, new ProblemDetails
+            {
+                Title = result.Error,
+                Detail = result.Details,
+                Status = statusCode
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error during application submission");
+            return StatusCode(500, new ProblemDetails
+            {
+                Title = "Internal server error",
+                Detail = "An unexpected error occurred while processing your application",
+                Status = 500
+            });
+        }
+    }
+
+    /// <summary>
+    /// Get current user's application status
+    /// </summary>
+    [HttpGet("api/vetting/applications/my-status")]
+    [Authorize]
+    [ProducesResponseType(typeof(VettingStatusResponse), 200)]
+    [ProducesResponseType(typeof(ProblemDetails), 401)]
+    [ProducesResponseType(typeof(ProblemDetails), 500)]
+    public async Task<IActionResult> GetMyApplicationStatusAsync(
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Get user ID from JWT token
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid user",
+                    Detail = "You must be logged in to check application status",
+                    Status = 401
+                });
+            }
+
+            var result = await _vettingService.GetMyApplicationStatusAsync(userGuid, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                return Ok(result.Value);
+            }
+
+            _logger.LogWarning("Application status lookup failed for user {UserId}: {Error}", userGuid, result.Error);
+            return StatusCode(500, new ProblemDetails
+            {
+                Title = result.Error,
+                Detail = result.Details,
+                Status = 500
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error during application status lookup");
+            return StatusCode(500, new ProblemDetails
+            {
+                Title = "Internal server error",
+                Detail = "An unexpected error occurred while checking your application status",
+                Status = 500
+            });
+        }
+    }
+
+    // ==============================================
+    // ADMIN ENDPOINTS (Administrator Role)
+    // ==============================================
+
+    /// <summary>
+    /// Get paginated list of applications for admin review
+    /// </summary>
+    [HttpGet("api/admin/vetting/applications")]
+    [Authorize(Roles = "Administrator")]
+    [ProducesResponseType(typeof(VettingApplicationsResponse), 200)]
+    [ProducesResponseType(typeof(ProblemDetails), 400)]
+    [ProducesResponseType(typeof(ProblemDetails), 401)]
+    [ProducesResponseType(typeof(ProblemDetails), 500)]
+    public async Task<IActionResult> GetApplicationsAsync(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 25,
+        [FromQuery] string? search = null,
+        [FromQuery] string? status = null,
+        [FromQuery] string? dateRange = null,
+        [FromQuery] string? sortBy = "submittedAt",
+        [FromQuery] string? sortDirection = "desc",
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Get user ID from JWT token for authorization
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid user",
+                    Detail = "User information not found in authentication token",
+                    Status = 400
+                });
+            }
+
+            // Validate pagination
+            if (page < 1) page = 1;
+            if (pageSize < 1 || pageSize > 100) pageSize = 25;
+
+            var query = new VettingApplicationsQuery
+            {
+                Page = page,
+                PageSize = pageSize,
+                Search = search,
+                Status = status,
+                DateRange = dateRange,
+                SortBy = sortBy,
+                SortDirection = sortDirection
+            };
+
+            var result = await _vettingService.GetApplicationsForAdminAsync(userGuid, query, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                return Ok(result.Value);
+            }
+
+            _logger.LogWarning("Applications query failed for admin {UserId}: {Error}", userGuid, result.Error);
+            return BadRequest(new ProblemDetails
+            {
+                Title = result.Error,
+                Detail = result.Details,
+                Status = 400
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error during admin applications query");
+            return StatusCode(500, new ProblemDetails
+            {
+                Title = "Internal server error",
+                Detail = "An unexpected error occurred while retrieving applications",
+                Status = 500
+            });
+        }
+    }
+
+    /// <summary>
+    /// Get detailed application information for admin review
+    /// </summary>
+    [HttpGet("api/admin/vetting/applications/{id}")]
+    [Authorize(Roles = "Administrator")]
+    [ProducesResponseType(typeof(VettingApplicationDetail), 200)]
+    [ProducesResponseType(typeof(ProblemDetails), 400)]
+    [ProducesResponseType(typeof(ProblemDetails), 404)]
+    [ProducesResponseType(typeof(ProblemDetails), 500)]
+    public async Task<IActionResult> GetApplicationDetailAsync(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Get user ID from JWT token for authorization
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid user",
+                    Detail = "User information not found in authentication token",
+                    Status = 400
+                });
+            }
+
+            var result = await _vettingService.GetApplicationDetailAsync(id, userGuid, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                return Ok(result.Value);
+            }
+
+            var statusCode = result.Error switch
+            {
+                "Application not found" => 404,
+                "Access denied" => 403,
+                _ => 400
+            };
+
+            return StatusCode(statusCode, new ProblemDetails
+            {
+                Title = result.Error,
+                Detail = result.Details,
+                Status = statusCode
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error retrieving application {ApplicationId}", id);
+            return StatusCode(500, new ProblemDetails
+            {
+                Title = "Internal server error",
+                Detail = "An unexpected error occurred while retrieving application details",
+                Status = 500
+            });
+        }
+    }
+
+    /// <summary>
+    /// Update application status
+    /// </summary>
+    [HttpPut("api/admin/vetting/applications/{id}/status")]
+    [Authorize(Roles = "Administrator")]
+    [ProducesResponseType(typeof(StatusUpdateResponse), 200)]
+    [ProducesResponseType(typeof(ProblemDetails), 400)]
+    [ProducesResponseType(typeof(ProblemDetails), 404)]
+    [ProducesResponseType(typeof(ProblemDetails), 500)]
+    public async Task<IActionResult> UpdateApplicationStatusAsync(
+        [FromRoute] Guid id,
+        [FromBody] StatusUpdateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Get user ID from JWT token for authorization
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid user",
+                    Detail = "User information not found in authentication token",
+                    Status = 400
+                });
+            }
+
+            var result = await _vettingService.UpdateApplicationStatusAsync(id, request, userGuid, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation("Application status updated for {ApplicationId} by admin {UserId}",
+                    id, userGuid);
+                return Ok(result.Value);
+            }
+
+            var statusCode = result.Error switch
+            {
+                "Application not found" => 404,
+                "Access denied" => 403,
+                _ => 400
+            };
+
+            return StatusCode(statusCode, new ProblemDetails
+            {
+                Title = result.Error,
+                Detail = result.Details,
+                Status = statusCode
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error updating status for application {ApplicationId}", id);
+            return StatusCode(500, new ProblemDetails
+            {
+                Title = "Internal server error",
+                Detail = "An unexpected error occurred while updating the application status",
+                Status = 500
+            });
+        }
+    }
+
+    /// <summary>
+    /// Add admin note to application
+    /// </summary>
+    [HttpPost("api/admin/vetting/applications/{id}/notes")]
+    [Authorize(Roles = "Administrator")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(typeof(ProblemDetails), 400)]
+    [ProducesResponseType(typeof(ProblemDetails), 404)]
+    [ProducesResponseType(typeof(ProblemDetails), 500)]
+    public async Task<IActionResult> AddApplicationNoteAsync(
+        [FromRoute] Guid id,
+        [FromBody] AddNoteRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Get user ID from JWT token for authorization
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid user",
+                    Detail = "User information not found in authentication token",
+                    Status = 400
+                });
+            }
+
+            var result = await _vettingService.AddApplicationNoteAsync(id, request, userGuid, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation("Note added to application {ApplicationId} by admin {UserId}",
+                    id, userGuid);
+                return Ok();
+            }
+
+            var statusCode = result.Error switch
+            {
+                "Application not found" => 404,
+                "Access denied" => 403,
+                _ => 400
+            };
+
+            return StatusCode(statusCode, new ProblemDetails
+            {
+                Title = result.Error,
+                Detail = result.Details,
+                Status = statusCode
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error adding note to application {ApplicationId}", id);
+            return StatusCode(500, new ProblemDetails
+            {
+                Title = "Internal server error",
+                Detail = "An unexpected error occurred while adding the note",
+                Status = 500
+            });
+        }
+    }
+
+    // ==============================================
+    // EMAIL TEMPLATE ENDPOINTS (Administrator Role)
+    // ==============================================
+
+    /// <summary>
+    /// Get all email templates
+    /// </summary>
+    [HttpGet("api/admin/vetting/templates")]
+    [Authorize(Roles = "Administrator")]
+    [ProducesResponseType(typeof(EmailTemplatesResponse), 200)]
+    [ProducesResponseType(typeof(ProblemDetails), 401)]
+    [ProducesResponseType(typeof(ProblemDetails), 500)]
+    public async Task<IActionResult> GetEmailTemplatesAsync(
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var result = await _vettingService.GetEmailTemplatesAsync(cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                return Ok(result.Value);
+            }
+
+            _logger.LogWarning("Email templates retrieval failed: {Error}", result.Error);
+            return StatusCode(500, new ProblemDetails
+            {
+                Title = result.Error,
+                Detail = result.Details,
+                Status = 500
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error retrieving email templates");
+            return StatusCode(500, new ProblemDetails
+            {
+                Title = "Internal server error",
+                Detail = "An unexpected error occurred while retrieving email templates",
+                Status = 500
+            });
+        }
+    }
+
+    /// <summary>
+    /// Update email template
+    /// </summary>
+    [HttpPut("api/admin/vetting/templates/{type}")]
+    [Authorize(Roles = "Administrator")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(typeof(ProblemDetails), 400)]
+    [ProducesResponseType(typeof(ProblemDetails), 404)]
+    [ProducesResponseType(typeof(ProblemDetails), 500)]
+    public async Task<IActionResult> UpdateEmailTemplateAsync(
+        [FromRoute] string type,
+        [FromBody] UpdateTemplateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Get user ID from JWT token for audit trail
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid user",
+                    Detail = "User information not found in authentication token",
+                    Status = 400
+                });
+            }
+
+            var result = await _vettingService.UpdateEmailTemplateAsync(type, request, userGuid, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation("Email template {TemplateType} updated by admin {UserId}",
+                    type, userGuid);
+                return Ok();
+            }
+
+            var statusCode = result.Error switch
+            {
+                "Template not found" => 404,
+                "Invalid template type" => 400,
+                _ => 400
+            };
+
+            return StatusCode(statusCode, new ProblemDetails
+            {
+                Title = result.Error,
+                Detail = result.Details,
+                Status = statusCode
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error updating email template {TemplateType}", type);
+            return StatusCode(500, new ProblemDetails
+            {
+                Title = "Internal server error",
+                Detail = "An unexpected error occurred while updating the email template",
+                Status = 500
+            });
+        }
+    }
+
+    /// <summary>
+    /// Preview email template with sample data
+    /// </summary>
+    [HttpPost("api/admin/vetting/templates/{type}/preview")]
+    [Authorize(Roles = "Administrator")]
+    [ProducesResponseType(typeof(EmailPreviewResponse), 200)]
+    [ProducesResponseType(typeof(ProblemDetails), 400)]
+    [ProducesResponseType(typeof(ProblemDetails), 404)]
+    [ProducesResponseType(typeof(ProblemDetails), 500)]
+    public async Task<IActionResult> PreviewEmailTemplateAsync(
+        [FromRoute] string type,
+        [FromBody] UpdateTemplateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var result = await _vettingService.PreviewEmailTemplateAsync(type, request, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                return Ok(result.Value);
+            }
+
+            var statusCode = result.Error switch
+            {
+                "Template not found" => 404,
+                "Invalid template type" => 400,
+                _ => 400
+            };
+
+            return StatusCode(statusCode, new ProblemDetails
+            {
+                Title = result.Error,
+                Detail = result.Details,
+                Status = statusCode
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error previewing email template {TemplateType}", type);
+            return StatusCode(500, new ProblemDetails
+            {
+                Title = "Internal server error",
+                Detail = "An unexpected error occurred while previewing the email template",
+                Status = 500
+            });
+        }
+    }
+
+    // ==============================================
+    // BULK OPERATION ENDPOINTS (Administrator Role)
+    // ==============================================
+
+    /// <summary>
+    /// Send reminder emails to eligible applications
+    /// </summary>
+    [HttpPost("api/admin/vetting/applications/bulk-reminder")]
+    [Authorize(Roles = "Administrator")]
+    [ProducesResponseType(typeof(BulkOperationResponse), 200)]
+    [ProducesResponseType(typeof(ProblemDetails), 400)]
+    [ProducesResponseType(typeof(ProblemDetails), 500)]
+    public async Task<IActionResult> SendBulkRemindersAsync(
+        [FromBody] BulkReminderRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Get user ID from JWT token for authorization
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid user",
+                    Detail = "User information not found in authentication token",
+                    Status = 400
+                });
+            }
+
+            var result = await _vettingService.SendBulkRemindersAsync(request, userGuid, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation("Bulk reminder operation completed by admin {UserId}: {SuccessCount} sent, {FailureCount} failed",
+                    userGuid, result.Value?.SuccessCount, result.Value?.FailureCount);
+                return Ok(result.Value);
+            }
+
+            _logger.LogWarning("Bulk reminder operation failed: {Error}", result.Error);
+            return BadRequest(new ProblemDetails
+            {
+                Title = result.Error,
+                Detail = result.Details,
+                Status = 400
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error during bulk reminder operation");
+            return StatusCode(500, new ProblemDetails
+            {
+                Title = "Internal server error",
+                Detail = "An unexpected error occurred while sending reminder emails",
+                Status = 500
+            });
+        }
+    }
+
+    /// <summary>
+    /// Change status for multiple applications
+    /// </summary>
+    [HttpPost("api/admin/vetting/applications/bulk-status-change")]
+    [Authorize(Roles = "Administrator")]
+    [ProducesResponseType(typeof(BulkOperationResponse), 200)]
+    [ProducesResponseType(typeof(ProblemDetails), 400)]
+    [ProducesResponseType(typeof(ProblemDetails), 500)]
+    public async Task<IActionResult> BulkStatusChangeAsync(
+        [FromBody] BulkStatusChangeRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Get user ID from JWT token for authorization
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid user",
+                    Detail = "User information not found in authentication token",
+                    Status = 400
+                });
+            }
+
+            var result = await _vettingService.BulkStatusChangeAsync(request, userGuid, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation("Bulk status change operation completed by admin {UserId}: {SuccessCount} updated, {FailureCount} failed",
+                    userGuid, result.Value?.SuccessCount, result.Value?.FailureCount);
+                return Ok(result.Value);
+            }
+
+            _logger.LogWarning("Bulk status change operation failed: {Error}", result.Error);
+            return BadRequest(new ProblemDetails
+            {
+                Title = result.Error,
+                Detail = result.Details,
+                Status = 400
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error during bulk status change operation");
+            return StatusCode(500, new ProblemDetails
+            {
+                Title = "Internal server error",
+                Detail = "An unexpected error occurred while changing application statuses",
+                Status = 500
+            });
+        }
+    }
+}

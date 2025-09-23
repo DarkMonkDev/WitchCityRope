@@ -2,6 +2,31 @@
 <!-- Last Updated: 2025-08-23 -->
 <!-- Next Review: 2025-09-23 -->
 
+## 🚨 MANDATORY STARTUP PROCEDURE 🚨
+
+### 🚨 ULTRA CRITICAL GIT DOCUMENTS (MUST READ): 🚨
+1. **GitHub Push Instructions** - **PUSH/PULL PROCEDURES**
+`/docs/standards-processes/GITHUB-PUSH-INSTRUCTIONS.md`
+
+2. **Project Architecture** - **REPOSITORY STRUCTURE**
+`/ARCHITECTURE.md`
+
+### 📚 DOCUMENT DISCOVERY RESOURCES:
+- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+
+### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
+- **Workflow Process** - `/docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
+- **Agent Boundaries** - `/docs/standards-processes/agent-boundaries.md` - What each agent does
+
+### Validation Gates (MUST COMPLETE):
+- [ ] **Check current branch** with `git status`
+- [ ] Review GitHub Push Instructions for procedures
+- [ ] Verify clean working tree before operations
+- [ ] Understand branch naming conventions
+- [ ] Create handoff document after major operations
+
 ## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
 
 **CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.

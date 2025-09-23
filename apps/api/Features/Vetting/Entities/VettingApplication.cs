@@ -1,143 +1,66 @@
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Security.Cryptography;
 using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.Vetting.Entities;
 
 /// <summary>
-/// Primary entity for member vetting applications with comprehensive audit trail support
-/// All PII fields are encrypted using AES-256-GCM encryption
+/// Simplified vetting application entity aligned with design specifications
+/// Represents a member application for vetting with basic audit trail support
 /// </summary>
 public class VettingApplication
 {
     public VettingApplication()
     {
-        Status = ApplicationStatus.Draft;
-        IsAnonymous = false;
-        Priority = ApplicationPriority.Standard;
+        Status = VettingStatus.Draft;
+        SubmittedAt = DateTime.UtcNow;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
-        StatusToken = GenerateSecureToken();
-
-        References = new List<VettingReference>();
-        Notes = new List<VettingApplicationNote>();
-        Decisions = new List<VettingDecision>();
-        AuditLogs = new List<VettingApplicationAuditLog>();
-        Notifications = new List<VettingNotification>();
+        AuditLogs = new List<VettingAuditLog>();
     }
+
+    // Legacy property for backwards compatibility
+    public Guid ApplicantId => UserId;
 
     // Primary Key
     public Guid Id { get; set; }
 
-    // Application Identification
-    public string ApplicationNumber { get; set; } = string.Empty; // VET-YYYYMMDD-NNNN
-    public ApplicationStatus Status { get; set; }
-    public string StatusToken { get; set; } = string.Empty; // Secure token for public status checks
+    // Applicant Information (from wireframe design)
+    public Guid UserId { get; set; }  // FK to User
+    public string SceneName { get; set; } = string.Empty;
+    public string RealName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string? FetLifeHandle { get; set; }
+    public string? Pronouns { get; set; }
+    public string? OtherNames { get; set; }
+    public string AboutYourself { get; set; } = string.Empty;
+    public string HowFoundUs { get; set; } = string.Empty;
 
-    // Applicant Information (Encrypted)
-    public string EncryptedFullName { get; set; } = string.Empty;
-    public string EncryptedSceneName { get; set; } = string.Empty;
-    public string? EncryptedPronouns { get; set; }
-    public string? EncryptedOtherNames { get; set; }
-    public string EncryptedEmail { get; set; } = string.Empty;
-    public string? EncryptedPhone { get; set; }
+    // Application Status and Management
+    public VettingStatus Status { get; set; }
+    public DateTime SubmittedAt { get; set; }
+    public string? AdminNotes { get; set; }  // Simple text field for admin notes
 
-    // Experience Information (Encrypted)
-    public ExperienceLevel ExperienceLevel { get; set; }
-    public int YearsExperience { get; set; }
-    public string EncryptedExperienceDescription { get; set; } = string.Empty;
-    public string EncryptedSafetyKnowledge { get; set; } = string.Empty;
-    public string EncryptedConsentUnderstanding { get; set; } = string.Empty;
-
-    // Community Information
-    public string EncryptedWhyJoinCommunity { get; set; } = string.Empty;
-    public string SkillsInterests { get; set; } = string.Empty; // JSON array of tags
-    public string EncryptedExpectationsGoals { get; set; } = string.Empty;
-    public bool AgreesToGuidelines { get; set; }
-
-    // Privacy Settings
-    public bool IsAnonymous { get; set; }
-    public bool AgreesToTerms { get; set; }
-    public bool ConsentToContact { get; set; }
-
-    // Workflow Management
-    public Guid? AssignedReviewerId { get; set; }
-    public ApplicationPriority Priority { get; set; } = ApplicationPriority.Standard;
+    // Additional tracking fields
     public DateTime? ReviewStartedAt { get; set; }
     public DateTime? DecisionMadeAt { get; set; }
     public DateTime? InterviewScheduledFor { get; set; }
-
-    // Data Retention
-    public DateTime? DeletedAt { get; set; } // Soft delete
-    public DateTime? ExpiresAt { get; set; } // For draft cleanup
-
-    // Standard Audit Fields
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
-    public Guid? CreatedBy { get; set; }
-    public Guid? UpdatedBy { get; set; }
-
-    // Foreign Keys
-    public Guid? ApplicantId { get; set; } // Links to ApplicationUser if registered
 
     // Navigation Properties
-    public ApplicationUser? Applicant { get; set; }
-    public VettingReviewer? AssignedReviewer { get; set; }
-    public ApplicationUser? CreatedByUser { get; set; }
-    public ApplicationUser? UpdatedByUser { get; set; }
-
-    public ICollection<VettingReference> References { get; set; }
-    public ICollection<VettingApplicationNote> Notes { get; set; }
-    public ICollection<VettingDecision> Decisions { get; set; }
-    public ICollection<VettingApplicationAuditLog> AuditLogs { get; set; }
-    public ICollection<VettingNotification> Notifications { get; set; }
-
-    // Helper Methods
-    private static string GenerateSecureToken()
-    {
-        using var rng = RandomNumberGenerator.Create();
-        var bytes = new byte[32]; // 256-bit token
-        rng.GetBytes(bytes);
-        return Convert.ToBase64String(bytes).Replace("+", "-").Replace("/", "_").TrimEnd('=');
-    }
+    public ApplicationUser User { get; set; } = null!;
+    public ICollection<VettingAuditLog> AuditLogs { get; set; }
 }
 
 /// <summary>
-/// Application workflow status
+/// Simplified vetting status enum aligned with wireframe requirements
 /// </summary>
-public enum ApplicationStatus
+public enum VettingStatus
 {
     Draft = 1,
-    Submitted = 2,
-    UnderReview = 3,
-    PendingReferences = 4,
-    InterviewApproved = 5,
-    PendingInterview = 6,
-    PendingAdditionalInfo = 7,
-    Approved = 8,
-    Denied = 9,
-    Withdrawn = 10,
-    Expired = 11,
-    OnHold = 12
-}
-
-/// <summary>
-/// Applicant experience level
-/// </summary>
-public enum ExperienceLevel
-{
-    Beginner = 1,
-    Intermediate = 2,
-    Advanced = 3,
-    Expert = 4
-}
-
-/// <summary>
-/// Application priority for review queue management
-/// </summary>
-public enum ApplicationPriority
-{
-    Standard = 1,
-    High = 2,
-    Urgent = 3
+    UnderReview = 2,
+    InterviewApproved = 3,
+    PendingInterview = 4,
+    OnHold = 5,
+    Approved = 6,
+    Denied = 7
 }

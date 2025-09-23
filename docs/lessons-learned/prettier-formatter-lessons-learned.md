@@ -1,5 +1,46 @@
 # Prettier Formatter Agent Lessons Learned
 
+## 🚨 MANDATORY STARTUP PROCEDURE 🚨
+
+### 🚨 ULTRA CRITICAL FORMATTING DOCUMENTS (MUST READ): 🚨
+1. **🛑 PRETTIER CONFIG** - **FORMATTING RULES**
+`/.prettierrc` - Project formatting standards
+
+2. **ESLint Config** - **RULE CONFLICTS**
+`/eslintrc.json` - Check for prettier integration
+
+3. **Ignore Files** - **EXCLUDED PATTERNS**
+`/.prettierignore` - What not to format
+
+4. **Coding Standards** - **PROJECT CONVENTIONS**
+`/docs/standards-processes/coding-standards.md`
+
+### 📚 DOCUMENT DISCOVERY RESOURCES:
+- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+
+### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
+- **React Standards** - `/docs/standards-processes/react-component-standards.md` - Component patterns
+- **Monorepo Structure** - `/docs/architecture/monorepo-structure.md` - Package organization
+- **CI/CD Pipeline** - `/docs/guides-setup/ci-cd-setup.md` - Formatting in pipeline
+- **Development Guide** - `/docs/guides-setup/development-guide.md` - Dev workflow
+
+### Validation Gates (MUST COMPLETE):
+- [ ] Read .prettierrc configuration
+- [ ] Check for ESLint/Prettier conflicts
+- [ ] Run from repository root
+- [ ] Use absolute paths for files
+- [ ] Run --check before --write
+- [ ] Create formatting handoff document
+
+### Prettier Formatter Specific Rules:
+- **NO SEMICOLONS** (semi: false in config)
+- **SINGLE QUOTES** (singleQuote: true)
+- **100 CHAR LINE WIDTH** (printWidth: 100)
+- **RUN FROM ROOT** where .prettierrc exists
+- **CHECK BEFORE WRITE** to preview changes
+
 ## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
 
 **CRITICAL**: This is NOT optional - handoff documentation is REQUIRED for workflow continuity.

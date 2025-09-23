@@ -1,0 +1,41 @@
+using WitchCityRope.Api.Features.Shared.Models;
+using WitchCityRope.Api.Features.Vetting.Entities;
+using WitchCityRope.Api.Features.Vetting.Models;
+
+namespace WitchCityRope.Api.Features.Vetting.Services;
+
+/// <summary>
+/// Service for sending vetting-related emails using templates
+/// Simplified interface matching the functional specification
+/// </summary>
+public interface IVettingEmailService
+{
+    /// <summary>
+    /// Send application confirmation email after successful submission
+    /// </summary>
+    Task<Result<bool>> SendApplicationConfirmationAsync(
+        VettingApplication application,
+        string applicantEmail,
+        string applicantName,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Send status update notification email
+    /// </summary>
+    Task<Result<bool>> SendStatusUpdateAsync(
+        VettingApplication application,
+        string applicantEmail,
+        string applicantName,
+        VettingStatus newStatus,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Send reminder email to applicant
+    /// </summary>
+    Task<Result<bool>> SendReminderAsync(
+        VettingApplication application,
+        string applicantEmail,
+        string applicantName,
+        string? customMessage,
+        CancellationToken cancellationToken = default);
+}

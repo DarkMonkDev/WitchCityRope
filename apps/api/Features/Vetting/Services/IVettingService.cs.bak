@@ -1,0 +1,79 @@
+using WitchCityRope.Api.Features.Shared.Models;
+using WitchCityRope.Api.Features.Vetting.Models;
+
+namespace WitchCityRope.Api.Features.Vetting.Services;
+
+/// <summary>
+/// Simplified vetting service interface matching functional specification
+/// Supports basic application submission, status checks, and admin operations
+/// </summary>
+public interface IVettingService
+{
+    // Application submission
+    /// <summary>
+    /// Submit new vetting application with encryption and validation
+    /// </summary>
+    Task<Result<VettingApplicationResponse>> SubmitApplicationAsync(
+        Guid userId,
+        VettingApplicationRequest request,
+        CancellationToken cancellationToken = default);
+
+    // User status check
+    /// <summary>
+    /// Get current user's application status
+    /// </summary>
+    Task<Result<VettingStatusResponse>> GetUserApplicationStatusAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default);
+
+    // Admin operations
+    /// <summary>
+    /// Get paginated list of applications for admin review
+    /// </summary>
+    Task<Result<PagedResult<VettingApplicationSummary>>> GetApplicationsAsync(
+        VettingApplicationsQuery query,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get detailed application information for admin review
+    /// </summary>
+    Task<Result<VettingApplicationDetail>> GetApplicationDetailAsync(
+        Guid applicationId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Update application status with audit logging and email notifications
+    /// </summary>
+    Task<Result<bool>> UpdateApplicationStatusAsync(
+        Guid applicationId,
+        VettingStatus newStatus,
+        Guid adminId,
+        string? notes = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Add admin notes to application (updates AdminNotes field)
+    /// </summary>
+    Task<Result<bool>> AddApplicationNoteAsync(
+        Guid applicationId,
+        string notes,
+        Guid adminId,
+        CancellationToken cancellationToken = default);
+
+    // Bulk operations
+    /// <summary>
+    /// Send bulk reminder emails to applications with specific status
+    /// </summary>
+    Task<Result<BulkOperationResult>> SendBulkRemindersAsync(
+        BulkReminderRequest request,
+        Guid adminId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Change status for multiple applications
+    /// </summary>
+    Task<Result<BulkOperationResult>> BulkChangeStatusAsync(
+        BulkStatusChangeRequest request,
+        Guid adminId,
+        CancellationToken cancellationToken = default);
+}

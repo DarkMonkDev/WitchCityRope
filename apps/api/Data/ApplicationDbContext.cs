@@ -91,59 +91,19 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<VettingApplication> VettingApplications { get; set; }
 
     /// <summary>
-    /// VettingReferences table for application references
+    /// VettingAuditLogs table for simplified audit trail
     /// </summary>
-    public DbSet<VettingReference> VettingReferences { get; set; }
-
-    /// <summary>
-    /// VettingReferenceResponses table for reference form responses
-    /// </summary>
-    public DbSet<VettingReferenceResponse> VettingReferenceResponses { get; set; }
-
-    /// <summary>
-    /// VettingReviewers table for vetting team members
-    /// </summary>
-    public DbSet<VettingReviewer> VettingReviewers { get; set; }
-
-    /// <summary>
-    /// VettingApplicationNotes table for reviewer notes
-    /// </summary>
-    public DbSet<VettingApplicationNote> VettingApplicationNotes { get; set; }
-
-    /// <summary>
-    /// VettingDecisions table for review decisions
-    /// </summary>
-    public DbSet<VettingDecision> VettingDecisions { get; set; }
-
-    /// <summary>
-    /// VettingApplicationAuditLog table for application audit trails
-    /// </summary>
-    public DbSet<VettingApplicationAuditLog> VettingApplicationAuditLog { get; set; }
-
-    /// <summary>
-    /// VettingReferenceAuditLog table for reference audit trails
-    /// </summary>
-    public DbSet<VettingReferenceAuditLog> VettingReferenceAuditLog { get; set; }
-
-    /// <summary>
-    /// VettingDecisionAuditLog table for decision audit trails
-    /// </summary>
-    public DbSet<VettingDecisionAuditLog> VettingDecisionAuditLog { get; set; }
-
-    /// <summary>
-    /// VettingNotifications table for email notifications
-    /// </summary>
-    public DbSet<VettingNotification> VettingNotifications { get; set; }
-
-    /// <summary>
-    /// VettingNoteAttachments table for note file attachments
-    /// </summary>
-    public DbSet<VettingNoteAttachment> VettingNoteAttachments { get; set; }
+    public DbSet<VettingAuditLog> VettingAuditLogs { get; set; }
 
     /// <summary>
     /// VettingEmailTemplates table for admin-manageable email templates
     /// </summary>
     public DbSet<VettingEmailTemplate> VettingEmailTemplates { get; set; }
+
+    /// <summary>
+    /// VettingNotifications table for email notifications
+    /// </summary>
+    public DbSet<VettingNotification> VettingNotifications { get; set; }
 
     /// <summary>
     /// VettingBulkOperations table for bulk administrative operations
@@ -770,17 +730,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
 
         // Apply Vetting System configurations
         modelBuilder.ApplyConfiguration(new VettingApplicationConfiguration());
-        modelBuilder.ApplyConfiguration(new VettingReferenceConfiguration());
-        modelBuilder.ApplyConfiguration(new VettingReferenceResponseConfiguration());
-        modelBuilder.ApplyConfiguration(new VettingReviewerConfiguration());
-        modelBuilder.ApplyConfiguration(new VettingApplicationNoteConfiguration());
-        modelBuilder.ApplyConfiguration(new VettingDecisionConfiguration());
-        modelBuilder.ApplyConfiguration(new VettingApplicationAuditLogConfiguration());
-        modelBuilder.ApplyConfiguration(new VettingReferenceAuditLogConfiguration());
-        modelBuilder.ApplyConfiguration(new VettingDecisionAuditLogConfiguration());
-        modelBuilder.ApplyConfiguration(new VettingNotificationConfiguration());
-        modelBuilder.ApplyConfiguration(new VettingNoteAttachmentConfiguration());
+        modelBuilder.ApplyConfiguration(new VettingAuditLogConfiguration());
         modelBuilder.ApplyConfiguration(new VettingEmailTemplateConfiguration());
+        modelBuilder.ApplyConfiguration(new VettingNotificationConfiguration());
         modelBuilder.ApplyConfiguration(new VettingBulkOperationConfiguration());
         modelBuilder.ApplyConfiguration(new VettingBulkOperationItemConfiguration());
         modelBuilder.ApplyConfiguration(new VettingBulkOperationLogConfiguration());
@@ -1070,85 +1022,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             }
         }
 
-        // Handle VettingReference entities
-        var vettingReferenceEntries = ChangeTracker.Entries<VettingReference>();
-        foreach (var entry in vettingReferenceEntries)
-        {
-            if (entry.State == EntityState.Added)
-            {
-                entry.Entity.CreatedAt = DateTime.UtcNow;
-                entry.Entity.UpdatedAt = DateTime.UtcNow;
-            }
-            else if (entry.State == EntityState.Modified)
-            {
-                entry.Entity.UpdatedAt = DateTime.UtcNow;
-            }
-        }
-
-        // Handle VettingReferenceResponse entities
-        var vettingReferenceResponseEntries = ChangeTracker.Entries<VettingReferenceResponse>();
-        foreach (var entry in vettingReferenceResponseEntries)
-        {
-            if (entry.State == EntityState.Added)
-            {
-                entry.Entity.CreatedAt = DateTime.UtcNow;
-                entry.Entity.UpdatedAt = DateTime.UtcNow;
-            }
-            else if (entry.State == EntityState.Modified)
-            {
-                entry.Entity.UpdatedAt = DateTime.UtcNow;
-            }
-        }
-
-        // Handle VettingReviewer entities
-        var vettingReviewerEntries = ChangeTracker.Entries<VettingReviewer>();
-        foreach (var entry in vettingReviewerEntries)
-        {
-            if (entry.State == EntityState.Added)
-            {
-                entry.Entity.CreatedAt = DateTime.UtcNow;
-                entry.Entity.UpdatedAt = DateTime.UtcNow;
-            }
-            else if (entry.State == EntityState.Modified)
-            {
-                entry.Entity.UpdatedAt = DateTime.UtcNow;
-            }
-        }
-
-        // Handle VettingApplicationNote entities
-        var vettingNoteEntries = ChangeTracker.Entries<VettingApplicationNote>();
-        foreach (var entry in vettingNoteEntries)
-        {
-            if (entry.State == EntityState.Added)
-            {
-                entry.Entity.CreatedAt = DateTime.UtcNow;
-                entry.Entity.UpdatedAt = DateTime.UtcNow;
-            }
-            else if (entry.State == EntityState.Modified)
-            {
-                entry.Entity.UpdatedAt = DateTime.UtcNow;
-            }
-        }
-
-        // Handle VettingDecision entities
-        var vettingDecisionEntries = ChangeTracker.Entries<VettingDecision>();
-        foreach (var entry in vettingDecisionEntries)
-        {
-            if (entry.State == EntityState.Added)
-            {
-                entry.Entity.CreatedAt = DateTime.UtcNow;
-
-                // Ensure all DateTime fields are UTC
-                if (entry.Entity.AdditionalInfoDeadline.HasValue && entry.Entity.AdditionalInfoDeadline.Value.Kind != DateTimeKind.Utc)
-                {
-                    entry.Entity.AdditionalInfoDeadline = DateTime.SpecifyKind(entry.Entity.AdditionalInfoDeadline.Value, DateTimeKind.Utc);
-                }
-                if (entry.Entity.ProposedInterviewTime.HasValue && entry.Entity.ProposedInterviewTime.Value.Kind != DateTimeKind.Utc)
-                {
-                    entry.Entity.ProposedInterviewTime = DateTime.SpecifyKind(entry.Entity.ProposedInterviewTime.Value, DateTimeKind.Utc);
-                }
-            }
-        }
+        // Deleted entities - VettingReference, VettingReferenceResponse, VettingReviewer, VettingApplicationNote, VettingDecision
 
         // Handle VettingNotification entities
         var vettingNotificationEntries = ChangeTracker.Entries<VettingNotification>();
@@ -1165,41 +1039,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             }
         }
 
-        // Handle audit log entities - they only need CreatedAt
-        var vettingApplicationAuditLogEntries = ChangeTracker.Entries<VettingApplicationAuditLog>();
-        foreach (var entry in vettingApplicationAuditLogEntries)
+        // Handle VettingAuditLog entities (replacement for multiple audit log types)
+        var vettingAuditLogEntries = ChangeTracker.Entries<VettingAuditLog>();
+        foreach (var entry in vettingAuditLogEntries)
         {
             if (entry.State == EntityState.Added)
             {
-                entry.Entity.CreatedAt = DateTime.UtcNow;
-            }
-        }
-
-        var vettingReferenceAuditLogEntries = ChangeTracker.Entries<VettingReferenceAuditLog>();
-        foreach (var entry in vettingReferenceAuditLogEntries)
-        {
-            if (entry.State == EntityState.Added)
-            {
-                entry.Entity.CreatedAt = DateTime.UtcNow;
-            }
-        }
-
-        var vettingDecisionAuditLogEntries = ChangeTracker.Entries<VettingDecisionAuditLog>();
-        foreach (var entry in vettingDecisionAuditLogEntries)
-        {
-            if (entry.State == EntityState.Added)
-            {
-                entry.Entity.CreatedAt = DateTime.UtcNow;
-            }
-        }
-
-        // Handle VettingNoteAttachment entities
-        var vettingNoteAttachmentEntries = ChangeTracker.Entries<VettingNoteAttachment>();
-        foreach (var entry in vettingNoteAttachmentEntries)
-        {
-            if (entry.State == EntityState.Added)
-            {
-                entry.Entity.CreatedAt = DateTime.UtcNow;
+                entry.Entity.PerformedAt = DateTime.UtcNow;
             }
         }
 

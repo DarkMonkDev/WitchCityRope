@@ -34,6 +34,7 @@ import { AdminEventDetailsPage } from '../pages/admin/AdminEventDetailsPage';
 import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage';
 import { AdminSafetyPage } from '../pages/admin/AdminSafetyPage';
 import { AdminVettingPage } from '../pages/admin/AdminVettingPage';
+import { AdminVettingApplicationDetailPage } from '../pages/admin/AdminVettingApplicationDetailPage';
 import { TestPage } from '../pages/TestPage';
 import { VettingTestPage } from '../pages/VettingTestPage';
 
@@ -240,6 +241,11 @@ export const router = createBrowserRouter([
       {
         path: "admin/vetting",
         element: <AdminVettingPage />,
+        loader: authLoader
+      },
+      {
+        path: "admin/vetting/applications/:applicationId",
+        element: <AdminVettingApplicationDetailPage />,
         loader: authLoader
       },
       

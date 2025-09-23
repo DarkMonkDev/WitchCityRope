@@ -66,11 +66,40 @@ export const VettingStatusBadge: React.FC<VettingStatusBadgeProps> = ({
 
   const config = getStatusConfig(status);
 
+  // Get CSS class for wireframe compatibility
+  const getStatusCssClass = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'new':
+        return 'status-new';
+      case 'inreview':
+      case 'in review':
+        return 'status-under-review';
+      case 'pendingreferences':
+      case 'pending references':
+        return 'status-pending-references';
+      case 'interviewscheduled':
+      case 'interview scheduled':
+        return 'status-interview-approved';
+      case 'approved':
+        return 'status-approved';
+      case 'rejected':
+        return 'status-rejected';
+      case 'withdrawn':
+        return 'status-withdrawn';
+      case 'on hold':
+      case 'onhold':
+        return 'status-on-hold';
+      default:
+        return 'status-unknown';
+    }
+  };
+
   return (
     <Badge
       color={config.color}
       variant="light"
       size={size}
+      className={getStatusCssClass(status)}
     >
       {config.label}
     </Badge>

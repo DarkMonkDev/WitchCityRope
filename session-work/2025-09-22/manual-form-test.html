@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vetting Form Test</title>
+</head>
+<body>
+    <h1>Manual Test Instructions</h1>
+    <p>To test the vetting form validation fix:</p>
+
+    <ol>
+        <li>Open browser to: <a href="http://localhost:5173" target="_blank">http://localhost:5173</a></li>
+        <li>Login with: guest@witchcityrope.com / Test123!</li>
+        <li>Navigate to: <a href="http://localhost:5173/join" target="_blank">http://localhost:5173/join</a></li>
+        <li>Verify form displays with user info at top</li>
+        <li>Fill required fields one by one and observe submit button state:
+            <ul>
+                <li>Real Name: "Test Guest"</li>
+                <li>Why Join: "I want to learn rope bondage and be part of a community that practices safe, sane, and consensual BDSM."</li>
+                <li>Experience: "I am new to rope bondage but have attended some educational workshops on BDSM safety and communication."</li>
+                <li>Check the community standards agreement checkbox</li>
+            </ul>
+        </li>
+        <li>Submit button should become enabled when all required fields are filled</li>
+        <li>Click submit and verify form submits successfully</li>
+    </ol>
+
+    <h2>Expected Behavior</h2>
+    <ul>
+        <li>Submit button starts disabled</li>
+        <li>Button remains disabled until all required fields are filled</li>
+        <li>Button enables when all validation passes</li>
+        <li>Form submits successfully with success message</li>
+    </ul>
+</body>
+</html>

@@ -2,18 +2,49 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 MANDATORY STARTUP PROCEDURE 🚨
+
+### 🚨 ULTRA CRITICAL ORCHESTRATION DOCUMENTS (MUST READ): 🚨
+1. **Workflow Orchestration Process** - **5-PHASE WORKFLOW**
+`/docs/standards-processes/workflow-orchestration-process.md`
+
+2. **Phase-Based Validation** - **QUALITY GATES**
+`/docs/standards-processes/PHASE-BASED-VALIDATION-SYSTEM.md`
+
+3. **Agent Boundaries** - **WHO DOES WHAT**
+`/docs/standards-processes/agent-boundaries.md`
+
+4. **Project Progress** - **CURRENT STATE**
+`/PROGRESS.md`
+
+### 📚 DOCUMENT DISCOVERY RESOURCES:
+- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+
+### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
+- **Agent Handoff Template** - `/docs/standards-processes/agent-handoff-template.md` - Documentation format
+- **Documentation Standards** - `/docs/standards-processes/documentation-standards.md` - How to document
+
+### Validation Gates (MUST COMPLETE):
+- [ ] **Read Workflow Orchestration FIRST** - Understand 5-phase process
+- [ ] Review Phase-Based Validation for quality gates
+- [ ] Check Agent Boundaries to delegate correctly
+- [ ] Review current project progress
+- [ ] ALWAYS delegate to sub-agents when possible
+
 ## 🚨 CRITICAL: AGENT STARTUP ENFORCEMENT WORKAROUND 🚨
 
 ### ⚠️ PROBLEM: Agents not reading startup procedures
 **DISCOVERED**: 2025-09-22 - Agents skipping lessons learned due to token limits
 
 ### 🛑 MANDATORY DELEGATION TEMPLATE:
-Until platform fix, EVERY delegation MUST include:
+EVERY delegation MUST include:
 ```
 MANDATORY: Before ANY work, you MUST:
 1. Read documentation standards: /home/chad/repos/witchcityrope-react/docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management
-2. Read your lessons learned files (ALL parts as specified in Part 1 header)
-3. IF ANY FILE FAILS: STOP and fix per documentation standards
+2. Read your lessons learned file(s) and any other documents stated in the lesson's learned files as must read. There may be more than one lesson's learned file which will be stated at the top of the first file. 
+3. IF ANY FILE FAILS: STOP and fix per documentation standards (this is CRITICAL)
 4. Confirm you have read all files
 5. Then proceed with: [actual task]
 ```

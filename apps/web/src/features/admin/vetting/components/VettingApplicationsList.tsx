@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Table,
   Text,
   Badge,
-  ActionIcon,
   Group,
   TextInput,
   Select,
@@ -13,12 +13,11 @@ import {
   Pagination,
   Box,
   Title,
-  Tooltip,
-  rem
+  rem,
+  Checkbox
 } from '@mantine/core';
 import {
   IconSearch,
-  IconEye,
   IconFilter,
   IconRefresh,
   IconSortAscending,
@@ -29,12 +28,11 @@ import { VettingStatusBadge } from './VettingStatusBadge';
 import type { ApplicationSummaryDto, ApplicationFilterRequest } from '../types/vetting.types';
 
 interface VettingApplicationsListProps {
-  onViewApplication: (applicationId: string) => void;
+  // No props needed - component handles navigation internally
 }
 
-export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = ({
-  onViewApplication
-}) => {
+export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = () => {
+  const navigate = useNavigate();
   const [filters, setFilters] = useState<ApplicationFilterRequest>({
     page: 1,
     pageSize: 25,
@@ -46,6 +44,10 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
     sortBy: 'SubmittedAt',
     sortDirection: 'Desc'
   });
+
+  // Bulk selection state
+  const [selectedApplications, setSelectedApplications] = useState<Set<string>>(new Set());
+  const [selectAll, setSelectAll] = useState(false);
 
   const { data, isLoading, error, refetch } = useVettingApplications(filters);
 
@@ -65,15 +67,35 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
     }));
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+  // Bulk selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    setSelectAll(checked);
+    if (checked) {
+      const allIds = new Set(data?.items.map(app => app.id) || []);
+      setSelectedApplications(allIds);
+    } else {
+      setSelectedApplications(new Set());
+    }
   };
 
-  const getDaysInStatus = (application: ApplicationSummaryDto) => {
-    const days = application.daysInCurrentStatus;
-    if (days === 0) return 'Today';
-    if (days === 1) return '1 day';
-    return `${days} days`;
+  const handleSelectApplication = (applicationId: string, checked: boolean) => {
+    const newSelected = new Set(selectedApplications);
+    if (checked) {
+      newSelected.add(applicationId);
+    } else {
+      newSelected.delete(applicationId);
+      setSelectAll(false); // Uncheck "select all" if individual item is unchecked
+    }
+    setSelectedApplications(newSelected);
+  };
+
+  const handleRowClick = (applicationId: string) => {
+    // Navigate to detail page instead of calling onViewItem callback
+    navigate(`/admin/vetting/applications/${applicationId}`);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
   };
 
   const getSortIcon = (field: string) => {
@@ -168,104 +190,138 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
         </Text>
       )}
 
-      {/* Applications Table */}
+      {/* Applications Table - Following EXACT wireframe structure */}
       <Paper shadow="sm" radius="md">
         <Table striped highlightOnHover>
           <Table.Thead>
             <Table.Tr>
+              {/* Checkbox column - 40px width */}
+              <Table.Th w={40}>
+                <Checkbox
+                  checked={selectAll}
+                  onChange={(event) => handleSelectAll(event.currentTarget.checked)}
+                  aria-label="Select all applications"
+                />
+              </Table.Th>
+
+              {/* Name column - sortable */}
               <Table.Th>
                 <Button
                   variant="subtle"
                   size="compact-sm"
-                  onClick={() => handleSort('ApplicationNumber')}
-                  rightSection={getSortIcon('ApplicationNumber')}
+                  onClick={() => handleSort('RealName')}
+                  rightSection={getSortIcon('RealName')}
+                  styles={{
+                    root: {
+                      fontWeight: 600,
+                      fontSize: 14
+                    }
+                  }}
                 >
-                  Application #
+                  Name
                 </Button>
               </Table.Th>
+
+              {/* FetLife Name column - sortable */}
               <Table.Th>
                 <Button
                   variant="subtle"
                   size="compact-sm"
-                  onClick={() => handleSort('SceneName')}
-                  rightSection={getSortIcon('SceneName')}
+                  onClick={() => handleSort('FetLifeHandle')}
+                  rightSection={getSortIcon('FetLifeHandle')}
+                  styles={{
+                    root: {
+                      fontWeight: 600,
+                      fontSize: 14
+                    }
+                  }}
                 >
-                  Scene Name
+                  FetLife Name
                 </Button>
               </Table.Th>
-              <Table.Th>Status</Table.Th>
+
+              {/* Email column */}
+              <Table.Th>
+                <Text fw={600} size="sm">Email</Text>
+              </Table.Th>
+
+              {/* Application Date column - sortable, default desc */}
               <Table.Th>
                 <Button
                   variant="subtle"
                   size="compact-sm"
                   onClick={() => handleSort('SubmittedAt')}
                   rightSection={getSortIcon('SubmittedAt')}
+                  styles={{
+                    root: {
+                      fontWeight: 600,
+                      fontSize: 14
+                    }
+                  }}
                 >
-                  Submitted
+                  Application Date {filters.sortBy === 'SubmittedAt' && filters.sortDirection === 'Desc' ? '↓' : ''}
                 </Button>
               </Table.Th>
-              <Table.Th>Time in Status</Table.Th>
-              <Table.Th>Experience</Table.Th>
-              <Table.Th>Reviewer</Table.Th>
-              <Table.Th>Actions</Table.Th>
+
+              {/* Current Status column */}
+              <Table.Th>
+                <Text fw={600} size="sm">Current Status</Text>
+              </Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
             {data?.items.map((application) => (
-              <Table.Tr key={application.id}>
+              <Table.Tr
+                key={application.id}
+                onClick={() => handleRowClick(application.id)}
+                style={{
+                  cursor: 'pointer',
+                  backgroundColor: selectedApplications.has(application.id) ? '#f0f8ff' : undefined
+                }}
+              >
+                {/* Checkbox - stopPropagation to prevent row click */}
                 <Table.Td>
-                  <Text size="sm" fw={600} style={{ color: '#880124' }}>
-                    {application.applicationNumber}
+                  <Checkbox
+                    checked={selectedApplications.has(application.id)}
+                    onChange={(event) => {
+                      event.stopPropagation(); // Prevent row click
+                      handleSelectApplication(application.id, event.currentTarget.checked);
+                    }}
+                    aria-label={`Select application for ${(application as any).realName || (application as any).fullName || application.sceneName}`}
+                  />
+                </Table.Td>
+
+                {/* Name - Real name in bold */}
+                <Table.Td>
+                  <Text size="sm" fw={700}>
+                    {(application as any).realName || (application as any).fullName || 'Name not provided'}
                   </Text>
                 </Table.Td>
+
+                {/* FetLife Name - Handle in bold */}
+                <Table.Td>
+                  <Text size="sm" fw={700}>
+                    {(application as any).fetLifeHandle || (application as any).fetLifeName || 'Not provided'}
+                  </Text>
+                </Table.Td>
+
+                {/* Email */}
                 <Table.Td>
                   <Text size="sm">
-                    {application.sceneName}
+                    {(application as any).email || 'Not provided'}
                   </Text>
-                  {application.isAnonymous && (
-                    <Badge size="xs" color="gray" variant="dot">
-                      Anonymous
-                    </Badge>
-                  )}
                 </Table.Td>
-                <Table.Td>
-                  <VettingStatusBadge status={application.status} />
-                </Table.Td>
+
+                {/* Application Date */}
                 <Table.Td>
                   <Text size="sm">
                     {formatDate(application.submittedAt)}
                   </Text>
                 </Table.Td>
+
+                {/* Current Status */}
                 <Table.Td>
-                  <Text size="sm" c={application.daysInCurrentStatus > 7 ? 'red' : 'dimmed'}>
-                    {getDaysInStatus(application)}
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  <Stack gap={4}>
-                    <Text size="sm">{application.experienceLevel}</Text>
-                    <Text size="xs" c="dimmed">
-                      {application.yearsExperience} years
-                    </Text>
-                  </Stack>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm" c={application.assignedReviewerName ? undefined : 'dimmed'}>
-                    {application.assignedReviewerName || 'Unassigned'}
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  <Group gap="xs">
-                    <Tooltip label="View Application Details">
-                      <ActionIcon
-                        variant="light"
-                        color="blue"
-                        onClick={() => onViewApplication(application.id)}
-                      >
-                        <IconEye size={16} />
-                      </ActionIcon>
-                    </Tooltip>
-                  </Group>
+                  <VettingStatusBadge status={application.status} />
                 </Table.Td>
               </Table.Tr>
             ))}

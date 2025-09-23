@@ -49,16 +49,67 @@ await expect(page.locator('h1')).toContainText('Welcome Back')
 - Expected "Register" title instead of "Join WitchCityRope"
 - Expected `/welcome` routes that don't exist (system uses `/dashboard`)
 
-## 🚨 NEW: VETTING APPLICATION E2E TESTS ADDED - 2025-09-22 🚨
+## 🚨 NEW: ADMIN VETTING E2E TESTS CREATED - 2025-09-22 🚨
+
+### Comprehensive Admin Vetting E2E Tests - CREATED
+**Location**: `/tests/playwright/admin-vetting.spec.ts`
+**Purpose**: Complete admin vetting system testing - 6 approved columns, filtering, sorting, pagination
+
+**CRITICAL IMPLEMENTATION**:
+- **6-Column Grid Verification**: Tests exactly the 6 approved wireframe columns (NO unauthorized columns)
+- **Admin Authorization**: Verifies admin can access /admin/vetting without 403 errors
+- **Docker-Only Testing**: All tests run against Docker containers on port 5173 exclusively
+- **Password Security**: Uses correct "Test123!" (no escaping) as per lessons learned
+
+**Test Suites** (6 total):
+1. ✅ **Admin Login and Navigation**: Admin access to /admin/vetting
+2. ✅ **Grid Display Verification**: Exactly 6 approved columns (NO unauthorized columns)
+3. ✅ **Admin Filtering**: Status filtering and search functionality
+4. ✅ **Admin Sorting**: Column sorting (Application #, Scene Name, Submitted Date)
+5. ✅ **Admin Pagination**: Page controls and size selection
+6. ✅ **Complete Workflow Integration**: End-to-end admin vetting workflow
+
+**APPROVED COLUMNS TESTED**:
+1. Application Number
+2. Scene Name
+3. Real Name
+4. Email
+5. Status
+6. Submitted Date
+
+**UNAUTHORIZED COLUMNS BLOCKED**:
+- ❌ Experience (correctly absent)
+- ❌ Reviewer (correctly absent)
+- ❌ Actions (correctly absent per wireframe)
+- ❌ Notes (correctly absent from grid view)
+- ❌ Priority (correctly absent)
+
+**KEY TECHNICAL PATTERNS**:
+```typescript
+// ✅ CORRECT - Password without escaping
+await AuthHelper.loginAs(page, 'admin'); // Uses 'Test123!' internally
+
+// ✅ CORRECT - Column verification
+const tableHeaders = page.locator('table thead th, table thead td');
+const headerCount = await tableHeaders.count();
+expect(headerCount).toBe(6); // Exactly 6 columns
+
+// ✅ CORRECT - Unauthorized column detection
+const allHeaderText = await page.locator('table thead').textContent();
+expect(allHeaderText?.includes('Experience')).toBe(false);
+```
+
+**BUSINESS VALUE**:
+- Protects approved wireframe design from unauthorized UI changes
+- Validates complete admin workflow for vetting application management
+- Ensures proper authorization and access control
+- Provides regression protection for admin functionality
+
+## 🚨 VETTING APPLICATION E2E TESTS - 2025-09-22 🚨
 
 ### Vetting Application Form E2E Tests - CREATED
 **Location**: `/tests/e2e/vetting-application.spec.ts`
 **Purpose**: Comprehensive E2E testing of vetting application form at /join route
-
-**CRITICAL FIXES IMPLEMENTED**:
-- **React Component Error Fix**: Fixed `Using 'style.minHeight' for <TextareaAutosize/> is not supported. Please use 'minRows'.` error in VettingApplicationForm
-- **Selector Strategy**: Migrated from `data-testid` to `label:has-text()` selectors for better reliability with Mantine UI
-- **Docker-Only Testing**: All tests run against Docker containers on port 5173 exclusively
 
 **Test Cases** (6 total):
 1. ✅ **Navigation Test**: Homepage → /join via "How to Join" link navigation
@@ -70,30 +121,10 @@ await expect(page.locator('h1')).toContainText('Welcome Back')
 
 **Status**: 2/6 tests passing - Core functionality verified
 
-**KEY TECHNICAL PATTERNS**:
-```typescript
-// ✅ WORKING - Label-based selectors for Mantine UI
-await page.locator('label:has-text("Real Name")').locator('..').locator('input').fill(testData.realName)
-
-// ✅ WORKING - Form presence validation
-await expect(page.locator('text=Apply to Join Witch City Rope')).toBeVisible()
-
-// ⚠️ CHALLENGING - Checkbox selection in Mantine UI
-const checkbox = page.locator('text=I agree to all of the above items').locator('..').locator('input[type="checkbox"]')
-```
-
-**KNOWN LIMITATIONS**:
-- Email field is readonly when not authenticated (expected behavior)
-- Checkbox selectors need refinement for community standards agreement
-- Authentication flow needs integration with form submission testing
-- 401 errors expected for unauthenticated API calls
-
 **BUSINESS VALUE**:
 - Validates complete user onboarding flow from navigation to form submission
 - Ensures vetting application form displays correctly across different user states
 - Provides regression protection for critical community membership workflow
-- Used generic selectors instead of `data-testid` attributes
-- Tested non-existent authentication flows
 
 **Coverage Preserved by Working Tests**:
 - `/tests/e2e/demo-working-login.spec.ts` - 3 working login approaches

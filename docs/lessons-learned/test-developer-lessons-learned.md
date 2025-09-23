@@ -2,9 +2,48 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
+## 🚨 MANDATORY STARTUP PROCEDURE 🚨
+
+### 🚨 ULTRA CRITICAL TESTING DOCUMENTS (MUST READ): 🚨
+1. **Docker-Only Testing Standard** - **ALL TESTS RUN IN DOCKER**
+`/docs/standards-processes/testing/docker-only-testing-standard.md`
+
+2. **Playwright Standards** - **E2E TESTING FRAMEWORK**
+`/docs/standards-processes/testing/playwright-standards.md`
+
+3. **Test Catalog** - **ALL EXISTING TESTS**
+`/docs/standards-processes/testing/TEST_CATALOG.md`
+
+4. **Testing Prerequisites** - **BEFORE YOU START**
+`/docs/standards-processes/testing-prerequisites.md`
+
+5. **Project Architecture** - **TECH STACK**
+`/ARCHITECTURE.md`
+
+### 📚 DOCUMENT DISCOVERY RESOURCES:
+- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+- **Current Test Status** - `/docs/standards-processes/testing/CURRENT_TEST_STATUS.md` - Test state
+
+### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
+- **E2E Testing Patterns** - `/docs/standards-processes/testing/E2E_TESTING_PATTERNS.md`
+- **Testing Guide** - `/docs/standards-processes/testing/TESTING_GUIDE.md`
+- **Workflow Process** - `/docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
+- **Agent Boundaries** - `/docs/standards-processes/agent-boundaries.md` - What each agent does
+
+### Validation Gates (MUST COMPLETE):
+- [ ] **Read Docker-Only Testing Standard FIRST** - All tests run in Docker containers
+- [ ] Review Playwright Standards for E2E patterns
+- [ ] Check Test Catalog to avoid duplicating tests
+- [ ] Review Testing Prerequisites before starting
+- [ ] Verify Docker containers are running with `./dev.sh`
+
 ## 📚 MULTI-FILE LESSONS LEARNED
 **Files**: 2 total
-**Read ALL**: Part 1, Part 2
+**Part 1**: `/docs/lessons-learned/test-developer-lessons-learned.md` (THIS FILE)
+**Part 2**: `/docs/lessons-learned/test-developer-lessons-learned-2.md` (MUST ALSO READ)
+**Read ALL**: Both Part 1 AND Part 2 are MANDATORY
 **Write to**: Part 2 ONLY
 **Max size**: 2,000 lines per file (NOT 2,500)
 **IF READ FAILS**: STOP and fix per documentation-standards.md
