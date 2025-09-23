@@ -21,6 +21,48 @@ If you cannot read ANY file:
 
 ---
 
+## ✅ FIXED: Test Infrastructure - FeatureTestBase Service Initialization Order (2025-09-23)
+
+**Problem**: Services using DbContext fail with NullReferenceException in tests. Tests expected success=true but got success=false.
+
+**Root Cause**: FeatureTestBase was creating services in constructor before DbContext was initialized. DatabaseTestBase sets `DbContext = null!` in constructor, only initializing it later in `InitializeAsync()`.
+
+**Critical Discovery**: Constructor execution order was:
+1. `DatabaseTestBase` constructor sets `DbContext = null!`
+2. `FeatureTestBase` constructor calls `Service = CreateService()` with null DbContext
+3. Service crashes with NullReferenceException when accessing `_context.Database` or `_context.Users`
+4. Only later does `InitializeAsync()` set up real DbContext
+
+**Solution Applied**:
+```csharp
+// ❌ WRONG - Service created before DbContext initialized
+protected FeatureTestBase(DatabaseTestFixture fixture) : base(fixture)
+{
+    MockLogger = new Mock<ILogger<TService>>();
+    Service = CreateService(); // DbContext is null here! CRASH!
+}
+
+// ✅ CORRECT - Service created after DbContext initialized
+protected FeatureTestBase(DatabaseTestFixture fixture) : base(fixture)
+{
+    MockLogger = new Mock<ILogger<TService>>();
+    Service = null!; // Will be set in InitializeAsync
+}
+
+public override async Task InitializeAsync()
+{
+    await base.InitializeAsync(); // Initialize DbContext first
+    Service = CreateService(); // Then create service with valid DbContext
+}
+```
+
+**Files Fixed**:
+- `/tests/WitchCityRope.Tests.Common/TestBase/FeatureTestBase.cs`
+
+**Tests Fixed**: 5 out of 9 originally failing tests (HealthService tests mainly)
+
+**Key Pattern**: ALWAYS ensure dependencies are initialized before creating services that use them.
+
 ## ✅ FIXED: VettingService Compilation Errors - Entity Property Mismatch (2025-09-23)
 
 **Problem**: API failing to compile due to VettingService trying to use properties that don't exist on the simplified VettingApplication entity.

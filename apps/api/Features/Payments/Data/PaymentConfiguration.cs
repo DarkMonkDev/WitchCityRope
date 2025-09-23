@@ -112,12 +112,27 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         #endregion
         
         #region JSONB Metadata
-        
+
         builder.Property(p => p.Metadata)
                .IsRequired()
-               .HasColumnType("jsonb")
-               .HasDefaultValueSql("'{}'");
-        
+               .HasConversion(
+                   v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                   v => v == null ? new Dictionary<string, object>() :
+                        System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new Dictionary<string, object>()
+               );
+
+        // PostgreSQL-specific configuration (skip for InMemory)
+        try
+        {
+            builder.Property(p => p.Metadata)
+                   .HasColumnType("jsonb")
+                   .HasDefaultValueSql("'{}'");
+        }
+        catch
+        {
+            // Skip column type configuration for InMemory database
+        }
+
         #endregion
         
         #region Foreign Key Relationships

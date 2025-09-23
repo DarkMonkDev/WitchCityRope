@@ -37,13 +37,34 @@ public class PaymentAuditLogConfiguration : IEntityTypeConfiguration<PaymentAudi
         #endregion
         
         #region Change Tracking (JSONB)
-        
+
         builder.Property(a => a.OldValues)
-               .HasColumnType("jsonb");
-               
+               .HasConversion(
+                   v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                   v => v == null ? new Dictionary<string, object>() :
+                        System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new Dictionary<string, object>()
+               );
+
         builder.Property(a => a.NewValues)
-               .HasColumnType("jsonb");
-        
+               .HasConversion(
+                   v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                   v => v == null ? new Dictionary<string, object>() :
+                        System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new Dictionary<string, object>()
+               );
+
+        // PostgreSQL-specific configuration (skip for InMemory)
+        try
+        {
+            builder.Property(a => a.OldValues)
+                   .HasColumnType("jsonb");
+            builder.Property(a => a.NewValues)
+                   .HasColumnType("jsonb");
+        }
+        catch
+        {
+            // Skip column type configuration for InMemory database
+        }
+
         #endregion
         
         #region Security Tracking

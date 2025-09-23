@@ -17,6 +17,15 @@ public abstract class FeatureTestBase<TService> : DatabaseTestBase
     protected FeatureTestBase(DatabaseTestFixture fixture) : base(fixture)
     {
         MockLogger = new Mock<ILogger<TService>>();
+        Service = null!; // Will be set in InitializeAsync
+    }
+
+    public override async Task InitializeAsync()
+    {
+        // First initialize the database
+        await base.InitializeAsync();
+
+        // Then create the service with the initialized DbContext
         Service = CreateService();
     }
 
