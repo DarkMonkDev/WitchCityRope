@@ -49,7 +49,7 @@ public class UserDashboardService : IUserDashboardService
             // Get the user's latest vetting application status
             var latestVettingApp = await _context.VettingApplications
                 .AsNoTracking()
-                .Where(v => v.ApplicantId == userId)
+                .Where(v => v.UserId == userId)
                 .OrderByDescending(v => v.CreatedAt)
                 .FirstOrDefaultAsync(cancellationToken);
 

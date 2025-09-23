@@ -6,6 +6,7 @@ using WitchCityRope.Api.Features.Dashboard.Endpoints;
 using WitchCityRope.Api.Features.Safety.Endpoints;
 using WitchCityRope.Api.Features.CheckIn.Endpoints;
 using WitchCityRope.Api.Features.Participation.Endpoints;
+using WitchCityRope.Api.Features.Vetting.Endpoints;
 
 namespace WitchCityRope.Api.Features.Shared.Extensions;
 
@@ -44,6 +45,9 @@ public static class WebApplicationExtensions
 
         // Participation feature endpoints
         app.MapParticipationEndpoints();
+
+        // Vetting feature endpoints
+        app.MapVettingEndpoints();
 
         return app;
     }

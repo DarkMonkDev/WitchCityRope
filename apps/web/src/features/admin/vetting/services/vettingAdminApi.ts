@@ -15,11 +15,11 @@ export class VettingAdminApiService {
   async getApplicationsForReview(
     filters: ApplicationFilterRequest
   ): Promise<PagedResult<ApplicationSummaryDto>> {
-    const { data } = await apiClient.post<PagedResult<ApplicationSummaryDto>>(
+    const response = await apiClient.post<{ success: boolean; data: PagedResult<ApplicationSummaryDto> }>(
       '/api/vetting/reviewer/applications',
       filters
     );
-    return data;
+    return response.data.data; // Unwrap ApiResponse wrapper
   }
 
   /**
@@ -28,10 +28,10 @@ export class VettingAdminApiService {
   async getApplicationDetail(
     applicationId: string
   ): Promise<ApplicationDetailResponse> {
-    const { data } = await apiClient.get<ApplicationDetailResponse>(
+    const response = await apiClient.get<{ success: boolean; data: ApplicationDetailResponse }>(
       `/api/vetting/reviewer/applications/${applicationId}`
     );
-    return data;
+    return response.data.data; // Unwrap ApiResponse wrapper
   }
 
   /**
@@ -41,11 +41,11 @@ export class VettingAdminApiService {
     applicationId: string,
     decision: ReviewDecisionRequest
   ): Promise<ReviewDecisionResponse> {
-    const { data } = await apiClient.post<ReviewDecisionResponse>(
+    const response = await apiClient.post<{ success: boolean; data: ReviewDecisionResponse }>(
       `/api/vetting/reviewer/applications/${applicationId}/decisions`,
       decision
     );
-    return data;
+    return response.data.data; // Unwrap ApiResponse wrapper
   }
 
   /**
