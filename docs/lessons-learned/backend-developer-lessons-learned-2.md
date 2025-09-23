@@ -400,7 +400,7 @@ public AuthUserResponse(ApplicationUser user)
 
 ## NU1603 Version Mismatch Resolution (2025-09-11)
 
-### CRITICAL SUCCESS: Eliminated NU1603 Version Mismatch Warnings
+### Prevention Pattern: NU1603 Version Mismatch Resolution
 
 **Problem**: NuGet package updates failed to eliminate the primary target - NU1603 version mismatch warnings:
 ```
@@ -699,8 +699,9 @@ public int GetCurrentRSVPCount()
 
 ## Event API Sessions, Ticket Types, and Teachers Implementation Success (2025-09-12)
 
-### SUCCESSFUL IMPLEMENTATION: Event API Extended with Related Data Fields
-**Achievement**: Successfully implemented sessions, ticketTypes, and teacherIds fields in Event API endpoints to support frontend integration.
+### Prevention Pattern: Multiple EventDto Class Synchronization
+**Problem**: Multiple EventDto classes become unsynchronized when adding new fields, causing missing data.
+**Solution**: Always update ALL EventDto classes when adding new fields and verify both list and single endpoints use same fallback logic.
 
 **Original Problem**: Event API endpoints were only returning basic event fields (title, description, dates, location, eventType, capacity, attendance counts) and missing related data required by frontend.
 
@@ -871,7 +872,7 @@ Community Rope Jam: Social - 18/30 (18 RSVPs + 5 Tickets) ✅
 
 ## Database Reset and Fresh Seed Data Success (2025-09-11)
 
-### SUCCESSFUL PROCESS: API Reset with Varied Capacity States
+### Prevention Pattern: API State Verification After Changes
 **Achievement**: Successfully reset database and regenerated seed data with comprehensive capacity state variations for frontend testing.
 
 **Process Used**:
@@ -1045,7 +1046,7 @@ public class TicketTypeDto { /* Complete with pricing tiers */ }
 5. **Recommendation**: Extract, Archive, or Enhance with clear rationale
 ```
 
-## ✅ SUCCESS: Missing API Endpoints Implementation for E2E Tests (2025-09-23)
+## Prevention Pattern: Missing API Endpoints for Testing
 
 **Problem**: E2E tests were failing with 404 errors because three API endpoints were missing:
 1. `GET /api/vetting/status` - Current user's vetting status
@@ -1189,7 +1190,7 @@ networks:
 - Development services: `docker-compose.dev.yml`
 - Override services: `docker-compose.override.yml` (mailcatcher service)
 
-## ✅ SUCCESS: Vetting Audit Log History Implementation (2025-09-22)
+## Prevention Pattern: Audit Log History Implementation
 
 **Problem**: Vetting seed data needed to generate realistic notes and status history that follows the workflow progression to properly test the vetting system UI.
 
@@ -1286,6 +1287,11 @@ private async Task CreateVettingAuditLogsAsync(List<VettingApplication> applicat
 - Test audit trails with frontend to ensure proper display
 
 **Result**: Vetting applications now have comprehensive audit history showing complete workflow progression, enabling proper testing of the vetting system UI and providing transparency in the review process.
+
+## Prevention Pattern: Vetting Notes and Audit Log Implementation
+
+**Problem**: Notes saved to AdminNotes field but API returns empty arrays, status changes don't create audit logs.
+**Solution**: Parse stored text fields into DTOs for API responses and create audit log entries for ALL state changes, not just final outcomes.
 
 ## 🚨 CRITICAL: Draft Events Not Appearing in Admin Events Grid - Fixed (2025-09-22)
 

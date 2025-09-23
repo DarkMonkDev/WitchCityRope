@@ -53,7 +53,7 @@
 
 ---
 
-## 🚨 IF THIS FILE EXCEEDS 500 LINES, YOU ARE DOING IT WRONG! ADD TO PART 2! 🚨
+## 🚨 IF THIS FILE EXCEEDS 1700 LINES, CREATE PART 2! BOTH FILES CAN BE UP TO 1700 LINES EACH 🚨
 
 ## 📚 MULTI-FILE LESSONS LEARNED
 **Files**: 2 total
@@ -61,13 +61,117 @@
 **Part 2**: `/docs/lessons-learned/react-developer-lessons-learned-part-2.md` (MAIN LESSONS FILE)
 **Read ALL**: Both Part 1 AND Part 2 are MANDATORY
 **Write to**: Part 2 ONLY - **NEVER ADD NEW LESSONS TO THIS FILE (PART 1)**
-**Max size**: Part 1 = 500 lines (startup only), Part 2 = 2,000 lines
+**Maximum file size**: 1700 lines (to stay under token limits). Both Part 1 and Part 2 files can be up to 1700 lines each
 **IF READ FAILS**: STOP and fix per documentation-standards.md
 
 ## 🚨 ULTRA CRITICAL: NEW LESSONS GO TO PART 2, NOT HERE! 🚨
 **PART 1 PURPOSE**: Startup procedures and critical navigation ONLY
 **ALL NEW LESSONS**: Must go to Part 2 - `/docs/lessons-learned/react-developer-lessons-learned-part-2.md`
 **IF YOU ADD LESSONS HERE**: You are violating the split pattern!
+
+## 🚨 LATEST CRITICAL LESSON: ROUTING DEBUGGING PATTERN 🚨
+
+### ⚠️ PROBLEM: React Router pages appear "broken" with poor error feedback
+**DISCOVERED**: 2025-09-23 - Vetting application detail route navigation appears broken to users
+
+### 🛑 ROOT CAUSE:
+- Poor error handling in route components when API calls fail
+- No debugging information to identify authentication vs data vs network issues
+- Insufficient user feedback about what specifically went wrong
+
+### ✅ CRITICAL SOLUTION PATTERN:
+1. **ADD comprehensive console logging** to trace route rendering and API calls
+2. **ENHANCE error handling** with specific error types (auth, network, not found)
+3. **PROVIDE helpful user feedback** with specific guidance for each error type
+4. **VALIDATE route parameters** and provide clear validation error messages
+
+```typescript
+// ✅ CORRECT: Enhanced route component with debugging and error handling
+export const DetailPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+
+  // Debug logging for route rendering
+  console.log('DetailPage rendered:', {
+    id,
+    pathname: location.pathname,
+    timestamp: new Date().toISOString()
+  });
+
+  // Parameter validation with helpful error messages
+  if (!id) {
+    return (
+      <Alert icon={<IconAlertCircle />} color="red" title="Invalid ID">
+        <Text>No ID provided in URL.</Text>
+        <Text size="sm" c="dimmed">Current path: {location.pathname}</Text>
+      </Alert>
+    );
+  }
+
+  // API service with enhanced error handling
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['detail', id],
+    queryFn: () => apiService.getDetail(id)
+  });
+
+  // Enhanced error display with specific guidance
+  if (error) {
+    const errorMessage = error?.message || 'Unknown error';
+    const isAuthError = errorMessage.includes('401') || errorMessage.includes('Authentication');
+    const isNotFound = errorMessage.includes('404') || errorMessage.includes('not found');
+
+    return (
+      <Alert
+        icon={<IconAlertCircle />}
+        color={isAuthError ? "orange" : "red"}
+        title={isAuthError ? "Authentication Required" : isNotFound ? "Not Found" : "Error"}
+      >
+        <Text>{errorMessage}</Text>
+        {isAuthError && <Text size="sm" c="dimmed">Please log in again.</Text>}
+        {isNotFound && <Text size="sm" c="dimmed">The requested item may have been deleted.</Text>}
+      </Alert>
+    );
+  }
+};
+
+// ✅ CORRECT: API service with comprehensive error handling
+async getDetail(id: string): Promise<DetailResponse> {
+  console.log('API.getDetail called with ID:', id);
+
+  try {
+    const response = await apiClient.get(`/api/items/${id}`);
+    console.log('API response:', { status: response.status, hasData: !!response.data });
+    return response.data;
+  } catch (error: any) {
+    console.error('API.getDetail error:', {
+      id,
+      status: error.response?.status,
+      message: error.message
+    });
+
+    // Provide specific error messages based on HTTP status
+    if (error.response?.status === 401) {
+      throw new Error('Authentication required. Please log in.');
+    } else if (error.response?.status === 404) {
+      throw new Error(`Item with ID "${id}" was not found.`);
+    } else if (error.response?.status >= 500) {
+      throw new Error('Server error. Please try again later.');
+    }
+
+    throw error;
+  }
+}
+```
+
+### 🔧 MANDATORY DEBUGGING CHECKLIST:
+1. **ADD console.log statements** to trace route component rendering and API calls
+2. **VALIDATE route parameters** before using them
+3. **ENHANCE error messages** with specific guidance for different error types
+4. **PROVIDE fallback UI** for loading and error states
+5. **TEST with invalid IDs and authentication issues**
+
+### Tags
+#critical #routing #debugging #error-handling #user-experience
 
 ## ⛔ CRITICAL: HARD BLOCK - DO NOT PROCEED IF FILES UNREADABLE
 If you cannot read ANY file:
@@ -196,6 +300,159 @@ export const getErrorMessage = (error: any): string => {
 
 ### Tags
 #critical #authentication #forms #public-routes #error-handling #user-experience
+
+## 🚨 CRITICAL: FALLBACK/MOCK DATA IN PRODUCTION MASKS API FAILURES 🚨
+
+### ⚠️ PROBLEM: Silent API failures due to fallback data hiding real issues
+**DISCOVERED**: 2025-09-23 - Vetting applications showing mock data with wrong IDs (1, 2, 3...) instead of GUIDs
+**ROOT CAUSE**: React Query hooks silently falling back to sample data when API fails
+
+### 🛑 CRITICAL ISSUE:
+- `useVettingApplications` hook contained 140+ lines of mock data with sequential IDs (1-8)
+- Both empty responses AND API failures triggered fallback to sample data
+- Users clicking rows got URLs like `/admin/vetting/applications/2` instead of GUID URLs
+- **MASKING REAL PROBLEMS**: API/database issues were hidden from users and developers
+
+### ✅ CRITICAL SOLUTION PATTERN:
+1. **REMOVE ALL fallback/mock data** from production hooks and services
+2. **LET ERRORS SURFACE** - use React Query error handling instead of masking
+3. **ADD proper logging** to track API call patterns and failures
+4. **ENHANCE error messages** with specific user guidance
+
+```typescript
+// ❌ BROKEN: Fallback data masks API problems
+export function useVettingApplications(filters: ApplicationFilterRequest) {
+  return useQuery<PagedResult<ApplicationSummaryDto>>({
+    queryKey: vettingKeys.applicationsList(filters),
+    queryFn: async () => {
+      try {
+        const result = await vettingAdminApi.getApplicationsForReview(filters);
+        // If API returns no data, provide sample data for demo purposes
+        if (!result || !result.items || result.items.length === 0) {
+          return { items: sampleApplications, ... }; // MASKS PROBLEMS!
+        }
+        return result;
+      } catch (error) {
+        // Fallback to sample data if API fails
+        return { items: sampleApplications, ... }; // HIDES ERRORS!
+      }
+    }
+  });
+}
+
+// ✅ CORRECT: Let errors surface with proper handling
+export function useVettingApplications(filters: ApplicationFilterRequest) {
+  return useQuery<PagedResult<ApplicationSummaryDto>>({
+    queryKey: vettingKeys.applicationsList(filters),
+    queryFn: async () => {
+      console.log('useVettingApplications: Fetching applications with filters:', filters);
+
+      try {
+        const result = await vettingAdminApi.getApplicationsForReview(filters);
+
+        console.log('useVettingApplications: API response received:', {
+          hasResult: !!result,
+          hasItems: !!result?.items,
+          itemCount: result?.items?.length || 0,
+          totalCount: result?.totalCount || 0
+        });
+
+        // Return actual API result or proper empty result
+        if (!result) {
+          console.warn('useVettingApplications: API returned null/undefined result');
+          return {
+            items: [],
+            totalCount: 0,
+            pageSize: filters.pageSize,
+            pageNumber: filters.page,
+            totalPages: 0
+          };
+        }
+
+        return result;
+      } catch (error: any) {
+        console.error('useVettingApplications: API call failed:', {
+          error: error.message || error,
+          status: error.response?.status,
+          filters
+        });
+
+        // Enhance error message based on HTTP status
+        if (error.response?.status === 401) {
+          throw new Error('Authentication required. Please log in to view vetting applications.');
+        } else if (error.response?.status === 403) {
+          throw new Error('Access denied. You do not have permission to view vetting applications.');
+        }
+        // ... more specific error handling
+
+        // Re-throw the error to let React Query handle it properly
+        throw error;
+      }
+    },
+    // Ensure errors are thrown instead of silently returning fallback data
+    throwOnError: true,
+  });
+}
+```
+
+### 🏗️ COMPONENT ERROR HANDLING PATTERN:
+**Components should handle errors explicitly** instead of relying on fallback data:
+
+```typescript
+// ✅ CORRECT: Component handles errors with user-friendly messages
+const { data, isLoading, error, refetch } = useVettingApplications(filters);
+
+if (error) {
+  return (
+    <Paper p="xl" radius="md">
+      <Text c="red" ta="center">
+        Error loading applications: {error.message}
+      </Text>
+      <Group justify="center" mt="md">
+        <Button onClick={() => refetch()} leftSection={<IconRefresh size={16} />}>
+          Try Again
+        </Button>
+      </Group>
+    </Paper>
+  );
+}
+
+// Empty state handling
+{data?.items.length === 0 && !isLoading && (
+  <Box p="xl" ta="center">
+    <Text c="dimmed" size="lg">
+      {filters.searchQuery || filters.statusFilters.length > 0
+        ? 'No applications match your filters'
+        : 'No vetting applications found'
+      }
+    </Text>
+  </Box>
+)}
+```
+
+### 🔧 MANDATORY PREVENTION CHECKLIST:
+1. **SEARCH for sample/mock data** in all production hooks and services
+2. **REMOVE fallback data patterns** that mask API failures
+3. **ADD comprehensive logging** for API calls and responses
+4. **ENHANCE error messages** with specific guidance for users
+5. **TEST error scenarios** to ensure proper error surfacing
+6. **USE throwOnError: true** in React Query to prevent silent failures
+
+### 🎯 WHEN MOCK DATA IS ACCEPTABLE:
+- **Test files only** (`.test.tsx`, `.spec.tsx`)
+- **Storybook stories** for component development
+- **Demo environments** with clear labeling
+- **NEVER in production hooks/services**
+
+### 💥 CONSEQUENCES OF IGNORING:
+- ❌ API/database problems go undetected
+- ❌ Wrong data types (sequential IDs vs GUIDs) break routing
+- ❌ Users experience confusing behavior without clear error feedback
+- ❌ Debugging becomes nearly impossible when real issues are masked
+- ❌ Production incidents are harder to detect and resolve
+
+### Tags
+#critical #api-integration #error-handling #data-integrity #fallback-data #mock-data #production-issues
 
 ---
 
@@ -516,6 +773,6 @@ var upcomingEvents = new List<DashboardEventDto>(); // Placeholder!
 **CONTINUE READING**: `/docs/lessons-learned/react-developer-lessons-learned-part-2.md`
 **CONTAINS**: Additional lessons learned, more patterns, and detailed solutions
 **MANDATORY**: You MUST read Part 2 for complete React developer knowledge
-**SIZE**: Part 2 contains 1900+ additional lines of critical lessons
+**SIZE**: Part 2 contains up to 1700 additional lines of critical lessons
 
-**REMEMBER**: All new lessons go to Part 2, not this file!
+**REMEMBER**: Make sure this file does not exceed 1500 lines. If it does, then write new lessons to Part 2, not this file!

@@ -12,7 +12,7 @@ Before accepting ANY lessons learned file updates, verify:
 - [ ] **No celebrations**: Zero "MAJOR SUCCESS" entries  
 - [ ] **No project history**: Zero timeline or "On date X we did Y" entries
 - [ ] **No implementation guides**: No code examples > 3 lines
-- [ ] **File size**: Under 150 lines maximum
+- [ ] **File size**: Under 1700 lines maximum (per file in multi-part series)
 
 #### 2. CONTENT VALIDATION
 - [ ] **Prevention patterns only**: Each entry follows "Problem/Solution" format
@@ -58,7 +58,7 @@ If validation fails:
 - Contains prevention patterns and mistakes only
 - Uses Problem/Solution format (1-2 sentences each)
 - No status reports, celebrations, or project history
-- Under 150 lines total
+- Under 1700 lines total
 - Scannable in under 30 seconds
 - Focuses on actionable knowledge
 

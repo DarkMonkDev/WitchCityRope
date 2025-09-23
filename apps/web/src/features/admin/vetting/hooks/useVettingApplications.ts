@@ -11,167 +11,65 @@ export const vettingKeys = {
     [...vettingKeys.applications(), 'detail', id] as const,
 };
 
-// Sample data for testing when API returns no results
-const sampleApplications: ApplicationSummaryDto[] = [
-  {
-    id: '1',
-    applicationNumber: 'APP-2025-001',
-    status: 'UnderReview',
-    submittedAt: '2025-01-15T08:00:00Z',
-    lastActivityAt: '2025-01-15T08:00:00Z',
-    sceneName: 'Alex Rivers',
-    experienceLevel: 'Beginner',
-    yearsExperience: 1,
-    isAnonymous: false,
-    assignedReviewerName: 'Admin User',
-    reviewStartedAt: '2025-01-15T08:30:00Z',
-    priority: 1,
-    daysInCurrentStatus: 8,
-    referenceStatus: {
-      totalReferences: 2,
-      contactedReferences: 2,
-      respondedReferences: 1,
-      allReferencesComplete: false,
-      oldestPendingReferenceDate: '2025-01-15T08:00:00Z'
-    },
-    hasRecentNotes: false,
-    hasPendingActions: true,
-    skillsTags: ['Beginner', 'Rope']
-  },
-  {
-    id: '2',
-    applicationNumber: 'APP-2025-002',
-    status: 'InterviewApproved',
-    submittedAt: '2025-01-10T14:30:00Z',
-    lastActivityAt: '2025-01-12T10:00:00Z',
-    sceneName: 'Morgan Chen',
-    experienceLevel: 'Intermediate',
-    yearsExperience: 3,
-    isAnonymous: false,
-    assignedReviewerName: 'Admin User',
-    reviewStartedAt: '2025-01-10T15:00:00Z',
-    priority: 2,
-    daysInCurrentStatus: 11,
-    referenceStatus: {
-      totalReferences: 2,
-      contactedReferences: 2,
-      respondedReferences: 2,
-      allReferencesComplete: true
-    },
-    hasRecentNotes: true,
-    hasPendingActions: true,
-    interviewScheduledFor: '2025-01-25T14:00:00Z',
-    skillsTags: ['Intermediate', 'Rope', 'Community']
-  },
-  {
-    id: '3',
-    applicationNumber: 'APP-2025-003',
-    status: 'PendingInterview',
-    submittedAt: '2025-01-08T10:15:00Z',
-    lastActivityAt: '2025-01-10T16:20:00Z',
-    sceneName: 'Jamie Torres',
-    experienceLevel: 'Advanced',
-    yearsExperience: 5,
-    isAnonymous: false,
-    assignedReviewerName: 'Admin User',
-    reviewStartedAt: '2025-01-08T11:00:00Z',
-    priority: 1,
-    daysInCurrentStatus: 13,
-    referenceStatus: {
-      totalReferences: 3,
-      contactedReferences: 3,
-      respondedReferences: 2,
-      allReferencesComplete: false,
-      oldestPendingReferenceDate: '2025-01-08T10:15:00Z'
-    },
-    hasRecentNotes: false,
-    hasPendingActions: true,
-    skillsTags: ['Advanced', 'Teaching', 'Community']
-  },
-  {
-    id: '4',
-    applicationNumber: 'APP-2025-004',
-    status: 'OnHold',
-    submittedAt: '2025-01-05T16:45:00Z',
-    lastActivityAt: '2025-01-07T09:00:00Z',
-    sceneName: 'Sam Martinez',
-    experienceLevel: 'Beginner',
-    yearsExperience: 0,
-    isAnonymous: false,
-    assignedReviewerName: 'Admin User',
-    reviewStartedAt: '2025-01-05T17:00:00Z',
-    priority: 3,
-    daysInCurrentStatus: 16,
-    referenceStatus: {
-      totalReferences: 1,
-      contactedReferences: 1,
-      respondedReferences: 0,
-      allReferencesComplete: false,
-      oldestPendingReferenceDate: '2025-01-05T16:45:00Z'
-    },
-    hasRecentNotes: true,
-    hasPendingActions: false,
-    skillsTags: ['Beginner']
-  },
-  {
-    id: '5',
-    applicationNumber: 'APP-2025-005',
-    status: 'Approved',
-    submittedAt: '2025-01-01T09:00:00Z',
-    lastActivityAt: '2025-01-03T14:00:00Z',
-    sceneName: 'Casey Wilson',
-    experienceLevel: 'Intermediate',
-    yearsExperience: 2,
-    isAnonymous: false,
-    assignedReviewerName: 'Admin User',
-    reviewStartedAt: '2025-01-01T10:00:00Z',
-    priority: 1,
-    daysInCurrentStatus: 20,
-    referenceStatus: {
-      totalReferences: 2,
-      contactedReferences: 2,
-      respondedReferences: 2,
-      allReferencesComplete: true
-    },
-    hasRecentNotes: false,
-    hasPendingActions: false,
-    skillsTags: ['Intermediate', 'Performance']
-  }
-];
-
 export function useVettingApplications(filters: ApplicationFilterRequest) {
   return useQuery<PagedResult<ApplicationSummaryDto>>({
     queryKey: vettingKeys.applicationsList(filters),
     queryFn: async () => {
+      console.log('useVettingApplications: Fetching applications with filters:', filters);
+
       try {
         const result = await vettingAdminApi.getApplicationsForReview(filters);
 
-        // If API returns no data, provide sample data for demo purposes
-        if (!result || !result.items || result.items.length === 0) {
+        console.log('useVettingApplications: API response received:', {
+          hasResult: !!result,
+          hasItems: !!result?.items,
+          itemCount: result?.items?.length || 0,
+          totalCount: result?.totalCount || 0
+        });
+
+        // Return actual API result or proper empty result
+        if (!result) {
+          console.warn('useVettingApplications: API returned null/undefined result');
           return {
-            items: sampleApplications,
-            totalCount: sampleApplications.length,
+            items: [],
+            totalCount: 0,
             pageSize: filters.pageSize,
             pageNumber: filters.page,
-            totalPages: Math.ceil(sampleApplications.length / filters.pageSize)
+            totalPages: 0
           };
         }
 
         return result;
-      } catch (error) {
-        // Fallback to sample data if API fails
-        console.warn('Vetting API failed, using sample data:', error);
-        return {
-          items: sampleApplications,
-          totalCount: sampleApplications.length,
-          pageSize: filters.pageSize,
-          pageNumber: filters.page,
-          totalPages: Math.ceil(sampleApplications.length / filters.pageSize)
-        };
+      } catch (error: any) {
+        // Log the error details for debugging
+        console.error('useVettingApplications: API call failed:', {
+          error: error.message || error,
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          filters
+        });
+
+        // Enhance error message based on HTTP status
+        if (error.response?.status === 401) {
+          throw new Error('Authentication required. Please log in to view vetting applications.');
+        } else if (error.response?.status === 403) {
+          throw new Error('Access denied. You do not have permission to view vetting applications.');
+        } else if (error.response?.status === 404) {
+          throw new Error('Vetting applications endpoint not found. Please contact support.');
+        } else if (error.response?.status >= 500) {
+          throw new Error('Server error occurred while loading vetting applications. Please try again later.');
+        } else if (error.message?.includes('Network')) {
+          throw new Error('Network error. Please check your internet connection and try again.');
+        }
+
+        // Re-throw the error to let React Query handle it properly
+        throw error;
       }
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
     refetchOnWindowFocus: false,
     placeholderData: (previousData) => previousData,
+    // Ensure errors are thrown instead of silently returning fallback data
+    throwOnError: true,
   });
 }
