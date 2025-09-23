@@ -2,14 +2,10 @@ import React, { useState } from 'react';
 import {
   Modal,
   Stack,
-  Text,
   Textarea,
   Button,
   Group,
-  Title,
-  Checkbox,
-  Paper,
-  Divider
+  Title
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { vettingAdminApi } from '../services/vettingAdminApi';
@@ -19,31 +15,22 @@ import type { ApplicationFilterRequest } from '../types/vetting.types';
 interface SendReminderModalProps {
   opened: boolean;
   onClose: () => void;
-  applicationId?: string;          // Single application (backwards compatibility)
-  applicantName?: string;          // Single application (backwards compatibility)
-  applicationIds?: string[];       // Bulk operations (backwards compatibility)
-  applicantNames?: string[];       // Bulk operations (backwards compatibility)
   onSuccess?: () => void;
 }
 
 export const SendReminderModal: React.FC<SendReminderModalProps> = ({
   opened,
   onClose,
-  applicationId,
-  applicantName,
-  applicationIds,
-  applicantNames,
   onSuccess
 }) => {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedApplicationIds, setSelectedApplicationIds] = useState<Set<string>>(new Set());
 
-  // Fetch all available applications for selection
+  // Fetch all pending applications to send reminders to
   const filters: ApplicationFilterRequest = {
     page: 1,
     pageSize: 100, // Get all applications
-    statusFilters: ['UnderReview', 'InterviewApproved', 'PendingInterview', 'OnHold'], // Statuses that might need reminders
+    statusFilters: ['PendingInterview'], // Only pending interview applications
     priorityFilters: [],
     experienceLevelFilters: [],
     skillsFilters: [],
@@ -55,38 +42,6 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
   const { data: applicationsData } = useVettingApplications(filters);
   const applications = applicationsData?.items || [];
 
-  // Handle backwards compatibility - if specific applications are passed, use those
-  const isLegacyMode = (applicationId && applicantName) || (applicationIds && applicationIds.length > 0);
-  const legacyApplicationIds = isLegacyMode ? (applicationIds || [applicationId!]) : [];
-  const legacyNames = isLegacyMode ? (applicantNames || [applicantName!]) : [];
-
-  // Initialize selection for legacy mode
-  React.useEffect(() => {
-    if (opened && isLegacyMode) {
-      setSelectedApplicationIds(new Set(legacyApplicationIds));
-    } else if (opened && !isLegacyMode) {
-      setSelectedApplicationIds(new Set());
-    }
-  }, [opened, isLegacyMode, legacyApplicationIds]);
-
-  const handleApplicationToggle = (applicationId: string, checked: boolean) => {
-    const newSelected = new Set(selectedApplicationIds);
-    if (checked) {
-      newSelected.add(applicationId);
-    } else {
-      newSelected.delete(applicationId);
-    }
-    setSelectedApplicationIds(newSelected);
-  };
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedApplicationIds(new Set(applications.map(app => app.id)));
-    } else {
-      setSelectedApplicationIds(new Set());
-    }
-  };
-
   const handleSubmit = async () => {
     if (!message.trim()) {
       notifications.show({
@@ -97,10 +52,10 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
       return;
     }
 
-    if (selectedApplicationIds.size === 0) {
+    if (applications.length === 0) {
       notifications.show({
-        title: 'Validation Error',
-        message: 'Please select at least one application to send reminders to',
+        title: 'No Applications',
+        message: 'No pending applications found to send reminders to',
         color: 'yellow'
       });
       return;
@@ -108,19 +63,18 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      // Process all selected applications in parallel
+      // Send reminders to all pending applications
       await Promise.all(
-        Array.from(selectedApplicationIds).map(id => vettingAdminApi.sendApplicationReminder(id, message))
+        applications.map(app => vettingAdminApi.sendApplicationReminder(app.id, message))
       );
 
       notifications.show({
         title: 'Reminders Sent',
-        message: `Reminders have been sent for ${selectedApplicationIds.size} application(s)`,
+        message: `Reminders have been sent to ${applications.length} pending application(s)`,
         color: 'green'
       });
 
       setMessage('');
-      setSelectedApplicationIds(new Set());
       onClose();
       onSuccess?.();
     } catch (error: any) {
@@ -141,19 +95,17 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
     }
   };
 
-  // Pre-fill with a default message
+  // Pre-fill with a default message template
   React.useEffect(() => {
     if (opened && !message) {
       setMessage(
-        `Hi,\n\nThis is a friendly reminder regarding the selected vetting applications to join WitchCityRope. ` +
+        `Hi,\n\nThis is a friendly reminder regarding your vetting application to join WitchCityRope. ` +
         `We are waiting for additional information or references to complete the review process.\n\n` +
-        `Please let us know if you have any questions or need assistance.\n\nThank you,\nWitchCityRope Vetting Team`
+        `Please let us know if you have any questions or need assistance.\n\n` +
+        `Thank you,\nWitchCityRope Vetting Team`
       );
     }
   }, [opened, message]);
-
-  const selectedApplications = applications.filter(app => selectedApplicationIds.has(app.id));
-  const hasSelections = selectedApplicationIds.size > 0;
 
   return (
     <Modal
@@ -169,73 +121,6 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
       data-testid="send-reminder-modal"
     >
       <Stack gap="md">
-        {/* Application Selection Section */}
-        {!isLegacyMode && (
-          <>
-            <Text size="sm" fw={600}>
-              Select applications to send reminders to:
-            </Text>
-
-            <Paper p="md" withBorder style={{ maxHeight: '300px', overflowY: 'auto' }}>
-              <Stack gap="xs">
-                {applications.length > 0 && (
-                  <Checkbox
-                    label={`Select All (${applications.length} applications)`}
-                    checked={selectedApplicationIds.size === applications.length && applications.length > 0}
-                    indeterminate={selectedApplicationIds.size > 0 && selectedApplicationIds.size < applications.length}
-                    onChange={(event) => handleSelectAll(event.currentTarget.checked)}
-                    styles={{ label: { fontWeight: 600 } }}
-                  />
-                )}
-
-                <Divider />
-
-                {applications.map((app) => (
-                  <Checkbox
-                    key={app.id}
-                    label={
-                      <Group gap="xs">
-                        <Text size="sm">{app.sceneName}</Text>
-                        <Text size="xs" c="dimmed">({app.status})</Text>
-                        <Text size="xs" c="dimmed">- {app.applicationNumber}</Text>
-                      </Group>
-                    }
-                    checked={selectedApplicationIds.has(app.id)}
-                    onChange={(event) => handleApplicationToggle(app.id, event.currentTarget.checked)}
-                  />
-                ))}
-
-                {applications.length === 0 && (
-                  <Text size="sm" c="dimmed" ta="center">
-                    No applications available for reminders
-                  </Text>
-                )}
-              </Stack>
-            </Paper>
-          </>
-        )}
-
-        {/* Legacy mode or selection summary */}
-        {(isLegacyMode || hasSelections) && (
-          <Text size="sm">
-            {isLegacyMode ? (
-              <>
-                You are about to send reminders for <strong>{legacyApplicationIds.length} application(s)</strong>:
-                <br />
-                <strong>{legacyNames.join(', ')}</strong>
-              </>
-            ) : (
-              <>
-                You are about to send reminders for <strong>{selectedApplicationIds.size} selected application(s)</strong>:
-                <br />
-                <strong>{selectedApplications.map(app => app.sceneName).join(', ')}</strong>
-              </>
-            )}
-            <br />
-            Please review and edit the message below as needed.
-          </Text>
-        )}
-
         <Textarea
           label="Reminder message"
           placeholder="Enter the reminder message..."
@@ -265,13 +150,13 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
               lineHeight: 1.4
             }}
           >
-            Cancel
+            CANCEL
           </Button>
           <Button
             color="orange"
             onClick={handleSubmit}
             loading={isSubmitting}
-            disabled={!message.trim() || (!isLegacyMode && selectedApplicationIds.size === 0)}
+            disabled={!message.trim()}
             data-testid="reminder-submit-button"
             style={{
               minHeight: 40,
@@ -280,7 +165,7 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
               lineHeight: 1.4
             }}
           >
-            Send {isLegacyMode ? legacyApplicationIds.length : selectedApplicationIds.size} Reminder{(isLegacyMode ? legacyApplicationIds.length : selectedApplicationIds.size) !== 1 ? 's' : ''}
+            SEND REMINDER
           </Button>
         </Group>
       </Stack>

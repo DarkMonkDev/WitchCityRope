@@ -509,8 +509,6 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
       <SendReminderModal
         opened={reminderModalOpen}
         onClose={() => setReminderModalOpen(false)}
-        applicationId={applicationId}
-        applicantName={application?.fullName || 'Unknown'}
         onSuccess={() => refetch()}
       />
 
