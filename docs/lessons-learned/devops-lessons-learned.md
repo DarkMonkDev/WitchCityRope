@@ -41,6 +41,25 @@
 - **CHECK container health before deployments**
 - **MONITOR memory usage and performance**
 
+## Prevention Pattern: Silent Fallback Data Anti-Pattern
+
+**Problem**: Code using fallback/mock data that silently masks API failures, allowing bugs to persist undetected.
+**Solution**: NEVER use silent fallback data. Always make API failures visible to users and developers. Use proper error handling with meaningful messages instead of hiding problems with fake data.
+
+**Critical Issues Caused**:
+- API authentication failures hidden by fallback data
+- Navigation broken due to sequential IDs (1-8) vs real GUIDs
+- Users see fake data instead of real system state
+- Debugging impossible when real errors are masked
+- Production deployments fail unexpectedly
+
+**Implementation**:
+- Remove all hardcoded fallback datasets from API hooks
+- Set `throwOnError: true` in React Query
+- Add comprehensive logging for API calls and responses
+- Implement proper HTTP status code error handling
+- Show meaningful error messages to users
+
 ## Prevention Pattern: Build Artifact Exclusion
 
 **Problem**: Build artifacts (bin/, obj/, test-results/) accidentally committed to repository.
