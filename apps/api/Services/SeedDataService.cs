@@ -93,6 +93,7 @@ public class SeedDataService : ISeedDataService
             await SeedEventParticipationsAsync(cancellationToken);
             await SeedVolunteerPositionsAsync(cancellationToken);
             await SeedVettingStatusesAsync(cancellationToken);
+            await SeedVettingApplicationsAsync(cancellationToken);
             await SeedVettingEmailTemplatesAsync(cancellationToken);
 
             // Calculate records created
@@ -371,20 +372,161 @@ public class SeedDataService : ISeedDataService
     /// <summary>
     /// Populates vetting status configuration for development workflows.
     /// Creates baseline vetting status data needed for user management testing.
-    /// 
+    ///
     /// This method is currently a placeholder as the vetting status structure
     /// is not fully defined in the current schema. Implementation will be
-    /// expanded when vetting status entities are added to the data model.
+    /// expanded when vetting status entities are added to schema.
     /// </summary>
     public async Task SeedVettingStatusesAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Starting vetting status configuration");
-        
+
         // Placeholder implementation - vetting status configuration
         // will be implemented when vetting status entities are added to schema
         _logger.LogInformation("Vetting status seeding completed (placeholder implementation)");
-        
+
         await Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Creates sample vetting applications for testing the vetting system UI.
+    /// Includes variety of application statuses, realistic user data, and proper audit trails.
+    ///
+    /// Applications created:
+    /// - 6 sample applications with different statuses (UnderReview, InterviewApproved, InterviewScheduled, Approved, OnHold, Denied)
+    /// - Realistic names, scene names, FetLife handles, and application text
+    /// - Proper pronoun representation (she/her, he/him, they/them, etc.)
+    /// - Links to existing seeded users where appropriate
+    /// - Proper UTC DateTime handling following ApplicationDbContext patterns
+    /// </summary>
+    public async Task SeedVettingApplicationsAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Starting vetting applications creation");
+
+        // Check if vetting applications already exist (idempotent operation)
+        var existingApplicationCount = await _context.VettingApplications.CountAsync(cancellationToken);
+        if (existingApplicationCount > 0)
+        {
+            _logger.LogInformation("Vetting applications already exist ({Count}), skipping application seeding", existingApplicationCount);
+            return;
+        }
+
+        // Get existing users to link applications to real users
+        var users = await _userManager.Users.ToListAsync(cancellationToken);
+        var unvettedUsers = users.Where(u => !u.IsVetted).ToList();
+
+        // Ensure we have enough users for the applications we want to create
+        if (users.Count < 5)
+        {
+            _logger.LogWarning("Not enough users ({UserCount}) to create diverse vetting applications. Need at least 5 users.", users.Count);
+            return;
+        }
+
+        // Create diverse set of vetting applications with different statuses
+        // Each user can only have one application due to unique constraint
+        var sampleApplications = new List<VettingApplication>
+        {
+            // Application 1: Under Review - recent submission
+            new VettingApplication
+            {
+                Id = Guid.NewGuid(),
+                UserId = users[0].Id, // Use first existing user
+                SceneName = "RopeNovice",
+                RealName = "Alexandra Martinez",
+                Email = "alexandra.martinez@email.com",
+                FetLifeHandle = "RopeNovice2024",
+                Pronouns = "she/her",
+                OtherNames = "Alex",
+                AboutYourself = @"I'm new to rope bondage but deeply interested in learning about the art and community. I've been reading extensively about rope safety and attending introductory workshops in other cities. I'm drawn to both the aesthetic beauty and the trust-building aspects of rope. I have experience in other BDSM practices and understand the importance of consent, communication, and safety. I'm looking for a supportive community where I can learn from experienced practitioners and contribute positively to the group dynamic.",
+                HowFoundUs = "Found your group through FetLife recommendations and online research about rope communities in the area.",
+                Status = VettingStatus.UnderReview,
+                SubmittedAt = DateTime.UtcNow.AddDays(-3),
+                AdminNotes = null
+            },
+
+            // Application 2: Interview Approved - ready for scheduling
+            new VettingApplication
+            {
+                Id = Guid.NewGuid(),
+                UserId = users[1].Id, // Use second existing user
+                SceneName = "KnotLearner",
+                RealName = "Jordan Kim",
+                Email = "jordan.kim@email.com",
+                FetLifeHandle = "KnotLearner_JK",
+                Pronouns = "they/them",
+                OtherNames = null,
+                AboutYourself = @"I've been interested in rope bondage for over a year and have practiced with a partner at home. We've been focusing on safety and basic ties, but I want to expand my knowledge and learn from experienced riggers. I have a background in dance and appreciate the artistic and movement aspects of rope. I'm committed to ongoing education about consent, negotiation, and safety practices. I'm hoping to join a community where I can learn advanced techniques while building meaningful connections with like-minded people.",
+                HowFoundUs = "Recommended by a friend who's a member of your community.",
+                Status = VettingStatus.InterviewApproved,
+                SubmittedAt = DateTime.UtcNow.AddDays(-10),
+                ReviewStartedAt = DateTime.UtcNow.AddDays(-7),
+                AdminNotes = "Good references and thoughtful application. Ready for interview to assess practical knowledge."
+            },
+
+            // Application 3: Pending Interview - interview scheduled
+            new VettingApplication
+            {
+                Id = Guid.NewGuid(),
+                UserId = users[2].Id, // Use third existing user
+                SceneName = "TrustBuilder",
+                RealName = "Marcus Johnson",
+                Email = "marcus.johnson@email.com",
+                FetLifeHandle = "TrustBuilder_MJ",
+                Pronouns = "he/him",
+                OtherNames = "Marc, MJ",
+                AboutYourself = @"I'm a 28-year-old professional who discovered rope bondage through a partner. I've been practicing for six months and am passionate about the psychological and emotional aspects of rope. I have experience as a rigger and understand the responsibility that comes with restraining another person. I've completed online safety courses and practiced extensively with enthusiastic partners. I'm seeking a community where I can continue learning and share experiences with others who value both technical skill and emotional intelligence in rope work.",
+                HowFoundUs = "Found your group through local BDSM community recommendations.",
+                Status = VettingStatus.PendingInterview,
+                SubmittedAt = DateTime.UtcNow.AddDays(-14),
+                ReviewStartedAt = DateTime.UtcNow.AddDays(-10),
+                InterviewScheduledFor = DateTime.UtcNow.AddDays(3), // Interview scheduled for 3 days from now
+                AdminNotes = "Interview scheduled for Saturday 2 PM. Applicant shows good understanding of consent and safety principles."
+            },
+
+            // Application 4: Approved - recently approved member
+            new VettingApplication
+            {
+                Id = Guid.NewGuid(),
+                UserId = users[3].Id, // Use fourth existing user
+                SceneName = "SilkAndSteel",
+                RealName = "Sarah Chen",
+                Email = "sarah.chen@email.com",
+                FetLifeHandle = "SilkAndSteel_SC",
+                Pronouns = "she/her",
+                OtherNames = "Sarah C.",
+                AboutYourself = @"I'm an experienced practitioner with 3+ years of rope bondage experience, both as a rigger and rope bunny. I've taught workshops in my previous city and am looking to join the community here after relocating for work. I have extensive knowledge of safety protocols, medical considerations, and emergency procedures. I'm interested in both the technical aspects of rope work and the community building aspects. I'd love to contribute my knowledge while continuing to learn from other experienced practitioners.",
+                HowFoundUs = "Referred by a mutual friend in the rope community.",
+                Status = VettingStatus.Approved,
+                SubmittedAt = DateTime.UtcNow.AddDays(-21),
+                ReviewStartedAt = DateTime.UtcNow.AddDays(-18),
+                DecisionMadeAt = DateTime.UtcNow.AddDays(-2),
+                AdminNotes = "Excellent references from previous community. Strong technical knowledge and teaching experience. Approved for full membership."
+            },
+
+            // Application 5: On Hold - additional information needed
+            new VettingApplication
+            {
+                Id = Guid.NewGuid(),
+                UserId = users[4].Id, // Use fifth existing user
+                SceneName = "EagerLearner",
+                RealName = "Taylor Rodriguez",
+                Email = "taylor.rodriguez@email.com",
+                FetLifeHandle = "EagerLearner99",
+                Pronouns = "she/they",
+                OtherNames = "Tay",
+                AboutYourself = @"I'm completely new to rope bondage but very eager to learn! I've watched videos online and read some books about safety. I don't have any hands-on experience yet but I'm excited to start learning with experienced people. I understand this is about more than just tying knots - it's about trust, communication, and building relationships. I'm committed to learning and following all safety guidelines.",
+                HowFoundUs = "Found your group through Google search for rope bondage communities.",
+                Status = VettingStatus.OnHold,
+                SubmittedAt = DateTime.UtcNow.AddDays(-12),
+                ReviewStartedAt = DateTime.UtcNow.AddDays(-8),
+                AdminNotes = "Very enthusiastic but lacks practical experience. Recommended to attend beginner classes and gain basic experience before reapplying. On hold pending completion of safety course."
+            }
+        };
+
+        await _context.VettingApplications.AddRangeAsync(sampleApplications, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Vetting applications creation completed. Created: {ApplicationCount} applications", sampleApplications.Count);
     }
 
     /// <summary>
@@ -821,20 +963,21 @@ The WitchCityRope Vetting Team",
     /// <summary>
     /// Checks if seed data population is required by examining existing data.
     /// Implements idempotent behavior to avoid unnecessary seeding operations.
-    /// 
-    /// Considers database populated if it contains both users and events,
+    ///
+    /// Considers database populated if it contains users, events, and vetting applications,
     /// allowing for safe re-execution of seeding operations.
     /// </summary>
     public async Task<bool> IsSeedDataRequiredAsync(CancellationToken cancellationToken = default)
     {
         var userCount = await _userManager.Users.CountAsync(cancellationToken);
         var eventCount = await _context.Events.CountAsync(cancellationToken);
+        var vettingApplicationCount = await _context.VettingApplications.CountAsync(cancellationToken);
 
-        var isRequired = userCount == 0 || eventCount == 0;
-        
-        _logger.LogDebug("Seed data check: Users={UserCount}, Events={EventCount}, Required={IsRequired}",
-            userCount, eventCount, isRequired);
-        
+        var isRequired = userCount == 0 || eventCount == 0 || vettingApplicationCount == 0;
+
+        _logger.LogDebug("Seed data check: Users={UserCount}, Events={EventCount}, VettingApplications={VettingApplicationCount}, Required={IsRequired}",
+            userCount, eventCount, vettingApplicationCount, isRequired);
+
         return isRequired;
     }
 

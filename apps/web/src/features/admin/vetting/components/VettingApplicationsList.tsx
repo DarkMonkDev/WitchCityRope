@@ -7,6 +7,7 @@ import {
   Group,
   TextInput,
   Select,
+  MultiSelect,
   Button,
   Paper,
   Stack,
@@ -36,7 +37,7 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
   const [filters, setFilters] = useState<ApplicationFilterRequest>({
     page: 1,
     pageSize: 25,
-    statusFilters: [],
+    statusFilters: ['InReview', 'InterviewScheduled', 'PendingReferences'], // Default checked statuses
     priorityFilters: [],
     experienceLevelFilters: [],
     skillsFilters: [],
@@ -106,14 +107,14 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
   };
 
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
-    { value: 'New', label: 'New Applications' },
-    { value: 'InReview', label: 'In Review' },
-    { value: 'PendingReferences', label: 'Pending References' },
+    { value: 'InReview', label: 'Under Review' },
+    { value: 'PendingReferences', label: 'Approved for Interview' },
     { value: 'InterviewScheduled', label: 'Interview Scheduled' },
     { value: 'Approved', label: 'Approved' },
-    { value: 'Rejected', label: 'Rejected' }
+    { value: 'OnHold', label: 'On Hold' },
+    { value: 'Rejected', label: 'Denied' }
   ];
+
 
   if (error) {
     return (
@@ -132,140 +133,166 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
 
   return (
     <Stack gap="md">
-      {/* Header */}
-      <Group justify="space-between" align="center">
-        <Title order={2} style={{ color: '#880124' }}>
-          Vetting Applications
-        </Title>
-        <Button
-          leftSection={<IconRefresh size={16} />}
-          variant="light"
-          onClick={() => refetch()}
-          loading={isLoading}
-        >
-          Refresh
-        </Button>
-      </Group>
 
-      {/* Filters */}
+      {/* Filters - Matching wireframe exactly */}
       <Paper p="md" radius="md" style={{ background: '#FFF8F0' }}>
-        <Group gap="md" wrap="wrap">
+        <Group gap="md" wrap="wrap" justify="space-between">
           <TextInput
-            placeholder="Search by scene name or application #"
+            placeholder="Search by name, email, or scene name..."
             leftSection={<IconSearch size={16} />}
             value={filters.searchQuery || ''}
             onChange={(e) => handleFilterChange('searchQuery', e.currentTarget.value)}
-            style={{ minWidth: rem(250) }}
+            style={{
+              minWidth: rem(400),
+              flex: 1
+            }}
+            styles={{
+              input: {
+                fontSize: '16px',
+                height: '42px'
+              }
+            }}
           />
 
-          <Select
-            placeholder="Filter by status"
-            data={statusOptions}
-            value={filters.statusFilters[0] || ''}
-            onChange={(value) => handleFilterChange('statusFilters', value ? [value] : [])}
-            leftSection={<IconFilter size={16} />}
-            clearable
-            style={{ minWidth: rem(200) }}
-          />
+          <Group gap="md">
+            <MultiSelect
+              placeholder="Select status filters"
+              data={statusOptions}
+              value={filters.statusFilters}
+              onChange={(values) => handleFilterChange('statusFilters', values)}
+              leftSection={<IconFilter size={16} />}
+              clearable
+              style={{ minWidth: rem(220) }}
+              styles={{
+                input: {
+                  fontSize: '16px',
+                  height: '42px'
+                }
+              }}
+            />
 
-          <Select
-            placeholder="Page size"
-            data={[
-              { value: '10', label: '10 per page' },
-              { value: '25', label: '25 per page' },
-              { value: '50', label: '50 per page' }
-            ]}
-            value={filters.pageSize.toString()}
-            onChange={(value) => handleFilterChange('pageSize', parseInt(value || '25'))}
-            style={{ minWidth: rem(120) }}
-          />
+          </Group>
         </Group>
       </Paper>
 
-      {/* Results Summary */}
-      {data && (
-        <Text size="sm" c="dimmed">
-          Showing {data.items.length} of {data.totalCount} applications
-          {filters.searchQuery && ` matching "${filters.searchQuery}"`}
-        </Text>
-      )}
+      {/* Results Summary - Removed as requested */}
 
-      {/* Applications Table - Following EXACT wireframe structure */}
+      {/* Applications Table - Exactly matching wireframe */}
       <Paper shadow="sm" radius="md">
         <Table striped highlightOnHover>
-          <Table.Thead>
+          <Table.Thead
+            style={{
+              backgroundColor: '#880124',
+              color: 'white'
+            }}
+          >
             <Table.Tr>
-              {/* Checkbox column - 40px width */}
-              <Table.Th w={40}>
+              {/* Checkbox column */}
+              <Table.Th w={50} style={{ backgroundColor: '#880124', borderBottom: 'none' }}>
                 <Checkbox
                   checked={selectAll}
                   onChange={(event) => handleSelectAll(event.currentTarget.checked)}
                   aria-label="Select all applications"
+                  styles={{
+                    input: {
+                      backgroundColor: 'white',
+                      borderColor: 'white'
+                    }
+                  }}
                 />
               </Table.Th>
 
               {/* Name column - sortable */}
-              <Table.Th>
+              <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none' }}>
                 <Button
-                  variant="subtle"
+                  variant="transparent"
                   size="compact-sm"
                   onClick={() => handleSort('RealName')}
                   rightSection={getSortIcon('RealName')}
                   styles={{
                     root: {
                       fontWeight: 600,
-                      fontSize: 14
+                      fontSize: 14,
+                      color: 'white',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
                     }
                   }}
                 >
-                  Name
+                  NAME
                 </Button>
               </Table.Th>
 
               {/* FetLife Name column - sortable */}
-              <Table.Th>
+              <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none' }}>
                 <Button
-                  variant="subtle"
+                  variant="transparent"
                   size="compact-sm"
                   onClick={() => handleSort('FetLifeHandle')}
                   rightSection={getSortIcon('FetLifeHandle')}
                   styles={{
                     root: {
                       fontWeight: 600,
-                      fontSize: 14
+                      fontSize: 14,
+                      color: 'white',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
                     }
                   }}
                 >
-                  FetLife Name
+                  FETLIFE NAME
                 </Button>
               </Table.Th>
 
               {/* Email column */}
-              <Table.Th>
-                <Text fw={600} size="sm">Email</Text>
+              <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none' }}>
+                <Text
+                  fw={600}
+                  size="sm"
+                  style={{
+                    color: 'white',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}
+                >
+                  EMAIL
+                </Text>
               </Table.Th>
 
-              {/* Application Date column - sortable, default desc */}
-              <Table.Th>
+              {/* Application Date column - sortable */}
+              <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none' }}>
                 <Button
-                  variant="subtle"
+                  variant="transparent"
                   size="compact-sm"
                   onClick={() => handleSort('SubmittedAt')}
                   rightSection={getSortIcon('SubmittedAt')}
                   styles={{
                     root: {
                       fontWeight: 600,
-                      fontSize: 14
+                      fontSize: 14,
+                      color: 'white',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
                     }
                   }}
                 >
-                  Application Date {filters.sortBy === 'SubmittedAt' && filters.sortDirection === 'Desc' ? '↓' : ''}
+                  APPLICATION DATE
                 </Button>
               </Table.Th>
 
               {/* Current Status column */}
-              <Table.Th>
-                <Text fw={600} size="sm">Current Status</Text>
+              <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none' }}>
+                <Text
+                  fw={600}
+                  size="sm"
+                  style={{
+                    color: 'white',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}
+                >
+                  CURRENT STATUS
+                </Text>
               </Table.Th>
             </Table.Tr>
           </Table.Thead>
@@ -293,33 +320,33 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
 
                 {/* Name - Real name in bold */}
                 <Table.Td>
-                  <Text size="sm" fw={700}>
-                    {(application as any).realName || (application as any).fullName || 'Name not provided'}
+                  <Text size="sm" fw={600} style={{ color: '#2B2B2B' }}>
+                    {(application as any).realName || (application as any).fullName || application.sceneName || 'Name not provided'}
                   </Text>
                 </Table.Td>
 
                 {/* FetLife Name - Handle in bold */}
                 <Table.Td>
-                  <Text size="sm" fw={700}>
+                  <Text size="sm" fw={600} style={{ color: '#2B2B2B' }}>
                     {(application as any).fetLifeHandle || (application as any).fetLifeName || 'Not provided'}
                   </Text>
                 </Table.Td>
 
                 {/* Email */}
                 <Table.Td>
-                  <Text size="sm">
+                  <Text size="sm" style={{ color: '#2B2B2B' }}>
                     {(application as any).email || 'Not provided'}
                   </Text>
                 </Table.Td>
 
-                {/* Application Date */}
-                <Table.Td>
-                  <Text size="sm">
+                {/* Application Date - Center aligned */}
+                <Table.Td ta="center">
+                  <Text size="sm" style={{ color: '#2B2B2B' }}>
                     {formatDate(application.submittedAt)}
                   </Text>
                 </Table.Td>
 
-                {/* Current Status */}
+                {/* Current Status - Colored pill badges matching wireframe */}
                 <Table.Td>
                   <VettingStatusBadge status={application.status} />
                 </Table.Td>
@@ -367,14 +394,25 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
         )}
       </Paper>
 
-      {/* Pagination */}
+      {/* Pagination - Matching wireframe style */}
       {data && data.totalCount > filters.pageSize && (
-        <Group justify="center">
+        <Group justify="space-between" align="center">
+          <Text size="sm" c="dimmed">
+            Showing {((filters.page - 1) * filters.pageSize) + 1}-{Math.min(filters.page * filters.pageSize, data.totalCount)} of {data.totalCount} applications
+          </Text>
           <Pagination
             total={Math.ceil(data.totalCount / filters.pageSize)}
             value={filters.page}
             onChange={(page) => handleFilterChange('page', page)}
             size="sm"
+            styles={{
+              control: {
+                '&[data-active]': {
+                  backgroundColor: '#880124',
+                  borderColor: '#880124'
+                }
+              }
+            }}
           />
         </Group>
       )}

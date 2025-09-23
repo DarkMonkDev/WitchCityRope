@@ -14,51 +14,60 @@ export const VettingStatusBadge: React.FC<VettingStatusBadgeProps> = ({
     switch (status.toLowerCase()) {
       case 'new':
         return {
-          color: 'blue',
+          backgroundColor: '#4169E1',
+          color: 'white',
           label: 'New'
         };
       case 'inreview':
       case 'in review':
         return {
-          color: 'yellow',
-          label: 'In Review'
+          backgroundColor: '#8B8680',
+          color: 'white',
+          label: 'Under Review'
         };
       case 'pendingreferences':
       case 'pending references':
         return {
-          color: 'orange',
+          backgroundColor: '#DAA520',
+          color: 'white',
           label: 'Pending References'
         };
       case 'interviewscheduled':
       case 'interview scheduled':
         return {
-          color: 'purple',
-          label: 'Interview Scheduled'
+          backgroundColor: '#228B22',
+          color: 'white',
+          label: 'Interview Approved'
         };
       case 'approved':
         return {
-          color: 'green',
+          backgroundColor: '#228B22',
+          color: 'white',
           label: 'Approved'
         };
       case 'rejected':
         return {
-          color: 'red',
+          backgroundColor: '#DC143C',
+          color: 'white',
           label: 'Rejected'
         };
       case 'withdrawn':
         return {
-          color: 'gray',
+          backgroundColor: '#8B8680',
+          color: 'white',
           label: 'Withdrawn'
         };
       case 'on hold':
       case 'onhold':
         return {
-          color: 'gray',
+          backgroundColor: '#8B8680',
+          color: 'white',
           label: 'On Hold'
         };
       default:
         return {
-          color: 'gray',
+          backgroundColor: '#8B8680',
+          color: 'white',
           label: status
         };
     }
@@ -96,10 +105,18 @@ export const VettingStatusBadge: React.FC<VettingStatusBadgeProps> = ({
 
   return (
     <Badge
-      color={config.color}
-      variant="light"
       size={size}
       className={getStatusCssClass(status)}
+      style={{
+        backgroundColor: config.backgroundColor,
+        color: config.color,
+        borderRadius: '12px',
+        fontWeight: 600,
+        fontSize: '12px',
+        textTransform: 'uppercase',
+        letterSpacing: '0.5px',
+        border: 'none'
+      }}
     >
       {config.label}
     </Badge>

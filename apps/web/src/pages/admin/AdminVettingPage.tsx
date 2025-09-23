@@ -1,5 +1,6 @@
 import React from 'react';
-import { Container, Title, Text, Group } from '@mantine/core';
+import { Container, Title, Text, Group, Button } from '@mantine/core';
+import { IconAlertTriangle, IconUserPlus } from '@tabler/icons-react';
 import { VettingApplicationsList } from '../../features/admin/vetting/components/VettingApplicationsList';
 
 /**
@@ -15,24 +16,65 @@ export const AdminVettingPage: React.FC = () => {
     <Container size="xl" py="xl">
       {/* Header */}
       <Group justify="space-between" align="center" mb="xl">
-        <div>
-          <Title
-            order={1}
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: '32px',
-              fontWeight: 800,
-              color: '#880124',
-              textTransform: 'uppercase',
-              letterSpacing: '-0.5px',
+        <Title
+          order={1}
+          style={{
+            fontFamily: "'Montserrat', sans-serif",
+            fontSize: '32px',
+            fontWeight: 800,
+            color: '#880124',
+            textTransform: 'uppercase',
+            letterSpacing: '-0.5px',
+          }}
+        >
+          Vetting Applications
+        </Title>
+
+        {/* Action buttons aligned with title */}
+        <Group gap="md">
+          <Button
+            leftSection={<IconAlertTriangle size={16} />}
+            variant="filled"
+            color="orange"
+            size="md"
+            styles={{
+              root: {
+                backgroundColor: '#DAA520',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                height: '44px',
+                paddingTop: '12px',
+                paddingBottom: '12px',
+                fontSize: '14px',
+                lineHeight: '1.2'
+              }
             }}
           >
-            Vetting Applications
-          </Title>
-          <Text size="lg" c="dimmed" mt="xs">
-            Review and manage member vetting applications
-          </Text>
-        </div>
+            SEND REMINDER
+          </Button>
+          <Button
+            leftSection={<IconUserPlus size={16} />}
+            variant="filled"
+            color="gray"
+            size="md"
+            styles={{
+              root: {
+                backgroundColor: '#8B8680',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                height: '44px',
+                paddingTop: '12px',
+                paddingBottom: '12px',
+                fontSize: '14px',
+                lineHeight: '1.2'
+              }
+            }}
+          >
+            CHANGE TO ON HOLD
+          </Button>
+        </Group>
       </Group>
 
       {/* Applications List */}

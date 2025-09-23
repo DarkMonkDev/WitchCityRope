@@ -75,6 +75,17 @@ public interface ISeedDataService
     Task SeedVettingStatusesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Creates sample vetting applications for testing the vetting system UI.
+    /// Includes variety of application statuses, realistic user data, and proper audit trails.
+    ///
+    /// Applications include different statuses (UnderReview, InterviewApproved, PendingInterview,
+    /// Approved, OnHold, Denied) with realistic names, scene names, FetLife handles, and
+    /// application text that matches what's shown in the vetting wireframes.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token for async operation</param>
+    Task SeedVettingApplicationsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Creates EventParticipation records for RSVPs and ticket purchases.
     /// This provides proper data for testing RSVP/ticket functionality.
     ///

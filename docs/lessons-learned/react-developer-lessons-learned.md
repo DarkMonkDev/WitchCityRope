@@ -2192,3 +2192,106 @@ export function useTypedMutation(onSuccess?: () => void) {
 #critical #admin-interfaces #react-query #mantine #feature-organization #typescript
 
 ---
+
+## 🚨 CRITICAL: VETTING APPLICATION DETAIL WIREFRAME IMPLEMENTATION (2025-09-22) 🚨
+
+### ⚠️ PROBLEM: ApplicationDetail component needed to match exact wireframe specification
+**DISCOVERED**: 2025-09-22 - Existing component had different layout than wireframe requirements
+
+### 🛑 WIREFRAME REQUIREMENTS ANALYSIS:
+- **Header Format**: "Application - [Real Name] ([FetLife Handle])" with status badge in top-right
+- **Three Action Buttons**: APPROVE APPLICATION (yellow/gold), PUT ON HOLD (outlined), DENY APPLICATION (red)
+- **Two-Column Layout**: Left (Scene Name, Real Name, Email, Pronouns, Other Names, Tell Us About Yourself), Right (Application Date, FetLife Handle, How Found Us)
+- **Notes Section**: Full-width with large text area, SAVE NOTE button (burgundy), status history below
+
+### ✅ CRITICAL IMPLEMENTATION PATTERNS:
+
+#### 1. **Exact Wireframe Header Pattern**:
+```typescript
+// ✅ CORRECT: Match wireframe title format exactly
+<Title order={2} style={{ color: '#880124' }}>
+  Application - {application.fullName} ({application.sceneName})
+</Title>
+
+// ✅ CORRECT: Three specific action buttons as per wireframe
+<Group gap="md">
+  <Button
+    leftSection={<IconCheck size={16} />}
+    style={{ backgroundColor: '#FFC107', color: '#000' }}
+    onClick={() => setNewStatus('Approved')}
+  >
+    APPROVE APPLICATION
+  </Button>
+  <Button variant="outline" color="gray">
+    PUT ON HOLD
+  </Button>
+  <Button color="red" leftSection={<IconX size={16} />}>
+    DENY APPLICATION
+  </Button>
+</Group>
+```
+
+#### 2. **Wireframe 2-Column Information Layout**:
+```typescript
+// ✅ CORRECT: Exact field mapping from wireframe
+<Grid>
+  {/* Left Column */}
+  <Grid.Col span={6}>
+    <div><Text fw={600}>Scene Name:</Text><Text>{application.sceneName}</Text></div>
+    <div><Text fw={600}>Real Name:</Text><Text>{application.fullName}</Text></div>
+    <div><Text fw={600}>Email:</Text><Text>{application.email}</Text></div>
+    <div><Text fw={600}>Pronouns:</Text><Text>{application.pronouns}</Text></div>
+    <div><Text fw={600}>Other Names/Handles:</Text></div>
+    <div><Text fw={600}>Tell Us About Yourself:</Text></div>
+  </Grid.Col>
+
+  {/* Right Column */}
+  <Grid.Col span={6}>
+    <div><Text fw={600}>Application Date:</Text></div>
+    <div><Text fw={600}>FetLife Handle:</Text><Text>@{application.sceneName}</Text></div>
+    <div><Text fw={600}>How Found Us:</Text></div>
+  </Grid.Col>
+</Grid>
+```
+
+#### 3. **Notes and Status History Section**:
+```typescript
+// ✅ CORRECT: Full-width section with save button in header
+<Card>
+  <Group justify="space-between" align="center" mb="md">
+    <Title order={3}>Notes and Status History</Title>
+    <Button variant="filled" color="red" size="sm">
+      SAVE NOTE
+    </Button>
+  </Group>
+
+  <Stack gap="md">
+    <Textarea placeholder="Add Note" minRows={4} />
+    {/* Status history entries */}
+  </Stack>
+</Card>
+```
+
+### 🔧 MANDATORY API INTEGRATION CONSIDERATIONS:
+1. **GUID vs Integer ID Handling**: API expects GUIDs but frontend should handle both formats gracefully
+2. **No Real Data Issue**: Database has no vetting applications, component handles empty states properly
+3. **Status Action Integration**: Action buttons pre-populate the status dropdown for workflow consistency
+4. **Field Mapping**: Map backend fields to wireframe display requirements (e.g., phone → Other Names/Handles)
+
+### 💥 CONSEQUENCES OF NOT FOLLOWING WIREFRAMES EXACTLY:
+- ❌ User experience doesn't match approved designs
+- ❌ Stakeholder expectations not met
+- ❌ Additional rework required after QA review
+- ❌ Inconsistent admin interface patterns
+
+### 📋 VERIFICATION CHECKLIST:
+1. **HEADER matches wireframe**: Title format, status badge position, three action buttons
+2. **LAYOUT matches wireframe**: 2-column information layout with exact field labels
+3. **NOTES SECTION matches wireframe**: Full-width, text area, save button placement
+4. **COLORS match wireframe**: Yellow approve, outlined hold, red deny buttons
+5. **FUNCTIONALITY works**: Status changes, note saving, API integration
+
+### Tags
+#critical #wireframes #admin-vetting #component-layout #design-compliance #api-integration
+
+---

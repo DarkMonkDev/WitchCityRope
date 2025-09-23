@@ -113,77 +113,115 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
 
   return (
     <Stack gap="md">
-      {/* Header - Simplified since page wrapper handles back navigation */}
-      <Group justify="space-between" align="center">
-        <div>
+      {/* Header Section - Match wireframe exactly */}
+      <Stack gap="sm">
+        {/* Title Row with Status Badge */}
+        <Group justify="space-between" align="center">
           <Title order={2} style={{ color: '#880124' }}>
-            Application #{application.applicationNumber}
+            Application - {application.fullName} ({application.sceneName})
           </Title>
-          <Text c="dimmed">{application.sceneName}</Text>
-        </div>
-        <Group>
           <VettingStatusBadge status={application.status} size="md" />
+        </Group>
+
+        {/* Action Buttons Row - Three buttons as per wireframe */}
+        <Group gap="md">
           <Button
-            leftSection={<IconNotes size={16} />}
-            variant="light"
-            onClick={() => setNotesModalOpen(true)}
+            leftSection={<IconCheck size={16} />}
+            style={{ backgroundColor: '#FFC107', color: '#000' }}
+            onClick={() => {
+              setNewStatus('Approved');
+              setReviewReasoning('');
+            }}
+            disabled={application.status === 'Approved'}
           >
-            Add Note
+            APPROVE APPLICATION
+          </Button>
+          <Button
+            variant="outline"
+            color="gray"
+            onClick={() => {
+              setNewStatus('OnHold');
+              setReviewReasoning('');
+            }}
+            disabled={application.status === 'OnHold'}
+          >
+            PUT ON HOLD
+          </Button>
+          <Button
+            color="red"
+            leftSection={<IconX size={16} />}
+            onClick={() => {
+              setNewStatus('Rejected');
+              setReviewReasoning('');
+            }}
+            disabled={application.status === 'Rejected'}
+          >
+            DENY APPLICATION
           </Button>
         </Group>
-      </Group>
+      </Stack>
 
       <Grid>
         {/* Left Column - Application Details */}
         <Grid.Col span={{ base: 12, lg: 8 }}>
           <Stack gap="md">
-            {/* Basic Information */}
+            {/* Application Information - 2-column layout as per wireframe */}
             <Card>
               <Title order={3} mb="md" style={{ color: '#880124' }}>
-                Applicant Information
+                Application Information
               </Title>
               <Grid>
+                {/* Left Column */}
                 <Grid.Col span={6}>
-                  <Stack gap="xs">
-                    <Group>
-                      <IconUser size={16} />
-                      <Text fw={600}>Full Name:</Text>
-                    </Group>
-                    <Text ml={24}>{application.fullName}</Text>
+                  <Stack gap="md">
+                    <div>
+                      <Text fw={600} mb="xs">Scene Name:</Text>
+                      <Text>{application.sceneName}</Text>
+                    </div>
+                    <div>
+                      <Text fw={600} mb="xs">Real Name:</Text>
+                      <Text>{application.fullName}</Text>
+                    </div>
+                    <div>
+                      <Text fw={600} mb="xs">Email:</Text>
+                      <Text>{application.email}</Text>
+                    </div>
+                    {application.pronouns && (
+                      <div>
+                        <Text fw={600} mb="xs">Pronouns:</Text>
+                        <Text>{application.pronouns}</Text>
+                      </div>
+                    )}
+                    <div>
+                      <Text fw={600} mb="xs">Other Names/Handles:</Text>
+                      <Text>{application.phone || 'Not provided'}</Text>
+                    </div>
+                    <div>
+                      <Text fw={600} mb="xs">Tell Us About Yourself:</Text>
+                      <Text style={{ whiteSpace: 'pre-wrap' }}>
+                        {application.whyJoinCommunity}
+                      </Text>
+                    </div>
                   </Stack>
                 </Grid.Col>
+
+                {/* Right Column */}
                 <Grid.Col span={6}>
-                  <Stack gap="xs">
-                    <Text fw={600}>Scene Name:</Text>
-                    <Text>{application.sceneName}</Text>
+                  <Stack gap="md">
+                    <div>
+                      <Text fw={600} mb="xs">Application Date:</Text>
+                      <Text>{formatDateOnly(application.submittedAt)}</Text>
+                    </div>
+                    <div>
+                      <Text fw={600} mb="xs">FetLife Handle:</Text>
+                      <Text>@{application.sceneName}</Text>
+                    </div>
+                    <div>
+                      <Text fw={600} mb="xs">How Found Us:</Text>
+                      <Text>{application.experienceDescription}</Text>
+                    </div>
                   </Stack>
                 </Grid.Col>
-                <Grid.Col span={6}>
-                  <Stack gap="xs">
-                    <Group>
-                      <IconMail size={16} />
-                      <Text fw={600}>Email:</Text>
-                    </Group>
-                    <Text ml={24}>{application.email}</Text>
-                  </Stack>
-                </Grid.Col>
-                <Grid.Col span={6}>
-                  <Stack gap="xs">
-                    <Group>
-                      <IconPhone size={16} />
-                      <Text fw={600}>Phone:</Text>
-                    </Group>
-                    <Text ml={24}>{application.phone || 'Not provided'}</Text>
-                  </Stack>
-                </Grid.Col>
-                {application.pronouns && (
-                  <Grid.Col span={6}>
-                    <Stack gap="xs">
-                      <Text fw={600}>Pronouns:</Text>
-                      <Text>{application.pronouns}</Text>
-                    </Stack>
-                  </Grid.Col>
-                )}
               </Grid>
             </Card>
 
@@ -416,6 +454,91 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
           </Stack>
         </Grid.Col>
       </Grid>
+
+      {/* Notes and Status History Section - Match wireframe layout */}
+      <Card>
+        <Group justify="space-between" align="center" mb="md">
+          <Title order={3} style={{ color: '#880124' }}>
+            Notes and Status History
+          </Title>
+          <Button
+            variant="filled"
+            color="red"
+            size="sm"
+            onClick={() => {
+              // TODO: Implement save note functionality
+              console.log('Save note clicked:', newNote);
+            }}
+            disabled={!newNote.trim()}
+          >
+            SAVE NOTE
+          </Button>
+        </Group>
+
+        <Stack gap="md">
+          {/* Add Note Text Area */}
+          <Textarea
+            placeholder="Add Note"
+            value={newNote}
+            onChange={(e) => setNewNote(e.currentTarget.value)}
+            minRows={4}
+            styles={{
+              input: {
+                borderRadius: '8px',
+                border: '1px solid #E0E0E0',
+              }
+            }}
+          />
+
+          {/* Status History Entries */}
+          <Stack gap="sm">
+            {application.decisions.map((decision) => (
+              <Paper key={decision.id} p="md" style={{ background: '#FFF8F0', borderRadius: '8px' }}>
+                <Group justify="space-between" mb="xs">
+                  <Group>
+                    <VettingStatusBadge status={decision.decisionType} size="sm" />
+                    <Text fw={600}>{decision.decisionType}</Text>
+                  </Group>
+                  <Text size="sm" c="dimmed">
+                    {formatDate(decision.createdAt)}
+                  </Text>
+                </Group>
+                {decision.reasoning && (
+                  <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+                    {decision.reasoning}
+                  </Text>
+                )}
+                <Text size="xs" c="dimmed" mt="xs">
+                  By: {decision.reviewerName}
+                </Text>
+              </Paper>
+            ))}
+
+            {application.notes.map((note) => (
+              <Paper key={note.id} p="md" style={{ background: '#F5F5F5', borderRadius: '8px' }}>
+                <Group justify="space-between" mb="xs">
+                  <Text fw={600} size="sm">Note</Text>
+                  <Text size="sm" c="dimmed">
+                    {formatDate(note.createdAt)}
+                  </Text>
+                </Group>
+                <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+                  {note.content}
+                </Text>
+                <Text size="xs" c="dimmed" mt="xs">
+                  By: {note.reviewerName}
+                </Text>
+              </Paper>
+            ))}
+
+            {application.decisions.length === 0 && application.notes.length === 0 && (
+              <Text c="dimmed" ta="center" py="md">
+                No status history or notes yet
+              </Text>
+            )}
+          </Stack>
+        </Stack>
+      </Card>
 
       {/* Add Note Modal */}
       <Modal
