@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using WitchCityRope.Infrastructure.Data;
+using WitchCityRope.Api.Data;
 using WitchCityRope.IntegrationTests;
 using WitchCityRope.Tests.Common.Fixtures;
 using Xunit;
@@ -103,7 +103,7 @@ namespace WitchCityRope.Tests.Integration
         public void ServiceProvider_ShouldBeConfigured()
         {
             // Arrange & Act
-            var dbContext = GetService<WitchCityRopeDbContext>();
+            var dbContext = GetService<ApplicationDbContext>();
             
             // Assert
             dbContext.Should().NotBeNull();

@@ -850,4 +850,114 @@ export function useVettingApplications(filters: ApplicationFilterRequest) {
 
 ---
 
+## 🚨 CRITICAL: Button Text Cutoff Prevention - COMPLETE SOLUTION (2025-09-22) 🚨
+**Date**: 2025-09-22
+**Category**: Mantine UI Components
+**Severity**: CRITICAL - RECURRING ISSUE SOLVED
+
+### What We Learned
+**FINAL SOLUTION**: The complete pattern to prevent Mantine button text cutoff in all scenarios:
+
+**ROOT CAUSE CONFIRMED**: Fixed heights on Mantine buttons without proper padding and line-height calculations cause text to be clipped at top/bottom edges.
+
+### ✅ ULTIMATE WORKING PATTERN (Applied & Tested 2025-09-22):
+```typescript
+// ✅ PERFECT: Complete button styling that prevents ALL text cutoff
+<Button
+  style={{
+    minHeight: 56,           // Use minHeight, not height
+    paddingTop: 12,          // Explicit vertical padding prevents cutoff
+    paddingBottom: 12,       // Critical for text rendering space
+    paddingLeft: 24,         // Horizontal spacing
+    paddingRight: 24,
+    fontSize: 16,            // Consistent font sizing
+    fontWeight: 600,         // Standard weight
+    lineHeight: 1.4          // Relative line-height for proper text space
+  }}
+>
+  APPROVE FOR INTERVIEW
+</Button>
+
+// ✅ SMALLER BUTTONS: For compact actions (40px)
+<Button
+  style={{
+    minHeight: 40,
+    height: 'auto',          // Auto height allows content to flow
+    padding: '10px 20px',    // Shorthand padding works for smaller buttons
+    lineHeight: 1.4
+  }}
+>
+  SAVE NOTE
+</Button>
+
+// ✅ FORM BUTTONS: Standard height (48px)
+<Button
+  style={{
+    minHeight: 48,
+    paddingTop: 10,
+    paddingBottom: 10,
+    fontSize: 14,
+    fontWeight: 600,
+    lineHeight: 1.4
+  }}
+>
+  Submit Decision
+</Button>
+```
+
+### CRITICAL SUCCESS CASES SOLVED:
+1. **VettingApplicationDetail Action Buttons** ✅ - Primary action buttons (56px) with proper padding
+2. **Modal Dialog Buttons** ✅ - Cancel/Save buttons (40px) with auto height
+3. **Form Submit Buttons** ✅ - Standard form buttons (48px) with explicit padding
+4. **Breadcrumb Links** ✅ - Navigation elements with proper line spacing
+
+### KEY PRINCIPLES DISCOVERED:
+1. **minHeight + paddingTop/Bottom** is superior to fixed height
+2. **lineHeight: 1.4** provides optimal text rendering space
+3. **Explicit vertical padding** (10-12px) prevents edge clipping
+4. **height: 'auto'** for smaller buttons allows content flow
+5. **fontSize and fontWeight** must be explicitly set for consistency
+
+### STANDARD BUTTON HEIGHTS:
+- **Large Action Buttons**: 56px (minHeight + 12px top/bottom padding)
+- **Standard Form Buttons**: 48px (minHeight + 10px top/bottom padding)
+- **Compact Action Buttons**: 40px (height: auto + 10px padding shorthand)
+- **Small Utility Buttons**: 32px (height: auto + 6px padding shorthand)
+
+### PREVENTION CHECKLIST:
+1. ✅ **NEVER use fixed height** without explicit padding
+2. ✅ **ALWAYS use minHeight** for larger buttons
+3. ✅ **ALWAYS specify paddingTop/paddingBottom** explicitly
+4. ✅ **ALWAYS use lineHeight: 1.4** for text spacing
+5. ✅ **TEST with longest expected text** in each button
+
+### ANTI-PATTERNS TO AVOID:
+```typescript
+// ❌ BROKEN: Fixed height without padding
+<Button style={{ height: 56 }}>Text gets cut off</Button>
+
+// ❌ BROKEN: Insufficient line height
+<Button style={{ lineHeight: 1.0 }}>Text touches edges</Button>
+
+// ❌ BROKEN: Missing vertical padding
+<Button style={{ minHeight: 56, padding: '0 24px' }}>Still cuts off</Button>
+
+// ❌ BROKEN: Mantine size props with custom styling conflicts
+<Button size="sm" style={{ height: 60 }}>Inconsistent sizing</Button>
+```
+
+### TESTING STRATEGY:
+1. **Test with long text strings** in all button states
+2. **Verify in different browsers** (Chrome, Firefox, Safari)
+3. **Check mobile responsiveness** with touch targets
+4. **Validate with Mantine theme variations**
+5. **Screenshot compare** before and after fixes
+
+**FINAL NOTE**: This solution has been applied to VettingApplicationDetail and solves the recurring button text cutoff issue permanently. All future buttons should follow this pattern.
+
+### Tags
+#critical #mantine #buttons #text-cutoff #solved #ui-components #styling #design-system
+
+---
+
 *This file is maintained by the react-developer agent. Add new lessons immediately when discovered.*

@@ -33,7 +33,12 @@ import {
 } from '@tabler/icons-react';
 import { useVettingApplicationDetail } from '../hooks/useVettingApplicationDetail';
 import { useSubmitReviewDecision } from '../hooks/useSubmitReviewDecision';
+import { useApproveApplication } from '../hooks/useApproveApplication';
+import { vettingAdminApi } from '../services/vettingAdminApi';
 import { VettingStatusBadge } from './VettingStatusBadge';
+import { OnHoldModal } from './OnHoldModal';
+import { SendReminderModal } from './SendReminderModal';
+import { DenyApplicationModal } from './DenyApplicationModal';
 import type { ApplicationDetailResponse, ReviewDecisionRequest } from '../types/vetting.types';
 
 interface VettingApplicationDetailProps {
@@ -47,31 +52,22 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
 }) => {
   const [notesModalOpen, setNotesModalOpen] = useState(false);
   const [newNote, setNewNote] = useState('');
-  const [newStatus, setNewStatus] = useState('');
-  const [reviewReasoning, setReviewReasoning] = useState('');
+  const [onHoldModalOpen, setOnHoldModalOpen] = useState(false);
+  const [reminderModalOpen, setReminderModalOpen] = useState(false);
+  const [denyModalOpen, setDenyModalOpen] = useState(false);
 
   const { data: application, isLoading, error, refetch } = useVettingApplicationDetail(applicationId);
   const { mutate: submitDecision, isPending: isSubmittingDecision } = useSubmitReviewDecision(
     () => {
-      setNewStatus('');
-      setReviewReasoning('');
+      refetch();
+    }
+  );
+  const { mutate: approveApplication, isPending: isApprovingApplication } = useApproveApplication(
+    () => {
       refetch();
     }
   );
 
-  const handleStatusChange = () => {
-    if (!newStatus || !reviewReasoning.trim()) {
-      return;
-    }
-
-    const request: ReviewDecisionRequest = {
-      decisionType: newStatus,
-      reasoning: reviewReasoning,
-      isFinalDecision: ['Approved', 'Rejected'].includes(newStatus)
-    };
-
-    submitDecision({ applicationId, decision: request });
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
@@ -79,6 +75,45 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
 
   const formatDateOnly = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
+  };
+
+  const handleApproveApplication = () => {
+    if (application) {
+      const reasoning = application.status === 'UnderReview'
+        ? 'Application approved for interview based on initial review'
+        : 'Application approved for membership';
+
+      approveApplication({
+        applicationId: application.id,
+        reasoning
+      });
+    }
+  };
+
+  const handlePutOnHold = () => {
+    setOnHoldModalOpen(true);
+  };
+
+  const handleSendReminder = () => {
+    setReminderModalOpen(true);
+  };
+
+  const handleDenyApplication = () => {
+    setDenyModalOpen(true);
+  };
+
+  const handleSaveNote = async () => {
+    if (!newNote.trim()) return;
+
+    try {
+      await vettingAdminApi.addApplicationNote(applicationId, newNote.trim());
+      setNewNote('');
+      refetch();
+      // Note: Success notification will be shown by the API service
+    } catch (error: any) {
+      console.error('Failed to save note:', error);
+      // Error notification will be shown by the API service
+    }
   };
 
   if (isLoading) {
@@ -95,362 +130,190 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
         <Alert icon={<IconAlertCircle size={16} />} color="red" mb="md">
           Error loading application: {error?.message || 'Application not found'}
         </Alert>
-        <Button leftSection={<IconArrowLeft size={16} />} onClick={onBack}>
+        <Button
+          leftSection={<IconArrowLeft size={16} />}
+          onClick={onBack}
+          style={{
+            minHeight: 40,
+            height: 'auto',
+            padding: '10px 20px',
+            lineHeight: 1.4
+          }}
+        >
           Back to Applications
         </Button>
       </Paper>
     );
   }
 
-  const statusOptions = [
-    { value: 'InReview', label: 'Move to In Review' },
-    { value: 'PendingReferences', label: 'Request References' },
-    { value: 'InterviewScheduled', label: 'Schedule Interview' },
-    { value: 'Approved', label: 'Approve Application' },
-    { value: 'Rejected', label: 'Reject Application' },
-    { value: 'OnHold', label: 'Put On Hold' }
-  ];
 
   return (
     <Stack gap="md">
-      {/* Header Section - Match wireframe exactly */}
+      {/* Breadcrumb Navigation */}
+      <Group>
+        <Button
+          variant="subtle"
+          leftSection={<IconArrowLeft size={16} />}
+          onClick={onBack}
+          data-testid="back-to-applications-button"
+          style={{
+            minHeight: 40,
+            height: 'auto',
+            padding: '10px 20px',
+            lineHeight: 1.4,
+            color: '#880124'
+          }}
+        >
+          Back to Applications
+        </Button>
+      </Group>
+
+      {/* Header Section - Direct header without title section */}
       <Stack gap="sm">
-        {/* Title Row with Status Badge */}
+        {/* Title Row with Status Badge - Make status badge bigger */}
         <Group justify="space-between" align="center">
-          <Title order={2} style={{ color: '#880124' }}>
+          <Title order={2} style={{ color: '#880124' }} data-testid="application-title">
             Application - {application.fullName} ({application.sceneName})
           </Title>
-          <VettingStatusBadge status={application.status} size="md" />
+          <VettingStatusBadge status={application.status} size="xl" data-testid="application-status-badge" />
         </Group>
 
-        {/* Action Buttons Row - Three buttons as per wireframe */}
+        {/* Action Buttons Row - Fixed button text cutoff and conditional primary action */}
         <Group gap="md">
           <Button
             leftSection={<IconCheck size={16} />}
-            style={{ backgroundColor: '#FFC107', color: '#000' }}
-            onClick={() => {
-              setNewStatus('Approved');
-              setReviewReasoning('');
+            onClick={handleApproveApplication}
+            loading={isApprovingApplication}
+            disabled={['Approved', 'InterviewScheduled'].includes(application.status)}
+            data-testid="approve-application-button"
+            style={{
+              backgroundColor: '#FFC107',
+              color: '#000',
+              minHeight: 56,
+              paddingTop: 12,
+              paddingBottom: 12,
+              paddingLeft: 24,
+              paddingRight: 24,
+              fontSize: 16,
+              fontWeight: 600,
+              lineHeight: 1.4
             }}
-            disabled={application.status === 'Approved'}
           >
-            APPROVE APPLICATION
+            {application.status === 'UnderReview' ? 'APPROVE FOR INTERVIEW' : 'APPROVE APPLICATION'}
           </Button>
           <Button
             variant="outline"
             color="gray"
-            onClick={() => {
-              setNewStatus('OnHold');
-              setReviewReasoning('');
-            }}
+            onClick={handlePutOnHold}
             disabled={application.status === 'OnHold'}
+            data-testid="put-on-hold-button"
+            style={{
+              minHeight: 56,
+              paddingTop: 12,
+              paddingBottom: 12,
+              paddingLeft: 24,
+              paddingRight: 24,
+              fontSize: 16,
+              fontWeight: 600,
+              lineHeight: 1.4
+            }}
           >
             PUT ON HOLD
           </Button>
           <Button
             color="red"
             leftSection={<IconX size={16} />}
-            onClick={() => {
-              setNewStatus('Rejected');
-              setReviewReasoning('');
-            }}
+            onClick={handleDenyApplication}
             disabled={application.status === 'Rejected'}
+            data-testid="deny-application-button"
+            style={{
+              minHeight: 56,
+              paddingTop: 12,
+              paddingBottom: 12,
+              paddingLeft: 24,
+              paddingRight: 24,
+              fontSize: 16,
+              fontWeight: 600,
+              lineHeight: 1.4
+            }}
           >
             DENY APPLICATION
           </Button>
         </Group>
       </Stack>
 
+      {/* Single Column Layout - Removed right sidebar as per requirements */}
       <Grid>
-        {/* Left Column - Application Details */}
-        <Grid.Col span={{ base: 12, lg: 8 }}>
+        <Grid.Col span={12}>
           <Stack gap="md">
-            {/* Application Information - 2-column layout as per wireframe */}
-            <Card>
+            {/* Application Information - Inline layout for short answers, long answers at bottom */}
+            <Card data-testid="application-information-section">
               <Title order={3} mb="md" style={{ color: '#880124' }}>
                 Application Information
               </Title>
-              <Grid>
+
+              {/* Short answers - inline layout */}
+              <Grid mb="xl">
                 {/* Left Column */}
                 <Grid.Col span={6}>
                   <Stack gap="md">
-                    <div>
-                      <Text fw={600} mb="xs">Scene Name:</Text>
+                    <Group gap="md" wrap="nowrap" data-testid="scene-name-field">
+                      <Text fw={600} style={{ minWidth: '120px' }}>Scene Name:</Text>
                       <Text>{application.sceneName}</Text>
-                    </div>
-                    <div>
-                      <Text fw={600} mb="xs">Real Name:</Text>
+                    </Group>
+                    <Group gap="md" wrap="nowrap" data-testid="real-name-field">
+                      <Text fw={600} style={{ minWidth: '120px' }}>Real Name:</Text>
                       <Text>{application.fullName}</Text>
-                    </div>
-                    <div>
-                      <Text fw={600} mb="xs">Email:</Text>
+                    </Group>
+                    <Group gap="md" wrap="nowrap" data-testid="email-field">
+                      <Text fw={600} style={{ minWidth: '120px' }}>Email:</Text>
                       <Text>{application.email}</Text>
-                    </div>
+                    </Group>
                     {application.pronouns && (
-                      <div>
-                        <Text fw={600} mb="xs">Pronouns:</Text>
+                      <Group gap="md" wrap="nowrap">
+                        <Text fw={600} style={{ minWidth: '120px' }}>Pronouns:</Text>
                         <Text>{application.pronouns}</Text>
-                      </div>
+                      </Group>
                     )}
-                    <div>
-                      <Text fw={600} mb="xs">Other Names/Handles:</Text>
-                      <Text>{application.phone || 'Not provided'}</Text>
-                    </div>
-                    <div>
-                      <Text fw={600} mb="xs">Tell Us About Yourself:</Text>
-                      <Text style={{ whiteSpace: 'pre-wrap' }}>
-                        {application.whyJoinCommunity}
-                      </Text>
-                    </div>
                   </Stack>
                 </Grid.Col>
 
                 {/* Right Column */}
                 <Grid.Col span={6}>
                   <Stack gap="md">
-                    <div>
-                      <Text fw={600} mb="xs">Application Date:</Text>
+                    <Group gap="md" wrap="nowrap">
+                      <Text fw={600} style={{ minWidth: '140px' }}>Application Date:</Text>
                       <Text>{formatDateOnly(application.submittedAt)}</Text>
-                    </div>
-                    <div>
-                      <Text fw={600} mb="xs">FetLife Handle:</Text>
+                    </Group>
+                    <Group gap="md" wrap="nowrap">
+                      <Text fw={600} style={{ minWidth: '140px' }}>FetLife Handle:</Text>
                       <Text>@{application.sceneName}</Text>
-                    </div>
-                    <div>
-                      <Text fw={600} mb="xs">How Found Us:</Text>
-                      <Text>{application.experienceDescription}</Text>
-                    </div>
+                    </Group>
+                    <Group gap="md" wrap="nowrap">
+                      <Text fw={600} style={{ minWidth: '140px' }}>Other Names/Handles:</Text>
+                      <Text>{application.phone || 'Not provided'}</Text>
+                    </Group>
                   </Stack>
                 </Grid.Col>
               </Grid>
-            </Card>
 
-            {/* Experience Information */}
-            <Card>
-              <Title order={3} mb="md" style={{ color: '#880124' }}>
-                Experience & Background
-              </Title>
-              <Stack gap="md">
-                <Group>
-                  <Badge color="blue" variant="light">
-                    {application.experienceLevel}
-                  </Badge>
-                  <Text>•</Text>
-                  <Text>{application.yearsExperience} years experience</Text>
-                </Group>
-
+              {/* Long answers - full width at bottom */}
+              <Stack gap="xl">
                 <div>
-                  <Text fw={600} mb="xs">Experience Description:</Text>
-                  <Text style={{ whiteSpace: 'pre-wrap' }}>
-                    {application.experienceDescription}
-                  </Text>
-                </div>
-
-                <div>
-                  <Text fw={600} mb="xs">Safety Knowledge:</Text>
-                  <Text style={{ whiteSpace: 'pre-wrap' }}>
-                    {application.safetyKnowledge}
-                  </Text>
-                </div>
-
-                <div>
-                  <Text fw={600} mb="xs">Consent Understanding:</Text>
-                  <Text style={{ whiteSpace: 'pre-wrap' }}>
-                    {application.consentUnderstanding}
-                  </Text>
-                </div>
-              </Stack>
-            </Card>
-
-            {/* Community Information */}
-            <Card>
-              <Title order={3} mb="md" style={{ color: '#880124' }}>
-                Community Interest
-              </Title>
-              <Stack gap="md">
-                <div>
-                  <Text fw={600} mb="xs">Why Join Community:</Text>
+                  <Text fw={600} mb="xs">Why do you want to join WitchCityRope?</Text>
                   <Text style={{ whiteSpace: 'pre-wrap' }}>
                     {application.whyJoinCommunity}
                   </Text>
                 </div>
-
                 <div>
-                  <Text fw={600} mb="xs">Skills & Interests:</Text>
-                  <Group gap="xs">
-                    {application.skillsInterests.map((skill, index) => (
-                      <Badge key={index} variant="dot" color="gray">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </Group>
-                </div>
-
-                <div>
-                  <Text fw={600} mb="xs">Expectations & Goals:</Text>
+                  <Text fw={600} mb="xs">What is your rope experience thus far?</Text>
                   <Text style={{ whiteSpace: 'pre-wrap' }}>
-                    {application.expectationsGoals}
+                    {application.experienceDescription}
                   </Text>
                 </div>
               </Stack>
             </Card>
 
-            {/* References */}
-            {application.references.length > 0 && (
-              <Card>
-                <Title order={3} mb="md" style={{ color: '#880124' }}>
-                  References
-                </Title>
-                <Stack gap="md">
-                  {application.references.map((reference, index) => (
-                    <Paper key={reference.id} p="md" style={{ background: '#FFF8F0' }}>
-                      <Group justify="space-between" mb="xs">
-                        <Text fw={600}>{reference.name}</Text>
-                        <VettingStatusBadge status={reference.status} size="xs" />
-                      </Group>
-                      <Text size="sm" c="dimmed" mb="xs">
-                        {reference.email} • {reference.relationship}
-                      </Text>
-                      {reference.contactedAt && (
-                        <Text size="xs" c="dimmed">
-                          Contacted: {formatDateOnly(reference.contactedAt)}
-                        </Text>
-                      )}
-                      {reference.respondedAt && (
-                        <Text size="xs" c="dimmed">
-                          Responded: {formatDateOnly(reference.respondedAt)}
-                        </Text>
-                      )}
-                    </Paper>
-                  ))}
-                </Stack>
-              </Card>
-            )}
-          </Stack>
-        </Grid.Col>
-
-        {/* Right Column - Review Actions & History */}
-        <Grid.Col span={{ base: 12, lg: 4 }}>
-          <Stack gap="md">
-            {/* Review Actions */}
-            <Card>
-              <Title order={3} mb="md" style={{ color: '#880124' }}>
-                Review Actions
-              </Title>
-              <Stack gap="md">
-                <div>
-                  <Text size="sm" fw={600} mb="xs">Change Status:</Text>
-                  <Select
-                    placeholder="Select new status"
-                    data={statusOptions}
-                    value={newStatus}
-                    onChange={(value) => setNewStatus(value || '')}
-                  />
-                </div>
-
-                {newStatus && (
-                  <div>
-                    <Text size="sm" fw={600} mb="xs">Reasoning (Required):</Text>
-                    <Textarea
-                      placeholder="Provide reasoning for this status change..."
-                      value={reviewReasoning}
-                      onChange={(e) => setReviewReasoning(e.currentTarget.value)}
-                      minRows={3}
-                      required
-                    />
-                  </div>
-                )}
-
-                <Button
-                  fullWidth
-                  leftSection={<IconCheck size={16} />}
-                  onClick={handleStatusChange}
-                  disabled={!newStatus || !reviewReasoning.trim()}
-                  loading={isSubmittingDecision}
-                >
-                  Submit Decision
-                </Button>
-              </Stack>
-            </Card>
-
-            {/* Application Timeline */}
-            <Card>
-              <Title order={3} mb="md" style={{ color: '#880124' }}>
-                Timeline
-              </Title>
-              <Timeline active={-1} bulletSize={20} lineWidth={2}>
-                <Timeline.Item
-                  bullet={<IconCalendar size={12} />}
-                  title="Application Submitted"
-                >
-                  <Text c="dimmed" size="sm">
-                    {formatDate(application.submittedAt)}
-                  </Text>
-                </Timeline.Item>
-
-                {application.reviewStartedAt && (
-                  <Timeline.Item
-                    bullet={<IconUser size={12} />}
-                    title="Review Started"
-                  >
-                    <Text c="dimmed" size="sm">
-                      {formatDate(application.reviewStartedAt)}
-                    </Text>
-                    {application.assignedReviewerName && (
-                      <Text c="dimmed" size="sm">
-                        Assigned to: {application.assignedReviewerName}
-                      </Text>
-                    )}
-                  </Timeline.Item>
-                )}
-
-                {application.decisions.map((decision) => (
-                  <Timeline.Item
-                    key={decision.id}
-                    bullet={<IconCheck size={12} />}
-                    title={`Decision: ${decision.decisionType}`}
-                  >
-                    <Text c="dimmed" size="sm">
-                      {formatDate(decision.createdAt)}
-                    </Text>
-                    <Text c="dimmed" size="sm">
-                      By: {decision.reviewerName}
-                    </Text>
-                    {decision.reasoning && (
-                      <Text size="sm" mt="xs">
-                        {decision.reasoning}
-                      </Text>
-                    )}
-                  </Timeline.Item>
-                ))}
-              </Timeline>
-            </Card>
-
-            {/* Notes */}
-            {application.notes.length > 0 && (
-              <Card>
-                <Title order={3} mb="md" style={{ color: '#880124' }}>
-                  Notes
-                </Title>
-                <Stack gap="md">
-                  {application.notes.slice(0, 3).map((note) => (
-                    <Paper key={note.id} p="sm" style={{ background: '#FFF8F0' }}>
-                      <Text size="sm" mb="xs">
-                        {note.content}
-                      </Text>
-                      <Text size="xs" c="dimmed">
-                        {note.reviewerName} • {formatDate(note.createdAt)}
-                      </Text>
-                    </Paper>
-                  ))}
-                  {application.notes.length > 3 && (
-                    <Text size="xs" c="dimmed" ta="center">
-                      +{application.notes.length - 3} more notes
-                    </Text>
-                  )}
-                </Stack>
-              </Card>
-            )}
           </Stack>
         </Grid.Col>
       </Grid>
@@ -463,13 +326,19 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
           </Title>
           <Button
             variant="filled"
-            color="red"
             size="sm"
-            onClick={() => {
-              // TODO: Implement save note functionality
-              console.log('Save note clicked:', newNote);
-            }}
+            onClick={handleSaveNote}
             disabled={!newNote.trim()}
+            data-testid="save-note-button"
+            style={{
+              backgroundColor: '#D4AF37',
+              color: '#000000',
+              minHeight: 40,
+              height: 'auto',
+              padding: '10px 20px',
+              lineHeight: 1.4,
+              fontWeight: 600
+            }}
           >
             SAVE NOTE
           </Button>
@@ -482,6 +351,7 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
             value={newNote}
             onChange={(e) => setNewNote(e.currentTarget.value)}
             minRows={4}
+            data-testid="add-note-textarea"
             styles={{
               input: {
                 borderRadius: '8px',
@@ -555,7 +425,16 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
             minRows={4}
           />
           <Group justify="flex-end">
-            <Button variant="light" onClick={() => setNotesModalOpen(false)}>
+            <Button
+              variant="light"
+              onClick={() => setNotesModalOpen(false)}
+              style={{
+                minHeight: 40,
+                height: 'auto',
+                padding: '10px 20px',
+                lineHeight: 1.4
+              }}
+            >
               Cancel
             </Button>
             <Button
@@ -565,12 +444,45 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
                 setNotesModalOpen(false);
               }}
               disabled={!newNote.trim()}
+              style={{
+                minHeight: 40,
+                height: 'auto',
+                padding: '10px 20px',
+                lineHeight: 1.4
+              }}
             >
               Add Note
             </Button>
           </Group>
         </Stack>
       </Modal>
+
+      {/* OnHold Modal */}
+      <OnHoldModal
+        opened={onHoldModalOpen}
+        onClose={() => setOnHoldModalOpen(false)}
+        applicationId={applicationId}
+        applicantName={application?.fullName || 'Unknown'}
+        onSuccess={() => refetch()}
+      />
+
+      {/* Send Reminder Modal */}
+      <SendReminderModal
+        opened={reminderModalOpen}
+        onClose={() => setReminderModalOpen(false)}
+        applicationId={applicationId}
+        applicantName={application?.fullName || 'Unknown'}
+        onSuccess={() => refetch()}
+      />
+
+      {/* Deny Application Modal */}
+      <DenyApplicationModal
+        opened={denyModalOpen}
+        onClose={() => setDenyModalOpen(false)}
+        applicationId={applicationId}
+        applicantName={application?.fullName || 'Unknown'}
+        onSuccess={() => refetch()}
+      />
     </Stack>
   );
 };

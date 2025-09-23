@@ -8,7 +8,7 @@ namespace WitchCityRope.Api.Features.Vetting.Models;
 public class ReviewDecisionRequest
 {
     [Required]
-    public int DecisionType { get; set; } // Approve=1, Deny=2, RequestAdditionalInfo=3, etc.
+    public object DecisionType { get; set; } = string.Empty; // Can be string ("Approved", "Denied", etc.) or int (1, 2, 3, etc.)
 
     [Required]
     [StringLength(1000, MinimumLength = 10)]

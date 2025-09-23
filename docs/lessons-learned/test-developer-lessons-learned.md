@@ -11,8 +11,10 @@
 2. **Playwright Standards** - **E2E TESTING FRAMEWORK**
 `/docs/standards-processes/testing/playwright-standards.md`
 
-3. **Test Catalog** - **ALL EXISTING TESTS**
-`/docs/standards-processes/testing/TEST_CATALOG.md`
+3. **Test Catalog** - **ALL EXISTING TESTS** (SPLIT FOR ACCESSIBILITY)
+⭕ **START HERE**: `/docs/standards-processes/testing/TEST_CATALOG.md` (Part 1 - Current Tests)
+📚 **If needed**: `/docs/standards-processes/testing/TEST_CATALOG_PART_2.md` (Part 2 - Historical)
+📜 **Archives**: `/docs/standards-processes/testing/TEST_CATALOG_PART_3.md` (Part 3 - Archived)
 
 4. **Testing Prerequisites** - **BEFORE YOU START**
 `/docs/standards-processes/testing-prerequisites.md`
@@ -2062,6 +2064,40 @@ http.post('http://localhost:5651/api/auth/login', async ({ request }) => {
 
 ---
 
+## 🚨 CRITICAL: TEST_CATALOG Split Maintenance 🚨
+
+**Problem**: Original TEST_CATALOG.md (2772 lines) was too large for agents to read, causing test-developer and test-executor agents to skip it entirely.
+
+**Solution**: Split into 3 manageable parts for agent accessibility.
+
+### 📚 TEST_CATALOG Structure (MANDATORY TO MAINTAIN):
+- **Part 1** (Main file): Current tests, recent additions, critical patterns (336 lines)
+- **Part 2**: Historical documentation, migration patterns (1513 lines)
+- **Part 3**: Archived information, legacy patterns (1048 lines)
+
+### 🗺️ UPDATE GUIDELINES:
+**NEW TESTS**: ALWAYS add to Part 1 (main file)
+**RECENT PATTERNS**: Add to Part 1
+**HISTORICAL CONTENT**: Moves to Part 2 when Part 1 exceeds 1000 lines
+**OBSOLETE CONTENT**: Moves to Part 3 when truly outdated
+
+### ⚠️ MAINTENANCE REQUIREMENTS:
+1. **Keep Part 1 under 1000 lines** for agent readability
+2. **Update ALL parts** when moving content between them
+3. **Maintain cross-references** between parts
+4. **Check split structure** when adding significant test documentation
+5. **NEVER let any part exceed 2000 lines**
+
+### 🚨 PREVENTION PATTERN:
+When Part 1 approaches 1000 lines:
+1. Move older content to Part 2
+2. Update headers and navigation in all parts
+3. Update lessons learned references if needed
+4. Test that agents can access the content
+
+**This split was implemented 2025-09-22 to fix test documentation accessibility issues.**
+
+---
 
 ## 🚨 CRITICAL: E2E Testing Uses Playwright Only
 

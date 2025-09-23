@@ -102,9 +102,17 @@ export const AdminDashboardPage: React.FC = () => {
                 leftSection={action.icon}
                 variant="light"
                 onClick={action.action}
-                style={{
-                  borderColor: '#880124',
-                  color: '#880124',
+                styles={{
+                  root: {
+                    borderColor: '#880124',
+                    color: '#880124',
+                    fontWeight: 600,
+                    height: '44px',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    fontSize: '14px',
+                    lineHeight: '1.2'
+                  }
                 }}
               >
                 {action.label}

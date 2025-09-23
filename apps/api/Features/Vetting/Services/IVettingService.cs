@@ -41,5 +41,19 @@ public interface IVettingService
         CreateNoteRequest request,
         Guid userId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get current user's vetting application status
+    /// </summary>
+    Task<Result<MyApplicationStatusResponse>> GetMyApplicationStatusAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get current user's vetting application details
+    /// </summary>
+    Task<Result<ApplicationDetailResponse>> GetMyApplicationDetailAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default);
 }
 

@@ -49,10 +49,17 @@ export function useLogin() {
       queryClient.invalidateQueries({ queryKey: ['user'] })
       queryClient.invalidateQueries({ queryKey: ['auth'] })
       
-      // Navigate to dashboard or returnTo URL
+      // Navigate to returnTo URL from query params or dashboard
       const urlParams = new URLSearchParams(window.location.search)
-      const returnTo = urlParams.get('returnTo') || '/dashboard'
-      navigate(returnTo, { replace: true })
+      const returnTo = urlParams.get('returnTo')
+
+      if (returnTo) {
+        // Decode the return URL and navigate there
+        navigate(decodeURIComponent(returnTo), { replace: true })
+      } else {
+        // Default to dashboard if no returnTo specified
+        navigate('/dashboard', { replace: true })
+      }
     },
     onError: (error) => {
       console.error('Login failed:', error)

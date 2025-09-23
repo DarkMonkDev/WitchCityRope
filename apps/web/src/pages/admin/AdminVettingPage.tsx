@@ -1,6 +1,7 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Container, Title, Text, Group, Button } from '@mantine/core';
-import { IconAlertTriangle, IconUserPlus } from '@tabler/icons-react';
+import { IconMail } from '@tabler/icons-react';
 import { VettingApplicationsList } from '../../features/admin/vetting/components/VettingApplicationsList';
 
 /**
@@ -12,6 +13,12 @@ import { VettingApplicationsList } from '../../features/admin/vetting/components
  * Route: /admin/vetting
  */
 export const AdminVettingPage: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleEmailTemplatesClick = () => {
+    navigate('/admin/vetting/email-templates');
+  };
+
   return (
     <Container size="xl" py="xl">
       {/* Header */}
@@ -33,13 +40,14 @@ export const AdminVettingPage: React.FC = () => {
         {/* Action buttons aligned with title */}
         <Group gap="md">
           <Button
-            leftSection={<IconAlertTriangle size={16} />}
+            leftSection={<IconMail size={16} />}
             variant="filled"
-            color="orange"
+            color="blue"
             size="md"
+            onClick={handleEmailTemplatesClick}
             styles={{
               root: {
-                backgroundColor: '#DAA520',
+                backgroundColor: '#4A90E2',
                 fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px',
@@ -51,28 +59,7 @@ export const AdminVettingPage: React.FC = () => {
               }
             }}
           >
-            SEND REMINDER
-          </Button>
-          <Button
-            leftSection={<IconUserPlus size={16} />}
-            variant="filled"
-            color="gray"
-            size="md"
-            styles={{
-              root: {
-                backgroundColor: '#8B8680',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                height: '44px',
-                paddingTop: '12px',
-                paddingBottom: '12px',
-                fontSize: '14px',
-                lineHeight: '1.2'
-              }
-            }}
-          >
-            CHANGE TO ON HOLD
+            EMAIL TEMPLATES
           </Button>
         </Group>
       </Group>

@@ -58,6 +58,82 @@ If you cannot read ANY file:
 3. Set LESSONS_LEARNED_READABLE=false until fixed
 4. NO WORK until LESSONS_LEARNED_READABLE=true
 
+## ✅ FIXED: Vetting Seed Data Email Enhancement (2025-09-22)
+
+**Problem**: Vetting seed data needed enhancement with additional applications and proper email validation to ensure all applications have required email addresses.
+
+**Solution Applied**:
+1. **Reviewed existing applications** - Confirmed all 5 existing applications already had proper email addresses:
+   - alexandra.martinez@email.com
+   - jordan.kim@email.com
+   - marcus.johnson@email.com
+   - sarah.chen@email.com
+   - taylor.rodriguez@email.com
+
+2. **Added 4 additional applications** with the requested email addresses:
+   - jamie.taylor@email.com (Denied status - demonstrates rejection workflow)
+   - alex.rivera@email.com (Under Review - recent submission)
+   - morgan.kim@email.com (Interview Approved - experienced applicant)
+   - jordan.martinez@email.com (Under Review - nervous but genuine)
+
+3. **Enhanced seed data diversity**:
+   - Additional status examples (Denied applications)
+   - Various experience levels and community backgrounds
+   - Realistic application scenarios and admin notes
+   - Proper user constraint handling (only creates additional apps if enough users exist)
+
+**Key Implementation**:
+```csharp
+// ✅ CORRECT: Conditional application creation to prevent constraint violations
+if (users.Count >= 6)
+{
+    var additionalApplications = new List<VettingApplication>();
+    // Add applications only if we have enough users
+    if (additionalApplications.Any())
+    {
+        sampleApplications.AddRange(additionalApplications);
+    }
+}
+```
+
+**Files Modified**:
+- `/apps/api/Services/SeedDataService.cs` - Enhanced SeedVettingApplicationsAsync with additional applications
+
+**Result**: Comprehensive vetting seed data with 9 total applications covering all status types, all with proper email addresses as required fields.
+
+## ✅ ENHANCED: Additional Vetting Seed Data Applications (2025-09-23)
+
+**Enhancement**: Added 2 new pending review applications ("RopeBunny" and "SafetyFirst") to expand vetting seed data for more comprehensive testing.
+
+**New Applications Added**:
+1. **RopeBunny** (ropebunny@example.com):
+   - New to rope bondage, interested in learning
+   - Scene name: "RopeBunny", Real name: "Riley Chen"
+   - Status: UnderReview (submitted 2 days ago)
+   - Beginner-focused application with good safety awareness
+
+2. **SafetyFirst** (safetyfirst@example.com):
+   - Experienced rigger from Portland relocating to Salem
+   - Scene name: "SafetyFirst", Real name: "Sam Rodriguez"
+   - Status: UnderReview (submitted 1 day ago)
+   - 4+ years experience with safety training background
+
+**Key Features**:
+- Both applications use proper email format: scenename@example.com
+- Realistic application text showing different experience levels
+- Proper conditional creation (only if enough users exist)
+- Recent submission dates for testing fresh applications workflow
+- Diverse pronouns representation (she/her and they/them)
+
+**Total Seed Data Now**:
+- Up to 11 vetting applications total (was 9)
+- All applications include required email addresses
+- Comprehensive status coverage for testing all workflow states
+- Realistic variety of experience levels from complete beginner to experienced practitioner
+
+**Files Modified**:
+- `/apps/api/Services/SeedDataService.cs` - Added applications 10 and 11 with requested scenarios
+
 ## 🔥 CRITICAL: Vetting Authorization Fix - Administrator Role Access (2025-09-22)
 
 **Problem**: Admin vetting page returning 403 Forbidden because vetting endpoints required `VettingReviewer` or `VettingAdmin` roles that don't exist in the database, and expected `ReviewerId` claim not present in JWT tokens.

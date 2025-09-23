@@ -257,15 +257,43 @@ public class VettingService : IVettingService
                     "Application not found", $"No application found with ID {applicationId}");
             }
 
-            // Update application status based on decision
-            var newStatus = request.DecisionType switch
+            // Update application status based on decision (handle both string and int DecisionType)
+            VettingStatus newStatus;
+            if (request.DecisionType is string decisionString)
             {
-                1 => VettingStatus.Approved, // Approve
-                2 => VettingStatus.Denied,   // Deny
-                3 => VettingStatus.OnHold,   // Request additional info
-                4 => VettingStatus.PendingInterview, // Schedule interview
-                _ => application.Status // No change
-            };
+                newStatus = decisionString.ToLower() switch
+                {
+                    "approved" => VettingStatus.Approved,
+                    "denied" => VettingStatus.Denied,
+                    "onhold" => VettingStatus.OnHold,
+                    "pendinginterview" => VettingStatus.PendingInterview,
+                    _ => application.Status
+                };
+            }
+            else if (request.DecisionType is int decisionInt)
+            {
+                newStatus = decisionInt switch
+                {
+                    1 => VettingStatus.Approved, // Approve
+                    2 => VettingStatus.Denied,   // Deny
+                    3 => VettingStatus.OnHold,   // Request additional info
+                    4 => VettingStatus.PendingInterview, // Schedule interview
+                    _ => application.Status // No change
+                };
+            }
+            else
+            {
+                // Try to parse as string or int from JSON
+                var decisionValue = request.DecisionType?.ToString()?.ToLower() ?? "";
+                newStatus = decisionValue switch
+                {
+                    "approved" or "1" => VettingStatus.Approved,
+                    "denied" or "2" => VettingStatus.Denied,
+                    "onhold" or "3" => VettingStatus.OnHold,
+                    "pendinginterview" or "4" => VettingStatus.PendingInterview,
+                    _ => application.Status
+                };
+            }
 
             application.Status = newStatus;
             application.UpdatedAt = DateTime.UtcNow;
@@ -367,5 +395,167 @@ public class VettingService : IVettingService
             return Result<NoteResponse>.Failure(
                 "Failed to add note", ex.Message);
         }
+    }
+
+    /// <summary>
+    /// Get current user's vetting application status
+    /// </summary>
+    public async Task<Result<MyApplicationStatusResponse>> GetMyApplicationStatusAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Get user's vetting application
+            var application = await _context.VettingApplications
+                .AsNoTracking()
+                .FirstOrDefaultAsync(v => v.UserId == userId, cancellationToken);
+
+            if (application == null)
+            {
+                // User has no vetting application
+                var response = new MyApplicationStatusResponse
+                {
+                    HasApplication = false,
+                    Application = null
+                };
+
+                return Result<MyApplicationStatusResponse>.Success(response);
+            }
+
+            // User has an application - return details
+            var statusInfo = new ApplicationStatusInfo
+            {
+                ApplicationId = application.Id,
+                ApplicationNumber = application.Id.ToString("N")[..8],
+                Status = application.Status.ToString(),
+                StatusDescription = GetStatusDescription(application.Status),
+                SubmittedAt = application.SubmittedAt,
+                LastUpdated = application.UpdatedAt,
+                NextSteps = GetNextSteps(application.Status),
+                EstimatedDaysRemaining = GetEstimatedDaysRemaining(application.Status, application.SubmittedAt)
+            };
+
+            var responseWithApp = new MyApplicationStatusResponse
+            {
+                HasApplication = true,
+                Application = statusInfo
+            };
+
+            return Result<MyApplicationStatusResponse>.Success(responseWithApp);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting application status for user {UserId}", userId);
+            return Result<MyApplicationStatusResponse>.Failure(
+                "Failed to get application status", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Get current user's vetting application details
+    /// </summary>
+    public async Task<Result<ApplicationDetailResponse>> GetMyApplicationDetailAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Get user's vetting application with related data
+            var application = await _context.VettingApplications
+                .Include(v => v.User)
+                .Include(v => v.AuditLogs)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(v => v.UserId == userId, cancellationToken);
+
+            if (application == null)
+            {
+                return Result<ApplicationDetailResponse>.Failure(
+                    "Application not found", "No vetting application found for the current user");
+            }
+
+            // Map to response DTO (reuse existing mapping logic from GetApplicationDetailAsync)
+            var response = new ApplicationDetailResponse
+            {
+                ApplicationId = application.Id,
+                ApplicationNumber = application.Id.ToString("N")[..8],
+                Status = application.Status.ToString(),
+                SceneName = application.SceneName ?? "Not provided",
+                Email = application.Email,
+                SubmittedAt = application.SubmittedAt,
+                UpdatedAt = application.UpdatedAt,
+                ExperienceLevel = "Beginner", // Default for simplified entity
+                WhyJoinCommunity = application.AboutYourself ?? "Not provided",
+                Pronouns = application.Pronouns ?? "Not provided",
+                AdminNotes = null, // Don't show admin notes to the applicant
+                Tags = new List<string>(), // Simplified implementation
+                Attachments = new List<string>(), // Simplified implementation
+                WorkflowHistory = application.AuditLogs?.Select(log => new WorkflowHistoryDto
+                {
+                    Action = log.Action,
+                    PerformedAt = log.PerformedAt,
+                    PerformedBy = log.PerformedBy.ToString(),
+                    Notes = log.Notes
+                }).OrderByDescending(h => h.PerformedAt).ToList() ?? new List<WorkflowHistoryDto>()
+            };
+
+            return Result<ApplicationDetailResponse>.Success(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting application detail for user {UserId}", userId);
+            return Result<ApplicationDetailResponse>.Failure(
+                "Failed to get application details", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Get user-friendly status description
+    /// </summary>
+    private static string GetStatusDescription(VettingStatus status)
+    {
+        return status switch
+        {
+            VettingStatus.Draft => "Application draft - not yet submitted",
+            VettingStatus.UnderReview => "Application is being reviewed by our team",
+            VettingStatus.InterviewApproved => "Approved for interview - someone will contact you soon",
+            VettingStatus.PendingInterview => "Interview scheduled - please check your email for details",
+            VettingStatus.Approved => "Application approved - welcome to the community!",
+            VettingStatus.OnHold => "Application on hold - additional information may be needed",
+            VettingStatus.Denied => "Application was not approved at this time",
+            _ => "Unknown status"
+        };
+    }
+
+    /// <summary>
+    /// Get next steps for the user based on current status
+    /// </summary>
+    private static string? GetNextSteps(VettingStatus status)
+    {
+        return status switch
+        {
+            VettingStatus.Draft => "Complete and submit your vetting application",
+            VettingStatus.UnderReview => "No action needed - we'll contact you with updates",
+            VettingStatus.InterviewApproved => "Wait for interview scheduling email",
+            VettingStatus.PendingInterview => "Attend your scheduled interview",
+            VettingStatus.Approved => "You can now register for member events",
+            VettingStatus.OnHold => "Check your email for requested information",
+            VettingStatus.Denied => "You may reapply after 6 months",
+            _ => null
+        };
+    }
+
+    /// <summary>
+    /// Get estimated days remaining in review process
+    /// </summary>
+    private static int? GetEstimatedDaysRemaining(VettingStatus status, DateTime submittedAt)
+    {
+        return status switch
+        {
+            VettingStatus.UnderReview => Math.Max(0, 14 - (DateTime.UtcNow - submittedAt).Days), // 2 week typical review
+            VettingStatus.InterviewApproved => Math.Max(0, 7 - (DateTime.UtcNow - submittedAt).Days), // 1 week to schedule
+            VettingStatus.PendingInterview => Math.Max(0, 3 - (DateTime.UtcNow - submittedAt).Days), // 3 days after interview
+            _ => null
+        };
     }
 }

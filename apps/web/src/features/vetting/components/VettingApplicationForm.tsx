@@ -224,6 +224,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
               color="blue"
               icon={<IconLogin />}
               title="Login Required"
+              data-testid="login-required-alert"
             >
               <Stack gap="md">
                 <Text>
@@ -237,6 +238,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                     href="/login"
                     color="wcr"
                     leftSection={<IconLogin />}
+                    data-testid="login-to-account-button"
                     style={{
                       minHeight: TOUCH_TARGETS.BUTTON_HEIGHT,
                       paddingTop: 12,
@@ -337,7 +339,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
             </Stack>
           </Paper>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} data-testid="vetting-application-form">
             <Stack gap="lg">
               {/* Real Name */}
               <EnhancedTextInput
@@ -345,6 +347,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                 placeholder="Enter your real name"
                 required
                 description={fieldValidationMessages.realName.required}
+                data-testid="real-name-input"
                 {...form.getInputProps('realName')}
                 styles={{
                   input: {
@@ -359,6 +362,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                 label="Pronouns"
                 placeholder="Enter your pronouns (optional)"
                 description={fieldValidationMessages.pronouns.optional}
+                data-testid="pronouns-input"
                 {...form.getInputProps('pronouns')}
                 styles={{
                   input: {
@@ -374,6 +378,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                 label="FetLife Handle"
                 placeholder="Enter your FetLife handle (optional)"
                 description={fieldValidationMessages.fetLifeHandle.optional}
+                data-testid="fetlife-handle-input"
                 {...form.getInputProps('fetLifeHandle')}
                 styles={{
                   input: {
@@ -391,6 +396,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                 minRows={2}
                 maxRows={4}
                 autosize
+                data-testid="other-names-textarea"
                 {...form.getInputProps('otherNames')}
                 styles={{
                   input: {
@@ -409,6 +415,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                 maxRows={8}
                 autosize
                 description="Tell us why you would like to join our community"
+                data-testid="why-join-textarea"
                 {...form.getInputProps('whyJoin')}
                 styles={{
                   input: {
@@ -426,6 +433,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                 maxRows={8}
                 autosize
                 description="Share your experience in rope bondage, BDSM, or kink communities"
+                data-testid="experience-with-rope-textarea"
                 {...form.getInputProps('experienceWithRope')}
                 styles={{
                   input: {
@@ -461,6 +469,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                   <Checkbox
                     label={<Text fw={600}>I agree to all of the above items</Text>}
                     required
+                    data-testid="community-standards-checkbox"
                     {...form.getInputProps('agreesToCommunityStandards', { type: 'checkbox' })}
                     styles={{
                       label: {
@@ -484,6 +493,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                   disabled={Object.keys(form.errors).length > 0 || !isAuthenticated || !form.values.realName || !form.values.whyJoin || !form.values.experienceWithRope || !form.values.agreesToCommunityStandards}
                   leftSection={<IconCheck />}
                   color="wcr"
+                  data-testid="submit-application-button"
                   style={{
                     minHeight: TOUCH_TARGETS.BUTTON_HEIGHT,
                     paddingTop: 12,

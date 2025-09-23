@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using WitchCityRope.Infrastructure.Data;
+using WitchCityRope.Api.Data;
 using WitchCityRope.Tests.Common.Fixtures;
 using Xunit;
 
@@ -49,7 +49,7 @@ namespace WitchCityRope.IntegrationTests
             var services = new ServiceCollection();
             
             // Configure Entity Framework with test database
-            services.AddDbContext<WitchCityRopeDbContext>(options =>
+            services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseNpgsql(ConnectionString);
                 
@@ -81,7 +81,7 @@ namespace WitchCityRope.IntegrationTests
         /// <summary>
         /// Creates a fresh database context for test operations
         /// </summary>
-        protected WitchCityRopeDbContext CreateDbContext()
+        protected ApplicationDbContext CreateDbContext()
         {
             return DatabaseFixture.CreateDbContext();
         }
@@ -99,7 +99,7 @@ namespace WitchCityRope.IntegrationTests
         /// Executes code within a database transaction scope
         /// Automatically rolls back on completion for test isolation
         /// </summary>
-        protected async Task<T> ExecuteInTransactionAsync<T>(Func<WitchCityRopeDbContext, Task<T>> operation)
+        protected async Task<T> ExecuteInTransactionAsync<T>(Func<ApplicationDbContext, Task<T>> operation)
         {
             await using var context = CreateDbContext();
             await using var transaction = await context.Database.BeginTransactionAsync();
@@ -121,7 +121,7 @@ namespace WitchCityRope.IntegrationTests
         /// Executes code within a database transaction scope (void return)
         /// Automatically rolls back on completion for test isolation
         /// </summary>
-        protected async Task ExecuteInTransactionAsync(Func<WitchCityRopeDbContext, Task> operation)
+        protected async Task ExecuteInTransactionAsync(Func<ApplicationDbContext, Task> operation)
         {
             await using var context = CreateDbContext();
             await using var transaction = await context.Database.BeginTransactionAsync();

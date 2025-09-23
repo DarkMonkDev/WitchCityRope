@@ -33,38 +33,6 @@ export const AdminVettingApplicationDetailPage: React.FC = () => {
 
   return (
     <Container size="xl" py="xl">
-      {/* Page Header */}
-      <Group justify="space-between" align="center" mb="xl">
-        <div>
-          <Group mb="sm">
-            <Button
-              variant="subtle"
-              leftSection={<IconArrowLeft size={16} />}
-              onClick={handleBackToList}
-              size="sm"
-            >
-              Back to Applications
-            </Button>
-          </Group>
-          <Title
-            order={1}
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: '32px',
-              fontWeight: 800,
-              color: '#880124',
-              textTransform: 'uppercase',
-              letterSpacing: '-0.5px',
-            }}
-          >
-            Application Details
-          </Title>
-          <Text size="lg" c="dimmed" mt="xs">
-            Review individual vetting application
-          </Text>
-        </div>
-      </Group>
-
       {/* Application Detail Component */}
       <VettingApplicationDetail
         applicationId={applicationId}

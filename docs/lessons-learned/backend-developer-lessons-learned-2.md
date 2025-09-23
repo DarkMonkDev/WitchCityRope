@@ -21,6 +21,51 @@ If you cannot read ANY file:
 
 ---
 
+## ✅ FIXED: VettingService Compilation Errors - Entity Property Mismatch (2025-09-23)
+
+**Problem**: API failing to compile due to VettingService trying to use properties that don't exist on the simplified VettingApplication entity.
+
+**Root Cause**: VettingApplication entity was simplified to match wireframe requirements, removing many properties. VettingService still referenced these removed properties:
+- `ApplicationNumber` (property doesn't exist)
+- `EncryptedSceneName` (use `SceneName` instead)
+- `ExperienceLevel` (property doesn't exist)
+- `EncryptedWhyJoinCommunity` (use `AboutYourself` instead)
+- `VettingStatus.NotStarted` (enum value doesn't exist)
+- `PerformedBy` nullable operator issue (Guid is not nullable)
+
+**Solution Applied**:
+1. **Removed ApplicationNumber dependency**: Use `application.Id.ToString("N")[..8]` directly
+2. **Used correct property names**: `SceneName` instead of `EncryptedSceneName`
+3. **Used available fields**: `AboutYourself` instead of `EncryptedWhyJoinCommunity`
+4. **Set reasonable defaults**: `ExperienceLevel = "Beginner"` for simplified entity
+5. **Fixed enum values**: `VettingStatus.Draft` instead of `VettingStatus.NotStarted`
+6. **Fixed nullable operators**: Removed `?` from non-nullable `Guid PerformedBy`
+
+**Files Fixed**:
+- `/apps/api/Features/Vetting/Services/VettingService.cs` - Updated to match simplified entity
+
+**Key Patterns for Entity Simplification**:
+```csharp
+// ✅ CORRECT: Map to available properties with defaults
+ApplicationNumber = application.Id.ToString("N")[..8], // Generate from ID
+SceneName = application.SceneName ?? "Not provided",   // Use direct property
+ExperienceLevel = "Beginner",                         // Default for simplified entity
+WhyJoinCommunity = application.AboutYourself ?? "Not provided", // Map to available field
+
+// ❌ WRONG: Reference removed properties
+ApplicationNumber = application.ApplicationNumber,     // Property doesn't exist
+SceneName = application.EncryptedSceneName,           // Property removed
+ExperienceLevel = application.ExperienceLevel,        // Property doesn't exist
+```
+
+**Prevention**:
+- **Check entity definition FIRST** when compilation errors occur
+- **Use available properties** and provide reasonable defaults
+- **Verify enum values exist** before referencing them
+- **Test compilation after entity changes** to catch property mismatches early
+
+**Result**: API compiles successfully and container shows healthy status. Login endpoint working correctly.
+
 **Key Insight**: Don't fix obsolete tests - disable them since the systems they test are obsolete.
 
 ## 🚨 CRITICAL: API Confusion Prevention - MANDATORY FOR ALL BACKEND DEVELOPERS 🚨
@@ -74,6 +119,99 @@ If you accidentally modify legacy API or break the modern API, IMMEDIATELY:
 
 ---
 
+## 🔥 CRITICAL: Vetting System API Endpoints Fixed - Frontend-Backend Mismatch (2025-09-22)
+
+**Problem**: Vetting system UI was working but all API endpoints returned 400 errors when clicking "Approve Application", "Put on Hold", and "Save Note" buttons. Frontend was calling different endpoints than what the backend provided.
+
+**Root Cause Analysis**:
+1. **Endpoint Mismatch**: Frontend expected direct action endpoints like `/api/vetting/applications/{id}/approve` but backend only had reviewer-specific endpoints like `/api/vetting/reviewer/applications/{id}/decisions`
+2. **Data Structure Mismatch**: Frontend sent `decisionType` as string ("Approved", "OnHold") but backend expected integer enum values (1, 2, 3, etc.)
+3. **Note Structure Mismatch**: Frontend sent simple `{note: string}` but backend expected complex `CreateNoteRequest` with `Content`, `Type`, etc.
+
+**Solution Implemented**:
+
+1. **Added Frontend-Compatible Endpoints** in `VettingEndpoints.cs`:
+```csharp
+// Direct action endpoints that frontend expects
+group.MapPost("/applications/{id}/approve", ApproveApplication);
+group.MapPut("/applications/{id}/status", ChangeApplicationStatus);
+group.MapPost("/applications/{id}/notes", AddSimpleApplicationNote);
+group.MapPost("/applications/{id}/deny", DenyApplication);
+```
+
+2. **Updated ReviewDecisionRequest** to handle both string and int DecisionType:
+```csharp
+public object DecisionType { get; set; } = string.Empty; // Can be string or int
+```
+
+3. **Enhanced VettingService** to handle flexible DecisionType parsing:
+```csharp
+// Handle both string ("Approved") and int (1) decision types
+if (request.DecisionType is string decisionString)
+{
+    newStatus = decisionString.ToLower() switch
+    {
+        "approved" => VettingStatus.Approved,
+        "denied" => VettingStatus.Denied,
+        "onhold" => VettingStatus.OnHold,
+        // ...
+    };
+}
+```
+
+4. **Created Simple Request Models** for frontend compatibility:
+```csharp
+public class SimpleReasoningRequest
+{
+    public string Reasoning { get; set; } = string.Empty;
+}
+
+public class SimpleNoteRequest
+{
+    public string Note { get; set; } = string.Empty;
+    public bool? IsPrivate { get; set; }
+}
+```
+
+**API Endpoints Now Working**:
+- ✅ `POST /api/vetting/applications/{id}/approve` - Approve applications
+- ✅ `PUT /api/vetting/applications/{id}/status` - Put on hold with reason
+- ✅ `POST /api/vetting/applications/{id}/notes` - Save notes
+- ✅ `POST /api/vetting/applications/{id}/deny` - Deny applications
+
+**Testing Results**:
+```bash
+# Approve application - Returns 200 OK
+curl -X POST /api/vetting/applications/{id}/approve
+  -d '{"reasoning": "Application approved"}'
+
+# Put on hold - Returns 200 OK
+curl -X PUT /api/vetting/applications/{id}/status
+  -d '{"status": "OnHold", "reasoning": "Need more info"}'
+
+# Add note - Returns 200 OK
+curl -X POST /api/vetting/applications/{id}/notes
+  -d '{"note": "Good candidate", "isPrivate": true}'
+```
+
+**Key Lessons**:
+- **Frontend-Backend Contract Alignment**: Always verify API endpoints match what frontend expects exactly
+- **Flexible Data Types**: Use `object` type with runtime parsing for fields that might come as string or int from different clients
+- **Simple Request Models**: Create simplified DTOs for frontend compatibility while maintaining complex internal models
+- **Endpoint Testing**: Test all CRUD operations after implementing to ensure they work end-to-end
+
+**Files Modified**:
+- `/apps/api/Features/Vetting/Endpoints/VettingEndpoints.cs` - Added new compatible endpoints
+- `/apps/api/Features/Vetting/Models/ReviewDecisionRequest.cs` - Made DecisionType flexible
+- `/apps/api/Features/Vetting/Services/VettingService.cs` - Enhanced decision type handling
+
+**Prevention**:
+- Always check frontend API service files to understand exact endpoint expectations
+- Test API endpoints with curl after implementation to verify they work
+- Use both string and numeric values in testing to catch type mismatches
+- Document API contracts clearly between frontend and backend teams
+
+**Result**: Vetting system UI now works correctly. Admin users can approve applications, put them on hold, add notes, and deny applications without 400 errors.
 
 ## Port Configuration Refactoring (2025-09-11)
 
@@ -907,6 +1045,122 @@ public class TicketTypeDto { /* Complete with pricing tiers */ }
 5. **Recommendation**: Extract, Archive, or Enhance with clear rationale
 ```
 
+## ✅ SUCCESS: Missing API Endpoints Implementation for E2E Tests (2025-09-23)
+
+**Problem**: E2E tests were failing with 404 errors because three API endpoints were missing:
+1. `GET /api/vetting/status` - Current user's vetting status
+2. `GET /api/vetting/application` - Current user's vetting application details
+3. `GET /api/user/profile` - Current user's profile information
+
+**Root Cause**: The E2E tests expected these endpoints but they hadn't been implemented in the API.
+
+**Solution Implemented**:
+
+1. **Added Vetting Status Endpoint** (`GET /api/vetting/status`):
+   - Returns current user's vetting application status
+   - Uses existing `MyApplicationStatusResponse` model
+   - Includes status, application number, submission date, next steps, and estimated days remaining
+   - Returns structured response with business-friendly status descriptions
+
+2. **Added Vetting Application Details Endpoint** (`GET /api/vetting/application`):
+   - Returns current user's vetting application details
+   - Uses existing `ApplicationDetailResponse` model with added properties
+   - Includes application history, but excludes admin notes for user privacy
+   - Returns 404 if no application exists
+
+3. **Added User Profile Endpoint** (`GET /api/user/profile`):
+   - Added singular endpoint to match E2E test expectations
+   - Existing `/api/users/profile` (plural) was already working
+   - Both endpoints use same `UserManagementService.GetProfileAsync` method
+   - Required for E2E tests that expect the singular form
+
+**Key Implementation Details**:
+
+```csharp
+// Vetting endpoints added to VettingEndpoints.cs
+group.MapGet("/status", GetVettingStatus)
+group.MapGet("/application", GetMyVettingApplication)
+
+// Service methods added to IVettingService and VettingService
+Task<Result<MyApplicationStatusResponse>> GetMyApplicationStatusAsync(Guid userId, ...)
+Task<Result<ApplicationDetailResponse>> GetMyApplicationDetailAsync(Guid userId, ...)
+
+// User endpoint added to UserEndpoints.cs
+app.MapGet("/api/user/profile", async (...) => {...})
+```
+
+**Business Logic Implemented**:
+- **Status descriptions**: User-friendly explanations of vetting status
+- **Next steps**: Clear guidance on what user should do next
+- **Time estimates**: Days remaining in review process based on status
+- **Privacy protection**: Admin notes excluded from user-facing responses
+- **Authentication required**: All endpoints require valid JWT token
+
+**Response Format Examples**:
+```json
+// GET /api/vetting/status
+{
+  "success": true,
+  "data": {
+    "hasApplication": true,
+    "application": {
+      "applicationId": "...",
+      "status": "UnderReview",
+      "statusDescription": "Application is being reviewed by our team",
+      "nextSteps": "No action needed - we'll contact you with updates",
+      "estimatedDaysRemaining": 12
+    }
+  }
+}
+
+// GET /api/user/profile
+{
+  "id": "...",
+  "email": "user@example.com",
+  "sceneName": "UserName",
+  "role": "Member",
+  "vettingStatus": "Approved"
+}
+```
+
+**Files Modified**:
+- `/apps/api/Features/Vetting/Endpoints/VettingEndpoints.cs` - Added new endpoints
+- `/apps/api/Features/Vetting/Services/IVettingService.cs` - Added interface methods
+- `/apps/api/Features/Vetting/Services/VettingService.cs` - Implemented service methods
+- `/apps/api/Features/Vetting/Models/ApplicationDetailResponse.cs` - Added missing DTOs
+- `/apps/api/Features/Users/Endpoints/UserEndpoints.cs` - Added singular profile endpoint
+
+**Business Rules Applied**:
+- User can only see their own vetting information
+- Admin notes are filtered out of user responses
+- Status descriptions are user-friendly and actionable
+- Time estimates help users understand review timeline
+- Workflow history shows application progression
+
+**Authentication Pattern**:
+```csharp
+// Standard JWT claim extraction pattern used across all endpoints
+var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+if (!Guid.TryParse(userIdClaim, out var userId))
+{
+    return Results.Json(new ApiResponse<object>
+    {
+        Success = false,
+        Error = "User information not found",
+        Timestamp = DateTime.UtcNow
+    }, statusCode: 401);
+}
+```
+
+**Prevention**:
+- Always verify E2E test endpoints exist before running tests
+- Use consistent authentication patterns across all user-specific endpoints
+- Include proper error handling for missing data scenarios
+- Follow existing API response patterns for consistency
+- Document business rules for user-facing vs admin-facing data
+
+**Result**: E2E tests can now successfully access all required endpoints, returning proper vetting status, application details, and user profile information.
+
 ## Docker Network Configuration Issue - September 18, 2025
 
 **Problem**: Docker Compose failed to start with error "Service 'mailcatcher' uses an undefined network 'witchcity-network'"
@@ -934,6 +1188,104 @@ networks:
 - Base network definition: `docker-compose.yml` (line 11)
 - Development services: `docker-compose.dev.yml`
 - Override services: `docker-compose.override.yml` (mailcatcher service)
+
+## ✅ SUCCESS: Vetting Audit Log History Implementation (2025-09-22)
+
+**Problem**: Vetting seed data needed to generate realistic notes and status history that follows the workflow progression to properly test the vetting system UI.
+
+**Solution Implemented**: Enhanced `SeedVettingApplicationsAsync` method to create comprehensive `VettingAuditLog` entries that show the complete status progression for each vetting application.
+
+**Key Components**:
+
+1. **Workflow-Based Audit Trail**: Each application gets audit log entries that show realistic progression:
+   - **Draft → UnderReview**: Initial submission and admin review start
+   - **UnderReview → InterviewApproved**: Admin approval with review notes
+   - **InterviewApproved → PendingInterview**: Interview scheduling
+   - **PendingInterview → Approved/Denied**: Final decision with rationale
+
+2. **Realistic Audit Log Entries**: Each entry includes:
+   - **Action Description**: Clear action taken ("Application Submitted", "Status Changed", "Interview Scheduled")
+   - **PerformedBy**: User ID of who performed the action (applicant for submission, admin for reviews)
+   - **PerformedAt**: Realistic timestamp showing progression over time
+   - **OldValue/NewValue**: Status transitions for tracking changes
+   - **Notes**: Contextual admin comments explaining decisions
+
+3. **Status-Specific Progressions**:
+   - **UnderReview**: Basic submission → admin queue
+   - **InterviewApproved**: Submission → review → approval for interview
+   - **PendingInterview**: Full progression including interview scheduling
+   - **Approved**: Complete workflow from submission to final approval
+   - **OnHold**: Submission → review → hold for additional info
+   - **Denied**: Submission → review → denial with reason
+
+**Example Audit Trail for Approved Application**:
+```csharp
+// 1. Initial submission by applicant
+Action: "Application Submitted"
+PerformedBy: [applicant_user_id]
+Notes: "Initial application submitted by SilkAndSteel"
+
+// 2. Admin moves to review
+Action: "Status Changed"
+OldValue: "Draft" → NewValue: "UnderReview"
+PerformedBy: [admin_user_id]
+Notes: "Application moved to review queue"
+
+// 3. Admin approves for interview
+Action: "Status Changed"
+OldValue: "UnderReview" → NewValue: "InterviewApproved"
+Notes: "Application approved for interview stage"
+
+// 4. Interview completed
+Action: "Interview Completed"
+Notes: "Interview conducted - excellent candidate with strong community values"
+
+// 5. Final approval
+Action: "Application Approved"
+OldValue: "PendingInterview" → NewValue: "Approved"
+Notes: "Application approved for full membership - welcome to the community!"
+```
+
+**Benefits**:
+- ✅ Complete audit trail for all vetting applications
+- ✅ Realistic workflow progression for UI testing
+- ✅ Admin can see who made each decision and when
+- ✅ Clear notes explaining each status change
+- ✅ Proper accountability with user attribution
+- ✅ Chronological timeline showing application lifecycle
+
+**Files Modified**:
+- `/apps/api/Services/SeedDataService.cs` - Added `CreateVettingAuditLogsAsync` method
+- Enhanced documentation and added workflow-based audit log generation
+
+**Technical Pattern**:
+```csharp
+// ✅ CORRECT: Comprehensive audit log creation
+private async Task CreateVettingAuditLogsAsync(List<VettingApplication> applications, Guid adminUserId, CancellationToken cancellationToken)
+{
+    var auditLogs = new List<VettingAuditLog>();
+
+    foreach (var application in applications)
+    {
+        // Create progression based on current status
+        switch (application.Status)
+        {
+            case VettingStatus.Approved:
+                // Show complete workflow: Draft → UnderReview → InterviewApproved → PendingInterview → Approved
+                // Each step with realistic timestamps and admin notes
+        }
+    }
+}
+```
+
+**Prevention**:
+- Always create audit trails that reflect realistic business workflows
+- Include proper user attribution for accountability
+- Use realistic timestamps that show progression over time
+- Provide meaningful notes that explain decisions
+- Test audit trails with frontend to ensure proper display
+
+**Result**: Vetting applications now have comprehensive audit history showing complete workflow progression, enabling proper testing of the vetting system UI and providing transparency in the review process.
 
 ## 🚨 CRITICAL: Draft Events Not Appearing in Admin Events Grid - Fixed (2025-09-22)
 

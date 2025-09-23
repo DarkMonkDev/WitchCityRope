@@ -10,8 +10,10 @@
 1. **Docker-Only Testing Standard** - **ALL TESTS RUN IN DOCKER**
 `/docs/standards-processes/testing/docker-only-testing-standard.md`
 
-2. **Test Catalog** - **ALL EXISTING TESTS**
-`/docs/standards-processes/testing/TEST_CATALOG.md`
+2. **Test Catalog** - **ALL EXISTING TESTS** (SPLIT FOR ACCESSIBILITY)
+⭕ **START HERE**: `/docs/standards-processes/testing/TEST_CATALOG.md` (Part 1 - Current Tests)
+📚 **If needed**: `/docs/standards-processes/testing/TEST_CATALOG_PART_2.md` (Part 2 - Historical)
+📜 **Archives**: `/docs/standards-processes/testing/TEST_CATALOG_PART_3.md` (Part 3 - Archived)
 
 3. **Current Test Status** - **WHAT'S BROKEN/WORKING**
 `/docs/standards-processes/testing/CURRENT_TEST_STATUS.md`
@@ -1282,6 +1284,41 @@ If you see mass TypeScript errors during testing:
 - ✅ **API responses**: Match TypeScript interface expectations
 
 **REMEMBER**: 393 TypeScript errors = Skip testing, fix DTO alignment first!
+
+---
+
+## 🚨 CRITICAL: TEST_CATALOG Split for Agent Accessibility 🚨
+
+**Problem**: Original TEST_CATALOG.md (2772 lines) was causing test-executor agents to skip reading entirely, breaking test discovery and execution.
+
+**Solution**: Split into 3 manageable parts for reliable agent access.
+
+### 📚 TEST_CATALOG Structure (CRITICAL FOR TEST EXECUTION):
+- **Part 1** (Main): Current working tests, recent patterns (336 lines) - **READ THIS FIRST**
+- **Part 2**: Historical test transformations, migration patterns (1513 lines)
+- **Part 3**: Archived migration analysis, legacy information (1048 lines)
+
+### 🎯 EXECUTION PRIORITY:
+1. **ALWAYS check Part 1 first** for current test status and working tests
+2. **Reference Part 2** for historical context on test fixes
+3. **Avoid Part 3** unless debugging legacy issues
+
+### ⚠️ TEST DISCOVERY PATTERN:
+```bash
+# Find current tests
+Check Part 1 → Working authentication tests, vetting system tests, RSVP verification
+
+# Find test patterns
+Check Part 2 → Historical cleanup approaches, transformation details
+
+# Debug legacy issues
+Check Part 3 → Migration analysis, archived patterns
+```
+
+### 🚨 CRITICAL LESSON:
+When large documentation files cause agents to skip reading, split them immediately. Accessibility is more important than keeping everything in one file.
+
+**This split was implemented 2025-09-22 to restore test documentation accessibility.**
 
 ---
 

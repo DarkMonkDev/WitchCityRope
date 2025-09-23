@@ -28,6 +28,7 @@ namespace WitchCityRope.Api.Services;
 /// - Sample ticket purchases and RSVPs with realistic payment data
 /// - EventParticipation records for proper RSVP/ticket testing
 /// - Volunteer positions demonstrating event management functionality
+/// - Vetting applications (up to 11 total) with comprehensive status examples
 /// - Vetting status configuration for development workflows
 /// 
 /// Implementation follows existing service layer patterns and coding standards.
@@ -393,11 +394,13 @@ public class SeedDataService : ISeedDataService
     /// Includes variety of application statuses, realistic user data, and proper audit trails.
     ///
     /// Applications created:
-    /// - 6 sample applications with different statuses (UnderReview, InterviewApproved, InterviewScheduled, Approved, OnHold, Denied)
+    /// - Up to 11 sample applications with different statuses (UnderReview, InterviewApproved, InterviewScheduled, Approved, OnHold, Denied)
     /// - Realistic names, scene names, FetLife handles, and application text
     /// - Proper pronoun representation (she/her, he/him, they/them, etc.)
     /// - Links to existing seeded users where appropriate
     /// - Proper UTC DateTime handling following ApplicationDbContext patterns
+    /// - All applications include required email addresses in proper format
+    /// - VettingAuditLog entries showing workflow progression for each application
     /// </summary>
     public async Task SeedVettingApplicationsAsync(CancellationToken cancellationToken = default)
     {
@@ -413,12 +416,12 @@ public class SeedDataService : ISeedDataService
 
         // Get existing users to link applications to real users
         var users = await _userManager.Users.ToListAsync(cancellationToken);
-        var unvettedUsers = users.Where(u => !u.IsVetted).ToList();
+        var adminUser = await _userManager.FindByEmailAsync("admin@witchcityrope.com");
 
         // Ensure we have enough users for the applications we want to create
-        if (users.Count < 5)
+        if (users.Count < 5 || adminUser == null)
         {
-            _logger.LogWarning("Not enough users ({UserCount}) to create diverse vetting applications. Need at least 5 users.", users.Count);
+            _logger.LogWarning("Not enough users ({UserCount}) or missing admin user to create diverse vetting applications. Need at least 5 users and admin.", users.Count);
             return;
         }
 
@@ -523,10 +526,154 @@ public class SeedDataService : ISeedDataService
             }
         };
 
+        // Add additional applications if we have more users to prevent constraint violations
+        // Only add more applications if we have users beyond the first 5
+        if (users.Count >= 6)
+        {
+            var additionalApplications = new List<VettingApplication>();
+
+            // Application 6: Denied - doesn't meet community standards
+            if (users.Count >= 6)
+            {
+                additionalApplications.Add(new VettingApplication
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = users[5].Id,
+                    SceneName = "QuickLearner",
+                    RealName = "Jamie Taylor",
+                    Email = "jamie.taylor@email.com",
+                    FetLifeHandle = "QuickLearner_JT",
+                    Pronouns = "he/him",
+                    OtherNames = "Jamie T",
+                    AboutYourself = @"I've been interested in rope for a few months. I think I learn fast and want to get into the community quickly. I've watched some YouTube videos and practiced on myself. I'm ready to start tying people up and want to find partners to practice with.",
+                    HowFoundUs = "Found through social media posts about rope events.",
+                    Status = VettingStatus.Denied,
+                    SubmittedAt = DateTime.UtcNow.AddDays(-20),
+                    ReviewStartedAt = DateTime.UtcNow.AddDays(-17),
+                    DecisionMadeAt = DateTime.UtcNow.AddDays(-3),
+                    AdminNotes = "Application denied. Applicant shows poor understanding of consent and safety protocols. Focused on 'tying people up' rather than community and education. Recommended to attend formal education courses before reapplying."
+                });
+            }
+
+            // Application 7: Recent submission - just submitted
+            if (users.Count >= 7)
+            {
+                additionalApplications.Add(new VettingApplication
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = users[6].Id,
+                    SceneName = "ThoughtfulRigger",
+                    RealName = "Alex Rivera",
+                    Email = "alex.rivera@email.com",
+                    FetLifeHandle = "ThoughtfulRigger_AR",
+                    Pronouns = "they/them",
+                    OtherNames = "Riv, AR",
+                    AboutYourself = @"I've been practicing rope for about 8 months with a consistent partner. We've focused heavily on safety, communication, and building trust. I've completed several online courses about rope safety and anatomy. I'm particularly interested in the artistic and meditative aspects of rope bondage. I understand that joining a community is about contributing positively and learning from experienced practitioners, not just gaining access to events.",
+                    HowFoundUs = "Recommended by a trusted mentor in the rope community who suggested I apply when I felt ready.",
+                    Status = VettingStatus.UnderReview,
+                    SubmittedAt = DateTime.UtcNow.AddDays(-1),
+                    AdminNotes = null
+                });
+            }
+
+            // Application 8: Long-term member of another community
+            if (users.Count >= 8)
+            {
+                additionalApplications.Add(new VettingApplication
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = users[7].Id,
+                    SceneName = "CommunityBuilder",
+                    RealName = "Morgan Kim",
+                    Email = "morgan.kim@email.com",
+                    FetLifeHandle = "CommunityBuilder_MK",
+                    Pronouns = "she/her",
+                    OtherNames = "Mo",
+                    AboutYourself = @"I'm relocating from another city where I was an active member of a rope community for 2+ years. I have experience both as a rigger and rope bunny, and I've helped organize events and workshops. I'm looking for a new community home where I can continue learning and contributing. I understand the importance of vetting processes and community standards, having helped with similar processes in my previous group.",
+                    HowFoundUs = "Researched rope communities in the area and was impressed by your group's focus on safety and education.",
+                    Status = VettingStatus.InterviewApproved,
+                    SubmittedAt = DateTime.UtcNow.AddDays(-8),
+                    ReviewStartedAt = DateTime.UtcNow.AddDays(-5),
+                    AdminNotes = "Strong references from previous community leaders. Ready for interview to discuss integration into local group."
+                });
+            }
+
+            // Application 9: Nervous but genuine applicant
+            if (users.Count >= 9)
+            {
+                additionalApplications.Add(new VettingApplication
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = users[8].Id,
+                    SceneName = "NervousNewbie",
+                    RealName = "Jordan Martinez",
+                    Email = "jordan.martinez@email.com",
+                    FetLifeHandle = "NervousNewbie_JM",
+                    Pronouns = "he/him",
+                    OtherNames = "Jordy",
+                    AboutYourself = @"I'm quite nervous about applying, but I've been interested in rope bondage for over a year. I've been reading extensively and watching educational content, but I haven't had practical experience yet. I'm drawn to the trust and communication aspects of rope, and I want to learn in a safe, supportive environment. I understand this is a serious community with high standards, and I'm committed to being a respectful and contributing member.",
+                    HowFoundUs = "Found through careful research of rope communities with good safety reputations.",
+                    Status = VettingStatus.UnderReview,
+                    SubmittedAt = DateTime.UtcNow.AddDays(-5),
+                    AdminNotes = null
+                });
+            }
+
+            // Application 10: RopeBunny - Someone new to rope looking to learn
+            if (users.Count >= 10)
+            {
+                additionalApplications.Add(new VettingApplication
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = users[9].Id,
+                    SceneName = "RopeBunny",
+                    RealName = "Riley Chen",
+                    Email = "ropebunny@example.com",
+                    FetLifeHandle = "RopeBunny_RC",
+                    Pronouns = "she/her",
+                    OtherNames = "Riley",
+                    AboutYourself = @"I'm completely new to rope bondage but fascinated by the art form and the trust-building aspects. I've done extensive research online and read about safety practices, but I have no hands-on experience yet. I'm particularly drawn to the rope bunny role and want to learn from experienced riggers in a safe, educational environment. I understand the importance of consent, communication, and gradual skill building. I'm looking for a supportive community where I can learn the fundamentals and build meaningful connections with experienced practitioners.",
+                    HowFoundUs = "Discovered through FetLife rope education groups and local BDSM community recommendations.",
+                    Status = VettingStatus.UnderReview,
+                    SubmittedAt = DateTime.UtcNow.AddDays(-2),
+                    AdminNotes = null
+                });
+            }
+
+            // Application 11: SafetyFirst - An experienced rigger from another city
+            if (users.Count >= 11)
+            {
+                additionalApplications.Add(new VettingApplication
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = users[10].Id,
+                    SceneName = "SafetyFirst",
+                    RealName = "Sam Rodriguez",
+                    Email = "safetyfirst@example.com",
+                    FetLifeHandle = "SafetyFirst_SR",
+                    Pronouns = "they/them",
+                    OtherNames = "Sam",
+                    AboutYourself = @"I'm an experienced rigger relocating from Portland, where I was an active member of the rope community for 4+ years. I have extensive experience with both floor work and suspension, and I've completed multiple safety courses including basic first aid and rope-specific emergency procedures. In my previous community, I helped mentor newcomers and occasionally assisted with safety monitoring at events. I prioritize safety above all else in rope work and am committed to ongoing education. I'm seeking a new community home where I can contribute my knowledge while continuing to learn from other experienced practitioners.",
+                    HowFoundUs = "Researched rope communities in the Salem area through rope safety forums and FetLife groups.",
+                    Status = VettingStatus.UnderReview,
+                    SubmittedAt = DateTime.UtcNow.AddDays(-1),
+                    AdminNotes = null
+                });
+            }
+
+            if (additionalApplications.Any())
+            {
+                sampleApplications.AddRange(additionalApplications);
+            }
+        }
+
         await _context.VettingApplications.AddRangeAsync(sampleApplications, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Vetting applications creation completed. Created: {ApplicationCount} applications", sampleApplications.Count);
+        // Create audit log entries that show the workflow progression for each application
+        await CreateVettingAuditLogsAsync(sampleApplications, adminUser.Id, cancellationToken);
+
+        _logger.LogInformation("Vetting applications creation completed. Created: {ApplicationCount} applications with audit logs", sampleApplications.Count);
     }
 
     /// <summary>
@@ -1433,6 +1580,226 @@ The WitchCityRope Vetting Team",
         };
 
         ticketTypesToAdd.Add(fullEventTicket);
+    }
+
+    /// <summary>
+    /// Creates audit log entries for vetting applications to show status progression history.
+    /// Generates realistic workflow progression for each application based on their current status.
+    /// </summary>
+    private async Task CreateVettingAuditLogsAsync(List<VettingApplication> applications, Guid adminUserId, CancellationToken cancellationToken)
+    {
+        var auditLogs = new List<VettingAuditLog>();
+
+        foreach (var application in applications)
+        {
+            // All applications start with initial submission
+            auditLogs.Add(new VettingAuditLog
+            {
+                Id = Guid.NewGuid(),
+                ApplicationId = application.Id,
+                Action = "Application Submitted",
+                PerformedBy = application.UserId,
+                PerformedAt = application.SubmittedAt,
+                OldValue = null,
+                NewValue = "Draft",
+                Notes = $"Initial application submitted by {application.SceneName}"
+            });
+
+            // Create status progression based on current status
+            switch (application.Status)
+            {
+                case VettingStatus.UnderReview:
+                    // Just submitted, only has initial submission
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Status Changed",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.SubmittedAt.AddHours(1),
+                        OldValue = "Draft",
+                        NewValue = "UnderReview",
+                        Notes = "Application moved to review queue"
+                    });
+                    break;
+
+                case VettingStatus.InterviewApproved:
+                    // Draft → UnderReview → InterviewApproved
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Status Changed",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.SubmittedAt.AddHours(1),
+                        OldValue = "Draft",
+                        NewValue = "UnderReview",
+                        Notes = "Application moved to review queue"
+                    });
+
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Status Changed",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.ReviewStartedAt ?? application.SubmittedAt.AddDays(3),
+                        OldValue = "UnderReview",
+                        NewValue = "InterviewApproved",
+                        Notes = "Application approved for interview stage - good references and thoughtful responses"
+                    });
+                    break;
+
+                case VettingStatus.PendingInterview:
+                    // Draft → UnderReview → InterviewApproved → PendingInterview
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Status Changed",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.SubmittedAt.AddHours(1),
+                        OldValue = "Draft",
+                        NewValue = "UnderReview",
+                        Notes = "Application moved to review queue"
+                    });
+
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Status Changed",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.ReviewStartedAt ?? application.SubmittedAt.AddDays(3),
+                        OldValue = "UnderReview",
+                        NewValue = "InterviewApproved",
+                        Notes = "Application approved for interview stage"
+                    });
+
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Interview Scheduled",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.InterviewScheduledFor?.AddDays(-1) ?? DateTime.UtcNow.AddDays(-1),
+                        OldValue = "InterviewApproved",
+                        NewValue = "PendingInterview",
+                        Notes = $"Interview scheduled for {application.InterviewScheduledFor?.ToString("yyyy-MM-dd HH:mm") ?? "TBD"}"
+                    });
+                    break;
+
+                case VettingStatus.Approved:
+                    // Draft → UnderReview → InterviewApproved → PendingInterview → Approved
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Status Changed",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.SubmittedAt.AddHours(1),
+                        OldValue = "Draft",
+                        NewValue = "UnderReview",
+                        Notes = "Application moved to review queue"
+                    });
+
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Status Changed",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.ReviewStartedAt ?? application.SubmittedAt.AddDays(2),
+                        OldValue = "UnderReview",
+                        NewValue = "InterviewApproved",
+                        Notes = "Application approved for interview stage"
+                    });
+
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Interview Completed",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.DecisionMadeAt?.AddDays(-5) ?? application.SubmittedAt.AddDays(15),
+                        OldValue = "InterviewApproved",
+                        NewValue = "PendingInterview",
+                        Notes = "Interview conducted - excellent candidate with strong community values"
+                    });
+
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Application Approved",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.DecisionMadeAt ?? application.SubmittedAt.AddDays(18),
+                        OldValue = "PendingInterview",
+                        NewValue = "Approved",
+                        Notes = "Application approved for full membership - welcome to the community!"
+                    });
+                    break;
+
+                case VettingStatus.OnHold:
+                    // Draft → UnderReview → OnHold
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Status Changed",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.SubmittedAt.AddHours(1),
+                        OldValue = "Draft",
+                        NewValue = "UnderReview",
+                        Notes = "Application moved to review queue"
+                    });
+
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Status Changed",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.ReviewStartedAt ?? application.SubmittedAt.AddDays(4),
+                        OldValue = "UnderReview",
+                        NewValue = "OnHold",
+                        Notes = "Additional information needed - applicant should complete safety course before proceeding"
+                    });
+                    break;
+
+                case VettingStatus.Denied:
+                    // Draft → UnderReview → Denied
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Status Changed",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.SubmittedAt.AddHours(1),
+                        OldValue = "Draft",
+                        NewValue = "UnderReview",
+                        Notes = "Application moved to review queue"
+                    });
+
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Application Denied",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.DecisionMadeAt ?? application.SubmittedAt.AddDays(7),
+                        OldValue = "UnderReview",
+                        NewValue = "Denied",
+                        Notes = "Application denied - insufficient understanding of consent and safety protocols"
+                    });
+                    break;
+            }
+        }
+
+        await _context.VettingAuditLogs.AddRangeAsync(auditLogs, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Created {Count} vetting audit log entries", auditLogs.Count);
     }
 }
 

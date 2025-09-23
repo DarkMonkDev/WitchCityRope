@@ -56,6 +56,64 @@ public static class VettingEndpoints
             .Produces<ApiResponse<object>>(403)
             .Produces<ApiResponse<object>>(404)
             .Produces<ApiResponse<object>>(500);
+
+        // Direct action endpoints that frontend expects
+        // POST: Approve application
+        group.MapPost("/applications/{id}/approve", ApproveApplication)
+            .WithName("ApproveApplication")
+            .WithSummary("Approve an application")
+            .Produces<ApiResponse<ReviewDecisionResponse>>(200)
+            .Produces<ApiResponse<object>>(400)
+            .Produces<ApiResponse<object>>(403)
+            .Produces<ApiResponse<object>>(404)
+            .Produces<ApiResponse<object>>(500);
+
+        // PUT: Change application status
+        group.MapPut("/applications/{id}/status", ChangeApplicationStatus)
+            .WithName("ChangeApplicationStatus")
+            .WithSummary("Change application status (for OnHold, etc.)")
+            .Produces<ApiResponse<ReviewDecisionResponse>>(200)
+            .Produces<ApiResponse<object>>(400)
+            .Produces<ApiResponse<object>>(403)
+            .Produces<ApiResponse<object>>(404)
+            .Produces<ApiResponse<object>>(500);
+
+        // POST: Add note with simple structure
+        group.MapPost("/applications/{id}/notes", AddSimpleApplicationNote)
+            .WithName("AddSimpleApplicationNote")
+            .WithSummary("Add a simple note to an application")
+            .Produces<ApiResponse<NoteResponse>>(200)
+            .Produces<ApiResponse<object>>(400)
+            .Produces<ApiResponse<object>>(403)
+            .Produces<ApiResponse<object>>(404)
+            .Produces<ApiResponse<object>>(500);
+
+        // POST: Deny application
+        group.MapPost("/applications/{id}/deny", DenyApplication)
+            .WithName("DenyApplication")
+            .WithSummary("Deny an application")
+            .Produces<ApiResponse<ReviewDecisionResponse>>(200)
+            .Produces<ApiResponse<object>>(400)
+            .Produces<ApiResponse<object>>(403)
+            .Produces<ApiResponse<object>>(404)
+            .Produces<ApiResponse<object>>(500);
+
+        // GET: Current user's vetting status
+        group.MapGet("/status", GetVettingStatus)
+            .WithName("GetVettingStatus")
+            .WithSummary("Get current user's vetting status")
+            .Produces<ApiResponse<MyApplicationStatusResponse>>(200)
+            .Produces<ApiResponse<object>>(401)
+            .Produces<ApiResponse<object>>(500);
+
+        // GET: Current user's vetting application details
+        group.MapGet("/application", GetMyVettingApplication)
+            .WithName("GetMyVettingApplication")
+            .WithSummary("Get current user's vetting application details")
+            .Produces<ApiResponse<ApplicationDetailResponse>>(200)
+            .Produces<ApiResponse<object>>(401)
+            .Produces<ApiResponse<object>>(404)
+            .Produces<ApiResponse<object>>(500);
     }
 
     /// <summary>
@@ -341,4 +399,455 @@ public static class VettingEndpoints
             }, statusCode: 500);
         }
     }
+
+    /// <summary>
+    /// Simple approve application endpoint
+    /// POST /api/vetting/applications/{id}/approve
+    /// </summary>
+    private static async Task<IResult> ApproveApplication(
+        Guid id,
+        SimpleReasoningRequest request,
+        IVettingService vettingService,
+        ClaimsPrincipal user,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Extract user ID from JWT claims with fallback for administrators
+            var reviewerIdClaim = user.FindFirst("ReviewerId")?.Value;
+            Guid reviewerId;
+
+            if (!string.IsNullOrEmpty(reviewerIdClaim) && Guid.TryParse(reviewerIdClaim, out reviewerId))
+            {
+                // Use specific reviewer ID if available
+            }
+            else
+            {
+                // Fallback: Use user ID for administrators
+                var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!Guid.TryParse(userIdClaim, out reviewerId))
+                {
+                    return Results.Json(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Error = "User information not found",
+                        Timestamp = DateTime.UtcNow
+                    }, statusCode: 400);
+                }
+            }
+
+            var decisionRequest = new ReviewDecisionRequest
+            {
+                DecisionType = "Approved",
+                Reasoning = request.Reasoning,
+                IsFinalDecision = true
+            };
+
+            var result = await vettingService.SubmitReviewDecisionAsync(id, decisionRequest, reviewerId, cancellationToken);
+
+            if (result.IsSuccess && result.Value != null)
+            {
+                return Results.Ok(new ApiResponse<ReviewDecisionResponse>
+                {
+                    Success = true,
+                    Data = result.Value,
+                    Message = "Application approved successfully",
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+
+            var statusCode = result.Error.Contains("Access denied") ? 403 :
+                           result.Error.Contains("not found") ? 404 : 400;
+
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = result.Error,
+                Details = result.Details,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: statusCode);
+        }
+        catch (Exception ex)
+        {
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = "Failed to approve application",
+                Details = ex.Message,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: 500);
+        }
+    }
+
+    /// <summary>
+    /// Change application status endpoint
+    /// PUT /api/vetting/applications/{id}/status
+    /// </summary>
+    private static async Task<IResult> ChangeApplicationStatus(
+        Guid id,
+        StatusChangeRequest request,
+        IVettingService vettingService,
+        ClaimsPrincipal user,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Extract user ID from JWT claims with fallback for administrators
+            var reviewerIdClaim = user.FindFirst("ReviewerId")?.Value;
+            Guid reviewerId;
+
+            if (!string.IsNullOrEmpty(reviewerIdClaim) && Guid.TryParse(reviewerIdClaim, out reviewerId))
+            {
+                // Use specific reviewer ID if available
+            }
+            else
+            {
+                // Fallback: Use user ID for administrators
+                var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!Guid.TryParse(userIdClaim, out reviewerId))
+                {
+                    return Results.Json(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Error = "User information not found",
+                        Timestamp = DateTime.UtcNow
+                    }, statusCode: 400);
+                }
+            }
+
+            var decisionRequest = new ReviewDecisionRequest
+            {
+                DecisionType = request.Status,
+                Reasoning = request.Reasoning,
+                IsFinalDecision = false
+            };
+
+            var result = await vettingService.SubmitReviewDecisionAsync(id, decisionRequest, reviewerId, cancellationToken);
+
+            if (result.IsSuccess && result.Value != null)
+            {
+                return Results.Ok(new ApiResponse<ReviewDecisionResponse>
+                {
+                    Success = true,
+                    Data = result.Value,
+                    Message = "Application status updated successfully",
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+
+            var statusCode = result.Error.Contains("Access denied") ? 403 :
+                           result.Error.Contains("not found") ? 404 : 400;
+
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = result.Error,
+                Details = result.Details,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: statusCode);
+        }
+        catch (Exception ex)
+        {
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = "Failed to change application status",
+                Details = ex.Message,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: 500);
+        }
+    }
+
+    /// <summary>
+    /// Add simple note to application endpoint
+    /// POST /api/vetting/applications/{id}/notes
+    /// </summary>
+    private static async Task<IResult> AddSimpleApplicationNote(
+        Guid id,
+        SimpleNoteRequest request,
+        IVettingService vettingService,
+        ClaimsPrincipal user,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Extract user ID from JWT claims with fallback for administrators
+            var reviewerIdClaim = user.FindFirst("ReviewerId")?.Value;
+            Guid reviewerId;
+
+            if (!string.IsNullOrEmpty(reviewerIdClaim) && Guid.TryParse(reviewerIdClaim, out reviewerId))
+            {
+                // Use specific reviewer ID if available
+            }
+            else
+            {
+                // Fallback: Use user ID for administrators
+                var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!Guid.TryParse(userIdClaim, out reviewerId))
+                {
+                    return Results.Json(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Error = "User information not found",
+                        Timestamp = DateTime.UtcNow
+                    }, statusCode: 400);
+                }
+            }
+
+            var noteRequest = new CreateNoteRequest
+            {
+                Content = request.Note,
+                Type = 1, // General note
+                IsPrivate = request.IsPrivate ?? true,
+                Tags = request.Tags ?? new List<string>()
+            };
+
+            var result = await vettingService.AddApplicationNoteAsync(id, noteRequest, reviewerId, cancellationToken);
+
+            if (result.IsSuccess && result.Value != null)
+            {
+                return Results.Ok(new ApiResponse<NoteResponse>
+                {
+                    Success = true,
+                    Data = result.Value,
+                    Message = "Note added successfully",
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+
+            var statusCode = result.Error.Contains("Access denied") ? 403 :
+                           result.Error.Contains("not found") ? 404 : 400;
+
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = result.Error,
+                Details = result.Details,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: statusCode);
+        }
+        catch (Exception ex)
+        {
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = "Failed to add note",
+                Details = ex.Message,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: 500);
+        }
+    }
+
+    /// <summary>
+    /// Deny application endpoint
+    /// POST /api/vetting/applications/{id}/deny
+    /// </summary>
+    private static async Task<IResult> DenyApplication(
+        Guid id,
+        SimpleReasoningRequest request,
+        IVettingService vettingService,
+        ClaimsPrincipal user,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Extract user ID from JWT claims with fallback for administrators
+            var reviewerIdClaim = user.FindFirst("ReviewerId")?.Value;
+            Guid reviewerId;
+
+            if (!string.IsNullOrEmpty(reviewerIdClaim) && Guid.TryParse(reviewerIdClaim, out reviewerId))
+            {
+                // Use specific reviewer ID if available
+            }
+            else
+            {
+                // Fallback: Use user ID for administrators
+                var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!Guid.TryParse(userIdClaim, out reviewerId))
+                {
+                    return Results.Json(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Error = "User information not found",
+                        Timestamp = DateTime.UtcNow
+                    }, statusCode: 400);
+                }
+            }
+
+            var decisionRequest = new ReviewDecisionRequest
+            {
+                DecisionType = "Denied",
+                Reasoning = request.Reasoning,
+                IsFinalDecision = true
+            };
+
+            var result = await vettingService.SubmitReviewDecisionAsync(id, decisionRequest, reviewerId, cancellationToken);
+
+            if (result.IsSuccess && result.Value != null)
+            {
+                return Results.Ok(new ApiResponse<ReviewDecisionResponse>
+                {
+                    Success = true,
+                    Data = result.Value,
+                    Message = "Application denied successfully",
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+
+            var statusCode = result.Error.Contains("Access denied") ? 403 :
+                           result.Error.Contains("not found") ? 404 : 400;
+
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = result.Error,
+                Details = result.Details,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: statusCode);
+        }
+        catch (Exception ex)
+        {
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = "Failed to deny application",
+                Details = ex.Message,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: 500);
+        }
+    }
+
+    /// <summary>
+    /// Get current user's vetting status
+    /// GET /api/vetting/status
+    /// </summary>
+    private static async Task<IResult> GetVettingStatus(
+        IVettingService vettingService,
+        ClaimsPrincipal user,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Extract user ID from JWT claims
+            var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdClaim, out var userId))
+            {
+                return Results.Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Error = "User information not found",
+                    Timestamp = DateTime.UtcNow
+                }, statusCode: 401);
+            }
+
+            var result = await vettingService.GetMyApplicationStatusAsync(userId, cancellationToken);
+
+            if (result.IsSuccess && result.Value != null)
+            {
+                return Results.Ok(new ApiResponse<MyApplicationStatusResponse>
+                {
+                    Success = true,
+                    Data = result.Value,
+                    Message = "Vetting status retrieved successfully",
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = result.Error,
+                Details = result.Details,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: 500);
+        }
+        catch (Exception ex)
+        {
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = "Failed to retrieve vetting status",
+                Details = ex.Message,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: 500);
+        }
+    }
+
+    /// <summary>
+    /// Get current user's vetting application details
+    /// GET /api/vetting/application
+    /// </summary>
+    private static async Task<IResult> GetMyVettingApplication(
+        IVettingService vettingService,
+        ClaimsPrincipal user,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Extract user ID from JWT claims
+            var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdClaim, out var userId))
+            {
+                return Results.Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Error = "User information not found",
+                    Timestamp = DateTime.UtcNow
+                }, statusCode: 401);
+            }
+
+            var result = await vettingService.GetMyApplicationDetailAsync(userId, cancellationToken);
+
+            if (result.IsSuccess && result.Value != null)
+            {
+                return Results.Ok(new ApiResponse<ApplicationDetailResponse>
+                {
+                    Success = true,
+                    Data = result.Value,
+                    Message = "Application details retrieved successfully",
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+
+            var statusCode = result.Error.Contains("not found") ? 404 : 500;
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = result.Error,
+                Details = result.Details,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: statusCode);
+        }
+        catch (Exception ex)
+        {
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = "Failed to retrieve application details",
+                Details = ex.Message,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: 500);
+        }
+    }
+}
+
+/// <summary>
+/// Simple request models for frontend compatibility
+/// </summary>
+public class SimpleReasoningRequest
+{
+    public string Reasoning { get; set; } = string.Empty;
+}
+
+public class StatusChangeRequest
+{
+    public string Status { get; set; } = string.Empty;
+    public string Reasoning { get; set; } = string.Empty;
+}
+
+public class SimpleNoteRequest
+{
+    public string Note { get; set; } = string.Empty;
+    public bool? IsPrivate { get; set; }
+    public List<string>? Tags { get; set; }
 }

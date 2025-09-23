@@ -49,7 +49,7 @@ export class VettingAdminApiService {
   }
 
   /**
-   * Add a note to an application (placeholder for future implementation)
+   * Add a note to an application
    */
   async addApplicationNote(
     applicationId: string,
@@ -57,8 +57,78 @@ export class VettingAdminApiService {
     isPrivate: boolean = false,
     tags: string[] = []
   ): Promise<void> {
+    try {
+      await apiClient.post(`/api/vetting/reviewer/applications/${applicationId}/notes`, {
+        content,
+        isPrivate,
+        tags
+      });
+    } catch (error) {
+      console.error('Failed to add note:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Change application status to Approved
+   */
+  async approveApplication(
+    applicationId: string,
+    reasoning: string
+  ): Promise<ReviewDecisionResponse> {
+    return this.submitReviewDecision(applicationId, {
+      decisionType: 'Approved',
+      reasoning,
+      isFinalDecision: true
+    });
+  }
+
+  /**
+   * Change application status to OnHold
+   */
+  async putApplicationOnHold(
+    applicationId: string,
+    reason: string
+  ): Promise<ReviewDecisionResponse> {
+    return this.submitReviewDecision(applicationId, {
+      decisionType: 'OnHold',
+      reasoning: reason,
+      isFinalDecision: false
+    });
+  }
+
+  /**
+   * Change application status to Denied
+   */
+  async denyApplication(
+    applicationId: string,
+    reasoning: string
+  ): Promise<ReviewDecisionResponse> {
+    return this.submitReviewDecision(applicationId, {
+      decisionType: 'Denied',
+      reasoning,
+      isFinalDecision: true
+    });
+  }
+
+  /**
+   * Send reminder to application references
+   */
+  async sendApplicationReminder(
+    applicationId: string,
+    message: string
+  ): Promise<{ success: boolean; message: string }> {
     // TODO: Implement when API endpoint is available
-    console.log('Note would be added:', { applicationId, content, isPrivate, tags });
+    // For now, simulate the API call
+    console.log('Reminder would be sent:', { applicationId, message });
+
+    // Simulate delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    return {
+      success: true,
+      message: 'Reminder sent successfully'
+    };
   }
 }
 

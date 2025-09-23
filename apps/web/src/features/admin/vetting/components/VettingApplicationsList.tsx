@@ -37,7 +37,7 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
   const [filters, setFilters] = useState<ApplicationFilterRequest>({
     page: 1,
     pageSize: 25,
-    statusFilters: ['InReview', 'InterviewScheduled', 'PendingReferences'], // Default checked statuses
+    statusFilters: ['UnderReview', 'InterviewApproved', 'PendingInterview'], // Default checked statuses
     priorityFilters: [],
     experienceLevelFilters: [],
     skillsFilters: [],
@@ -107,12 +107,12 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
   };
 
   const statusOptions = [
-    { value: 'InReview', label: 'Under Review' },
-    { value: 'PendingReferences', label: 'Approved for Interview' },
-    { value: 'InterviewScheduled', label: 'Interview Scheduled' },
+    { value: 'UnderReview', label: 'Under Review' },
+    { value: 'InterviewApproved', label: 'Approved for Interview' },
+    { value: 'PendingInterview', label: 'Pending Interview' },
     { value: 'Approved', label: 'Approved' },
     { value: 'OnHold', label: 'On Hold' },
-    { value: 'Rejected', label: 'Denied' }
+    { value: 'Denied', label: 'Denied' }
   ];
 
 
@@ -138,6 +138,7 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
       <Paper p="md" radius="md" style={{ background: '#FFF8F0' }}>
         <Group gap="md" wrap="wrap" justify="space-between">
           <TextInput
+            data-testid="search-input"
             placeholder="Search by name, email, or scene name..."
             leftSection={<IconSearch size={16} />}
             value={filters.searchQuery || ''}
@@ -156,6 +157,7 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
 
           <Group gap="md">
             <MultiSelect
+              data-testid="status-filter"
               placeholder="Select status filters"
               data={statusOptions}
               value={filters.statusFilters}
@@ -178,8 +180,8 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
       {/* Results Summary - Removed as requested */}
 
       {/* Applications Table - Exactly matching wireframe */}
-      <Paper shadow="sm" radius="md">
-        <Table striped highlightOnHover>
+      <Paper shadow="sm" radius="md" data-testid="vetting-applications-table">
+        <Table striped highlightOnHover data-testid="applications-table">
           <Table.Thead
             style={{
               backgroundColor: '#880124',
@@ -203,45 +205,39 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
               </Table.Th>
 
               {/* Name column - sortable */}
-              <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none' }}>
-                <Button
-                  variant="transparent"
-                  size="compact-sm"
-                  onClick={() => handleSort('RealName')}
-                  rightSection={getSortIcon('RealName')}
-                  styles={{
-                    root: {
-                      fontWeight: 600,
-                      fontSize: 14,
+              <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none', cursor: 'pointer' }} onClick={() => handleSort('RealName')}>
+                <Group gap={4} justify="flex-start">
+                  <Text
+                    fw={600}
+                    size="sm"
+                    style={{
                       color: 'white',
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px'
-                    }
-                  }}
-                >
-                  NAME
-                </Button>
+                    }}
+                  >
+                    NAME
+                  </Text>
+                  {getSortIcon('RealName')}
+                </Group>
               </Table.Th>
 
               {/* FetLife Name column - sortable */}
-              <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none' }}>
-                <Button
-                  variant="transparent"
-                  size="compact-sm"
-                  onClick={() => handleSort('FetLifeHandle')}
-                  rightSection={getSortIcon('FetLifeHandle')}
-                  styles={{
-                    root: {
-                      fontWeight: 600,
-                      fontSize: 14,
+              <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none', cursor: 'pointer' }} onClick={() => handleSort('FetLifeHandle')}>
+                <Group gap={4} justify="flex-start">
+                  <Text
+                    fw={600}
+                    size="sm"
+                    style={{
                       color: 'white',
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px'
-                    }
-                  }}
-                >
-                  FETLIFE NAME
-                </Button>
+                    }}
+                  >
+                    FETLIFE NAME
+                  </Text>
+                  {getSortIcon('FetLifeHandle')}
+                </Group>
               </Table.Th>
 
               {/* Email column */}
@@ -260,24 +256,21 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
               </Table.Th>
 
               {/* Application Date column - sortable */}
-              <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none' }}>
-                <Button
-                  variant="transparent"
-                  size="compact-sm"
-                  onClick={() => handleSort('SubmittedAt')}
-                  rightSection={getSortIcon('SubmittedAt')}
-                  styles={{
-                    root: {
-                      fontWeight: 600,
-                      fontSize: 14,
+              <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none', cursor: 'pointer' }} onClick={() => handleSort('SubmittedAt')}>
+                <Group gap={4} justify="center">
+                  <Text
+                    fw={600}
+                    size="sm"
+                    style={{
                       color: 'white',
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px'
-                    }
-                  }}
-                >
-                  APPLICATION DATE
-                </Button>
+                    }}
+                  >
+                    APPLICATION DATE
+                  </Text>
+                  {getSortIcon('SubmittedAt')}
+                </Group>
               </Table.Th>
 
               {/* Current Status column */}
@@ -300,7 +293,12 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
             {data?.items.map((application) => (
               <Table.Tr
                 key={application.id}
-                onClick={() => handleRowClick(application.id)}
+                onClick={(event) => {
+                  // Only navigate if clicking on the row itself, not the checkbox
+                  if (!(event.target as HTMLElement).closest('input[type="checkbox"]')) {
+                    handleRowClick(application.id);
+                  }
+                }}
                 style={{
                   cursor: 'pointer',
                   backgroundColor: selectedApplications.has(application.id) ? '#f0f8ff' : undefined

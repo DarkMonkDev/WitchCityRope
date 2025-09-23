@@ -15,49 +15,128 @@ export const vettingKeys = {
 const sampleApplications: ApplicationSummaryDto[] = [
   {
     id: '1',
-    sceneName: 'Alex Rivers',
-    status: 'New',
+    applicationNumber: 'APP-2025-001',
+    status: 'UnderReview',
     submittedAt: '2025-01-15T08:00:00Z',
-    realName: 'Alex Rivers',
-    fetLifeHandle: '@RiversideRopes',
-    email: 'alex.rivers@example.com'
-  } as ApplicationSummaryDto,
+    lastActivityAt: '2025-01-15T08:00:00Z',
+    sceneName: 'Alex Rivers',
+    experienceLevel: 'Beginner',
+    yearsExperience: 1,
+    isAnonymous: false,
+    assignedReviewerName: 'Admin User',
+    reviewStartedAt: '2025-01-15T08:30:00Z',
+    priority: 1,
+    daysInCurrentStatus: 8,
+    referenceStatus: {
+      totalReferences: 2,
+      contactedReferences: 2,
+      respondedReferences: 1,
+      allReferencesComplete: false,
+      oldestPendingReferenceDate: '2025-01-15T08:00:00Z'
+    },
+    hasRecentNotes: false,
+    hasPendingActions: true,
+    skillsTags: ['Beginner', 'Rope']
+  },
   {
     id: '2',
-    sceneName: 'Morgan Chen',
-    status: 'InterviewScheduled',
+    applicationNumber: 'APP-2025-002',
+    status: 'InterviewApproved',
     submittedAt: '2025-01-10T14:30:00Z',
-    realName: 'Morgan Chen',
-    fetLifeHandle: '@MorganRopes',
-    email: 'morgan.chen@example.com'
-  } as ApplicationSummaryDto,
+    lastActivityAt: '2025-01-12T10:00:00Z',
+    sceneName: 'Morgan Chen',
+    experienceLevel: 'Intermediate',
+    yearsExperience: 3,
+    isAnonymous: false,
+    assignedReviewerName: 'Admin User',
+    reviewStartedAt: '2025-01-10T15:00:00Z',
+    priority: 2,
+    daysInCurrentStatus: 11,
+    referenceStatus: {
+      totalReferences: 2,
+      contactedReferences: 2,
+      respondedReferences: 2,
+      allReferencesComplete: true
+    },
+    hasRecentNotes: true,
+    hasPendingActions: true,
+    interviewScheduledFor: '2025-01-25T14:00:00Z',
+    skillsTags: ['Intermediate', 'Rope', 'Community']
+  },
   {
     id: '3',
-    sceneName: 'Jamie Torres',
-    status: 'InReview',
+    applicationNumber: 'APP-2025-003',
+    status: 'PendingInterview',
     submittedAt: '2025-01-08T10:15:00Z',
-    realName: 'Jamie Torres',
-    fetLifeHandle: '@JamieTorres_Rope',
-    email: 'jamie.torres@example.com'
-  } as ApplicationSummaryDto,
+    lastActivityAt: '2025-01-10T16:20:00Z',
+    sceneName: 'Jamie Torres',
+    experienceLevel: 'Advanced',
+    yearsExperience: 5,
+    isAnonymous: false,
+    assignedReviewerName: 'Admin User',
+    reviewStartedAt: '2025-01-08T11:00:00Z',
+    priority: 1,
+    daysInCurrentStatus: 13,
+    referenceStatus: {
+      totalReferences: 3,
+      contactedReferences: 3,
+      respondedReferences: 2,
+      allReferencesComplete: false,
+      oldestPendingReferenceDate: '2025-01-08T10:15:00Z'
+    },
+    hasRecentNotes: false,
+    hasPendingActions: true,
+    skillsTags: ['Advanced', 'Teaching', 'Community']
+  },
   {
     id: '4',
-    sceneName: 'Sam Martinez',
-    status: 'PendingReferences',
+    applicationNumber: 'APP-2025-004',
+    status: 'OnHold',
     submittedAt: '2025-01-05T16:45:00Z',
-    realName: 'Sam Martinez',
-    fetLifeHandle: '@SamMartinez_Rope',
-    email: 'sam.martinez@example.com'
-  } as ApplicationSummaryDto,
+    lastActivityAt: '2025-01-07T09:00:00Z',
+    sceneName: 'Sam Martinez',
+    experienceLevel: 'Beginner',
+    yearsExperience: 0,
+    isAnonymous: false,
+    assignedReviewerName: 'Admin User',
+    reviewStartedAt: '2025-01-05T17:00:00Z',
+    priority: 3,
+    daysInCurrentStatus: 16,
+    referenceStatus: {
+      totalReferences: 1,
+      contactedReferences: 1,
+      respondedReferences: 0,
+      allReferencesComplete: false,
+      oldestPendingReferenceDate: '2025-01-05T16:45:00Z'
+    },
+    hasRecentNotes: true,
+    hasPendingActions: false,
+    skillsTags: ['Beginner']
+  },
   {
     id: '5',
-    sceneName: 'Casey Wilson',
+    applicationNumber: 'APP-2025-005',
     status: 'Approved',
     submittedAt: '2025-01-01T09:00:00Z',
-    realName: 'Casey Wilson',
-    fetLifeHandle: '@CaseyWilsonBOS',
-    email: 'casey.wilson@example.com'
-  } as ApplicationSummaryDto
+    lastActivityAt: '2025-01-03T14:00:00Z',
+    sceneName: 'Casey Wilson',
+    experienceLevel: 'Intermediate',
+    yearsExperience: 2,
+    isAnonymous: false,
+    assignedReviewerName: 'Admin User',
+    reviewStartedAt: '2025-01-01T10:00:00Z',
+    priority: 1,
+    daysInCurrentStatus: 20,
+    referenceStatus: {
+      totalReferences: 2,
+      contactedReferences: 2,
+      respondedReferences: 2,
+      allReferencesComplete: true
+    },
+    hasRecentNotes: false,
+    hasPendingActions: false,
+    skillsTags: ['Intermediate', 'Performance']
+  }
 ];
 
 export function useVettingApplications(filters: ApplicationFilterRequest) {
@@ -73,7 +152,7 @@ export function useVettingApplications(filters: ApplicationFilterRequest) {
             items: sampleApplications,
             totalCount: sampleApplications.length,
             pageSize: filters.pageSize,
-            currentPage: filters.page,
+            pageNumber: filters.page,
             totalPages: Math.ceil(sampleApplications.length / filters.pageSize)
           };
         }
@@ -86,7 +165,7 @@ export function useVettingApplications(filters: ApplicationFilterRequest) {
           items: sampleApplications,
           totalCount: sampleApplications.length,
           pageSize: filters.pageSize,
-          currentPage: filters.page,
+          pageNumber: filters.page,
           totalPages: Math.ceil(sampleApplications.length / filters.pageSize)
         };
       }

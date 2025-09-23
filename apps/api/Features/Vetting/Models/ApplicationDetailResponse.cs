@@ -42,13 +42,23 @@ public class ApplicationDetailResponse
     public DateTime? ReviewStartedAt { get; set; }
     public int Priority { get; set; }
     public DateTime? InterviewScheduledFor { get; set; }
-    
+
     // References
     public List<ReferenceDetailDto> References { get; set; } = new();
-    
+
     // Notes and Decisions
     public List<ApplicationNoteDto> Notes { get; set; } = new();
     public List<ReviewDecisionDto> Decisions { get; set; } = new();
+
+    // Workflow History
+    public List<WorkflowHistoryDto> WorkflowHistory { get; set; } = new();
+
+    // Additional fields for simplified responses
+    public string? AdminNotes { get; set; }
+    public List<string> Tags { get; set; } = new();
+    public List<string> Attachments { get; set; } = new();
+    public DateTime UpdatedAt { get; set; }
+    public Guid ApplicationId { get; set; }
 }
 
 /// <summary>
@@ -115,4 +125,15 @@ public class ReviewDecisionDto
     public string? InterviewNotes { get; set; }
     public string ReviewerName { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
+}
+
+/// <summary>
+/// Workflow history entry showing application status changes
+/// </summary>
+public class WorkflowHistoryDto
+{
+    public string Action { get; set; } = string.Empty;
+    public DateTime PerformedAt { get; set; }
+    public string PerformedBy { get; set; } = string.Empty;
+    public string? Notes { get; set; }
 }

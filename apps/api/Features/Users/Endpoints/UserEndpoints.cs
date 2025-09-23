@@ -17,7 +17,7 @@ public static class UserEndpoints
     /// </summary>
     public static void MapUserEndpoints(this IEndpointRouteBuilder app)
     {
-        // Get current user profile (authenticated users)
+        // Get current user profile (authenticated users) - plural endpoint
         app.MapGet("/api/users/profile", async (
             UserManagementService userService,
             ClaimsPrincipal user,
@@ -36,7 +36,7 @@ public static class UserEndpoints
 
                 var (success, response, error) = await userService.GetProfileAsync(userId, cancellationToken);
 
-                return success 
+                return success
                     ? Results.Ok(response)
                     : Results.Problem(
                         title: "Get Profile Failed",
@@ -46,6 +46,42 @@ public static class UserEndpoints
             .RequireAuthorization() // Requires JWT Bearer token authentication
             .WithName("GetUserProfile")
             .WithSummary("Get current user profile")
+            .WithDescription("Returns the current user's profile information based on JWT token")
+            .WithTags("Users")
+            .Produces<UserDto>(200)
+            .Produces(401)
+            .Produces(404)
+            .Produces(500);
+
+        // Get current user profile (authenticated users) - singular endpoint for E2E tests
+        app.MapGet("/api/user/profile", async (
+            UserManagementService userService,
+            ClaimsPrincipal user,
+            CancellationToken cancellationToken) =>
+            {
+                // Extract user ID from JWT token claims
+                var userId = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Results.Problem(
+                        title: "Invalid Token",
+                        detail: "User ID not found in token claims",
+                        statusCode: 401);
+                }
+
+                var (success, response, error) = await userService.GetProfileAsync(userId, cancellationToken);
+
+                return success
+                    ? Results.Ok(response)
+                    : Results.Problem(
+                        title: "Get Profile Failed",
+                        detail: error,
+                        statusCode: response == null ? 404 : 500);
+            })
+            .RequireAuthorization() // Requires JWT Bearer token authentication
+            .WithName("GetUserProfileSingular")
+            .WithSummary("Get current user profile (singular endpoint)")
             .WithDescription("Returns the current user's profile information based on JWT token")
             .WithTags("Users")
             .Produces<UserDto>(200)
