@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Table,
@@ -34,7 +34,7 @@ interface VettingApplicationsListProps {
 
 export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = ({ onSelectionChange }) => {
   const navigate = useNavigate();
-  const [filters, setFilters] = useState<ApplicationFilterRequest>({
+  const [filters, setFilters] = useState<ApplicationFilterRequest>(() => ({
     page: 1,
     pageSize: 25,
     statusFilters: ['UnderReview', 'InterviewApproved', 'PendingInterview'], // Default checked statuses
@@ -44,7 +44,7 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
     searchQuery: '',
     sortBy: 'SubmittedAt',
     sortDirection: 'Desc'
-  });
+  }));
 
   // Bulk selection state
   const [selectedApplications, setSelectedApplications] = useState<Set<string>>(new Set());
@@ -60,24 +60,24 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
     }
   }, [selectedApplications, data?.items, onSelectionChange]);
 
-  const handleFilterChange = (field: keyof ApplicationFilterRequest, value: any) => {
+  const handleFilterChange = useCallback((field: keyof ApplicationFilterRequest, value: any) => {
     setFilters(prev => ({
       ...prev,
       [field]: value,
       page: field !== 'page' ? 1 : value // Reset to page 1 when filters change
     }));
-  };
+  }, []);
 
-  const handleSort = (field: string) => {
+  const handleSort = useCallback((field: string) => {
     setFilters(prev => ({
       ...prev,
       sortBy: field,
       sortDirection: prev.sortBy === field && prev.sortDirection === 'Asc' ? 'Desc' : 'Asc'
     }));
-  };
+  }, []);
 
   // Bulk selection handlers
-  const handleSelectAll = (checked: boolean) => {
+  const handleSelectAll = useCallback((checked: boolean) => {
     setSelectAll(checked);
     if (checked) {
       const allIds = new Set(data?.items.map(app => app.id) || []);
@@ -85,9 +85,9 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
     } else {
       setSelectedApplications(new Set());
     }
-  };
+  }, [data?.items]);
 
-  const handleSelectApplication = (applicationId: string, checked: boolean) => {
+  const handleSelectApplication = useCallback((applicationId: string, checked: boolean) => {
     const newSelected = new Set(selectedApplications);
     if (checked) {
       newSelected.add(applicationId);
@@ -96,32 +96,43 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
       setSelectAll(false); // Uncheck "select all" if individual item is unchecked
     }
     setSelectedApplications(newSelected);
-  };
+  }, [selectedApplications]);
 
-  const handleRowClick = (applicationId: string) => {
-    // Navigate to detail page instead of calling onViewItem callback
-    navigate(`/admin/vetting/applications/${applicationId}`);
-  };
+  const handleRowClick = useCallback((applicationId: string) => {
+    console.log('VettingApplicationsList: Row click navigation:', {
+      applicationId,
+      url: `/admin/vetting/applications/${applicationId}`,
+      timestamp: new Date().toISOString()
+    });
 
-  const formatDate = (dateString: string) => {
+    try {
+      // Navigate to detail page instead of calling onViewItem callback
+      navigate(`/admin/vetting/applications/${applicationId}`);
+      console.log('VettingApplicationsList: Navigation called successfully');
+    } catch (error) {
+      console.error('VettingApplicationsList: Navigation failed:', error);
+    }
+  }, [navigate]);
+
+  const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString();
-  };
+  }, []);
 
-  const getSortIcon = (field: string) => {
+  const getSortIcon = useCallback((field: string) => {
     if (filters.sortBy !== field) return null;
     return filters.sortDirection === 'Asc' ?
       <IconSortAscending size={16} /> :
       <IconSortDescending size={16} />;
-  };
+  }, [filters.sortBy, filters.sortDirection]);
 
-  const statusOptions = [
+  const statusOptions = useMemo(() => [
     { value: 'UnderReview', label: 'Under Review' },
     { value: 'InterviewApproved', label: 'Approved for Interview' },
     { value: 'PendingInterview', label: 'Pending Interview' },
     { value: 'Approved', label: 'Approved' },
     { value: 'OnHold', label: 'On Hold' },
     { value: 'Denied', label: 'Denied' }
-  ];
+  ], []);
 
 
   if (error) {
@@ -304,7 +315,10 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
                 onClick={(event) => {
                   // Only navigate if clicking on the row itself, not the checkbox
                   if (!(event.target as HTMLElement).closest('input[type="checkbox"]')) {
+                    console.log('Row clicked, initiating navigation:', application.id);
                     handleRowClick(application.id);
+                  } else {
+                    console.log('Checkbox clicked, skipping navigation');
                   }
                 }}
                 style={{

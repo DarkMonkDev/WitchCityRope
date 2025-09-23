@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Container, Button, Group, Title, Text, Alert, Stack } from '@mantine/core';
 import { IconArrowLeft, IconAlertCircle } from '@tabler/icons-react';
@@ -30,6 +30,15 @@ export const AdminVettingApplicationDetailPage: React.FC = () => {
     params: useParams(),
     timestamp: new Date().toISOString()
   });
+
+  // Add effect to track route changes
+  useEffect(() => {
+    console.log('AdminVettingApplicationDetailPage mounted/updated:', {
+      applicationId,
+      pathname: location.pathname,
+      timestamp: new Date().toISOString()
+    });
+  }, [applicationId, location.pathname]);
 
   if (!applicationId) {
     return (

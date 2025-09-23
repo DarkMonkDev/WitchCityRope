@@ -8,7 +8,8 @@ export function useVettingApplicationDetail(applicationId: string) {
     queryKey: vettingKeys.applicationDetail(applicationId),
     queryFn: () => vettingAdminApi.getApplicationDetail(applicationId),
     enabled: !!applicationId,
-    staleTime: 30 * 1000, // 30 seconds - fresher data for detail view
+    staleTime: 2 * 60 * 1000, // 2 minutes - reduce aggressive refetching
     refetchOnWindowFocus: false,
+    refetchOnMount: false, // Only refetch if data is stale
   });
 }

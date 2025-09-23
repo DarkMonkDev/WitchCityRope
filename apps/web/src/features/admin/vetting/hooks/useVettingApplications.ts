@@ -66,8 +66,9 @@ export function useVettingApplications(filters: ApplicationFilterRequest) {
         throw error;
       }
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes - reduce memory pressure
     refetchOnWindowFocus: false,
+    refetchOnMount: false, // Only refetch if data is stale
     placeholderData: (previousData) => previousData,
     // Ensure errors are thrown instead of silently returning fallback data
     throwOnError: true,
