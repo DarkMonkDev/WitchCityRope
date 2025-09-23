@@ -113,9 +113,13 @@ describe('VettingApplicationsList', () => {
         totalCount: 2,
         page: 1,
         pageSize: 25,
-        totalPages: 1
+        totalPages: 1,
+        hasPreviousPage: false,
+        hasNextPage: false
       },
       isLoading: false,
+      isError: false,
+      isSuccess: true,
       error: null,
       refetch: vi.fn(),
     });
@@ -221,9 +225,13 @@ describe('VettingApplicationsList', () => {
         totalCount: 50, // More than one page
         page: 1,
         pageSize: 25,
-        totalPages: 2
+        totalPages: 2,
+        hasPreviousPage: false,
+        hasNextPage: true
       },
       isLoading: false,
+      isError: false,
+      isSuccess: true,
       error: null,
       refetch: vi.fn(),
     });
@@ -275,6 +283,8 @@ describe('VettingApplicationsList', () => {
     mockUseVettingApplications.mockReturnValue({
       data: undefined,
       isLoading: true,
+      isError: false,
+      isSuccess: false,
       error: null,
       refetch: vi.fn(),
     });
@@ -289,6 +299,8 @@ describe('VettingApplicationsList', () => {
     mockUseVettingApplications.mockReturnValue({
       data: undefined,
       isLoading: false,
+      isError: true,
+      isSuccess: false,
       error: new Error('Failed to load applications'),
       refetch: mockRefetch,
     });
@@ -310,9 +322,13 @@ describe('VettingApplicationsList', () => {
         totalCount: 0,
         page: 1,
         pageSize: 25,
-        totalPages: 0
+        totalPages: 0,
+        hasPreviousPage: false,
+        hasNextPage: false
       },
       isLoading: false,
+      isError: false,
+      isSuccess: true,
       error: null,
       refetch: vi.fn(),
     });
@@ -330,9 +346,13 @@ describe('VettingApplicationsList', () => {
         totalCount: 0,
         page: 1,
         pageSize: 25,
-        totalPages: 0
+        totalPages: 0,
+        hasPreviousPage: false,
+        hasNextPage: false
       },
       isLoading: false,
+      isError: false,
+      isSuccess: true,
       error: null,
       refetch: vi.fn(),
     });

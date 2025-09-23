@@ -13,6 +13,7 @@ export interface EventParticipationDto {
   participationDate: string
   notes?: string
   canCancel: boolean
+  metadata?: string | null
 }
 
 /**

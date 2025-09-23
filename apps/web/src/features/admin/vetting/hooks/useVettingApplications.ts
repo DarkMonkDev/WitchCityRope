@@ -34,8 +34,10 @@ export function useVettingApplications(filters: ApplicationFilterRequest) {
             items: [],
             totalCount: 0,
             pageSize: filters.pageSize,
-            pageNumber: filters.page,
-            totalPages: 0
+            page: filters.page,
+            totalPages: 0,
+            hasPreviousPage: false,
+            hasNextPage: false
           };
         }
 

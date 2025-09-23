@@ -18,6 +18,10 @@
 | 2025-09-23 | /test-results/vetting-page.png | CREATED | Screenshot of vetting page with burgundy headers | Vetting System Verification | TEMPORARY | 2025-09-30 |
 | 2025-09-23 | /test-results/put-on-hold-modal.png | CREATED | Screenshot of PUT ON HOLD modal functionality | Vetting System Verification | TEMPORARY | 2025-09-30 |
 | 2025-09-23 | /test-results/send-reminder-modal.png | CREATED | Screenshot of SEND REMINDER modal functionality | Vetting System Verification | TEMPORARY | 2025-09-30 |
+| 2025-09-23 | `/apps/web/src/lib/api/hooks/useEventParticipations.ts` | MODIFIED | Added missing `metadata?: string \| null` property to EventParticipationDto interface | DTO alignment fixes - critical E2E blocking errors | ACTIVE | - |
+| 2025-09-23 | `/apps/web/src/features/admin/vetting/types/vetting.types.ts` | MODIFIED | Fixed PagedResult interface: changed `pageNumber` to `page` and added `hasPreviousPage`, `hasNextPage` properties | DTO alignment fixes - critical E2E blocking errors | ACTIVE | - |
+| 2025-09-23 | `/apps/web/src/features/admin/vetting/hooks/useVettingApplications.ts` | MODIFIED | Updated empty result object to use `page` instead of `pageNumber` and added missing pagination properties | DTO alignment fixes - critical E2E blocking errors | ACTIVE | - |
+| 2025-09-23 | `/apps/web/src/features/admin/vetting/components/__tests__/VettingApplicationsList.test.tsx` | MODIFIED | Fixed all mock objects to include missing properties: `hasPreviousPage`, `hasNextPage`, `isError`, `isSuccess` | DTO alignment fixes - critical E2E blocking errors | ACTIVE | - |
 | 2025-09-23 | /test-results/select-all-state.png | CREATED | Screenshot of select-all checkbox functionality | Vetting System Verification | TEMPORARY | 2025-09-30 |
 | 2025-09-23 | /tests/playwright/vetting-verification.spec.js | CREATED + DELETED | Temporary test file for vetting verification | Vetting System Verification | CLEANED_UP | N/A |
 | 2025-09-23 | /tests/playwright/quick-app-check.spec.js | CREATED + DELETED | Temporary test file for React app health check | Vetting System Verification | CLEANED_UP | N/A |
