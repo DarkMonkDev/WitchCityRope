@@ -29,10 +29,10 @@ import { VettingStatusBadge } from './VettingStatusBadge';
 import type { ApplicationSummaryDto, ApplicationFilterRequest } from '../types/vetting.types';
 
 interface VettingApplicationsListProps {
-  // No props needed - component handles navigation internally
+  onSelectionChange?: (selectedIds: Set<string>, applicationsData: any[]) => void;
 }
 
-export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = () => {
+export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = ({ onSelectionChange }) => {
   const navigate = useNavigate();
   const [filters, setFilters] = useState<ApplicationFilterRequest>({
     page: 1,
@@ -51,6 +51,14 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
   const [selectAll, setSelectAll] = useState(false);
 
   const { data, isLoading, error, refetch } = useVettingApplications(filters);
+
+  // Notify parent component when selection changes
+  React.useEffect(() => {
+    if (onSelectionChange && data?.items) {
+      const selectedData = data.items.filter(app => selectedApplications.has(app.id));
+      onSelectionChange(selectedApplications, selectedData);
+    }
+  }, [selectedApplications, data?.items, onSelectionChange]);
 
   const handleFilterChange = (field: keyof ApplicationFilterRequest, value: any) => {
     setFilters(prev => ({

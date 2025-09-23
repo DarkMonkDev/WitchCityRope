@@ -14,8 +14,10 @@ import { vettingAdminApi } from '../services/vettingAdminApi';
 interface SendReminderModalProps {
   opened: boolean;
   onClose: () => void;
-  applicationId: string;
-  applicantName: string;
+  applicationId?: string;          // Single application (backwards compatibility)
+  applicantName?: string;          // Single application (backwards compatibility)
+  applicationIds?: string[];       // Bulk operations
+  applicantNames?: string[];       // Bulk operations
   onSuccess?: () => void;
 }
 
@@ -24,10 +26,17 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
   onClose,
   applicationId,
   applicantName,
+  applicationIds,
+  applicantNames,
   onSuccess
 }) => {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Determine if this is a bulk operation
+  const isBulkOperation = applicationIds && applicationIds.length > 0;
+  const targetApplicationIds = isBulkOperation ? applicationIds : [applicationId!];
+  const targetNames = isBulkOperation ? applicantNames! : [applicantName!];
 
   const handleSubmit = async () => {
     if (!message.trim()) {
@@ -41,13 +50,28 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      await vettingAdminApi.sendApplicationReminder(applicationId, message);
+      // Handle bulk operations
+      if (isBulkOperation) {
+        // Process all applications in parallel
+        await Promise.all(
+          targetApplicationIds.map(id => vettingAdminApi.sendApplicationReminder(id, message))
+        );
 
-      notifications.show({
-        title: 'Reminder Sent',
-        message: `Reminder has been sent for ${applicantName}'s application`,
-        color: 'green'
-      });
+        notifications.show({
+          title: 'Reminders Sent',
+          message: `Reminders have been sent for ${targetApplicationIds.length} application(s)`,
+          color: 'green'
+        });
+      } else {
+        // Single application
+        await vettingAdminApi.sendApplicationReminder(applicationId!, message);
+
+        notifications.show({
+          title: 'Reminder Sent',
+          message: `Reminder has been sent for ${applicantName}'s application`,
+          color: 'green'
+        });
+      }
 
       setMessage('');
       onClose();
@@ -55,7 +79,7 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
     } catch (error: any) {
       notifications.show({
         title: 'Error',
-        message: error?.detail || error?.message || 'Failed to send reminder',
+        message: error?.detail || error?.message || 'Failed to send reminder(s)',
         color: 'red'
       });
     } finally {
@@ -73,13 +97,22 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
   // Pre-fill with a default message
   React.useEffect(() => {
     if (opened && !message) {
-      setMessage(
-        `Hi,\n\nThis is a friendly reminder regarding ${applicantName}'s application to join WitchCityRope. ` +
-        `We are waiting for additional information or references to complete the review process.\n\n` +
-        `Please let us know if you have any questions or need assistance.\n\nThank you,\nWitchCityRope Vetting Team`
-      );
+      if (isBulkOperation) {
+        setMessage(
+          `Hi,\n\nThis is a friendly reminder regarding the applications to join WitchCityRope for:\n` +
+          `${targetNames.join(', ')}\n\n` +
+          `We are waiting for additional information or references to complete the review process.\n\n` +
+          `Please let us know if you have any questions or need assistance.\n\nThank you,\nWitchCityRope Vetting Team`
+        );
+      } else {
+        setMessage(
+          `Hi,\n\nThis is a friendly reminder regarding ${applicantName}'s application to join WitchCityRope. ` +
+          `We are waiting for additional information or references to complete the review process.\n\n` +
+          `Please let us know if you have any questions or need assistance.\n\nThank you,\nWitchCityRope Vetting Team`
+        );
+      }
     }
-  }, [opened, applicantName, message]);
+  }, [opened, applicantName, targetNames, isBulkOperation, message]);
 
   return (
     <Modal
@@ -96,8 +129,20 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
     >
       <Stack gap="md">
         <Text size="sm">
-          You are about to send a reminder for <strong>{applicantName}'s</strong> application.
-          Please review and edit the message below as needed.
+          {isBulkOperation ? (
+            <>
+              You are about to send reminders for <strong>{targetApplicationIds.length} application(s)</strong>:
+              <br />
+              <strong>{targetNames.join(', ')}</strong>
+              <br />
+              Please review and edit the message below as needed.
+            </>
+          ) : (
+            <>
+              You are about to send a reminder for <strong>{applicantName}'s</strong> application.
+              Please review and edit the message below as needed.
+            </>
+          )}
         </Text>
 
         <Textarea

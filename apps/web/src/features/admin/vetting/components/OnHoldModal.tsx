@@ -14,8 +14,10 @@ import { vettingAdminApi } from '../services/vettingAdminApi';
 interface OnHoldModalProps {
   opened: boolean;
   onClose: () => void;
-  applicationId: string;
-  applicantName: string;
+  applicationId?: string;          // Single application (backwards compatibility)
+  applicantName?: string;          // Single application (backwards compatibility)
+  applicationIds?: string[];       // Bulk operations
+  applicantNames?: string[];       // Bulk operations
   onSuccess?: () => void;
 }
 
@@ -24,16 +26,23 @@ export const OnHoldModal: React.FC<OnHoldModalProps> = ({
   onClose,
   applicationId,
   applicantName,
+  applicationIds,
+  applicantNames,
   onSuccess
 }) => {
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Determine if this is a bulk operation
+  const isBulkOperation = applicationIds && applicationIds.length > 0;
+  const targetApplicationIds = isBulkOperation ? applicationIds : [applicationId!];
+  const targetNames = isBulkOperation ? applicantNames! : [applicantName!];
+
   const handleSubmit = async () => {
     if (!reason.trim()) {
       notifications.show({
         title: 'Validation Error',
-        message: 'Please provide a reason for putting this application on hold',
+        message: 'Please provide a reason for putting the application(s) on hold',
         color: 'yellow'
       });
       return;
@@ -41,13 +50,28 @@ export const OnHoldModal: React.FC<OnHoldModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      await vettingAdminApi.putApplicationOnHold(applicationId, reason);
+      // Handle bulk operations
+      if (isBulkOperation) {
+        // Process all applications in parallel
+        await Promise.all(
+          targetApplicationIds.map(id => vettingAdminApi.putApplicationOnHold(id, reason))
+        );
 
-      notifications.show({
-        title: 'Application On Hold',
-        message: `${applicantName}'s application has been put on hold`,
-        color: 'blue'
-      });
+        notifications.show({
+          title: 'Applications On Hold',
+          message: `${targetApplicationIds.length} application(s) have been put on hold`,
+          color: 'blue'
+        });
+      } else {
+        // Single application
+        await vettingAdminApi.putApplicationOnHold(applicationId!, reason);
+
+        notifications.show({
+          title: 'Application On Hold',
+          message: `${applicantName}'s application has been put on hold`,
+          color: 'blue'
+        });
+      }
 
       setReason('');
       onClose();
@@ -55,7 +79,7 @@ export const OnHoldModal: React.FC<OnHoldModalProps> = ({
     } catch (error: any) {
       notifications.show({
         title: 'Error',
-        message: error?.detail || error?.message || 'Failed to put application on hold',
+        message: error?.detail || error?.message || 'Failed to put application(s) on hold',
         color: 'red'
       });
     } finally {
@@ -85,8 +109,20 @@ export const OnHoldModal: React.FC<OnHoldModalProps> = ({
     >
       <Stack gap="md">
         <Text size="sm">
-          You are about to put <strong>{applicantName}'s</strong> application on hold.
-          Please provide a reason that will be recorded in the application history.
+          {isBulkOperation ? (
+            <>
+              You are about to put <strong>{targetApplicationIds.length} application(s)</strong> on hold:
+              <br />
+              <strong>{targetNames.join(', ')}</strong>
+              <br />
+              Please provide a reason that will be recorded in the application history.
+            </>
+          ) : (
+            <>
+              You are about to put <strong>{applicantName}'s</strong> application on hold.
+              Please provide a reason that will be recorded in the application history.
+            </>
+          )}
         </Text>
 
         <Textarea

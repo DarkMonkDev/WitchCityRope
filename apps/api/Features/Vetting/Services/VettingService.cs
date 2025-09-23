@@ -181,6 +181,31 @@ public class VettingService : IVettingService
                     "Application not found", $"No application found with ID {applicationId}");
             }
 
+            // Parse AdminNotes into ApplicationNoteDto array
+            var notes = ParseAdminNotesToDto(application.AdminNotes);
+
+            // Convert audit logs to workflow history
+            var workflowHistory = application.AuditLogs?.Select(log => new WorkflowHistoryDto
+            {
+                Action = log.Action,
+                PerformedAt = log.PerformedAt,
+                PerformedBy = log.PerformedBy.ToString(),
+                Notes = log.Notes
+            }).OrderByDescending(h => h.PerformedAt).ToList() ?? new List<WorkflowHistoryDto>();
+
+            // Create decisions from audit logs
+            var decisions = application.AuditLogs?
+                .Where(log => log.Action.Contains("Status Changed") || log.Action.Contains("Decision"))
+                .Select(log => new ReviewDecisionDto
+                {
+                    Id = log.Id,
+                    DecisionType = log.NewValue ?? "Unknown",
+                    Reasoning = log.Notes ?? "",
+                    IsFinalDecision = log.Action.Contains("Approved") || log.Action.Contains("Denied"),
+                    ReviewerName = "Administrator", // Simplified
+                    CreatedAt = log.PerformedAt
+                }).OrderByDescending(d => d.CreatedAt).ToList() ?? new List<ReviewDecisionDto>();
+
             // Map to detailed response
             var response = new ApplicationDetailResponse
             {
@@ -210,8 +235,9 @@ public class VettingService : IVettingService
                 Priority = 1,
                 InterviewScheduledFor = application.InterviewScheduledFor,
                 References = new List<ReferenceDetailDto>(), // Not implemented yet
-                Notes = new List<ApplicationNoteDto>(), // Not implemented yet
-                Decisions = new List<ReviewDecisionDto>() // Not implemented yet
+                Notes = notes, // Parsed from AdminNotes
+                Decisions = decisions, // Parsed from audit logs
+                WorkflowHistory = workflowHistory // Audit logs as workflow history
             };
 
             _logger.LogInformation("Retrieved application detail {ApplicationId} for user {UserId}",
@@ -295,6 +321,7 @@ public class VettingService : IVettingService
                 };
             }
 
+            var oldStatus = application.Status;
             application.Status = newStatus;
             application.UpdatedAt = DateTime.UtcNow;
             application.DecisionMadeAt = request.IsFinalDecision ? DateTime.UtcNow : null;
@@ -308,6 +335,23 @@ public class VettingService : IVettingService
                 application.AdminNotes = string.IsNullOrEmpty(existingNotes)
                     ? newNote
                     : $"{existingNotes}\n\n{newNote}";
+            }
+
+            // Create audit log entry for status change
+            if (oldStatus != newStatus)
+            {
+                var auditLog = new VettingAuditLog
+                {
+                    Id = Guid.NewGuid(),
+                    ApplicationId = application.Id,
+                    Action = "Status Changed",
+                    PerformedBy = userId,
+                    PerformedAt = DateTime.UtcNow,
+                    OldValue = oldStatus.ToString(),
+                    NewValue = newStatus.ToString(),
+                    Notes = request.Reasoning
+                };
+                _context.VettingAuditLogs.Add(auditLog);
             }
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -373,6 +417,20 @@ public class VettingService : IVettingService
                 : $"{existingNotes}\n\n{newNote}";
 
             application.UpdatedAt = DateTime.UtcNow;
+
+            // Create audit log entry for note addition
+            var auditLog = new VettingAuditLog
+            {
+                Id = Guid.NewGuid(),
+                ApplicationId = application.Id,
+                Action = "Note Added",
+                PerformedBy = userId,
+                PerformedAt = DateTime.UtcNow,
+                OldValue = null,
+                NewValue = null,
+                Notes = request.Content
+            };
+            _context.VettingAuditLogs.Add(auditLog);
 
             await _context.SaveChangesAsync(cancellationToken);
 
@@ -557,5 +615,48 @@ public class VettingService : IVettingService
             VettingStatus.PendingInterview => Math.Max(0, 3 - (DateTime.UtcNow - submittedAt).Days), // 3 days after interview
             _ => null
         };
+    }
+
+    /// <summary>
+    /// Parse AdminNotes field into ApplicationNoteDto array for API responses
+    /// AdminNotes format: "[2025-09-23 14:30] Note: Content\n\n[2025-09-23 15:45] Decision: Reasoning"
+    /// </summary>
+    private static List<ApplicationNoteDto> ParseAdminNotesToDto(string? adminNotes)
+    {
+        if (string.IsNullOrWhiteSpace(adminNotes))
+            return new List<ApplicationNoteDto>();
+
+        var notes = new List<ApplicationNoteDto>();
+        var noteEntries = adminNotes.Split("\n\n", StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (var entry in noteEntries)
+        {
+            // Parse format: "[2025-09-23 14:30] Note: Content" or "[2025-09-23 14:30] Decision: Reasoning"
+            var match = System.Text.RegularExpressions.Regex.Match(entry, @"\[([^\]]+)\]\s*(Note|Decision):\s*(.+)", System.Text.RegularExpressions.RegexOptions.Singleline);
+
+            if (match.Success)
+            {
+                var dateTimeStr = match.Groups[1].Value;
+                var noteType = match.Groups[2].Value;
+                var content = match.Groups[3].Value.Trim();
+
+                if (DateTime.TryParse(dateTimeStr, out var createdAt))
+                {
+                    notes.Add(new ApplicationNoteDto
+                    {
+                        Id = Guid.NewGuid(), // Generate ID for display purposes
+                        Content = content,
+                        Type = noteType,
+                        IsPrivate = true, // All admin notes are private
+                        Tags = new List<string>(),
+                        ReviewerName = "Administrator",
+                        CreatedAt = createdAt,
+                        UpdatedAt = createdAt
+                    });
+                }
+            }
+        }
+
+        return notes.OrderByDescending(n => n.CreatedAt).ToList();
     }
 }
