@@ -1,6 +1,6 @@
 # Backend Developer Lessons Learned
 
-This document tracks critical lessons learned during backend development to prevent recurring issues and speed up future development.
+<!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
 ## 🚨 MANDATORY STARTUP PROCEDURE - MUST READ 🚨
 
@@ -40,16 +40,31 @@ This document tracks critical lessons learned during backend development to prev
 - [ ] Check Project Architecture for current tech stack
 - [ ] Review File Registry if you need to find any document
 
+### Backend Developer Specific Rules:
+- **DTO Alignment Strategy PREVENTS 393 TypeScript errors** - read before ANY DTO work
+- **Modern API is ONLY development target** - `/apps/api/` not archived `/src/` projects
+- **Docker-only testing environment** - NO local dev servers allowed
+- **Entity Framework ID generation** - NEVER initialize IDs in model properties
+- **API Response wrappers** - ALL endpoints must return `ApiResponse<T>` format
+- **Path format** - ALWAYS use repo-relative paths like `/docs/...` NOT full system paths
+
 ---
+
+## 🚨 IF THIS FILE EXCEEDS 500 LINES, YOU ARE DOING IT WRONG! ADD TO PART 2! 🚨
 
 ## 📚 MULTI-FILE LESSONS LEARNED
 **Files**: 2 total
-**Part 1**: `/docs/lessons-learned/backend-developer-lessons-learned.md` (THIS FILE)
-**Part 2**: `/docs/lessons-learned/backend-developer-lessons-learned-2.md` (MUST ALSO READ)
+**Part 1**: `/docs/lessons-learned/backend-developer-lessons-learned.md` (THIS FILE - STARTUP ONLY)
+**Part 2**: `/docs/lessons-learned/backend-developer-lessons-learned-2.md` (MAIN LESSONS FILE)
 **Read ALL**: Both Part 1 AND Part 2 are MANDATORY
-**Write to**: Part 2 ONLY
-**Max size**: 2,000 lines per file (NOT 2,500)
+**Write to**: Part 2 ONLY - **NEVER ADD NEW LESSONS TO THIS FILE (PART 1)**
+**Max size**: Part 1 = 500 lines (startup only), Part 2 = 2,000 lines
 **IF READ FAILS**: STOP and fix per documentation-standards.md
+
+## 🚨 ULTRA CRITICAL: NEW LESSONS GO TO PART 2, NOT HERE! 🚨
+**PART 1 PURPOSE**: Startup procedures and critical navigation ONLY
+**ALL NEW LESSONS**: Must go to Part 2 - `/docs/lessons-learned/backend-developer-lessons-learned-2.md`
+**IF YOU ADD LESSONS HERE**: You are violating the split pattern!
 
 ## ⛔ CRITICAL: HARD BLOCK - DO NOT PROCEED IF FILES UNREADABLE
 If you cannot read ANY file:
@@ -58,81 +73,125 @@ If you cannot read ANY file:
 3. Set LESSONS_LEARNED_READABLE=false until fixed
 4. NO WORK until LESSONS_LEARNED_READABLE=true
 
-## ✅ FIXED: Vetting Seed Data Email Enhancement (2025-09-22)
+## 🚨 CRITICAL: Entity Framework ID Generation Pattern - NEVER Initialize IDs in Models 🚨
 
-**Problem**: Vetting seed data needed enhancement with additional applications and proper email validation to ensure all applications have required email addresses.
+**CRITICAL ROOT CAUSE DISCOVERED**: Entity models having `public Guid Id { get; set; } = Guid.NewGuid();` initializers causes Entity Framework to think new entities are existing ones, leading to UPDATE attempts instead of INSERTs, resulting in `DbUpdateConcurrencyException`.
 
-**Solution Applied**:
-1. **Reviewed existing applications** - Confirmed all 5 existing applications already had proper email addresses:
-   - alexandra.martinez@email.com
-   - jordan.kim@email.com
-   - marcus.johnson@email.com
-   - sarah.chen@email.com
-   - taylor.rodriguez@email.com
-
-2. **Added 4 additional applications** with the requested email addresses:
-   - jamie.taylor@email.com (Denied status - demonstrates rejection workflow)
-   - alex.rivera@email.com (Under Review - recent submission)
-   - morgan.kim@email.com (Interview Approved - experienced applicant)
-   - jordan.martinez@email.com (Under Review - nervous but genuine)
-
-3. **Enhanced seed data diversity**:
-   - Additional status examples (Denied applications)
-   - Various experience levels and community backgrounds
-   - Realistic application scenarios and admin notes
-   - Proper user constraint handling (only creates additional apps if enough users exist)
-
-**Key Implementation**:
+**NEVER DO THIS**:
 ```csharp
-// ✅ CORRECT: Conditional application creation to prevent constraint violations
-if (users.Count >= 6)
+// ❌ CATASTROPHIC ERROR - Causes UPDATE instead of INSERT
+public class Event
 {
-    var additionalApplications = new List<VettingApplication>();
-    // Add applications only if we have enough users
-    if (additionalApplications.Any())
-    {
-        sampleApplications.AddRange(additionalApplications);
-    }
+    public Guid Id { get; set; } = Guid.NewGuid();  // THIS BREAKS EVERYTHING!
 }
 ```
 
-**Files Modified**:
-- `/apps/api/Services/SeedDataService.cs` - Enhanced SeedVettingApplicationsAsync with additional applications
+**ALWAYS DO THIS**:
+```csharp
+// ✅ CORRECT - Let Entity Framework handle ID generation
+public class Event
+{
+    public Guid Id { get; set; }  // Simple property, no initializer
+}
+```
 
-**Result**: Comprehensive vetting seed data with 9 total applications covering all status types, all with proper email addresses as required fields.
+**Symptoms**: "Database operation expected to affect 1 row(s) but actually affected 0 row(s)"
+**Prevention**: Remove ALL ID initializers from entity model properties
 
-## ✅ ENHANCED: Additional Vetting Seed Data Applications (2025-09-23)
+## 🚨 CRITICAL: JWT Token Missing Role Claims - Role Authorization Failure 🚨
 
-**Enhancement**: Added 2 new pending review applications ("RopeBunny" and "SafetyFirst") to expand vetting seed data for more comprehensive testing.
+**Problem**: JWT tokens missing role claims, causing ALL role-based authorization to fail with 403 Forbidden
+**Root Cause**: JWT token generation missing the role claim
 
-**New Applications Added**:
-1. **RopeBunny** (ropebunny@example.com):
-   - New to rope bondage, interested in learning
-   - Scene name: "RopeBunny", Real name: "Riley Chen"
-   - Status: UnderReview (submitted 2 days ago)
-   - Beginner-focused application with good safety awareness
+**BEFORE (BROKEN)**:
+```csharp
+// ❌ MISSING ROLE CLAIM - Authorization will always fail
+var claims = new[]
+{
+    new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+    new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty)
+};
+```
 
-2. **SafetyFirst** (safetyfirst@example.com):
-   - Experienced rigger from Portland relocating to Salem
-   - Scene name: "SafetyFirst", Real name: "Sam Rodriguez"
-   - Status: UnderReview (submitted 1 day ago)
-   - 4+ years experience with safety training background
+**AFTER (FIXED)**:
+```csharp
+// ✅ INCLUDES ROLE CLAIM - Authorization works correctly
+var claims = new[]
+{
+    new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+    new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
+    new Claim(ClaimTypes.Role, user.Role ?? "Member") // CRITICAL: Role claim
+};
+```
 
-**Key Features**:
-- Both applications use proper email format: scenename@example.com
-- Realistic application text showing different experience levels
-- Proper conditional creation (only if enough users exist)
-- Recent submission dates for testing fresh applications workflow
-- Diverse pronouns representation (she/her and they/them)
+**CRITICAL**: Role names in `[Authorize(Roles = "")]` MUST match database role values exactly
 
-**Total Seed Data Now**:
-- Up to 11 vetting applications total (was 9)
-- All applications include required email addresses
-- Comprehensive status coverage for testing all workflow states
-- Realistic variety of experience levels from complete beginner to experienced practitioner
+## 🚨 CRITICAL: API Response Format Mismatch - Frontend Shows "No Data" 🚨
 
-**Files Modified**:
-- `/apps/api/Services/SeedDataService.cs` - Added applications 10 and 11 with requested scenarios
+**Problem**: Frontend shows "No data" despite API returning valid data
+**Root Cause**: API returns `List<T>` directly, but frontend expects `ApiResponse<List<T>>` wrapper
+
+**BEFORE (BROKEN)**:
+```csharp
+// ❌ RETURNS RAW ARRAY - Frontend gets undefined data
+return Results.Ok(result.Value);  // Direct array
+```
+
+**AFTER (FIXED)**:
+```csharp
+// ✅ RETURNS WRAPPED FORMAT - Frontend gets data properly
+return Results.Ok(new ApiResponse<List<EventParticipationDto>>
+{
+    Success = true,
+    Data = result.Value,  // Array in 'data' property
+    Timestamp = DateTime.UtcNow
+});
+```
+
+**MANDATORY**: ALL API endpoints must return consistent `ApiResponse<T>` wrapper format
+
+## 🚨 CRITICAL: Path Format Standard - NO Full System Paths 🚨
+
+**WRONG**: `/home/chad/repos/witchcityrope-react/docs/...`
+**RIGHT**: `/docs/...`
+
+**All documentation references must use repo-relative paths starting from project root**
+
+## 🚨 CRITICAL: Docker-Only Testing Environment 🚨
+
+**NEVER run local dev servers** - Docker containers ONLY for testing
+
+**MANDATORY PRE-TESTING CHECKLIST**:
+```bash
+# 1. Verify Docker API container (CRITICAL)
+docker ps | grep witchcity-api | grep "5655"
+
+# 2. Verify API health (REQUIRED)
+curl -f http://localhost:5655/health && echo "API healthy"
+
+# 3. Kill any rogue local API processes
+lsof -i :5655 | grep -v docker || echo "No conflicts"
+```
+
+**EMERGENCY PROTOCOL**: If tests fail, verify Docker containers FIRST before anything else
+
+---
+
+## 🚨 MANDATORY: Agent Handoff Documentation Process 🚨
+
+**CRITICAL**: Create handoff documents for ALL backend work
+
+**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Naming**: `backend-developer-YYYY-MM-DD-handoff.md`
+
+**MUST INCLUDE**:
+1. **API Endpoints**: New/modified endpoints with contracts
+2. **Database Changes**: Schema updates, migrations, constraints
+3. **Business Logic**: Validation rules and domain logic
+4. **Integration Points**: External services and dependencies
+5. **Testing Requirements**: API test needs and data setup
+
+**FAILURE TO CREATE HANDOFFS = IMPLEMENTATION FAILURES**
 
 ## 🔥 CRITICAL: Vetting Authorization Fix - Administrator Role Access (2025-09-22)
 
