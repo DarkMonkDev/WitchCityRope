@@ -1,0 +1,171 @@
+{
+  "iteration": 3,
+  "date": "2025-10-04",
+  "status": "BELOW_TARGET",
+  "results": {
+    "total": 31,
+    "passed": 17,
+    "failed": 14,
+    "skipped": 0,
+    "pass_rate": 54.8
+  },
+  "target": {
+    "pass_rate": 70.0,
+    "tests_required": 22,
+    "gap_tests": 5,
+    "gap_percentage": 15.2
+  },
+  "comparison": {
+    "iteration_1": {
+      "passed": 4,
+      "pass_rate": 12.9
+    },
+    "iteration_2": {
+      "passed": 16,
+      "pass_rate": 51.6
+    },
+    "iteration_3": {
+      "passed": 17,
+      "pass_rate": 54.8
+    },
+    "improvement_2_to_3": {
+      "tests": 1,
+      "percentage": 3.2
+    }
+  },
+  "fixes_applied": {
+    "total": 6,
+    "successful": 1,
+    "failed": 5,
+    "success_rate": 16.7
+  },
+  "successful_fixes": [
+    {
+      "test": "Denial_RequiresReasoning",
+      "status": "NOW_PASSING"
+    }
+  ],
+  "failed_fixes": [
+    {
+      "test": "StatusUpdate_AsNonAdmin_Returns403",
+      "expected": "403 Forbidden",
+      "actual": "500 Internal Server Error",
+      "issue": "Authorization throwing exception"
+    },
+    {
+      "test": "Approval_GrantsVettedMemberRole",
+      "expected": "200 OK with role granted",
+      "actual": "400 Bad Request",
+      "issue": "Status update validation failing"
+    },
+    {
+      "test": "StatusUpdate_WithValidTransition_Succeeds",
+      "expected": "200 OK",
+      "actual": "400 Bad Request",
+      "issue": "Validation errors"
+    },
+    {
+      "test": "StatusUpdate_CreatesAuditLog",
+      "expected": "Audit log created",
+      "actual": "No audit log",
+      "issue": "Audit log logic not integrated"
+    },
+    {
+      "test": "Approval_CreatesAuditLog",
+      "expected": "200 OK with audit log",
+      "actual": "400 Bad Request",
+      "issue": "Status update failing before audit log"
+    }
+  ],
+  "failure_categories": {
+    "infrastructure": {
+      "count": 2,
+      "tests": [
+        "DatabaseContainer_ShouldBeRunning_AndAccessible",
+        "ServiceProvider_ShouldBeConfigured"
+      ]
+    },
+    "validation_errors": {
+      "count": 6,
+      "http_code": 400,
+      "tests": [
+        "Approval_CreatesAuditLog",
+        "Approval_GrantsVettedMemberRole",
+        "StatusUpdate_WithValidTransition_Succeeds",
+        "Approval_SendsApprovalEmail",
+        "StatusUpdate_WithInvalidTransition_Fails"
+      ]
+    },
+    "authorization_errors": {
+      "count": 1,
+      "http_code": 500,
+      "tests": [
+        "StatusUpdate_AsNonAdmin_Returns403"
+      ]
+    },
+    "audit_log_missing": {
+      "count": 3,
+      "tests": [
+        "StatusUpdate_CreatesAuditLog",
+        "Approval_CreatesAuditLog",
+        "AuditLogCreation_IsTransactional"
+      ]
+    },
+    "rsvp_creation": {
+      "count": 2,
+      "tests": [
+        "RsvpEndpoint_WhenUserIsApproved_Returns201",
+        "RsvpEndpoint_WhenUserHasNoApplication_Succeeds"
+      ]
+    }
+  },
+  "root_cause_hypotheses": [
+    {
+      "hypothesis": "Validation layer is broken",
+      "evidence": "Multiple 400 Bad Request errors with same pattern",
+      "affected_tests": 6,
+      "priority": "CRITICAL"
+    },
+    {
+      "hypothesis": "Authorization middleware throwing exceptions",
+      "evidence": "500 instead of 403 for unauthorized access",
+      "affected_tests": 1,
+      "priority": "HIGH"
+    },
+    {
+      "hypothesis": "Audit log service not integrated into flow",
+      "evidence": "No audit logs created even when status updates succeed",
+      "affected_tests": 3,
+      "priority": "HIGH"
+    },
+    {
+      "hypothesis": "Transaction boundaries incorrect",
+      "evidence": "Changes not rolled back on errors",
+      "affected_tests": 2,
+      "priority": "MEDIUM"
+    }
+  ],
+  "recommendation": {
+    "action": "INVESTIGATION_REQUIRED",
+    "do_not": [
+      "Apply more fixes without understanding root cause",
+      "Move to E2E testing with current pass rate",
+      "Accept current state"
+    ],
+    "required_steps": [
+      "Enable detailed logging in vetting service",
+      "Run single test with maximum verbosity",
+      "Inspect actual error messages from 400 responses",
+      "Check authorization middleware exception handling",
+      "Trace audit log integration in status update flow"
+    ],
+    "expected_outcome": "Identify 3-4 root causes blocking 5+ tests",
+    "time_estimate": "1-2 hours for investigation"
+  },
+  "artifacts": {
+    "full_log": "/tmp/integration-test-iteration-3.log",
+    "detailed_report": "/home/chad/repos/witchcityrope/session-work/2025-10-04/test-results/integration-tests-iteration-3-final.md",
+    "comparison_report": "/home/chad/repos/witchcityrope/session-work/2025-10-04/test-results/iteration-comparison-summary.md",
+    "json_summary": "/home/chad/repos/witchcityrope/session-work/2025-10-04/test-results/iteration-3-summary.json"
+  }
+}

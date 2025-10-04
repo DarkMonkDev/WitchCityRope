@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Features.Vetting.Models;
 using WitchCityRope.Api.Features.Vetting.Services;
 using WitchCityRope.Api.Models;
@@ -543,18 +544,29 @@ public static class VettingEndpoints
                 }
             }
 
-            var decisionRequest = new ReviewDecisionRequest
+            // Parse status enum from string
+            if (!Enum.TryParse<VettingStatus>(request.Status, out var targetStatus))
             {
-                DecisionType = request.Status,
-                Reasoning = request.Reasoning,
-                IsFinalDecision = false
-            };
+                return Results.Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Error = "Invalid status",
+                    Details = $"'{request.Status}' is not a valid vetting status",
+                    Timestamp = DateTime.UtcNow
+                }, statusCode: 400);
+            }
 
-            var result = await vettingService.SubmitReviewDecisionAsync(id, decisionRequest, reviewerId, cancellationToken);
+            // Call UpdateApplicationStatusAsync for generic status changes
+            var result = await vettingService.UpdateApplicationStatusAsync(
+                id,
+                targetStatus,
+                request.Reasoning,
+                reviewerId,
+                cancellationToken);
 
             if (result.IsSuccess && result.Value != null)
             {
-                return Results.Ok(new ApiResponse<ReviewDecisionResponse>
+                return Results.Ok(new ApiResponse<ApplicationDetailResponse>
                 {
                     Success = true,
                     Data = result.Value,
