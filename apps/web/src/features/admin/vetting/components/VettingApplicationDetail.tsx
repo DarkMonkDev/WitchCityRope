@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Paper,
   Stack,
@@ -29,7 +29,8 @@ import {
   IconPhone,
   IconCalendar,
   IconAlertCircle,
-  IconNotes
+  IconNotes,
+  IconCalendarEvent
 } from '@tabler/icons-react';
 import { useVettingApplicationDetail } from '../hooks/useVettingApplicationDetail';
 import { useSubmitReviewDecision } from '../hooks/useSubmitReviewDecision';
@@ -55,6 +56,7 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
   const [onHoldModalOpen, setOnHoldModalOpen] = useState(false);
   const [reminderModalOpen, setReminderModalOpen] = useState(false);
   const [denyModalOpen, setDenyModalOpen] = useState(false);
+  const [scheduleInterviewModalOpen, setScheduleInterviewModalOpen] = useState(false);
 
   const { data: application, isLoading, error, refetch } = useVettingApplicationDetail(applicationId);
   const { mutate: submitDecision, isPending: isSubmittingDecision } = useSubmitReviewDecision(
@@ -68,6 +70,34 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
     }
   );
 
+  // Calculate days since submission
+  const daysSinceSubmission = useMemo(() => {
+    if (!application?.submittedAt) return 0;
+    const submitted = new Date(application.submittedAt);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - submitted.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  }, [application?.submittedAt]);
+
+  // Determine available actions based on current status
+  const availableActions = useMemo(() => {
+    if (!application) return {
+      canApprove: false,
+      canDeny: false,
+      canHold: false,
+      canSchedule: false,
+      canRemind: false
+    };
+
+    return {
+      canApprove: !['Approved', 'Denied', 'Withdrawn'].includes(application.status),
+      canDeny: !['Approved', 'Denied', 'Withdrawn'].includes(application.status),
+      canHold: !['Approved', 'Denied', 'Withdrawn', 'OnHold'].includes(application.status),
+      canSchedule: application.status === 'InterviewApproved',
+      canRemind: true // Can always send reminder
+    };
+  }, [application]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
@@ -207,79 +237,141 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
         </Button>
       </Group>
 
-      {/* Header Section - Direct header without title section */}
-      <Stack gap="sm">
-        {/* Title Row with Status Badge - Make status badge bigger */}
-        <Group justify="space-between" align="center">
-          <Title order={2} style={{ color: '#880124' }} data-testid="application-title">
-            Application - {application.fullName} ({application.sceneName})
-          </Title>
-          <VettingStatusBadge status={application.status} size="xl" data-testid="application-status-badge" />
-        </Group>
+      {/* Header Section */}
+      <Paper p="lg" radius="md" style={{ background: '#FFF8F0', borderLeft: '4px solid #880124' }}>
+        <Stack gap="sm">
+          {/* Title Row with Status Badge and Application Number */}
+          <Group justify="space-between" align="start">
+            <Stack gap="xs">
+              <Title order={2} style={{ color: '#880124' }} data-testid="application-title">
+                {application.sceneName}
+              </Title>
+              <Group gap="md">
+                <Text size="sm" c="dimmed">
+                  Application #{application.applicationNumber || 'N/A'}
+                </Text>
+                <Text size="sm" c="dimmed">
+                  Submitted: {formatDateOnly(application.submittedAt)} ({daysSinceSubmission} days ago)
+                </Text>
+                {application.lastActivityAt && (
+                  <Text size="sm" c="dimmed">
+                    Last Updated: {formatDate(application.lastActivityAt)}
+                  </Text>
+                )}
+              </Group>
+            </Stack>
+            <VettingStatusBadge status={application.status} size="xl" data-testid="application-status-badge" />
+          </Group>
+        </Stack>
+      </Paper>
 
-        {/* Action Buttons Row - Fixed button text cutoff and conditional primary action */}
-        <Group gap="md">
-          <Button
-            leftSection={<IconCheck size={16} />}
-            onClick={handleApproveApplication}
-            loading={isApprovingApplication}
-            disabled={['Approved', 'InterviewScheduled'].includes(application.status)}
-            data-testid="approve-application-button"
-            style={{
-              backgroundColor: '#FFC107',
-              color: '#000',
-              minHeight: 56,
-              paddingTop: 12,
-              paddingBottom: 12,
-              paddingLeft: 24,
-              paddingRight: 24,
-              fontSize: 16,
-              fontWeight: 600,
-              lineHeight: 1.4
-            }}
-          >
-            {application.status === 'UnderReview' ? 'APPROVE FOR INTERVIEW' : 'APPROVE APPLICATION'}
-          </Button>
-          <Button
-            variant="outline"
-            color="gray"
-            onClick={handlePutOnHold}
-            disabled={application.status === 'OnHold'}
-            data-testid="put-on-hold-button"
-            style={{
-              minHeight: 56,
-              paddingTop: 12,
-              paddingBottom: 12,
-              paddingLeft: 24,
-              paddingRight: 24,
-              fontSize: 16,
-              fontWeight: 600,
-              lineHeight: 1.4
-            }}
-          >
-            PUT ON HOLD
-          </Button>
-          <Button
-            color="red"
-            leftSection={<IconX size={16} />}
-            onClick={handleDenyApplication}
-            disabled={application.status === 'Rejected'}
-            data-testid="deny-application-button"
-            style={{
-              minHeight: 56,
-              paddingTop: 12,
-              paddingBottom: 12,
-              paddingLeft: 24,
-              paddingRight: 24,
-              fontSize: 16,
-              fontWeight: 600,
-              lineHeight: 1.4
-            }}
-          >
-            DENY APPLICATION
-          </Button>
-        </Group>
-      </Stack>
+      {/* Action Buttons Section */}
+      <Paper p="md" radius="md">
+        <Stack gap="sm">
+          <Text fw={600} size="sm" c="dimmed">ACTIONS</Text>
+          <Group gap="md">
+            <Button
+              leftSection={<IconCheck size={16} />}
+              onClick={handleApproveApplication}
+              loading={isApprovingApplication}
+              disabled={!availableActions.canApprove}
+              data-testid="approve-application-button"
+              style={{
+                backgroundColor: availableActions.canApprove ? '#228B22' : undefined,
+                color: availableActions.canApprove ? '#FFF' : undefined,
+                minHeight: 56,
+                paddingTop: 12,
+                paddingBottom: 12,
+                paddingLeft: 24,
+                paddingRight: 24,
+                fontSize: 16,
+                fontWeight: 600,
+                lineHeight: 1.4
+              }}
+            >
+              Approve Application
+            </Button>
+            <Button
+              variant="outline"
+              color="yellow"
+              onClick={handlePutOnHold}
+              disabled={!availableActions.canHold}
+              data-testid="put-on-hold-button"
+              style={{
+                minHeight: 56,
+                paddingTop: 12,
+                paddingBottom: 12,
+                paddingLeft: 24,
+                paddingRight: 24,
+                fontSize: 16,
+                fontWeight: 600,
+                lineHeight: 1.4
+              }}
+            >
+              Put On Hold
+            </Button>
+            <Button
+              color="red"
+              leftSection={<IconX size={16} />}
+              onClick={handleDenyApplication}
+              disabled={!availableActions.canDeny}
+              data-testid="deny-application-button"
+              style={{
+                minHeight: 56,
+                paddingTop: 12,
+                paddingBottom: 12,
+                paddingLeft: 24,
+                paddingRight: 24,
+                fontSize: 16,
+                fontWeight: 600,
+                lineHeight: 1.4
+              }}
+            >
+              Deny Application
+            </Button>
+            {availableActions.canSchedule && (
+              <Button
+                variant="outline"
+                color="blue"
+                leftSection={<IconCalendarEvent size={16} />}
+                onClick={() => setScheduleInterviewModalOpen(true)}
+                data-testid="schedule-interview-button"
+                style={{
+                  minHeight: 56,
+                  paddingTop: 12,
+                  paddingBottom: 12,
+                  paddingLeft: 24,
+                  paddingRight: 24,
+                  fontSize: 16,
+                  fontWeight: 600,
+                  lineHeight: 1.4
+                }}
+              >
+                Schedule Interview
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              color="gray"
+              onClick={handleSendReminder}
+              disabled={!availableActions.canRemind}
+              data-testid="send-reminder-button"
+              style={{
+                minHeight: 56,
+                paddingTop: 12,
+                paddingBottom: 12,
+                paddingLeft: 24,
+                paddingRight: 24,
+                fontSize: 16,
+                fontWeight: 600,
+                lineHeight: 1.4
+              }}
+            >
+              Send Reminder
+            </Button>
+          </Group>
+        </Stack>
+      </Paper>
 
       {/* Single Column Layout - Removed right sidebar as per requirements */}
       <Grid>
@@ -357,11 +449,50 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
         </Grid.Col>
       </Grid>
 
-      {/* Notes and Status History Section - Match wireframe layout */}
+      {/* Status History Timeline Section */}
+      <Card>
+        <Title order={3} mb="md" style={{ color: '#880124' }}>
+          Status History
+        </Title>
+        <Timeline active={application.decisions.length - 1} bulletSize={24} lineWidth={2}>
+          {application.decisions.length > 0 ? (
+            application.decisions
+              .slice()
+              .reverse()
+              .map((decision, index) => (
+                <Timeline.Item
+                  key={decision.id}
+                  bullet={<IconClock size={12} />}
+                  title={
+                    <Group gap="sm">
+                      <VettingStatusBadge status={decision.decisionType} size="sm" />
+                      <Text fw={600}>{decision.decisionType}</Text>
+                    </Group>
+                  }
+                >
+                  <Text size="xs" c="dimmed" mt={4}>
+                    {formatDate(decision.createdAt)} - By {decision.reviewerName}
+                  </Text>
+                  {decision.reasoning && (
+                    <Text size="sm" mt="xs" style={{ whiteSpace: 'pre-wrap' }}>
+                      {decision.reasoning}
+                    </Text>
+                  )}
+                </Timeline.Item>
+              ))
+          ) : (
+            <Text c="dimmed" size="sm">
+              No status changes yet
+            </Text>
+          )}
+        </Timeline>
+      </Card>
+
+      {/* Admin Notes Section */}
       <Card>
         <Group justify="space-between" align="center" mb="md">
           <Title order={3} style={{ color: '#880124' }}>
-            Notes and Status History
+            Admin Notes
           </Title>
           <Button
             variant="filled"
@@ -379,14 +510,14 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
               fontWeight: 600
             }}
           >
-            SAVE NOTE
+            Save Note
           </Button>
         </Group>
 
         <Stack gap="md">
           {/* Add Note Text Area */}
           <Textarea
-            placeholder="Add Note"
+            placeholder="Add a note about this application..."
             value={newNote}
             onChange={(e) => setNewNote(e.currentTarget.value)}
             minRows={4}
@@ -399,53 +530,40 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
             }}
           />
 
-          {/* Status History Entries */}
-          <Stack gap="sm">
-            {application.decisions.map((decision) => (
-              <Paper key={decision.id} p="md" style={{ background: '#FFF8F0', borderRadius: '8px' }}>
-                <Group justify="space-between" mb="xs">
-                  <Group>
-                    <VettingStatusBadge status={decision.decisionType} size="sm" />
-                    <Text fw={600}>{decision.decisionType}</Text>
+          {/* Notes List */}
+          {application.notes.length > 0 ? (
+            <Stack gap="sm">
+              {application.notes.map((note) => (
+                <Paper key={note.id} p="md" style={{ background: '#F5F5F5', borderRadius: '8px' }}>
+                  <Group justify="space-between" mb="xs">
+                    <Group gap="xs">
+                      <IconNotes size={16} style={{ color: '#880124' }} />
+                      <Text fw={600} size="sm">{note.reviewerName}</Text>
+                    </Group>
+                    <Text size="sm" c="dimmed">
+                      {formatDate(note.createdAt)}
+                    </Text>
                   </Group>
-                  <Text size="sm" c="dimmed">
-                    {formatDate(decision.createdAt)}
-                  </Text>
-                </Group>
-                {decision.reasoning && (
                   <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
-                    {decision.reasoning}
+                    {note.content}
                   </Text>
-                )}
-                <Text size="xs" c="dimmed" mt="xs">
-                  By: {decision.reviewerName}
-                </Text>
-              </Paper>
-            ))}
-
-            {application.notes.map((note) => (
-              <Paper key={note.id} p="md" style={{ background: '#F5F5F5', borderRadius: '8px' }}>
-                <Group justify="space-between" mb="xs">
-                  <Text fw={600} size="sm">Note</Text>
-                  <Text size="sm" c="dimmed">
-                    {formatDate(note.createdAt)}
-                  </Text>
-                </Group>
-                <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
-                  {note.content}
-                </Text>
-                <Text size="xs" c="dimmed" mt="xs">
-                  By: {note.reviewerName}
-                </Text>
-              </Paper>
-            ))}
-
-            {application.decisions.length === 0 && application.notes.length === 0 && (
-              <Text c="dimmed" ta="center" py="md">
-                No status history or notes yet
-              </Text>
-            )}
-          </Stack>
+                  {note.tags && note.tags.length > 0 && (
+                    <Group gap="xs" mt="xs">
+                      {note.tags.map((tag, idx) => (
+                        <Badge key={idx} size="sm" variant="light" color="gray">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </Group>
+                  )}
+                </Paper>
+              ))}
+            </Stack>
+          ) : (
+            <Text c="dimmed" size="sm" ta="center" py="md">
+              No notes added yet
+            </Text>
+          )}
         </Stack>
       </Card>
 
@@ -520,6 +638,37 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
         applicantName={application?.fullName || 'Unknown'}
         onSuccess={() => refetch()}
       />
+
+      {/* Schedule Interview Modal - Placeholder */}
+      <Modal
+        opened={scheduleInterviewModalOpen}
+        onClose={() => setScheduleInterviewModalOpen(false)}
+        title="Schedule Interview"
+        centered
+        size="md"
+      >
+        <Stack gap="md">
+          <Alert color="blue" title="Coming Soon">
+            <Text size="sm">
+              Interview scheduling functionality will be implemented in the next phase.
+              For now, please coordinate interview times manually with the applicant.
+            </Text>
+          </Alert>
+          <Group justify="flex-end">
+            <Button
+              onClick={() => setScheduleInterviewModalOpen(false)}
+              style={{
+                minHeight: 40,
+                height: 'auto',
+                padding: '10px 20px',
+                lineHeight: 1.4
+              }}
+            >
+              Close
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Stack>
   );
 };
