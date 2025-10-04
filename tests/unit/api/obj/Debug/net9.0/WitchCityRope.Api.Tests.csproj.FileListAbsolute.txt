@@ -1179,3 +1179,5 @@
 /home/chad/repos/witchcityrope/tests/unit/api/obj/Debug/net9.0/WitchCit.741AD137.Up2Date
 /home/chad/repos/witchcityrope/tests/unit/api/obj/Debug/net9.0/WitchCityRope.Api.Tests.genruntimeconfig.cache
 /home/chad/repos/witchcityrope/tests/unit/api/obj/Debug/net9.0/ref/WitchCityRope.Api.Tests.dll
+/home/chad/repos/witchcityrope/tests/unit/api/bin/Debug/net9.0/SendGrid.dll
+/home/chad/repos/witchcityrope/tests/unit/api/bin/Debug/net9.0/StarkbankEcdsa.dll

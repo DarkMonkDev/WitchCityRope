@@ -9,6 +9,7 @@ using Xunit;
 using FluentAssertions;
 using Testcontainers.PostgreSql;
 using System.ComponentModel.DataAnnotations;
+using NSubstitute;
 
 namespace WitchCityRope.UnitTests.Api.Features.Vetting;
 
@@ -19,6 +20,7 @@ public class VettingServiceTests : IAsyncLifetime
     private ApplicationDbContext _context = null!;
     private VettingService _service = null!;
     private ILogger<VettingService> _logger = null!;
+    private IVettingEmailService _emailService = null!;
     private string _connectionString = null!;
 
     public VettingServiceTests()
@@ -36,16 +38,17 @@ public class VettingServiceTests : IAsyncLifetime
     {
         await _container.StartAsync();
         _connectionString = _container.GetConnectionString();
-        
+
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseNpgsql(_connectionString)
             .Options;
-            
+
         _context = new ApplicationDbContext(options);
         await _context.Database.EnsureCreatedAsync();
-        
+
         _logger = new LoggerFactory().CreateLogger<VettingService>();
-        _service = new VettingService(_context, _logger);
+        _emailService = Substitute.For<IVettingEmailService>();
+        _service = new VettingService(_context, _logger, _emailService);
     }
 
     public async Task DisposeAsync()
@@ -61,7 +64,7 @@ public class VettingServiceTests : IAsyncLifetime
         var adminUser = await CreateTestAdminUser();
         var application1 = await CreateTestVettingApplication("testuser1@example.com", VettingStatus.UnderReview);
         var application2 = await CreateTestVettingApplication("testuser2@example.com", VettingStatus.Approved);
-        
+
         var request = new ApplicationFilterRequest
         {
             Page = 1,
@@ -81,7 +84,7 @@ public class VettingServiceTests : IAsyncLifetime
         result.Value.Items.Should().HaveCount(2);
         result.Value.Page.Should().Be(1);
         result.Value.PageSize.Should().Be(10);
-        
+
         // Check that applications are sorted by SubmittedAt descending
         var applications = result.Value.Items.ToList();
         applications[0].SubmittedAt.Should().BeAfter(applications[1].SubmittedAt);
@@ -92,7 +95,7 @@ public class VettingServiceTests : IAsyncLifetime
     {
         // Arrange
         var regularUser = await CreateTestUser("regular@example.com", "Member");
-        
+
         var request = new ApplicationFilterRequest
         {
             Page = 1,
@@ -118,7 +121,7 @@ public class VettingServiceTests : IAsyncLifetime
         await CreateTestVettingApplication("pending1@example.com", VettingStatus.UnderReview);
         await CreateTestVettingApplication("pending2@example.com", VettingStatus.UnderReview);
         await CreateTestVettingApplication("approved@example.com", VettingStatus.Approved);
-        
+
         var request = new ApplicationFilterRequest
         {
             Page = 1,
@@ -144,7 +147,7 @@ public class VettingServiceTests : IAsyncLifetime
         var adminUser = await CreateTestAdminUser();
         await CreateTestVettingApplication("john.doe@example.com", VettingStatus.UnderReview, "JohnDoe");
         await CreateTestVettingApplication("jane.smith@example.com", VettingStatus.UnderReview, "JaneSmith");
-        
+
         var request = new ApplicationFilterRequest
         {
             Page = 1,
@@ -173,7 +176,7 @@ public class VettingServiceTests : IAsyncLifetime
         {
             await CreateTestVettingApplication($"user{i}@example.com", VettingStatus.UnderReview);
         }
-        
+
         var request = new ApplicationFilterRequest
         {
             Page = 2,
@@ -249,7 +252,7 @@ public class VettingServiceTests : IAsyncLifetime
         // Arrange
         var adminUser = await CreateTestAdminUser();
         var application = await CreateTestVettingApplication("test@example.com", VettingStatus.UnderReview);
-        
+
         var decision = new ReviewDecisionRequest
         {
             DecisionType = 1, // Approve
@@ -263,9 +266,9 @@ public class VettingServiceTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value.DecisionType.Should().Be("Approved");
+        result.Value!.DecisionType.Should().Be("Approved");
         result.Value.NewApplicationStatus.Should().Be("Approved");
-        
+
         // Verify application status was updated in database
         var updatedApplication = await _context.VettingApplications.FindAsync(application.Id);
         updatedApplication!.Status.Should().Be(VettingStatus.Approved);
@@ -278,7 +281,7 @@ public class VettingServiceTests : IAsyncLifetime
         // Arrange
         var adminUser = await CreateTestAdminUser();
         var application = await CreateTestVettingApplication("test@example.com", VettingStatus.UnderReview);
-        
+
         var decision = new ReviewDecisionRequest
         {
             DecisionType = 3, // Request additional info (OnHold)
@@ -291,8 +294,8 @@ public class VettingServiceTests : IAsyncLifetime
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.DecisionType.Should().Be("OnHold");
-        
+        result.Value!.DecisionType.Should().Be("OnHold");
+
         // Verify application status was updated
         var updatedApplication = await _context.VettingApplications.FindAsync(application.Id);
         updatedApplication!.Status.Should().Be(VettingStatus.OnHold);
@@ -305,7 +308,7 @@ public class VettingServiceTests : IAsyncLifetime
         // Arrange
         var adminUser = await CreateTestAdminUser();
         var application = await CreateTestVettingApplication("test@example.com", VettingStatus.UnderReview);
-        
+
         var decision = new ReviewDecisionRequest
         {
             DecisionType = 1, // Approve
@@ -318,7 +321,7 @@ public class VettingServiceTests : IAsyncLifetime
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        
+
         var updatedApplication = await _context.VettingApplications.FindAsync(application.Id);
         updatedApplication!.AdminNotes.Should().Contain("Excellent references and experience");
         updatedApplication.AdminNotes.Should().Contain("Decision:");
@@ -331,7 +334,7 @@ public class VettingServiceTests : IAsyncLifetime
         var adminUser = await CreateTestAdminUser();
         var application = await CreateTestVettingApplication("test@example.com", VettingStatus.UnderReview);
         var interviewTime = DateTime.UtcNow.AddDays(7);
-        
+
         var decision = new ReviewDecisionRequest
         {
             DecisionType = 4, // Schedule interview
@@ -345,7 +348,7 @@ public class VettingServiceTests : IAsyncLifetime
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        
+
         var updatedApplication = await _context.VettingApplications.FindAsync(application.Id);
         updatedApplication!.InterviewScheduledFor.Should().Be(interviewTime);
         updatedApplication.Status.Should().Be(VettingStatus.PendingInterview);
@@ -357,7 +360,7 @@ public class VettingServiceTests : IAsyncLifetime
         // Arrange
         var adminUser = await CreateTestAdminUser();
         var application = await CreateTestVettingApplication("test@example.com", VettingStatus.UnderReview);
-        
+
         var noteRequest = new CreateNoteRequest
         {
             Content = "Followed up with references",
@@ -371,8 +374,8 @@ public class VettingServiceTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value.ConfirmationMessage.Should().Contain("Note added successfully");
-        
+        result.Value!.ConfirmationMessage.Should().Contain("Note added successfully");
+
         var updatedApplication = await _context.VettingApplications.FindAsync(application.Id);
         updatedApplication!.AdminNotes.Should().Contain("Followed up with references");
         updatedApplication.AdminNotes.Should().Contain("Note:");
@@ -384,7 +387,7 @@ public class VettingServiceTests : IAsyncLifetime
         // Arrange
         var regularUser = await CreateTestUser("regular@example.com", "Member");
         var application = await CreateTestVettingApplication("test@example.com", VettingStatus.UnderReview);
-        
+
         var noteRequest = new CreateNoteRequest
         {
             Content = "This should not be allowed",
@@ -405,18 +408,18 @@ public class VettingServiceTests : IAsyncLifetime
     {
         // Arrange
         var adminUser = await CreateTestAdminUser();
-        
+
         // Create applications with different submission dates
         var oldApplication = await CreateTestVettingApplication("old@example.com", VettingStatus.UnderReview);
         oldApplication.SubmittedAt = DateTime.UtcNow.AddDays(-10);
         _context.Update(oldApplication);
-        
+
         var recentApplication = await CreateTestVettingApplication("recent@example.com", VettingStatus.UnderReview);
         recentApplication.SubmittedAt = DateTime.UtcNow.AddDays(-2);
         _context.Update(recentApplication);
-        
+
         await _context.SaveChangesAsync();
-        
+
         var request = new ApplicationFilterRequest
         {
             Page = 1,
@@ -432,7 +435,7 @@ public class VettingServiceTests : IAsyncLifetime
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.TotalCount.Should().Be(1);
+        result.Value!.TotalCount.Should().Be(1);
         result.Value.Items.First().Id.Should().Be(recentApplication.Id.ToString());
     }
 
@@ -463,12 +466,12 @@ public class VettingServiceTests : IAsyncLifetime
     }
 
     private async Task<VettingApplication> CreateTestVettingApplication(
-        string email, 
-        VettingStatus status, 
+        string email,
+        VettingStatus status,
         string? sceneName = null)
     {
         var user = await CreateTestUser(email, "Member");
-        
+
         var application = new VettingApplication
         {
             Id = Guid.NewGuid(),
