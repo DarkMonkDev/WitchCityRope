@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Participation.Services;
+using WitchCityRope.Api.Features.Vetting.Services;
 using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.Participation.Endpoints;
@@ -53,12 +54,45 @@ public static class ParticipationEndpoints
                 Guid eventId,
                 CreateRSVPRequest request,
                 IParticipationService participationService,
+                IVettingAccessControlService vettingAccessControlService,
                 ClaimsPrincipal user,
+                ILogger<IParticipationService> logger,
                 CancellationToken cancellationToken) =>
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
                     return Results.Unauthorized();
+                }
+
+                // Check vetting access control BEFORE processing RSVP
+                var accessCheckResult = await vettingAccessControlService.CanUserRsvpAsync(userId, eventId, cancellationToken);
+
+                if (!accessCheckResult.IsSuccess)
+                {
+                    logger.LogError(
+                        "Vetting access check failed for user {UserId} on event {EventId}: {Error}",
+                        userId, eventId, accessCheckResult.Error);
+
+                    return Results.Problem(
+                        title: "Access check failed",
+                        detail: "Unable to verify RSVP eligibility at this time",
+                        statusCode: 500);
+                }
+
+                var accessControl = accessCheckResult.Value;
+
+                if (!accessControl.IsAllowed)
+                {
+                    logger.LogWarning(
+                        "User {UserId} denied RSVP access to event {EventId}. Reason: {Reason}, Status: {VettingStatus}",
+                        userId, eventId, accessControl.DenialReason, accessControl.VettingStatus);
+
+                    return Results.Json(new
+                    {
+                        error = accessControl.DenialReason,
+                        message = accessControl.UserMessage,
+                        vettingStatus = accessControl.VettingStatus?.ToString()
+                    }, statusCode: 403);
                 }
 
                 // Ensure the eventId in URL matches the request
@@ -88,11 +122,12 @@ public static class ParticipationEndpoints
             })
             .WithName("CreateRSVP")
             .WithSummary("Create RSVP for social event")
-            .WithDescription("Creates an RSVP for a social event. Only available to vetted members.")
+            .WithDescription("Creates an RSVP for a social event. Blocked for users with OnHold, Denied, or Withdrawn vetting status.")
             .WithTags("Participation")
             .Produces<ParticipationStatusDto>(201)
             .Produces(400)
             .Produces(401)
+            .Produces(403)
             .Produces(404)
             .Produces(500);
 
@@ -102,12 +137,45 @@ public static class ParticipationEndpoints
                 Guid eventId,
                 CreateTicketPurchaseRequest request,
                 IParticipationService participationService,
+                IVettingAccessControlService vettingAccessControlService,
                 ClaimsPrincipal user,
+                ILogger<IParticipationService> logger,
                 CancellationToken cancellationToken) =>
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
                     return Results.Unauthorized();
+                }
+
+                // Check vetting access control BEFORE processing ticket purchase
+                var accessCheckResult = await vettingAccessControlService.CanUserPurchaseTicketAsync(userId, eventId, cancellationToken);
+
+                if (!accessCheckResult.IsSuccess)
+                {
+                    logger.LogError(
+                        "Vetting access check failed for user {UserId} on event {EventId}: {Error}",
+                        userId, eventId, accessCheckResult.Error);
+
+                    return Results.Problem(
+                        title: "Access check failed",
+                        detail: "Unable to verify ticket purchase eligibility at this time",
+                        statusCode: 500);
+                }
+
+                var accessControl = accessCheckResult.Value;
+
+                if (!accessControl.IsAllowed)
+                {
+                    logger.LogWarning(
+                        "User {UserId} denied ticket purchase access to event {EventId}. Reason: {Reason}, Status: {VettingStatus}",
+                        userId, eventId, accessControl.DenialReason, accessControl.VettingStatus);
+
+                    return Results.Json(new
+                    {
+                        error = accessControl.DenialReason,
+                        message = accessControl.UserMessage,
+                        vettingStatus = accessControl.VettingStatus?.ToString()
+                    }, statusCode: 403);
                 }
 
                 // Ensure the eventId in URL matches the request
@@ -137,11 +205,12 @@ public static class ParticipationEndpoints
             })
             .WithName("PurchaseTicket")
             .WithSummary("Purchase ticket for class event")
-            .WithDescription("Purchases a ticket for a class event. Available to any authenticated user.")
+            .WithDescription("Purchases a ticket for a class event. Blocked for users with OnHold, Denied, or Withdrawn vetting status.")
             .WithTags("Participation")
             .Produces<ParticipationStatusDto>(201)
             .Produces(400)
             .Produces(401)
+            .Produces(403)
             .Produces(404)
             .Produces(500);
 
