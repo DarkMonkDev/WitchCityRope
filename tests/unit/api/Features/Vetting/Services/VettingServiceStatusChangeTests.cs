@@ -297,7 +297,7 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.Should().Contain("Invalid transition");
+        result.Error.Should().Contain("Invalid status transition");
     }
 
     [Fact]
@@ -430,7 +430,8 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.Should().Contain("Interview date must be in the future");
+        result.Error.Should().Contain("Invalid interview date");
+        result.Details.Should().Contain("Interview date must be in the future");
     }
 
     [Fact]
@@ -659,6 +660,7 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
 
     private async Task<ApplicationUser> CreateTestUser(string email, string role)
     {
+        var uniqueId = Guid.NewGuid().ToString("N").Substring(0, 8);
         var user = new ApplicationUser
         {
             Id = Guid.NewGuid(),
@@ -666,6 +668,7 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
             UserName = email,
             NormalizedEmail = email.ToUpper(),
             NormalizedUserName = email.ToUpper(),
+            SceneName = $"Scene-{uniqueId}", // Unique SceneName to avoid constraint violations
             EmailConfirmed = true,
             Role = role,
             CreatedAt = DateTime.UtcNow,
@@ -681,14 +684,38 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
         VettingStatus status,
         Guid? userId = null)
     {
+        var uniqueId = Guid.NewGuid().ToString("N").Substring(0, 8);
+
+        // If no userId provided, create a user first to satisfy FK constraint
+        if (!userId.HasValue)
+        {
+            var user = new ApplicationUser
+            {
+                Id = Guid.NewGuid(),
+                UserName = $"testuser-{uniqueId}@example.com",
+                Email = $"testuser-{uniqueId}@example.com",
+                NormalizedUserName = $"TESTUSER-{uniqueId}@EXAMPLE.COM",
+                NormalizedEmail = $"TESTUSER-{uniqueId}@EXAMPLE.COM",
+                SceneName = $"TestUser-{uniqueId}", // Unique SceneName
+                EmailConfirmed = true,
+                Role = "Member",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+            userId = user.Id;
+        }
+
         var application = new VettingApplication
         {
             Id = Guid.NewGuid(),
-            UserId = userId,
-            SceneName = $"SceneName_{Guid.NewGuid():N}"[..8],
-            RealName = $"Real Name {Guid.NewGuid():N}"[..10],
-            Email = $"test_{Guid.NewGuid():N}@example.com",
-            ApplicationNumber = $"VET-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}"[..20],
+            UserId = userId.Value, // Always have a valid UserId
+            SceneName = $"SceneName-{uniqueId}", // Unique SceneName
+            RealName = $"Real Name {uniqueId}",
+            Email = $"test-{uniqueId}@example.com",
+            ApplicationNumber = $"VET-{DateTime.UtcNow:yyyyMMdd}-{uniqueId}",
             StatusToken = Guid.NewGuid().ToString("N"),
             Status = status,
             SubmittedAt = DateTime.UtcNow,

@@ -96,19 +96,11 @@ public class VettingEmailServiceTests : IAsyncLifetime
         var application = await CreateTestVettingApplication(VettingStatus.Submitted);
 
         // Create email template with variables
-        var template = new VettingEmailTemplate
-        {
-            Id = Guid.NewGuid(),
-            TemplateType = EmailTemplateType.ApplicationReceived,
-            Subject = "Application {{application_number}} Received",
-            HtmlBody = "<p>Hello {{applicant_name}}, your application {{application_number}} was received.</p>",
-            PlainTextBody = "Hello {{applicant_name}}, your application {{application_number}} was received.",
-            IsActive = true,
-            Version = 1,
-            CreatedAt = DateTime.UtcNow
-        };
-        _context.VettingEmailTemplates.Add(template);
-        await _context.SaveChangesAsync();
+        var template = await CreateTestEmailTemplate(
+            EmailTemplateType.ApplicationReceived,
+            "Application {{application_number}} Received",
+            "<p>Hello {{applicant_name}}, your application {{application_number}} was received.</p>",
+            "Hello {{applicant_name}}, your application {{application_number}} was received.");
 
         var email = "applicant@example.com";
         var name = "Test Applicant";
@@ -160,19 +152,11 @@ public class VettingEmailServiceTests : IAsyncLifetime
         var application = await CreateTestVettingApplication(VettingStatus.Approved);
 
         // Create approved template
-        var template = new VettingEmailTemplate
-        {
-            Id = Guid.NewGuid(),
-            TemplateType = EmailTemplateType.Approved,
-            Subject = "Application Approved!",
-            HtmlBody = "<p>Congratulations {{applicant_name}}!</p>",
-            PlainTextBody = "Congratulations {{applicant_name}}!",
-            IsActive = true,
-            Version = 1,
-            CreatedAt = DateTime.UtcNow
-        };
-        _context.VettingEmailTemplates.Add(template);
-        await _context.SaveChangesAsync();
+        var template = await CreateTestEmailTemplate(
+            EmailTemplateType.Approved,
+            "Application Approved!",
+            "<p>Congratulations {{applicant_name}}!</p>",
+            "Congratulations {{applicant_name}}!");
 
         var email = "applicant@example.com";
         var name = "Test Applicant";
@@ -306,19 +290,11 @@ public class VettingEmailServiceTests : IAsyncLifetime
         // Arrange
         var application = await CreateTestVettingApplication(VettingStatus.InterviewScheduled);
 
-        var template = new VettingEmailTemplate
-        {
-            Id = Guid.NewGuid(),
-            TemplateType = EmailTemplateType.InterviewReminder,
-            Subject = "Interview Reminder",
-            HtmlBody = "<p>{{applicant_name}}: {{custom_message}}</p>",
-            PlainTextBody = "{{applicant_name}}: {{custom_message}}",
-            IsActive = true,
-            Version = 1,
-            CreatedAt = DateTime.UtcNow
-        };
-        _context.VettingEmailTemplates.Add(template);
-        await _context.SaveChangesAsync();
+        var template = await CreateTestEmailTemplate(
+            EmailTemplateType.InterviewReminder,
+            "Interview Reminder",
+            "<p>{{applicant_name}}: {{custom_message}}</p>",
+            "{{applicant_name}}: {{custom_message}}");
 
         var email = "applicant@example.com";
         var name = "Test Applicant";
@@ -363,19 +339,11 @@ public class VettingEmailServiceTests : IAsyncLifetime
         // Arrange
         var application = await CreateTestVettingApplication(VettingStatus.InterviewScheduled);
 
-        var template = new VettingEmailTemplate
-        {
-            Id = Guid.NewGuid(),
-            TemplateType = EmailTemplateType.InterviewReminder,
-            Subject = "Reminder for {{application_number}}",
-            HtmlBody = "<p>Hi {{applicant_name}}</p>",
-            PlainTextBody = "Hi {{applicant_name}}",
-            IsActive = true,
-            Version = 1,
-            CreatedAt = DateTime.UtcNow
-        };
-        _context.VettingEmailTemplates.Add(template);
-        await _context.SaveChangesAsync();
+        var template = await CreateTestEmailTemplate(
+            EmailTemplateType.InterviewReminder,
+            "Reminder for {{application_number}}",
+            "<p>Hi {{applicant_name}}</p>",
+            "Hi {{applicant_name}}");
 
         var email = "applicant@example.com";
         var name = "Test Applicant";
@@ -544,16 +512,78 @@ public class VettingEmailServiceTests : IAsyncLifetime
         return config;
     }
 
+    private async Task<VettingEmailTemplate> CreateTestEmailTemplate(EmailTemplateType templateType, string subject, string htmlBody, string plainTextBody)
+    {
+        // Create admin user for UpdatedBy FK constraint
+        var uniqueId = Guid.NewGuid().ToString("N").Substring(0, 8);
+        var adminUser = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = $"admin-{uniqueId}@witchcityrope.com",
+            Email = $"admin-{uniqueId}@witchcityrope.com",
+            NormalizedUserName = $"ADMIN-{uniqueId}@WITCHCITYROPE.COM",
+            NormalizedEmail = $"ADMIN-{uniqueId}@WITCHCITYROPE.COM",
+            SceneName = $"Admin-{uniqueId}",
+            EmailConfirmed = true,
+            Role = "Administrator",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _context.Users.Add(adminUser);
+        await _context.SaveChangesAsync();
+
+        // Now create template with valid UpdatedBy FK
+        var template = new VettingEmailTemplate
+        {
+            Id = Guid.NewGuid(),
+            TemplateType = templateType,
+            Subject = subject,
+            HtmlBody = htmlBody,
+            PlainTextBody = plainTextBody,
+            IsActive = true,
+            Version = 1,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            LastModified = DateTime.UtcNow,
+            UpdatedBy = adminUser.Id // Valid FK to user
+        };
+
+        _context.VettingEmailTemplates.Add(template);
+        await _context.SaveChangesAsync();
+        return template;
+    }
+
     private async Task<VettingApplication> CreateTestVettingApplication(VettingStatus status)
     {
+        // Create user first to satisfy foreign key constraint
+        var uniqueId = Guid.NewGuid().ToString("N").Substring(0, 8);
+        var user = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = $"testuser-{uniqueId}@example.com",
+            Email = $"testuser-{uniqueId}@example.com",
+            NormalizedUserName = $"TESTUSER-{uniqueId}@EXAMPLE.COM",
+            NormalizedEmail = $"TESTUSER-{uniqueId}@EXAMPLE.COM",
+            SceneName = $"TestUser-{uniqueId}", // Unique SceneName
+            EmailConfirmed = true,
+            Role = "Member",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        // Now create application with valid UserId
         var application = new VettingApplication
         {
             Id = Guid.NewGuid(),
-            UserId = Guid.NewGuid(),
-            SceneName = $"SceneName_{Guid.NewGuid():N}"[..8],
-            RealName = $"Real Name {Guid.NewGuid():N}"[..10],
-            Email = $"test_{Guid.NewGuid():N}@example.com",
-            ApplicationNumber = $"VET-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}"[..20],
+            UserId = user.Id, // Valid foreign key to user
+            SceneName = user.SceneName, // Use same SceneName as user
+            RealName = $"Real Name {uniqueId}",
+            Email = user.Email,
+            ApplicationNumber = $"VET-{DateTime.UtcNow:yyyyMMdd}-{uniqueId}",
             StatusToken = Guid.NewGuid().ToString("N"),
             Status = status,
             SubmittedAt = DateTime.UtcNow,

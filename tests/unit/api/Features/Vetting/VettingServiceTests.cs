@@ -447,6 +447,7 @@ public class VettingServiceTests : IAsyncLifetime
 
     private async Task<ApplicationUser> CreateTestUser(string email, string role)
     {
+        var uniqueId = Guid.NewGuid().ToString("N").Substring(0, 8);
         var user = new ApplicationUser
         {
             Id = Guid.NewGuid(),
@@ -454,6 +455,7 @@ public class VettingServiceTests : IAsyncLifetime
             UserName = email,
             NormalizedEmail = email.ToUpper(),
             NormalizedUserName = email.ToUpper(),
+            SceneName = $"Scene-{uniqueId}", // Unique SceneName to avoid constraint violations
             EmailConfirmed = true,
             Role = role,
             CreatedAt = DateTime.UtcNow,
