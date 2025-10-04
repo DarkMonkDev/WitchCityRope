@@ -20,6 +20,8 @@ import {
   IconMail
 } from '@tabler/icons-react';
 import { VettingApplicationForm } from '../components/VettingApplicationForm';
+import { VettingStatusBox } from '../components/VettingStatusBox';
+import { useVettingStatus } from '../hooks/useVettingStatus';
 import { Link, useNavigate } from 'react-router-dom';
 
 interface VettingApplicationPageProps {
@@ -35,11 +37,12 @@ export const VettingApplicationPage: React.FC<VettingApplicationPageProps> = ({
     statusUrl: string;
   } | null>(null);
   const navigate = useNavigate();
+  const { data: statusData, isLoading: statusLoading } = useVettingStatus();
 
   const handleSubmissionComplete = (applicationNumber: string, statusUrl: string) => {
     setSubmissionResult({ applicationNumber, statusUrl });
     setIsSubmitted(true);
-    
+
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -125,12 +128,34 @@ export const VettingApplicationPage: React.FC<VettingApplicationPageProps> = ({
     );
   }
 
+  // Show status box if user has an existing application
+  const hasExistingApplication =
+    statusData?.hasApplication && statusData.application && !statusLoading;
+
   return (
     <Container size="lg" py="xl" className={className}>
-      <VettingApplicationForm onSubmitSuccess={(applicationId, statusUrl) => {
-        const applicationNumber = applicationId.slice(-8).toUpperCase(); // Generate display number from ID
-        handleSubmissionComplete(applicationNumber, statusUrl);
-      }} />
+      <Stack gap="xl">
+        {/* Show status box at top if application exists */}
+        {hasExistingApplication && (
+          <VettingStatusBox
+            status={statusData.application.status}
+            applicationNumber={statusData.application.applicationNumber || 'N/A'}
+            submittedAt={new Date(statusData.application.submittedAt)}
+            lastUpdated={new Date(statusData.application.lastUpdated)}
+            statusDescription={statusData.application.statusDescription || ''}
+            nextSteps={statusData.application.nextSteps || undefined}
+            estimatedDaysRemaining={statusData.application.estimatedDaysRemaining || undefined}
+          />
+        )}
+
+        {/* Show form for new applications or Draft status */}
+        <VettingApplicationForm
+          onSubmitSuccess={(applicationId, statusUrl) => {
+            const applicationNumber = applicationId.slice(-8).toUpperCase(); // Generate display number from ID
+            handleSubmissionComplete(applicationNumber, statusUrl);
+          }}
+        />
+      </Stack>
     </Container>
   );
 };
