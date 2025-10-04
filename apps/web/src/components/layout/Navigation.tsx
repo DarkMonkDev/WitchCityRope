@@ -1,15 +1,18 @@
 import { Link } from 'react-router-dom'
 import { Group, Button, Box } from '@mantine/core'
 import { useUser, useIsAuthenticated } from '../../stores/authStore'
+import { useMenuVisibility } from '../../features/vetting/hooks/useMenuVisibility'
 import { useEffect, useState } from 'react'
 
 /**
  * Navigation Component - Main header navigation
  * Matches the exact wireframe design with logo, nav items, and login button
+ * Conditionally shows "How to Join" based on vetting status
  */
 export const Navigation: React.FC = () => {
   const user = useUser()
   const isAuthenticated = useIsAuthenticated()
+  const { shouldShow: showHowToJoin } = useMenuVisibility()
   const [isScrolled, setIsScrolled] = useState(false)
 
   useEffect(() => {
@@ -112,24 +115,27 @@ export const Navigation: React.FC = () => {
           Events & Classes
         </Box>
 
-        <Box
-          component={Link}
-          to="/join"
-          style={{
-            color: 'var(--color-charcoal)',
-            textDecoration: 'none',
-            fontFamily: 'var(--font-heading)',
-            fontWeight: 500,
-            fontSize: '15px',
-            textTransform: 'uppercase',
-            letterSpacing: '1px',
-            transition: 'all 0.3s ease',
-            position: 'relative',
-          }}
-          className="nav-underline-animation"
-        >
-          How to Join
-        </Box>
+        {/* Conditionally render "How to Join" based on vetting status */}
+        {showHowToJoin && (
+          <Box
+            component={Link}
+            to="/join"
+            style={{
+              color: 'var(--color-charcoal)',
+              textDecoration: 'none',
+              fontFamily: 'var(--font-heading)',
+              fontWeight: 500,
+              fontSize: '15px',
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+              transition: 'all 0.3s ease',
+              position: 'relative',
+            }}
+            className="nav-underline-animation"
+          >
+            How to Join
+          </Box>
+        )}
 
         <Box
           component={Link}
