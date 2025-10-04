@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Title, Text, Group, Button } from '@mantine/core';
-import { IconMail, IconClock, IconAlertTriangle } from '@tabler/icons-react';
+import { Container, Title, Text, Group, Button, Alert } from '@mantine/core';
+import { IconMail, IconClock, IconAlertTriangle, IconLock } from '@tabler/icons-react';
 import { VettingApplicationsList } from '../../features/admin/vetting/components/VettingApplicationsList';
 import { OnHoldModal } from '../../features/admin/vetting/components/OnHoldModal';
 import { SendReminderModal } from '../../features/admin/vetting/components/SendReminderModal';
+import { useUser } from '../../stores/authStore';
 
 /**
  * Admin Vetting Applications List Page
+ *
+ * SECURITY: This page requires Administrator role
+ * - Route-level protection via adminLoader
+ * - Component-level verification (defense-in-depth)
  *
  * This page shows the list of vetting applications following the wireframe.
  * Row clicks navigate to the detail page at /admin/vetting/applications/:id
@@ -16,6 +21,26 @@ import { SendReminderModal } from '../../features/admin/vetting/components/SendR
  */
 export const AdminVettingPage: React.FC = () => {
   const navigate = useNavigate();
+  const user = useUser();
+
+  // Component-level role verification (defense-in-depth)
+  useEffect(() => {
+    if (user && user.role !== 'Administrator') {
+      console.error('AdminVettingPage: Unauthorized access attempt by non-admin user:', user.email);
+      navigate('/unauthorized', { replace: true });
+    }
+  }, [user, navigate]);
+
+  // Show error if somehow accessed without proper role
+  if (!user || user.role !== 'Administrator') {
+    return (
+      <Container size="xl" py="xl">
+        <Alert icon={<IconLock size={16} />} color="red" title="Access Denied">
+          You do not have permission to access this page.
+        </Alert>
+      </Container>
+    );
+  }
 
   // State for selected applications and modals
   const [selectedApplications, setSelectedApplications] = useState<Set<string>>(new Set());

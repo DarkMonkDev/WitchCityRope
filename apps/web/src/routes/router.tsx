@@ -25,6 +25,8 @@ import { NavigationTestPage } from '../pages/NavigationTestPage';
 import { RootLayout } from '../components/layout/RootLayout';
 import { RootErrorBoundary } from '../components/errors/RootErrorBoundary';
 import { authLoader } from './loaders/authLoader';
+import { adminLoader } from './loaders/adminLoader';
+import { UnauthorizedPage } from '../pages/UnauthorizedPage';
 
 // Events system pages
 import { EventsListPage } from '../pages/events/EventsListPage';
@@ -84,11 +86,15 @@ export const router = createBrowserRouter([
         path: "login", 
         element: <LoginPage /> 
       },
-      { 
-        path: "register", 
-        element: <RegisterPage /> 
+      {
+        path: "register",
+        element: <RegisterPage />
       },
-      
+      {
+        path: "unauthorized",
+        element: <UnauthorizedPage />
+      },
+
       // Events system routes
       {
         path: "events",
@@ -219,40 +225,41 @@ export const router = createBrowserRouter([
       },
       
       // Admin routes - authentication and admin role required
+      // SECURITY: All admin routes use adminLoader which validates "Administrator" role
       {
         path: "admin",
         element: <AdminDashboardPage />,
-        loader: authLoader
+        loader: adminLoader
       },
       {
         path: "admin/events",
         element: <AdminEventsPage />,
-        loader: authLoader
+        loader: adminLoader
       },
       {
         path: "admin/events/:id",
         element: <AdminEventDetailsPage />,
-        loader: authLoader
+        loader: adminLoader
       },
       {
         path: "admin/safety",
         element: <AdminSafetyPage />,
-        loader: authLoader
+        loader: adminLoader
       },
       {
         path: "admin/vetting",
         element: <AdminVettingPage />,
-        loader: authLoader
+        loader: adminLoader
       },
       {
         path: "admin/vetting/applications/:applicationId",
         element: <AdminVettingApplicationDetailPage />,
-        loader: authLoader
+        loader: adminLoader
       },
       {
         path: "admin/vetting/email-templates",
         element: <EmailTemplates />,
-        loader: authLoader
+        loader: adminLoader
       },
       
       // Demo routes - no authentication required for demos

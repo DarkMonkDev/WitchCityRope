@@ -1,11 +1,16 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Container, Button, Group, Title, Text, Alert, Stack } from '@mantine/core';
-import { IconArrowLeft, IconAlertCircle } from '@tabler/icons-react';
+import { IconArrowLeft, IconAlertCircle, IconLock } from '@tabler/icons-react';
 import { VettingApplicationDetail } from '../../features/admin/vetting/components/VettingApplicationDetail';
+import { useUser } from '../../stores/authStore';
 
 /**
  * Admin Vetting Application Detail Page
+ *
+ * SECURITY: This page requires Administrator role
+ * - Route-level protection via adminLoader
+ * - Component-level verification (defense-in-depth)
  *
  * This is the dedicated page for viewing a single vetting application.
  * Following the wireframe specification, this is a SEPARATE PAGE (not a modal).
@@ -18,6 +23,15 @@ export const AdminVettingApplicationDetailPage: React.FC = () => {
   const { applicationId } = useParams<{ applicationId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const user = useUser();
+
+  // Component-level role verification (defense-in-depth)
+  useEffect(() => {
+    if (user && user.role !== 'Administrator') {
+      console.error('AdminVettingApplicationDetailPage: Unauthorized access attempt by non-admin user:', user.email);
+      navigate('/unauthorized', { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleBackToList = () => {
     navigate('/admin/vetting');
@@ -39,6 +53,17 @@ export const AdminVettingApplicationDetailPage: React.FC = () => {
       timestamp: new Date().toISOString()
     });
   }, [applicationId, location.pathname]);
+
+  // Show error if somehow accessed without proper role
+  if (!user || user.role !== 'Administrator') {
+    return (
+      <Container size="xl" py="xl">
+        <Alert icon={<IconLock size={16} />} color="red" title="Access Denied">
+          You do not have permission to access this page.
+        </Alert>
+      </Container>
+    );
+  }
 
   if (!applicationId) {
     return (
