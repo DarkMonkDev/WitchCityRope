@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WitchCityRope.IntegrationTests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+62d70bbb32da44166d7c2866b38b55f93c8717d9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+960c3d6c0fe24471063be883bb5c1e599b65a435")]
 [assembly: System.Reflection.AssemblyProductAttribute("WitchCityRope.IntegrationTests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WitchCityRope.IntegrationTests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

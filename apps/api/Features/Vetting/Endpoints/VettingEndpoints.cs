@@ -457,18 +457,12 @@ public static class VettingEndpoints
                 }
             }
 
-            var decisionRequest = new ReviewDecisionRequest
-            {
-                DecisionType = "Approved",
-                Reasoning = request.Reasoning,
-                IsFinalDecision = true
-            };
-
-            var result = await vettingService.SubmitReviewDecisionAsync(id, decisionRequest, reviewerId, cancellationToken);
+            // Call dedicated ApproveApplicationAsync method
+            var result = await vettingService.ApproveApplicationAsync(id, reviewerId, request.Reasoning, cancellationToken);
 
             if (result.IsSuccess && result.Value != null)
             {
-                return Results.Ok(new ApiResponse<ReviewDecisionResponse>
+                return Results.Ok(new ApiResponse<ApplicationDetailResponse>
                 {
                     Success = true,
                     Data = result.Value,
@@ -513,6 +507,19 @@ public static class VettingEndpoints
     {
         try
         {
+            // Check if user has Administrator role FIRST - before extracting user ID
+            var userRole = user.FindFirst(ClaimTypes.Role)?.Value;
+            if (userRole != "Administrator")
+            {
+                return Results.Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Error = "Access denied",
+                    Details = "Only administrators can change application status",
+                    Timestamp = DateTime.UtcNow
+                }, statusCode: 403);
+            }
+
             // Extract user ID from JWT claims with fallback for administrators
             var reviewerIdClaim = user.FindFirst("ReviewerId")?.Value;
             Guid reviewerId;
@@ -695,18 +702,24 @@ public static class VettingEndpoints
                 }
             }
 
-            var decisionRequest = new ReviewDecisionRequest
+            // Validate reasoning is provided
+            if (string.IsNullOrWhiteSpace(request.Reasoning))
             {
-                DecisionType = "Denied",
-                Reasoning = request.Reasoning,
-                IsFinalDecision = true
-            };
+                return Results.Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Error = "Reasoning required",
+                    Details = "A reason must be provided when denying an application",
+                    Timestamp = DateTime.UtcNow
+                }, statusCode: 400);
+            }
 
-            var result = await vettingService.SubmitReviewDecisionAsync(id, decisionRequest, reviewerId, cancellationToken);
+            // Call dedicated DenyApplicationAsync method
+            var result = await vettingService.DenyApplicationAsync(id, request.Reasoning, reviewerId, cancellationToken);
 
             if (result.IsSuccess && result.Value != null)
             {
-                return Results.Ok(new ApiResponse<ReviewDecisionResponse>
+                return Results.Ok(new ApiResponse<ApplicationDetailResponse>
                 {
                     Success = true,
                     Data = result.Value,

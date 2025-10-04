@@ -326,6 +326,15 @@ public class VettingService : IVettingService
                 };
             }
 
+            // Validate that reasoning is required for Denied and OnHold statuses
+            if ((newStatus == VettingStatus.Denied || newStatus == VettingStatus.OnHold) &&
+                string.IsNullOrWhiteSpace(request.Reasoning))
+            {
+                return Result<ReviewDecisionResponse>.Failure(
+                    "Reasoning required",
+                    $"A reason must be provided when setting status to {newStatus}");
+            }
+
             var oldStatus = application.Status;
             application.Status = newStatus;
             application.UpdatedAt = DateTime.UtcNow;
@@ -1267,10 +1276,45 @@ public class VettingService : IVettingService
             // Update user role if user is linked
             if (application.UserId.HasValue && application.User != null)
             {
-                application.User.Role = "VettedMember";
-                _logger.LogInformation(
-                    "Granted VettedMember role to user {UserId} for approved application {ApplicationId}",
-                    application.UserId.Value, applicationId);
+                var user = application.User;
+
+                // Update the Role property
+                user.Role = "VettedMember";
+
+                // Get the VettedMember role from database
+                var vettedMemberRole = await _context.Roles
+                    .FirstOrDefaultAsync(r => r.Name == "VettedMember", cancellationToken);
+
+                if (vettedMemberRole != null)
+                {
+                    // Remove all existing role assignments for this user
+                    var existingUserRoles = await _context.UserRoles
+                        .Where(ur => ur.UserId == user.Id)
+                        .ToListAsync(cancellationToken);
+
+                    if (existingUserRoles.Any())
+                    {
+                        _context.UserRoles.RemoveRange(existingUserRoles);
+                    }
+
+                    // Add VettedMember role assignment
+                    var newUserRole = new Microsoft.AspNetCore.Identity.IdentityUserRole<Guid>
+                    {
+                        UserId = user.Id,
+                        RoleId = vettedMemberRole.Id
+                    };
+                    _context.UserRoles.Add(newUserRole);
+
+                    _logger.LogInformation(
+                        "Granted VettedMember role to user {UserId} for approved application {ApplicationId}",
+                        application.UserId.Value, applicationId);
+                }
+                else
+                {
+                    _logger.LogError(
+                        "VettedMember role not found in database - cannot grant role for application {ApplicationId}",
+                        applicationId);
+                }
             }
 
             // Create audit log entry
