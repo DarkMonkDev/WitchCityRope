@@ -145,13 +145,13 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         await using var context = CreateDbContext();
         var auditLog = await context.VettingAuditLogs
             .Where(log => log.ApplicationId == applicationId)
-            .OrderByDescending(log => log.CreatedAt)
+            .OrderByDescending(log => log.PerformedAt)
             .FirstOrDefaultAsync();
 
         auditLog.Should().NotBeNull();
         auditLog!.Action.Should().Contain("Status changed");
-        auditLog.NewStatus.Should().Be(VettingStatus.UnderReview);
-        auditLog.OldStatus.Should().Be(VettingStatus.Submitted);
+        auditLog.NewValue.Should().Contain("UnderReview");
+        auditLog.OldValue.Should().Contain("Submitted");
     }
 
     [Fact]
@@ -202,14 +202,14 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
 
         // Verify user role was updated
         await using var context = CreateDbContext();
-        var userRoles = await context.UserRoles
-            .Include(ur => ur.Role)
-            .Where(ur => ur.UserId == userId)
-            .ToListAsync();
+        var vettedMemberRole = await context.Roles
+            .FirstOrDefaultAsync(r => r.Name == "VettedMember");
+        vettedMemberRole.Should().NotBeNull();
 
-        userRoles.Should().NotBeEmpty();
-        userRoles.Should().Contain(ur => ur.Role.Name == "VettedMember",
-            "User should have VettedMember role after approval");
+        var userHasRole = await context.UserRoles
+            .AnyAsync(ur => ur.UserId == userId && ur.RoleId == vettedMemberRole!.Id);
+
+        userHasRole.Should().BeTrue("User should have VettedMember role after approval");
     }
 
     [Fact]
@@ -233,11 +233,11 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         await using var context = CreateDbContext();
         var auditLog = await context.VettingAuditLogs
             .Where(log => log.ApplicationId == applicationId && log.Action.Contains("Approved"))
-            .OrderByDescending(log => log.CreatedAt)
+            .OrderByDescending(log => log.PerformedAt)
             .FirstOrDefaultAsync();
 
         auditLog.Should().NotBeNull();
-        auditLog!.NewStatus.Should().Be(VettingStatus.Approved);
+        auditLog!.NewValue.Should().Contain("Approved");
         auditLog.Notes.Should().Contain("Approved after thorough review");
     }
 
@@ -262,7 +262,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         var responseData = await response.Content.ReadFromJsonAsync<ApiResponse<ReviewDecisionResponse>>();
         responseData.Should().NotBeNull();
         responseData!.Success.Should().BeTrue();
-        responseData.Message.Should().Contain("approved", StringComparison.OrdinalIgnoreCase);
+        responseData.Message.Should().ContainEquivalentOf("approved");
     }
 
     #endregion
@@ -286,7 +286,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         var content = await response.Content.ReadAsStringAsync();
-        content.Should().Contain("reason", StringComparison.OrdinalIgnoreCase);
+        content.Should().ContainEquivalentOf("reason");
     }
 
     [Fact]
@@ -445,13 +445,13 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         var application = await context.VettingApplications.FindAsync(applicationId);
         var auditLog = await context.VettingAuditLogs
             .Where(log => log.ApplicationId == applicationId)
-            .OrderByDescending(log => log.CreatedAt)
+            .OrderByDescending(log => log.PerformedAt)
             .FirstOrDefaultAsync();
 
         application.Should().NotBeNull();
         application!.Status.Should().Be(VettingStatus.UnderReview);
         auditLog.Should().NotBeNull("Audit log should be created with status update");
-        auditLog!.NewStatus.Should().Be(VettingStatus.UnderReview);
+        auditLog!.NewValue.Should().Contain("UnderReview");
     }
 
     #endregion
@@ -487,8 +487,8 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
             Id = applicationId,
             UserId = userId,
             Email = email,
-            FirstName = "Test",
-            LastName = "User",
+            SceneName = "Test",
+            RealName = "User",
             Status = initialStatus,
             SubmittedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -532,8 +532,8 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
             Id = applicationId,
             UserId = userId,
             Email = email,
-            FirstName = "Test",
-            LastName = "User",
+            SceneName = "Test",
+            RealName = "User",
             Status = initialStatus,
             SubmittedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

@@ -942,24 +942,3 @@ public static class VettingEndpoints
         }
     }
 }
-
-/// <summary>
-/// Simple request models for frontend compatibility
-/// </summary>
-public class SimpleReasoningRequest
-{
-    public string Reasoning { get; set; } = string.Empty;
-}
-
-public class StatusChangeRequest
-{
-    public string Status { get; set; } = string.Empty;
-    public string Reasoning { get; set; } = string.Empty;
-}
-
-public class SimpleNoteRequest
-{
-    public string Note { get; set; } = string.Empty;
-    public bool? IsPrivate { get; set; }
-    public List<string>? Tags { get; set; }
-}

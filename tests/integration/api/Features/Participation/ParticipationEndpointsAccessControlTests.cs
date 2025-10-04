@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Models;
+using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Tests.Common.Fixtures;
@@ -63,8 +64,7 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
 
         var request = new CreateRSVPRequest
         {
-            EventId = eventId,
-            ParticipantCount = 1
+            EventId = eventId
         };
 
         // Act
@@ -84,8 +84,7 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
 
         var request = new CreateRSVPRequest
         {
-            EventId = eventId,
-            ParticipantCount = 1
+            EventId = eventId
         };
 
         // Act
@@ -105,8 +104,7 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
 
         var request = new CreateRSVPRequest
         {
-            EventId = eventId,
-            ParticipantCount = 1
+            EventId = eventId
         };
 
         // Act
@@ -126,8 +124,7 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
 
         var request = new CreateRSVPRequest
         {
-            EventId = eventId,
-            ParticipantCount = 1
+            EventId = eventId
         };
 
         // Act
@@ -147,8 +144,7 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
 
         var request = new CreateRSVPRequest
         {
-            EventId = eventId,
-            ParticipantCount = 1
+            EventId = eventId
         };
 
         // Act
@@ -173,8 +169,7 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
 
         var request = new CreateTicketPurchaseRequest
         {
-            EventId = eventId,
-            TicketQuantity = 1
+            EventId = eventId
         };
 
         // Act
@@ -194,8 +189,7 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
 
         var request = new CreateTicketPurchaseRequest
         {
-            EventId = eventId,
-            TicketQuantity = 1
+            EventId = eventId
         };
 
         // Act
@@ -215,8 +209,7 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
 
         var request = new CreateTicketPurchaseRequest
         {
-            EventId = eventId,
-            TicketQuantity = 1
+            EventId = eventId
         };
 
         // Act
@@ -236,8 +229,7 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
 
         var request = new CreateTicketPurchaseRequest
         {
-            EventId = eventId,
-            TicketQuantity = 1
+            EventId = eventId
         };
 
         // Act
@@ -257,8 +249,7 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
 
         var request = new CreateTicketPurchaseRequest
         {
-            EventId = eventId,
-            TicketQuantity = 1
+            EventId = eventId
         };
 
         // Act
@@ -307,8 +298,8 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
                 Id = Guid.NewGuid(),
                 UserId = userId,
                 Email = email,
-                FirstName = "Test",
-                LastName = "User",
+                SceneName = "Test",
+                RealName = "User",
                 Status = vettingStatus.Value,
                 SubmittedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -323,7 +314,7 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
             Id = eventId,
             Title = isClassEvent ? "Test Class Event" : "Test Social Event",
             Description = "Test event for integration testing",
-            EventType = isClassEvent ? EventType.Class : EventType.Social,
+            EventType = isClassEvent ? EventType.Class.ToString() : EventType.Social.ToString(),
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
             Capacity = 50,
