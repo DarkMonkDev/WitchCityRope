@@ -14,11 +14,16 @@ public class VettingService : IVettingService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<VettingService> _logger;
+    private readonly IVettingEmailService _emailService;
 
-    public VettingService(ApplicationDbContext context, ILogger<VettingService> logger)
+    public VettingService(
+        ApplicationDbContext context,
+        ILogger<VettingService> logger,
+        IVettingEmailService emailService)
     {
         _context = context;
         _logger = logger;
+        _emailService = emailService;
     }
 
     /// <summary>
@@ -910,4 +915,464 @@ public class VettingService : IVettingService
 
         return $"{localPart.Substring(0, 2)}***@{domain}";
     }
+
+    #region Status Change Logic and Validation
+
+    /// <summary>
+    /// Update application status with validation and audit logging
+    /// Validates status transitions, updates timestamps, creates audit log, and sends email notifications
+    /// </summary>
+    public async Task<Result<ApplicationDetailResponse>> UpdateApplicationStatusAsync(
+        Guid applicationId,
+        VettingStatus newStatus,
+        string? adminNotes,
+        Guid adminUserId,
+        CancellationToken cancellationToken = default)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            // Check user authorization - only administrators can change status
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == adminUserId, cancellationToken);
+            if (user == null || user.Role != "Administrator")
+            {
+                return Result<ApplicationDetailResponse>.Failure(
+                    "Access denied", "Only administrators can change application status.");
+            }
+
+            // Get application
+            var application = await _context.VettingApplications
+                .FirstOrDefaultAsync(v => v.Id == applicationId, cancellationToken);
+
+            if (application == null)
+            {
+                return Result<ApplicationDetailResponse>.Failure(
+                    "Application not found", $"No application found with ID {applicationId}");
+            }
+
+            var oldStatus = application.Status;
+
+            // Validate status transition
+            var transitionValidation = ValidateStatusTransition(oldStatus, newStatus);
+            if (!transitionValidation.IsSuccess)
+            {
+                return Result<ApplicationDetailResponse>.Failure(
+                    "Invalid status transition", transitionValidation.Error);
+            }
+
+            // Validate required admin notes for certain status changes
+            if ((newStatus == VettingStatus.OnHold || newStatus == VettingStatus.Denied) &&
+                string.IsNullOrWhiteSpace(adminNotes))
+            {
+                return Result<ApplicationDetailResponse>.Failure(
+                    "Admin notes required",
+                    $"Admin notes are required when changing status to {newStatus}");
+            }
+
+            // Check if application is in terminal state
+            if (oldStatus == VettingStatus.Approved || oldStatus == VettingStatus.Denied)
+            {
+                return Result<ApplicationDetailResponse>.Failure(
+                    "Cannot modify terminal state",
+                    "Approved and Denied applications cannot be modified.");
+            }
+
+            // Update application status
+            application.Status = newStatus;
+            application.UpdatedAt = DateTime.UtcNow;
+
+            // Update status-specific timestamps
+            switch (newStatus)
+            {
+                case VettingStatus.UnderReview:
+                    if (!application.ReviewStartedAt.HasValue)
+                        application.ReviewStartedAt = DateTime.UtcNow;
+                    break;
+                case VettingStatus.InterviewScheduled:
+                    // InterviewScheduledFor should be set separately via ScheduleInterviewAsync
+                    break;
+                case VettingStatus.Approved:
+                case VettingStatus.Denied:
+                    application.DecisionMadeAt = DateTime.UtcNow;
+                    break;
+            }
+
+            // Add admin notes if provided
+            if (!string.IsNullOrWhiteSpace(adminNotes))
+            {
+                var existingNotes = application.AdminNotes ?? "";
+                var newNote = $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm}] Status change to {newStatus}: {adminNotes}";
+                application.AdminNotes = string.IsNullOrEmpty(existingNotes)
+                    ? newNote
+                    : $"{existingNotes}\n\n{newNote}";
+            }
+
+            // Create audit log entry
+            var auditLog = new VettingAuditLog
+            {
+                Id = Guid.NewGuid(),
+                ApplicationId = application.Id,
+                Action = "Status Changed",
+                PerformedBy = adminUserId,
+                PerformedAt = DateTime.UtcNow,
+                OldValue = oldStatus.ToString(),
+                NewValue = newStatus.ToString(),
+                Notes = adminNotes
+            };
+            _context.VettingAuditLogs.Add(auditLog);
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            // Send email notification for status changes (failures should not prevent status change)
+            // Only send emails for these statuses: InterviewApproved, InterviewScheduled, Approved, OnHold, Denied
+            if (newStatus == VettingStatus.InterviewApproved ||
+                newStatus == VettingStatus.InterviewScheduled ||
+                newStatus == VettingStatus.Approved ||
+                newStatus == VettingStatus.OnHold ||
+                newStatus == VettingStatus.Denied)
+            {
+                try
+                {
+                    var emailResult = await _emailService.SendStatusUpdateAsync(
+                        application,
+                        application.Email,
+                        application.SceneName,
+                        newStatus,
+                        cancellationToken);
+
+                    if (!emailResult.IsSuccess)
+                    {
+                        _logger.LogWarning(
+                            "Failed to send status update email for application {ApplicationNumber}: {Error}",
+                            application.ApplicationNumber, emailResult.Error);
+                    }
+                }
+                catch (Exception emailEx)
+                {
+                    _logger.LogError(emailEx,
+                        "Exception sending status update email for application {ApplicationNumber}",
+                        application.ApplicationNumber);
+                    // Continue - email failure should not prevent status change
+                }
+            }
+
+            await transaction.CommitAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Application {ApplicationId} status changed from {OldStatus} to {NewStatus} by admin {AdminUserId}",
+                applicationId, oldStatus, newStatus, adminUserId);
+
+            // Get updated application details to return
+            return await GetApplicationDetailAsync(applicationId, adminUserId, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            _logger.LogError(ex, "Error updating application status for {ApplicationId}", applicationId);
+            return Result<ApplicationDetailResponse>.Failure(
+                "Failed to update status", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Schedule interview for an application
+    /// Moves status to InterviewScheduled, sets interview date, and sends notification
+    /// </summary>
+    public async Task<Result<ApplicationDetailResponse>> ScheduleInterviewAsync(
+        Guid applicationId,
+        DateTime interviewDate,
+        string interviewLocation,
+        Guid adminUserId,
+        CancellationToken cancellationToken = default)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            // Check user authorization
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == adminUserId, cancellationToken);
+            if (user == null || user.Role != "Administrator")
+            {
+                return Result<ApplicationDetailResponse>.Failure(
+                    "Access denied", "Only administrators can schedule interviews.");
+            }
+
+            // Get application
+            var application = await _context.VettingApplications
+                .FirstOrDefaultAsync(v => v.Id == applicationId, cancellationToken);
+
+            if (application == null)
+            {
+                return Result<ApplicationDetailResponse>.Failure(
+                    "Application not found", $"No application found with ID {applicationId}");
+            }
+
+            // Validate input
+            if (string.IsNullOrWhiteSpace(interviewLocation))
+            {
+                return Result<ApplicationDetailResponse>.Failure(
+                    "Interview location required", "Interview location or instructions must be provided");
+            }
+
+            if (interviewDate <= DateTime.UtcNow)
+            {
+                return Result<ApplicationDetailResponse>.Failure(
+                    "Invalid interview date", "Interview date must be in the future");
+            }
+
+            // Validate status transition to InterviewScheduled
+            var oldStatus = application.Status;
+            var transitionValidation = ValidateStatusTransition(oldStatus, VettingStatus.InterviewScheduled);
+            if (!transitionValidation.IsSuccess)
+            {
+                return Result<ApplicationDetailResponse>.Failure(
+                    "Invalid status transition", transitionValidation.Error);
+            }
+
+            // Update application
+            application.Status = VettingStatus.InterviewScheduled;
+            application.InterviewScheduledFor = interviewDate;
+            application.UpdatedAt = DateTime.UtcNow;
+
+            // Add note about interview scheduling
+            var noteText = $"Interview scheduled for {interviewDate:yyyy-MM-dd HH:mm} UTC. Location: {interviewLocation}";
+            var existingNotes = application.AdminNotes ?? "";
+            var newNote = $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm}] {noteText}";
+            application.AdminNotes = string.IsNullOrEmpty(existingNotes)
+                ? newNote
+                : $"{existingNotes}\n\n{newNote}";
+
+            // Create audit log entry
+            var auditLog = new VettingAuditLog
+            {
+                Id = Guid.NewGuid(),
+                ApplicationId = application.Id,
+                Action = "Interview Scheduled",
+                PerformedBy = adminUserId,
+                PerformedAt = DateTime.UtcNow,
+                OldValue = oldStatus.ToString(),
+                NewValue = VettingStatus.InterviewScheduled.ToString(),
+                Notes = noteText
+            };
+            _context.VettingAuditLogs.Add(auditLog);
+
+            await _context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Interview scheduled for application {ApplicationId} at {InterviewDate} by admin {AdminUserId}",
+                applicationId, interviewDate, adminUserId);
+
+            // Get updated application details to return
+            return await GetApplicationDetailAsync(applicationId, adminUserId, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            _logger.LogError(ex, "Error scheduling interview for application {ApplicationId}", applicationId);
+            return Result<ApplicationDetailResponse>.Failure(
+                "Failed to schedule interview", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Put application on hold with required reason and actions
+    /// </summary>
+    public async Task<Result<ApplicationDetailResponse>> PutOnHoldAsync(
+        Guid applicationId,
+        string reason,
+        string requiredActions,
+        Guid adminUserId,
+        CancellationToken cancellationToken = default)
+    {
+        // Validate required fields
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            return Result<ApplicationDetailResponse>.Failure(
+                "Reason required", "Reason for putting application on hold is required");
+        }
+
+        if (string.IsNullOrWhiteSpace(requiredActions))
+        {
+            return Result<ApplicationDetailResponse>.Failure(
+                "Required actions needed", "Required actions for applicant must be specified");
+        }
+
+        // Combine reason and required actions into admin notes
+        var adminNotes = $"On Hold - Reason: {reason}\nRequired Actions: {requiredActions}";
+
+        // Use the general status update method
+        return await UpdateApplicationStatusAsync(
+            applicationId,
+            VettingStatus.OnHold,
+            adminNotes,
+            adminUserId,
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Approve vetting application
+    /// Sends approval email and updates user role to VettedMember
+    /// </summary>
+    public async Task<Result<ApplicationDetailResponse>> ApproveApplicationAsync(
+        Guid applicationId,
+        Guid adminUserId,
+        string? adminNotes = null,
+        CancellationToken cancellationToken = default)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            // Check user authorization
+            var admin = await _context.Users.FirstOrDefaultAsync(u => u.Id == adminUserId, cancellationToken);
+            if (admin == null || admin.Role != "Administrator")
+            {
+                return Result<ApplicationDetailResponse>.Failure(
+                    "Access denied", "Only administrators can approve applications.");
+            }
+
+            // Get application
+            var application = await _context.VettingApplications
+                .Include(v => v.User)
+                .FirstOrDefaultAsync(v => v.Id == applicationId, cancellationToken);
+
+            if (application == null)
+            {
+                return Result<ApplicationDetailResponse>.Failure(
+                    "Application not found", $"No application found with ID {applicationId}");
+            }
+
+            // Validate status - must be in InterviewScheduled or later
+            if (application.Status < VettingStatus.InterviewScheduled)
+            {
+                return Result<ApplicationDetailResponse>.Failure(
+                    "Invalid status for approval",
+                    "Application must be in InterviewScheduled status or later before approval");
+            }
+
+            var oldStatus = application.Status;
+
+            // Update application status
+            application.Status = VettingStatus.Approved;
+            application.DecisionMadeAt = DateTime.UtcNow;
+            application.UpdatedAt = DateTime.UtcNow;
+
+            // Add approval notes
+            var noteText = adminNotes ?? "Application approved";
+            var existingNotes = application.AdminNotes ?? "";
+            var newNote = $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm}] Approved: {noteText}";
+            application.AdminNotes = string.IsNullOrEmpty(existingNotes)
+                ? newNote
+                : $"{existingNotes}\n\n{newNote}";
+
+            // Update user role if user is linked
+            if (application.UserId.HasValue && application.User != null)
+            {
+                application.User.Role = "VettedMember";
+                _logger.LogInformation(
+                    "Granted VettedMember role to user {UserId} for approved application {ApplicationId}",
+                    application.UserId.Value, applicationId);
+            }
+
+            // Create audit log entry
+            var auditLog = new VettingAuditLog
+            {
+                Id = Guid.NewGuid(),
+                ApplicationId = application.Id,
+                Action = "Application Approved",
+                PerformedBy = adminUserId,
+                PerformedAt = DateTime.UtcNow,
+                OldValue = oldStatus.ToString(),
+                NewValue = VettingStatus.Approved.ToString(),
+                Notes = noteText
+            };
+            _context.VettingAuditLogs.Add(auditLog);
+
+            await _context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Application {ApplicationId} approved by admin {AdminUserId}",
+                applicationId, adminUserId);
+
+            // Get updated application details to return
+            return await GetApplicationDetailAsync(applicationId, adminUserId, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            _logger.LogError(ex, "Error approving application {ApplicationId}", applicationId);
+            return Result<ApplicationDetailResponse>.Failure(
+                "Failed to approve application", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Deny vetting application with required reason
+    /// </summary>
+    public async Task<Result<ApplicationDetailResponse>> DenyApplicationAsync(
+        Guid applicationId,
+        string reason,
+        Guid adminUserId,
+        CancellationToken cancellationToken = default)
+    {
+        // Validate required reason
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            return Result<ApplicationDetailResponse>.Failure(
+                "Denial reason required", "A reason must be provided when denying an application");
+        }
+
+        // Use the general status update method with denial notes
+        var adminNotes = $"Application denied. Reason: {reason}";
+
+        return await UpdateApplicationStatusAsync(
+            applicationId,
+            VettingStatus.Denied,
+            adminNotes,
+            adminUserId,
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Validate status transition according to workflow rules
+    /// </summary>
+    /// <param name="currentStatus">Current status of the application</param>
+    /// <param name="newStatus">New status to transition to</param>
+    /// <returns>Result indicating if transition is valid</returns>
+    private Result<bool> ValidateStatusTransition(VettingStatus currentStatus, VettingStatus newStatus)
+    {
+        // Define valid transitions
+        var validTransitions = new Dictionary<VettingStatus, List<VettingStatus>>
+        {
+            [VettingStatus.Draft] = new() { VettingStatus.Submitted },
+            [VettingStatus.Submitted] = new() { VettingStatus.UnderReview, VettingStatus.Withdrawn },
+            [VettingStatus.UnderReview] = new() { VettingStatus.InterviewApproved, VettingStatus.OnHold, VettingStatus.Denied, VettingStatus.Withdrawn },
+            [VettingStatus.InterviewApproved] = new() { VettingStatus.PendingInterview, VettingStatus.OnHold, VettingStatus.Withdrawn },
+            [VettingStatus.PendingInterview] = new() { VettingStatus.InterviewScheduled, VettingStatus.OnHold, VettingStatus.Withdrawn },
+            [VettingStatus.InterviewScheduled] = new() { VettingStatus.Approved, VettingStatus.OnHold, VettingStatus.Denied, VettingStatus.Withdrawn },
+            [VettingStatus.OnHold] = new() { VettingStatus.UnderReview, VettingStatus.InterviewApproved, VettingStatus.Denied, VettingStatus.Withdrawn },
+            [VettingStatus.Approved] = new(), // Terminal state - no transitions
+            [VettingStatus.Denied] = new(),   // Terminal state - no transitions
+            [VettingStatus.Withdrawn] = new() // Terminal state - no transitions
+        };
+
+        // Check if current status has valid transitions defined
+        if (!validTransitions.ContainsKey(currentStatus))
+        {
+            return Result<bool>.Failure(
+                $"Unknown current status: {currentStatus}");
+        }
+
+        // Check if new status is in the list of valid transitions
+        if (!validTransitions[currentStatus].Contains(newStatus))
+        {
+            return Result<bool>.Failure(
+                $"Invalid transition from {currentStatus} to {newStatus}. " +
+                $"Valid transitions: {string.Join(", ", validTransitions[currentStatus])}");
+        }
+
+        return Result<bool>.Success(true);
+    }
+
+    #endregion
 }

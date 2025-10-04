@@ -516,3 +516,29 @@ If you cannot read ANY file:
 **Problem**: No way to sunset old endpoints causing maintenance burden.
 **Solution**: Document deprecation timeline. Return deprecation headers. Provide migration guide. Monitor usage of old endpoints.
 
+## Email Notifications Within Database Transactions
+
+**Problem**: Email service calls block database transactions or cause rollbacks when emails fail.
+**Solution**: Send emails AFTER SaveChangesAsync but BEFORE transaction commit. Wrap email calls in try-catch to prevent failures from blocking business logic. Log email errors but continue with status change. Email audit trail in VettingEmailLog provides tracking even when emails fail.
+
+**Pattern**:
+```csharp
+await _context.SaveChangesAsync(cancellationToken);
+
+// Send email after DB save, before commit (non-blocking)
+try
+{
+    var emailResult = await _emailService.SendStatusUpdateAsync(...);
+    if (!emailResult.IsSuccess)
+    {
+        _logger.LogWarning("Email failed: {Error}", emailResult.Error);
+    }
+}
+catch (Exception ex)
+{
+    _logger.LogError(ex, "Email exception - continuing");
+}
+
+await transaction.CommitAsync(cancellationToken);
+```
+
