@@ -1375,12 +1375,21 @@ public class VettingService : IVettingService
                     "Application not found", $"No application found with ID {applicationId}");
             }
 
-            // Validate status - must be in InterviewScheduled or later
-            if (application.Status < VettingStatus.InterviewScheduled)
+            // Validate status - must be in UnderReview or later (but not already in terminal state)
+            // Allow approval from UnderReview, InterviewApproved, PendingInterview, InterviewScheduled, or OnHold
+            if (application.Status < VettingStatus.UnderReview)
             {
                 return Result<ApplicationDetailResponse>.Failure(
                     "Invalid status for approval",
-                    "Application must be in InterviewScheduled status or later before approval");
+                    "Application must be in UnderReview status or later before approval. Current status: " + application.Status);
+            }
+
+            // Check if already in terminal state
+            if (application.Status == VettingStatus.Approved || application.Status == VettingStatus.Denied || application.Status == VettingStatus.Withdrawn)
+            {
+                return Result<ApplicationDetailResponse>.Failure(
+                    "Cannot modify terminal state",
+                    $"Application is already in terminal state: {application.Status}");
             }
 
             var oldStatus = application.Status;
@@ -1399,49 +1408,67 @@ public class VettingService : IVettingService
                 : $"{existingNotes}\n\n{newNote}";
 
             // Update user role if user is linked
-            if (application.UserId.HasValue && application.User != null)
+            if (application.UserId.HasValue)
             {
-                var user = application.User;
+                // Load user explicitly (don't rely on navigation property which might not be tracked)
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Id == application.UserId.Value, cancellationToken);
 
-                // Update the Role property
-                user.Role = "VettedMember";
-
-                // Update IsVetted flag (CRITICAL for RSVP access)
-                user.IsVetted = true;
-
-                // Get the VettedMember role from database
-                var vettedMemberRole = await _context.Roles
-                    .FirstOrDefaultAsync(r => r.Name == "VettedMember", cancellationToken);
-
-                if (vettedMemberRole != null)
+                if (user != null)
                 {
-                    // Remove all existing role assignments for this user
-                    var existingUserRoles = await _context.UserRoles
-                        .Where(ur => ur.UserId == user.Id)
-                        .ToListAsync(cancellationToken);
+                    // Update the Role property
+                    user.Role = "VettedMember";
 
-                    if (existingUserRoles.Any())
-                    {
-                        _context.UserRoles.RemoveRange(existingUserRoles);
-                    }
+                    // Update IsVetted flag (CRITICAL for RSVP access)
+                    user.IsVetted = true;
 
-                    // Add VettedMember role assignment
-                    var newUserRole = new Microsoft.AspNetCore.Identity.IdentityUserRole<Guid>
-                    {
-                        UserId = user.Id,
-                        RoleId = vettedMemberRole.Id
-                    };
-                    _context.UserRoles.Add(newUserRole);
+                    // Explicitly mark user as modified to ensure EF tracks the change
+                    _context.Users.Update(user);
 
                     _logger.LogInformation(
-                        "Granted VettedMember role to user {UserId} for approved application {ApplicationId}",
+                        "Set IsVetted=true and Role=VettedMember for user {UserId} for approved application {ApplicationId}",
                         application.UserId.Value, applicationId);
+
+                    // Get the VettedMember role from database
+                    var vettedMemberRole = await _context.Roles
+                        .FirstOrDefaultAsync(r => r.Name == "VettedMember", cancellationToken);
+
+                    if (vettedMemberRole != null)
+                    {
+                        // Remove all existing role assignments for this user
+                        var existingUserRoles = await _context.UserRoles
+                            .Where(ur => ur.UserId == user.Id)
+                            .ToListAsync(cancellationToken);
+
+                        if (existingUserRoles.Any())
+                        {
+                            _context.UserRoles.RemoveRange(existingUserRoles);
+                        }
+
+                        // Add VettedMember role assignment
+                        var newUserRole = new Microsoft.AspNetCore.Identity.IdentityUserRole<Guid>
+                        {
+                            UserId = user.Id,
+                            RoleId = vettedMemberRole.Id
+                        };
+                        _context.UserRoles.Add(newUserRole);
+
+                        _logger.LogInformation(
+                            "Granted VettedMember role assignment to user {UserId} for approved application {ApplicationId}",
+                            application.UserId.Value, applicationId);
+                    }
+                    else
+                    {
+                        _logger.LogWarning(
+                            "VettedMember role not found in database - cannot grant role assignment for application {ApplicationId}. IsVetted flag is still set.",
+                            applicationId);
+                    }
                 }
                 else
                 {
                     _logger.LogError(
-                        "VettedMember role not found in database - cannot grant role for application {ApplicationId}",
-                        applicationId);
+                        "User {UserId} not found - cannot update vetting status for application {ApplicationId}",
+                        application.UserId.Value, applicationId);
                 }
             }
 

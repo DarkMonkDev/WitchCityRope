@@ -542,3 +542,78 @@ catch (Exception ex)
 await transaction.CommitAsync(cancellationToken);
 ```
 
+## 🚨 CRITICAL: Early Return Validation Blocking Business Logic Execution
+
+**Problem**: Integration tests show 400 Bad Request when approving vetting applications, but backend "fixes" for `user.IsVetted = true` and audit log action name have no effect. Test pass rate stuck at 67.7% despite multiple iterations of backend changes.
+
+**Root Cause**: Status validation in `ApproveApplicationAsync` method returns early with failure **BEFORE** any business logic executes:
+```csharp
+// ❌ TOO RESTRICTIVE - Blocks approvals that haven't completed full interview workflow
+if (application.Status < VettingStatus.InterviewScheduled)
+{
+    return Result.Failure("Invalid status for approval", "...");
+}
+```
+
+This validation prevented approval for applications in `Submitted` or `UnderReview` status, causing:
+- 400 Bad Request responses from API
+- Business logic (setting `IsVetted`, creating audit logs) never executing
+- Backend fixes applied to unreachable code paths
+- False assumption that database persistence or validation was the issue
+
+**Solution Pattern**:
+1. **Relax workflow validation** to allow approval from `UnderReview` status or later (not just `InterviewScheduled`)
+2. **Add terminal state check** to prevent modification of already-approved/denied applications
+3. **Explicitly load and track user entity** instead of relying on navigation properties
+4. **Use `.Update()` on entity** to ensure EF Core tracks changes to user properties
+
+```csharp
+// ✅ CORRECT - Allows approval from UnderReview or later, prevents terminal state modification
+if (application.Status < VettingStatus.UnderReview)
+{
+    return Result.Failure("Invalid status",
+        $"Application must be in UnderReview or later. Current: {application.Status}");
+}
+
+if (application.Status == VettingStatus.Approved ||
+    application.Status == VettingStatus.Denied ||
+    application.Status == VettingStatus.Withdrawn)
+{
+    return Result.Failure("Cannot modify terminal state",
+        $"Application is already {application.Status}");
+}
+
+// Load user explicitly (don't rely on navigation property)
+var user = await _context.Users
+    .FirstOrDefaultAsync(u => u.Id == application.UserId.Value, cancellationToken);
+
+if (user != null)
+{
+    user.Role = "VettedMember";
+    user.IsVetted = true;
+
+    // Explicitly mark as modified to ensure EF tracks the change
+    _context.Users.Update(user);
+
+    _logger.LogInformation("Set IsVetted=true for user {UserId}", user.Id);
+}
+
+await _context.SaveChangesAsync(cancellationToken);
+```
+
+**Debugging Methodology**:
+1. **Check HTTP status codes FIRST** - 400 = validation failure, 500 = execution error
+2. **Trace execution path** - Early returns prevent downstream code from executing
+3. **Verify business logic is reachable** - Add logging BEFORE validation checks
+4. **Test validation boundaries** - Ensure validation rules match test scenarios
+5. **Don't assume database issues** when validation is rejecting requests
+
+**Prevention**:
+- Read endpoint code FIRST to understand validation rules
+- Check test setup to verify entities are in expected states
+- Use logging to confirm code paths are executing
+- Test validation boundaries explicitly (edge cases between statuses)
+- When fixes don't work, question whether the code is even executing
+
+**Tags**: #critical #validation #debugging #early-return #unreachable-code
+
