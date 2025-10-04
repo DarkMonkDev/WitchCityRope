@@ -1,6 +1,6 @@
 # Functional Area Master Index
-<!-- Last Updated: 2025-09-20 - MAJOR COMPLETION: RSVP and Ticketing System Implementation Complete -->
-<!-- Version: 1.6 -->
+<!-- Last Updated: 2025-10-04 - FEATURE COMPLETE: Vetting System - Conditional Menu Visibility -->
+<!-- Version: 1.7 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -31,8 +31,44 @@ This master index is maintained by the librarian agent to provide quick lookups 
 | **Dependencies Management** | `/docs/functional-areas/dependencies-management/` | N/A | Package dependency updates, security vulnerability management, NuGet and npm package compatibility | Planning | 2025-09-11 |
 | **API Cleanup** | `/docs/functional-areas/api-cleanup/` | **MIGRATION COMPLETE** ✅ | **✅ RESOLVED** - Successfully archived legacy API projects and migrated all valuable features to modern API. Architecture consistency restored. | **COMPLETE** | 2025-09-13 |
 | **Testing Infrastructure** | `/docs/functional-areas/testing-infrastructure/` | `/docs/functional-areas/testing-infrastructure/new-work/2025-09-12-containerized-testing/` | **Research and planning for containerized testing infrastructure** - Investigate fresh Docker containers with blank PostgreSQL databases, GitHub Actions CI/CD compatibility, and orphaned container prevention | **Research Phase** | 2025-09-12 |
-| **Vetting System** | `/docs/functional-areas/vetting-system/` | `/docs/functional-areas/vetting-system/new-work/2025-09-22-complete-implementation/` | **ACTIVE DEVELOPMENT** - Complete implementation of member vetting and approval system. Backend API largely complete, wireframes updated, focused on full production-ready implementation | **Phase 1 - Requirements** | 2025-09-22 |
+| **Vetting System** | `/docs/functional-areas/vetting-system/` | `/docs/functional-areas/vetting-system/new-work/2025-10-04-how-to-join-conditional-visibility/` | **FEATURE COMPLETE** ✅ - Conditional "How to Join" menu visibility based on vetting status. 46 tests passing, TDD approach, full TypeScript coverage. Backend API complete, React implementation production-ready. **READY FOR QA** | **IMPLEMENTATION COMPLETE** | 2025-10-04 |
 | **Deployment** | `/docs/functional-areas/deployment/` | `/docs/functional-areas/deployment/2025-01-13-digitalocean-deployment/` | **NEW WORK** - DigitalOcean production deployment setup with comprehensive research from DarkMonk repository, existing docs audit, and deployment strategy planning | **Planning Phase** | 2025-01-13 |
+
+## 🎆 FEATURE COMPLETE (2025-10-04): Vetting System - Conditional Menu Visibility
+
+**NEW FEATURE ACHIEVEMENT**: Conditional "How to Join" menu visibility based on vetting application status is now complete and ready for QA:
+
+- **Smart Navigation**: Menu item shows/hides based on 10 different vetting statuses
+- **Status Display**: Users with pending applications see contextual status information
+- **Test Coverage**: 46 comprehensive tests (100% passing) using TDD approach
+- **Type Safety**: Full TypeScript coverage with generated API types
+- **Production Ready**: Complete implementation with documentation
+
+**Technical Achievements**:
+- 6 Git commits with progressive feature development
+- React hooks: useVettingStatus, useMenuVisibility
+- VettingStatusBox component with 10 status variants
+- TanStack Query integration for real-time status
+- Comprehensive QA handoff documentation
+
+**Implementation Details**:
+- **Files Created**: 12 TypeScript files (production + tests)
+- **Test Suite**: 1,342 lines of test code, 2.65:1 test-to-code ratio
+- **Documentation**: Business requirements, functional spec, UI design, implementation summary, QA handoff
+- **Commits**: c7443691 through 9b3d95a9 (October 4, 2025)
+
+**Business Value**:
+- Improved user experience with contextually relevant navigation
+- Reduced confusion for vetted members
+- Clear status communication for applicants
+- Prevention of duplicate/invalid applications
+- Reduced support burden
+
+**Documentation**:
+- Implementation Summary: `/docs/functional-areas/vetting-system/new-work/2025-10-04-how-to-join-conditional-visibility/IMPLEMENTATION-SUMMARY.md`
+- QA Handoff: `/docs/functional-areas/vetting-system/new-work/2025-10-04-how-to-join-conditional-visibility/handoffs/implementation-to-qa.md`
+
+**Status**: ✅ **READY FOR QA TESTING**
 
 ## 🎆 MAJOR MILESTONE ACHIEVED (2025-09-14): PayPal Payment Integration Complete
 
@@ -51,8 +87,8 @@ This master index is maintained by the librarian agent to provide quick lookups 
 - Mock PayPal service for CI/CD compatibility
 - Comprehensive test report documenting validation steps
 
-**Commit Hash**: a1bb6df  
-**Date**: September 14, 2025  
+**Commit Hash**: a1bb6df
+**Date**: September 14, 2025
 **Significance**: Complete payment processing integration - WitchCityRope can now accept and process real PayPal payments
 
 **Impact for Development Teams**:
@@ -74,8 +110,8 @@ This master index is maintained by the librarian agent to provide quick lookups 
 - **PayPal Dependency Fixed**: App mounting issue resolved
 - **Frontend-Backend Connectivity**: Proxy configuration and hardcoded ports corrected
 
-**Commit Hash**: 950a629  
-**Date**: September 14, 2025  
+**Commit Hash**: 950a629
+**Date**: September 14, 2025
 **Significance**: React migration breakthrough - provided foundation for PayPal integration success
 
 ## Active Development Work
@@ -84,7 +120,7 @@ This master index is maintained by the librarian agent to provide quick lookups 
 - **Project Status**: ✅ **IMPLEMENTATION COMPLETE** - All phases delivered, project successful, 6 weeks ahead of schedule
 - **Final Cleanup Status**: ✅ **DOCUMENTATION MANAGEMENT COMPLETE** - All scope work finished 2025-08-23
 - **Performance Achievement**: 49ms average response time (75% better than 200ms target)
-- **Architecture Success**: Simple vertical slice implementation eliminating MediatR/CQRS complexity  
+- **Architecture Success**: Simple vertical slice implementation eliminating MediatR/CQRS complexity
 - **Business Value**: $28,000+ annual cost savings, 40-60% development velocity improvement
 - **Technical Implementation**: 4 complete feature slices (Health, Auth, Events, Users) with 18 operational endpoints
 - **Zero Breaking Changes**: Full backward compatibility maintained throughout migration
@@ -257,6 +293,7 @@ Pattern: `{base_path}/wireframes/`
 
 | Feature | Work Path | Completion Date | Archived To |
 |---------|-----------|-----------------|-------------|
+| **Vetting System - Conditional Menu Visibility** | `/docs/functional-areas/vetting-system/new-work/2025-10-04-how-to-join-conditional-visibility/` | 2025-10-04 | ACTIVE - Recent completion, documentation preserved |
 | **Infrastructure Testing Phase** | `/apps/web/src/components/forms/` + `/apps/web/src/styles/` | 2025-08-18 | ACTIVE - Working components and CSS modules retained |
 | **Technology Research Phase** | `/docs/architecture/react-migration/adrs/` | 2025-08-17 | ACTIVE - ADR-004 and consolidation documentation retained |
 | **Vertical Slice Home Page** | `/docs/functional-areas/vertical-slice-home-page/` | 2025-08-16 | 🗄️ ARCHIVED to `/docs/_archive/vertical-slice-home-page-2025-08-16/` - All value extracted to authentication functional area |

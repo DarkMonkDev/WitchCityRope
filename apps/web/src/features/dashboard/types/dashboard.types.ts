@@ -108,17 +108,19 @@ export interface UserStatisticsResponse {
 
 /**
  * Helper type for vetting status values
+ * MUST match VettingStatus enum in backend VettingApplication.cs
  */
 export enum VettingStatus {
   Draft = 0,
   Submitted = 1,
   UnderReview = 2,
-  PendingReferences = 3,
+  InterviewApproved = 3,
   PendingInterview = 4,
-  PendingAdditionalInfo = 5,
-  Approved = 6,
-  Denied = 7,
-  Withdrawn = 8
+  InterviewScheduled = 5,
+  OnHold = 6,
+  Approved = 7,
+  Denied = 8,
+  Withdrawn = 9
 }
 
 /**
@@ -166,23 +168,29 @@ export const DashboardUtils = {
           color: 'yellow',
           description: 'Application being reviewed'
         };
-      case VettingStatus.PendingReferences:
+      case VettingStatus.InterviewApproved:
         return {
-          label: 'Pending References',
-          color: 'orange',
-          description: 'Waiting for reference checks'
+          label: 'Interview Approved',
+          color: 'teal',
+          description: 'Interview approved - waiting to schedule'
         };
       case VettingStatus.PendingInterview:
         return {
+          label: 'Pending Interview',
+          color: 'cyan',
+          description: 'Interview pending'
+        };
+      case VettingStatus.InterviewScheduled:
+        return {
           label: 'Interview Scheduled',
-          color: 'teal',
+          color: 'green',
           description: 'Interview scheduled'
         };
-      case VettingStatus.PendingAdditionalInfo:
+      case VettingStatus.OnHold:
         return {
-          label: 'Additional Info Required',
-          color: 'orange',
-          description: 'More information needed'
+          label: 'On Hold',
+          color: 'yellow',
+          description: 'Application on hold'
         };
       case VettingStatus.Approved:
         return {

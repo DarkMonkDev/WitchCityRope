@@ -208,9 +208,21 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ className }) => {
               </Text>
             </Group>
             
-            {dashboard.isVetted && (
+            {dashboard.isVetted && dashboard.vettingStatus !== 8 && dashboard.vettingStatus !== 6 && (
               <Text size="xs" c="dimmed" mt="xs">
                 🎉 You have full access to all community events and resources.
+              </Text>
+            )}
+
+            {dashboard.vettingStatus === 8 && (
+              <Text size="xs" c="red" mt="xs" fw={500}>
+                ⚠️ Your vetting application was not approved. You have limited access to community events.
+              </Text>
+            )}
+
+            {dashboard.vettingStatus === 6 && (
+              <Text size="xs" c="yellow" mt="xs" fw={500}>
+                ⏸️ Your vetting application is on hold. Please check for updates or contact an administrator.
               </Text>
             )}
           </Alert>

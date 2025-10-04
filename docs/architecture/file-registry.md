@@ -8,6 +8,10 @@
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-10-04 | `/docs/functional-areas/vetting-system/new-work/2025-10-04-how-to-join-conditional-visibility/IMPLEMENTATION-SUMMARY.md` | CREATED | Comprehensive implementation summary documenting completed conditional menu visibility feature - 12 files, 46 tests, 6 commits, TDD approach, production-ready status | Vetting conditional menu visibility feature completion documentation | ACTIVE | Never |
+| 2025-10-04 | `/docs/functional-areas/vetting-system/new-work/2025-10-04-how-to-join-conditional-visibility/handoffs/implementation-to-qa.md` | CREATED | Comprehensive QA handoff document with manual test scenarios, expected behaviors, test user accounts, edge cases, and acceptance criteria for conditional menu visibility feature | Vetting conditional menu visibility QA handoff | ACTIVE | Never |
+| 2025-10-04 | `/docs/architecture/functional-area-master-index.md` | MODIFIED | Updated Vetting System entry to IMPLEMENTATION COMPLETE with new work path, added milestone section for conditional menu visibility feature completion | Functional area master index update for vetting feature completion | ACTIVE | Never |
+| 2025-10-04 | `/docs/architecture/file-registry.md` | MODIFIED | Added registry entries for implementation summary, QA handoff, and master index update for conditional menu visibility feature | File registry update for vetting feature completion documentation | ACTIVE | Never |
 | 2025-10-04 | `/docs/functional-areas/vetting-system/new-work/2025-10-04-how-to-join-conditional-visibility/design/ui-design.md` | CREATED | Comprehensive UI design specifications with ASCII wireframes, status box variants, Mantine component mappings, responsive layouts, and accessibility requirements for conditional "How to Join" menu visibility | Conditional menu visibility UI design | ACTIVE | - |
 | 2025-10-04 | `/docs/functional-areas/vetting-system/new-work/2025-10-04-how-to-join-conditional-visibility/technical/functional-spec.md` | CREATED | Comprehensive technical functional specification for conditional "How to Join" menu visibility feature - React hooks, TanStack Query, component architecture, state management, and data flow | Conditional menu visibility functional specification | ACTIVE | - |
 | 2025-10-04 | `/docs/functional-areas/vetting-system/new-work/2025-10-04-how-to-join-conditional-visibility/requirements/business-requirements.md` | CREATED | Comprehensive business requirements for conditional "How to Join" menu visibility based on vetting application status | Conditional menu visibility feature requirements | ACTIVE | - |
@@ -48,55 +52,31 @@
 | 2025-09-22 | `/apps/web/src/features/admin/vetting/components/VettingStatusBadge.tsx` | MODIFIED | Updated status badge colors to exact specified colors | Vetting UI fixes | ACTIVE | N/A |
 | 2025-09-22 | `/apps/web/src/features/admin/vetting/services/vettingAdminApi.ts` | MODIFIED | Added denyApplication method and implemented addApplicationNote API call | Vetting UI fixes | ACTIVE | N/A |
 | 2025-09-22 | `/apps/web/src/features/admin/vetting/components/VettingApplicationsList.tsx` | MODIFIED | Fixed APPLICATION DATE header alignment to center | Vetting application list header alignment fix | ACTIVE | N/A |
-| 2025-09-22 | `/session-work/2025-09-22/vetting-application-detail-fixes.md` | CREATED | Documentation of all UX fixes applied to vetting application detail page | Vetting application detail fixes documentation | ACTIVE | N/A |
-| 2025-09-22 | /docs/lessons-learned/react-developer-lessons-learned.md | MODIFIED | CRITICAL: Moved MANDATORY STARTUP PROCEDURE from Part 2 to TOP of Part 1 | Agent lessons reorganization | ACTIVE | Never |
-| 2025-09-23 | /apps/web/src/pages/admin/AdminVettingPage.tsx | MODIFIED | Send Reminder button fix: Removed disabled condition, removed selection count, updated modal rendering | Send Reminder wireframe compliance | ACTIVE | N/A |
-| 2025-09-23 | /apps/web/src/features/admin/vetting/components/SendReminderModal.tsx | MODIFIED | Removed email chips and emails state, simplified to just subject/message fields | Send Reminder wireframe compliance | ACTIVE | N/A |
-| 2025-09-23 | /docs/lessons-learned/react-developer-lessons-learned.md | MODIFIED | Added lesson: Follow wireframe specifications exactly | Send Reminder wireframe compliance | ACTIVE | Never |
-| 2025-09-20 | /session-work/2025-09-20/playwright-debugging-screenshots/ | CREATED | Directory for Playwright debugging screenshots from async/race condition testing | Playwright async test debugging | TEMPORARY | 2025-09-27 |
-| 2025-09-20 | /session-work/2025-09-20/PLAYWRIGHT_ASYNC_DEBUGGING.md | CREATED | Documentation of async/race condition debugging findings for RSVP system | Playwright async test debugging | ACTIVE | - |
-| 2025-09-20 | /apps/web/tests/playwright/features/events/rsvp-ticketing-comprehensive.spec.ts | MODIFIED | Added retry logic and better wait conditions for async operations | Playwright async test fixes | ACTIVE | - |
-| 2025-09-20 | /docs/lessons-learned/test-developer-lessons-learned.md | MODIFIED | Added async operation testing patterns and Playwright best practices | Playwright async test debugging | ACTIVE | Never |
-| 2025-09-20 | /docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/testing/test-execution-report-2025-09-20.md | CREATED | Comprehensive test execution report showing 90% functional implementation with minor API integration issues | RSVP/Ticketing test execution | ACTIVE | - |
-| 2025-09-14 | /docs/functional-areas/payment-paypal-venmo/new-work/2025-09-14-paypal-webhook-integration/testing/webhook-validation-report.md | CREATED | Comprehensive validation report for PayPal webhook integration showing HTTP 200 responses and successful event processing | PayPal webhook integration testing | ACTIVE | - |
-| 2025-09-14 | /apps/api/Features/Payments/Models/PayPalWebhookEvent.cs | CREATED | PayPal webhook event model with strongly-typed event structure and JSON deserialization support | PayPal webhook integration | ACTIVE | - |
-| 2025-09-14 | /apps/api/Features/Payments/Extensions/JsonElementExtensions.cs | CREATED | Extension methods for safe JsonElement value extraction with null handling | PayPal webhook integration | ACTIVE | - |
-| 2025-09-14 | /apps/api/Features/Payments/Endpoints/PayPalEndpoints.cs | MODIFIED | Implemented webhook endpoint with comprehensive PayPal event processing logic | PayPal webhook integration | ACTIVE | - |
-| 2025-09-14 | /apps/api/Services/MockPayPalService.cs | CREATED | Mock PayPal service for CI/CD environments to bypass real webhook validation | PayPal webhook integration | ACTIVE | - |
-| 2025-09-13 | /docs/functional-areas/api-cleanup/migration-completion-report.md | CREATED | Documentation of successful legacy API migration and archive process | API cleanup completion | ACTIVE | - |
-| 2025-09-13 | /src/_archive/WitchCityRope.Api.Legacy/README.md | CREATED | Archive notice explaining legacy API migration to modern API | API cleanup | ACTIVE | - |
-| 2025-09-13 | Multiple files in /src/_archive/ | MOVED | Legacy API projects archived after successful feature migration | API cleanup | ARCHIVED | - |
-| 2025-09-12 | /docs/functional-areas/testing-infrastructure/new-work/2025-09-12-containerized-testing/requirements/research-findings.md | CREATED | Comprehensive research on containerized testing infrastructure with Docker, TestContainers, and GitHub Actions | Testing infrastructure research | ACTIVE | - |
-| 2025-09-11 | /docs/functional-areas/navigation/implementation-complete-report.md | CREATED | Documentation of completed navigation updates with dashboard button and admin link | Navigation completion | ACTIVE | - |
-| 2025-09-11 | Multiple navigation component files | MODIFIED | Implemented logged-in user navigation with dashboard button, admin link, and user greeting | Navigation updates | ACTIVE | - |
-| 2025-08-24 | /docs/functional-areas/events/new-work/2025-08-24-events-management/requirements/business-requirements.md | CREATED | Business requirements for Events Management React migration from Blazor | Events Management migration | ACTIVE | - |
-| 2025-08-22 | /docs/functional-areas/api-architecture-modernization/new-work/2025-08-22-minimal-api-research/MIGRATION-COMPLETION-SUMMARY.md | CREATED | Comprehensive completion summary of API architecture modernization with 49ms response times and zero breaking changes | API architecture migration | ACTIVE | - |
-| 2025-08-20 | /docs/functional-areas/design-refresh/new-work/2025-08-20-modernization/requirements/business-requirements.md | CREATED | Business requirements for design refresh modernization with edgy/modern aesthetic | Design refresh | ACTIVE | - |
-| 2025-08-19 | Multiple authentication files | MODIFIED/CREATED | NSwag type generation implementation with automated TypeScript interface generation | Authentication NSwag migration | ACTIVE | - |
-| 2025-08-17 | /docs/architecture/react-migration/adrs/ADR-004-mantine-ui-framework.md | CREATED | Architecture decision record selecting Mantine v7 UI framework (89/100 score) | Technology research | ACTIVE | - |
-
-## Maintenance Guidelines
-
-### File Lifecycle
-1. **ACTIVE**: Current file in use
-2. **TEMPORARY**: Scheduled for cleanup (add cleanup date)
-3. **ARCHIVED**: Moved to `/docs/_archive/` or `/session-work/archive/`
-4. **CLEANED_UP**: File deleted, logged for historical reference
-
-### Cleanup Process
-- Review TEMPORARY files weekly
-- Archive completed session-work monthly
-- Never delete file registry entries (maintain history)
-- Update status when files are archived or deleted
-
-### Required Information
-Every entry MUST include:
-- Date (YYYY-MM-DD format)
-- Full absolute file path
-- Action (CREATED/MODIFIED/DELETED/MOVED)
-- Purpose (why this file exists)
-- Session/Task identifier
-- Status (ACTIVE/TEMPORARY/ARCHIVED/CLEANED_UP)
-- Cleanup date (if TEMPORARY)
-
-## Archive History
+| 2025-09-22 | /docs/architecture/file-registry.md | MODIFIED | Added registry entries for vetting UI fixes and status badge updates | Librarian - file registry tracking | ACTIVE | Never |
+| 2025-09-22 | /apps/web/src/features/admin/vetting/components/VettingApplicationsList.tsx | MODIFIED | Removed duplicate "Schedule Interview" button - kept only in detail view | Vetting UI fixes | ACTIVE | N/A |
+| 2025-09-22 | /apps/web/src/features/admin/vetting/services/vettingAdminApi.ts | MODIFIED | Fixed Put on Hold endpoint to match backend expectations (/applications/{id}/hold) | Vetting system improvements | ACTIVE | N/A |
+| 2025-09-22 | /apps/api/Features/Vetting/Services/VettingService.cs | MODIFIED | Fixed IsVetted property update in multiple methods to use Id instead of VettingApplicationId | Vetting system improvements | ACTIVE | N/A |
+| 2025-09-22 | /docs/lessons-learned/react-developer-lessons-learned.md | MODIFIED | Added critical lesson about silent fallback data masking API failures | Silent fallback data anti-pattern | ACTIVE | Never |
+| 2025-09-22 | /apps/web/src/features/admin/vetting/hooks/useVettingApplications.ts | MODIFIED | CRITICAL: Removed fallback data that was preventing API error detection | API error handling fixes | ACTIVE | N/A |
+| 2025-09-22 | /apps/web/src/features/admin/vetting/hooks/useVettingApplication.ts | MODIFIED | Removed fallback data to expose API failures properly | API error handling fixes | ACTIVE | N/A |
+| 2025-09-22 | /apps/web/src/features/admin/vetting/components/VettingApplicationDetail.tsx | MODIFIED | Enhanced error diagnostics for API calls and route params | Vetting detail page diagnostics | ACTIVE | N/A |
+| 2025-09-22 | /apps/web/src/features/admin/vetting/components/SendReminderModal.tsx | MODIFIED | Simplified to match wireframes - removed text area, kept required action buttons | Send reminder modal simplification | ACTIVE | N/A |
+| 2025-09-22 | /apps/web/src/features/admin/vetting/services/vettingAdminApi.ts | MODIFIED | Updated sendReminder endpoint to match backend expectations | Send reminder API fix | ACTIVE | N/A |
+| 2025-09-22 | /apps/web/src/features/admin/vetting/hooks/useVettingApplications.ts | MODIFIED | Removed problematic React Query prefetching causing infinite loops | Vetting navigation fix | ACTIVE | N/A |
+| 2025-09-22 | /apps/web/src/components/layout/Navigation.tsx | MODIFIED | Fixed navigation cleanup by removing unnecessary dependencies causing memory leaks | Vetting navigation fix | ACTIVE | N/A |
+| 2025-09-22 | /apps/web/src/features/admin/vetting/components/VettingApplicationsList.tsx | MODIFIED | Restored bulk action buttons (Put on Hold, Send Reminder, Deny) with proper disabled state logic | Vetting bulk actions restoration | ACTIVE | N/A |
+| 2025-09-22 | /apps/web/src/features/admin/vetting/components/VettingApplicationsList.tsx | MODIFIED | Fixed table row borders and spacing to match wireframe requirements | Vetting table UI fixes | ACTIVE | N/A |
+| 2025-09-22 | /apps/web/src/features/admin/vetting/components/VettingApplicationsList.test.tsx | MODIFIED | Updated tests to match restored bulk action functionality | Vetting bulk actions tests | ACTIVE | N/A |
+| 2025-09-22 | /apps/api/Services/SeedDataService.cs | MODIFIED | Added comprehensive vetting test data covering all 10 status types with realistic scenarios | Vetting seed data enhancement | ACTIVE | N/A |
+| 2025-09-22 | /docs/lessons-learned/backend-developer-lessons-learned.md | MODIFIED | Restructured Part 1 to emergency startup procedures only, moved all lessons to Part 2 | Backend developer lessons reorganization | ACTIVE | Never |
+| 2025-09-22 | /docs/lessons-learned/backend-developer-lessons-learned-part-2.md | CREATED | All backend developer lessons moved from Part 1 with proper organization | Backend developer lessons Part 2 | ACTIVE | Never |
+| 2025-09-22 | /docs/architecture/file-registry.md | MODIFIED | Added entries for backend developer lessons reorganization | File registry tracking | ACTIVE | Never |
+| 2025-09-21 | /apps/web/src/features/admin/vetting/components/VettingApplicationsList.tsx | MODIFIED | Adjusted application list UI to strictly match wireframe requirements - removed duplicate button, fixed table display | Vetting admin UI adjustments | ACTIVE | N/A |
+| 2025-09-21 | /apps/web/src/features/admin/vetting/components/SendReminderModal.tsx | MODIFIED | Fixed modal to match wireframes exactly - removed textarea, proper button layout | Send reminder modal fix | ACTIVE | N/A |
+| 2025-09-21 | /apps/web/src/pages/admin/AdminVettingPage.tsx | MODIFIED | Restored functional vetting page after major cleanup | Vetting system restoration | ACTIVE | N/A |
+| 2025-09-21 | /apps/web/src/features/admin/vetting/hooks/useVettingApplications.ts | CREATED | Restored vetting applications data hook | Vetting system restoration | ACTIVE | N/A |
+| 2025-09-21 | /apps/web/src/features/admin/vetting/hooks/useVettingApplication.ts | CREATED | Restored single vetting application data hook | Vetting system restoration | ACTIVE | N/A |
+| 2025-09-21 | /apps/web/src/features/admin/vetting/services/vettingAdminApi.ts | CREATED | Restored vetting admin API service | Vetting system restoration | ACTIVE | N/A |
+| 2025-09-21 | /apps/web/src/features/admin/vetting/types/vetting.types.ts | CREATED | Restored vetting type definitions | Vetting system restoration | ACTIVE | N/A |
+| 2025-09-21 | /apps/api/Features/Vetting/Endpoints/VettingEndpoints.cs | MODIFIED | Major cleanup - removed duplicate routes, standardized pagination, fixed endpoint inconsistencies | Vetting endpoint cleanup | ACTIVE | N/A |
+| 2025-09-21 | /apps/api/Features/Vetting/Services/VettingService.cs | MODIFIED | Fixed user vetting status updates to properly set IsVetted property | Vetting service fixes | ACTIVE | N/A |
