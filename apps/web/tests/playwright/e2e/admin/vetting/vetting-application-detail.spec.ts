@@ -119,7 +119,8 @@ test.describe('Admin Vetting Application Detail', () => {
       }
 
       // Status badge should update to "Approved"
-      const statusBadge = page.locator('[data-testid="status-badge"], .badge, .status').filter({ hasText: /approved/i });
+      // Updated to use the actual data-testid from implementation
+      const statusBadge = page.locator('[data-testid="application-status-badge"]').filter({ hasText: /approved/i });
       await expect(statusBadge).toBeVisible({ timeout: 3000 });
     } else {
       console.log('Approve button not found - application may not be in correct status');
@@ -156,7 +157,8 @@ test.describe('Admin Vetting Application Detail', () => {
       await expect(modal).not.toBeVisible({ timeout: 3000 });
 
       // Status should update to "Denied"
-      const statusBadge = page.locator('[data-testid="status-badge"], .badge, .status').filter({ hasText: /denied/i });
+      // Updated to use the actual data-testid from implementation
+      const statusBadge = page.locator('[data-testid="application-status-badge"]').filter({ hasText: /denied/i });
       await expect(statusBadge).toBeVisible({ timeout: 3000 });
     } else {
       console.log('Deny button not found - application may not be in correct status');
@@ -210,7 +212,8 @@ test.describe('Admin Vetting Application Detail', () => {
       await expect(modal).not.toBeVisible({ timeout: 3000 });
 
       // Status should update to "OnHold"
-      const statusBadge = page.locator('[data-testid="status-badge"], .badge, .status').filter({ hasText: /hold/i });
+      // Updated to use the actual data-testid from implementation
+      const statusBadge = page.locator('[data-testid="application-status-badge"]').filter({ hasText: /hold/i });
       await expect(statusBadge).toBeVisible({ timeout: 3000 });
     } else {
       console.log('Hold button not found - application may not be in correct status');
@@ -326,7 +329,8 @@ test.describe('Admin Vetting Application Detail', () => {
       await page.waitForURL(/\/admin\/vetting\/applications\/[a-f0-9-]+/i, { timeout: 5000 });
 
       // Assert - Verify approved status is displayed
-      const statusBadge = page.locator('[data-testid="status-badge"], .badge, .status').filter({ hasText: /approved/i });
+      // Updated to use the actual data-testid from implementation
+      const statusBadge = page.locator('[data-testid="application-status-badge"]').filter({ hasText: /approved/i });
       await expect(statusBadge).toBeVisible();
 
       // Look for role indicator if displayed

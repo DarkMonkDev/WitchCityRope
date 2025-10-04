@@ -46,9 +46,10 @@ test.describe('Admin Vetting Dashboard', () => {
     await expect(grid).toBeVisible();
 
     // Verify column headers exist
-    const columnHeaders = ['Application', 'Scene Name', 'Real Name', 'Email', 'Status', 'Submitted'];
+    // Updated to match actual implementation column headers (uppercase)
+    const columnHeaders = ['NAME', 'FETLIFE NAME', 'EMAIL', 'APPLICATION DATE', 'CURRENT STATUS'];
     for (const header of columnHeaders) {
-      const headerElement = page.locator('th, td').filter({ hasText: new RegExp(header, 'i') }).first();
+      const headerElement = page.locator('th').filter({ hasText: new RegExp(header, 'i') }).first();
       await expect(headerElement).toBeVisible();
     }
 
@@ -128,8 +129,8 @@ test.describe('Admin Vetting Dashboard', () => {
         const firstRow = resultRows.first();
         await expect(firstRow).toBeVisible();
       } else {
-        // Empty state acceptable
-        const emptyState = page.locator('text=/no.*results|not.*found/i');
+        // Empty state acceptable - Updated to match actual implementation
+        const emptyState = page.locator('text=/no.*applications.*match.*filters|no.*vetting.*applications/i');
         await expect(emptyState).toBeVisible();
       }
     } else {
