@@ -549,7 +549,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
     }
 
     /// <summary>
-    /// Creates an authenticated admin client
+    /// Creates an authenticated admin client with proper JWT token
     /// </summary>
     private async Task<HttpClient> CreateAdminClientAsync()
     {
@@ -558,19 +558,20 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
 
         await using var context = CreateDbContext();
 
-        // Create admin user with role
+        // Create admin user
         var adminUser = new ApplicationUser
         {
             Id = adminId,
             Email = adminEmail,
             UserName = adminEmail,
             SceneName = $"Admin{adminId:N}",
+            Role = "Administrator", // Set Role property for ApplicationUser
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
         context.Users.Add(adminUser);
 
-        // Add Administrator role if it doesn't exist
+        // Ensure Administrator role exists
         var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Administrator");
         if (adminRole == null)
         {
@@ -583,7 +584,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
             context.Roles.Add(adminRole);
         }
 
-        // Assign admin role to user
+        // Assign admin role to user via UserRoles junction table
         var userRole = new IdentityUserRole<Guid>
         {
             UserId = adminId,
@@ -593,16 +594,16 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
 
         await context.SaveChangesAsync();
 
-        // Create client with admin token
+        // Create client with properly generated JWT token
         var client = _factory.CreateClient();
-        var token = GenerateJwtToken(adminId, adminEmail, "Administrator");
+        var token = GenerateJwtToken(adminId, adminEmail, "Administrator", adminUser.SceneName);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         return client;
     }
 
     /// <summary>
-    /// Creates an authenticated non-admin client
+    /// Creates an authenticated non-admin client with proper JWT token
     /// </summary>
     private async Task<HttpClient> CreateNonAdminClientAsync()
     {
@@ -617,43 +618,44 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
             Email = email,
             UserName = email,
             SceneName = $"RegularUser{userId:N}",
+            Role = "Member", // Set Role property for ApplicationUser
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
         context.Users.Add(user);
 
+        // Ensure Member role exists
+        var memberRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Member");
+        if (memberRole == null)
+        {
+            memberRole = new IdentityRole<Guid>
+            {
+                Id = Guid.NewGuid(),
+                Name = "Member",
+                NormalizedName = "MEMBER"
+            };
+            context.Roles.Add(memberRole);
+        }
+
+        // Assign member role to user via UserRoles junction table
+        var userRole = new IdentityUserRole<Guid>
+        {
+            UserId = userId,
+            RoleId = memberRole.Id
+        };
+        context.UserRoles.Add(userRole);
+
         await context.SaveChangesAsync();
 
         var client = _factory.CreateClient();
-        var token = GenerateJwtToken(userId, email, "Member");
+        var token = GenerateJwtToken(userId, email, "Member", user.SceneName);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         return client;
     }
 
-    /// <summary>
-    /// Generates a JWT token for test authentication
-    /// </summary>
-    private string GenerateJwtToken(Guid userId, string email, string? role = null)
-    {
-        // NOTE: This is a simplified version for testing
-        // In production, use proper JWT generation with the app's configuration
-        var claims = new Dictionary<string, object>
-        {
-            { "sub", userId.ToString() },
-            { "email", email },
-            { "name", email }
-        };
-
-        if (!string.IsNullOrEmpty(role))
-        {
-            claims["role"] = role;
-        }
-
-        // This assumes the API has a test authentication mechanism
-        // You may need to adjust this based on your actual auth implementation
-        return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(userId.ToString()));
-    }
+    // GenerateJwtToken method inherited from IntegrationTestBase
+    // Uses proper JWT generation matching API configuration
 
     #endregion
 

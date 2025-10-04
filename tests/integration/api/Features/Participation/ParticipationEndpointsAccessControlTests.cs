@@ -334,24 +334,8 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
         return (client, eventId);
     }
 
-    /// <summary>
-    /// Generates a JWT token for test authentication
-    /// </summary>
-    private string GenerateJwtToken(Guid userId, string email)
-    {
-        // NOTE: This is a simplified version for testing
-        // In production, use proper JWT generation with the app's configuration
-        var claims = new Dictionary<string, object>
-        {
-            { "sub", userId.ToString() },
-            { "email", email },
-            { "name", email }
-        };
-
-        // This assumes the API has a test authentication mechanism
-        // You may need to adjust this based on your actual auth implementation
-        return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(userId.ToString()));
-    }
+    // GenerateJwtToken method inherited from IntegrationTestBase
+    // Uses proper JWT generation matching API configuration
 
     #endregion
 
