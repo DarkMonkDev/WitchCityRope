@@ -28,9 +28,8 @@ test.describe('Admin Events Management Detailed Test', () => {
     console.log('✅ Admin dashboard loaded');
     
     // Step 3: Click on Events Management card
-    const eventsManagementCard = page.locator('text=Events Management').or(
-      page.locator('[data-testid*="events"]')
-    );
+    // Use h3 selector to specifically target the card heading, not the navigation link
+    const eventsManagementCard = page.locator('h3:has-text("Events Management")');
     
     const cardExists = await eventsManagementCard.count() > 0;
     console.log(`✅ Events Management card exists: ${cardExists}`);

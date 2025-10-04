@@ -9,15 +9,19 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
-    // Memory management to prevent system crashes
-    pool: 'threads',
+    // Memory management optimized for performance while preventing crashes
+    pool: 'forks',  // Use forks instead of threads for better isolation
     poolOptions: {
-      threads: {
-        singleThread: true, // Use single thread to prevent memory issues
+      forks: {
+        singleFork: false,  // Allow parallel test files
+        maxForks: 4,        // Limit to 4 concurrent test files
+        minForks: 1,
       }
     },
+    // Isolation settings for better cleanup
+    isolate: true,
     teardownTimeout: 10000,
-    maxConcurrency: 1, // Limit concurrent tests
+    maxConcurrency: 5,  // Allow 5 concurrent tests within a file
     // Test timeouts
     testTimeout: 30000,
     hookTimeout: 10000,

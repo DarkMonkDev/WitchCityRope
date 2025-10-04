@@ -12,11 +12,11 @@ import { test, expect } from '@playwright/test';
  */
 
 const testUrls = {
-  login: 'http://localhost:5174/login',
-  dashboardEvents: 'http://localhost:5174/dashboard/events',
-  adminEventsDemo: 'http://localhost:5174/admin/events-management-api-demo',
-  adminSessionDemo: 'http://localhost:5174/admin/event-session-matrix-demo',
-  home: 'http://localhost:5174/'
+  login: 'http://localhost:5173/login',
+  dashboardEvents: 'http://localhost:5173/dashboard/events',
+  adminEventsDemo: 'http://localhost:5173/admin/events-management-api-demo',
+  adminSessionDemo: 'http://localhost:5173/admin/event-session-matrix-demo',
+  home: 'http://localhost:5173/'
 };
 
 const testAccounts = {

@@ -1,0 +1,136 @@
+# Page snapshot
+
+```yaml
+- text: Welcome, RopeMaster
+- link "Report an Incident":
+  - /url: /incident-report
+- link "Private Lessons":
+  - /url: /private-lessons
+- link "Contact":
+  - /url: /contact
+- button "Logout"
+- banner:
+  - link "WITCH CITY ROPE":
+    - /url: /
+  - link "Admin":
+    - /url: /admin
+  - link "Events & Classes":
+    - /url: /events
+  - link "How to Join":
+    - /url: /join
+  - link "Resources":
+    - /url: /resources
+  - link "Dashboard":
+    - /url: /dashboard
+- main:
+  - heading "Events Dashboard" [level=1]
+  - button "Create New Event":
+    - img
+    - text: Create New Event
+  - paragraph: "Filter:"
+  - checkbox "Social" [checked]
+  - text: Social
+  - checkbox "Class" [checked]
+  - text: Class
+  - switch "Show Past Events"
+  - text: Show Past Events
+  - img
+  - textbox "Search events..."
+  - table:
+    - rowgroup:
+      - row "Date Type Event Title Time Tickets/Capacity Actions":
+        - cell "Date":
+          - text: Date
+          - button:
+            - img
+        - cell "Type"
+        - cell "Event Title":
+          - text: Event Title
+          - button:
+            - img
+        - cell "Time"
+        - cell "Tickets/Capacity"
+        - cell "Actions"
+    - rowgroup:
+      - row "Oct 10, 2025 Class Introduction to Rope Safety 2:00 PM - 5:00 PM 5/20 25% Copy":
+        - cell "Oct 10, 2025":
+          - paragraph: Oct 10, 2025
+        - cell "Class"
+        - cell "Introduction to Rope Safety":
+          - paragraph: Introduction to Rope Safety
+        - cell "2:00 PM - 5:00 PM":
+          - paragraph: 2:00 PM - 5:00 PM
+        - cell "5/20 25%":
+          - paragraph: 5/20
+          - progressbar "5 of 20 spots filled"
+        - cell "Copy":
+          - button "Copy"
+      - row "Oct 17, 2025 Class Suspension Basics 2:00 PM - 5:00 PM 4/12 33.33333333333333% Copy":
+        - cell "Oct 17, 2025":
+          - paragraph: Oct 17, 2025
+        - cell "Class"
+        - cell "Suspension Basics":
+          - paragraph: Suspension Basics
+        - cell "2:00 PM - 5:00 PM":
+          - paragraph: 2:00 PM - 5:00 PM
+        - cell "4/12 33.33333333333333%":
+          - paragraph: 4/12
+          - progressbar "4 of 12 spots filled"
+        - cell "Copy":
+          - button "Copy"
+      - row "Oct 24, 2025 Class Advanced Floor Work 2:00 PM - 5:00 PM 3/10 30% Copy":
+        - cell "Oct 24, 2025":
+          - paragraph: Oct 24, 2025
+        - cell "Class"
+        - cell "Advanced Floor Work":
+          - paragraph: Advanced Floor Work
+        - cell "2:00 PM - 5:00 PM":
+          - paragraph: 2:00 PM - 5:00 PM
+        - cell "3/10 30%":
+          - paragraph: 3/10
+          - progressbar "3 of 10 spots filled"
+        - cell "Copy":
+          - button "Copy"
+      - row "Oct 31, 2025 Social Community Rope Jam 3:00 PM - 5:00 PM 5/40 12.5% Copy":
+        - cell "Oct 31, 2025":
+          - paragraph: Oct 31, 2025
+        - cell "Social"
+        - cell "Community Rope Jam":
+          - paragraph: Community Rope Jam
+        - cell "3:00 PM - 5:00 PM":
+          - paragraph: 3:00 PM - 5:00 PM
+        - cell "5/40 12.5%":
+          - paragraph: 5/40
+          - progressbar "5 of 40 spots filled"
+        - cell "Copy":
+          - button "Copy"
+      - row "Nov 7, 2025 Social Rope Social & Discussion 2:00 PM - 4:00 PM 5/30 16.666666666666664% Copy":
+        - cell "Nov 7, 2025":
+          - paragraph: Nov 7, 2025
+        - cell "Social"
+        - cell "Rope Social & Discussion":
+          - paragraph: Rope Social & Discussion
+        - cell "2:00 PM - 4:00 PM":
+          - paragraph: 2:00 PM - 4:00 PM
+        - cell "5/30 16.666666666666664%":
+          - paragraph: 5/30
+          - progressbar "5 of 30 spots filled"
+        - cell "Copy":
+          - button "Copy"
+      - row "Nov 14, 2025 Social New Members Meetup 1:00 PM - 3:00 PM 5/25 20% Copy":
+        - cell "Nov 14, 2025":
+          - paragraph: Nov 14, 2025
+        - cell "Social"
+        - cell "New Members Meetup":
+          - paragraph: New Members Meetup
+        - cell "1:00 PM - 3:00 PM":
+          - paragraph: 1:00 PM - 3:00 PM
+        - cell "5/25 20%":
+          - paragraph: 5/25
+          - progressbar "5 of 25 spots filled"
+        - cell "Copy":
+          - button "Copy"
+  - text: "Showing 6 of 8 events Filtered by: Social, Class"
+- button "Open Tanstack query devtools":
+  - img
+```

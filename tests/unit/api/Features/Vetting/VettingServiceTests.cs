@@ -4,7 +4,7 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Features.Vetting.Models;
 using WitchCityRope.Api.Features.Vetting.Services;
-using WitchCityRope.Api.Entities;
+using WitchCityRope.Api.Models;
 using Xunit;
 using FluentAssertions;
 using Testcontainers.PostgreSql;
@@ -437,14 +437,14 @@ public class VettingServiceTests : IAsyncLifetime
     }
 
     // Helper methods
-    private async Task<User> CreateTestAdminUser()
+    private async Task<ApplicationUser> CreateTestAdminUser()
     {
         return await CreateTestUser("admin@witchcityrope.com", "Administrator");
     }
 
-    private async Task<User> CreateTestUser(string email, string role)
+    private async Task<ApplicationUser> CreateTestUser(string email, string role)
     {
-        var user = new User
+        var user = new ApplicationUser
         {
             Id = Guid.NewGuid(),
             Email = email,

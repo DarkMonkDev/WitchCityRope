@@ -21,7 +21,7 @@ test.describe('Event System Verification After Fixes', () => {
     console.log('🚀 Starting events page verification...');
     
     // Navigate to events page
-    await page.goto('http://localhost:5174/events');
+    await page.goto('http://localhost:5173/events');
     await page.waitForLoadState('networkidle', { timeout: 15000 });
     
     // Take screenshot for verification
@@ -46,7 +46,7 @@ test.describe('Event System Verification After Fixes', () => {
   test('clicking event navigates to correct details', async ({ page }) => {
     console.log('🔄 Testing event navigation...');
     
-    await page.goto('http://localhost:5174/events');
+    await page.goto('http://localhost:5173/events');
     await page.waitForLoadState('networkidle', { timeout: 15000 });
     
     // Test first event navigation
@@ -83,11 +83,11 @@ test.describe('Event System Verification After Fixes', () => {
     });
     
     // Test list endpoint
-    await page.goto('http://localhost:5174/events');
+    await page.goto('http://localhost:5173/events');
     await page.waitForLoadState('networkidle', { timeout: 15000 });
     
     // Test detail endpoint
-    await page.goto(`http://localhost:5174/events/${realEvents[0].id}`);
+    await page.goto(`http://localhost:5173/events/${realEvents[0].id}`);
     await page.waitForLoadState('networkidle', { timeout: 15000 });
     
     // Verify API calls
@@ -116,7 +116,7 @@ test.describe('Event System Verification After Fixes', () => {
       }
     });
     
-    await page.goto('http://localhost:5174/events');
+    await page.goto('http://localhost:5173/events');
     await page.waitForLoadState('networkidle', { timeout: 15000 });
     
     // Take final screenshot
@@ -161,11 +161,11 @@ test.describe('Event System Verification After Fixes', () => {
       }
     });
     
-    await page.goto('http://localhost:5174/events');
+    await page.goto('http://localhost:5173/events');
     await page.waitForLoadState('networkidle', { timeout: 15000 });
     
     // Navigate to event detail to test both endpoints
-    await page.goto(`http://localhost:5174/events/${realEvents[0].id}`);
+    await page.goto(`http://localhost:5173/events/${realEvents[0].id}`);
     await page.waitForLoadState('networkidle', { timeout: 15000 });
     
     // Check for CORS errors specifically

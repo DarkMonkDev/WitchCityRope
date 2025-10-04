@@ -1,44 +1,6 @@
 {
-  "timestamp": "2025-09-23T07:06:00.000Z",
-  "type": "database-reset-full-test-suite",
-  "status": "completed-with-failures",
-  "database_reset": "success",
-  "environment_health": "operational",
-  "compilation": "success-with-warnings",
-  "test_results": {
-    "api_unit_tests": {
-      "status": "failed",
-      "passed": 22,
-      "failed": 9,
-      "total": 31,
-      "pass_rate": "71%"
-    },
-    "react_unit_tests": {
-      "status": "timeout",
-      "passed": 0,
-      "failed": 0,
-      "total": "unknown",
-      "pass_rate": "0%"
-    },
-    "integration_tests": {
-      "status": "failed",
-      "passed": 4,
-      "failed": 2,
-      "total": 6,
-      "pass_rate": "67%"
-    },
-    "e2e_tests": {
-      "status": "compilation-failed",
-      "passed": 0,
-      "failed": 0,
-      "total": "unknown",
-      "pass_rate": "0%"
-    }
-  },
-  "priority_issues": [
-    "Business logic not implemented (backend-developer needed)",
-    "DTO alignment issues (react-developer + backend-developer needed)",
-    "Test infrastructure configuration (test-developer needed)"
-  ],
-  "report_location": "/home/chad/repos/witchcityrope-react/test-results/database-reset-full-test-report-2025-09-23.md"
+  "status": "failed",
+  "failedTests": [
+    "b29a742c679a91e999cc-80293aee882a373e07e5"
+  ]
 }

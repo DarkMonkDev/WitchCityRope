@@ -23,7 +23,7 @@ test('Debug TinyMCE loading issues', async ({ page }) => {
   
   try {
     // Navigate to the test page (using correct port)
-    await page.goto('http://localhost:5174/test-tinymce');
+    await page.goto('http://localhost:5173/test-tinymce');
     
     console.log('Page loaded, checking for TinyMCE elements...');
     

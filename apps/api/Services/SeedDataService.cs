@@ -1598,7 +1598,7 @@ The WitchCityRope Vetting Team",
                 Id = Guid.NewGuid(),
                 ApplicationId = application.Id,
                 Action = "Application Submitted",
-                PerformedBy = application.UserId,
+                PerformedBy = application.UserId ?? Guid.Empty, // Use Empty for anonymous submissions
                 PerformedAt = application.SubmittedAt,
                 OldValue = null,
                 NewValue = "Draft",

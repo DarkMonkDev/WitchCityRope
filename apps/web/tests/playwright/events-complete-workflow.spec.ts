@@ -32,11 +32,11 @@ const testAccounts = {
 
 // URLs to use for navigation
 const testUrls = {
-  publicEvents: 'http://localhost:5174/events',
-  adminEvents: 'http://localhost:5174/admin/events',
-  userDashboard: 'http://localhost:5174/dashboard',
-  login: 'http://localhost:5174/login',
-  home: 'http://localhost:5174/'
+  publicEvents: 'http://localhost:5173/events',
+  adminEvents: 'http://localhost:5173/admin/events',
+  userDashboard: 'http://localhost:5173/dashboard',
+  login: 'http://localhost:5173/login',
+  home: 'http://localhost:5173/'
 };
 
 test.describe('Events Complete Workflow - End-to-End', () => {
@@ -50,7 +50,7 @@ test.describe('Events Complete Workflow - End-to-End', () => {
     await page.context().clearCookies();
     
     // Navigate to a page first to avoid localStorage security error
-    await page.goto('http://localhost:5174/');
+    await page.goto('http://localhost:5173/');
     
     // Now safely clear storage
     try {
@@ -267,9 +267,9 @@ test.describe('Events Complete Workflow - End-to-End', () => {
       console.log('⚠️ Direct navigation failed, trying alternative routes');
       // Try alternative routes
       const alternativeRoutes = [
-        'http://localhost:5174/admin',
-        'http://localhost:5174/dashboard',
-        'http://localhost:5174/'
+        'http://localhost:5173/admin',
+        'http://localhost:5173/dashboard',
+        'http://localhost:5173/'
       ];
       
       for (const route of alternativeRoutes) {

@@ -17,8 +17,8 @@ test.describe('Direct Login Test', () => {
           },
           credentials: 'include', // Important for CORS with credentials
           body: JSON.stringify({
-            email: 'test@witchcityrope.com',
-            password: 'Test1234'
+            email: 'admin@witchcityrope.com',
+            password: 'Test123!'
           })
         });
         
@@ -113,8 +113,8 @@ test.describe('Direct Login Test', () => {
     const emailSelector = 'input[type="email"], input[name="email"], input[placeholder*="email" i]';
     const passwordSelector = 'input[type="password"], input[name="password"], input[placeholder*="password" i]';
     
-    await page.fill(emailSelector, 'test@witchcityrope.com');
-    await page.fill(passwordSelector, 'Test1234');
+    await page.fill(emailSelector, 'admin@witchcityrope.com');
+    await page.fill(passwordSelector, 'Test123!');
     
     console.log('✅ Form filled with credentials');
     

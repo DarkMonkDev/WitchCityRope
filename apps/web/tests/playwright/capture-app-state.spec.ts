@@ -5,7 +5,7 @@ test.describe('Application State Visual Evidence', () => {
     console.log('📸 Capturing events page state for analysis...');
     
     // Navigate to events page
-    await page.goto('http://localhost:5174/events');
+    await page.goto('http://localhost:5173/events');
     
     // Wait for page to load
     await page.waitForLoadState('networkidle');
@@ -30,7 +30,7 @@ test.describe('Application State Visual Evidence', () => {
     console.log('📸 Capturing login page state for analysis...');
     
     // Navigate to login page
-    await page.goto('http://localhost:5174/login');
+    await page.goto('http://localhost:5173/login');
     
     // Wait for page to load
     await page.waitForLoadState('networkidle');
@@ -56,7 +56,7 @@ test.describe('Application State Visual Evidence', () => {
     console.log('📸 Capturing dashboard page state...');
     
     // Navigate to dashboard page (may require auth)
-    await page.goto('http://localhost:5174/dashboard');
+    await page.goto('http://localhost:5173/dashboard');
     
     // Wait for page to load
     await page.waitForLoadState('networkidle');

@@ -1,7 +1,6 @@
 using WitchCityRope.Api.Features.Events.Services;
-using WitchCityRope.Api.Models;
-using EventDto = WitchCityRope.Api.Features.Events.Models.EventDto;
 using WitchCityRope.Api.Features.Events.Models;
+using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.Events.Endpoints;
 

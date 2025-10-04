@@ -41,9 +41,17 @@ public class SeedDataServiceTests : DatabaseTestBase
     public override async Task InitializeAsync()
     {
         await base.InitializeAsync();
-        
-        // Create service with real DbContext and mock UserManager
-        _service = new SeedDataService(DbContext, MockUserManager.Object, _mockLogger.Object);
+
+        // Create mock RoleManager for SeedDataService
+        var mockRoleManager = new Mock<RoleManager<IdentityRole<Guid>>>(
+            Mock.Of<IRoleStore<IdentityRole<Guid>>>(),
+            null,
+            null,
+            null,
+            null);
+
+        // Create service with real DbContext and mock managers
+        _service = new SeedDataService(DbContext, MockUserManager.Object, mockRoleManager.Object, _mockLogger.Object);
     }
 
     // TODO: Complex seeding operations require integration-level testing

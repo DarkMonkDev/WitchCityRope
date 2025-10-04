@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Event Session Matrix Demo - Button Fixes', () => {
   test('should display buttons with proper styling and no text cutoff', async ({ page }) => {
     // Navigate to the demo page
-    await page.goto('http://localhost:5174/admin/event-session-matrix-demo');
+    await page.goto('http://localhost:5173/admin/event-session-matrix-demo');
 
     // Wait for the page to load
     await page.waitForSelector('h1', { timeout: 10000 });
@@ -86,7 +86,7 @@ test.describe('Event Session Matrix Demo - Button Fixes', () => {
   });
 
   test('should have working button animations and hover effects', async ({ page }) => {
-    await page.goto('http://localhost:5174/admin/event-session-matrix-demo');
+    await page.goto('http://localhost:5173/admin/event-session-matrix-demo');
 
     // Wait for the form to load
     await page.waitForSelector('.btn-primary', { timeout: 10000 });
@@ -109,7 +109,7 @@ test.describe('Event Session Matrix Demo - Button Fixes', () => {
   });
 
   test('should verify TipTap rich text editors are working', async ({ page }) => {
-    await page.goto('http://localhost:5174/admin/event-session-matrix-demo');
+    await page.goto('http://localhost:5173/admin/event-session-matrix-demo');
 
     // Wait for the form to load
     await page.waitForSelector('[data-testid="RichTextEditor"], .mantine-RichTextEditor-root', { timeout: 10000 });

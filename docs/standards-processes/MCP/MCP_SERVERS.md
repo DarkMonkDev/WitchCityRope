@@ -18,6 +18,8 @@ MCP (Model Context Protocol) servers extend Claude's capabilities by providing a
 
 | Server | Purpose | Package/Command |
 |--------|---------|-----------------|
+| Context7 | Version-specific documentation for libraries and frameworks | `@upstash/context7-mcp` |
+| Chrome DevTools | Debug web pages, performance analysis, browser control for testing | `chrome-devtools-mcp` |
 | Commands | Execute system commands (curl, powershell) | `mcp-server-commands` |
 | Browser Tools | Browser automation and web scraping | `browser-tools-mcp` |
 | GitHub | GitHub API integration | `@modelcontextprotocol/server-github` |
@@ -29,7 +31,37 @@ MCP (Model Context Protocol) servers extend Claude's capabilities by providing a
 
 ## Configuration Details
 
-### 1. Commands Server
+### 1. Context7 Server
+```json
+{
+  "command": "npx",
+  "args": ["-y", "@upstash/context7-mcp@latest"],
+  "description": "Context7 provides up-to-date, version-specific documentation for libraries and frameworks",
+  "autoApprove": ["resolve-library-id", "get-library-docs"],
+  "timeout": 60
+}
+```
+- Provides up-to-date documentation for libraries and frameworks
+- Auto-approves library resolution and documentation retrieval
+- Essential for development with current library versions
+
+### 2. Chrome DevTools Server
+```json
+{
+  "command": "npx",
+  "args": ["-y", "chrome-devtools-mcp@latest"],
+  "description": "Chrome DevTools MCP enables AI agents to debug web pages, run performance analysis, and control Chrome browser for testing and development",
+  "timeout": 120
+}
+```
+- **Performance Analysis**: Run performance tracing (performance_start_trace, performance_stop_trace, performance_analyze_insight)
+- **Browser Automation**: Navigation (navigate_page, new_page, wait_for), user input simulation (click, fill, drag, hover)
+- **Runtime Inspection**: Console messages, script evaluation, network request monitoring
+- **Technical Details**: Uses Puppeteer for reliable automation, communicates via Chrome DevTools Protocol (CDP)
+- **Requirements**: Node.js v20.19+, Chrome current stable version
+- **Use Cases**: Visual regression testing, performance debugging, E2E test validation
+
+### 3. Commands Server
 ```json
 {
   "command": "npx",
@@ -42,7 +74,7 @@ MCP (Model Context Protocol) servers extend Claude's capabilities by providing a
 - Allows execution of curl and powershell commands
 - Useful for API testing and system automation
 
-### 2. Browser Tools
+### 4. Browser Tools
 ```json
 {
   "command": "npx",
@@ -56,7 +88,7 @@ MCP (Model Context Protocol) servers extend Claude's capabilities by providing a
 - Provides browser automation capabilities
 - Runs in production mode without debug output
 
-### 3. GitHub Server
+### 5. GitHub Server
 ```json
 {
   "command": "npx",
@@ -70,7 +102,7 @@ MCP (Model Context Protocol) servers extend Claude's capabilities by providing a
 - Provides access to GitHub API for repository management
 - Can create issues, PRs, and manage repositories
 
-### 4. PostgreSQL Server
+### 6. PostgreSQL Server
 ```json
 {
   "command": "npx",
@@ -85,7 +117,7 @@ MCP (Model Context Protocol) servers extend Claude's capabilities by providing a
 - **Note**: Password needs to be updated before use
 - Provides read-only database access for safety
 
-### 5. FileSystem Server
+### 7. FileSystem Server
 ```json
 {
   "command": "npx",
@@ -105,7 +137,7 @@ MCP (Model Context Protocol) servers extend Claude's capabilities by providing a
   - Downloads folder
   - Desktop folder
 
-### 6. Memory Server
+### 8. Memory Server
 ```json
 {
   "command": "npx",
@@ -119,7 +151,7 @@ MCP (Model Context Protocol) servers extend Claude's capabilities by providing a
 - Located in Claude's AppData folder
 - Provides knowledge graph capabilities
 
-### 7. Stagehand Server
+### 9. Stagehand Server
 ```json
 {
   "command": "node",
@@ -134,7 +166,7 @@ MCP (Model Context Protocol) servers extend Claude's capabilities by providing a
 - Connects to Chrome DevTools Protocol on port 9222
 - **Note**: Requires Chrome to be started in debug mode
 
-### 8. Docker Server
+### 10. Docker Server
 ```json
 {
   "command": "npx",

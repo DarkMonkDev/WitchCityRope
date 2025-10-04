@@ -659,4 +659,255 @@ public class VettingService : IVettingService
 
         return notes.OrderByDescending(n => n.CreatedAt).ToList();
     }
+
+    /// <summary>
+    /// Submit a new vetting application (public endpoint)
+    /// </summary>
+    public async Task<Result<ApplicationSubmissionResponse>> SubmitApplicationAsync(
+        CreateApplicationRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Submitting new vetting application for {SceneName} ({Email})",
+                request.SceneName, request.Email);
+
+            // Generate unique application number and status token
+            var applicationNumber = $"VET-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..8].ToUpper()}";
+            var statusToken = Guid.NewGuid().ToString("N"); // No hyphens for cleaner URLs
+
+            // Create vetting application entity
+            var application = new VettingApplication
+            {
+                SceneName = request.SceneName,
+                Email = request.Email,
+                ApplicationNumber = applicationNumber,
+                StatusToken = statusToken,
+                Status = VettingStatus.Submitted,
+                SubmittedAt = DateTime.UtcNow,
+
+                // Personal information
+                FullName = request.FullName,
+                Pronouns = request.Pronouns,
+                Phone = request.Phone,
+
+                // Experience & knowledge
+                ExperienceLevel = request.ExperienceLevel,
+                YearsExperience = request.YearsExperience,
+                ExperienceDescription = request.ExperienceDescription,
+                SafetyKnowledge = request.SafetyKnowledge,
+                ConsentUnderstanding = request.ConsentUnderstanding,
+
+                // Community understanding
+                WhyJoinCommunity = request.WhyJoinCommunity,
+                SkillsInterests = string.Join(", ", request.SkillsInterests),
+                ExpectationsGoals = request.ExpectationsGoals,
+                AgreesToGuidelines = request.AgreesToGuidelines,
+
+                // References (serialize as JSON)
+                References = System.Text.Json.JsonSerializer.Serialize(request.References),
+
+                // Terms
+                AgreesToTerms = request.AgreesToTerms,
+                IsAnonymous = request.IsAnonymous,
+                ConsentToContact = request.ConsentToContact
+            };
+
+            _context.VettingApplications.Add(application);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Vetting application {ApplicationNumber} submitted successfully with ID {ApplicationId}",
+                applicationNumber, application.Id);
+
+            // Build response
+            var response = new ApplicationSubmissionResponse
+            {
+                ApplicationId = application.Id,
+                ApplicationNumber = applicationNumber,
+                StatusToken = statusToken,
+                SubmittedAt = application.SubmittedAt,
+                ConfirmationMessage = "Thank you for submitting your vetting application. You will receive updates via email.",
+                EstimatedReviewDays = 14, // Standard review period
+                NextSteps = "Your application will be reviewed by our vetting committee. References will be contacted within 3-5 business days.",
+                ReferenceStatuses = request.References.Select(r => new ReferenceStatusSummary
+                {
+                    Name = r.Name,
+                    Email = MaskEmail(r.Email),
+                    Status = "NotContacted"
+                }).ToList()
+            };
+
+            return Result<ApplicationSubmissionResponse>.Success(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to submit vetting application for {SceneName}", request.SceneName);
+            return Result<ApplicationSubmissionResponse>.Failure(
+                "Failed to submit application",
+                "An error occurred while processing your application. Please try again later.");
+        }
+    }
+
+    /// <summary>
+    /// Get application status by status token (public endpoint)
+    /// </summary>
+    public async Task<Result<ApplicationStatusResponse>> GetApplicationStatusByTokenAsync(
+        string token,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Retrieving application status for token {Token}", token);
+
+            var application = await _context.VettingApplications
+                .AsNoTracking()
+                .FirstOrDefaultAsync(v => v.StatusToken == token, cancellationToken);
+
+            if (application == null)
+            {
+                return Result<ApplicationStatusResponse>.Failure(
+                    "Application not found",
+                    "No application found with the provided status token.");
+            }
+
+            // Calculate progress
+            var progress = CalculateApplicationProgress(application);
+
+            // Build status response with limited information for privacy
+            var response = new ApplicationStatusResponse
+            {
+                ApplicationNumber = application.ApplicationNumber,
+                Status = application.Status.ToString(),
+                SubmittedAt = application.SubmittedAt,
+                StatusDescription = GetStatusDescription(application.Status),
+                LastUpdateAt = application.LastReviewedAt ?? application.SubmittedAt,
+                EstimatedDaysRemaining = CalculateEstimatedDaysRemaining(application),
+                Progress = progress,
+                RecentUpdates = GetRecentStatusUpdates(application)
+            };
+
+            return Result<ApplicationStatusResponse>.Success(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to retrieve application status for token {Token}", token);
+            return Result<ApplicationStatusResponse>.Failure(
+                "Failed to retrieve status",
+                "An error occurred while retrieving your application status.");
+        }
+    }
+
+    /// <summary>
+    /// Calculate application progress summary
+    /// </summary>
+    private ApplicationProgressSummary CalculateApplicationProgress(VettingApplication application)
+    {
+        var progress = new ApplicationProgressSummary
+        {
+            ApplicationSubmitted = true,
+            ReferencesContacted = application.Status >= VettingStatus.UnderReview,
+            ReferencesReceived = application.Status >= VettingStatus.UnderReview,
+            UnderReview = application.Status >= VettingStatus.UnderReview,
+            InterviewScheduled = application.Status == VettingStatus.InterviewScheduled,
+            DecisionMade = application.Status is VettingStatus.Approved or VettingStatus.Denied,
+            CurrentPhase = GetCurrentPhase(application.Status)
+        };
+
+        // Calculate progress percentage
+        progress.ProgressPercentage = application.Status switch
+        {
+            VettingStatus.Submitted => 20,
+            VettingStatus.UnderReview => 40,
+            VettingStatus.InterviewScheduled => 70,
+            VettingStatus.Approved => 100,
+            VettingStatus.Denied => 100,
+            VettingStatus.OnHold => 50,
+            VettingStatus.Withdrawn => 100,
+            _ => 0
+        };
+
+        return progress;
+    }
+
+    /// <summary>
+    /// Get current phase description
+    /// </summary>
+    private string GetCurrentPhase(VettingStatus status)
+    {
+        return status switch
+        {
+            VettingStatus.Submitted => "Application Submitted",
+            VettingStatus.UnderReview => "Under Review",
+            VettingStatus.InterviewScheduled => "Interview Scheduled",
+            VettingStatus.Approved => "Approved",
+            VettingStatus.Denied => "Application Denied",
+            VettingStatus.OnHold => "On Hold",
+            VettingStatus.Withdrawn => "Withdrawn",
+            _ => "Unknown"
+        };
+    }
+
+
+    /// <summary>
+    /// Calculate estimated days remaining for review
+    /// </summary>
+    private int? CalculateEstimatedDaysRemaining(VettingApplication application)
+    {
+        if (application.Status is VettingStatus.Approved or VettingStatus.Denied or VettingStatus.Withdrawn)
+        {
+            return null; // No remaining days for final statuses
+        }
+
+        var daysSinceSubmission = (DateTime.UtcNow - application.SubmittedAt).Days;
+        var standardReviewDays = 14;
+        var remaining = standardReviewDays - daysSinceSubmission;
+
+        return remaining > 0 ? remaining : 0;
+    }
+
+    /// <summary>
+    /// Get recent status updates for public display
+    /// </summary>
+    private List<StatusUpdateSummary> GetRecentStatusUpdates(VettingApplication application)
+    {
+        var updates = new List<StatusUpdateSummary>
+        {
+            new StatusUpdateSummary
+            {
+                UpdatedAt = application.SubmittedAt,
+                Message = "Application submitted successfully",
+                Type = "StatusChange"
+            }
+        };
+
+        if (application.LastReviewedAt.HasValue && application.Status >= VettingStatus.UnderReview)
+        {
+            updates.Add(new StatusUpdateSummary
+            {
+                UpdatedAt = application.LastReviewedAt.Value,
+                Message = $"Application status changed to {application.Status}",
+                Type = "StatusChange"
+            });
+        }
+
+        return updates.OrderByDescending(u => u.UpdatedAt).Take(5).ToList();
+    }
+
+    /// <summary>
+    /// Mask email for privacy (show first 2 chars and domain)
+    /// </summary>
+    private string MaskEmail(string email)
+    {
+        if (string.IsNullOrEmpty(email) || !email.Contains('@'))
+            return email;
+
+        var parts = email.Split('@');
+        var localPart = parts[0];
+        var domain = parts[1];
+
+        if (localPart.Length <= 2)
+            return $"{localPart[0]}***@{domain}";
+
+        return $"{localPart.Substring(0, 2)}***@{domain}";
+    }
 }

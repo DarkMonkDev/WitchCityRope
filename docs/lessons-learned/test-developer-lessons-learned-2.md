@@ -559,4 +559,149 @@ _container = new PostgreSqlBuilder()
 createdEvents.Should().OnlyContain(e => e.StartDate.Kind == DateTimeKind.Utc);
 ```
 
+## E2E Test Import Path Architecture - 2025-10-03
+
+### Dual E2E Test Configuration Pattern
+
+**Problem**: Import errors blocking E2E test execution due to incorrect path resolution across separate test configurations.
+
+**Discovery**: Project has TWO separate E2E test configurations with different directory structures.
+
+### Action Items
+
+```typescript
+// Project Structure Discovery:
+// 1. Root-level E2E Tests
+//    - Config: /playwright.config.ts
+//    - Tests: /tests/e2e/
+//    - Helpers: /tests/e2e/helpers/
+//    - Test count: ~218 tests
+
+// 2. Apps/Web E2E Tests
+//    - Config: /apps/web/playwright.config.ts
+//    - Tests: /apps/web/tests/playwright/
+//    - Helpers: /apps/web/tests/playwright/helpers/
+//    - Test count: ~239 tests
+
+// ❌ WRONG - Cross-referencing between test suites
+// In /apps/web/tests/playwright/events-crud-test.spec.ts:
+import { quickLogin } from '../../../tests/e2e/helpers/auth.helper';
+// Path resolves to: /apps/tests/e2e/helpers/ (DOES NOT EXIST)
+
+// ✅ CORRECT - Use helpers from same test suite
+// In /apps/web/tests/playwright/events-crud-test.spec.ts:
+import { AuthHelpers } from './helpers/auth.helpers';
+// Path resolves to: /apps/web/tests/playwright/helpers/ (EXISTS)
+
+// ✅ CORRECT - Use helpers from same test suite
+// In /tests/e2e/working-login-solution.spec.ts:
+import { AuthHelper, quickLogin } from './helpers/auth.helper';
+// Path resolves to: /tests/e2e/helpers/ (EXISTS)
+```
+
+### Critical Rules
+
+1. **Each test suite uses its own helpers** - Do NOT cross-reference
+2. **Count parent traversals carefully** - Verify actual file system paths
+3. **Check both configs exist** - Multiple Playwright configs may be in use
+4. **Prefer local helpers** - Same directory structure avoids module resolution issues
+
+### Impact of Fix
+
+- **Before**: Import errors blocked ALL 457 E2E tests from running
+- **After**: All 457 tests can load, list, and execute
+- **Blocker removed**: Tests now fail on logic issues (fixable), not infrastructure
+
+### Tags
+`e2e-testing` `playwright` `import-paths` `dual-config` `module-resolution` `infrastructure`
+
+## E2E Port Configuration - Hardcoded Ports Block Tests - 2025-10-03
+
+### Critical Infrastructure Blocker
+
+**Problem**: E2E tests hardcoded to wrong ports (5174, 5653) blocking 227+ tests from executing.
+
+**Discovery**: Error logs showed connection refused at http://localhost:5174/events and ECONNREFUSED 127.0.0.1:5653.
+
+**Root Cause**: 70+ test files contained hardcoded wrong ports that didn't match Docker container configuration.
+
+### Action Items
+
+```bash
+# ❌ WRONG - Hardcoded wrong ports in test files
+await page.goto('http://localhost:5174/login')  // Should be 5173
+await request.get('http://localhost:5653/api/events')  // Should be 5655
+
+# ✅ CORRECT - Use Docker ports
+await page.goto('http://localhost:5173/login')  // Docker web service
+await request.get('http://localhost:5655/api/events')  // Docker API service
+
+# ✅ BETTER - Use baseURL from Playwright config
+await page.goto('/login')  // Relative URL uses config baseURL
+const API_URL = process.env.API_URL || 'http://localhost:5655'
+```
+
+### Systematic Fix Approach
+
+```bash
+# 1. Find all wrong port references
+grep -r "5174" apps/web/tests/playwright/*.spec.ts | wc -l  # Found 98
+grep -r "5653" apps/web/tests/playwright/*.spec.ts | wc -l  # Found 19
+
+# 2. Batch fix all occurrences
+find apps/web/tests/playwright -name "*.spec.ts" -exec sed -i 's/localhost:5174/localhost:5173/g' {} \;
+find apps/web/tests/playwright -name "*.spec.ts" -exec sed -i 's/localhost:5653/localhost:5655/g' {} \;
+
+# 3. Verify fixes complete
+grep -r "5174" apps/web/tests/playwright/ tests/e2e/ | wc -l  # Should be 0
+grep -r "5653" apps/web/tests/playwright/ tests/e2e/ | wc -l  # Should be 0
+```
+
+### Docker Port Reference
+
+**Correct Docker Ports**:
+- Web (React): http://localhost:5173
+- API (.NET): http://localhost:5655
+- Database: localhost:5433
+
+**Verify Before Testing**:
+```bash
+docker ps --format "table {{.Names}}\t{{.Ports}}" | grep witchcity
+# Must show:
+# - witchcity-web: 0.0.0.0:5173->5173/tcp
+# - witchcity-api: 0.0.0.0:5655->8080/tcp
+```
+
+### Impact of Fix
+
+- **Before**: 227+ E2E tests blocked by connection refused errors
+- **After**: All tests unblocked, can connect to Docker services
+- **Files fixed**: 70+ test files (69 specs + 1 fixture)
+- **Occurrences fixed**: 182 total (150 web + 32 API)
+
+### Prevention Pattern
+
+**Problem**: Hardcoded ports in test files create maintenance nightmare when infrastructure changes.
+
+**Solution**: Centralize port configuration in Playwright config and environment variables.
+
+**Best Practice**:
+```typescript
+// ✅ Use baseURL from playwright.config.ts
+export default defineConfig({
+  use: {
+    baseURL: 'http://localhost:5173',  // Single source of truth
+  }
+})
+
+// ✅ Use relative URLs in tests
+await page.goto('/login')  // Not 'http://localhost:5173/login'
+
+// ✅ Use environment variables for API
+const API_BASE = process.env.API_URL || 'http://localhost:5655'
+```
+
+### Tags
+`e2e-testing` `playwright` `port-configuration` `docker` `infrastructure` `critical-blocker`
+
 

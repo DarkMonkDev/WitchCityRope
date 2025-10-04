@@ -5,31 +5,31 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  maxFailures: 2, // Stop after 2 failures to prevent runaway tests
-  workers: process.env.CI ? 1 : 6, // Limit to 2 workers max to prevent system crashes
-  globalTeardown: './tests/playwright/global-teardown.ts', // Clean up orphaned processes
-  reporter: [['list'], ['html', { outputFolder: './playwright-report' }]], // Fixed path conflict
-  
-  // Global timeout settings for improved reliability - aligned with main configs
-  timeout: 90 * 1000, // Overall test timeout (1.5 minutes)
+  maxFailures: process.env.CI ? 2 : undefined, // No limit in dev - let all tests run
+  workers: process.env.CI ? 1 : 6,
+  globalTeardown: './tests/playwright/global-teardown.ts',
+  reporter: [['list'], ['html', { outputFolder: './playwright-report' }]],
+
+  // Optimized timeout settings - aggressive for speed
+  timeout: 30 * 1000, // 30 seconds per test max
   expect: {
-    timeout: 10000, // Assertion timeout
+    timeout: 5000, // 5 second assertion timeout
   },
   
   use: {
     baseURL: process.env.VITE_BASE_URL || `http://localhost:${process.env.VITE_PORT || 5173}`,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    
-    // Enhanced timeout settings for authentication flows
-    actionTimeout: 15000, // Action timeout (clicks, fills, etc.)
-    navigationTimeout: 30000, // Navigation timeout (goto, waitForURL)
+
+    // Fast timeout settings - optimized for local development
+    actionTimeout: 5000, // 5s for clicks, fills, etc.
+    navigationTimeout: 10000, // 10s for page navigation
     
     // Additional settings for reliability
     video: 'retain-on-failure',
     launchOptions: {
-      slowMo: process.env.CI ? 0 : 100, // Slow down actions in development
-      // Memory management arguments to prevent system crashes
+      slowMo: 0, // No artificial delays - run at full speed
+      // Memory management arguments
       args: [
         '--max-old-space-size=1024', // Limit Node.js memory
         '--disable-dev-shm-usage', // Overcome limited resource problems

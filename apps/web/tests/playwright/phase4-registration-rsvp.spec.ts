@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Phase 4: Registration/RSVP System', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to events page
-    await page.goto('http://localhost:5174/events');
+    await page.goto('http://localhost:5173/events');
   });
 
   /**
@@ -237,7 +237,7 @@ test.describe('Phase 4: User Dashboard Integration', () => {
     console.log('🧪 Testing My Registrations View...');
     
     // Navigate to dashboard (would require auth)
-    await page.goto('http://localhost:5174/dashboard');
+    await page.goto('http://localhost:5173/dashboard');
     
     // Look for registrations section
     const myRegistrations = page.locator('text=/my registration/i, text=/my events/i, text=/upcoming/i');

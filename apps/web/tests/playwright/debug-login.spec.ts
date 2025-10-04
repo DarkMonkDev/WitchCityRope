@@ -37,7 +37,7 @@ test('debug login issue', async ({ page }) => {
   
   // Navigate to login
   console.log('📍 Navigating to login page...');
-  await page.goto('http://localhost:5174/login');
+  await page.goto('http://localhost:5173/login');
   await page.waitForLoadState('networkidle');
   await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/before-login.png' });
   

@@ -34,9 +34,9 @@ test.describe('Comprehensive React App Diagnostic', () => {
       }
     });
 
-    console.log('Navigating to http://localhost:5174/events');
+    console.log('Navigating to http://localhost:5173/events');
     
-    await page.goto('http://localhost:5174/events', { 
+    await page.goto('http://localhost:5173/events', { 
       waitUntil: 'networkidle',
       timeout: 10000 
     });

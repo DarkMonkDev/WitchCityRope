@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('TinyMCE Visual Verification', () => {
   test('should show TinyMCE editors with toolbars (not plain textareas)', async ({ page }) => {
-    await page.goto('http://localhost:5174/admin/event-session-matrix-demo');
+    await page.goto('http://localhost:5173/admin/event-session-matrix-demo');
     await page.waitForLoadState('networkidle');
 
     // Scroll down to see the rich text editors
@@ -58,7 +58,7 @@ test.describe('TinyMCE Visual Verification', () => {
   });
 
   test('should allow interaction with TinyMCE editor', async ({ page }) => {
-    await page.goto('http://localhost:5174/admin/event-session-matrix-demo');
+    await page.goto('http://localhost:5173/admin/event-session-matrix-demo');
     await page.waitForLoadState('networkidle');
 
     // Scroll to editors

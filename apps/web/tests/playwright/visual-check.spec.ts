@@ -2,13 +2,13 @@ import { test, expect } from '@playwright/test';
 
 test('Visual check of events system', async ({ page }) => {
   // 1. Check events page
-  await page.goto('http://localhost:5174/events');
+  await page.goto('http://localhost:5173/events');
   await page.waitForTimeout(2000);
   await page.screenshot({ path: 'test-results/current-events-page.png', fullPage: true });
   console.log('Events page captured');
 
   // 2. Check login page
-  await page.goto('http://localhost:5174/login');
+  await page.goto('http://localhost:5173/login');
   await page.waitForTimeout(1000);
   await page.screenshot({ path: 'test-results/current-login-page.png', fullPage: true });
   
@@ -30,7 +30,7 @@ test('Visual check of events system', async ({ page }) => {
   }
   
   // 5. Check events page again
-  await page.goto('http://localhost:5174/events');
+  await page.goto('http://localhost:5173/events');
   await page.waitForTimeout(2000);
   await page.screenshot({ path: 'test-results/events-after-login.png', fullPage: true });
 });

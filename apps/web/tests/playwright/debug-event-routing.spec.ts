@@ -37,7 +37,7 @@ test.describe('Event Routing Debug Investigation', () => {
     
     // Step 1: Navigate to events page
     console.log('1. Navigating to events page...');
-    await page.goto('http://localhost:5174/events');
+    await page.goto('http://localhost:5173/events');
     await page.waitForLoadState('networkidle');
     
     // Take screenshot of events page
@@ -178,7 +178,7 @@ test.describe('Event Routing Debug Investigation', () => {
     console.log('🔍 API Data Structure Verification...');
     
     // Direct API test
-    const response = await page.request.get('http://localhost:5653/api/events');
+    const response = await page.request.get('http://localhost:5655/api/events');
     const eventsData = await response.json();
     
     console.log('Events API Response Structure:');
@@ -222,11 +222,11 @@ test.describe('Event Routing Debug Investigation', () => {
       console.log(`\nTesting individual event endpoint for: ${firstEvent.title}`);
       
       // Try both ID and slug-based URLs
-      const idResponse = await page.request.get(`http://localhost:5653/api/events/${firstEvent.id}`);
+      const idResponse = await page.request.get(`http://localhost:5655/api/events/${firstEvent.id}`);
       console.log(`GET /api/events/${firstEvent.id}: ${idResponse.status()}`);
       
       if (firstEvent.slug) {
-        const slugResponse = await page.request.get(`http://localhost:5653/api/events/${firstEvent.slug}`);
+        const slugResponse = await page.request.get(`http://localhost:5655/api/events/${firstEvent.slug}`);
         console.log(`GET /api/events/${firstEvent.slug}: ${slugResponse.status()}`);
       }
     }
@@ -235,7 +235,7 @@ test.describe('Event Routing Debug Investigation', () => {
   test('check for mock vs real data patterns', async ({ page }) => {
     console.log('🔍 Mock vs Real Data Detection...');
     
-    await page.goto('http://localhost:5174/events');
+    await page.goto('http://localhost:5173/events');
     await page.waitForLoadState('networkidle');
     
     // Check developer console for any errors or warnings
@@ -276,7 +276,7 @@ test.describe('Event Routing Debug Investigation', () => {
     });
     
     // Check if the events match our API data exactly
-    const actualApiData = await page.request.get('http://localhost:5653/api/events');
+    const actualApiData = await page.request.get('http://localhost:5655/api/events');
     const apiEvents = await actualApiData.json();
     
     console.log('\nComparing page content with API data:');

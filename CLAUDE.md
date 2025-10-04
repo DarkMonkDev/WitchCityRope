@@ -238,10 +238,11 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ### Available Tools
 1. **TodoWrite**: Track multi-step tasks
 2. **Context7**: Add "use context7" for current library docs
-3. **Docker MCP**: Container management - use the Docker CLI first 
-4. **FileSystem MCP**: File operations in allowed paths
-5. **GitHub MCP**: Issues, PRs, repository management - use the GitHub CLI first
-6. **Memory MCP**: Store project knowledge
+3. **Chrome DevTools MCP**: Debug web pages, performance analysis, browser control for testing
+4. **Docker MCP**: Container management - use the Docker CLI first
+5. **FileSystem MCP**: File operations in allowed paths
+6. **GitHub MCP**: Issues, PRs, repository management - use the GitHub CLI first
+7. **Memory MCP**: Store project knowledge
 
 ### Quick Commands
 ```bash

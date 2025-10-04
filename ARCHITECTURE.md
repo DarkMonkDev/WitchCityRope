@@ -47,14 +47,14 @@ WitchCityRope uses a **Web+API microservices architecture** with the following s
    - **Technology**: React + TypeScript + Vite + Mantine UI Framework
    - **Purpose**: Modern single-page application, responsive user interface
    - **Database Access**: None (calls API for all data)
-   - **Port**: 5173 (HTTP) - Development, 5651 (HTTP) - Docker
+   - **Port**: 5173 (HTTP) - Development and Docker
    - **UI Framework**: Mantine v7 (ADR-004) - TypeScript-first, WCAG compliant
 
-2. **API Service (apps/api)**  
+2. **API Service (apps/api)**
    - **Technology**: ASP.NET Core Minimal API (.NET 9)
    - **Purpose**: Business logic, data operations, authentication endpoints
    - **Database Access**: Full access to all business entities and Identity
-   - **Port**: 5655 (HTTP) - Development, 5653 (HTTP) - Docker
+   - **Port**: 5655 (HTTP) - Development and Docker
 
 3. **Database Service**
    - **Technology**: PostgreSQL 16
@@ -110,8 +110,8 @@ The API service exposes RESTful endpoints under `/api/v1/`:
 
 | Service | Development | Docker External | Docker Internal | URL |
 |---------|-------------|-----------------|-----------------|-----|
-| React | 5174 | 5651 | 3000 | http://localhost:5174 (dev) / http://localhost:5651 (docker) |
-| API | 5655 | 5653 | 8080 | http://localhost:5655 (dev) / http://localhost:5653 (docker) |
+| React | 5173 | 5173 | 5173 | http://localhost:5173 |
+| API | 5655 | 5655 | 8080 | http://localhost:5655 |
 | Database | - | 5433 | 5432 | localhost:5433 |
 | pgAdmin | - | 5050 | 80 | http://localhost:5050 |
 
@@ -119,22 +119,22 @@ The API service exposes RESTful endpoints under `/api/v1/`:
 
 **Docker Compose:**
 ```yaml
-# docker-compose.yml (lines 100-102)
+# docker-compose.dev.yml - Web service
 web:
   ports:
-    - "5651:8080"  # Web service
+    - "5173:5173"  # Web service (host:container)
 
-# docker-compose.yml (lines 34-36)
+# docker-compose.dev.yml - API service
 api:
   ports:
-    - "5653:8080"  # API service
+    - "5655:8080"  # API service (host:container)
 ```
 
 **Environment Variables:**
 ```yaml
-# docker-compose.yml (lines 111-112)  
-- ApiBaseUrl=http://api:8080/          # Internal container communication
-- ApiBaseUrlExternal=https://localhost:5654/  # External access
+# docker-compose.dev.yml - API communication
+- ApiBaseUrl=http://api:8080/              # Internal container communication
+- ApiBaseUrlExternal=http://localhost:5655  # External access from host
 ```
 
 ---
@@ -325,7 +325,7 @@ builder.Services.AddDbContext<WitchCityRopeIdentityDbContext>(options =>
 **🚀 MILESTONE ACHIEVED (2025-09-14): React App Fully Functional**
 
 The React migration from Blazor is now complete and operational:
-- React app loads successfully at http://localhost:5174
+- React app loads successfully at http://localhost:5173
 - Login functionality working end-to-end
 - Events page loading real data from API
 - Zero TypeScript compilation errors
@@ -370,8 +370,8 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ### Development Workflow
 
 1. **Start Services**: Local (above) or `./dev.sh` → Option 1
-2. **Access Application**: http://localhost:5174 (React) or http://localhost:5651 (Docker)
-3. **Access API**: http://localhost:5655 (Local) or http://localhost:5653 (Docker)
+2. **Access Application**: http://localhost:5173 (React - local and Docker)
+3. **Access API**: http://localhost:5655 (API - local and Docker)
 4. **View Logs**: `./dev.sh` → Options 4-6 (Docker only)
 5. **Hot Reload**: Automatic when files change (Vite HMR)
 
@@ -519,8 +519,8 @@ Ctrl+C and restart: npm run dev
 **Solution**:
 ```bash
 # Check what's using the port
-sudo lsof -i :5651
-sudo lsof -i :5653
+sudo lsof -i :5173
+sudo lsof -i :5655
 
 # Stop conflicting processes or change ports in docker-compose.yml
 ```
@@ -567,7 +567,7 @@ docker ps --format "table {{.Names}}\t{{.Ports}}"
 - **Mantine Documentation**: https://mantine.dev/
 - **JWT Service-to-Service Authentication**: `/docs/functional-areas/authentication/jwt-service-to-service-auth.md`
 - **Docker Development Guide**: `/docs/guides-setup/docker-operations-guide.md`
-- **API Documentation**: Auto-generated Swagger at http://localhost:5655/swagger (local) or http://localhost:5653/swagger (docker)
+- **API Documentation**: Auto-generated Swagger at http://localhost:5655/swagger
 - **React Testing Guide**: `/tests/README.md`
 
 ---

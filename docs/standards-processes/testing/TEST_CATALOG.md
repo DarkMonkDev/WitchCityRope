@@ -1,6 +1,6 @@
 # WitchCityRope Test Catalog - PART 1 (Current/Recent Tests)
-<!-- Last Updated: 2025-09-22 -->
-<!-- Version: 2.0 -->
+<!-- Last Updated: 2025-10-03 -->
+<!-- Version: 2.1 -->
 <!-- Owner: Testing Team -->
 <!-- Status: SPLIT INTO MANAGEABLE PARTS FOR AGENT ACCESSIBILITY -->
 
@@ -23,6 +23,103 @@
 - **Recent fixes/patterns**: Add to PART 1 (this file)
 - **Old content**: Move to PART 2 when PART 1 exceeds 1000 lines
 - **Archive content**: Move to PART 3 when truly obsolete
+
+---
+
+## 🚨 CRITICAL: E2E TEST MAINTENANCE FIXES (2025-10-03) 🚨
+
+**TEST LOGIC FIXES**: Resolved 2 E2E test failures due to test maintenance issues (not application bugs).
+
+### Issues Fixed:
+
+#### 1. Admin Events Detailed Test - Strict Mode Violation
+**File**: `/apps/web/tests/playwright/admin-events-detailed-test.spec.ts`
+**Problem**: Selector matched 2 elements causing strict mode violation:
+- Navigation link: `<a data-testid="link-events">Events & Classes</a>`
+- Card heading: `<h3>Events Management</h3>`
+
+**Fix Applied**:
+```typescript
+// ❌ WRONG - Ambiguous selector matches multiple elements
+const eventsManagementCard = page.locator('text=Events Management').or(
+  page.locator('[data-testid*="events"]')
+);
+
+// ✅ CORRECT - Specific selector targets only the card heading
+const eventsManagementCard = page.locator('h3:has-text("Events Management")');
+```
+
+#### 2. Basic Functionality Check - Outdated Title Expectation
+**File**: `/apps/web/tests/playwright/basic-functionality-check.spec.ts`
+**Problem**: Test expected Vite boilerplate title, but app has custom title
+- Expected: `/Vite \+ React/`
+- Actual: `"Witch City Rope - Salem's Rope Bondage Community"`
+
+**Fix Applied**:
+```typescript
+// ❌ WRONG - Looking for Vite boilerplate title
+await expect(page).toHaveTitle(/Vite \+ React/);
+
+// ✅ CORRECT - Verify actual application title
+await expect(page).toHaveTitle(/Witch City Rope/);
+```
+
+### Playwright Best Practices Applied:
+1. **Specific Selectors**: Use element type + text over generic text selectors
+2. **Avoid Ambiguous Patterns**: Don't use wildcard attribute selectors that match multiple elements
+3. **Current State Testing**: Test expectations must match actual application state, not boilerplate
+
+### Results:
+- ✅ **Selectors are now unambiguous** - Only target intended elements
+- ✅ **Title expectation matches reality** - Tests verify actual app title
+- ✅ **Follows Playwright best practices** - Specific, reliable selectors
+- ✅ **No new failures introduced** - Changes are surgical and focused
+
+---
+
+## 🚨 CRITICAL: E2E IMPORT PATH FIX - COMPLETE (2025-10-03) 🚨
+
+**BLOCKER RESOLVED**: Fixed import path configuration that was blocking ALL E2E test execution.
+
+### Issue Fixed:
+- **Error**: `Cannot find module '/apps/tests/e2e/helpers/testHelpers.ts'`
+- **Root Cause**: Test file in `/apps/web/tests/playwright/` using wrong relative path to reach `/tests/e2e/helpers/`
+- **Impact**: Blocked execution of ALL 239+ Playwright tests
+
+### Solution Implemented:
+```typescript
+// ❌ WRONG - Path resolution error
+import { quickLogin } from '../../../tests/e2e/helpers/auth.helper';
+// Goes to: /apps/tests/e2e/helpers/ (DOES NOT EXIST)
+
+// ✅ CORRECT - Use local helpers
+import { AuthHelpers } from './helpers/auth.helpers';
+// Goes to: /apps/web/tests/playwright/helpers/ (EXISTS)
+```
+
+### Files Fixed:
+- `/apps/web/tests/playwright/events-crud-test.spec.ts` - Updated to use local AuthHelpers instead of incorrect import path
+
+### Test Infrastructure Discovery:
+1. **Two separate E2E test configurations exist**:
+   - Root-level: `/playwright.config.ts` → runs `/tests/e2e/` (218 tests)
+   - Apps/web: `/apps/web/playwright.config.ts` → runs `/apps/web/tests/playwright/` (239 tests)
+2. **Each has its own helper files** in appropriate locations
+3. **Tests must use helpers from their own directory** to avoid module resolution issues
+
+### Results:
+- ✅ **All E2E tests can now load and execute** (no import errors)
+- ✅ **Root-level tests**: 218 tests accessible, imports working
+- ✅ **Apps/web tests**: 239 tests accessible, imports working
+- ✅ **Total E2E tests unblocked**: 457 tests
+- ⚠️ **Test failures remain**: Due to test logic issues (401 auth errors, wrong selectors), NOT import problems
+
+### New Baseline:
+- **Import errors**: RESOLVED (0 errors)
+- **Tests can execute**: YES (verified with smoke tests)
+- **Pass rate**: TBD (tests now run but have auth/logic failures to fix in next phase)
+
+**This fix unblocks the entire E2E test suite for further debugging and improvement.**
 
 ---
 

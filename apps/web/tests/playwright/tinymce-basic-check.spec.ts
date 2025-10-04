@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('TinyMCE Basic Check', () => {
   test('should verify TinyMCE loads on event demo page', async ({ page }) => {
     // Navigate to the event demo page
-    await page.goto('http://localhost:5174/admin/event-session-matrix-demo');
+    await page.goto('http://localhost:5173/admin/event-session-matrix-demo');
     await page.waitForLoadState('networkidle');
 
     // Take a screenshot to see what's actually rendered
@@ -37,7 +37,7 @@ test.describe('TinyMCE Basic Check', () => {
   });
 
   test('should check if TinyMCE package is available', async ({ page }) => {
-    await page.goto('http://localhost:5174/admin/event-session-matrix-demo');
+    await page.goto('http://localhost:5173/admin/event-session-matrix-demo');
     
     // Check if TinyMCE is available in the global scope
     const tinyMCEAvailable = await page.evaluate(() => {

@@ -10,7 +10,7 @@ test.describe('Simple Login Test', () => {
     await page.context().clearCookies();
     
     // Navigate to login page
-    await page.goto('http://localhost:5174/login');
+    await page.goto('http://localhost:5173/login');
     
     // Wait for page to load
     await page.waitForLoadState('domcontentloaded');
@@ -39,7 +39,7 @@ test.describe('Simple Login Test', () => {
 
   test('should be able to fill login form', async ({ page }) => {
     await page.context().clearCookies();
-    await page.goto('http://localhost:5174/login');
+    await page.goto('http://localhost:5173/login');
     await page.waitForLoadState('domcontentloaded');
     
     // Try to fill the form

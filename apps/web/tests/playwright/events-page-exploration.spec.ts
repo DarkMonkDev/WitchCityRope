@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Events Page Structure Exploration', () => {
   test('explore events page DOM structure', async ({ page }) => {
     console.log('Navigating to events page...');
-    await page.goto('http://localhost:5174/events');
+    await page.goto('http://localhost:5173/events');
     
     // Wait for page to load
     await page.waitForTimeout(3000);

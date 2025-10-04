@@ -1,11 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { quickLogin } from '../../../tests/e2e/helpers/auth.helper';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 test.describe('Event CRUD Operations', () => {
   test.beforeEach(async ({ page }) => {
     // Login as admin using correct React authentication patterns
-    await page.goto('http://localhost:5173/login');
-    await quickLogin(page, 'admin');
+    await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to admin events page
     await page.goto('http://localhost:5173/admin/events');

@@ -8,13 +8,13 @@ import { test, expect } from '@playwright/test';
  * 2. Pages constantly reloading
  * 3. Navigation test page constantly counting up renders
  * 
- * Environment: React app on port 5174
+ * Environment: React app on port 5173 (Docker)
  * Created: 2025-09-06
  * Purpose: Verify actual page behavior vs reported issues
  */
 
 test.describe('Events Management Demo Page Stability', () => {
-  const BASE_URL = 'http://localhost:5174';
+  const BASE_URL = 'http://localhost:5173';
   
   test.beforeEach(async ({ page }) => {
     // Set up console monitoring to track errors and reloads

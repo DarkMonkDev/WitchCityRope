@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('TinyMCE Rich Text Editor', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5174/admin/event-session-matrix-demo');
+    await page.goto('http://localhost:5173/admin/event-session-matrix-demo');
     // Wait for the page to load completely
     await page.waitForLoadState('networkidle');
   });

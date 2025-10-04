@@ -29,7 +29,7 @@ test.describe('Login Fix Verification', () => {
     });
 
     // Navigate to login
-    await page.goto('http://localhost:5174/login');
+    await page.goto('http://localhost:5173/login');
     await expect(page).toHaveURL(/\/login/);
     
     console.log('✅ Successfully navigated to login page');
@@ -107,7 +107,7 @@ test.describe('Login Fix Verification', () => {
   });
 
   test('login shows error with invalid credentials', async ({ page }) => {
-    await page.goto('http://localhost:5174/login');
+    await page.goto('http://localhost:5173/login');
     
     console.log('Testing invalid credentials...');
     

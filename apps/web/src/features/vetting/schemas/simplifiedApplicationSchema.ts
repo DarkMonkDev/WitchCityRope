@@ -15,18 +15,15 @@ export const simplifiedApplicationSchema = z.object({
 
   pronouns: z.string()
     .max(50, 'Pronouns must be less than 50 characters')
-    .optional()
-    .or(z.literal('')), // Allow empty string
+    .optional(),
 
   fetLifeHandle: z.string()
     .max(50, 'FetLife handle must be less than 50 characters')
-    .optional()
-    .or(z.literal('')), // Allow empty string
+    .optional(),
 
   otherNames: z.string()
     .max(500, 'Other names must be less than 500 characters')
-    .optional()
-    .or(z.literal('')), // Allow empty string
+    .optional(),
 
   whyJoin: z.string()
     .min(20, 'Please provide at least 20 characters explaining why you would like to join')

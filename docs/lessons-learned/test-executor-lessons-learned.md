@@ -43,6 +43,36 @@
 - [ ] Confirm test environment is isolated from production
 - [ ] Check Test Catalog for test locations
 
+## 🛠️ AVAILABLE TESTING TOOLS
+
+### Chrome DevTools MCP (NEW - 2025-10-03)
+**Purpose**: Debug web pages, performance analysis, and browser control for E2E testing
+
+**Key Capabilities**:
+- **Performance Analysis**: Run performance tracing (performance_start_trace, performance_stop_trace, performance_analyze_insight)
+- **Browser Automation**: Navigation (navigate_page, new_page, wait_for), user input simulation (click, fill, drag, hover)
+- **Runtime Inspection**: Console messages, script evaluation, network request monitoring
+- **Visual Debugging**: Take screenshots, inspect DOM elements, monitor network traffic
+
+**Use Cases for Testing**:
+- Visual regression testing - Capture screenshots before/after changes
+- Performance validation - Analyze page load times and rendering performance
+- E2E test debugging - Inspect console errors and network failures
+- Integration validation - Monitor API calls and responses during test execution
+
+**Configuration**: Automatically available via MCP - see `/docs/standards-processes/MCP/MCP_SERVERS.md`
+
+**Requirements**:
+- Node.js v20.19+
+- Chrome current stable version
+- Configured in `/.claude/mcp-config.json`
+
+**Best Practices**:
+- Use for visual validation alongside Playwright E2E tests
+- Capture performance metrics for baseline comparisons
+- Monitor console errors during test execution
+- Take screenshots on test failures for debugging
+
 ## 🚨 ULTRA CRITICAL: Password Escaping in JSON - NO ESCAPING REQUIRED (2025-09-22) 🚨
 
 **RECURRING ISSUE**: The password "Test123!" must NEVER be escaped as "Test123\!" in JSON files or curl commands.

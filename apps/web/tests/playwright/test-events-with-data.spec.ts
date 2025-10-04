@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Public Events Page with Mock Data', () => {
   test('should display events with mock data', async ({ page }) => {
     // Navigate to events page
-    await page.goto('http://localhost:5174/events');
+    await page.goto('http://localhost:5173/events');
     
     // Wait for content to load
     await page.waitForLoadState('networkidle');

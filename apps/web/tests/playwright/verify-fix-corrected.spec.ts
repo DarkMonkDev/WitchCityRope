@@ -17,7 +17,7 @@ test.describe('Verify Fixes - Corrected Ports', () => {
     });
 
     // Go to home page
-    await page.goto('http://localhost:5174', { 
+    await page.goto('http://localhost:5173', { 
       waitUntil: 'networkidle',
       timeout: 10000 
     });
@@ -33,7 +33,7 @@ test.describe('Verify Fixes - Corrected Ports', () => {
     expect(title).toContain('Witch City Rope');
 
     // Navigate to events page
-    await page.goto('http://localhost:5174/events', {
+    await page.goto('http://localhost:5173/events', {
       waitUntil: 'networkidle',
       timeout: 10000
     });

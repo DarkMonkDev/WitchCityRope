@@ -10,7 +10,7 @@ test.describe('Debug Events Page', () => {
     });
     
     // Navigate to events page
-    await page.goto('http://localhost:5174/events');
+    await page.goto('http://localhost:5173/events');
     
     // Wait longer for React to render
     await page.waitForTimeout(3000);

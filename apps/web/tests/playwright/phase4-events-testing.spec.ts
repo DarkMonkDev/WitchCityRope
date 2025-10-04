@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Phase 4: Public Events Pages Implementation Testing', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to events page
-    await page.goto('http://localhost:5174/events');
+    await page.goto('http://localhost:5173/events');
   });
 
   test('should load events page successfully', async ({ page }) => {
@@ -84,7 +84,7 @@ test.describe('Phase 4: Public Events Pages Implementation Testing', () => {
 
   test('should handle loading and error states', async ({ page }) => {
     // Navigate to events page and watch for loading states
-    await page.goto('http://localhost:5174/events');
+    await page.goto('http://localhost:5173/events');
     
     // Look for loading indicators initially
     const loadingIndicator = page.locator('[data-testid="loading"], .spinner, text="Loading"');

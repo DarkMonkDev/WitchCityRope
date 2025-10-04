@@ -28,7 +28,7 @@ test.describe('Simple Login Attempt', () => {
     await page.context().clearCookies();
     
     // Navigate to login page
-    await page.goto('http://localhost:5174/login');
+    await page.goto('http://localhost:5173/login');
     await page.waitForLoadState('domcontentloaded');
     
     // Fill form with admin credentials
@@ -85,7 +85,7 @@ test.describe('Simple Login Attempt', () => {
 
   test('should test API directly', async ({ page }) => {
     // Test the login API directly
-    const response = await page.request.post('http://localhost:5653/api/auth/login', {
+    const response = await page.request.post('http://localhost:5655/api/auth/login', {
       data: {
         email: 'admin@witchcityrope.com',
         password: 'Test123!'

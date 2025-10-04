@@ -14,10 +14,10 @@ import { test, expect } from '@playwright/test';
  */
 
 const testUrls = {
-  publicEvents: 'http://localhost:5174/events',
-  adminEvents: 'http://localhost:5174/admin/events',
-  login: 'http://localhost:5174/login',
-  home: 'http://localhost:5174/'
+  publicEvents: 'http://localhost:5173/events',
+  adminEvents: 'http://localhost:5173/admin/events',
+  login: 'http://localhost:5173/login',
+  home: 'http://localhost:5173/'
 };
 
 const testAccounts = {

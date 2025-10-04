@@ -9,7 +9,7 @@ test.describe('Events Basic Tests', () => {
     console.log('🧪 Testing basic events page loading...');
 
     // Navigate to public events page
-    await page.goto('http://localhost:5174/events');
+    await page.goto('http://localhost:5173/events');
     
     // Wait for page to load
     await page.waitForLoadState('networkidle');
@@ -60,7 +60,7 @@ test.describe('Events Basic Tests', () => {
     console.log('🧪 Testing admin events page...');
 
     // Navigate to admin events page
-    const response = await page.goto('http://localhost:5174/admin/events');
+    const response = await page.goto('http://localhost:5173/admin/events');
     
     // Should either redirect to login OR show the page (depending on auth implementation)
     // At minimum, should not give a 404
@@ -75,7 +75,7 @@ test.describe('Events Basic Tests', () => {
     console.log('🧪 Testing event details page...');
 
     // Navigate to a sample event details page (using a test ID)
-    await page.goto('http://localhost:5174/events/test-event-id');
+    await page.goto('http://localhost:5173/events/test-event-id');
     
     // Wait for page to load
     await page.waitForLoadState('networkidle');

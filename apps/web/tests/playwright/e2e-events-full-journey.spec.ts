@@ -16,7 +16,7 @@ import { test, expect, Page, BrowserContext } from '@playwright/test';
  * 7. User cancels a registration
  * 8. Admin views event management
  * 
- * CRITICAL: This test uses real API calls (port 5653) and real database data.
+ * CRITICAL: This test uses real API calls (port 5655 Docker) and real database data.
  * No mocks or stubs - this validates the complete integration.
  */
 
@@ -348,12 +348,12 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     console.log('🔧 Testing API integration...');
     
     // Test API endpoints directly
-    const healthResponse = await request.get('http://localhost:5653/api/health');
+    const healthResponse = await request.get('http://localhost:5655/api/health');
     expect(healthResponse.status()).toBe(200);
     console.log('   ✅ API health endpoint working');
     
     // Test events API
-    const eventsResponse = await request.get('http://localhost:5653/api/events');
+    const eventsResponse = await request.get('http://localhost:5655/api/events');
     expect(eventsResponse.status()).toBe(200);
     
     const eventsData = await eventsResponse.json();
@@ -362,7 +362,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     console.log(`   📅 Events API returned ${eventsData.length} events`);
     
     // Test login API  
-    const loginResponse = await request.post('http://localhost:5653/api/auth/login', {
+    const loginResponse = await request.post('http://localhost:5655/api/auth/login', {
       data: {
         email: TEST_ACCOUNTS.member.email,
         password: TEST_ACCOUNTS.member.password
@@ -459,17 +459,17 @@ test.describe('Test Environment Validation', () => {
     console.log('   ✅ React app healthy');
     
     // Test API
-    const apiResponse = await request.get('http://localhost:5653/api/health');
+    const apiResponse = await request.get('http://localhost:5655/api/health');
     expect(apiResponse.status()).toBe(200);
     console.log('   ✅ API healthy');
     
     // Test database connectivity through API
-    const eventsResponse = await request.get('http://localhost:5653/api/events');
+    const eventsResponse = await request.get('http://localhost:5655/api/events');
     expect(eventsResponse.status()).toBe(200);
     console.log('   ✅ Database connectivity verified');
     
     // Verify test accounts exist by attempting login
-    const loginResponse = await request.post('http://localhost:5653/api/auth/login', {
+    const loginResponse = await request.post('http://localhost:5655/api/auth/login', {
       data: {
         email: TEST_ACCOUNTS.member.email,
         password: TEST_ACCOUNTS.member.password

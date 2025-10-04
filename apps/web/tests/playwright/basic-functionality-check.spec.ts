@@ -11,9 +11,9 @@ test.describe('Basic Functionality Check - Current State', () => {
 
   test('React app loads and displays basic content', async ({ page }) => {
     await page.goto('http://localhost:5173');
-    
-    // Should load without errors
-    await expect(page).toHaveTitle(/Vite \+ React/);
+
+    // Should load without errors - verify the actual application title
+    await expect(page).toHaveTitle(/Witch City Rope/);
     
     // Take screenshot of what actually loads
     await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/current-app-state.png' });
@@ -86,12 +86,12 @@ test.describe('Basic Functionality Check - Current State', () => {
   test('API connectivity test', async ({ request }) => {
     // Test various API endpoints to see what's actually working
     const endpoints = [
-      'http://localhost:5653/',
-      'http://localhost:5653/api',
-      'http://localhost:5653/api/health',
-      'http://localhost:5653/health',
-      'http://localhost:5653/api/events',
-      'http://localhost:5653/api/auth/login'
+      'http://localhost:5655/',
+      'http://localhost:5655/api',
+      'http://localhost:5655/api/health',
+      'http://localhost:5655/health',
+      'http://localhost:5655/api/events',
+      'http://localhost:5655/api/auth/login'
     ];
 
     for (const endpoint of endpoints) {
@@ -108,7 +108,7 @@ test.describe('Basic Functionality Check - Current State', () => {
     // Try to get a successful response from any API endpoint
     try {
       // Try a POST to login with known test user
-      const loginResponse = await request.post('http://localhost:5653/api/auth/login', {
+      const loginResponse = await request.post('http://localhost:5655/api/auth/login', {
         data: {
           email: 'member@witchcityrope.com',
           password: 'Test123!'

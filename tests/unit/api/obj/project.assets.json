@@ -2167,6 +2167,22 @@
           }
         }
       },
+      "NSubstitute/5.1.0": {
+        "type": "package",
+        "dependencies": {
+          "Castle.Core": "5.1.1"
+        },
+        "compile": {
+          "lib/net6.0/NSubstitute.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/NSubstitute.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "NuGet.Frameworks/5.11.0": {
         "type": "package",
         "compile": {
@@ -7630,6 +7646,24 @@
         "postgresql.png"
       ]
     },
+    "NSubstitute/5.1.0": {
+      "sha512": "ZCqOP3Kpp2ea7QcLyjMU4wzE+0wmrMN35PQMsdPOHYc2IrvjmusG9hICOiqiOTPKN0gJon6wyCn6ZuGHdNs9hQ==",
+      "type": "package",
+      "path": "nsubstitute/5.1.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "icon.png",
+        "lib/net462/NSubstitute.dll",
+        "lib/net462/NSubstitute.xml",
+        "lib/net6.0/NSubstitute.dll",
+        "lib/net6.0/NSubstitute.xml",
+        "lib/netstandard2.0/NSubstitute.dll",
+        "lib/netstandard2.0/NSubstitute.xml",
+        "nsubstitute.5.1.0.nupkg.sha512",
+        "nsubstitute.nuspec"
+      ]
+    },
     "NuGet.Frameworks/5.11.0": {
       "sha512": "eaiXkUjC4NPcquGWzAGMXjuxvLwc6XGKMptSyOGQeT0X70BUZObuybJFZLA0OfTdueLd3US23NBPTBb6iF3V1Q==",
       "type": "package",
@@ -12204,6 +12238,7 @@
       "Microsoft.EntityFrameworkCore >= 9.0.6",
       "Microsoft.NET.Test.Sdk >= 17.6.0",
       "Moq >= 4.20.69",
+      "NSubstitute >= 5.1.0",
       "Npgsql.EntityFrameworkCore.PostgreSQL >= 9.0.4",
       "Respawn >= 6.2.0",
       "Testcontainers.PostgreSql >= 4.7.0",
@@ -12218,11 +12253,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/chad/repos/witchcityrope-react/tests/unit/api/WitchCityRope.Api.Tests.csproj",
+      "projectUniqueName": "/home/chad/repos/witchcityrope/tests/unit/api/WitchCityRope.Api.Tests.csproj",
       "projectName": "WitchCityRope.Api.Tests",
-      "projectPath": "/home/chad/repos/witchcityrope-react/tests/unit/api/WitchCityRope.Api.Tests.csproj",
+      "projectPath": "/home/chad/repos/witchcityrope/tests/unit/api/WitchCityRope.Api.Tests.csproj",
       "packagesPath": "/home/chad/.nuget/packages/",
-      "outputPath": "/home/chad/repos/witchcityrope-react/tests/unit/api/obj/",
+      "outputPath": "/home/chad/repos/witchcityrope/tests/unit/api/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/chad/.nuget/NuGet/NuGet.Config"
@@ -12237,8 +12272,8 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "/home/chad/repos/witchcityrope-react/apps/api/WitchCityRope.Api.csproj": {
-              "projectPath": "/home/chad/repos/witchcityrope-react/apps/api/WitchCityRope.Api.csproj"
+            "/home/chad/repos/witchcityrope/apps/api/WitchCityRope.Api.csproj": {
+              "projectPath": "/home/chad/repos/witchcityrope/apps/api/WitchCityRope.Api.csproj"
             }
           }
         }
@@ -12253,7 +12288,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.300"
+      "SdkAnalysisLevel": "9.0.100"
     },
     "frameworks": {
       "net9.0": {
@@ -12278,6 +12313,10 @@
           "Moq": {
             "target": "Package",
             "version": "[4.20.69, )"
+          },
+          "NSubstitute": {
+            "target": "Package",
+            "version": "[5.1.0, )"
           },
           "Npgsql.EntityFrameworkCore.PostgreSQL": {
             "target": "Package",
@@ -12318,7 +12357,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/home/chad/.dotnet/sdk/9.0.301/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/var/snap/dotnet/common/dotnet/sdk/9.0.110/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

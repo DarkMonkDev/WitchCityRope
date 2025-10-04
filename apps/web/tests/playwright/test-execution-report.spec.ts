@@ -20,7 +20,7 @@ test.describe('Comprehensive Application State Report', () => {
 
     // Test 1: Home page functionality
     try {
-      await page.goto('http://localhost:5174/', { waitUntil: 'domcontentloaded', timeout: 10000 });
+      await page.goto('http://localhost:5173/', { waitUntil: 'domcontentloaded', timeout: 10000 });
       const title = await page.title();
       const h1Text = await page.locator('h1').first().textContent();
       
@@ -41,7 +41,7 @@ test.describe('Comprehensive Application State Report', () => {
 
     // Test 2: Login page functionality  
     try {
-      await page.goto('http://localhost:5174/login', { waitUntil: 'domcontentloaded', timeout: 10000 });
+      await page.goto('http://localhost:5173/login', { waitUntil: 'domcontentloaded', timeout: 10000 });
       const welcomeText = await page.locator('h1').textContent();
       const emailInput = page.locator('[data-testid="email-input"]');
       const passwordInput = page.locator('[data-testid="password-input"]');
@@ -71,7 +71,7 @@ test.describe('Comprehensive Application State Report', () => {
 
     // Test 3: Events page functionality
     try {
-      await page.goto('http://localhost:5174/events', { waitUntil: 'domcontentloaded', timeout: 10000 });
+      await page.goto('http://localhost:5173/events', { waitUntil: 'domcontentloaded', timeout: 10000 });
       const pageTitle = await page.locator('h1').textContent();
       const pageContent = await page.textContent('body');
       
@@ -148,7 +148,7 @@ test.describe('Comprehensive Application State Report', () => {
 
     // Test 6: Login form submission test
     try {
-      await page.goto('http://localhost:5174/login', { waitUntil: 'domcontentloaded', timeout: 10000 });
+      await page.goto('http://localhost:5173/login', { waitUntil: 'domcontentloaded', timeout: 10000 });
       
       await page.fill('[data-testid="email-input"]', 'admin@witchcityrope.com');
       await page.fill('[data-testid="password-input"]', 'Test123!');
@@ -177,7 +177,7 @@ test.describe('Comprehensive Application State Report', () => {
     }
 
     // Environment assessment
-    report.environment.reactServer = 'HEALTHY (Port 5174)';
+    report.environment.reactServer = 'HEALTHY (Port 5173)';
     report.environment.apiServer = report.apiTests.directApi?.success ? 'HEALTHY (Port 5655)' : 'ISSUE DETECTED';
     report.environment.database = report.apiTests.directApi?.dataLength > 0 ? 'HEALTHY (Has Data)' : 'NO DATA OR ISSUES';
 

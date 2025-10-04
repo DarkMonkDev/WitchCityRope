@@ -81,8 +81,8 @@ test.describe('Debug Login Issue', () => {
           console.log('✅ LOGIN FORM COMPLETE - trying to fill');
           
           // Try to fill the form
-          await page.fill('input[type="email"], input[name="email"]', 'test@witchcityrope.com');
-          await page.fill('input[type="password"], input[name="password"]', 'Test1234');
+          await page.fill('input[type="email"], input[name="email"]', 'admin@witchcityrope.com');
+          await page.fill('input[type="password"], input[name="password"]', 'Test123!');
           
           console.log('✅ Form filled successfully');
           
@@ -131,8 +131,8 @@ test.describe('Debug Login Issue', () => {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            email: 'test@witchcityrope.com',
-            password: 'Test1234'
+            email: 'admin@witchcityrope.com',
+            password: 'Test123!'
           })
         });
         

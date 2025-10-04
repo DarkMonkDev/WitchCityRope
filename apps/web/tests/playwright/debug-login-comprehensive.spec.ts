@@ -1,8 +1,8 @@
 import { test, expect, Page } from '@playwright/test';
 
 const TEST_USER = {
-  email: 'test@witchcityrope.com',
-  password: 'Test1234'
+  email: 'admin@witchcityrope.com',
+  password: 'Test123!'
 };
 
 const API_BASE_URL = 'http://localhost:5655';

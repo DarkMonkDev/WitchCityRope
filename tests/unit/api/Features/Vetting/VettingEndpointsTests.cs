@@ -12,7 +12,6 @@ using FluentAssertions;
 using NSubstitute;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.AspNetCore.Testing;
 
 namespace WitchCityRope.UnitTests.Api.Features.Vetting;
 
@@ -62,11 +61,11 @@ public class VettingEndpointsTests
             {
                 new ApplicationSummaryDto
                 {
-                    Id = "app-1",
+                    Id = Guid.NewGuid(),
                     ApplicationNumber = "APP001",
                     Status = "UnderReview",
-                    SubmittedAt = "2025-09-22T10:00:00Z",
-                    LastActivityAt = "2025-09-22T10:00:00Z",
+                    SubmittedAt = DateTime.Parse("2025-09-22T10:00:00Z"),
+                    LastActivityAt = DateTime.Parse("2025-09-22T10:00:00Z"),
                     SceneName = "TestUser",
                     ExperienceLevel = "Beginner",
                     YearsExperience = 1,
@@ -181,11 +180,11 @@ public class VettingEndpointsTests
         var applicationId = Guid.NewGuid();
         var mockDetail = new ApplicationDetailResponse
         {
-            Id = applicationId.ToString(),
+            Id = applicationId,
             ApplicationNumber = "APP001",
             Status = "UnderReview",
-            SubmittedAt = "2025-09-22T10:00:00Z",
-            LastActivityAt = "2025-09-22T10:00:00Z",
+            SubmittedAt = DateTime.Parse("2025-09-22T10:00:00Z"),
+            LastActivityAt = DateTime.Parse("2025-09-22T10:00:00Z"),
             FullName = "John Doe",
             SceneName = "TestUser",
             Email = "test@example.com",
@@ -257,9 +256,9 @@ public class VettingEndpointsTests
 
         var mockResponse = new ReviewDecisionResponse
         {
-            DecisionId = Guid.NewGuid().ToString(),
+            DecisionId = Guid.NewGuid(),
             DecisionType = "Approved",
-            SubmittedAt = "2025-09-22T10:00:00Z",
+            SubmittedAt = DateTime.Parse("2025-09-22T10:00:00Z"),
             NewApplicationStatus = "Approved",
             ConfirmationMessage = "Decision submitted successfully",
             ActionsTriggered = new List<string>()
@@ -328,8 +327,8 @@ public class VettingEndpointsTests
 
         var mockResponse = new NoteResponse
         {
-            NoteId = Guid.NewGuid().ToString(),
-            CreatedAt = "2025-09-22T10:00:00Z",
+            NoteId = Guid.NewGuid(),
+            CreatedAt = DateTime.Parse("2025-09-22T10:00:00Z"),
             ConfirmationMessage = "Note added successfully"
         };
 
@@ -367,7 +366,7 @@ public class VettingEndpointsTests
 
         var userId = Guid.Parse(_adminUser.FindFirst("sub")!.Value);
         _mockVettingService.GetApplicationsForReviewAsync(request, userId, Arg.Any<CancellationToken>())
-            .Throws(new InvalidOperationException("Database connection failed"));
+            .Returns<Task<Result<PagedResult<ApplicationSummaryDto>>>>(x => throw new InvalidOperationException("Database connection failed"));
 
         var httpContext = new DefaultHttpContext();
         httpContext.User = _adminUser;
@@ -427,13 +426,13 @@ public class VettingEndpointsTests
     private async Task<IResult> CallSubmitReviewDecision(Guid id, ReviewDecisionRequest request, HttpContext httpContext)
     {
         var endpoint = CreateEndpointDelegate("SubmitReviewDecision");
-        return await endpoint(httpContext, id, request, _mockVettingService, httpContext.User, CancellationToken.None);
+        return await endpoint(httpContext, (id, request), _mockVettingService, httpContext.User, CancellationToken.None);
     }
 
     private async Task<IResult> CallAddApplicationNote(Guid id, CreateNoteRequest request, HttpContext httpContext)
     {
         var endpoint = CreateEndpointDelegate("AddApplicationNote");
-        return await endpoint(httpContext, id, request, _mockVettingService, httpContext.User, CancellationToken.None);
+        return await endpoint(httpContext, (id, request), _mockVettingService, httpContext.User, CancellationToken.None);
     }
 
     private static Func<HttpContext, object, IVettingService, ClaimsPrincipal, CancellationToken, Task<IResult>> CreateEndpointDelegate(string endpointName)

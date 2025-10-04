@@ -51,6 +51,34 @@
 - **Follow Design System v7 for all styling decisions**
 - **Read existing handoff documents** before starting new work
 
+## 🛠️ AVAILABLE DEVELOPMENT TOOLS
+
+### Chrome DevTools MCP (NEW - 2025-10-03)
+**Purpose**: Debug React components, inspect state/props, and validate UI rendering
+
+**Key Capabilities for React Developers**:
+- **Component Inspection**: Inspect React component hierarchy, state, and props in real-time
+- **DOM Inspection**: View rendered HTML and CSS styles
+- **Console Debugging**: Monitor JavaScript errors, warnings, and console output
+- **Network Monitoring**: Inspect API calls, view request/response data, validate loading states
+- **Performance Profiling**: Analyze component render times and identify performance bottlenecks
+
+**Use Cases for React Development**:
+- Component debugging - Inspect component state and props during development
+- UI validation - Verify components render correctly across different states
+- API integration testing - Monitor API calls and validate response handling
+- Performance optimization - Identify slow renders and unnecessary re-renders
+- Responsive design testing - Test components at different viewport sizes
+
+**Configuration**: Automatically available via MCP - see `/docs/standards-processes/MCP/MCP_SERVERS.md`
+
+**Best Practices**:
+- Use React DevTools features to inspect component state and props
+- Monitor console for warnings about missing keys, deprecated APIs, or performance issues
+- Validate API responses match TypeScript interfaces from `@witchcityrope/shared-types`
+- Take screenshots for visual regression testing
+- Profile component performance before and after optimizations
+
 ---
 
 ## 🚨 IF THIS FILE EXCEEDS 1700 LINES, CREATE PART 2! BOTH FILES CAN BE UP TO 1700 LINES EACH 🚨

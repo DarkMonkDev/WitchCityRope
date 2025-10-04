@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('EventForm Visual Verification', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the event form test page
-    await page.goto('http://localhost:5174/event-form-test');
+    await page.goto('http://localhost:5173/event-form-test');
   });
 
   test('EventForm matches wireframe - Basic Info tab', async ({ page }) => {

@@ -20,11 +20,11 @@ test.describe('Diagnostic Test - Corrected Ports', () => {
       navigations.push(`Navigation at ${new Date().toISOString()}`);
     });
 
-    console.log('Navigating to http://localhost:5174');
+    console.log('Navigating to http://localhost:5173');
     
     // Go to the page with timeout
     try {
-      await page.goto('http://localhost:5174', { 
+      await page.goto('http://localhost:5173', { 
         waitUntil: 'networkidle',
         timeout: 10000 
       });
@@ -68,7 +68,7 @@ test.describe('Diagnostic Test - Corrected Ports', () => {
     // Try to go to events page
     console.log('\nNavigating to /events');
     try {
-      await page.goto('http://localhost:5174/events', { 
+      await page.goto('http://localhost:5173/events', { 
         waitUntil: 'networkidle',
         timeout: 10000 
       });

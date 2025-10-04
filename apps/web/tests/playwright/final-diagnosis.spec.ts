@@ -28,7 +28,7 @@ test.describe('Final React App Diagnosis', () => {
     });
     
     // Navigate to the page
-    await page.goto('http://localhost:5174', { 
+    await page.goto('http://localhost:5173', { 
       waitUntil: 'networkidle',
       timeout: 15000 
     });

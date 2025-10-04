@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/home/chad/repos/witchcityrope-react/apps/api/WitchCityRope.Api.csproj": {}
+    "/home/chad/repos/witchcityrope/apps/api/WitchCityRope.Api.csproj": {}
   },
   "projects": {
-    "/home/chad/repos/witchcityrope-react/apps/api/WitchCityRope.Api.csproj": {
+    "/home/chad/repos/witchcityrope/apps/api/WitchCityRope.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/chad/repos/witchcityrope-react/apps/api/WitchCityRope.Api.csproj",
+        "projectUniqueName": "/home/chad/repos/witchcityrope/apps/api/WitchCityRope.Api.csproj",
         "projectName": "WitchCityRope.Api",
-        "projectPath": "/home/chad/repos/witchcityrope-react/apps/api/WitchCityRope.Api.csproj",
+        "projectPath": "/home/chad/repos/witchcityrope/apps/api/WitchCityRope.Api.csproj",
         "packagesPath": "/home/chad/.nuget/packages/",
-        "outputPath": "/home/chad/repos/witchcityrope-react/apps/api/obj/",
+        "outputPath": "/home/chad/repos/witchcityrope/apps/api/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/chad/.nuget/NuGet/NuGet.Config"
@@ -38,7 +38,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.300"
+        "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
         "net9.0": {
@@ -116,7 +116,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/home/chad/.dotnet/sdk/9.0.301/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/var/snap/dotnet/common/dotnet/sdk/9.0.110/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

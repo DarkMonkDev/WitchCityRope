@@ -66,7 +66,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
 
   // Form setup with Mantine form + Zod validation
   const form = useForm<SimplifiedApplicationFormData>({
-    validate: zodResolver(simplifiedApplicationSchema),
+    validate: zodResolver(simplifiedApplicationSchema as any),
     initialValues: {
       ...defaultFormValues,
       // Remove email and sceneName from form - they're shown at top but not editable

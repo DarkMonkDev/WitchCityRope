@@ -18,6 +18,27 @@ public static class VettingEndpoints
             .WithTags("Vetting")
             .RequireAuthorization(); // All vetting endpoints require authentication
 
+        // Public endpoints (no authentication required)
+        var publicGroup = app.MapGroup("/api/vetting/public")
+            .WithTags("Vetting - Public")
+            .AllowAnonymous();
+
+        // POST: Submit new vetting application (public)
+        publicGroup.MapPost("/applications", SubmitApplication)
+            .WithName("SubmitVettingApplication")
+            .WithSummary("Submit a new vetting application")
+            .Produces<ApiResponse<ApplicationSubmissionResponse>>(201)
+            .Produces<ApiResponse<object>>(400)
+            .Produces<ApiResponse<object>>(500);
+
+        // GET: Check application status by token (public)
+        publicGroup.MapGet("/applications/status/{token}", GetApplicationStatusByToken)
+            .WithName("GetApplicationStatusByToken")
+            .WithSummary("Check application status using status token")
+            .Produces<ApiResponse<ApplicationStatusResponse>>(200)
+            .Produces<ApiResponse<object>>(404)
+            .Produces<ApiResponse<object>>(500);
+
         // GET: Paginated list of applications for reviewers
         group.MapPost("/reviewer/applications", GetApplicationsForReview)
             .WithName("GetApplicationsForReview")
@@ -824,6 +845,97 @@ public static class VettingEndpoints
             {
                 Success = false,
                 Error = "Failed to retrieve application details",
+                Details = ex.Message,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: 500);
+        }
+    }
+
+    /// <summary>
+    /// Submit a new vetting application (public endpoint)
+    /// POST /api/vetting/public/applications
+    /// </summary>
+    private static async Task<IResult> SubmitApplication(
+        CreateApplicationRequest request,
+        IVettingService vettingService,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await vettingService.SubmitApplicationAsync(request, cancellationToken);
+
+            if (result.IsSuccess && result.Value != null)
+            {
+                return Results.Created(
+                    $"/api/vetting/public/applications/status/{result.Value.StatusToken}",
+                    new ApiResponse<ApplicationSubmissionResponse>
+                    {
+                        Success = true,
+                        Data = result.Value,
+                        Message = "Application submitted successfully",
+                        Timestamp = DateTime.UtcNow
+                    });
+            }
+
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = result.Error,
+                Details = result.Details,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: 400);
+        }
+        catch (Exception ex)
+        {
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = "Failed to submit application",
+                Details = ex.Message,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: 500);
+        }
+    }
+
+    /// <summary>
+    /// Get application status by token (public endpoint)
+    /// GET /api/vetting/public/applications/status/{token}
+    /// </summary>
+    private static async Task<IResult> GetApplicationStatusByToken(
+        string token,
+        IVettingService vettingService,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await vettingService.GetApplicationStatusByTokenAsync(token, cancellationToken);
+
+            if (result.IsSuccess && result.Value != null)
+            {
+                return Results.Ok(new ApiResponse<ApplicationStatusResponse>
+                {
+                    Success = true,
+                    Data = result.Value,
+                    Message = "Application status retrieved successfully",
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+
+            var statusCode = result.Error.Contains("not found") ? 404 : 500;
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = result.Error,
+                Details = result.Details,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: statusCode);
+        }
+        catch (Exception ex)
+        {
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = "Failed to retrieve application status",
                 Details = ex.Message,
                 Timestamp = DateTime.UtcNow
             }, statusCode: 500);

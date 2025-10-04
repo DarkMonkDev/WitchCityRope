@@ -48,6 +48,31 @@
 - **API Response wrappers** - ALL endpoints must return `ApiResponse<T>` format
 - **Path format** - ALWAYS use repo-relative paths like `/docs/...` NOT full system paths
 
+## 🛠️ AVAILABLE DEVELOPMENT TOOLS
+
+### Chrome DevTools MCP (NEW - 2025-10-03)
+**Purpose**: Debug web pages, inspect API responses, and validate frontend-backend integration
+
+**Key Capabilities for Backend Developers**:
+- **Network Inspection**: Monitor API calls, inspect request/response headers, validate HTTP status codes
+- **Console Monitoring**: View frontend JavaScript errors that may indicate API issues
+- **Performance Analysis**: Measure API response times and identify performance bottlenecks
+- **Runtime Debugging**: Test API endpoints through browser-based testing
+
+**Use Cases for Backend Development**:
+- API integration validation - Confirm API responses match frontend expectations
+- CORS debugging - Inspect headers and identify cross-origin issues
+- Authentication flow testing - Validate cookie setting and token handling
+- Error response validation - Ensure error responses are properly formatted and handled
+
+**Configuration**: Automatically available via MCP - see `/docs/standards-processes/MCP/MCP_SERVERS.md`
+
+**Best Practices**:
+- Use to validate API endpoint responses during development
+- Monitor network traffic when debugging integration issues
+- Inspect console errors to identify frontend-backend communication problems
+- Test authentication flows end-to-end with visual confirmation
+
 ---
 
 ## 🚨 IF THIS FILE EXCEEDS 1700 LINES, add new lessons learned to PART 2! BOTH FILES CAN BE UP TO 1700 LINES EACH 🚨

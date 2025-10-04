@@ -71,7 +71,7 @@ public static class AuthenticationEndpoints
                     {
                         HttpOnly = true,
                         Secure = context.Request.IsHttps, // Use HTTPS in production
-                        SameSite = SameSiteMode.Strict,
+                        SameSite = SameSiteMode.Lax, // Lax allows cross-port requests (5173->5655)
                         Path = "/",
                         Expires = response.ExpiresAt
                     };
@@ -231,7 +231,7 @@ public static class AuthenticationEndpoints
                     {
                         HttpOnly = true,
                         Secure = context.Request.IsHttps, // Use HTTPS in production
-                        SameSite = SameSiteMode.Strict,
+                        SameSite = SameSiteMode.Lax, // Must match login cookie settings
                         Path = "/",
                         Expires = DateTimeOffset.UtcNow.AddDays(-1) // Set to past date for deletion
                     };
@@ -248,7 +248,7 @@ public static class AuthenticationEndpoints
                     {
                         HttpOnly = true,
                         Secure = context.Request.IsHttps,
-                        SameSite = SameSiteMode.Strict,
+                        SameSite = SameSiteMode.Lax, // Must match login cookie settings
                         Path = "/"
                     });
                     logger.LogInformation("🔐 LOGOUT DEBUG: Called Delete method as backup");
@@ -315,7 +315,7 @@ public static class AuthenticationEndpoints
                         {
                             HttpOnly = true,
                             Secure = context.Request.IsHttps,
-                            SameSite = SameSiteMode.Strict,
+                            SameSite = SameSiteMode.Lax, // Must match login cookie settings
                             Path = "/",
                             Expires = DateTimeOffset.UtcNow.AddDays(-1) // Set to past date for deletion
                         };
@@ -328,7 +328,7 @@ public static class AuthenticationEndpoints
                         {
                             HttpOnly = true,
                             Secure = context.Request.IsHttps,
-                            SameSite = SameSiteMode.Strict,
+                            SameSite = SameSiteMode.Lax, // Must match login cookie settings
                             Path = "/"
                         });
 

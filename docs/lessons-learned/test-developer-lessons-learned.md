@@ -41,6 +41,40 @@
 - [ ] Review Testing Prerequisites before starting
 - [ ] Verify Docker containers are running with `./dev.sh`
 
+## 🛠️ AVAILABLE TESTING TOOLS
+
+### Chrome DevTools MCP (NEW - 2025-10-03)
+**Purpose**: Enhanced test development and debugging for E2E tests
+
+**Key Capabilities for Test Developers**:
+- **Test Debugging**: Inspect page state during test execution, view console errors
+- **Selector Validation**: Verify selectors work correctly before adding to tests
+- **Network Monitoring**: Validate API calls during test scenarios, inspect request/response data
+- **Performance Testing**: Measure page load times and component render performance
+- **Screenshot Capture**: Take visual snapshots for test documentation and debugging
+
+**Use Cases for Test Development**:
+- Test creation - Validate selectors and page interactions before writing tests
+- Test debugging - Inspect page state when tests fail to identify root causes
+- Visual regression - Capture baseline screenshots for comparison testing
+- Performance validation - Add performance assertions based on measured metrics
+- Integration testing - Monitor API calls to ensure proper data flow
+
+**Configuration**: Automatically available via MCP - see `/docs/standards-processes/MCP/MCP_SERVERS.md`
+
+**Integration with Playwright**:
+- Use alongside Playwright for enhanced debugging capabilities
+- Capture screenshots on test failures for easier debugging
+- Monitor network traffic to validate API integration in E2E tests
+- Profile page performance to set appropriate timeout values
+
+**Best Practices**:
+- Use to validate selectors before adding them to Playwright tests
+- Capture screenshots for visual regression test baselines
+- Monitor console for errors that might cause test flakiness
+- Measure performance metrics to set realistic test timeouts
+- Inspect API responses to validate data flow in integration tests
+
 ## 📚 MULTI-FILE LESSONS LEARNED
 **Files**: 2 total
 **Part 1**: `/docs/lessons-learned/test-developer-lessons-learned.md` (THIS FILE)

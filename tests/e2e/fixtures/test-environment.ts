@@ -126,8 +126,8 @@ export class TestEnvironment {
   private static async setupApiService(): Promise<void> {
     console.log('🔧 Checking API service availability...');
 
-    // Check if API is already running on expected ports
-    const commonApiPorts = [5655, 5653, 5651];
+    // Check if API is already running on expected ports (Docker only: 5655)
+    const commonApiPorts = [5655];
     
     for (const port of commonApiPorts) {
       try {

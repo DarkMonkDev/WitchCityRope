@@ -1088,6 +1088,157 @@ public class TicketTypeDto { /* Complete with pricing tiers */ }
 5. **Recommendation**: Extract, Archive, or Enhance with clear rationale
 ```
 
+## 🚨 CRITICAL FIX: API Unit Test Compilation Errors After Architecture Migration (2025-10-03)
+
+**Problem**: API unit tests at `/tests/unit/api/` failed to compile with 8 critical errors blocking TDD workflow. Tests referenced deleted services and obsolete namespaces from pre-vertical-slice architecture.
+
+**Root Causes Identified**:
+1. **Missing NSubstitute Package**: Test project referenced NSubstitute but package not installed
+2. **Obsolete Namespace**: Tests referenced non-existent `Microsoft.AspNetCore.Testing` namespace
+3. **Namespace Migration**: Entity namespace changed from `WitchCityRope.Api.Entities` to `WitchCityRope.Api.Models`
+4. **Deleted Services**: Tests referenced deleted IEventService and EventsController (migrated to minimal APIs)
+5. **Entity Rename**: `User` entity renamed to `ApplicationUser`
+6. **DTO Type Changes**: DTOs changed from string to Guid/DateTime types
+7. **Constructor Signature Change**: SeedDataService added RoleManager parameter
+
+**Compilation Errors Fixed**:
+```
+✅ CS0246: NSubstitute not found → Added NSubstitute 5.1.0 package
+✅ CS0234: Microsoft.AspNetCore.Testing doesn't exist → Removed obsolete using
+✅ CS0234: WitchCityRope.Api.Entities doesn't exist → Changed to WitchCityRope.Api.Models
+✅ CS0246: IEventService not found → Removed obsolete EventsController test file
+✅ CS0246: User not found → Changed to ApplicationUser
+✅ CS0029: String to Guid/DateTime conversion → Updated DTO initialization
+✅ CS7036: Missing logger parameter → Added RoleManager mock to SeedDataService test
+✅ CS1061: Throws method not found → Fixed NSubstitute syntax
+```
+
+**Solution Implemented**:
+
+1. **Added NSubstitute Package** (`WitchCityRope.Api.Tests.csproj`):
+```xml
+<PackageReference Include="NSubstitute" Version="5.1.0" />
+```
+
+2. **Fixed VettingEndpointsTests.cs**:
+```csharp
+// ❌ WRONG - Obsolete namespace
+using Microsoft.AspNetCore.Testing;
+
+// ✅ CORRECT - Removed obsolete namespace
+// (No replacement needed)
+```
+
+3. **Fixed VettingServiceTests.cs Namespace**:
+```csharp
+// ❌ WRONG - Old namespace
+using WitchCityRope.Api.Entities;
+
+// ✅ CORRECT - Current namespace
+using WitchCityRope.Api.Models;
+```
+
+4. **Fixed User Entity References**:
+```csharp
+// ❌ WRONG - Deleted entity
+private async Task<User> CreateTestUser(string email, string role)
+{
+    var user = new User { ... }
+}
+
+// ✅ CORRECT - Current entity
+private async Task<ApplicationUser> CreateTestUser(string email, string role)
+{
+    var user = new ApplicationUser { ... }
+}
+```
+
+5. **Removed Obsolete EventsController Test**:
+```bash
+# EventsController migrated to minimal API endpoints
+mv EventsController.test.cs EventsController.test.cs.obsolete
+```
+
+6. **Fixed DTO Type Mismatches**:
+```csharp
+// ❌ WRONG - DTOs changed to use Guid and DateTime
+var dto = new ApplicationSummaryDto
+{
+    Id = "app-1",  // String
+    SubmittedAt = "2025-09-22T10:00:00Z",  // String
+    LastActivityAt = "2025-09-22T10:00:00Z"  // String
+};
+
+// ✅ CORRECT - Use proper types
+var dto = new ApplicationSummaryDto
+{
+    Id = Guid.NewGuid(),  // Guid
+    SubmittedAt = DateTime.Parse("2025-09-22T10:00:00Z"),  // DateTime
+    LastActivityAt = DateTime.Parse("2025-09-22T10:00:00Z")  // DateTime?
+};
+```
+
+7. **Fixed SeedDataService Test Constructor**:
+```csharp
+// ❌ WRONG - Missing RoleManager parameter
+_service = new SeedDataService(DbContext, MockUserManager.Object, _mockLogger.Object);
+
+// ✅ CORRECT - Include RoleManager
+var mockRoleManager = new Mock<RoleManager<IdentityRole<Guid>>>(
+    Mock.Of<IRoleStore<IdentityRole<Guid>>>(),
+    null, null, null, null);
+
+_service = new SeedDataService(
+    DbContext,
+    MockUserManager.Object,
+    mockRoleManager.Object,
+    _mockLogger.Object);
+```
+
+8. **Fixed NSubstitute Exception Syntax**:
+```csharp
+// ❌ WRONG - Moq syntax doesn't work with NSubstitute
+_mockService.GetApplicationsAsync(...)
+    .Throws(new InvalidOperationException("Error"));
+
+// ✅ CORRECT - NSubstitute syntax
+_mockService.GetApplicationsAsync(...)
+    .Returns<Task<Result<T>>>(x => throw new InvalidOperationException("Error"));
+```
+
+**Build Results**:
+```bash
+$ dotnet build tests/unit/api/WitchCityRope.Api.Tests.csproj
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+```
+
+**Files Modified**:
+- `/tests/unit/api/WitchCityRope.Api.Tests.csproj` - Added NSubstitute package
+- `/tests/unit/api/Features/Vetting/VettingEndpointsTests.cs` - Fixed namespaces and DTO types
+- `/tests/unit/api/Features/Vetting/VettingServiceTests.cs` - Fixed User → ApplicationUser
+- `/tests/unit/api/Services/SeedDataServiceTests.cs` - Fixed constructor with RoleManager
+- `/tests/unit/api/EventsController.test.cs` → `.obsolete` - Removed obsolete test
+
+**Key Patterns for Architecture Migrations**:
+
+1. **Check Package References**: When using new mocking libraries, ensure packages are installed
+2. **Update Entity References**: After entity renames, search and replace all test references
+3. **Remove Obsolete Tests**: Don't try to fix tests for deleted services - remove them
+4. **Update DTO Types**: When DTOs change from string to typed fields, update all test initializations
+5. **Track Constructor Changes**: When services add parameters, update test service creation
+6. **Use Correct Mock Syntax**: NSubstitute and Moq have different syntax - don't mix them
+
+**Prevention**:
+- Run `dotnet build` on test projects after any architecture migrations
+- Update tests immediately when migrating from controllers to minimal APIs
+- Document entity renames and update all references systematically
+- Keep track of service constructor signature changes
+- Use IDE refactoring tools to find all entity references when renaming
+
+**Result**: All API unit tests compile successfully. TDD workflow unblocked. Tests ready for execution (test logic fixes can come later).
+
 ## Prevention Pattern: Missing API Endpoints for Testing
 
 **Problem**: E2E tests were failing with 404 errors because three API endpoints were missing:

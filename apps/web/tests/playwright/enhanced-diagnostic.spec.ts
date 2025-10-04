@@ -20,7 +20,7 @@ test.describe('Enhanced Diagnostic - Based on Lessons Learned', () => {
     // Step 2: React Rendering Verification Pattern
     console.log('\n2. TESTING APPLICATION LAYER - React Rendering');
     
-    await page.goto('http://localhost:5174', { 
+    await page.goto('http://localhost:5173', { 
       waitUntil: 'networkidle',
       timeout: 10000 
     });
@@ -59,7 +59,7 @@ test.describe('Enhanced Diagnostic - Based on Lessons Learned', () => {
     // Step 3: Events Page Specific Test
     console.log('\n3. TESTING EVENTS PAGE RENDERING');
     
-    await page.goto('http://localhost:5174/events', {
+    await page.goto('http://localhost:5173/events', {
       waitUntil: 'networkidle',
       timeout: 10000
     });
@@ -86,7 +86,7 @@ test.describe('Enhanced Diagnostic - Based on Lessons Learned', () => {
     
     // Take screenshots for evidence
     await page.screenshot({ path: 'enhanced-diagnostic-home.png' });
-    await page.goto('http://localhost:5174/events');
+    await page.goto('http://localhost:5173/events');
     await page.screenshot({ path: 'enhanced-diagnostic-events.png' });
     
     // Final determination based on lessons learned

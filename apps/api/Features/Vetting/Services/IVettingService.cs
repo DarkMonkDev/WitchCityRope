@@ -55,5 +55,19 @@ public interface IVettingService
     Task<Result<ApplicationDetailResponse>> GetMyApplicationDetailAsync(
         Guid userId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Submit a new vetting application (public endpoint)
+    /// </summary>
+    Task<Result<ApplicationSubmissionResponse>> SubmitApplicationAsync(
+        CreateApplicationRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get application status by status token (public endpoint)
+    /// </summary>
+    Task<Result<ApplicationStatusResponse>> GetApplicationStatusByTokenAsync(
+        string token,
+        CancellationToken cancellationToken = default);
 }
 

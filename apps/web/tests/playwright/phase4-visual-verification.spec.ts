@@ -2,14 +2,14 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Phase 4: Public Events Pages - Visual Verification', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5174/events');
+    await page.goto('http://localhost:5173/events');
     // Wait for page to fully load
     await page.waitForTimeout(2000);
   });
 
   test('should display events page with correct branding and layout', async ({ page }) => {
     // Verify URL is correct
-    expect(page.url()).toBe('http://localhost:5174/events');
+    expect(page.url()).toBe('http://localhost:5173/events');
     
     // Check WitchCityRope branding in header
     await expect(page.locator('text="WITCH CITY ROPE"')).toBeVisible();
@@ -161,7 +161,7 @@ test.describe('Phase 4: Public Events Pages - Visual Verification', () => {
     const startTime = Date.now();
     
     // Navigate to events page
-    await page.goto('http://localhost:5174/events');
+    await page.goto('http://localhost:5173/events');
     
     // Wait for main content to be visible
     await expect(page.locator('h1:has-text("Events & Classes")')).toBeVisible();

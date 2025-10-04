@@ -1,5 +1,43 @@
 # React Developer - Lessons Learned
 
+## 🚨 VITEST CONFIGURATION - PERFORMANCE CRITICAL 🚨
+
+### Parallel Test Execution (2025-10-03)
+**Problem**: Tests were timing out (180+ seconds) with 84 test files, preventing TDD workflow.
+
+**Root Cause**: Vitest was configured for serial execution:
+- `singleThread: true` - Only 1 test file at a time
+- `maxConcurrency: 1` - Only 1 test within a file at a time
+- Result: ~42 minutes to run all tests serially
+
+**Solution**: Optimized for parallel execution with safety limits:
+```typescript
+test: {
+  pool: 'forks',  // Better isolation than threads for React tests
+  poolOptions: {
+    forks: {
+      singleFork: false,  // Allow parallel test files
+      maxForks: 4,        // Run 4 test files concurrently
+      minForks: 1,
+    }
+  },
+  isolate: true,        // Better cleanup between tests
+  maxConcurrency: 5,    // Allow 5 concurrent tests per file
+}
+```
+
+**Results**:
+- Tests complete in ~54-58 seconds (was timing out at 180+)
+- All 84 test files execute successfully
+- 3-4x performance improvement
+- 42% test pass rate (76/181 passing)
+
+**Key Lessons**:
+1. **Use `forks` not `threads`** for React component tests - better process isolation
+2. **Balance parallelism with memory** - 4 concurrent files is sweet spot
+3. **Always test single file first** - if one file runs fast but all files hang, it's a config issue
+4. **Serial execution doesn't scale** - 84 files × 30s timeout = 42 minutes minimum
+
 ## 🚨 CRITICAL TESTING RULES - NEVER VIOLATE 🚨
 
 ### BROWSER TESTING - PLAYWRIGHT ONLY

@@ -1,0 +1,57 @@
+# Page snapshot
+
+```yaml
+- text: Welcome, RopeMaster
+- link "Report an Incident":
+  - /url: /incident-report
+- link "Private Lessons":
+  - /url: /private-lessons
+- link "Contact":
+  - /url: /contact
+- button "Logout"
+- banner:
+  - link "WITCH CITY ROPE":
+    - /url: /
+  - link "Admin":
+    - /url: /admin
+  - link "Events & Classes":
+    - /url: /events
+  - link "How to Join":
+    - /url: /join
+  - link "Resources":
+    - /url: /resources
+  - link "Dashboard":
+    - /url: /dashboard
+- main:
+  - complementary:
+    - navigation:
+      - link "📊 Dashboard":
+        - /url: /dashboard
+        - paragraph: 📊
+        - paragraph: Dashboard
+      - link "📅 Events":
+        - /url: /dashboard/events
+        - paragraph: 📅
+        - paragraph: Events
+      - link "📋 Registrations":
+        - /url: /dashboard/registrations
+        - paragraph: 📋
+        - paragraph: Registrations
+      - link "👤 Profile":
+        - /url: /dashboard/profile
+        - paragraph: 👤
+        - paragraph: Profile
+      - link "🔒 Security":
+        - /url: /dashboard/security
+        - paragraph: 🔒
+        - paragraph: Security
+      - link "🎯 Membership":
+        - /url: /dashboard/membership
+        - paragraph: 🎯
+        - paragraph: Membership
+  - main:
+    - heading "Profile" [level=1]
+    - alert: Failed to load your profile. Please try refreshing the page.
+- button "Open Tanstack query devtools":
+  - img
+```
