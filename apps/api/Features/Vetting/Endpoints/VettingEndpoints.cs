@@ -24,10 +24,19 @@ public static class VettingEndpoints
             .WithTags("Vetting - Public")
             .AllowAnonymous();
 
-        // POST: Submit new vetting application (public)
-        publicGroup.MapPost("/applications", SubmitApplication)
-            .WithName("SubmitVettingApplication")
-            .WithSummary("Submit a new vetting application")
+        // POST: Submit new vetting application (public - simplified for E2E testing)
+        publicGroup.MapPost("/applications", SubmitPublicApplication)
+            .WithName("SubmitPublicVettingApplication")
+            .WithSummary("Submit a simplified vetting application (public endpoint)")
+            .Produces<ApiResponse<ApplicationSubmissionResponse>>(201)
+            .Produces<ApiResponse<object>>(400)
+            .Produces<ApiResponse<object>>(409)
+            .Produces<ApiResponse<object>>(500);
+
+        // POST: Submit full vetting application (public - complete form)
+        publicGroup.MapPost("/applications/full", SubmitApplication)
+            .WithName("SubmitVettingApplicationFull")
+            .WithSummary("Submit a complete vetting application with all fields")
             .Produces<ApiResponse<ApplicationSubmissionResponse>>(201)
             .Produces<ApiResponse<object>>(400)
             .Produces<ApiResponse<object>>(500);
@@ -961,6 +970,65 @@ public static class VettingEndpoints
             {
                 Success = false,
                 Error = "Failed to retrieve application status",
+                Details = ex.Message,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: 500);
+        }
+    }
+
+    /// <summary>
+    /// Submit simplified public vetting application (public endpoint)
+    /// POST /api/vetting/public/applications
+    /// </summary>
+    private static async Task<IResult> SubmitPublicApplication(
+        PublicApplicationSubmissionRequest request,
+        IVettingService vettingService,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Check for duplicate application by email
+            var existingAppResult = await vettingService.GetApplicationByEmailAsync(request.Email, cancellationToken);
+
+            if (existingAppResult.IsSuccess && existingAppResult.Value != null)
+            {
+                return Results.Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Error = "Duplicate application",
+                    Details = "An application already exists for this email",
+                    Timestamp = DateTime.UtcNow
+                }, statusCode: 409);
+            }
+
+            // Create application
+            var result = await vettingService.SubmitPublicApplicationAsync(request, cancellationToken);
+
+            if (result.IsSuccess && result.Value != null)
+            {
+                return Results.Json(new ApiResponse<ApplicationSubmissionResponse>
+                {
+                    Success = true,
+                    Data = result.Value,
+                    Message = "Application submitted successfully",
+                    Timestamp = DateTime.UtcNow
+                }, statusCode: 201);
+            }
+
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = result.Error,
+                Details = result.Details,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: 400);
+        }
+        catch (Exception ex)
+        {
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = "Failed to submit application",
                 Details = ex.Message,
                 Timestamp = DateTime.UtcNow
             }, statusCode: 500);

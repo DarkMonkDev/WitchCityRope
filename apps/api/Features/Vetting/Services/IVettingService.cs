@@ -156,5 +156,26 @@ public interface IVettingService
         string reason,
         Guid adminUserId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Submit simplified public vetting application (for E2E testing and simple submissions)
+    /// Creates application with minimal required fields
+    /// </summary>
+    /// <param name="request">Simplified application request with basic fields</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Result containing application submission response</returns>
+    Task<Result<ApplicationSubmissionResponse>> SubmitPublicApplicationAsync(
+        PublicApplicationSubmissionRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get application by email address (for duplicate checking)
+    /// </summary>
+    /// <param name="email">Email address to search for</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Result containing application if found, or null if not found</returns>
+    Task<Result<VettingApplication?>> GetApplicationByEmailAsync(
+        string email,
+        CancellationToken cancellationToken = default);
 }
 

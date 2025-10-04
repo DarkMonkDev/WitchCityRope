@@ -925,6 +925,131 @@ public class VettingService : IVettingService
         return $"{localPart.Substring(0, 2)}***@{domain}";
     }
 
+    /// <summary>
+    /// Submit simplified public vetting application (for E2E testing)
+    /// Creates application with minimal required fields
+    /// </summary>
+    public async Task<Result<ApplicationSubmissionResponse>> SubmitPublicApplicationAsync(
+        PublicApplicationSubmissionRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Submitting simplified public vetting application for {SceneName} ({Email})",
+                request.SceneName, request.Email);
+
+            // Check for duplicate application by email
+            var existingApp = await _context.VettingApplications
+                .AsNoTracking()
+                .FirstOrDefaultAsync(v => v.Email == request.Email, cancellationToken);
+
+            if (existingApp != null)
+            {
+                return Result<ApplicationSubmissionResponse>.Failure(
+                    "Duplicate application",
+                    "An application already exists for this email address");
+            }
+
+            // Generate unique application number and status token
+            var applicationNumber = $"VET-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..8].ToUpper()}";
+            var statusToken = Guid.NewGuid().ToString("N"); // No hyphens for cleaner URLs
+
+            // Map experience string to enum value
+            var experienceLevel = request.Experience.ToLower() switch
+            {
+                "beginner" => 1,
+                "intermediate" => 2,
+                "advanced" => 3,
+                "expert" => 4,
+                _ => 1 // Default to Beginner
+            };
+
+            // Create vetting application entity
+            var application = new VettingApplication
+            {
+                SceneName = request.SceneName,
+                RealName = request.RealName,
+                Email = request.Email,
+                Phone = request.PhoneNumber,
+                Pronouns = request.Pronouns,
+                ApplicationNumber = applicationNumber,
+                StatusToken = statusToken,
+                Status = VettingStatus.Submitted,
+                SubmittedAt = DateTime.UtcNow,
+
+                // Experience & knowledge (minimal for public submission)
+                ExperienceLevel = experienceLevel,
+                YearsExperience = 0,
+                ExperienceDescription = request.Interests,
+
+                // Community understanding
+                WhyJoinCommunity = request.Interests,
+                AgreesToGuidelines = request.AgreeToRules,
+
+                // Store emergency contact in AboutYourself field (temporary)
+                AboutYourself = $"Emergency Contact: {request.EmergencyContactName}, Phone: {request.EmergencyContactPhone}",
+
+                // References (simple string format)
+                References = request.References,
+
+                // Terms
+                AgreesToTerms = request.AgreeToRules,
+                ConsentToContact = request.ConsentToBackground
+            };
+
+            _context.VettingApplications.Add(application);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Public vetting application {ApplicationNumber} submitted successfully with ID {ApplicationId}",
+                applicationNumber, application.Id);
+
+            // Build response
+            var response = new ApplicationSubmissionResponse
+            {
+                ApplicationId = application.Id,
+                ApplicationNumber = applicationNumber,
+                StatusToken = statusToken,
+                SubmittedAt = application.SubmittedAt,
+                ConfirmationMessage = "Thank you for submitting your vetting application. You will receive updates via email.",
+                EstimatedReviewDays = 14,
+                NextSteps = "Your application will be reviewed by our vetting committee within 14 days.",
+                ReferenceStatuses = new List<ReferenceStatusSummary>()
+            };
+
+            return Result<ApplicationSubmissionResponse>.Success(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to submit public vetting application for {SceneName}", request.SceneName);
+            return Result<ApplicationSubmissionResponse>.Failure(
+                "Failed to submit application",
+                "An error occurred while processing your application. Please try again later.");
+        }
+    }
+
+    /// <summary>
+    /// Get application by email address (for duplicate checking)
+    /// </summary>
+    public async Task<Result<VettingApplication?>> GetApplicationByEmailAsync(
+        string email,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var application = await _context.VettingApplications
+                .AsNoTracking()
+                .FirstOrDefaultAsync(v => v.Email == email, cancellationToken);
+
+            return Result<VettingApplication?>.Success(application);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking for existing application with email {Email}", email);
+            return Result<VettingApplication?>.Failure(
+                "Failed to check for existing application", ex.Message);
+        }
+    }
+
     #region Status Change Logic and Validation
 
     /// <summary>
