@@ -197,7 +197,12 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         // Act
         var response = await client.PostAsJsonAsync($"/api/vetting/applications/{applicationId}/approve", request);
 
-        // Assert
+        // Assert - Log response body if not OK for debugging
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"[DEBUG] Approval_GrantsVettedMemberRole failed with {response.StatusCode}. Response body: {errorBody}");
+        }
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify user role was updated
@@ -226,7 +231,12 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         // Act
         var response = await client.PostAsJsonAsync($"/api/vetting/applications/{applicationId}/approve", request);
 
-        // Assert
+        // Assert - Log response body if not OK for debugging
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"[DEBUG] Approval_CreatesAuditLog failed with {response.StatusCode}. Response body: {errorBody}");
+        }
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify audit log
@@ -255,7 +265,12 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         // Act
         var response = await client.PostAsJsonAsync($"/api/vetting/applications/{applicationId}/approve", request);
 
-        // Assert
+        // Assert - Log response body if not OK for debugging
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"[DEBUG] Approval_SendsApprovalEmail failed with {response.StatusCode}. Response body: {errorBody}");
+        }
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify response indicates success
