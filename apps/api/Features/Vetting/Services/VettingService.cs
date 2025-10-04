@@ -1281,6 +1281,9 @@ public class VettingService : IVettingService
                 // Update the Role property
                 user.Role = "VettedMember";
 
+                // Update IsVetted flag (CRITICAL for RSVP access)
+                user.IsVetted = true;
+
                 // Get the VettedMember role from database
                 var vettedMemberRole = await _context.Roles
                     .FirstOrDefaultAsync(r => r.Name == "VettedMember", cancellationToken);
@@ -1322,7 +1325,7 @@ public class VettingService : IVettingService
             {
                 Id = Guid.NewGuid(),
                 ApplicationId = application.Id,
-                Action = "Application Approved",
+                Action = "Approval",
                 PerformedBy = adminUserId,
                 PerformedAt = DateTime.UtcNow,
                 OldValue = oldStatus.ToString(),
