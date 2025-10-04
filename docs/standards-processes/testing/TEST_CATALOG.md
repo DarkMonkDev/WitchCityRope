@@ -1,6 +1,6 @@
 # WitchCityRope Test Catalog - PART 1 (Current/Recent Tests)
-<!-- Last Updated: 2025-10-03 -->
-<!-- Version: 2.1 -->
+<!-- Last Updated: 2025-10-04 -->
+<!-- Version: 2.2 -->
 <!-- Owner: Testing Team -->
 <!-- Status: SPLIT INTO MANAGEABLE PARTS FOR AGENT ACCESSIBILITY -->
 
@@ -23,6 +23,174 @@
 - **Recent fixes/patterns**: Add to PART 1 (this file)
 - **Old content**: Move to PART 2 when PART 1 exceeds 1000 lines
 - **Archive content**: Move to PART 3 when truly obsolete
+
+---
+
+## 🚨 NEW: COMPLETE VETTING WORKFLOW TEST PLAN (2025-10-04) 🚨
+
+**COMPREHENSIVE TEST PLAN CREATED**: Full testing strategy for complete vetting workflow implementation.
+
+**Location**: `/docs/functional-areas/vetting-system/new-work/2025-10-04-complete-vetting-workflow/testing/test-plan.md`
+
+### Test Plan Summary:
+
+**Total Tests Planned**: **93 comprehensive tests**
+- **Unit Tests**: 68 tests (VettingAccessControlService, VettingEmailService, VettingService)
+- **Integration Tests**: 25 tests (API endpoints with real PostgreSQL)
+- **E2E Tests**: 18 tests (Admin workflows and access control)
+
+**Estimated Implementation Time**: 12-16 hours
+
+### Key Test Suites:
+
+#### Unit Tests (68 tests):
+1. **VettingAccessControlService** (23 tests):
+   - CanUserRsvpAsync for all vetting statuses (8 tests)
+   - CanUserPurchaseTicketAsync for all statuses (8 tests)
+   - Caching behavior (3 tests)
+   - Audit logging (2 tests)
+   - Error handling (2 tests)
+
+2. **VettingEmailService** (20 tests):
+   - SendApplicationConfirmationAsync (5 tests)
+   - SendStatusUpdateAsync (6 tests)
+   - SendReminderAsync (4 tests)
+   - Email logging (3 tests)
+   - Error handling (2 tests)
+
+3. **VettingService** (25 tests):
+   - UpdateApplicationStatusAsync valid transitions (8 tests)
+   - Invalid transitions and terminal states (5 tests)
+   - Specialized methods (ScheduleInterview, PutOnHold, Approve, Deny) (6 tests)
+   - Email integration (3 tests)
+   - Transaction and error handling (3 tests)
+
+#### Integration Tests (25 tests):
+1. **ParticipationEndpoints** (10 tests):
+   - RSVP access control (5 tests: no application, approved, denied, onhold, withdrawn)
+   - Ticket purchase access control (5 tests: same scenarios)
+
+2. **VettingEndpoints** (15 tests):
+   - Status update endpoints (7 tests)
+   - Email integration in status changes (3 tests)
+   - Audit logging (2 tests)
+   - Transaction rollback (3 tests)
+
+#### E2E Tests (18 tests):
+1. **Admin Vetting Workflow** (14 tests):
+   - Login and navigation (2 tests)
+   - Grid display and filtering (3 tests)
+   - Application detail view (2 tests)
+   - Status change modals (4 tests: approve, deny, on-hold, send reminder)
+   - Sorting and pagination (2 tests)
+   - Error handling (1 test)
+
+2. **Access Control** (4 tests):
+   - RSVP blocking for denied users (2 tests)
+   - Ticket purchase blocking (2 tests: onhold, withdrawn)
+
+### Critical Business Rules Validated:
+
+**Access Control**:
+- ✅ Users without applications can RSVP (general members)
+- ✅ OnHold, Denied, and Withdrawn statuses block RSVP and ticket purchases
+- ✅ All other statuses allow access
+- ✅ Access denials are logged to VettingAuditLog
+
+**Email Notifications**:
+- ✅ Mock mode logs emails to console (development)
+- ✅ Production mode uses SendGrid
+- ✅ All emails logged to VettingEmailLog
+- ✅ Email failures don't block status changes
+- ✅ Template variable substitution works correctly
+
+**Status Transitions**:
+- ✅ Valid transition rules enforced
+- ✅ Terminal states (Approved, Denied) cannot be changed
+- ✅ OnHold and Denied require admin notes
+- ✅ Approval grants VettedMember role
+- ✅ All changes create audit logs
+
+**Data Integrity**:
+- ✅ Database transactions rollback on errors
+- ✅ Concurrent updates handled with concurrency tokens
+- ✅ All timestamps are UTC
+- ✅ Caching improves performance (5-minute TTL)
+
+### Test Environment Requirements:
+
+**Unit Tests**:
+- xUnit + Moq + FluentAssertions
+- In-memory mocking (no database)
+- Fast execution (<100ms per test)
+
+**Integration Tests**:
+- WebApplicationFactory
+- TestContainers with PostgreSQL 16
+- Real database transactions
+- Seeded test data
+
+**E2E Tests**:
+- Playwright against Docker containers
+- Port 5173 EXCLUSIVELY (Docker-only)
+- Pre-flight verification required
+- Screenshot capture on failures
+
+### Test Data Sets Required:
+
+**Users** (7 test users):
+- admin@witchcityrope.com (Administrator, Approved)
+- vetted@witchcityrope.com (VettedMember, Approved)
+- denied@witchcityrope.com (Member, Denied)
+- onhold@witchcityrope.com (Member, OnHold)
+- withdrawn@witchcityrope.com (Member, Withdrawn)
+- member@witchcityrope.com (Member, no application)
+- reviewing@witchcityrope.com (Member, UnderReview)
+
+**Vetting Applications** (10+ applications in various statuses)
+**Events** (4 test events: public, paid, past, sold out)
+**Email Templates** (5 templates, optional - fallback templates work)
+
+### Coverage Targets:
+
+**Code Coverage**:
+- Unit Tests: 80% minimum
+- Critical paths: 100% coverage
+- Integration Tests: All API endpoints
+- E2E Tests: Critical user journeys
+
+**Execution Time**:
+- Unit Tests: <10 seconds
+- Integration Tests: <2 minutes
+- E2E Tests: <3 minutes
+- Total: ~3.5 minutes for full suite
+
+### CI/CD Integration:
+
+**GitHub Actions Workflow**:
+- Unit tests run on all PRs
+- Integration tests with PostgreSQL service
+- E2E tests with Docker Compose
+- Coverage reporting
+- Screenshot upload on failures
+
+### Implementation Phases:
+
+**Phase 1**: Unit Tests (CRITICAL priority)
+**Phase 2**: Integration Tests (HIGH priority)
+**Phase 3**: E2E Tests (HIGH priority)
+**Phase 4**: CI/CD Integration (MEDIUM priority)
+**Phase 5**: Documentation (MEDIUM priority)
+
+### Success Criteria:
+
+- ✅ All 93 tests passing
+- ✅ 80% code coverage achieved
+- ✅ CI/CD pipeline green
+- ✅ No flaky tests (100% pass rate)
+- ✅ Documentation updated
+
+**Next Steps**: Begin implementation with Phase 1 (Unit Tests), then proceed sequentially through phases.
 
 ---
 
