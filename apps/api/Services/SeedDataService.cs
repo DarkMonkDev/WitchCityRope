@@ -145,7 +145,7 @@ public class SeedDataService : ISeedDataService
     {
         _logger.LogInformation("Starting role creation");
 
-        var roles = new[] { "Administrator", "Teacher", "Member", "Attendee" };
+        var roles = new[] { "Administrator", "Teacher", "VettedMember", "Member", "Attendee" };
         var createdCount = 0;
 
         foreach (var roleName in roles)
