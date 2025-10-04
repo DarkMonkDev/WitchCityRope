@@ -429,11 +429,31 @@ public class SeedDataService : ISeedDataService
         // Each user can only have one application due to unique constraint
         var sampleApplications = new List<VettingApplication>
         {
-            // Application 1: Under Review - recent submission
+            // Application 1: Admin User - Approved (vetted member)
             new VettingApplication
             {
                 Id = Guid.NewGuid(),
-                UserId = users[0].Id, // Use first existing user
+                UserId = adminUser.Id, // Admin user should be vetted
+                SceneName = adminUser.SceneName ?? "RopeMaster",
+                RealName = "Admin User",
+                Email = adminUser.Email!,
+                FetLifeHandle = "RopeMaster_Admin",
+                Pronouns = "they/them",
+                OtherNames = null,
+                AboutYourself = @"As an administrator and experienced practitioner, I've been involved in the rope bondage community for many years. I help manage the community and ensure a safe, welcoming environment for all members.",
+                HowFoundUs = "Community founder and administrator.",
+                Status = VettingStatus.Approved,
+                SubmittedAt = DateTime.UtcNow.AddDays(-365), // Applied a year ago
+                ReviewStartedAt = DateTime.UtcNow.AddDays(-364),
+                DecisionMadeAt = DateTime.UtcNow.AddDays(-360),
+                AdminNotes = "Community administrator - founding member with extensive experience."
+            },
+
+            // Application 2: Under Review - recent submission
+            new VettingApplication
+            {
+                Id = Guid.NewGuid(),
+                UserId = users[1].Id, // Use second user (skip admin)
                 SceneName = "RopeNovice",
                 RealName = "Alexandra Martinez",
                 Email = "alexandra.martinez@email.com",
@@ -447,11 +467,11 @@ public class SeedDataService : ISeedDataService
                 AdminNotes = null
             },
 
-            // Application 2: Interview Approved - ready for scheduling
+            // Application 3: Interview Approved - ready for scheduling
             new VettingApplication
             {
                 Id = Guid.NewGuid(),
-                UserId = users[1].Id, // Use second existing user
+                UserId = users[2].Id, // Use third user
                 SceneName = "KnotLearner",
                 RealName = "Jordan Kim",
                 Email = "jordan.kim@email.com",
@@ -466,11 +486,11 @@ public class SeedDataService : ISeedDataService
                 AdminNotes = "Good references and thoughtful application. Ready for interview to assess practical knowledge."
             },
 
-            // Application 3: Pending Interview - interview scheduled
+            // Application 4: Pending Interview - interview scheduled
             new VettingApplication
             {
                 Id = Guid.NewGuid(),
-                UserId = users[2].Id, // Use third existing user
+                UserId = users[3].Id, // Use fourth user
                 SceneName = "TrustBuilder",
                 RealName = "Marcus Johnson",
                 Email = "marcus.johnson@email.com",
@@ -486,11 +506,11 @@ public class SeedDataService : ISeedDataService
                 AdminNotes = "Interview scheduled for Saturday 2 PM. Applicant shows good understanding of consent and safety principles."
             },
 
-            // Application 4: Approved - recently approved member
+            // Application 5: Approved - recently approved member
             new VettingApplication
             {
                 Id = Guid.NewGuid(),
-                UserId = users[3].Id, // Use fourth existing user
+                UserId = users[4].Id, // Use fifth user
                 SceneName = "SilkAndSteel",
                 RealName = "Sarah Chen",
                 Email = "sarah.chen@email.com",
@@ -504,13 +524,20 @@ public class SeedDataService : ISeedDataService
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-18),
                 DecisionMadeAt = DateTime.UtcNow.AddDays(-2),
                 AdminNotes = "Excellent references from previous community. Strong technical knowledge and teaching experience. Approved for full membership."
-            },
+            }
+        };
 
-            // Application 5: On Hold - additional information needed
-            new VettingApplication
+        // Add additional applications if we have more users to prevent constraint violations
+        // Only add more applications if we have users beyond the first 5
+        if (users.Count >= 6)
+        {
+            var additionalApplications = new List<VettingApplication>();
+
+            // Application 6: On Hold - additional information needed
+            additionalApplications.Add(new VettingApplication
             {
                 Id = Guid.NewGuid(),
-                UserId = users[4].Id, // Use fifth existing user
+                UserId = users[5].Id, // Use sixth user
                 SceneName = "EagerLearner",
                 RealName = "Taylor Rodriguez",
                 Email = "taylor.rodriguez@email.com",
@@ -523,22 +550,15 @@ public class SeedDataService : ISeedDataService
                 SubmittedAt = DateTime.UtcNow.AddDays(-12),
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-8),
                 AdminNotes = "Very enthusiastic but lacks practical experience. Recommended to attend beginner classes and gain basic experience before reapplying. On hold pending completion of safety course."
-            }
-        };
+            });
 
-        // Add additional applications if we have more users to prevent constraint violations
-        // Only add more applications if we have users beyond the first 5
-        if (users.Count >= 6)
-        {
-            var additionalApplications = new List<VettingApplication>();
-
-            // Application 6: Denied - doesn't meet community standards
-            if (users.Count >= 6)
+            // Application 7: Denied - doesn't meet community standards
+            if (users.Count >= 7)
             {
                 additionalApplications.Add(new VettingApplication
                 {
                     Id = Guid.NewGuid(),
-                    UserId = users[5].Id,
+                    UserId = users[6].Id,
                     SceneName = "QuickLearner",
                     RealName = "Jamie Taylor",
                     Email = "jamie.taylor@email.com",
@@ -555,13 +575,13 @@ public class SeedDataService : ISeedDataService
                 });
             }
 
-            // Application 7: Recent submission - just submitted
-            if (users.Count >= 7)
+            // Application 8: Recent submission - just submitted
+            if (users.Count >= 8)
             {
                 additionalApplications.Add(new VettingApplication
                 {
                     Id = Guid.NewGuid(),
-                    UserId = users[6].Id,
+                    UserId = users[7].Id,
                     SceneName = "ThoughtfulRigger",
                     RealName = "Alex Rivera",
                     Email = "alex.rivera@email.com",
@@ -576,13 +596,13 @@ public class SeedDataService : ISeedDataService
                 });
             }
 
-            // Application 8: Long-term member of another community
-            if (users.Count >= 8)
+            // Application 9: Long-term member of another community
+            if (users.Count >= 9)
             {
                 additionalApplications.Add(new VettingApplication
                 {
                     Id = Guid.NewGuid(),
-                    UserId = users[7].Id,
+                    UserId = users[8].Id,
                     SceneName = "CommunityBuilder",
                     RealName = "Morgan Kim",
                     Email = "morgan.kim@email.com",
@@ -598,13 +618,13 @@ public class SeedDataService : ISeedDataService
                 });
             }
 
-            // Application 9: Nervous but genuine applicant
-            if (users.Count >= 9)
+            // Application 10: Nervous but genuine applicant
+            if (users.Count >= 10)
             {
                 additionalApplications.Add(new VettingApplication
                 {
                     Id = Guid.NewGuid(),
-                    UserId = users[8].Id,
+                    UserId = users[9].Id,
                     SceneName = "NervousNewbie",
                     RealName = "Jordan Martinez",
                     Email = "jordan.martinez@email.com",
@@ -619,13 +639,13 @@ public class SeedDataService : ISeedDataService
                 });
             }
 
-            // Application 10: RopeBunny - Someone new to rope looking to learn
-            if (users.Count >= 10)
+            // Application 11: RopeBunny - Someone new to rope looking to learn
+            if (users.Count >= 11)
             {
                 additionalApplications.Add(new VettingApplication
                 {
                     Id = Guid.NewGuid(),
-                    UserId = users[9].Id,
+                    UserId = users[10].Id,
                     SceneName = "RopeBunny",
                     RealName = "Riley Chen",
                     Email = "ropebunny@example.com",
@@ -640,13 +660,13 @@ public class SeedDataService : ISeedDataService
                 });
             }
 
-            // Application 11: SafetyFirst - An experienced rigger from another city
-            if (users.Count >= 11)
+            // Application 12: SafetyFirst - An experienced rigger from another city
+            if (users.Count >= 12)
             {
                 additionalApplications.Add(new VettingApplication
                 {
                     Id = Guid.NewGuid(),
-                    UserId = users[10].Id,
+                    UserId = users[11].Id,
                     SceneName = "SafetyFirst",
                     RealName = "Sam Rodriguez",
                     Email = "safetyfirst@example.com",
