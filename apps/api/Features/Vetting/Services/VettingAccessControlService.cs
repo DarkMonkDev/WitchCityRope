@@ -340,12 +340,12 @@ public class VettingAccessControlService : IVettingAccessControlService
             {
                 Id = Guid.NewGuid(),
                 ApplicationId = applicationId,
-                Action = $"Access Denied - {accessType}",
+                Action = accessType, // Use accessType directly for consistency with tests (e.g., "RSVP", "TicketPurchase")
                 PerformedBy = userId,
                 PerformedAt = DateTime.UtcNow,
                 OldValue = null,
                 NewValue = null,
-                Notes = $"User denied {accessType} access to event {eventId}. Vetting status: {vettingStatus}. Reason: {reason}"
+                Notes = $"Access denied. Vetting status: {vettingStatus}. Reason: {reason}"
             };
 
             _context.VettingAuditLogs.Add(auditLog);

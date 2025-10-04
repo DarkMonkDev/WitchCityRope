@@ -952,6 +952,14 @@ public class VettingService : IVettingService
 
             var oldStatus = application.Status;
 
+            // Check if application is in terminal state FIRST - before any other validation
+            if (oldStatus == VettingStatus.Approved || oldStatus == VettingStatus.Denied)
+            {
+                return Result<ApplicationDetailResponse>.Failure(
+                    "Cannot modify terminal state",
+                    "Approved and Denied applications cannot be modified.");
+            }
+
             // Validate status transition
             var transitionValidation = ValidateStatusTransition(oldStatus, newStatus);
             if (!transitionValidation.IsSuccess)
@@ -967,14 +975,6 @@ public class VettingService : IVettingService
                 return Result<ApplicationDetailResponse>.Failure(
                     "Admin notes required",
                     $"Admin notes are required when changing status to {newStatus}");
-            }
-
-            // Check if application is in terminal state
-            if (oldStatus == VettingStatus.Approved || oldStatus == VettingStatus.Denied)
-            {
-                return Result<ApplicationDetailResponse>.Failure(
-                    "Cannot modify terminal state",
-                    "Approved and Denied applications cannot be modified.");
             }
 
             // Update application status
@@ -1116,7 +1116,7 @@ public class VettingService : IVettingService
             if (interviewDate <= DateTime.UtcNow)
             {
                 return Result<ApplicationDetailResponse>.Failure(
-                    "Invalid interview date", "Interview date must be in the future");
+                    "Invalid interview date", "Interview date must be in the future.");
             }
 
             // Validate status transition to InterviewScheduled
