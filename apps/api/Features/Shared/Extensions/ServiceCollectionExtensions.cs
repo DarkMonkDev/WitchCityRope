@@ -56,7 +56,8 @@ public static class ServiceCollectionExtensions
 
         // Vetting feature services
         services.AddScoped<IVettingService, VettingService>();
-        // services.AddScoped<IVettingEmailService, VettingEmailService>(); // Not implemented yet
+        services.AddScoped<IVettingAccessControlService, VettingAccessControlService>();
+        services.AddScoped<IVettingEmailService, VettingEmailService>(); // SendGrid integration with mock mode support
 
         // FluentValidation for Vetting feature - TEMPORARILY DISABLED FOR MIGRATION
         // services.AddValidatorsFromAssemblyContaining<CreateApplicationValidator>();

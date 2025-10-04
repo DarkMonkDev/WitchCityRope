@@ -101,6 +101,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<VettingEmailTemplate> VettingEmailTemplates { get; set; }
 
     /// <summary>
+    /// VettingEmailLogs table for SendGrid email delivery tracking
+    /// </summary>
+    public DbSet<VettingEmailLog> VettingEmailLogs { get; set; }
+
+    /// <summary>
     /// VettingNotifications table for email notifications
     /// </summary>
     public DbSet<VettingNotification> VettingNotifications { get; set; }
@@ -732,6 +737,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         modelBuilder.ApplyConfiguration(new VettingApplicationConfiguration());
         modelBuilder.ApplyConfiguration(new VettingAuditLogConfiguration());
         modelBuilder.ApplyConfiguration(new VettingEmailTemplateConfiguration());
+        modelBuilder.ApplyConfiguration(new VettingEmailLogConfiguration());
         modelBuilder.ApplyConfiguration(new VettingNotificationConfiguration());
         modelBuilder.ApplyConfiguration(new VettingBulkOperationConfiguration());
         modelBuilder.ApplyConfiguration(new VettingBulkOperationItemConfiguration());
@@ -958,7 +964,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             if (entry.State == EntityState.Added)
             {
                 entry.Entity.CreatedAt = DateTime.UtcNow;
-                
+
                 // Ensure CheckInTime is UTC
                 if (entry.Entity.CheckInTime.Kind != DateTimeKind.Utc)
                 {
@@ -984,7 +990,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             if (entry.State == EntityState.Added)
             {
                 entry.Entity.CreatedAt = DateTime.UtcNow;
-                
+
                 // Ensure LocalTimestamp is UTC
                 if (entry.Entity.LocalTimestamp.Kind != DateTimeKind.Utc)
                 {
@@ -1046,6 +1052,39 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             if (entry.State == EntityState.Added)
             {
                 entry.Entity.PerformedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Handle VettingEmailLog entities
+        var vettingEmailLogEntries = ChangeTracker.Entries<VettingEmailLog>();
+        foreach (var entry in vettingEmailLogEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.SentAt = DateTime.UtcNow;
+
+                // Ensure LastRetryAt is UTC if set
+                if (entry.Entity.LastRetryAt.HasValue && entry.Entity.LastRetryAt.Value.Kind != DateTimeKind.Utc)
+                {
+                    entry.Entity.LastRetryAt = DateTime.SpecifyKind(entry.Entity.LastRetryAt.Value, DateTimeKind.Utc);
+                }
+            }
+        }
+
+        // Handle VettingEmailTemplate entities
+        var vettingEmailTemplateEntries = ChangeTracker.Entries<VettingEmailTemplate>();
+        foreach (var entry in vettingEmailTemplateEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+                entry.Entity.LastModified = DateTime.UtcNow;
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+                entry.Entity.LastModified = DateTime.UtcNow;
             }
         }
 

@@ -24,9 +24,20 @@ public class VettingEmailTemplateConfiguration : IEntityTypeConfiguration<Vettin
                .IsRequired()
                .HasMaxLength(200);
 
-        builder.Property(e => e.Body)
+        // Email bodies - HTML and Plain Text
+        builder.Property(e => e.HtmlBody)
                .IsRequired()
                .HasColumnType("text");
+
+        builder.Property(e => e.PlainTextBody)
+               .IsRequired()
+               .HasColumnType("text");
+
+        // Variables for template substitution (stored as JSON)
+        builder.Property(e => e.Variables)
+               .IsRequired()
+               .HasColumnType("jsonb")
+               .HasDefaultValue("{}");
 
         builder.Property(e => e.IsActive)
                .IsRequired()
@@ -61,6 +72,11 @@ public class VettingEmailTemplateConfiguration : IEntityTypeConfiguration<Vettin
         builder.HasIndex(e => e.UpdatedAt)
                .HasDatabaseName("IX_VettingEmailTemplates_UpdatedAt");
 
+        // GIN index for JSONB variables column
+        builder.HasIndex(e => e.Variables)
+               .HasDatabaseName("IX_VettingEmailTemplates_Variables")
+               .HasMethod("gin");
+
         // Relationships
         builder.HasOne(e => e.UpdatedByUser)
                .WithMany()
@@ -74,8 +90,16 @@ public class VettingEmailTemplateConfiguration : IEntityTypeConfiguration<Vettin
         ));
 
         builder.ToTable("VettingEmailTemplates", t => t.HasCheckConstraint(
-            "CHK_VettingEmailTemplates_Body_Length",
-            "LENGTH(\"Body\") >= 10"
+            "CHK_VettingEmailTemplates_HtmlBody_Length",
+            "LENGTH(\"HtmlBody\") >= 10"
         ));
+
+        builder.ToTable("VettingEmailTemplates", t => t.HasCheckConstraint(
+            "CHK_VettingEmailTemplates_PlainTextBody_Length",
+            "LENGTH(\"PlainTextBody\") >= 10"
+        ));
+
+        // Ignore obsolete Body property - it's just a getter/setter for HtmlBody
+        builder.Ignore(e => e.Body);
     }
 }

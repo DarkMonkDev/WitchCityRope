@@ -727,7 +727,7 @@ public class SeedDataService : ISeedDataService
                 Id = Guid.NewGuid(),
                 TemplateType = EmailTemplateType.ApplicationReceived,
                 Subject = "Application Received - {{applicant_name}}",
-                Body = @"Dear {{applicant_name}},
+                HtmlBody = @"Dear {{applicant_name}},
 
 Thank you for submitting your vetting application to WitchCityRope. We have received your application and it is now under review.
 
@@ -751,7 +751,7 @@ The WitchCityRope Vetting Team",
                 Id = Guid.NewGuid(),
                 TemplateType = EmailTemplateType.InterviewApproved,
                 Subject = "Interview Approved - {{applicant_name}}",
-                Body = @"Dear {{applicant_name}},
+                HtmlBody = @"Dear {{applicant_name}},
 
 Congratulations! Your vetting application has been approved for the interview stage.
 
@@ -774,9 +774,9 @@ The WitchCityRope Vetting Team",
             new VettingEmailTemplate
             {
                 Id = Guid.NewGuid(),
-                TemplateType = EmailTemplateType.ApplicationApproved,
+                TemplateType = EmailTemplateType.Approved,
                 Subject = "Welcome to WitchCityRope - {{applicant_name}}",
-                Body = @"Dear {{applicant_name}},
+                HtmlBody = @"Dear {{applicant_name}},
 
 Congratulations! Your application has been approved and you are now a vetted member of WitchCityRope.
 
@@ -804,9 +804,9 @@ The WitchCityRope Team",
             new VettingEmailTemplate
             {
                 Id = Guid.NewGuid(),
-                TemplateType = EmailTemplateType.ApplicationOnHold,
+                TemplateType = EmailTemplateType.OnHold,
                 Subject = "Application On Hold - Additional Information Needed - {{applicant_name}}",
-                Body = @"Dear {{applicant_name}},
+                HtmlBody = @"Dear {{applicant_name}},
 
 Your vetting application is currently on hold as we need some additional information to proceed.
 
@@ -831,9 +831,9 @@ The WitchCityRope Vetting Team",
             new VettingEmailTemplate
             {
                 Id = Guid.NewGuid(),
-                TemplateType = EmailTemplateType.ApplicationDenied,
+                TemplateType = EmailTemplateType.Denied,
                 Subject = "Application Status Update - {{applicant_name}}",
-                Body = @"Dear {{applicant_name}},
+                HtmlBody = @"Dear {{applicant_name}},
 
 Thank you for your interest in WitchCityRope. After careful review, we are unable to approve your application at this time.
 
@@ -857,7 +857,7 @@ The WitchCityRope Vetting Team",
                 Id = Guid.NewGuid(),
                 TemplateType = EmailTemplateType.InterviewReminder,
                 Subject = "Interview Reminder - {{applicant_name}}",
-                Body = @"Dear {{applicant_name}},
+                HtmlBody = @"Dear {{applicant_name}},
 
 This is a friendly reminder about your upcoming vetting interview.
 

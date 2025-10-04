@@ -4,7 +4,7 @@ namespace WitchCityRope.Api.Features.Vetting.Entities;
 
 /// <summary>
 /// Email templates for vetting notifications
-/// Allows administrators to customize notification content
+/// Allows administrators to customize notification content with variable substitution
 /// </summary>
 public class VettingEmailTemplate
 {
@@ -15,6 +15,7 @@ public class VettingEmailTemplate
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
         LastModified = DateTime.UtcNow;
+        Variables = "{}";
     }
 
     // Primary Key
@@ -23,7 +24,23 @@ public class VettingEmailTemplate
     // Template Information
     public EmailTemplateType TemplateType { get; set; }
     public string Subject { get; set; } = string.Empty;
-    public string Body { get; set; } = string.Empty;
+
+    // Email Bodies - HTML and Plain Text for compatibility
+    public string HtmlBody { get; set; } = string.Empty;
+    public string PlainTextBody { get; set; } = string.Empty;
+
+    // Legacy property for backward compatibility
+    [Obsolete("Use HtmlBody instead. Maintained for backward compatibility.")]
+    public string Body
+    {
+        get => HtmlBody;
+        set => HtmlBody = value;
+    }
+
+    // Variable substitution support (JSON list of available variables)
+    // Example: ["ApplicantName", "SubmissionDate", "ApplicationNumber", "StatusToken"]
+    public string Variables { get; set; } = "{}";
+
     public bool IsActive { get; set; } = true;
 
     // Versioning and Audit
@@ -43,10 +60,11 @@ public class VettingEmailTemplate
 /// </summary>
 public enum EmailTemplateType
 {
-    ApplicationReceived = 1,
-    InterviewApproved = 2,
-    ApplicationApproved = 3,
-    ApplicationOnHold = 4,
-    ApplicationDenied = 5,
-    InterviewReminder = 6
+    ApplicationReceived = 0,
+    InterviewApproved = 1,
+    Approved = 2,
+    OnHold = 3,
+    Denied = 4,
+    InterviewReminder = 5,
+    InterviewScheduled = 6
 }

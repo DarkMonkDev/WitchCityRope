@@ -153,3 +153,6 @@
 /home/chad/repos/witchcityrope/apps/api/obj/Debug/net9.0/WitchCityRope.Api.pdb
 /home/chad/repos/witchcityrope/apps/api/obj/Debug/net9.0/WitchCityRope.Api.genruntimeconfig.cache
 /home/chad/repos/witchcityrope/apps/api/obj/Debug/net9.0/ref/WitchCityRope.Api.dll
+/home/chad/repos/witchcityrope/apps/api/bin/Debug/net9.0/Newtonsoft.Json.dll
+/home/chad/repos/witchcityrope/apps/api/bin/Debug/net9.0/SendGrid.dll
+/home/chad/repos/witchcityrope/apps/api/bin/Debug/net9.0/StarkbankEcdsa.dll
