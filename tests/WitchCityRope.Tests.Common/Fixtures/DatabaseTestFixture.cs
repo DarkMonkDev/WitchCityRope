@@ -101,7 +101,13 @@ namespace WitchCityRope.Tests.Common.Fixtures
                 {
                     DbAdapter = DbAdapter.Postgres,
                     SchemasToInclude = new[] { "public" },
-                    TablesToIgnore = new Respawn.Graph.Table[] { "__EFMigrationsHistory" }
+                    TablesToIgnore = new Respawn.Graph.Table[]
+                    {
+                        "__EFMigrationsHistory",
+                        "Roles",      // Preserve roles created during seed data
+                        "Users",      // Preserve test users created during seed data
+                        "UserRoles"   // Preserve role assignments for test users
+                    }
                 });
 
                 _logger.LogInformation("Respawn database cleanup configured");
