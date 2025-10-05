@@ -179,6 +179,13 @@ public class SeedDataService : ISeedDataService
             }
         }
 
+        // CRITICAL: Explicitly save changes to ensure roles are committed to database
+        // This fixes transaction timing issues where roles are created in one context
+        // but not visible to other contexts querying the database (e.g., approval logic).
+        // Without this, TestContainers integration tests fail because roles aren't
+        // visible when test assertions run.
+        await _context.SaveChangesAsync(cancellationToken);
+
         _logger.LogInformation("Role creation completed. Created: {CreatedCount}, Total Expected: {ExpectedCount}",
             createdCount, roles.Length);
     }
@@ -268,13 +275,13 @@ public class SeedDataService : ISeedDataService
                 Pronouns = account.Pronouns,
                 IsActive = true,
                 IsVetted = account.IsVetted,
-                
+
                 // Set required fields with placeholder data for development
                 EncryptedLegalName = $"TestUser_{account.SceneName}",
                 DateOfBirth = DateTime.UtcNow.AddYears(-25).Date, // Default age 25
                 EmailVerificationToken = Guid.NewGuid().ToString(),
                 EmailVerificationTokenCreatedAt = DateTime.UtcNow,
-                
+
                 // CreatedAt/UpdatedAt will be set by ApplicationDbContext.UpdateAuditFields()
             };
 
@@ -304,6 +311,11 @@ public class SeedDataService : ISeedDataService
                 throw new InvalidOperationException($"Failed to create user {account.Email}: {errors}");
             }
         }
+
+        // CRITICAL: Explicitly save changes to ensure users are committed to database
+        // This ensures users created via UserManager are visible to other database contexts
+        // immediately after creation, preventing timing issues in tests and dependent operations.
+        await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Test user creation completed. Created: {CreatedCount}, Total Expected: {ExpectedCount}",
             createdCount, testAccounts.Length);
