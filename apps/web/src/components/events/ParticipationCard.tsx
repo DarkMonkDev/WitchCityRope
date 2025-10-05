@@ -1,4 +1,36 @@
-// ParticipationCard component for RSVP and ticket purchase
+/**
+ * ParticipationCard - Event RSVP and Ticket Purchase Component
+ *
+ * CRITICAL BUSINESS RULES:
+ *
+ * 1. TERMINOLOGY:
+ *    - ✅ ALWAYS use "RSVP" (never "register" or "registration")
+ *    - ✅ ALWAYS use "Purchase Ticket" or "Buy Ticket" (never "register")
+ *    - ❌ NEVER use the term "registration" anywhere in the UI
+ *
+ * 2. SOCIAL EVENT RSVP + TICKET LOGIC:
+ *    - Social events show BOTH "RSVP" and "Purchase Ticket" buttons simultaneously
+ *    - Users can RSVP without purchasing a ticket (free attendance)
+ *    - Users can purchase a ticket without RSVPing first
+ *    - AUTOMATIC RSVP: If user purchases ticket but hasn't RSVP'd, system automatically creates RSVP
+ *    - Both actions are INDEPENDENT and PARALLEL (not sequential)
+ *
+ * 3. CLASS EVENT LOGIC:
+ *    - Classes typically only show "Purchase Ticket" (tickets required)
+ *    - May also support RSVP for free classes (configured per event)
+ *
+ * 4. CAPACITY TRACKING:
+ *    - Social events: Track RSVPs separately from ticket sales
+ *    - Classes: Track ticket sales
+ *    - Display shows current/total (e.g., "45 / 50")
+ *
+ * 5. USER STATES:
+ *    - Not logged in: Show login prompt
+ *    - Logged in, no RSVP, no ticket: Show available actions
+ *    - RSVP'd but no ticket: Show RSVP status + option to purchase ticket
+ *    - Ticket purchased: Show ticket status (RSVP created automatically if social event)
+ *    - Both RSVP + ticket: Show both statuses
+ */
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -495,6 +527,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                           disabled={isLoading || isLoadingUser}
                           loading={isLoading || isLoadingUser}
                           mb="md"
+                          data-testid="button-rsvp"
                         >
                           RSVP Now (Free)
                         </Button>
@@ -519,6 +552,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                         color="blue"
                         disabled={isLoading || isLoadingUser}
                         loading={isLoading || isLoadingUser}
+                        data-testid="button-purchase-ticket"
                       >
                         Purchase Ticket (${ticketPrice})
                       </Button>
@@ -554,6 +588,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                     variant="filled"
                     color="blue"
                     leftSection={<IconTicket size={18} />}
+                    data-testid="button-purchase-ticket"
                   >
                     Purchase Ticket
                   </Button>

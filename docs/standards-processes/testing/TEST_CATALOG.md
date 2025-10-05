@@ -26,6 +26,54 @@
 
 ---
 
+## 🎯 EVENT E2E TEST ALIGNMENT (2025-10-05) 🎯
+
+**COMPREHENSIVE TEST ALIGNMENT COMPLETED**: Event E2E test suite aligned with corrected business requirements v3.1.
+
+**Summary**: Test suite was **already well-aligned** - minimal changes needed!
+
+### Key Findings:
+- ✅ **NO misaligned tests found** for 4 critical requirements (RSVP+tickets, check-in, teacher permissions, event images)
+- ✅ **9 debug/temporary test files deleted** (cleanup, not requirement issues)
+- ✅ **1 clarification test added** for RSVP+ticket parallel actions
+- ✅ **83 core functional tests remain** (down from 102)
+
+### Tests Deleted (9 files - Debug/Temporary):
+1. `debug-event-routing.spec.ts` - Routing diagnostic
+2. `debug-events-page.spec.ts` - Page load diagnostic
+3. `event-demo-button-fix.spec.ts` - UI fix verification
+4. `event-form-screenshot.spec.ts` - Screenshot utility
+5. `event-form-visual-test.spec.ts` - Visual comparison
+6. `event-session-matrix-demo.spec.ts` - Demo page test
+7. `events-management-demo.spec.ts` - Demo page test
+8. `events-management-diagnostic.spec.ts` - Diagnostic test
+9. `events-page-exploration.spec.ts` - Exploration test
+
+### Test Added (1 test - Clarification):
+- **File**: `events-comprehensive.spec.ts`
+- **Test**: "social event should offer RSVP AND ticket purchase as parallel actions"
+- **Purpose**: Explicitly verifies RSVP and tickets are separate, parallel actions (NOT "RSVP with optional upgrade")
+- **Location**: `/apps/web/tests/playwright/events-comprehensive.spec.ts`
+
+### Business Requirements Verified:
+1. ✅ **RSVP + Tickets**: Tests treat as SEPARATE, PARALLEL actions (correct!)
+2. ✅ **Check-in**: NO kiosk mode tests found (staff-assisted only)
+3. ✅ **Teacher Permissions**: NO teacher edit tests found (teachers can't edit)
+4. ✅ **Event Images**: NO image upload tests found (correctly deferred)
+
+### Final Test Suite (17 files, 83 tests):
+- **Admin Event Management**: 5 files, 7 tests
+- **Event CRUD**: 3 files, 10 tests
+- **Event Display & Navigation**: 4 files, 28 tests
+- **End-to-End Workflows**: 3 files, 37 tests
+- **Event Session Matrix**: 1 file, 1 test
+
+### Documentation:
+- **Detailed Analysis**: `/test-results/event-test-alignment-analysis-2025-10-05.md`
+- **Summary Report**: `/test-results/event-test-alignment-summary-2025-10-05.md`
+
+---
+
 ## 🚨 NEW: COMPLETE VETTING WORKFLOW TEST PLAN (2025-10-04) 🚨
 
 **COMPREHENSIVE TEST PLAN CREATED**: Full testing strategy for complete vetting workflow implementation.
@@ -654,6 +702,31 @@ dotnet test --logger "console;verbosity=detailed"
 2. Create access-control/vetting-restrictions.spec.ts (4 tests)
 3. Use Playwright against Docker on port 5173
 4. Test complete user workflows
+
+---
+
+## 🚨 CRITICAL: EVENTS E2E TEST SELECTOR FIXES (2025-10-05) 🚨
+
+**SELECTOR FIXES COMPLETE**: Fixed outdated heading text expectations in events CRUD tests.
+
+### Issues Fixed:
+- **File**: `/apps/web/tests/playwright/events-crud-test.spec.ts`
+- **Issue**: Tests expected "Event Management" heading (outdated)
+- **Fix**: Updated to "Events Dashboard" (current admin page heading)
+- **Impact**: 2 tests now checking correct heading text
+- **Lines Changed**: 17, 47
+
+### Verification:
+- ✅ Smoke test confirms heading fix working
+- ✅ Tests now fail on missing UI elements (real issues) not wrong selectors
+- ✅ Error messages diagnostic and actionable
+
+### Documentation:
+- Full report: `/test-results/events-selector-fixes-2025-10-05.md`
+- Lessons learned: Updated in `test-developer-lessons-learned-2.md`
+
+### Key Lesson:
+**Investigation reports can over-claim issues** - Always verify by reading actual test files. This investigation claimed 12 missing elements but only 2 were selector bugs (rest were backend implementation gaps).
 
 ---
 

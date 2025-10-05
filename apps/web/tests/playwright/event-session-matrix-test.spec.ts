@@ -34,7 +34,7 @@ test.describe('Event Session Matrix System Test', () => {
     // Step 4: Check all tabs in the modal
     const tabs = {
       basicInfo: page.locator('text=Basic Info'),
-      ticketsOrders: page.locator('text=Tickets/Orders'),
+      setup: page.locator('text=Setup'),
       emails: page.locator('text=Emails'),
       volunteers: page.locator('text=Volunteers')
     };
@@ -45,12 +45,12 @@ test.describe('Event Session Matrix System Test', () => {
       console.log(`${tabName} tab: ${tabExists ? 'EXISTS' : 'MISSING'}`);
     }
     
-    // Step 5: Click on Tickets/Orders tab (this should contain the Event Session Matrix)
-    if (await tabs.ticketsOrders.count() > 0) {
-      await tabs.ticketsOrders.click();
+    // Step 5: Click on Setup tab (this should contain the Event Session Matrix)
+    if (await tabs.setup.count() > 0) {
+      await tabs.setup.click();
       await page.waitForTimeout(1000);
-      await page.screenshot({ path: 'test-results/tickets-orders-tab.png', fullPage: true });
-      console.log('✅ Clicked Tickets/Orders tab');
+      await page.screenshot({ path: 'test-results/setup-tab.png', fullPage: true });
+      console.log('✅ Clicked Setup tab');
       
       // Step 6: Look for Session Matrix elements
       const sessionMatrixElements = {
@@ -80,12 +80,15 @@ test.describe('Event Session Matrix System Test', () => {
       console.log(`🎉 Event Session Matrix features detected: ${matrixFeatures}/9`);
       
       // Step 7: Try to interact with session management
+      // CRITICAL: Must add session BEFORE attempting to add ticket types
+      // The Event Session Matrix requires at least one session to exist before tickets can be configured
+      let sessionAdded = false;
       if (await sessionMatrixElements.addSessionBtn.count() > 0) {
         console.log('✅ Testing Add Session functionality...');
-        await sessionMatrixElements.addSessionBtn.click();
+        await page.locator('[data-testid="button-add-session"]').click();
         await page.waitForTimeout(1000);
         await page.screenshot({ path: 'test-results/add-session-clicked.png', fullPage: true });
-        
+
         // Look for session form fields that appear
         const sessionForm = {
           sessionTitle: page.locator('input[name*="session"]').or(page.locator('[placeholder*="session"]')),
@@ -93,35 +96,47 @@ test.describe('Event Session Matrix System Test', () => {
           endTime: page.locator('input[type="time"]').last(),
           capacity: page.locator('input[name*="capacity"]').or(page.locator('[placeholder*="capacity"]'))
         };
-        
+
         for (const [fieldName, fieldLocator] of Object.entries(sessionForm)) {
           const fieldExists = await fieldLocator.count() > 0;
           console.log(`Session ${fieldName}: ${fieldExists ? 'FOUND' : 'MISSING'}`);
         }
+
+        // Try to save the session if save button exists
+        const saveSessionBtn = page.locator('button:has-text("Save"), button:has-text("Add")').last();
+        if (await saveSessionBtn.count() > 0 && await saveSessionBtn.isVisible()) {
+          await saveSessionBtn.click();
+          await page.waitForTimeout(500);
+          sessionAdded = true;
+          console.log('✅ Session saved successfully');
+        }
       }
-      
+
       // Step 8: Try to interact with ticket management
-      if (await sessionMatrixElements.addTicketBtn.count() > 0) {
+      // ONLY attempt if session was successfully added first
+      if (sessionAdded && await sessionMatrixElements.addTicketBtn.count() > 0) {
         console.log('✅ Testing Add Ticket Type functionality...');
         await sessionMatrixElements.addTicketBtn.click();
         await page.waitForTimeout(1000);
         await page.screenshot({ path: 'test-results/add-ticket-clicked.png', fullPage: true });
-        
+
         // Look for ticket form fields
         const ticketForm = {
           ticketName: page.locator('input[name*="ticket"]').or(page.locator('[placeholder*="ticket"]')),
           ticketPrice: page.locator('input[name*="price"]').or(page.locator('[placeholder*="price"]')),
           ticketCapacity: page.locator('input[name*="capacity"]').or(page.locator('[placeholder*="capacity"]'))
         };
-        
+
         for (const [fieldName, fieldLocator] of Object.entries(ticketForm)) {
           const fieldExists = await fieldLocator.count() > 0;
           console.log(`Ticket ${fieldName}: ${fieldExists ? 'FOUND' : 'MISSING'}`);
         }
+      } else if (!sessionAdded) {
+        console.log('⚠️ Skipping ticket type test - session must be added first');
       }
       
     } else {
-      console.log('⚠️ Tickets/Orders tab not found - Event Session Matrix may not be fully integrated');
+      console.log('⚠️ Setup tab not found - Event Session Matrix may not be fully integrated');
     }
     
     // Step 9: Check other tabs for completeness

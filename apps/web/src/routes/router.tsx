@@ -33,6 +33,7 @@ import { EventsListPage } from '../pages/events/EventsListPage';
 import { EventDetailPage } from '../pages/events/EventDetailPage';
 import { AdminEventsPage } from '../pages/admin/AdminEventsPage';
 import { AdminEventDetailsPage } from '../pages/admin/AdminEventDetailsPage';
+import { NewEventPage } from '../pages/admin/NewEventPage';
 import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage';
 import { AdminSafetyPage } from '../pages/admin/AdminSafetyPage';
 import { AdminVettingPage } from '../pages/admin/AdminVettingPage';
@@ -234,6 +235,11 @@ export const router = createBrowserRouter([
       {
         path: "admin/events",
         element: <AdminEventsPage />,
+        loader: adminLoader
+      },
+      {
+        path: "admin/events/new",
+        element: <NewEventPage />,
         loader: adminLoader
       },
       {

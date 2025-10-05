@@ -1,8 +1,21 @@
 # Business Requirements: Events Management System
-<!-- Last Updated: 2025-08-25 -->
-<!-- Version: 3.0 -->
+<!-- Last Updated: 2025-10-05 -->
+<!-- Version: 3.1 -->
 <!-- Owner: Business Requirements Agent -->
-<!-- Status: Updated to Match Final Wireframes -->
+<!-- Status: Updated with User Clarifications -->
+
+## Document Change History
+
+### Version 3.1 (2025-10-05)
+**Critical Clarifications Applied:**
+- **RSVP+Tickets**: Corrected social events to support BOTH RSVP (free) AND ticket purchases (separate actions)
+- **Check-in System**: Clarified as staff-assisted (not kiosk), IN SCOPE for Phase 1
+- **Teacher Permissions**: Confirmed teachers CANNOT edit events (already correctly documented)
+- **Event Images**: Deferred to future phase, removed from current scope
+- **Email Automation**: Confirmed as in-scope, no changes needed
+
+### Version 3.0 (2025-08-25)
+- Updated to match final wireframes
 
 ## Executive Summary
 The Events Management System provides comprehensive event lifecycle management for WitchCityRope, enabling Event Organizers to create, manage, and track classes, social events, and performances while supporting member registration, payment processing, and attendance tracking with automated refund capabilities. The system implements a flexible Event Session Matrix that naturally handles complex multi-ticket scenarios with auto-generated Session IDs (S1, S2, S3) for consistent referencing.
@@ -56,9 +69,10 @@ WitchCityRope currently lacks a centralized system for managing events from crea
 - And I can select venue from predefined list or add new venue
 - And I can assign teachers using card-based selection interface
 - And schedule information is managed in the Tickets/Orders tab
+- And image upload is NOT available (deferred to future phase)
 
 ### Story 3: Session-Based Event Management
-**As an** Event Organizer  
+**As an** Event Organizer
 **I want to** manage events through sessions with standardized ID format
 **So that** I can easily reference and organize multi-session events
 
@@ -80,7 +94,7 @@ WitchCityRope currently lacks a centralized system for managing events from crea
 **Acceptance Criteria:**
 - Given I am in the Tickets/Orders tab
 - When I configure ticket types
-- Then the table shows: Edit, Ticket Name, Type, Sessions Included, Price Range, Quantity, Sales End, Delete  
+- Then the table shows: Edit, Ticket Name, Type, Sessions Included, Price Range, Quantity, Sales End, Delete
 - And Sessions Included column displays S# format (e.g., "S1, S2, S3")
 - And I can create tickets for any combination of sessions
 - And Edit action opens modal for complex settings like session selection
@@ -130,20 +144,22 @@ WitchCityRope currently lacks a centralized system for managing events from crea
 - And I can filter by event type and show/hide past events
 - And Create Event button uses amber gradient styling
 
-### Story 8: Kiosk Mode Check-In System
+### Story 8: Staff-Assisted Check-In System (Phase 1 - REQUIRED)
 **As an** Event Organizer
-**I want to** generate secure kiosk mode sessions for volunteer check-in
-**So that** I can delegate check-in duties without compromising system security
+**I want to** provide staff with a check-in interface for event arrival processing
+**So that** I can efficiently manage attendee check-in with proper tracking
 
 **Acceptance Criteria:**
 - Given I need to set up event check-in
-- When I launch kiosk mode
-- Then system generates secure session with station name and expiration
-- And kiosk interface shows session timer and security indicators
-- And interface displays event code and session ID in status bar
-- And volunteers can search and check in attendees
-- And kiosk mode prevents navigation to other admin functions
-- And I can revoke kiosk access at any time
+- When I launch the check-in interface
+- Then staff can access the check-in screen with proper authentication
+- And staff can search and check in attendees who have RSVPs or tickets
+- And staff can process ticket purchases at the door during check-in
+- And the system tracks both RSVP confirmations and ticket purchases
+- And check-in interface shows clear attendee status (RSVP only, ticket purchased, checked in)
+- And I can monitor check-in activity in real-time
+
+**Note:** This is staff-assisted check-in, NOT self-service kiosk. Staff member checks everyone in when they arrive.
 
 ### Story 9: Public Events Display
 **As a** Member or Guest
@@ -158,6 +174,7 @@ WitchCityRope currently lacks a centralized system for managing events from crea
 - And I can see which sessions are included in different ticket types
 - And member-only events show appropriate access prompts
 - And I can use search and filtering to find specific events
+- And event cards do NOT show images (deferred feature)
 
 ### Story 10: Event Details and Registration
 **As a** Member
@@ -172,6 +189,24 @@ WitchCityRope currently lacks a centralized system for managing events from crea
 - And unavailable ticket types show constraint reason (e.g., "Sold Out (Day 2 full)")
 - And I see capacity warnings for sessions filling up
 - And purchase button updates based on selected ticket type
+
+### Story 11: Social Event RSVP and Ticket Purchase (CRITICAL)
+**As a** Member
+**I want to** RSVP to social events AND optionally purchase tickets
+**So that** I can confirm attendance and secure my spot with flexible payment options
+
+**Acceptance Criteria:**
+- Given I am viewing a social event
+- When I want to participate
+- Then I can RSVP for free to confirm my attendance intent
+- And I can ALSO purchase tickets (as a separate action from RSVP)
+- And I can purchase tickets ahead of time through the event page
+- And I can purchase tickets at the door during check-in
+- And the system tracks my RSVP status and ticket purchase status separately
+- And I can see my RSVP status and ticket status clearly displayed
+- And event capacity considers both RSVPs and ticket purchases
+
+**Note:** RSVPs and ticket purchases are SEPARATE actions for social events. Both must be tracked independently.
 
 ## Business Rules
 
@@ -188,34 +223,51 @@ WitchCityRope currently lacks a centralized system for managing events from crea
 4. **No Inline Styles**: All styling through predefined CSS classes, no page-specific styling
 
 ### Event Form Tab Rules
-1. **Basic Info Tab**: Event details, venue, teachers - NO schedule fields
+1. **Basic Info Tab**: Event details, venue, teachers - NO schedule fields, NO image upload
 2. **Tickets/Orders Tab**: Sessions grid, ticket types grid, sales tracking, RSVPs
 3. **Emails Tab**: Unified template editing with ad-hoc email always available
 4. **Volunteers/Staff Tab**: Position management with session-specific assignments
 
-### Event Types and RSVP Rules
-1. **Classes**: Ticket-based registration with payment required
-2. **Social Events**: RSVP system with optional ticket purchases
-3. **RSVP vs Tickets**: Social events show both RSVP table AND tickets sold table
-4. **Ticket Purchase Status**: RSVP table shows whether member purchased optional ticket
+### Event Types and Registration Rules (UPDATED 2025-10-05)
+1. **Classes**:
+   - Ticket-based registration with payment required
+   - No RSVP option
+
+2. **Social Events**:
+   - RSVP system (free, confirms attendance intent)
+   - Ticket purchases (separate action, can be done ahead of time OR at door)
+   - Both RSVP and ticket purchase must be tracked independently
+   - Event displays both RSVP table AND tickets sold table
+
+3. **RSVP vs Tickets for Social Events**:
+   - RSVPs are FREE and confirm attendance intent
+   - Tickets are PAID and can be purchased separately from RSVP
+   - A member can: RSVP only, Purchase ticket only, OR both RSVP and purchase ticket
+   - Ticket purchases can happen: Online ahead of time, OR at door during check-in
+   - Check-in system must handle both RSVP confirmation and ticket purchase
+
+4. **Capacity Management**:
+   - Social events: Consider both RSVPs and ticket purchases for capacity
+   - Classes: Only ticket purchases count toward capacity
 
 ### Email System Rules
 1. **Session Targeting**: All email templates target specific sessions (S1, S2, S3, All)
 2. **Ad-hoc Always Available**: "Send Ad-Hoc Email" card permanently visible
 3. **Unified Editor**: Same editor interface for templates and ad-hoc emails
 4. **Template Management**: Add/remove templates through dropdown selection
+5. **Automation Confirmed**: Automated emails ARE part of the event process (in-scope)
 
 ### Role-Based Permissions
 1. **Event Organizers**:
    - Full access to ALL events (view, create, edit, delete)
    - All tabs accessible in event creation/editing
-   - Generate kiosk mode sessions
+   - Manage check-in interface access for staff
    - Access admin events dashboard with full controls
 
 2. **Teachers**:
    - View events they're assigned to teach
    - Contact Event Organizers for any changes needed
-   - No direct editing capabilities
+   - **NO direct editing capabilities** (confirmed restriction)
 
 3. **Admin**:
    - Same permissions as Event Organizers
@@ -224,6 +276,8 @@ WitchCityRope currently lacks a centralized system for managing events from crea
 
 4. **Members**:
    - View and register for events based on vetting level
+   - RSVP to social events (free)
+   - Purchase tickets for any event (ahead of time or at door)
    - Cancel registrations within refund window
    - View their registration history
 
@@ -234,12 +288,13 @@ WitchCityRope currently lacks a centralized system for managing events from crea
 4. **Prerequisite Support**: Sessions can require attendance at previous sessions
 5. **Waitlist Granularity**: Waitlists trigger when specific sessions fill up
 
-### Kiosk Mode Security Rules
-1. **Session-Based Authentication**: Secure tokens with time-based expiration
-2. **Device Binding**: Tokens tied to specific device/browser session
-3. **Function Limitation**: Check-in only, no navigation to other admin functions
-4. **Visual Security Indicators**: Clear kiosk mode branding and session information
-5. **Audit Logging**: All check-in actions logged with session attribution
+### Check-In System Rules (UPDATED 2025-10-05)
+1. **Staff-Assisted**: Staff member checks in attendees (NOT self-service kiosk)
+2. **Phase 1 Priority**: Check-in system is REQUIRED for Phase 1 implementation
+3. **Dual Path Support**: Handle both RSVP confirmations and ticket purchases
+4. **Door Sales**: Support ticket purchase during check-in process
+5. **Status Tracking**: Clear display of attendee status (RSVP only, ticket purchased, checked in)
+6. **Audit Logging**: All check-in actions logged with staff attribution
 
 ### Payment Processing Rules
 1. **No Credit Card Storage**: All payment processing is immediate and external
@@ -248,7 +303,8 @@ WitchCityRope currently lacks a centralized system for managing events from crea
    - PayPal integration
    - Venmo integration
 3. **Phase 1 Implementation**: Payment tracking only, external payment processing
-4. **Refunds**: Automatic within refund window, manual approval required outside window
+4. **Door Sales**: Support payment processing at check-in
+5. **Refunds**: Automatic within refund window, manual approval required outside window
 
 ### Safety and Vetting Rules
 1. Events can require specific vetting levels
@@ -289,6 +345,14 @@ WitchCityRope currently lacks a centralized system for managing events from crea
 - salesEndDate: DateTime (required, ISO 8601 format)
 - isActive: boolean (required, default true)
 
+#### RSVP Data (Social Events Only)
+- rsvpId: string (required, UUID)
+- eventId: string (required, foreign key to Event)
+- memberId: string (required, foreign key to Member)
+- rsvpDate: DateTime (required, ISO 8601 format)
+- hasTicket: boolean (indicates if member also purchased ticket)
+- status: string (required, enum: Confirmed, Cancelled, CheckedIn)
+
 #### Email Templates Data
 - templateId: string (required, UUID)
 - templateName: string (required, 3-100 characters)
@@ -319,14 +383,21 @@ WitchCityRope currently lacks a centralized system for managing events from crea
 - **Legal**: Must comply with refund policies and payment regulations
 - **Capacity**: Session-based capacity limits must be strictly enforced
 - **UI Standards**: All interfaces must follow Design System v7 exactly
+- **Phase 1 Priority**: Check-in system is required for initial implementation
+
+### Deferred Features (Future Phases)
+- **Event Image Upload**: Deferred to future phase, not in current scope
+- **Self-Service Kiosk**: May be added in future, current focus is staff-assisted check-in
+- **Advanced Reporting**: Basic reporting in Phase 1, advanced analytics deferred
 
 ### Assumptions
 - Event Organizers understand the Session + Ticket Type relationship
-- Volunteers can be trusted with limited check-in functionality through kiosk mode
+- Staff can be trusted with check-in functionality and credentials
 - Members understand vetting requirements for different events
-- Kiosk devices will have reliable internet connectivity
+- Check-in devices will have reliable internet connectivity
 - Users prefer tabbed interface for complex event management
 - Session-based organization improves event management efficiency
+- Social events benefit from dual RSVP + ticket purchase options
 
 ## Security & Privacy Requirements
 
@@ -335,19 +406,22 @@ WitchCityRope currently lacks a centralized system for managing events from crea
 - All payment processing handled by external, PCI-compliant processors
 - Payment tokens only stored if required for refund processing
 - Immediate processing and disposal of sensitive payment data
+- Door payment processing follows same security standards
 
-### Kiosk Mode Security
-- Cryptographically secure session token generation
-- Time-bound session expiration with automatic cleanup
-- Device binding to prevent URL sharing
-- Function-specific access limitation (check-in only)
-- Real-time session monitoring and audit logging
+### Check-In System Security (UPDATED 2025-10-05)
+- Staff authentication required for check-in access
+- Role-based access control for check-in functionality
+- Secure session management for staff logins
+- Audit logging of all check-in activities
+- No sensitive payment data visible in check-in interface
+- Secure handling of door payment transactions
 
 ### Member Privacy
 - Event attendance lists visible only to Event Organizers and Admins
 - Member contact information protected per existing privacy policies
 - Anonymous options for sensitive events where appropriate
-- Kiosk mode access limited to check-in data only
+- Check-in staff access limited to check-in data only
+- RSVP and ticket purchase data separately tracked and protected
 
 ## Compliance Requirements
 
@@ -360,23 +434,24 @@ WitchCityRope currently lacks a centralized system for managing events from crea
 - PCI DSS compliance through external processors
 - Refund policy compliance with consumer protection laws
 - Financial record keeping per business requirements
+- Door payment processing compliance
 
 ## User Impact Analysis
 
 | User Type | Impact | Priority | Changes |
 |-----------|--------|----------|---------|
-| Event Organizers | High positive - tabbed interface, session management | High | Full event access, S# session format, standardized tables |
-| Teachers | Low - contact organizers for changes | Medium | Removed editing access, request-based changes |
-| Vetted Members | High positive - clear ticket options, session visibility | High | Session-based event details, flexible ticket choices |
-| General Members | Medium positive - public event access | Medium | Public event access only, ticket type options |
+| Event Organizers | High positive - tabbed interface, session management, check-in tools | High | Full event access, S# session format, standardized tables, staff check-in management |
+| Teachers | Low - contact organizers for changes | Medium | NO editing access (confirmed), request-based changes only |
+| Vetted Members | High positive - clear ticket options, session visibility, RSVP+ticket flexibility | High | Session-based event details, flexible registration choices, door payment option |
+| General Members | Medium positive - public event access, door payment option | Medium | Public event access only, ticket type options, check-in support |
 | Admins | Medium positive - same as Event Organizers | Medium | Event Organizer functionality plus admin functions |
-| Volunteers | High positive - simple kiosk check-in | Medium | Kiosk mode access, no training required |
+| Check-In Staff | High positive - simple check-in interface | Medium | Staff-assisted check-in access, RSVP and ticket verification |
 
 ## Examples/Scenarios
 
 ### Scenario 1: Multi-Session Event Creation
 1. Event Organizer creates "3-Day Advanced Workshop Series"
-2. Basic Info tab: Sets event type, description, policies, venue, teachers
+2. Basic Info tab: Sets event type, description, policies, venue, teachers (NO images)
 3. Tickets/Orders tab: Creates sessions S1, S2, S3 with descriptive names
 4. Creates ticket types: "Full Series" (S1,S2,S3), "Day 1 Only" (S1), etc.
 5. Emails tab: Sets up confirmation email for "All" sessions, reminder for "S1"
@@ -390,24 +465,36 @@ WitchCityRope currently lacks a centralized system for managing events from crea
 4. Filters by event type and toggles past events visibility
 5. Creates new event using amber-gradient Create Event button
 
-### Scenario 3: Kiosk Mode Check-In
-1. Event day: Organizer clicks "Launch Check-In" for specific event
-2. Selects station name "Front Desk 1", 4-hour session duration
-3. System generates secure kiosk link with embedded authentication
-4. Volunteer accesses link, sees kiosk-branded interface
-5. Interface shows session timer, event code, secure indicators
-6. Volunteer searches attendees, processes check-ins with modal dialogs
-7. System logs all actions, auto-expires session after 4 hours
+### Scenario 3: Social Event with RSVP and Tickets (NEW)
+1. Member views social event "Community Rope Jam"
+2. Clicks "RSVP" to confirm free attendance (tracked separately)
+3. Optionally purchases ticket ahead of time for $10 (tracked separately)
+4. System shows member has both RSVP and ticket
+5. On event day, staff checks in member using check-in interface
+6. Alternative: Member RSVPs but decides to purchase ticket at door during check-in
+7. Staff processes ticket purchase and check-in simultaneously
 
-### Scenario 4: Public Event Discovery and Registration
-1. Member browses public events page in card view
+### Scenario 4: Staff-Assisted Check-In (UPDATED)
+1. Event day: Organizer grants check-in access to staff member
+2. Staff logs in to check-in interface for specific event
+3. Interface shows list of expected attendees with status indicators:
+   - RSVP only (no ticket)
+   - Ticket purchased (may or may not have RSVP)
+   - Checked in
+4. Staff searches for arriving attendee
+5. For RSVP-only: Staff offers ticket purchase at door, processes payment, checks in
+6. For ticket holder: Staff verifies ticket, checks in
+7. System logs all actions with staff attribution
+
+### Scenario 5: Public Event Discovery and Registration
+1. Member browses public events page in card view (no images shown)
 2. Sees "3-Day Series" with constraint indicator "5/20 (Day 2)"
 3. Clicks event for details, views session availability breakdown
 4. Selects "Full Series" ticket but sees constraint warning
 5. Chooses "Day 1 Only" instead, completes registration
 6. Receives confirmation email targeted to S1 session attendees
 
-### Scenario 5: Email Campaign Management
+### Scenario 6: Email Campaign Management
 1. Event Organizer accesses Emails tab for upcoming workshop
 2. Clicks "Reminder - 1 Day Before" template card
 3. Unified editor loads with current template content
@@ -422,17 +509,22 @@ WitchCityRope currently lacks a centralized system for managing events from crea
 - [x] Tabbed interface structure defined (Basic Info, Tickets/Orders, Emails, Volunteers/Staff)
 - [x] Standardized table structure mandated (Edit first, Delete last)
 - [x] Unified email interface specified with ad-hoc always available
-- [x] Kiosk mode security and interface requirements detailed
+- [x] Check-in system requirements detailed (staff-assisted, Phase 1 priority)
 - [x] Admin dashboard specifications match wireframe exactly
 - [x] Public event display requirements for card and list views
 - [x] Event details page ticket selection interface specified
 - [x] CSS standardization requirements enforced
 - [x] Multi-session capacity constraint logic documented
-- [x] RSVP vs ticket system clarified for social events
+- [x] RSVP vs ticket system clarified for social events (separate actions)
 - [x] Volunteer position session assignment requirements defined
 - [x] All user roles addressed with updated permissions
-- [x] Security requirements documented (no card storage, PCI compliance, kiosk mode)
+- [x] Teacher editing restrictions explicitly confirmed
+- [x] Security requirements documented (no card storage, PCI compliance, staff check-in)
 - [x] Compliance requirements checked
 - [x] Success metrics defined and measurable
 - [x] Technical implementation notes provided for developers
 - [x] Data structure requirements specified with S# format enforcement
+- [x] Deferred features documented (event images)
+- [x] Email automation confirmed as in-scope
+- [x] Social event dual-path registration (RSVP + tickets) fully specified
+- [x] Door payment processing requirements included

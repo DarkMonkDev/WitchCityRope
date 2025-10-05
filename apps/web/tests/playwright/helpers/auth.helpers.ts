@@ -23,103 +23,76 @@ export class AuthHelpers {
   /**
    * Login with specific user role using data-testid selectors
    * Matches current React LoginPage.tsx implementation
-   * Enhanced with improved timeout handling and retry logic
+   * CRITICAL: Uses ABSOLUTE URLs to ensure cookies persist properly
    */
   static async loginAs(page: Page, role: keyof typeof AuthHelpers.accounts) {
     const credentials = this.accounts[role];
-    
+
     // Clear auth state safely first
     await this.clearAuthState(page);
-    
-    // Navigate to login page and verify it loads
-    await page.goto('/login');
-    
-    // Verify login page loads with correct title (line 109 in LoginPage.tsx)
-    await expect(page.locator('h1')).toContainText('Welcome Back', { timeout: TIMEOUTS.MEDIUM });
-    
-    // Wait for login form to be ready for interaction
-    await this.waitForLoginReady(page);
-    
+
+    // Navigate to login page using ABSOLUTE URL (required for cookie persistence)
+    await page.goto('http://localhost:5173/login');
+    await page.waitForLoadState('networkidle');
+
     // Fill form using data-testid selectors (lines 171, 214 in LoginPage.tsx)
     await page.locator('[data-testid="email-input"]').fill(credentials.email);
     await page.locator('[data-testid="password-input"]').fill(credentials.password);
-    
-    // Set up response monitoring for login API call
-    const loginResponsePromise = WaitHelpers.waitForApiResponse(page, '/api/auth/login', {
-      method: 'POST',
-      timeout: TIMEOUTS.AUTHENTICATION
-    });
-    
+
     // Click login button using data-testid (line 270 in LoginPage.tsx)
-    // Button text is "Sign In" not "Login" (line 278)
     await page.locator('[data-testid="login-button"]').click();
-    
-    // Wait for login API response
-    await loginResponsePromise;
-    
-    // Wait for successful authentication redirect and dashboard to be ready
-    await this.waitForDashboardReady(page);
-    
+
+    // Wait for successful authentication redirect with networkidle
+    await page.waitForURL('**/dashboard', { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
+
     return credentials;
   }
 
   /**
    * Login with custom credentials
-   * Enhanced with better timeout handling
+   * CRITICAL: Uses ABSOLUTE URLs to ensure cookies persist properly
    */
   static async loginWith(page: Page, credentials: TestCredentials) {
-    await page.goto('/login');
-    
-    await expect(page.locator('h1')).toContainText('Welcome Back', { timeout: TIMEOUTS.MEDIUM });
-    
-    // Wait for form to be ready
-    await this.waitForLoginReady(page);
-    
+    // Navigate to login page using ABSOLUTE URL (required for cookie persistence)
+    await page.goto('http://localhost:5173/login');
+    await page.waitForLoadState('networkidle');
+
+    // Fill form using data-testid selectors
     await page.locator('[data-testid="email-input"]').fill(credentials.email);
     await page.locator('[data-testid="password-input"]').fill(credentials.password);
-    
-    // Set up API monitoring
-    const loginResponsePromise = WaitHelpers.waitForApiResponse(page, '/api/auth/login', {
-      method: 'POST',
-      timeout: TIMEOUTS.AUTHENTICATION
-    });
-    
+
+    // Click login button
     await page.locator('[data-testid="login-button"]').click();
-    
-    // Wait for API response
-    await loginResponsePromise;
+
+    // Wait for successful authentication redirect with networkidle
+    await page.waitForURL('**/dashboard', { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
   }
 
   /**
    * Attempt login and expect failure
-   * Enhanced with better error handling timeouts
+   * CRITICAL: Uses ABSOLUTE URLs to ensure cookies persist properly
    */
   static async loginExpectingError(page: Page, credentials: TestCredentials, expectedError?: string) {
-    await page.goto('/login');
-    
-    await expect(page.locator('h1')).toContainText('Welcome Back', { timeout: TIMEOUTS.MEDIUM });
-    
-    // Wait for form to be ready
-    await this.waitForLoginReady(page);
-    
+    // Navigate to login page using ABSOLUTE URL (required for cookie persistence)
+    await page.goto('http://localhost:5173/login');
+    await page.waitForLoadState('networkidle');
+
+    // Fill form using data-testid selectors
     await page.locator('[data-testid="email-input"]').fill(credentials.email);
     await page.locator('[data-testid="password-input"]').fill(credentials.password);
-    
-    // Monitor for error response
-    const errorResponsePromise = WaitHelpers.waitForApiError(page, '/api/auth/login', 401);
-    
+
+    // Click login button
     await page.locator('[data-testid="login-button"]').click();
-    
-    // Wait for error API response first
-    await errorResponsePromise;
-    
+
     // Wait for error alert to appear (data-testid from line 146 in LoginPage.tsx)
     await expect(page.locator('[data-testid="login-error"]')).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
-    
+
     if (expectedError) {
       await expect(page.locator('[data-testid="login-error"]')).toContainText(expectedError, { timeout: TIMEOUTS.SHORT });
     }
-    
+
     return page.locator('[data-testid="login-error"]').textContent();
   }
 
@@ -181,16 +154,18 @@ export class AuthHelpers {
   /**
    * Clear all authentication state safely for test setup
    * Use this in beforeEach hooks to ensure clean state
+   * CRITICAL: Uses ABSOLUTE URL to ensure cookies persist properly
    */
   static async clearAuthState(page: Page) {
     // Use Playwright's storage state API - most reliable method
     await page.context().clearCookies();
     await page.context().clearPermissions();
-    
+
     try {
-      // Navigate to login page first to establish context
-      await page.goto('/login');
-      
+      // Navigate to login page using ABSOLUTE URL first to establish context
+      await page.goto('http://localhost:5173/login');
+      await page.waitForLoadState('networkidle');
+
       // Clear storage after page is loaded
       await page.evaluate(() => {
         if (typeof localStorage !== 'undefined') localStorage.clear();

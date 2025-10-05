@@ -130,13 +130,14 @@ export const EventCard = memo<EventCardProps>(({
   return (
     <Paper
       withBorder
-      shadow="sm" 
+      shadow="sm"
       p="md"
       radius="md"
+      data-testid="event-card"
       style={{
         transition: 'all 200ms ease',
         cursor: 'pointer',
-        ...(event.isMemberOnly && { 
+        ...(event.isMemberOnly && {
           borderColor: 'var(--mantine-color-burgundy-5)',
           borderWidth: '2px'
         })
@@ -162,7 +163,7 @@ export const EventCard = memo<EventCardProps>(({
             >
               {event.type}
             </Badge>
-            <Title order={3} size="lg" fw={600}>
+            <Title order={3} size="lg" fw={600} data-testid="event-title">
               {event.title}
             </Title>
           </Group>

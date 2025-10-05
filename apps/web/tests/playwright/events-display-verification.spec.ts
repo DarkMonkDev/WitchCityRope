@@ -112,8 +112,8 @@ test.describe('Events Display Verification - Safe Test', () => {
       fullPage: true 
     });
     
-    // Look for event details like dates, descriptions, etc.
-    const hasEventDetails = await page.locator('text=/date|time|description|register|rsvp|details/i').count() > 0;
+    // Look for event details like dates, descriptions, RSVP/ticket options, etc.
+    const hasEventDetails = await page.locator('text=/date|time|description|rsvp|ticket|details/i').count() > 0;
     console.log(`📅 Event details found: ${hasEventDetails}`);
     
     // If events are showing, they should have some details

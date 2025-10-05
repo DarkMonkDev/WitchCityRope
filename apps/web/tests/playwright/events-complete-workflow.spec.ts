@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 /**
  * Comprehensive End-to-End Events Workflow Test
@@ -188,75 +189,10 @@ test.describe('Events Complete Workflow - End-to-End', () => {
   test('Step 2: Admin Event Editing - Login as admin and update event details', async ({ page }) => {
     console.log('🧪 Step 2: Testing admin event editing...');
 
-    // Login as admin
-    await page.goto(testUrls.login);
-    await page.waitForSelector('[data-testid="email-input"], input[name="email"], input[type="email"]', { timeout: 10000 });
+    // Login as admin using AuthHelpers for reliable, consistent authentication
+    await AuthHelpers.loginAs(page, 'admin');
+    console.log('✅ Admin login successful');
 
-    // Use multiple selector strategies for login form
-    const emailSelectors = [
-      '[data-testid="email-input"]',
-      'input[name="email"]',
-      'input[type="email"]',
-      '#email'
-    ];
-
-    const passwordSelectors = [
-      '[data-testid="password-input"]',
-      'input[name="password"]',
-      'input[type="password"]',
-      '#password'
-    ];
-
-    let emailFilled = false;
-    let passwordFilled = false;
-
-    // Try to fill email with fallback selectors
-    for (const selector of emailSelectors) {
-      if (await page.locator(selector).count() > 0) {
-        await page.fill(selector, testAccounts.admin.email);
-        emailFilled = true;
-        console.log(`✅ Email filled using: ${selector}`);
-        break;
-      }
-    }
-
-    // Try to fill password with fallback selectors
-    for (const selector of passwordSelectors) {
-      if (await page.locator(selector).count() > 0) {
-        await page.fill(selector, testAccounts.admin.password);
-        passwordFilled = true;
-        console.log(`✅ Password filled using: ${selector}`);
-        break;
-      }
-    }
-
-    expect(emailFilled && passwordFilled).toBe(true);
-
-    await page.screenshot({ path: 'test-results/step2-admin-login-form-filled.png' });
-
-    // Submit login form
-    const loginButtonSelectors = [
-      '[data-testid="login-button"]',
-      'button[type="submit"]',
-      'button:has-text("Login")',
-      'button:has-text("Sign In")',
-      '.login-button'
-    ];
-
-    let loginSubmitted = false;
-    for (const selector of loginButtonSelectors) {
-      if (await page.locator(selector).count() > 0) {
-        await page.click(selector);
-        loginSubmitted = true;
-        console.log(`✅ Login submitted using: ${selector}`);
-        break;
-      }
-    }
-
-    expect(loginSubmitted).toBe(true);
-
-    // Wait for login to process
-    await page.waitForTimeout(3000);
     await page.screenshot({ path: 'test-results/step2-after-admin-login.png' });
 
     // Navigate to admin events management
@@ -501,34 +437,9 @@ test.describe('Events Complete Workflow - End-to-End', () => {
   test('Step 4: User RSVP Workflow - Login as member and RSVP to event', async ({ page }) => {
     console.log('🧪 Step 4: Testing user RSVP workflow...');
 
-    // Login as member user
-    await page.goto(testUrls.login);
-    await page.waitForSelector('[data-testid="email-input"], input[name="email"], input[type="email"]', { timeout: 10000 });
-
-    // Fill login form for member user
-    const emailSelectors = ['[data-testid="email-input"]', 'input[name="email"]', 'input[type="email"]'];
-    const passwordSelectors = ['[data-testid="password-input"]', 'input[name="password"]', 'input[type="password"]'];
-
-    for (const selector of emailSelectors) {
-      if (await page.locator(selector).count() > 0) {
-        await page.fill(selector, testAccounts.member.email);
-        break;
-      }
-    }
-
-    for (const selector of passwordSelectors) {
-      if (await page.locator(selector).count() > 0) {
-        await page.fill(selector, testAccounts.member.password);
-        break;
-      }
-    }
-
-    await page.screenshot({ path: 'test-results/step4-member-login.png' });
-
-    // Submit login
-    const loginButton = page.locator('button[type="submit"], button:has-text("Login"), [data-testid="login-button"]').first();
-    await loginButton.click();
-    await page.waitForTimeout(3000);
+    // Login as member user using AuthHelpers
+    await AuthHelpers.loginAs(page, 'member');
+    console.log('✅ Member login successful');
 
     await page.screenshot({ path: 'test-results/step4-member-logged-in.png' });
 
@@ -537,22 +448,20 @@ test.describe('Events Complete Workflow - End-to-End', () => {
     await page.waitForLoadState('networkidle', { timeout: 10000 });
     await page.screenshot({ path: 'test-results/step4-member-viewing-events.png' });
 
-    // Look for RSVP/ticket purchase functionality
+    // Look for RSVP/ticket purchase functionality (using correct data-testid)
     const rsvpSelectors = [
+      '[data-testid="button-rsvp"]',
+      '[data-testid="button-purchase-ticket"]',
       'button:has-text("RSVP")',
-      'button:has-text("Register")',
-      'button:has-text("Sign Up")',
-      'button:has-text("Purchase")',
-      '.rsvp-button',
-      '.register-button',
-      '[data-testid="rsvp"], [data-testid="register"]'
+      'button:has-text("Purchase Ticket")',
+      'button:has-text("Buy Ticket")'
     ];
 
     let rsvpFound = false;
     for (const selector of rsvpSelectors) {
       const rsvpButton = page.locator(selector).first();
       if (await rsvpButton.count() > 0) {
-        console.log(`✅ Found RSVP/Registration button: ${selector}`);
+        console.log(`✅ Found RSVP/Ticket button: ${selector}`);
         await rsvpButton.click();
         rsvpFound = true;
         await page.waitForTimeout(2000);
@@ -622,13 +531,12 @@ test.describe('Events Complete Workflow - End-to-End', () => {
     await page.waitForTimeout(3000);
     await page.screenshot({ path: 'test-results/step4-user-dashboard.png' });
 
-    // Look for RSVP/registration in dashboard
+    // Look for RSVP/tickets in dashboard
     const dashboardRsvpSelectors = [
       '*:has-text("RSVP")',
-      '*:has-text("Registration")',
       '*:has-text("Ticket")',
       '.my-events',
-      '.registered-events',
+      '.my-rsvps',
       '.upcoming-events'
     ];
 
@@ -636,7 +544,7 @@ test.describe('Events Complete Workflow - End-to-End', () => {
     for (const selector of dashboardRsvpSelectors) {
       if (await page.locator(selector).count() > 0) {
         dashboardRsvpFound = true;
-        console.log(`✅ Found RSVP/registration info in dashboard: ${selector}`);
+        console.log(`✅ Found RSVP/ticket info in dashboard: ${selector}`);
         break;
       }
     }
@@ -655,23 +563,9 @@ test.describe('Events Complete Workflow - End-to-End', () => {
     // Continue from previous step or login again if needed
     const currentUrl = page.url();
     if (!currentUrl.includes('dashboard')) {
-      // Login as member again if not already logged in
-      await page.goto(testUrls.login);
-      await page.waitForTimeout(2000);
-      
-      const emailInput = page.locator('input[name="email"], input[type="email"]').first();
-      const passwordInput = page.locator('input[name="password"], input[type="password"]').first();
-      
-      if (await emailInput.count() > 0 && await passwordInput.count() > 0) {
-        await emailInput.fill(testAccounts.member.email);
-        await passwordInput.fill(testAccounts.member.password);
-        
-        const submitButton = page.locator('button[type="submit"], button:has-text("Login")').first();
-        await submitButton.click();
-        await page.waitForTimeout(3000);
-      }
-
-      await page.goto(testUrls.userDashboard);
+      // Login as member again if not already logged in using AuthHelpers
+      await AuthHelpers.loginAs(page, 'member');
+      console.log('✅ Member login successful for RSVP cancellation');
     }
 
     await page.waitForTimeout(2000);
@@ -680,12 +574,13 @@ test.describe('Events Complete Workflow - End-to-End', () => {
     // Look for cancel/remove RSVP functionality
     const cancelSelectors = [
       'button:has-text("Cancel RSVP")',
-      'button:has-text("Cancel Registration")',
+      'button:has-text("Remove RSVP")',
       'button:has-text("Remove")',
       'button:has-text("Withdraw")',
       '.cancel-rsvp',
-      '.remove-registration',
-      '[data-testid="cancel-rsvp"]'
+      '.remove-rsvp',
+      '[data-testid="cancel-rsvp"]',
+      '[data-testid="remove-rsvp"]'
     ];
 
     let cancelFound = false;
@@ -726,7 +621,7 @@ test.describe('Events Complete Workflow - End-to-End', () => {
     await page.screenshot({ path: 'test-results/step5-dashboard-after-refresh.png' });
 
     // Verify RSVP is no longer showing (depends on how the UI is structured)
-    const rsvpStillPresent = await page.locator('*:has-text("RSVP"), *:has-text("Registration"), .my-events .event').count();
+    const rsvpStillPresent = await page.locator('*:has-text("RSVP"), *:has-text("Ticket"), .my-events .event').count();
     
     console.log(`📋 Cancel RSVP Status: Cancel button found: ${cancelFound}, Remaining RSVPs: ${rsvpStillPresent}`);
 
@@ -773,18 +668,9 @@ test.describe('Events Complete Workflow - End-to-End', () => {
       const eventsCount = await page.locator('.event, .event-card, *:has-text("workshop")').count();
       workflowStatus.publicEventsVisible = eventsCount > 0;
       
-      // Quick check: Admin functionality  
-      await page.goto(testUrls.login);
-      await page.waitForSelector('input[name="email"], input[type="email"]', { timeout: 5000 });
-      
-      const emailInput = page.locator('input[name="email"], input[type="email"]').first();
-      const passwordInput = page.locator('input[name="password"], input[type="password"]').first();
-      
-      await emailInput.fill(testAccounts.admin.email);
-      await passwordInput.fill(testAccounts.admin.password);
-      await page.locator('button[type="submit"], button:has-text("Login")').first().click();
-      await page.waitForTimeout(3000);
-      
+      // Quick check: Admin functionality using AuthHelpers
+      await AuthHelpers.loginAs(page, 'admin');
+
       workflowStatus.adminLoginSuccess = !page.url().includes('/login');
       
       if (workflowStatus.adminLoginSuccess) {
@@ -800,15 +686,9 @@ test.describe('Events Complete Workflow - End-to-End', () => {
       }
 
       // Logout admin and test member workflow
-      await page.context().clearCookies();
-      await page.goto(testUrls.login);
-      await page.waitForSelector('input[name="email"], input[type="email"]', { timeout: 5000 });
-      
-      await page.fill('input[name="email"], input[type="email"]', testAccounts.member.email);
-      await page.fill('input[name="password"], input[type="password"]', testAccounts.member.password);
-      await page.locator('button[type="submit"], button:has-text("Login")').first().click();
-      await page.waitForTimeout(3000);
-      
+      await AuthHelpers.clearAuthState(page);
+      await AuthHelpers.loginAs(page, 'member');
+
       workflowStatus.memberLoginSuccess = !page.url().includes('/login');
       
       if (workflowStatus.memberLoginSuccess) {
@@ -820,7 +700,7 @@ test.describe('Events Complete Workflow - End-to-End', () => {
         // Check RSVP functionality exists
         await page.goto(testUrls.publicEvents);
         await page.waitForTimeout(2000);
-        workflowStatus.rsvpFunctionalityExists = await page.locator('button:has-text("RSVP"), button:has-text("Register"), button:has-text("Sign Up")').count() > 0;
+        workflowStatus.rsvpFunctionalityExists = await page.locator('[data-testid="button-rsvp"], [data-testid="button-purchase-ticket"], button:has-text("RSVP"), button:has-text("Purchase Ticket")').count() > 0;
       }
 
     } catch (error) {

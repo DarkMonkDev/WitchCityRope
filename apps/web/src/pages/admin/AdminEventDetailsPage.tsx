@@ -30,11 +30,44 @@ import type { components } from '@witchcityrope/shared-types';
 // Type alias for cleaner usage
 type EventDtoType = components['schemas']['EventDto'];
 
+/**
+ * AdminEventDetailsPage - Combined view/edit page for events
+ *
+ * ARCHITECTURE:
+ * This page serves DUAL PURPOSE - both viewing AND editing events
+ * Route: /admin/events/:id
+ *
+ * How Users Get Here:
+ * 1. Click a row in AdminEventsPage table → navigates here
+ * 2. Save a new event in NewEventPage → navigates here
+ * 3. Copy an event → navigates here
+ *
+ * Edit Mode:
+ * - EventForm is ALWAYS rendered (no separate "view" vs "edit" modes for the form)
+ * - Users can edit any field immediately
+ * - Changes are tracked via formDirty state
+ * - Save button appears when changes detected
+ *
+ * Publish Status:
+ * - Draft/Published toggle at top
+ * - Changes trigger confirmation modal
+ * - Independent of form edits (can change status without editing form)
+ *
+ * Key State:
+ * - isEditMode: Currently unused (form always editable) - may be legacy
+ * - formDirty: Tracks if user has made changes
+ * - publishStatus: Draft or Published state
+ *
+ * IMPORTANT for Tests:
+ * - NO modal opens when navigating here from table
+ * - EventForm renders directly on the page
+ * - Look for EventForm component, not [role="dialog"]
+ */
 export const AdminEventDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false); // NOTE: Currently unused - form always editable
   const [publishStatus, setPublishStatus] = useState<string>('published');
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string>('');

@@ -57,7 +57,7 @@ test.describe('Admin Events Management Detailed Test', () => {
       
       if (createBtnExists) {
         await page.screenshot({ path: 'test-results/before-create-event-click.png', fullPage: true });
-        await createEventBtn.click();
+        await page.locator('[data-testid="button-create-event"]').click();
         await page.waitForTimeout(1000);
         await page.screenshot({ path: 'test-results/after-create-event-click.png', fullPage: true });
         console.log('✅ Clicked Create Event button');

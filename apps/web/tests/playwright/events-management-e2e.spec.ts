@@ -31,9 +31,9 @@ test.describe('Events Management System E2E Tests', () => {
     test('should load API demo page without errors', async ({ page }) => {
       // Navigate to the demo page
       await page.goto('/admin/events-management-api-demo');
-      
+
       // Wait for page to load
-      await expect(page).toHaveTitle(/Vite \+ React \+ TS/);
+      await expect(page).toHaveTitle(/Witch City Rope/i);
       
       // Verify main title is visible
       await expect(page.locator('h1')).toContainText('Events Management API Integration Demo');
@@ -196,9 +196,9 @@ test.describe('Events Management System E2E Tests', () => {
     test('should load Event Session Matrix demo page', async ({ page }) => {
       // Navigate to the demo page
       await page.goto('/admin/event-session-matrix-demo');
-      
+
       // Verify page loads
-      await expect(page).toHaveTitle(/Vite \+ React \+ TS/);
+      await expect(page).toHaveTitle(/Witch City Rope/i);
       
       // Verify main title is visible based on diagnostic
       await expect(page.locator('h1')).toContainText('Event Session Matrix Demo');

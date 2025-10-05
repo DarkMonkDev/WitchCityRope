@@ -148,6 +148,26 @@ const EventsTableSkeleton: React.FC = () => (
   </Table>
 );
 
+/**
+ * EventsTableView - Displays events in a sortable table with row-click navigation
+ *
+ * IMPORTANT: This table uses ROW-CLICK for editing (NOT an "Edit" button)
+ *
+ * User Flow:
+ * 1. User clicks anywhere on a table row (except action buttons)
+ * 2. handleRowClick() navigates to /admin/events/:id
+ * 3. AdminEventDetailsPage loads with EventForm populated with event data
+ * 4. User can edit all fields and save changes
+ *
+ * Action Buttons:
+ * - "Copy" button: Duplicates event and opens edit page for the copy
+ * - NO "Edit" button: Row click serves this purpose
+ * - NO "Delete" button: Not yet implemented
+ *
+ * Testing Note:
+ * Tests should click on table rows (e.g., page.locator('tr[data-testid="admin-event"]'))
+ * NOT look for a separate edit button
+ */
 export const EventsTableView: React.FC<EventsTableViewProps> = ({
   events,
   sortState,
@@ -157,8 +177,12 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
 }) => {
   const navigate = useNavigate();
 
+  /**
+   * handleRowClick - Primary interaction for viewing/editing events
+   * Clicking any row navigates to the event detail/edit page
+   * This is the ONLY way to edit events (no separate edit button)
+   */
   const handleRowClick = (eventId: string) => {
-    // Navigate to the admin event details page
     navigate(`/admin/events/${eventId}`);
   };
 

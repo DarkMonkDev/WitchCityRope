@@ -31,8 +31,8 @@ test.describe('Phase 3: Sessions & Tickets Management', () => {
       // Wait for modal
       await page.waitForSelector('[role="dialog"]', { timeout: 5000 });
       
-      // Navigate to Tickets/Orders tab
-      await page.locator('button[role="tab"]:has-text("Tickets/Orders")').click();
+      // Navigate to Setup tab (contains sessions and tickets)
+      await page.locator('button[role="tab"]:has-text("Setup")').click();
       
       // Check for Event Sessions section
       const sessionsSection = page.locator('text=Event Sessions');
@@ -101,8 +101,8 @@ test.describe('Phase 3: Sessions & Tickets Management', () => {
       // Wait for modal
       await page.waitForSelector('[role="dialog"]', { timeout: 5000 });
       
-      // Navigate to Tickets/Orders tab
-      await page.locator('button[role="tab"]:has-text("Tickets/Orders")').click();
+      // Navigate to Setup tab (contains sessions and tickets)
+      await page.locator('button[role="tab"]:has-text("Setup")').click();
       
       // Check for Ticket Types section
       const ticketSection = page.locator('text=Ticket Types');
@@ -174,10 +174,10 @@ test.describe('Phase 3: Sessions & Tickets Management', () => {
       // Wait for modal
       await page.waitForSelector('[role="dialog"]', { timeout: 5000 }).catch(() => {});
       
-      // Navigate to Tickets/Orders tab
-      const ticketsTab = page.locator('button[role="tab"]:has-text("Tickets/Orders")');
-      if (await ticketsTab.isVisible()) {
-        await ticketsTab.click();
+      // Navigate to Setup tab (contains sessions and tickets)
+      const setupTab = page.locator('button[role="tab"]:has-text("Setup")');
+      if (await setupTab.isVisible()) {
+        await setupTab.click();
         
         // Verify both sections exist
         const hasSessions = await page.locator('text=Event Sessions').isVisible();
@@ -210,11 +210,14 @@ test.describe('Phase 3: Sessions & Tickets Management', () => {
     
     if (eventCount > 0) {
       // Check for capacity indicators
+      // NOTE: Social events show "RSVPs: X", Classes show "Tickets: X / Y"
       const capacityText = page.locator('text=/\\d+\\s*\\/\\s*\\d+/'); // Matches "X / Y" pattern
-      if (await capacityText.isVisible()) {
-        console.log('✅ Capacity indicators are displayed');
-        
-        // Get capacity text
+      const capacityCount = await capacityText.count();
+
+      if (capacityCount > 0 && await capacityText.first().isVisible()) {
+        console.log('✅ Capacity indicators are displayed (class format)');
+
+        // Get capacity text - use .first() to avoid ambiguity
         const capacity = await capacityText.first().textContent();
         console.log(`Found capacity: ${capacity}`);
         

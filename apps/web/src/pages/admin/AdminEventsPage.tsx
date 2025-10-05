@@ -11,8 +11,36 @@ import { EventsTableView } from '../../components/events/EventsTableView';
 
 /**
  * AdminEventsPage - Table-based administrative interface for managing events
- * Primary events dashboard using a streamlined table view with enhanced filtering
- * Route: /admin/events
+ *
+ * ARCHITECTURE OVERVIEW:
+ * This page uses a DEDICATED PAGE NAVIGATION pattern (NOT modals) for all CRUD operations:
+ *
+ * CREATE FLOW:
+ * - Click "Create Event" button → navigates to /admin/events/new
+ * - NewEventPage renders with empty EventForm
+ * - User fills form and saves → navigates to /admin/events/:id (detail/edit view)
+ *
+ * READ/EDIT FLOW:
+ * - Click any TABLE ROW → navigates to /admin/events/:id
+ * - AdminEventDetailsPage renders with populated EventForm
+ * - User can edit all fields and save changes
+ * - NO separate "Edit" button - row click is the primary interaction
+ *
+ * COPY FLOW:
+ * - Click "Copy" button in Actions column → copies event and navigates to /admin/events/edit/:id
+ *
+ * DELETE FLOW:
+ * - Not yet implemented (no delete button in table)
+ *
+ * KEY DESIGN DECISIONS:
+ * 1. Row click for editing (not separate edit button) - cleaner UX
+ * 2. Dedicated pages instead of modals - better for complex forms with tabs
+ * 3. Consistent navigation pattern for create/edit
+ *
+ * Routes:
+ * - /admin/events - This page (table view)
+ * - /admin/events/new - NewEventPage (create)
+ * - /admin/events/:id - AdminEventDetailsPage (view/edit)
  */
 export const AdminEventsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -103,7 +131,7 @@ export const AdminEventsPage: React.FC = () => {
             }
           }}
         >
-          Create New Event
+          Create Event
         </Button>
       </Group>
 

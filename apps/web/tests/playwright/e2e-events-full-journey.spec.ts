@@ -8,12 +8,12 @@ import { test, expect, Page, BrowserContext } from '@playwright/test';
  * 
  * Test Flow:
  * 1. User discovers events on public page
- * 2. User views event details  
- * 3. User attempts to register (should redirect to login)
+ * 2. User views event details
+ * 3. User attempts to RSVP/purchase ticket (should redirect to login)
  * 4. User logs in successfully
- * 5. User completes registration for event
- * 6. User views registration in dashboard
- * 7. User cancels a registration
+ * 5. User completes RSVP/ticket purchase for event
+ * 6. User views RSVP/ticket in dashboard
+ * 7. User cancels RSVP
  * 8. Admin views event management
  * 
  * CRITICAL: This test uses real API calls (port 5655 Docker) and real database data.
@@ -34,7 +34,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
     // Ensure we're starting from a clean state
     await page.goto('http://localhost:5173');
-    await expect(page).toHaveTitle(/Vite \+ React/);
+    await expect(page).toHaveTitle(/Witch City Rope/i);
   });
 
   test('1. User discovers events on public page', async ({ page }) => {
@@ -84,28 +84,29 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     await expect(page.locator('[data-testid="event-description"]')).toBeVisible();
     await expect(page.locator('[data-testid="event-date"]')).toBeVisible();
     
-    // Should see registration button
-    await expect(page.locator('[data-testid="register-button"]')).toBeVisible();
+    // Should see RSVP or ticket purchase button
+    const participationButton = page.locator('[data-testid="button-rsvp"], [data-testid="button-purchase-ticket"]');
+    await expect(participationButton.first()).toBeVisible();
     
     await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/event-details-view.png' });
     
     console.log(`✅ Event details: Successfully viewed details for "${eventTitle}"`);
   });
 
-  test('3. User attempts to register (should redirect to login)', async ({ page }) => {
+  test('3. User attempts to RSVP/purchase ticket (should redirect to login)', async ({ page }) => {
     // Navigate to event details
     await page.goto('http://localhost:5173/events');
     await page.waitForLoadState('networkidle');
-    
+
     const firstEvent = page.locator('[data-testid="event-card"]').first();
     await firstEvent.click();
     await page.waitForURL('**/events/**');
-    
-    // Try to register without being logged in
-    const registerButton = page.locator('[data-testid="register-button"]');
-    await expect(registerButton).toBeVisible();
-    
-    await registerButton.click();
+
+    // Try to RSVP/purchase ticket without being logged in
+    const participationButton = page.locator('[data-testid="button-rsvp"], [data-testid="button-purchase-ticket"]').first();
+    await expect(participationButton).toBeVisible();
+
+    await participationButton.click();
     
     // Should redirect to login page
     await page.waitForURL('**/login**');
@@ -120,9 +121,9 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     const url = page.url();
     expect(url).toContain('returnTo=');
     
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/login-redirect-from-registration.png' });
-    
-    console.log('✅ Registration redirect: Correctly redirected to login when not authenticated');
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/login-redirect-from-rsvp.png' });
+
+    console.log('✅ RSVP redirect: Correctly redirected to login when not authenticated');
   });
 
   test('4. User logs in successfully', async ({ page }) => {
@@ -161,102 +162,102 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     console.log(`✅ Login successful: User ${TEST_ACCOUNTS.member.email} logged in successfully`);
   });
 
-  test('5. User completes registration for event', async ({ page, context }) => {
+  test('5. User completes RSVP/ticket purchase for event', async ({ page, context }) => {
     // Login first
     await loginUser(page, TEST_ACCOUNTS.member);
-    
+
     // Navigate to events and select an event
     await page.goto('http://localhost:5173/events');
     await page.waitForLoadState('networkidle');
-    
+
     const firstEvent = page.locator('[data-testid="event-card"]').first();
     const eventTitle = await firstEvent.locator('[data-testid="event-title"]').textContent();
-    
+
     await firstEvent.click();
     await page.waitForURL('**/events/**');
-    
-    // Now that we're logged in, registration should work
-    const registerButton = page.locator('[data-testid="register-button"]');
-    await expect(registerButton).toBeVisible({ timeout: 10000 });
-    
-    await registerButton.click();
-    
-    // Should show registration form or success message
-    const registrationSuccess = page.locator('[data-testid="registration-success"]');
-    const registrationForm = page.locator('[data-testid="registration-form"]');
-    
-    // Handle either immediate success or form-based registration
-    if (await registrationForm.isVisible({ timeout: 5000 })) {
-      // Fill out registration form if it exists
-      const submitButton = page.locator('[data-testid="registration-submit"]');
+
+    // Now that we're logged in, RSVP/ticket purchase should work
+    const participationButton = page.locator('[data-testid="button-rsvp"], [data-testid="button-purchase-ticket"]').first();
+    await expect(participationButton).toBeVisible({ timeout: 10000 });
+
+    await participationButton.click();
+
+    // Should show RSVP/ticket form or success message
+    const participationSuccess = page.locator('[data-testid="rsvp-success"], [data-testid="ticket-success"]');
+    const participationForm = page.locator('[data-testid="rsvp-form"], [data-testid="ticket-form"]');
+
+    // Handle either immediate success or form-based participation
+    if (await participationForm.first().isVisible({ timeout: 5000 })) {
+      // Fill out form if it exists
+      const submitButton = page.locator('[data-testid="rsvp-submit"], [data-testid="ticket-submit"]').first();
       await expect(submitButton).toBeVisible();
       await submitButton.click();
     }
-    
+
     // Should see success confirmation
-    await expect(registrationSuccess).toBeVisible({ timeout: 10000 });
-    
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/event-registration-complete.png' });
-    
-    console.log(`✅ Event registration: Successfully registered for "${eventTitle}"`);
+    await expect(participationSuccess.first()).toBeVisible({ timeout: 10000 });
+
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/event-participation-complete.png' });
+
+    console.log(`✅ Event RSVP/ticket: Successfully completed for "${eventTitle}"`);
   });
 
-  test('6. User views registration in dashboard', async ({ page }) => {
-    // Login and register for an event first
+  test('6. User views RSVP/tickets in dashboard', async ({ page }) => {
+    // Login and RSVP for an event first
     await loginUser(page, TEST_ACCOUNTS.member);
-    
+
     // Navigate to dashboard
     await page.goto('http://localhost:5173/dashboard');
     await page.waitForLoadState('networkidle');
-    
+
     // Should see dashboard
     await expect(page.locator('[data-testid="dashboard"]')).toBeVisible({ timeout: 10000 });
-    
-    // Should see registrations section
-    await expect(page.locator('[data-testid="my-registrations"]')).toBeVisible();
-    
-    // Should see at least registration details
-    const registrations = page.locator('[data-testid="registration-item"]');
-    // Note: User may or may not have existing registrations, so we don't assert count
-    
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/dashboard-registrations.png' });
-    
-    console.log('✅ Dashboard view: Successfully viewed registrations in dashboard');
+
+    // Should see RSVPs/tickets section
+    await expect(page.locator('[data-testid="my-rsvps"], [data-testid="my-tickets"]').first()).toBeVisible();
+
+    // Should see at least RSVP/ticket details
+    const participation = page.locator('[data-testid="rsvp-item"], [data-testid="ticket-item"]');
+    // Note: User may or may not have existing RSVPs/tickets, so we don't assert count
+
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/dashboard-rsvps.png' });
+
+    console.log('✅ Dashboard view: Successfully viewed RSVPs/tickets in dashboard');
   });
 
-  test('7. User cancels a registration', async ({ page }) => {
-    // This test assumes user has an existing registration
-    // In a real scenario, we'd create a registration first
-    
+  test('7. User cancels an RSVP', async ({ page }) => {
+    // This test assumes user has an existing RSVP
+    // In a real scenario, we'd create an RSVP first
+
     await loginUser(page, TEST_ACCOUNTS.member);
-    
+
     // Navigate to dashboard
     await page.goto('http://localhost:5173/dashboard');
     await page.waitForLoadState('networkidle');
-    
-    // Look for cancel buttons on registrations
-    const cancelButtons = page.locator('[data-testid="cancel-registration"]');
-    
+
+    // Look for cancel buttons on RSVPs
+    const cancelButtons = page.locator('[data-testid="cancel-rsvp"], [data-testid="remove-rsvp"]');
+
     if (await cancelButtons.count() > 0) {
       const firstCancelButton = cancelButtons.first();
       await firstCancelButton.click();
-      
+
       // Should show confirmation dialog
       const confirmDialog = page.locator('[data-testid="cancel-confirmation"]');
       if (await confirmDialog.isVisible({ timeout: 5000 })) {
         const confirmButton = page.locator('[data-testid="confirm-cancel"]');
         await confirmButton.click();
       }
-      
+
       // Should show success message
       await expect(page.locator('[data-testid="cancellation-success"]')).toBeVisible({ timeout: 10000 });
-      
-      console.log('✅ Registration cancellation: Successfully cancelled a registration');
+
+      console.log('✅ RSVP cancellation: Successfully cancelled an RSVP');
     } else {
-      console.log('ℹ️  Registration cancellation: No existing registrations to cancel');
+      console.log('ℹ️  RSVP cancellation: No existing RSVPs to cancel');
     }
-    
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/registration-cancellation.png' });
+
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/rsvp-cancellation.png' });
   });
 
   test('8. Admin views event management', async ({ page }) => {
@@ -304,40 +305,40 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     await page.waitForURL('**/events/**');
     console.log(`   🔍 Viewing details for: ${eventTitle}`);
     
-    // Step 3: Attempt registration (should redirect to login)
-    const registerButton = page.locator('[data-testid="register-button"]');
-    await expect(registerButton).toBeVisible();
-    await registerButton.click();
+    // Step 3: Attempt RSVP/ticket purchase (should redirect to login)
+    const participationButton = page.locator('[data-testid="button-rsvp"], [data-testid="button-purchase-ticket"]').first();
+    await expect(participationButton).toBeVisible();
+    await participationButton.click();
     await page.waitForURL('**/login**');
     console.log('   🔐 Redirected to login as expected');
-    
+
     // Step 4: Login
     await fillLoginForm(page, TEST_ACCOUNTS.member);
     await page.locator('[data-testid="login-button"]').click();
     await page.waitForURL(/dashboard|events/, { timeout: 15000 });
     console.log('   ✅ Successfully logged in');
-    
-    // Step 5: Navigate back to event and complete registration
+
+    // Step 5: Navigate back to event and complete RSVP/ticket purchase
     await page.goto('http://localhost:5173/events');
     await page.waitForLoadState('networkidle');
     await page.locator('[data-testid="event-card"]').first().click();
     await page.waitForURL('**/events/**');
-    
-    const registerButtonLoggedIn = page.locator('[data-testid="register-button"]');
-    await expect(registerButtonLoggedIn).toBeVisible();
-    await registerButtonLoggedIn.click();
-    
-    // Handle registration process
-    const registrationSuccess = page.locator('[data-testid="registration-success"]');
-    await expect(registrationSuccess).toBeVisible({ timeout: 10000 });
-    console.log('   🎯 Registration completed successfully');
-    
+
+    const participationButtonLoggedIn = page.locator('[data-testid="button-rsvp"], [data-testid="button-purchase-ticket"]').first();
+    await expect(participationButtonLoggedIn).toBeVisible();
+    await participationButtonLoggedIn.click();
+
+    // Handle RSVP/ticket process
+    const participationSuccess = page.locator('[data-testid="rsvp-success"], [data-testid="ticket-success"]');
+    await expect(participationSuccess.first()).toBeVisible({ timeout: 10000 });
+    console.log('   🎯 RSVP/ticket purchase completed successfully');
+
     // Step 6: Verify in dashboard
     await page.goto('http://localhost:5173/dashboard');
     await page.waitForLoadState('networkidle');
     await expect(page.locator('[data-testid="dashboard"]')).toBeVisible();
-    await expect(page.locator('[data-testid="my-registrations"]')).toBeVisible();
-    console.log('   📊 Verified registration in dashboard');
+    await expect(page.locator('[data-testid="my-rsvps"], [data-testid="my-tickets"]').first()).toBeVisible();
+    console.log('   📊 Verified RSVP/ticket in dashboard');
     
     await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/complete-journey-success.png' });
     
