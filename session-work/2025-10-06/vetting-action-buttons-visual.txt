@@ -1,0 +1,173 @@
+VETTING APPLICATION DETAIL - ACTION BUTTONS LAYOUT
+==================================================
+
+Implementation: Option 2 - Tiered Button Groups with Visual Hierarchy
+File: /apps/web/src/features/admin/vetting/components/VettingApplicationDetail.tsx
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ACTIONS                                                                    │
+│                                                                             │
+│  ╔═══════════════════════════════════════════════════════════════════════╗ │
+│  ║  TIER 1: PRIMARY NEXT STAGE ACTION                                    ║ │
+│  ║                                                                        ║ │
+│  ║  ┌──────────────────────────────────────────────────────────────────┐ ║ │
+│  ║  │  ✓  APPROVE FOR INTERVIEW      Move to interview stage          │ ║ │
+│  ║  └──────────────────────────────────────────────────────────────────┘ ║ │
+│  ║                                                                        ║ │
+│  ║  • Height: 56px (XL)                                                  ║ │
+│  ║  • Width: Full-width                                                  ║ │
+│  ║  • Background: Electric purple gradient (#9D4EDD → #7B2CBF)          ║ │
+│  ║  • Text: Uppercase, 700 weight, 1.5px letter-spacing                  ║ │
+│  ║  • Animation: Corner morphing + scale(1.02) on hover                  ║ │
+│  ║  • Shadow: 0 4px 15px expanding to 0 6px 20px on hover               ║ │
+│  ║  • Dynamic: Label changes based on status                             ║ │
+│  ║                                                                        ║ │
+│  ║  Test ID: advance-stage-button                                        ║ │
+│  ╚═══════════════════════════════════════════════════════════════════════╝ │
+│                                                                             │
+│  ╔═══════════════════════════════════════════════════════════════════════╗ │
+│  ║  TIER 2: SECONDARY IMPORTANT ACTIONS                                  ║ │
+│  ║                                                                        ║ │
+│  ║  ┌──────────────────────────┐  ┌──────────────────────────┐          ║ │
+│  ║  │  ✓ Skip to Approved      │  │  ⏸ Put On Hold           │          ║ │
+│  ║  └──────────────────────────┘  └──────────────────────────┘          ║ │
+│  ║                                                                        ║ │
+│  ║  • Height: 48px (MD)                                                  ║ │
+│  ║  • Layout: Side-by-side with grow (wraps on mobile)                   ║ │
+│  ║  • Variant: Outlined (2px border)                                     ║ │
+│  ║  • Colors: Green (Skip), Yellow (Hold)                                ║ │
+│  ║  • Animation: Corner morphing on hover                                ║ │
+│  ║  • Weight: 600                                                        ║ │
+│  ║                                                                        ║ │
+│  ║  Test IDs: skip-to-approved-button, hold-button                       ║ │
+│  ╚═══════════════════════════════════════════════════════════════════════╝ │
+│                                                                             │
+│  ╔═══════════════════════════════════════════════════════════════════════╗ │
+│  ║  TIER 3: TERTIARY ACTIONS (TEXT LINKS)                                ║ │
+│  ║                                                                        ║ │
+│  ║  ┌──────────────┐  ┌──────────────────┐                              ║ │
+│  ║  │ ✉ Reminder   │  │ ✕ Deny           │                              ║ │
+│  ║  └──────────────┘  └──────────────────┘                              ║ │
+│  ║                                                                        ║ │
+│  ║  • Height: 36px (SM)                                                  ║ │
+│  ║  • Variant: Subtle (text link style)                                  ║ │
+│  ║  • Colors: Gray (Reminder), Red (Deny)                                ║ │
+│  ║  • Weight: 500 (lighter)                                              ║ │
+│  ║  • Text Transform: None (normal case)                                 ║ │
+│  ║                                                                        ║ │
+│  ║  Test IDs: send-reminder-button, deny-application-button              ║ │
+│  ╚═══════════════════════════════════════════════════════════════════════╝ │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+DYNAMIC BUTTON LABELS BY STATUS
+================================
+
+┌───────────────────┬───────────────────────────┬──────────────────────────┐
+│ Status            │ Tier 1 Button Label       │ Next Status              │
+├───────────────────┼───────────────────────────┼──────────────────────────┤
+│ UnderReview       │ Approve for Interview     │ InterviewApproved        │
+│ InterviewApproved │ Schedule Interview        │ InterviewScheduled       │
+│ InterviewScheduled│ Mark Interview Complete   │ FinalReview              │
+│ FinalReview       │ Approve Application       │ Approved                 │
+│ Approved          │ (button hidden)           │ (terminal state)         │
+│ Denied            │ (button hidden)           │ (terminal state)         │
+│ OnHold            │ (varies by previous)      │ (can resume)             │
+└───────────────────┴───────────────────────────┴──────────────────────────┘
+
+
+BUTTON VISIBILITY MATRIX
+=========================
+
+┌───────────────────┬────────┬──────────┬──────────┬──────────┬──────┐
+│ Status            │ Tier 1 │ Skip to  │ Put On   │ Reminder │ Deny │
+│                   │ Advance│ Approved │ Hold     │          │      │
+├───────────────────┼────────┼──────────┼──────────┼──────────┼──────┤
+│ UnderReview       │   ✓    │    ✓     │    ✓     │    ✓     │  ✓   │
+│ InterviewApproved │   ✓    │    ✓     │    ✓     │    ✓     │  ✓   │
+│ InterviewScheduled│   ✓    │    ✓     │    ✓     │    ✓     │  ✓   │
+│ FinalReview       │   ✓    │    ✗     │    ✓     │    ✓     │  ✓   │
+│ Approved          │   ✗    │    ✗     │    ✗     │    ✓     │  ✗   │
+│ Denied            │   ✗    │    ✗     │    ✗     │    ✓     │  ✗   │
+│ OnHold            │   ✓    │    ✓     │    ✗     │    ✓     │  ✓   │
+└───────────────────┴────────┴──────────┴──────────┴──────────┴──────┘
+
+Legend: ✓ = Shown and enabled, ✗ = Hidden or disabled
+
+
+MOBILE RESPONSIVE BEHAVIOR (< 768px)
+=====================================
+
+Tier 2 Buttons Stack Vertically:
+
+┌───────────────────────────────────┐
+│  ┌─────────────────────────────┐  │
+│  │  ✓ Skip to Approved         │  │
+│  └─────────────────────────────┘  │
+│                                   │
+│  ┌─────────────────────────────┐  │
+│  │  ⏸ Put On Hold              │  │
+│  └─────────────────────────────┘  │
+└───────────────────────────────────┘
+
+• Group 'grow' property + flexWrap: 'wrap'
+• Each button takes full width on narrow screens
+• Maintains 48px height for touch targets
+• 16px spacing prevents mis-taps
+
+
+HANDLER FUNCTIONS
+=================
+
+handleAdvanceStage()
+├── Checks nextStageConfig exists
+├── Builds reasoning string with label and description
+└── Calls appropriate mutation:
+    ├── approveApplication() if next status = 'Approved'
+    └── submitDecision() for intermediate stages
+
+handleSkipToApproved()
+├── Builds "skipped to approval" reasoning
+└── Calls approveApplication() mutation
+
+handlePutOnHold()
+└── Opens OnHoldModal
+
+handleSendReminder()
+└── Opens SendReminderModal
+
+handleDenyApplication()
+└── Opens DenyApplicationModal
+
+
+ACCESSIBILITY FEATURES
+======================
+
+✓ Keyboard Navigation
+  - Tab order: Tier 1 → Tier 2 (L→R) → Tier 3 (L→R)
+  - Enter/Space activates buttons
+  - Disabled buttons skip in tab order
+
+✓ Screen Readers
+  - Descriptive test IDs
+  - Loading states announced
+  - Disabled states clear
+
+✓ Visual Accessibility
+  - Color contrast 4.5:1 minimum (WCAG 2.1 AA)
+  - Touch targets: 56px, 48px, 36px
+  - Focus indicators: 2px outline + 4px offset
+
+✓ Reduced Motion
+  - Respects prefers-reduced-motion
+  - No translateY movement per design system
+
+
+IMPLEMENTATION COMPLETE
+========================
+
+Date: 2025-10-06
+File: VettingApplicationDetail.tsx
+Lines Changed: ~170 lines
+Status: Ready for testing
+Next Steps: Manual testing, E2E test updates

@@ -87,17 +87,63 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
       canDeny: false,
       canHold: false,
       canSchedule: false,
-      canRemind: false
+      canRemind: false,
+      canAdvanceStage: false,
+      canSkipToApproved: false
     };
 
+    const isTerminal = ['Approved', 'Denied', 'Withdrawn'].includes(application.status);
+    const isOnHold = application.status === 'OnHold';
+
     return {
-      canApprove: !['Approved', 'Denied', 'Withdrawn'].includes(application.status),
-      canDeny: !['Approved', 'Denied', 'Withdrawn'].includes(application.status),
-      canHold: !['Approved', 'Denied', 'Withdrawn', 'OnHold'].includes(application.status),
+      canApprove: !isTerminal, // Legacy "Skip to Approved" action
+      canDeny: !isTerminal,
+      canHold: !isTerminal && !isOnHold,
       canSchedule: application.status === 'InterviewApproved',
-      canRemind: true // Can always send reminder
+      canRemind: true, // Can always send reminder
+      canAdvanceStage: !isTerminal, // Can advance unless terminal
+      canSkipToApproved: !isTerminal && application.status !== 'FinalReview' // Can skip unless already at final review or terminal
     };
   }, [application]);
+
+  // Get next stage configuration based on current status
+  const getNextStageConfig = (currentStatus: string) => {
+    const configs: Record<string, {
+      label: string;
+      nextStatus: string;
+      description: string;
+      icon: typeof IconCheck;
+    }> = {
+      UnderReview: {
+        label: 'Approve for Interview',
+        nextStatus: 'InterviewApproved',
+        description: 'Move to interview stage',
+        icon: IconCheck
+      },
+      InterviewApproved: {
+        label: 'Schedule Interview',
+        nextStatus: 'InterviewScheduled',
+        description: 'Set interview date',
+        icon: IconCalendarEvent
+      },
+      InterviewScheduled: {
+        label: 'Mark Interview Complete',
+        nextStatus: 'FinalReview',
+        description: 'Move to final review',
+        icon: IconCheck
+      },
+      FinalReview: {
+        label: 'Approve Application',
+        nextStatus: 'Approved',
+        description: 'Grant full access',
+        icon: IconCheck
+      }
+    };
+
+    return configs[currentStatus] || null;
+  };
+
+  const nextStageConfig = getNextStageConfig(application?.status || '');
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
@@ -107,17 +153,42 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
     return new Date(dateString).toLocaleDateString();
   };
 
-  const handleApproveApplication = () => {
+  const handleAdvanceStage = () => {
+    if (!application || !nextStageConfig) return;
+
+    const reasoning = `Advanced to ${nextStageConfig.label}: ${nextStageConfig.description}`;
+
+    // Use the appropriate mutation based on the next status
+    if (nextStageConfig.nextStatus === 'Approved') {
+      // Final approval
+      approveApplication({
+        applicationId: application.id,
+        reasoning
+      });
+    } else {
+      // Intermediate stage advancement
+      submitDecision({
+        applicationId: application.id,
+        decisionType: nextStageConfig.nextStatus,
+        reasoning
+      });
+    }
+  };
+
+  const handleSkipToApproved = () => {
     if (application) {
-      const reasoning = application.status === 'UnderReview'
-        ? 'Application approved for interview based on initial review'
-        : 'Application approved for membership';
+      const reasoning = 'Application approved - skipped to final approval';
 
       approveApplication({
         applicationId: application.id,
         reasoning
       });
     }
+  };
+
+  const handleApproveApplication = () => {
+    // This is now the "Skip to Approved" action
+    handleSkipToApproved();
   };
 
   const handlePutOnHold = () => {
@@ -268,110 +339,166 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
         </Stack>
       </Paper>
 
-      {/* Action Buttons Section */}
+      {/* Action Buttons Section - Three-Tier Visual Hierarchy */}
       <Paper p="md" radius="md">
-        <Stack gap="sm">
+        <Stack gap="lg">
           <Text fw={600} size="sm" c="dimmed">ACTIONS</Text>
-          <Group gap="md">
+
+          {/* Tier 1: Primary Next Stage Action */}
+          {nextStageConfig && availableActions.canAdvanceStage && (
             <Button
-              leftSection={<IconCheck size={16} />}
-              onClick={handleApproveApplication}
-              loading={isApprovingApplication}
-              disabled={!availableActions.canApprove}
-              data-testid="approve-application-button"
+              size="xl"
+              fullWidth
+              leftSection={React.createElement(nextStageConfig.icon, { size: 20 })}
+              onClick={handleAdvanceStage}
+              loading={isSubmittingDecision || isApprovingApplication}
+              disabled={!availableActions.canAdvanceStage}
+              data-testid="advance-stage-button"
               styles={{
                 root: {
-                  backgroundColor: availableActions.canApprove ? '#228B22' : undefined,
-                  color: availableActions.canApprove ? '#FFF' : undefined,
-                  height: '44px',
-                  paddingTop: '12px',
-                  paddingBottom: '12px',
-                  fontSize: '14px',
-                  lineHeight: '1.2',
-                  fontWeight: 600
+                  background: 'linear-gradient(135deg, #9D4EDD, #7B2CBF)',
+                  height: '56px',
+                  fontSize: '16px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '1.5px',
+                  borderRadius: '12px 6px 12px 6px',
+                  boxShadow: '0 4px 15px rgba(157, 78, 221, 0.4)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    borderRadius: '6px 12px 6px 12px',
+                    boxShadow: '0 6px 20px rgba(157, 78, 221, 0.6)',
+                    transform: 'scale(1.02)'
+                  },
+                  '&:disabled': {
+                    background: 'linear-gradient(135deg, #9D4EDD, #7B2CBF)',
+                    opacity: 0.5
+                  }
                 }
               }}
             >
-              Approve Application
+              <Group justify="space-between" style={{ width: '100%' }}>
+                <Text fw={700} size="md">{nextStageConfig.label}</Text>
+                <Text size="sm" fw={400} style={{ opacity: 0.9, textTransform: 'none', letterSpacing: '0' }}>
+                  {nextStageConfig.description}
+                </Text>
+              </Group>
             </Button>
-            <Button
-              variant="outline"
-              color="yellow"
-              onClick={handlePutOnHold}
-              disabled={!availableActions.canHold}
-              data-testid="hold-button"
-              styles={{
-                root: {
-                  height: '44px',
-                  paddingTop: '12px',
-                  paddingBottom: '12px',
-                  fontSize: '14px',
-                  lineHeight: '1.2',
-                  fontWeight: 600
-                }
-              }}
-            >
-              Put On Hold
-            </Button>
-            <Button
-              color="red"
-              leftSection={<IconX size={16} />}
-              onClick={handleDenyApplication}
-              disabled={!availableActions.canDeny}
-              data-testid="deny-application-button"
-              styles={{
-                root: {
-                  height: '44px',
-                  paddingTop: '12px',
-                  paddingBottom: '12px',
-                  fontSize: '14px',
-                  lineHeight: '1.2',
-                  fontWeight: 600
-                }
-              }}
-            >
-              Deny Application
-            </Button>
-            {availableActions.canSchedule && (
+          )}
+
+          {/* Tier 2: Secondary Important Actions */}
+          <Group gap="md" grow style={{ flexWrap: 'wrap' }}>
+            {availableActions.canSkipToApproved && (
               <Button
                 variant="outline"
-                color="blue"
-                leftSection={<IconCalendarEvent size={16} />}
-                onClick={() => setScheduleInterviewModalOpen(true)}
-                data-testid="schedule-interview-button"
+                color="green"
+                size="md"
+                leftSection={<IconCheck size={18} />}
+                onClick={handleSkipToApproved}
+                loading={isApprovingApplication}
+                disabled={!availableActions.canSkipToApproved}
+                data-testid="skip-to-approved-button"
                 styles={{
                   root: {
-                    height: '44px',
+                    height: '48px',
+                    borderRadius: '12px 6px 12px 6px',
+                    borderWidth: '2px',
+                    fontWeight: 600,
+                    transition: 'all 0.3s ease',
                     paddingTop: '12px',
                     paddingBottom: '12px',
                     fontSize: '14px',
                     lineHeight: '1.2',
-                    fontWeight: 600
+                    '&:hover': {
+                      borderRadius: '6px 12px 6px 12px'
+                    }
                   }
                 }}
               >
-                Schedule Interview
+                Skip to Approved
               </Button>
             )}
+
+            {availableActions.canHold && (
+              <Button
+                variant="outline"
+                color="yellow"
+                size="md"
+                leftSection={<IconClock size={18} />}
+                onClick={handlePutOnHold}
+                disabled={!availableActions.canHold}
+                data-testid="hold-button"
+                styles={{
+                  root: {
+                    height: '48px',
+                    borderRadius: '12px 6px 12px 6px',
+                    borderWidth: '2px',
+                    fontWeight: 600,
+                    transition: 'all 0.3s ease',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    fontSize: '14px',
+                    lineHeight: '1.2',
+                    '&:hover': {
+                      borderRadius: '6px 12px 6px 12px'
+                    }
+                  }
+                }}
+              >
+                Put On Hold
+              </Button>
+            )}
+          </Group>
+
+          {/* Tier 3: Tertiary Actions (Text Links) */}
+          <Group gap="lg" justify="flex-start">
             <Button
-              variant="outline"
+              variant="subtle"
               color="gray"
+              size="sm"
+              leftSection={<IconMail size={16} />}
               onClick={handleSendReminder}
               disabled={!availableActions.canRemind}
               data-testid="send-reminder-button"
               styles={{
                 root: {
-                  height: '44px',
-                  paddingTop: '12px',
-                  paddingBottom: '12px',
+                  height: '36px',
+                  fontWeight: 500,
+                  textTransform: 'none',
+                  paddingTop: '8px',
+                  paddingBottom: '8px',
                   fontSize: '14px',
-                  lineHeight: '1.2',
-                  fontWeight: 600
+                  lineHeight: '1.2'
                 }
               }}
             >
               Send Reminder
             </Button>
+
+            {availableActions.canDeny && (
+              <Button
+                variant="subtle"
+                color="red"
+                size="sm"
+                leftSection={<IconX size={16} />}
+                onClick={handleDenyApplication}
+                disabled={!availableActions.canDeny}
+                data-testid="deny-application-button"
+                styles={{
+                  root: {
+                    height: '36px',
+                    fontWeight: 500,
+                    textTransform: 'none',
+                    paddingTop: '8px',
+                    paddingBottom: '8px',
+                    fontSize: '14px',
+                    lineHeight: '1.2'
+                  }
+                }}
+              >
+                Deny Application
+              </Button>
+            )}
           </Group>
         </Stack>
       </Paper>
