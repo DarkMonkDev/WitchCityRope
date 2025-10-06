@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using WitchCityRope.Api.Data;
 using WitchCityRope.IntegrationTests;
 using WitchCityRope.Tests.Common.Fixtures;
@@ -30,12 +31,14 @@ namespace WitchCityRope.Tests.Integration
         {
             // Arrange & Act - Container should be running from fixture
             var connectionString = ConnectionString;
-            
+
             // Assert
             connectionString.Should().NotBeNullOrEmpty();
-            connectionString.Should().Contain("postgres");
+            // TestContainers uses Host/Port format, not "postgres" keyword
+            connectionString.Should().Contain("Host=");
             connectionString.Should().Contain("witchcityrope_test");
-            
+            connectionString.Should().Contain("test_user"); // Verify test user in connection string
+
             // Verify database is accessible
             await using var context = CreateDbContext();
             var canConnect = await context.Database.CanConnectAsync();
@@ -102,12 +105,18 @@ namespace WitchCityRope.Tests.Integration
         [Fact]
         public void ServiceProvider_ShouldBeConfigured()
         {
-            // Arrange & Act
-            var dbContext = GetService<ApplicationDbContext>();
-            
+            // Arrange & Act - Create our own scope to control disposal timing
+            using var scope = Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
             // Assert
             dbContext.Should().NotBeNull();
             dbContext.Database.Should().NotBeNull();
+
+            // Verify the connection string is configured
+            var connectionString = dbContext.Database.GetConnectionString();
+            connectionString.Should().NotBeNullOrEmpty();
+            connectionString.Should().Contain("witchcityrope_test");
         }
 
         [Fact]

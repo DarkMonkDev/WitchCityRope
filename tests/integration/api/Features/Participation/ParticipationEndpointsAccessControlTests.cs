@@ -300,7 +300,7 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
                 Email = email,
                 SceneName = "Test",
                 RealName = "User",
-                Status = vettingStatus.Value,
+                WorkflowStatus = vettingStatus.Value,
                 SubmittedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };

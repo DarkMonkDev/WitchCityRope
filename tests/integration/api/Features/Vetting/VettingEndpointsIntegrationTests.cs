@@ -79,7 +79,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         await using var context = CreateDbContext();
         var application = await context.VettingApplications.FindAsync(applicationId);
         application.Should().NotBeNull();
-        application!.Status.Should().Be(VettingStatus.UnderReview);
+        application!.WorkflowStatus.Should().Be(VettingStatus.UnderReview);
     }
 
     [Fact]
@@ -325,7 +325,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         await using var context = CreateDbContext();
         var application = await context.VettingApplications.FindAsync(applicationId);
         application.Should().NotBeNull();
-        application!.Status.Should().Be(VettingStatus.Denied);
+        application!.WorkflowStatus.Should().Be(VettingStatus.Denied);
 
         // Verify response
         var responseData = await response.Content.ReadFromJsonAsync<ApiResponse<ReviewDecisionResponse>>();
@@ -378,7 +378,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         await using var context = CreateDbContext();
         var application = await context.VettingApplications.FindAsync(applicationId);
         application.Should().NotBeNull();
-        application!.Status.Should().Be(VettingStatus.OnHold);
+        application!.WorkflowStatus.Should().Be(VettingStatus.OnHold);
     }
 
     #endregion
@@ -408,7 +408,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         await using var context = CreateDbContext();
         var application = await context.VettingApplications.FindAsync(applicationId);
         application.Should().NotBeNull();
-        application!.Status.Should().Be(VettingStatus.UnderReview, "Status should not have changed");
+        application!.WorkflowStatus.Should().Be(VettingStatus.UnderReview, "Status should not have changed");
     }
 
     [Fact]
@@ -434,7 +434,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         await using var context = CreateDbContext();
         var application = await context.VettingApplications.FindAsync(applicationId);
         application.Should().NotBeNull();
-        application!.Status.Should().Be(VettingStatus.UnderReview);
+        application!.WorkflowStatus.Should().Be(VettingStatus.UnderReview);
     }
 
     [Fact]
@@ -464,7 +464,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
             .FirstOrDefaultAsync();
 
         application.Should().NotBeNull();
-        application!.Status.Should().Be(VettingStatus.UnderReview);
+        application!.WorkflowStatus.Should().Be(VettingStatus.UnderReview);
         auditLog.Should().NotBeNull("Audit log should be created with status update");
         auditLog!.NewValue.Should().Contain("UnderReview");
     }
@@ -504,7 +504,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
             Email = email,
             SceneName = "Test",
             RealName = "User",
-            Status = initialStatus,
+            WorkflowStatus = initialStatus,
             SubmittedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -549,7 +549,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
             Email = email,
             SceneName = "Test",
             RealName = "User",
-            Status = initialStatus,
+            WorkflowStatus = initialStatus,
             SubmittedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

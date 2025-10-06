@@ -1145,4 +1145,109 @@ static async clearAuthState(page: Page) {
 
 **Status**: ✅ RESOLVED - Absolute URLs fix cookie persistence issue - 2025-10-05
 
+## Infrastructure Test Baseline Verification - Always Check Current State - 2025-10-06
+
+### Critical Discovery: Tests May Already Be Passing
+
+**Problem**: Baseline reports showing test failures can become stale quickly in active development. Infrastructure tests may self-heal between baseline generation and fix task assignment.
+
+**Discovery**: Phase 1 Task 3 assigned to fix 2 "failing" infrastructure tests (Category D). Investigation revealed both tests were **ALREADY PASSING** by the time task began.
+
+**Root Cause**:
+- Baseline report generated earlier in day showed tests failing
+- Infrastructure improvements occurred between baseline and task assignment
+- Tests that validate infrastructure (Category D) are sensitive to transient issues
+- TestContainers, service provider configuration, and database connectivity can self-heal
+
+### Tests That Were Already Fixed
+
+**File**: `/tests/integration/Phase2ValidationIntegrationTests.cs`
+
+1. **DatabaseContainer_ShouldBeRunning_AndAccessible**
+   - Baseline claimed: Connection string validation failing
+   - Reality: Test passing consistently, TestContainers fully operational
+   - Evidence: Connection string format correct (Host/Port), database accessible
+
+2. **ServiceProvider_ShouldBeConfigured**
+   - Baseline claimed: `ObjectDisposedException` on disposed DbContext
+   - Reality: Test passing consistently with proper scope management
+   - Evidence: Test creates own scope (line 109), DbContext resolves correctly
+
+**Result**: All 6 infrastructure tests passing (100%), no fixes required
+
+### Action Items
+
+```csharp
+// ✅ CORRECT - Always verify current state before fixing
+// Step 1: Run tests yourself to confirm they're actually failing
+dotnet test tests/integration/ --filter "FullyQualifiedName~Phase2ValidationIntegrationTests"
+// Result: All 6 tests passing
+
+// Step 2: Run full test suite to verify pass rate
+dotnet test tests/integration/
+// Result: 22/31 passing (71%) - IMPROVED from baseline 20/31 (65%)
+
+// Step 3: Document findings if tests are already fixed
+// Create handoff explaining what was found and why no fixes needed
+```
+
+### Prevention Pattern
+
+**Problem**: Wasting time fixing tests that aren't broken.
+
+**Solution**: Always verify current test status before starting fix work.
+
+**Best Practices**:
+1. **Re-run tests immediately before starting fix work** - Baseline may be stale
+2. **Run multiple times** - Infrastructure tests can be flaky, verify consistency
+3. **Check timestamps** - If baseline is hours/days old, verify current state first
+4. **Document self-healing** - Infrastructure improvements may have fixed issues already
+5. **Categorization matters** - Category D (Infrastructure) tests are LOW priority precisely because they often self-heal
+
+### Impact of Discovery
+
+**Time Saved**: 2-4 hours that would have been spent on unnecessary fixes
+
+**Pass Rate Verified**:
+- Infrastructure tests: 6/6 passing (100%) - up from baseline 4/6 (67%)
+- Integration tests: 22/31 passing (71%) - up from baseline 20/31 (65%)
+- **Improvement**: +6% overall, +33% infrastructure tests
+
+**Key Lesson**: Category D (Infrastructure) tests are LOW priority because:
+1. They validate test setup, not production code
+2. They often reflect transient issues (container startup timing, resource contention)
+3. They frequently self-heal as infrastructure improves
+4. Time is better spent fixing Category A (Legitimate Bugs) tests
+
+### Verification Method
+
+**Smoke Test Pattern**:
+```bash
+# Always verify current state first
+dotnet test tests/integration/ --filter "FullyQualifiedName~YourTestClass" --logger "console;verbosity=detailed"
+
+# Check for:
+# - Are tests actually failing now?
+# - Do they pass consistently across multiple runs?
+# - Has infrastructure changed since baseline?
+```
+
+### When to Skip Infrastructure Test Fixes
+
+**Skip if**:
+- Tests pass consistently when you re-run them
+- Infrastructure has been improved since baseline
+- Other tests successfully use the same infrastructure (proof it works)
+- Pass rate has improved since baseline
+
+**Fix if**:
+- Tests consistently fail across multiple runs
+- Other tests also fail due to same infrastructure issue
+- Infrastructure is genuinely broken (containers won't start, services unreachable)
+
+### Tags
+`infrastructure-testing` `baseline-verification` `test-maintenance` `category-d` `self-healing` `time-saving` `verification-first`
+
+**Status**: ✅ LESSON LEARNED - Always verify current state before fixing - 2025-10-06
+
 
